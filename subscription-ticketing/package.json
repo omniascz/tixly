@@ -1,0 +1,21 @@
+{
+  "name": "@tixly/subscription-ticketing",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Netflix-style recurring subscription giving access to N events per billing period",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^14.2.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.0",
+    "typescript": "^5.4.5",
+    "vitest": "^1.5.0"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "name": "tixly-server-side-tracking",
+  "version": "1.0.0",
+  "description": "Server-side tracking for Meta Conversions API and TikTok Events API",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "consumer": "node --experimental-specifier-resolution=node dist/jobs/tracking-consumer.job.js",
+    "dlq-retry": "node --experimental-specifier-resolution=node dist/jobs/dlq-retry.job.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4",
+    "pg": "^8.11.3",
+    "redis": "^4.6.13"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/pg": "^8.11.0",
+    "@vitest/coverage-v8": "^1.3.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.3.0"
+  },
+  "vitest": {
+    "environment": "node",
+    "include": [
+      "src/**/*.test.ts"
+    ]
+  },
+  "private": true,
+  "_envVarsRequired": {
+    "META_PIXEL_ID": "Facebook/Instagram Pixel ID from Meta Events Manager",
+    "META_ACCESS_TOKEN": "Meta Conversions API access token (System User token)",
+    "META_TEST_EVENT_CODE": "OPTIONAL — staging only, enables Meta test events (e.g. TEST12345)",
+    "TIKTOK_PIXEL_CODE": "TikTok Pixel code from TikTok Ads Manager",
+    "TIKTOK_ACCESS_TOKEN": "TikTok Events API access token",
+    "DATABASE_URL": "PostgreSQL connection string (must have tracking schema)",
+    "REDIS_URL": "Redis connection string for deduplication (default: redis://localhost:6379)",
+    "KAFKA_BROKERS": "Comma-separated Kafka broker list (default: localhost:9092)",
+    "KAFKA_CLIENT_ID": "Kafka client identifier (default: server-side-tracking)",
+    "KAFKA_GROUP_ID": "Kafka consumer group (default: server-side-tracking)",
+    "INTERNAL_API_KEY": "API key for DLQ management endpoints"
+  }
+}

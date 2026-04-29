@@ -1,0 +1,29 @@
+{
+  "name": "@tixly/jwt-auth",
+  "version": "1.0.0",
+  "description": "JWT authentication and RBAC library for Tixly platform",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@tixly/db-adapter": "file:../shared/db-adapter",
+    "bcryptjs": "^2.4.3",
+    "jose": "^5.2.0",
+    "next": "^14.0.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}

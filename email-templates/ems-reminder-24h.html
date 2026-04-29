@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head><meta charset="UTF-8"><title>Připomínka tréninku</title></head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <h2>{{customerName}}, zítra vás čeká EMS trénink!</h2>
+
+  <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+    <tr>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Kdy:</strong></td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{formatDate startsAt}} v {{time}}</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Kde:</strong></td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{branchName}}, {{branchAddress}}</td>
+    </tr>
+  </table>
+
+  <p>Vezměte si s sebou: sportovní oblečení, ručník, vodu.</p>
+
+  <p style="color: #666; font-size: 14px;">
+    Pokud se nemůžete dostavit, přesuňte rezervaci v
+    <a href="{{portalUrl}}">klientském portálu</a> (minimálně 30 minut předem).
+  </p>
+
+  <p style="color: #999; font-size: 12px; margin-top: 30px;">
+    Tento e-mail byl odeslán automaticky. {{supportEmail}}
+  </p>
+</body>
+</html>

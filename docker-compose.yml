@@ -1,0 +1,131 @@
+version: '3.9'
+
+# =============================================================================
+# Tixly — lokální vývojové prostředí
+# Spuštění: docker compose up -d
+# Reset DB:  docker compose down -v && docker compose up -d
+# Logy:      docker compose logs -f [postgres|redis|kafka|mailhog]
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL 16
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: tixly-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tixly}
+      POSTGRES_USER: ${POSTGRES_USER:-tixly}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tixly_dev}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/01-schema.sh:/docker-entrypoint-initdb.d/01-schema.sh:ro
+      - ./ticketing_schema.sql:/docker/ticketing_schema.sql:ro
+      - ./migrations:/docker/migrations:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-tixly} -d ${POSTGRES_DB:-tixly}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # Redis 7
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: tixly-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis_dev} --appendonly yes
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD:-redis_dev}', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---------------------------------------------------------------------------
+  # Kafka 3.7 (KRaft — bez Zookeeperu)
+  # ---------------------------------------------------------------------------
+  kafka:
+    image: bitnamilegacy/kafka:3.7
+    container_name: tixly-kafka
+    restart: unless-stopped
+    environment:
+      # KRaft mode
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # Topics auto-create
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_CFG_NUM_PARTITIONS: 3
+      KAFKA_CFG_DEFAULT_REPLICATION_FACTOR: 1
+      # Retence
+      KAFKA_CFG_LOG_RETENTION_HOURS: 168
+      KAFKA_CFG_LOG_SEGMENT_BYTES: 1073741824
+    ports:
+      - '${KAFKA_PORT:-9094}:9094'
+    volumes:
+      - kafka_data:/bitnami/kafka
+    healthcheck:
+      test: ['CMD-SHELL', 'kafka-topics.sh --bootstrap-server localhost:9092 --list > /dev/null 2>&1']
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Kafka topic provisioning (spustí se jednou, vytvoří všechna témata)
+  # ---------------------------------------------------------------------------
+  kafka-init:
+    image: bitnamilegacy/kafka:3.7
+    container_name: tixly-kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./docker/kafka/create-topics.sh:/create-topics.sh:ro
+    command: ['/bin/bash', '/create-topics.sh']
+    restart: on-failure
+
+  # ---------------------------------------------------------------------------
+  # Mailhog — SMTP catch-all pro lokální vývoj
+  # Web UI: http://localhost:8025
+  # SMTP:   localhost:1025
+  # ---------------------------------------------------------------------------
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: tixly-mailhog
+    restart: unless-stopped
+    ports:
+      - '${MAILHOG_SMTP_PORT:-1025}:1025'
+      - '${MAILHOG_UI_PORT:-8025}:8025'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:8025 > /dev/null 2>&1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  postgres_data:
+    name: tixly_postgres_data
+  redis_data:
+    name: tixly_redis_data
+  kafka_data:
+    name: tixly_kafka_data

@@ -1,0 +1,17 @@
+{
+  "name": "@shared/webhooks",
+  "version": "1.0.0",
+  "description": "Shared webhook engine core — HMAC signing, HTTP delivery, exponential retry. Framework-agnostic.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0"
+  }
+}

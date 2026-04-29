@@ -1,0 +1,54 @@
+name: Security
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # každé pondělí v 6:00 UTC
+  push:
+    branches: [main]
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Audit závislostí (npm audit)
+  # ---------------------------------------------------------------------------
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module:
+          - nextjs-boilerplate
+          - jwt-auth
+          - totp-qr
+          - resale-api
+          - rls-multitenancy
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ${{ matrix.module }}
+
+      - name: npm audit (high + critical)
+        run: npm audit --audit-level=high
+        working-directory: ${{ matrix.module }}
+
+  # ---------------------------------------------------------------------------
+  # Secret scanning — hledá náhodně commitnuté API klíče, tokeny apod.
+  # ---------------------------------------------------------------------------
+  secret-scan:
+    name: Secret scan (Gitleaks)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # celá historie
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

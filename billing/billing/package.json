@@ -1,0 +1,20 @@
+{
+  "name": "@tixly/billing",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^14.2.0",
+    "pg": "^8.11.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "@types/pg": "^8.11.0",
+    "typescript": "^5.9.3",
+    "vitest": "^1.6.1"
+  }
+}

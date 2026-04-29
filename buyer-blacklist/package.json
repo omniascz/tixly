@@ -1,0 +1,24 @@
+{
+  "name": "@tixly/buyer-blacklist",
+  "version": "1.0.0",
+  "description": "Platform-wide and per-promoter buyer ban system with appeal flow and audit log for Tixly",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tixly/db-adapter": "file:../shared/db-adapter",
+    "@tixly/rls-multitenancy": "file:../rls-multitenancy",
+    "next": "^14.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@vitest/coverage-v8": "^1.4.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0"
+  }
+}

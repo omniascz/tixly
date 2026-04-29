@@ -1,0 +1,32 @@
+{
+  "name": "@tixly/referral-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Referral marketing system with multi-touch attribution and credit wallet",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "scheduler": "tsx src/jobs/referral-scheduler.job.ts"
+  },
+  "dependencies": {
+    "@tixly/db-adapter": "file:../shared/db-adapter",
+    "next": "^14.2.0",
+    "node-cron": "^3.0.3",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.0",
+    "@types/node-cron": "^3.0.11",
+    "@types/react": "^18.3.0",
+    "@vitest/coverage-v8": "^1.5.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0"
+  }
+}

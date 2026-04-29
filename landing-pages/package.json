@@ -1,0 +1,26 @@
+{
+  "name": "@tixly/landing-pages",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tixly/db-adapter": "file:../shared/db-adapter",
+    "@tixly/rls-multitenancy": "file:../shared/rls-multitenancy",
+    "next": "^14.0.0",
+    "pg": "^8.11.0",
+    "sanitize-html": "^2.13.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/pg": "^8.10.0",
+    "@types/sanitize-html": "^2.13.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}

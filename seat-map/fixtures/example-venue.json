@@ -1,0 +1,227 @@
+{
+  "venueId": "venue-narodni-divadlo",
+  "venueName": "Národní divadlo — Hlavní scéna",
+  "viewBox": "0 0 800 600",
+  "sections": [
+    {
+      "id": "section-parter",
+      "name": "Parter",
+      "seats": [
+        {
+          "id": "parter-A-1", "section": "Parter", "row": "A", "seatNumber": "1",
+          "zone": { "id": "vip", "name": "VIP", "color": "#f59e0b", "price": 800, "description": "Nejlepší výhled, přední řady parteru" },
+          "status": "available", "x": 150, "y": 90, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-A-2", "section": "Parter", "row": "A", "seatNumber": "2",
+          "zone": { "id": "vip", "name": "VIP", "color": "#f59e0b", "price": 800, "description": "Nejlepší výhled, přední řady parteru" },
+          "status": "available", "x": 172, "y": 90, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-A-3", "section": "Parter", "row": "A", "seatNumber": "3",
+          "zone": { "id": "vip", "name": "VIP", "color": "#f59e0b", "price": 800, "description": "Nejlepší výhled, přední řady parteru" },
+          "status": "sold", "x": 194, "y": 90, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-A-4", "section": "Parter", "row": "A", "seatNumber": "4",
+          "zone": { "id": "vip", "name": "VIP", "color": "#f59e0b", "price": 800, "description": "Nejlepší výhled, přední řady parteru" },
+          "status": "available", "x": 216, "y": 90, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-A-5", "section": "Parter", "row": "A", "seatNumber": "5",
+          "zone": { "id": "vip", "name": "VIP", "color": "#f59e0b", "price": 800, "description": "Nejlepší výhled, přední řady parteru" },
+          "status": "locked", "x": 238, "y": 90, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-A-6", "section": "Parter", "row": "A", "seatNumber": "6",
+          "zone": { "id": "vip", "name": "VIP", "color": "#f59e0b", "price": 800, "description": "Nejlepší výhled, přední řady parteru" },
+          "status": "available", "x": 260, "y": 90, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-A-7", "section": "Parter", "row": "A", "seatNumber": "7",
+          "zone": { "id": "vip", "name": "VIP", "color": "#f59e0b", "price": 800, "description": "Nejlepší výhled, přední řady parteru" },
+          "status": "available", "x": 282, "y": 90, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-A-8", "section": "Parter", "row": "A", "seatNumber": "8",
+          "zone": { "id": "vip", "name": "VIP", "color": "#f59e0b", "price": 800, "description": "Nejlepší výhled, přední řady parteru" },
+          "status": "sold", "x": 304, "y": 90, "width": 18, "height": 18
+        },
+
+        {
+          "id": "parter-B-1", "section": "Parter", "row": "B", "seatNumber": "1",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "available", "x": 150, "y": 114, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-B-2", "section": "Parter", "row": "B", "seatNumber": "2",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "available", "x": 172, "y": 114, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-B-3", "section": "Parter", "row": "B", "seatNumber": "3",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "available", "x": 194, "y": 114, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-B-4", "section": "Parter", "row": "B", "seatNumber": "4",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "locked", "x": 216, "y": 114, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-B-5", "section": "Parter", "row": "B", "seatNumber": "5",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "available", "x": 238, "y": 114, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-B-6", "section": "Parter", "row": "B", "seatNumber": "6",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "available", "x": 260, "y": 114, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-B-7", "section": "Parter", "row": "B", "seatNumber": "7",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "available", "x": 282, "y": 114, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-B-8", "section": "Parter", "row": "B", "seatNumber": "8",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "available", "x": 304, "y": 114, "width": 18, "height": 18
+        },
+
+        {
+          "id": "parter-C-1", "section": "Parter", "row": "C", "seatNumber": "1",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "available", "x": 150, "y": 138, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-C-2", "section": "Parter", "row": "C", "seatNumber": "2",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "sold", "x": 172, "y": 138, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-C-3", "section": "Parter", "row": "C", "seatNumber": "3",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "available", "x": 194, "y": 138, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-C-4", "section": "Parter", "row": "C", "seatNumber": "4",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "available", "x": 216, "y": 138, "width": 18, "height": 18
+        },
+        {
+          "id": "parter-C-5", "section": "Parter", "row": "C", "seatNumber": "5",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "blocked", "x": 238, "y": 138, "width": 18, "height": 18
+        }
+      ]
+    },
+    {
+      "id": "section-balkon",
+      "name": "Balkón",
+      "seats": [
+        {
+          "id": "balkon-A-1", "section": "Balkón", "row": "A", "seatNumber": "1",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "available", "x": 150, "y": 320, "width": 18, "height": 18
+        },
+        {
+          "id": "balkon-A-2", "section": "Balkón", "row": "A", "seatNumber": "2",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "available", "x": 172, "y": 320, "width": 18, "height": 18
+        },
+        {
+          "id": "balkon-A-3", "section": "Balkón", "row": "A", "seatNumber": "3",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "sold", "x": 194, "y": 320, "width": 18, "height": 18
+        },
+        {
+          "id": "balkon-A-4", "section": "Balkón", "row": "A", "seatNumber": "4",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "available", "x": 216, "y": 320, "width": 18, "height": 18
+        },
+        {
+          "id": "balkon-A-5", "section": "Balkón", "row": "A", "seatNumber": "5",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "available", "x": 238, "y": 320, "width": 18, "height": 18
+        },
+        {
+          "id": "balkon-A-6", "section": "Balkón", "row": "A", "seatNumber": "6",
+          "zone": { "id": "standard", "name": "Standard", "color": "#22c55e", "price": 400, "description": "Střední a zadní řady parteru" },
+          "status": "locked", "x": 260, "y": 320, "width": 18, "height": 18
+        },
+        {
+          "id": "balkon-B-1", "section": "Balkón", "row": "B", "seatNumber": "1",
+          "zone": { "id": "economy", "name": "Economy", "color": "#6366f1", "price": 200, "description": "Galerie a boční místa s omezeným výhledem" },
+          "status": "available", "x": 150, "y": 344, "width": 18, "height": 18
+        },
+        {
+          "id": "balkon-B-2", "section": "Balkón", "row": "B", "seatNumber": "2",
+          "zone": { "id": "economy", "name": "Economy", "color": "#6366f1", "price": 200, "description": "Galerie a boční místa s omezeným výhledem" },
+          "status": "available", "x": 172, "y": 344, "width": 18, "height": 18
+        },
+        {
+          "id": "balkon-B-3", "section": "Balkón", "row": "B", "seatNumber": "3",
+          "zone": { "id": "economy", "name": "Economy", "color": "#6366f1", "price": 200, "description": "Galerie a boční místa s omezeným výhledem" },
+          "status": "available", "x": 194, "y": 344, "width": 18, "height": 18
+        },
+        {
+          "id": "balkon-B-4", "section": "Balkón", "row": "B", "seatNumber": "4",
+          "zone": { "id": "economy", "name": "Economy", "color": "#6366f1", "price": 200, "description": "Galerie a boční místa s omezeným výhledem" },
+          "status": "available", "x": 216, "y": 344, "width": 18, "height": 18
+        }
+      ]
+    },
+    {
+      "id": "section-galerie",
+      "name": "Galerie — Standing",
+      "seats": [
+        {
+          "id": "galerie-standing-1", "section": "Galerie", "row": "ST", "seatNumber": "1",
+          "zone": { "id": "economy", "name": "Economy", "color": "#6366f1", "price": 200, "description": "Galerie a boční místa s omezeným výhledem" },
+          "status": "available", "x": 550, "y": 320, "width": 12, "height": 12
+        },
+        {
+          "id": "galerie-standing-2", "section": "Galerie", "row": "ST", "seatNumber": "2",
+          "zone": { "id": "economy", "name": "Economy", "color": "#6366f1", "price": 200, "description": "Galerie a boční místa s omezeným výhledem" },
+          "status": "available", "x": 568, "y": 320, "width": 12, "height": 12
+        },
+        {
+          "id": "galerie-standing-3", "section": "Galerie", "row": "ST", "seatNumber": "3",
+          "zone": { "id": "economy", "name": "Economy", "color": "#6366f1", "price": 200, "description": "Galerie a boční místa s omezeným výhledem" },
+          "status": "sold", "x": 586, "y": 320, "width": 12, "height": 12
+        },
+        {
+          "id": "galerie-standing-4", "section": "Galerie", "row": "ST", "seatNumber": "4",
+          "zone": { "id": "economy", "name": "Economy", "color": "#6366f1", "price": 200, "description": "Galerie a boční místa s omezeným výhledem" },
+          "status": "available", "x": 604, "y": 320, "width": 12, "height": 12
+        },
+        {
+          "id": "galerie-standing-5", "section": "Galerie", "row": "ST", "seatNumber": "5",
+          "zone": { "id": "economy", "name": "Economy", "color": "#6366f1", "price": 200, "description": "Galerie a boční místa s omezeným výhledem" },
+          "status": "available", "x": 622, "y": 320, "width": 12, "height": 12
+        },
+        {
+          "id": "galerie-standing-6", "section": "Galerie", "row": "ST", "seatNumber": "6",
+          "zone": { "id": "economy", "name": "Economy", "color": "#6366f1", "price": 200, "description": "Galerie a boční místa s omezeným výhledem" },
+          "status": "locked", "x": 550, "y": 338, "width": 12, "height": 12
+        },
+        {
+          "id": "galerie-standing-7", "section": "Galerie", "row": "ST", "seatNumber": "7",
+          "zone": { "id": "economy", "name": "Economy", "color": "#6366f1", "price": 200, "description": "Galerie a boční místa s omezeným výhledem" },
+          "status": "available", "x": 568, "y": 338, "width": 12, "height": 12
+        },
+        {
+          "id": "galerie-standing-8", "section": "Galerie", "row": "ST", "seatNumber": "8",
+          "zone": { "id": "economy", "name": "Economy", "color": "#6366f1", "price": 200, "description": "Galerie a boční místa s omezeným výhledem" },
+          "status": "available", "x": 586, "y": 338, "width": 12, "height": 12
+        },
+        {
+          "id": "galerie-standing-9", "section": "Galerie", "row": "ST", "seatNumber": "9",
+          "zone": { "id": "economy", "name": "Economy", "color": "#6366f1", "price": 200, "description": "Galerie a boční místa s omezeným výhledem" },
+          "status": "available", "x": 604, "y": 338, "width": 12, "height": 12
+        }
+      ]
+    }
+  ]
+}

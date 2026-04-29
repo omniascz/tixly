@@ -1,0 +1,27 @@
+{
+  "name": "@tixly/post-event-report",
+  "version": "1.0.0",
+  "description": "Post-event report module for Tixly ticketing platform",
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "build": "tsc",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
+  },
+  "exports": {
+    "./types": "./src/types/post-event-report.types.ts",
+    "./calculator": "./src/lib/report-calculator.ts",
+    "./service": "./src/services/post-event-report.service.ts",
+    "./job": "./src/jobs/post-event-report.job.ts"
+  }
+}

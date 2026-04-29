@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rtk ls:*)",
+      "Bash(rtk npx:*)",
+      "Bash(npm test:*)",
+      "Bash(grep:*)",
+      "Bash(npm install:*)",
+      "Bash(ls node_modules/.bin/vitest*)",
+      "Bash(npx vitest:*)",
+      "Bash(./node_modules/.bin/vitest run:*)",
+      "Bash(ls node_modules/vitest)",
+      "PowerShell(Get-NetTCPConnection *)",
+      "PowerShell(Get-CimInstance *)",
+      "PowerShell(Stop-Process *)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:hi.events)",
+      "WebFetch(domain:pretix.eu)",
+      "WebFetch(domain:docs.pretix.eu)",
+      "WebFetch(domain:smsticket.cz)",
+      "WebFetch(domain:query.wikidata.org)",
+      "PowerShell(docker exec tixly-postgres *)",
+      "PowerShell(docker restart tixly-mailhog *)"
+    ]
+  }
+}

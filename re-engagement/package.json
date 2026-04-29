@@ -1,0 +1,26 @@
+{
+  "name": "@tixly/re-engagement",
+  "version": "1.0.0",
+  "description": "Automated email+push re-engagement campaign series for dormant Tixly users",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tixly/db-adapter": "file:../shared/db-adapter",
+    "@tixly/rls-multitenancy": "file:../rls-multitenancy",
+    "next": "^14.2.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@vitest/coverage-v8": "^1.4.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0"
+  }
+}

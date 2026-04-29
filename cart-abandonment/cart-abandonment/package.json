@@ -1,0 +1,23 @@
+{
+  "name": "@tixly/cart-abandonment",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tixly/rls-multitenancy": "file:../rls-multitenancy",
+    "jose": "^5.2.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.6",
+    "vitest": "^1.1.0"
+  },
+  "peerDependencies": {
+    "next": "^14.1.0"
+  }
+}

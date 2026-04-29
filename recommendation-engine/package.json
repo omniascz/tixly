@@ -1,0 +1,27 @@
+{
+  "name": "@tixly/recommendation-engine",
+  "version": "1.0.0",
+  "description": "Popularity-based + content-based recommendation engine for Tixly",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "batch-job": "tsx src/jobs/recommendation-batch.job.ts",
+    "feature-sync": "tsx src/jobs/feature-sync.job.ts"
+  },
+  "dependencies": {
+    "@tixly/db-adapter": "file:../shared/db-adapter",
+    "next": "^14.2.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@vitest/coverage-v8": "^1.4.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0"
+  }
+}

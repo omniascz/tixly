@@ -1,0 +1,92 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main     # → produkce
+      - develop  # → staging
+
+# Jeden deploy najednou per branch
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false   # deploy nikdy nepřerušuj — počkej na dokončení
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Deploy na Vercel
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: Deploy → ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel environment
+        run: |
+          vercel pull --yes \
+            --environment=${{ github.ref_name == 'main' && 'production' || 'preview' }} \
+            --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: nextjs-boilerplate
+
+      - name: Build pro Vercel
+        run: |
+          vercel build \
+            ${{ github.ref_name == 'main' && '--prod' || '' }} \
+            --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: nextjs-boilerplate
+
+      - name: Deploy na Vercel
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt \
+            ${{ github.ref_name == 'main' && '--prod' || '' }} \
+            --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$url" >> $GITHUB_OUTPUT
+        working-directory: nextjs-boilerplate
+
+      - name: Komentář na PR s URL
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✅ Deploy dokončen: ${{ steps.deploy.outputs.url }}`
+            })
+
+  # ---------------------------------------------------------------------------
+  # DB migrace (jen pro main → produkce)
+  # ---------------------------------------------------------------------------
+  migrate:
+    name: DB migrace (produkce)
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.ref_name == 'main'
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Spustit migrace
+        run: |
+          for migration in migrations/*.sql; do
+            echo "Aplikuji: $migration"
+            psql "$DATABASE_URL" -f "$migration"
+          done
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

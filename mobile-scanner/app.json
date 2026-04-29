@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "Tixly Scanner",
+    "slug": "tixly-scanner",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#111827"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "io.tixly.scanner",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Tixly Scanner uses the camera to scan ticket QR codes."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#111827"
+      },
+      "package": "io.tixly.scanner",
+      "permissions": ["CAMERA"]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Tixly Scanner to access the camera to scan ticket QR codes."
+        }
+      ],
+      "expo-sqlite",
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "tixly-scanner"
+      }
+    }
+  }
+}

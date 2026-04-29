@@ -1,0 +1,63 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+
+  "framework": "nextjs",
+
+  "regions": ["fra1"],
+
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "outputDirectory": ".next",
+
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/icons/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400" }
+      ]
+    }
+  ],
+
+  "crons": [
+    {
+      "path": "/api/cron/pricing-phase-check",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/resale-payout",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/churn-scoring",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/send-time-batch",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/recommendation-refresh",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/season-pass-renewal",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/flash-sale-expiry",
+      "schedule": "*/5 * * * *"
+    }
+  ]
+}

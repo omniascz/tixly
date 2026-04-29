@@ -1,0 +1,2645 @@
+openapi: 3.0.3
+info:
+  title: PulseUp Ticketing Platform API
+  description: |
+    REST API pro ticketingovou platformu PulseUp. Zahrnuje správu vstupenek,
+    akcí, objednávek, resale marketplace a gate scanning.
+
+    ## Autentizace
+    - **BearerAuth**: JWT (RS256, 15 min expiry) pro uživatelské endpointy
+    - **ApiKeyAuth**: API klíč pro gate scanner zařízení
+    - Refresh token je HttpOnly cookie nebo Bearer token dle konfigurace klienta
+
+    ## Limity
+    - Rate limiting: 100 req/min pro uživatele, 1000 req/min pro gate
+    - Maximální velikost těla požadavku: 1 MB
+
+    ## Resale pravidla
+    - Cena nesmí přesáhnout původní face-value vstupenky
+    - Platba probíhá přes escrow (GoPay), uvolnění po úspěšném scanu
+  version: 1.0.0
+  contact:
+    name: PulseUp API Support
+    email: api@pulseup.cz
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://api.pulseup.cz/v1
+    description: Production
+  - url: https://api-staging.pulseup.cz/v1
+    description: Staging
+
+tags:
+  - name: Auth
+    description: Autentizace a správa relací
+  - name: Tickets
+    description: Správa vstupenek uživatele
+  - name: Events
+    description: Prohlížení akcí a dostupnosti
+  - name: Orders
+    description: Vytváření a správa objednávek
+  - name: Resale
+    description: Resale marketplace s face-value enforcement
+  - name: Scanning
+    description: Gate scanner validace a synchronizace
+
+# ─────────────────────────────────────────────
+# PATHS
+# ─────────────────────────────────────────────
+paths:
+
+  # ── AUTH ──────────────────────────────────
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      operationId: authRegister
+      summary: Registrace nového uživatele
+      description: |
+        Vytvoří nový uživatelský účet. Po úspěšné registraci je odeslán
+        ověřovací e-mail. Účet je aktivní ihned, verifikace e-mailu je
+        vyžadována pro platební operace.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Uživatel úspěšně vytvořen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: authLogin
+      summary: Přihlášení uživatele
+      description: |
+        Ověří přihlašovací údaje a vrátí JWT access token (platnost 15 min)
+        a refresh token (platnost 30 dní). Refresh token je také nastaven
+        jako HttpOnly cookie `rt`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Přihlášení úspěšné
+          headers:
+            Set-Cookie:
+              description: HttpOnly refresh token cookie `rt=<token>; Path=/auth/refresh; HttpOnly; Secure; SameSite=Strict`
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      operationId: authRefresh
+      summary: Obnovení access tokenu
+      description: |
+        Vydá nový access token na základě platného refresh tokenu.
+        Refresh token může být předán jako Bearer v hlavičce Authorization
+        nebo jako HttpOnly cookie `rt`. Implementuje token rotation —
+        starý refresh token je okamžitě revokován.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Nový access token vydán
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      operationId: authLogout
+      summary: Odhlášení (revokace refresh tokenu)
+      description: |
+        Revokuje aktuální refresh token. Access token zůstane platný
+        do vypršení (max 15 min). Token je přidán do Redis blacklistu.
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '204':
+          description: Odhlášení úspěšné, obsah prázdný
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/logout-all:
+    post:
+      tags: [Auth]
+      operationId: authLogoutAll
+      summary: Odhlášení ze všech zařízení
+      description: |
+        Revokuje všechny refresh tokeny uživatele napříč zařízeními.
+        Vyžaduje platný access token. Vhodné při kompromitaci účtu.
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Všechny relace ukončeny
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ── TICKETS ───────────────────────────────
+
+  /tickets:
+    get:
+      tags: [Tickets]
+      operationId: listTickets
+      summary: Seznam vstupenek přihlášeného uživatele
+      description: |
+        Vrací paginated seznam vstupenek aktuálně přihlášeného uživatele.
+        Lze filtrovat dle statusu a event_id.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: status
+          in: query
+          description: Filtr dle stavu vstupenky
+          schema:
+            $ref: '#/components/schemas/TicketStatus'
+        - name: event_id
+          in: query
+          description: Filtr dle ID akce
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Seznam vstupenek
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Ticket'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tickets/{ticketId}:
+    get:
+      tags: [Tickets]
+      operationId: getTicket
+      summary: Detail vstupenky včetně QR dat
+      description: |
+        Vrací kompletní detail vstupenky včetně aktuálního stavu QR kódu
+        (bez TOTP payloadu — ten je dostupný přes `/tickets/{ticketId}/qr`).
+        Uživatel musí být vlastníkem vstupenky.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TicketIdParam'
+      responses:
+        '200':
+          description: Detail vstupenky
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tickets/{ticketId}/qr:
+    get:
+      tags: [Tickets]
+      operationId: getTicketQR
+      summary: Generování aktuálního QR payloadu (TOTP window)
+      description: |
+        Generuje aktuální TOTP-based QR payload pro vstupenku. Payload se
+        obnovuje každých 30 sekund (TOTP window). Odpověď obsahuje
+        `expires_at` pro klientské odpočítávání.
+
+        QR payload je HMAC-SHA1 TOTP dle RFC 6238 kombinovaný s ticket UUID
+        a device fingerprint z claim operace.
+
+        **Důležité**: endpoint musí být volán s platným device bindindem
+        (viz `POST /tickets/{ticketId}/claim`).
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TicketIdParam'
+      responses:
+        '200':
+          description: Aktuální QR payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QRPayload'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Vstupenka není ve stavu umožňujícím generování QR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tickets/{ticketId}/claim:
+    post:
+      tags: [Tickets]
+      operationId: claimTicket
+      summary: Claim vstupenky na zařízení (device binding)
+      description: |
+        Váže vstupenku na konkrétní zařízení pomocí device fingerprintu.
+        Po claimu je TOTP generován s vazbou na device_id, čímž je
+        zamezeno zobrazení QR na jiném zařízení bez re-claimu.
+
+        Jedno zařízení může mít max 10 aktivních vstupenek současně.
+        Re-claim na jiném zařízení vyžaduje potvrzení e-mailem.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TicketIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClaimRequest'
+      responses:
+        '200':
+          description: Vstupenka úspěšně claimována
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaimResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tickets/{ticketId}/transfer:
+    post:
+      tags: [Tickets]
+      operationId: transferTicket
+      summary: Interní převod vstupenky jinému uživateli (gift)
+      description: |
+        Převede vstupenku na jiného uživatele jako dar (gift transfer).
+        Cena je 0 Kč — nejde o resale. Příjemce je identifikován e-mailem
+        nebo user_id. Převod je nevratný, příjemce musí vstupenku přijmout
+        do 48 hodin, jinak se vrátí původnímu vlastníkovi.
+
+        Operace je logována do Kafka topicu `ticket.transfers`.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TicketIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+      responses:
+        '200':
+          description: Transfer iniciován, čeká na přijetí příjemcem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ── EVENTS ────────────────────────────────
+
+  /events:
+    get:
+      tags: [Events]
+      operationId: listEvents
+      summary: Seznam akcí
+      description: |
+        Vrací paginated seznam veřejně dostupných akcí.
+        Podporuje filtrování dle data, kategorie a města.
+        Výsledky jsou cachovány v Redis (TTL 60 s).
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: date_from
+          in: query
+          description: Filtr — akce od tohoto data (ISO 8601)
+          schema:
+            type: string
+            format: date
+          example: '2026-06-01'
+        - name: date_to
+          in: query
+          description: Filtr — akce do tohoto data (ISO 8601)
+          schema:
+            type: string
+            format: date
+          example: '2026-12-31'
+        - name: category
+          in: query
+          description: Filtr dle kategorie akce
+          schema:
+            $ref: '#/components/schemas/EventCategory'
+        - name: city
+          in: query
+          description: Filtr dle města (case-insensitive, partial match)
+          schema:
+            type: string
+          example: Praha
+      responses:
+        '200':
+          description: Seznam akcí
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /events/{eventId}:
+    get:
+      tags: [Events]
+      operationId: getEvent
+      summary: Detail akce
+      description: |
+        Vrací kompletní detail akce včetně venue, line-upu, a dostupnosti.
+        Data jsou cachovány v Redis (TTL 30 s).
+      parameters:
+        - $ref: '#/components/parameters/EventIdParam'
+      responses:
+        '200':
+          description: Detail akce
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /events/{eventId}/ticket-types:
+    get:
+      tags: [Events]
+      operationId: listTicketTypes
+      summary: Dostupné typy vstupenek s aktuálními cenami
+      description: |
+        Vrací seznam typů vstupenek pro danou akci včetně aktuální ceny,
+        dostupného počtu a případných omezení (limit na osobu, věkové limity).
+        Ceny jsou v CZK, real-time bez cache.
+      parameters:
+        - $ref: '#/components/parameters/EventIdParam'
+      responses:
+        '200':
+          description: Typy vstupenek
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  event_id:
+                    type: string
+                    format: uuid
+                  ticket_types:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TicketType'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /events/{eventId}/seat-map:
+    get:
+      tags: [Events]
+      operationId: getSeatMap
+      summary: SVG/JSON mapa sálu se stavem míst
+      description: |
+        Vrací mapu sálu s aktuálním stavem sedadel (volné, rezervované,
+        prodané). Formát odpovědi závisí na hlavičce `Accept`:
+        - `application/json` — strukturovaná data se sekcemi a sedadly
+        - `image/svg+xml` — SVG mapa připravená k renderování
+
+        Data jsou cachovány v Redis s TTL 5 s pro minimální zpoždění
+        při souběžném prodeji.
+      parameters:
+        - $ref: '#/components/parameters/EventIdParam'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+            enum:
+              - application/json
+              - image/svg+xml
+            default: application/json
+      responses:
+        '200':
+          description: Mapa sálu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeatMap'
+            image/svg+xml:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ── ORDERS ────────────────────────────────
+
+  /orders:
+    post:
+      tags: [Orders]
+      operationId: createOrder
+      summary: Vytvoření objednávky
+      description: |
+        Vytvoří novou objednávku. Vybraná místa jsou okamžitě rezervována
+        (Redis distributed lock, TTL 10 min). Objednávka je v stavu `pending`
+        do dokončení platby přes GoPay.
+
+        Po vytvoření objednávky je v odpovědi `payment_url` pro přesměrování
+        na GoPay platební bránu. Platba musí být dokončena do 10 minut,
+        jinak je objednávka automaticky stornována a místa uvolněna.
+
+        Maximálně 8 vstupenek na objednávku.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Objednávka vytvořena, platba čeká
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Vybraná místa již nejsou dostupná (race condition)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: SEATS_UNAVAILABLE
+                  message: Vybraná místa byla mezitím zabrána jiným uživatelem
+                  details:
+                    unavailable_seats: ['A12', 'A13']
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /orders/{orderId}:
+    get:
+      tags: [Orders]
+      operationId: getOrder
+      summary: Stav objednávky
+      description: |
+        Vrací aktuální stav objednávky včetně vstupenek (po zaplacení)
+        a informací o platbě. Uživatel vidí pouze vlastní objednávky.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      responses:
+        '200':
+          description: Detail objednávky
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /orders/{orderId}/cancel:
+    post:
+      tags: [Orders]
+      operationId: cancelOrder
+      summary: Storno objednávky
+      description: |
+        Stornuje objednávku. Podmínky storna:
+        - Objednávka musí být ve stavu `pending` nebo `paid`
+        - Storno zaplacené objednávky podléhá storno podmínkám akce
+        - Refund je inicializován přes GoPay API (TTL 5-7 prac. dní)
+        - Storno není možné méně než 24 hodin před akcí (pokud organizátor
+          nestanoví jinak)
+
+        Operace je logována do Kafka topicu `order.cancellations`.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelOrderRequest'
+      responses:
+        '200':
+          description: Objednávka stornována
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Storno není možné (stav, časové omezení)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ── RESALE ────────────────────────────────
+
+  /resale:
+    get:
+      tags: [Resale]
+      operationId: listResaleListings
+      summary: Seznam vstupenek k prodeji
+      description: |
+        Vrací paginated seznam aktivních resale listingů.
+        Cena je vždy <= face value vstupenky (enforced serverem).
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: event_id
+          in: query
+          description: Filtr dle akce
+          schema:
+            type: string
+            format: uuid
+        - name: zone
+          in: query
+          description: Filtr dle zóny/sekce sálu
+          schema:
+            type: string
+          example: VIP
+        - name: max_price
+          in: query
+          description: Maximální cena v haléřích (CZK * 100)
+          schema:
+            type: integer
+            minimum: 0
+          example: 120000
+      responses:
+        '200':
+          description: Seznam resale listingů
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ResaleListing'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags: [Resale]
+      operationId: createResaleListing
+      summary: Vytvoření resale listingu
+      description: |
+        Vytvoří nový resale listing pro vstupenku v majetku uživatele.
+
+        **Face-value enforcement**: Zadaná cena nesmí překročit původní
+        cenu vstupenky (face value). Server cenu validuje a odmítne
+        požadavek s HTTP 422 při porušení pravidla.
+
+        Po vytvoření listingu je vstupenka uzamčena (stav `listed`) a nelze
+        ji použít ke vstupu. Uzamčení je uvolněno při smazání listingu nebo
+        po expiraci (výchozí 30 dní).
+
+        Platba kupujícího putuje do escrow (GoPay), uvolnění prodávajícímu
+        nastane po úspěšném scanu vstupenky na akci.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateResaleListingRequest'
+      responses:
+        '201':
+          description: Listing vytvořen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResaleListing'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Cena překračuje face value nebo vstupenka není způsobilá k resale
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FACE_VALUE_EXCEEDED
+                  message: Cena listingu nesmí překročit původní cenu vstupenky
+                  details:
+                    face_value: 150000
+                    requested_price: 200000
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /resale/{listingId}:
+    get:
+      tags: [Resale]
+      operationId: getResaleListing
+      summary: Detail resale listingu
+      description: |
+        Vrací detail konkrétního resale listingu včetně informací o vstupence
+        a akci. Identita prodávajícího je anonymizována (zobrazí se pouze
+        první písmeno jména a hvězdičky).
+      parameters:
+        - $ref: '#/components/parameters/ListingIdParam'
+      responses:
+        '200':
+          description: Detail listingu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResaleListingDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags: [Resale]
+      operationId: deleteResaleListing
+      summary: Zrušení resale listingu (seller)
+      description: |
+        Zruší aktivní listing. Vstupenka je vrácena do stavu `active`.
+        Listing lze zrušit pouze pokud nebyla zahájena platba kupujícím.
+        Pokud platba probíhá (escrow), zrušení není možné.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ListingIdParam'
+      responses:
+        '204':
+          description: Listing zrušen
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Listing nelze zrušit (platba v escrow)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /resale/{listingId}/purchase:
+    post:
+      tags: [Resale]
+      operationId: purchaseResaleListing
+      summary: Koupě vstupenky z resale
+      description: |
+        Iniciuje nákup vstupenky z resale marketplace.
+
+        **Escrow flow**:
+        1. Kupující zaplatí přes GoPay → platba jde do escrow
+        2. Vstupenka je převedena na kupujícího (stav `active`)
+        3. Prodávající dostane peníze po úspěšném scanu vstupenky na akci
+        4. Pokud vstupenka není nascanována, escrow je uvolněn po 72 h po akci
+
+        Odpověď obsahuje `payment_url` pro přesměrování na GoPay.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ListingIdParam'
+      responses:
+        '201':
+          description: Nákup iniciován, platba čeká
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResalePurchaseResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Listing již není dostupný (prodáno jiným kupujícím)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ── SCANNING ──────────────────────────────
+
+  /scan/validate:
+    post:
+      tags: [Scanning]
+      operationId: validateScan
+      summary: Validace QR kódu u brány (gate scanner)
+      description: |
+        Validuje QR payload předložený návštěvníkem u vstupu.
+
+        **Validační kroky**:
+        1. Dekódování a ověření TOTP signatury (window ±1)
+        2. Kontrola stavu vstupenky (ne stornovaná, ne již nascanovaná)
+        3. Kontrola device bindingu
+        4. Zápis scanu do DB + Kafka topic `ticket.scans`
+        5. Vrácení výsledku s latencí < 200 ms (SLA)
+
+        Endpoint vyžaduje ApiKeyAuth (gate scanner device key).
+        Access log je uchováván po dobu 2 let.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScanValidateRequest'
+      responses:
+        '200':
+          description: Výsledek validace
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanValidateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /scan/sync:
+    get:
+      tags: [Scanning]
+      operationId: syncGateScanner
+      summary: Delta sync pro offline gate scanner (since timestamp)
+      description: |
+        Poskytuje delta aktualizaci dat pro offline provoz gate scanneru.
+        Vrací seznam změn (nové vstupenky, storna, již nascanované) od
+        zadaného timestampu.
+
+        Gate scanner by měl volat tento endpoint každých 30 sekund pro
+        udržení aktuálního stavu. Maximální velikost delta je 10 000 záznamů.
+
+        Endpoint vyžaduje ApiKeyAuth (gate scanner device key).
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: since
+          in: query
+          required: true
+          description: ISO 8601 timestamp od poslední synchronizace
+          schema:
+            type: string
+            format: date-time
+          example: '2026-06-15T18:00:00Z'
+        - name: event_id
+          in: query
+          required: true
+          description: ID akce pro filtrování dat
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Delta synchronizační data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanSyncResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /scan/override:
+    post:
+      tags: [Scanning]
+      operationId: scanOverride
+      summary: Manuální override (supervisor, logováno)
+      description: |
+        Umožňuje supervisorovi manuálně označit vstupenku jako nascanovanou
+        bez platného QR kódu (např. při technickém problému návštěvníka).
+
+        **Bezpečnostní požadavky**:
+        - Vyžaduje ApiKeyAuth s rolí `supervisor`
+        - Každý override je logován s ID supervisora, důvodem a timestampem
+        - Override je auditován a reportován organizátorovi akce
+        - Maximálně 10 overridů na akci za hodinu (rate limit)
+
+        Data jsou publikována do Kafka topicu `ticket.scan.overrides`.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScanOverrideRequest'
+      responses:
+        '200':
+          description: Override provedeno, vstupenka označena
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanOverrideResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: API klíč nemá roli supervisor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          description: Rate limit overridů překročen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ─────────────────────────────────────────────
+# COMPONENTS
+# ─────────────────────────────────────────────
+components:
+
+  # ── SECURITY SCHEMES ──────────────────────
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT access token (RS256, 15 min expiry).
+        Získat přes `POST /auth/login` nebo `POST /auth/refresh`.
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Gate-Api-Key
+      description: |
+        API klíč pro gate scanner zařízení. Klíč je vázán na konkrétní
+        gate zařízení a akci. Generován administrátorem systému.
+
+  # ── PARAMETERS ────────────────────────────
+  parameters:
+    TicketIdParam:
+      name: ticketId
+      in: path
+      required: true
+      description: UUID vstupenky
+      schema:
+        type: string
+        format: uuid
+      example: 550e8400-e29b-41d4-a716-446655440000
+
+    EventIdParam:
+      name: eventId
+      in: path
+      required: true
+      description: UUID akce
+      schema:
+        type: string
+        format: uuid
+      example: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+
+    OrderIdParam:
+      name: orderId
+      in: path
+      required: true
+      description: UUID objednávky
+      schema:
+        type: string
+        format: uuid
+      example: a3bb189e-8bf9-3888-9912-ace4e6543002
+
+    ListingIdParam:
+      name: listingId
+      in: path
+      required: true
+      description: UUID resale listingu
+      schema:
+        type: string
+        format: uuid
+      example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+
+    PageParam:
+      name: page
+      in: query
+      description: Číslo stránky (začíná od 1)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    LimitParam:
+      name: limit
+      in: query
+      description: Počet výsledků na stránku
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  # ── RESPONSES ─────────────────────────────
+  responses:
+    BadRequest:
+      description: Neplatný požadavek (chybná syntaxe, chybějící pole)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: BAD_REQUEST
+              message: Tělo požadavku obsahuje neplatná data
+              details: {}
+
+    Unauthorized:
+      description: Chybějící nebo neplatný autentizační token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: UNAUTHORIZED
+              message: Přístup vyžaduje platný autentizační token
+
+    Forbidden:
+      description: Přístup zamítnut — nedostatečná oprávnění
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: FORBIDDEN
+              message: Nemáte oprávnění k tomuto zdroji
+
+    NotFound:
+      description: Požadovaný zdroj nebyl nalezen
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: NOT_FOUND
+              message: Požadovaný zdroj nebyl nalezen
+
+    UnprocessableEntity:
+      description: Validační chyba — data jsou syntakticky správná, ale sémanticky neplatná
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+
+    InternalServerError:
+      description: Interní chyba serveru
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: INTERNAL_SERVER_ERROR
+              message: Neočekávaná chyba serveru, zkuste prosím znovu
+
+  # ── SCHEMAS ───────────────────────────────
+  schemas:
+
+    # ── Enums ──
+
+    TicketStatus:
+      type: string
+      enum:
+        - active
+        - used
+        - cancelled
+        - transferred
+        - listed
+        - expired
+      description: |
+        - `active`: Vstupenka platná, připravena k použití
+        - `used`: Vstupenka nascanována u vstupu
+        - `cancelled`: Vstupenka stornována
+        - `transferred`: Vstupenka převedena na jiného uživatele
+        - `listed`: Vstupenka je aktivně nabízena v resale
+        - `expired`: Akce proběhla, vstupenka expirovala
+      example: active
+
+    OrderStatus:
+      type: string
+      enum:
+        - pending
+        - paid
+        - cancelled
+        - refunded
+        - partially_refunded
+      description: |
+        - `pending`: Objednávka čeká na platbu (max 10 min)
+        - `paid`: Platba přijata, vstupenky vydány
+        - `cancelled`: Objednávka stornována
+        - `refunded`: Plný refund proveden
+        - `partially_refunded`: Částečný refund (část vstupenek stornována)
+      example: paid
+
+    ResaleListingStatus:
+      type: string
+      enum:
+        - active
+        - sold
+        - cancelled
+        - expired
+      description: |
+        - `active`: Listing aktivní, dostupný ke koupi
+        - `sold`: Vstupenka prodána
+        - `cancelled`: Listing zrušen prodávajícím
+        - `expired`: Listing expiroval bez prodeje
+      example: active
+
+    ScanResult:
+      type: string
+      enum:
+        - valid
+        - already_used
+        - invalid_token
+        - expired
+        - cancelled
+        - wrong_event
+      description: |
+        - `valid`: QR platný, vstup povolen
+        - `already_used`: Vstupenka již byla nascanována
+        - `invalid_token`: TOTP neodpovídá, možný pokus o podvod
+        - `expired`: TOTP window prošlý (> 30 s)
+        - `cancelled`: Vstupenka je stornována
+        - `wrong_event`: QR platný, ale pro jinou akci
+      example: valid
+
+    EventCategory:
+      type: string
+      enum:
+        - concert
+        - festival
+        - theatre
+        - sport
+        - conference
+        - exhibition
+        - comedy
+        - other
+      example: concert
+
+    SeatStatus:
+      type: string
+      enum:
+        - available
+        - reserved
+        - sold
+        - blocked
+      example: available
+
+    # ── Auth Schemas ──
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - first_name
+        - last_name
+      properties:
+        email:
+          type: string
+          format: email
+          example: jan.novak@example.cz
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: Min 8 znaků, musí obsahovat velké písmeno, číslo a speciální znak
+          example: Heslo123!
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Jan
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Novák
+        phone:
+          type: string
+          pattern: '^\+?[0-9]{9,15}$'
+          example: '+420777123456'
+        birth_date:
+          type: string
+          format: date
+          description: Datum narození (pro věkové ověření)
+          example: '1995-03-15'
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: jan.novak@example.cz
+        password:
+          type: string
+          format: password
+          example: Heslo123!
+        device_name:
+          type: string
+          description: Název zařízení pro identifikaci relace
+          example: Jan's iPhone 15 Pro
+
+    RefreshRequest:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+          description: Refresh token (alternativa ke cookie `rt`)
+          example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    TokenPair:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access token (RS256, platnost 15 min)
+          example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+        refresh_token:
+          type: string
+          description: Refresh token (platnost 30 dní)
+          example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+        token_type:
+          type: string
+          enum: [Bearer]
+          example: Bearer
+        expires_in:
+          type: integer
+          description: Platnost access tokenu v sekundách
+          example: 900
+
+    AuthResponse:
+      allOf:
+        - $ref: '#/components/schemas/TokenPair'
+        - type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/UserProfile'
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          format: email
+          example: jan.novak@example.cz
+        first_name:
+          type: string
+          example: Jan
+        last_name:
+          type: string
+          example: Novák
+        email_verified:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-01-15T10:30:00Z'
+
+    # ── Ticket Schemas ──
+
+    Ticket:
+      type: object
+      required:
+        - id
+        - event_id
+        - ticket_type_id
+        - status
+        - face_value
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        event_id:
+          type: string
+          format: uuid
+          example: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+        event_name:
+          type: string
+          example: Coldplay World Tour 2026 - Praha
+        ticket_type_id:
+          type: string
+          format: uuid
+          example: a3bb189e-8bf9-3888-9912-ace4e6543002
+        ticket_type_name:
+          type: string
+          example: VIP Standing
+        seat:
+          $ref: '#/components/schemas/SeatInfo'
+        status:
+          $ref: '#/components/schemas/TicketStatus'
+        face_value:
+          type: integer
+          description: Původní cena v haléřích (CZK * 100)
+          example: 250000
+        currency:
+          type: string
+          enum: [CZK]
+          example: CZK
+        order_id:
+          type: string
+          format: uuid
+          example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        event_date:
+          type: string
+          format: date-time
+          example: '2026-07-15T19:00:00Z'
+        venue_name:
+          type: string
+          example: O2 Arena Praha
+        claimed_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-07-01T14:22:00Z'
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-06-01T09:00:00Z'
+      example:
+        id: 550e8400-e29b-41d4-a716-446655440000
+        event_id: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+        event_name: Coldplay World Tour 2026 - Praha
+        ticket_type_id: a3bb189e-8bf9-3888-9912-ace4e6543002
+        ticket_type_name: VIP Standing
+        seat:
+          section: VIP
+          row: null
+          seat_number: null
+        status: active
+        face_value: 250000
+        currency: CZK
+        event_date: '2026-07-15T19:00:00Z'
+        venue_name: O2 Arena Praha
+
+    TicketDetail:
+      allOf:
+        - $ref: '#/components/schemas/Ticket'
+        - type: object
+          properties:
+            qr_status:
+              type: object
+              properties:
+                is_claimed:
+                  type: boolean
+                  example: true
+                device_id:
+                  type: string
+                  description: Maskovaný device ID (posledních 4 znaky)
+                  example: '...A3F2'
+                claim_expires_at:
+                  type: string
+                  format: date-time
+                  nullable: true
+                  example: '2026-07-15T23:59:59Z'
+            transfer_history:
+              type: array
+              items:
+                $ref: '#/components/schemas/TransferHistoryEntry'
+            barcode_format:
+              type: string
+              enum: [QR, AZTEC]
+              example: QR
+
+    QRPayload:
+      type: object
+      required:
+        - payload
+        - expires_at
+        - totp_window
+      properties:
+        ticket_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        payload:
+          type: string
+          description: |
+            Base64url-kódovaný QR payload obsahující TOTP token s ticket UUID.
+            Formát: `{ticket_id}.{totp_6digit}.{hmac_checksum}`
+          example: NTUwZTg0MDAtZTI5Yi00MWQ0LWE3MTYtNDQ2NjU1NDQwMDAwLjU4MjMxNi5hYjNkNGU=
+        expires_at:
+          type: string
+          format: date-time
+          description: Čas expirace aktuálního TOTP window (každých 30 s)
+          example: '2026-07-15T19:00:30Z'
+        totp_window:
+          type: integer
+          description: Délka TOTP okna v sekundách
+          example: 30
+        qr_version:
+          type: integer
+          description: Verze QR formátu pro zpětnou kompatibilitu
+          example: 2
+      example:
+        ticket_id: 550e8400-e29b-41d4-a716-446655440000
+        payload: NTUwZTg0MDAtZTI5Yi00MWQ0LWE3MTYtNDQ2NjU1NDQwMDAwLjU4MjMxNi5hYjNkNGU=
+        expires_at: '2026-07-15T19:00:30Z'
+        totp_window: 30
+        qr_version: 2
+
+    ClaimRequest:
+      type: object
+      required:
+        - device_id
+        - device_fingerprint
+      properties:
+        device_id:
+          type: string
+          description: Unikátní identifikátor zařízení (UUID v4 generovaný klientem)
+          example: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+        device_fingerprint:
+          type: string
+          description: |
+            Hash fingerprintu zařízení (SHA-256 z kombinace OS, hardware info).
+            Slouží pro detekci změny zařízení.
+          example: a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3
+        device_name:
+          type: string
+          description: Lidsky čitelný název zařízení
+          example: iPhone 15 Pro
+
+    ClaimResponse:
+      type: object
+      properties:
+        ticket_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        device_id:
+          type: string
+          example: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+        claimed_at:
+          type: string
+          format: date-time
+          example: '2026-07-01T14:22:00Z'
+        message:
+          type: string
+          example: Vstupenka úspěšně přiřazena k zařízení
+
+    TransferRequest:
+      type: object
+      properties:
+        recipient_email:
+          type: string
+          format: email
+          description: E-mail příjemce (alternativa k recipient_user_id)
+          example: petra.novakova@example.cz
+        recipient_user_id:
+          type: string
+          format: uuid
+          description: User ID příjemce (alternativa k recipient_email)
+          example: d9428888-122b-11e1-b85c-61cd3cbb3210
+        message:
+          type: string
+          maxLength: 500
+          description: Volitelná zpráva příjemci
+          example: Dárek k narozeninám, užij si to!
+      oneOf:
+        - required: [recipient_email]
+        - required: [recipient_user_id]
+
+    TransferResponse:
+      type: object
+      properties:
+        transfer_id:
+          type: string
+          format: uuid
+          example: b6d9c790-5c08-4999-ad18-98b2d4b73796
+        ticket_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        recipient_email:
+          type: string
+          format: email
+          example: petra.novakova@example.cz
+        status:
+          type: string
+          enum: [pending, accepted, rejected, expired]
+          example: pending
+        expires_at:
+          type: string
+          format: date-time
+          description: Příjemce musí přijmout do tohoto času
+          example: '2026-07-03T14:22:00Z'
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-07-01T14:22:00Z'
+
+    TransferHistoryEntry:
+      type: object
+      properties:
+        transfer_id:
+          type: string
+          format: uuid
+        from_user_display:
+          type: string
+          description: Anonymizované jméno odesílatele
+          example: J. N.
+        to_user_display:
+          type: string
+          description: Anonymizované jméno příjemce
+          example: P. N.
+        transferred_at:
+          type: string
+          format: date-time
+        type:
+          type: string
+          enum: [gift, resale]
+
+    SeatInfo:
+      type: object
+      properties:
+        section:
+          type: string
+          description: Sekce nebo zóna
+          example: VIP
+        row:
+          type: string
+          nullable: true
+          description: Řada (null pro stání)
+          example: 'C'
+        seat_number:
+          type: string
+          nullable: true
+          description: Číslo sedadla (null pro stání)
+          example: '14'
+
+    # ── Event Schemas ──
+
+    Event:
+      type: object
+      required:
+        - id
+        - name
+        - date_start
+        - venue
+        - category
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+        name:
+          type: string
+          example: Coldplay World Tour 2026 - Praha
+        slug:
+          type: string
+          example: coldplay-world-tour-2026-praha
+        description_short:
+          type: string
+          maxLength: 300
+          example: Světová turné Coldplay přijíždí do Prahy na jedinečný letní koncert.
+        date_start:
+          type: string
+          format: date-time
+          example: '2026-07-15T19:00:00Z'
+        date_end:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-07-15T23:00:00Z'
+        venue:
+          $ref: '#/components/schemas/VenueSummary'
+        category:
+          $ref: '#/components/schemas/EventCategory'
+        status:
+          type: string
+          enum:
+            - on_sale
+            - sold_out
+            - few_left
+            - cancelled
+            - postponed
+            - ended
+          example: on_sale
+        min_price:
+          type: integer
+          description: Nejnižší dostupná cena v haléřích
+          example: 120000
+        max_price:
+          type: integer
+          description: Nejvyšší dostupná cena v haléřích
+          example: 350000
+        currency:
+          type: string
+          enum: [CZK]
+          example: CZK
+        thumbnail_url:
+          type: string
+          format: uri
+          example: https://cdn.pulseup.cz/events/coldplay-2026.jpg
+        age_restriction:
+          type: integer
+          nullable: true
+          description: Minimální věk v letech (null = bez omezení)
+          example: null
+      example:
+        id: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+        name: Coldplay World Tour 2026 - Praha
+        slug: coldplay-world-tour-2026-praha
+        date_start: '2026-07-15T19:00:00Z'
+        date_end: '2026-07-15T23:00:00Z'
+        venue:
+          id: 3e9e8e00-7425-40de-944b-e07fc1f90ae7
+          name: O2 Arena Praha
+          city: Praha
+        category: concert
+        status: on_sale
+        min_price: 120000
+        max_price: 350000
+        currency: CZK
+
+    EventDetail:
+      allOf:
+        - $ref: '#/components/schemas/Event'
+        - type: object
+          properties:
+            description:
+              type: string
+              description: Plný popis akce (může obsahovat HTML)
+              example: '<p>Coldplay se vrací do Prahy...</p>'
+            lineup:
+              type: array
+              items:
+                type: object
+                properties:
+                  artist_name:
+                    type: string
+                    example: Coldplay
+                  role:
+                    type: string
+                    enum: [headliner, support, dj]
+                    example: headliner
+                  start_time:
+                    type: string
+                    format: date-time
+                    example: '2026-07-15T20:00:00Z'
+            venue:
+              $ref: '#/components/schemas/VenueDetail'
+            organizer:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Live Nation CZ
+                website:
+                  type: string
+                  format: uri
+                  example: https://livenation.cz
+            gallery:
+              type: array
+              items:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                  alt:
+                    type: string
+            available_ticket_types_count:
+              type: integer
+              description: Počet dostupných typů vstupenek
+              example: 4
+            has_seat_map:
+              type: boolean
+              example: true
+            resale_enabled:
+              type: boolean
+              example: true
+
+    VenueSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 3e9e8e00-7425-40de-944b-e07fc1f90ae7
+        name:
+          type: string
+          example: O2 Arena Praha
+        city:
+          type: string
+          example: Praha
+
+    VenueDetail:
+      allOf:
+        - $ref: '#/components/schemas/VenueSummary'
+        - type: object
+          properties:
+            address:
+              type: string
+              example: Českomoravská 2345/17, 190 00 Praha 9
+            country:
+              type: string
+              example: CZ
+            latitude:
+              type: number
+              format: float
+              example: 50.1002
+            longitude:
+              type: number
+              format: float
+              example: 14.4886
+            capacity:
+              type: integer
+              example: 20000
+            maps_url:
+              type: string
+              format: uri
+              example: https://maps.google.com/?q=O2+Arena+Praha
+
+    TicketType:
+      type: object
+      required:
+        - id
+        - name
+        - price
+        - available_count
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: a3bb189e-8bf9-3888-9912-ace4e6543002
+        name:
+          type: string
+          example: VIP Standing
+        description:
+          type: string
+          example: Přístup do VIP zóny s barem, nejlepší výhled na stage
+        price:
+          type: integer
+          description: Cena v haléřích (CZK * 100)
+          example: 250000
+        currency:
+          type: string
+          enum: [CZK]
+          example: CZK
+        available_count:
+          type: integer
+          description: Počet zbývajících vstupenek tohoto typu
+          example: 47
+        total_count:
+          type: integer
+          example: 500
+        max_per_order:
+          type: integer
+          description: Maximální počet vstupenek tohoto typu na objednávku
+          example: 4
+        zone:
+          type: string
+          description: Zóna v sálu
+          example: VIP
+        includes:
+          type: array
+          description: Co vstupenka zahrnuje
+          items:
+            type: string
+          example: ['Přístup do VIP baru', 'Parkování zdarma', 'Dárkový předmět']
+        age_restriction:
+          type: integer
+          nullable: true
+          description: Minimální věk pro tento typ vstupenky
+          example: null
+        sale_starts_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-05-01T10:00:00Z'
+        sale_ends_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-07-14T23:59:59Z'
+        is_available:
+          type: boolean
+          example: true
+
+    SeatMap:
+      type: object
+      properties:
+        event_id:
+          type: string
+          format: uuid
+          example: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+        venue_id:
+          type: string
+          format: uuid
+          example: 3e9e8e00-7425-40de-944b-e07fc1f90ae7
+        last_updated:
+          type: string
+          format: date-time
+          example: '2026-06-15T10:00:05Z'
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeatMapSection'
+
+    SeatMapSection:
+      type: object
+      properties:
+        id:
+          type: string
+          example: VIP-NORTH
+        name:
+          type: string
+          example: VIP North
+        zone:
+          type: string
+          example: VIP
+        ticket_type_id:
+          type: string
+          format: uuid
+          example: a3bb189e-8bf9-3888-9912-ace4e6543002
+        rows:
+          type: array
+          items:
+            type: object
+            properties:
+              row_label:
+                type: string
+                example: 'A'
+              seats:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    seat_id:
+                      type: string
+                      example: VIP-NORTH-A-12
+                    seat_number:
+                      type: string
+                      example: '12'
+                    status:
+                      $ref: '#/components/schemas/SeatStatus'
+                    price:
+                      type: integer
+                      example: 250000
+        standing_capacity:
+          type: integer
+          nullable: true
+          description: Kapacita stání (null pro sedací sekce)
+          example: null
+        available_standing:
+          type: integer
+          nullable: true
+          example: null
+
+    # ── Order Schemas ──
+
+    CreateOrderRequest:
+      type: object
+      required:
+        - event_id
+        - items
+      properties:
+        event_id:
+          type: string
+          format: uuid
+          example: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+        items:
+          type: array
+          description: Položky objednávky (max 8 celkem)
+          minItems: 1
+          maxItems: 8
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        promo_code:
+          type: string
+          description: Slevový kód
+          example: EARLYBIRD2026
+      example:
+        event_id: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+        items:
+          - ticket_type_id: a3bb189e-8bf9-3888-9912-ace4e6543002
+            quantity: 2
+          - ticket_type_id: b5cc28cf-9bf9-3888-9912-ace4e6543003
+            seat_ids: ['VIP-NORTH-A-12', 'VIP-NORTH-A-13']
+            quantity: 2
+
+    OrderItem:
+      type: object
+      required:
+        - ticket_type_id
+        - quantity
+      properties:
+        ticket_type_id:
+          type: string
+          format: uuid
+          example: a3bb189e-8bf9-3888-9912-ace4e6543002
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 8
+          example: 2
+        seat_ids:
+          type: array
+          description: Konkrétní sedadla (pro sedací sekce)
+          items:
+            type: string
+          example: ['VIP-NORTH-A-12', 'VIP-NORTH-A-13']
+
+    Order:
+      type: object
+      required:
+        - id
+        - status
+        - event_id
+        - total_price
+        - items
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        event_id:
+          type: string
+          format: uuid
+          example: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+        event_name:
+          type: string
+          example: Coldplay World Tour 2026 - Praha
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderLineItem'
+        subtotal:
+          type: integer
+          description: Mezisoučet bez poplatků v haléřích
+          example: 500000
+        service_fee:
+          type: integer
+          description: Servisní poplatek v haléřích
+          example: 30000
+        total_price:
+          type: integer
+          description: Celková cena v haléřích
+          example: 530000
+        currency:
+          type: string
+          enum: [CZK]
+          example: CZK
+        payment:
+          $ref: '#/components/schemas/PaymentInfo'
+        tickets:
+          type: array
+          description: Vydané vstupenky (dostupné po zaplacení)
+          items:
+            $ref: '#/components/schemas/Ticket'
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          description: Expiration pending objednávky (null pokud paid)
+          nullable: true
+          example: '2026-06-01T09:10:00Z'
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-06-01T09:00:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2026-06-01T09:05:00Z'
+      example:
+        id: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        status: paid
+        event_id: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+        event_name: Coldplay World Tour 2026 - Praha
+        total_price: 530000
+        currency: CZK
+
+    OrderLineItem:
+      type: object
+      properties:
+        ticket_type_id:
+          type: string
+          format: uuid
+          example: a3bb189e-8bf9-3888-9912-ace4e6543002
+        ticket_type_name:
+          type: string
+          example: VIP Standing
+        quantity:
+          type: integer
+          example: 2
+        unit_price:
+          type: integer
+          example: 250000
+        total_price:
+          type: integer
+          example: 500000
+        seats:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeatInfo'
+          nullable: true
+
+    OrderCreatedResponse:
+      allOf:
+        - $ref: '#/components/schemas/Order'
+        - type: object
+          properties:
+            payment_url:
+              type: string
+              format: uri
+              description: URL pro přesměrování na GoPay platební bránu
+              example: https://gw.sandbox.gopay.com/gw/v3/bCcvmqAtrn
+
+    CancelOrderRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 500
+          description: Volitelný důvod storna
+          example: Nemohu se akce zúčastnit
+
+    PaymentInfo:
+      type: object
+      properties:
+        gopay_payment_id:
+          type: string
+          description: ID platby v systému GoPay
+          example: '3046566640'
+        status:
+          type: string
+          enum:
+            - created
+            - payment_method_chosen
+            - paid
+            - cancelled
+            - timeouted
+            - refunded
+            - partially_refunded
+          example: paid
+        method:
+          type: string
+          description: Platební metoda
+          example: PAYMENT_CARD
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-06-01T09:05:00Z'
+        refund_amount:
+          type: integer
+          nullable: true
+          description: Vrácená částka v haléřích
+          example: null
+
+    # ── Resale Schemas ──
+
+    ResaleListing:
+      type: object
+      required:
+        - id
+        - ticket_id
+        - event_id
+        - price
+        - face_value
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: b6d9c790-5c08-4999-ad18-98b2d4b73796
+        ticket_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        event_id:
+          type: string
+          format: uuid
+          example: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+        event_name:
+          type: string
+          example: Coldplay World Tour 2026 - Praha
+        event_date:
+          type: string
+          format: date-time
+          example: '2026-07-15T19:00:00Z'
+        ticket_type_name:
+          type: string
+          example: VIP Standing
+        zone:
+          type: string
+          nullable: true
+          example: VIP
+        seat:
+          $ref: '#/components/schemas/SeatInfo'
+        price:
+          type: integer
+          description: Požadovaná cena v haléřích (max = face_value)
+          example: 200000
+        face_value:
+          type: integer
+          description: Původní cena vstupenky v haléřích
+          example: 250000
+        currency:
+          type: string
+          enum: [CZK]
+          example: CZK
+        status:
+          $ref: '#/components/schemas/ResaleListingStatus'
+        expires_at:
+          type: string
+          format: date-time
+          example: '2026-07-14T23:59:59Z'
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-06-20T10:00:00Z'
+      example:
+        id: b6d9c790-5c08-4999-ad18-98b2d4b73796
+        ticket_id: 550e8400-e29b-41d4-a716-446655440000
+        event_id: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+        event_name: Coldplay World Tour 2026 - Praha
+        event_date: '2026-07-15T19:00:00Z'
+        ticket_type_name: VIP Standing
+        zone: VIP
+        price: 200000
+        face_value: 250000
+        currency: CZK
+        status: active
+        expires_at: '2026-07-14T23:59:59Z'
+
+    ResaleListingDetail:
+      allOf:
+        - $ref: '#/components/schemas/ResaleListing'
+        - type: object
+          properties:
+            seller_display:
+              type: string
+              description: Anonymizovaný identifikátor prodávajícího
+              example: J. N.
+            venue_name:
+              type: string
+              example: O2 Arena Praha
+            venue_city:
+              type: string
+              example: Praha
+            escrow_info:
+              type: object
+              properties:
+                description:
+                  type: string
+                  example: Platba je držena v escrow do úspěšného vstupu na akci
+                release_policy:
+                  type: string
+                  example: Uvolnění po scanu vstupenky nebo 72h po skončení akce
+
+    CreateResaleListingRequest:
+      type: object
+      required:
+        - ticket_id
+        - price
+      properties:
+        ticket_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        price:
+          type: integer
+          description: Požadovaná cena v haléřích (nesmí překročit face value)
+          minimum: 1
+          example: 200000
+        expires_in_days:
+          type: integer
+          description: Za kolik dní listing expiruje (výchozí 30, max 60)
+          minimum: 1
+          maximum: 60
+          default: 30
+          example: 14
+        note:
+          type: string
+          maxLength: 300
+          description: Volitelná poznámka kupujícímu
+          example: Sedadlo v první řadě VIP sekce, skvělý výhled
+
+    ResalePurchaseResponse:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+          description: ID vytvořené objednávky pro resale nákup
+          example: c4f5a6b7-1234-5678-9abc-def012345678
+        listing_id:
+          type: string
+          format: uuid
+          example: b6d9c790-5c08-4999-ad18-98b2d4b73796
+        payment_url:
+          type: string
+          format: uri
+          description: URL pro přesměrování na GoPay (escrow platba)
+          example: https://gw.sandbox.gopay.com/gw/v3/xYzResale123
+        total_price:
+          type: integer
+          description: Celková cena včetně poplatků v haléřích
+          example: 215000
+        escrow_info:
+          type: string
+          example: Platba bude uvolněna prodávajícímu po úspěšném vstupu na akci
+        expires_at:
+          type: string
+          format: date-time
+          description: Platba musí být dokončena do tohoto času
+          example: '2026-06-20T10:10:00Z'
+
+    # ── Scanning Schemas ──
+
+    ScanValidateRequest:
+      type: object
+      required:
+        - qr_payload
+        - gate_id
+        - event_id
+      properties:
+        qr_payload:
+          type: string
+          description: Nascanovaný QR payload (Base64url)
+          example: NTUwZTg0MDAtZTI5Yi00MWQ0LWE3MTYtNDQ2NjU1NDQwMDAwLjU4MjMxNi5hYjNkNGU=
+        gate_id:
+          type: string
+          description: Identifikátor brány/scanneru
+          example: GATE-01-O2ARENA
+        event_id:
+          type: string
+          format: uuid
+          example: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+        scanner_timestamp:
+          type: string
+          format: date-time
+          description: Lokální čas scanneru pro audit clock-skew
+          example: '2026-07-15T19:05:00Z'
+
+    ScanValidateResponse:
+      type: object
+      required:
+        - result
+        - scanned_at
+      properties:
+        result:
+          $ref: '#/components/schemas/ScanResult'
+        ticket_id:
+          type: string
+          format: uuid
+          nullable: true
+          example: 550e8400-e29b-41d4-a716-446655440000
+        ticket_type:
+          type: string
+          nullable: true
+          example: VIP Standing
+        seat:
+          $ref: '#/components/schemas/SeatInfo'
+          nullable: true
+        holder_display:
+          type: string
+          nullable: true
+          description: Jméno držitele pro zobrazení na scanneru (anonymizováno)
+          example: Jan N.
+        scanned_at:
+          type: string
+          format: date-time
+          example: '2026-07-15T19:05:01Z'
+        gate_id:
+          type: string
+          example: GATE-01-O2ARENA
+        message:
+          type: string
+          description: Lidsky čitelná zpráva pro displej scanneru
+          example: Vstup povolen — VIP Standing
+        display_color:
+          type: string
+          enum: [green, red, yellow]
+          description: Barva pro UI scanneru
+          example: green
+      example:
+        result: valid
+        ticket_id: 550e8400-e29b-41d4-a716-446655440000
+        ticket_type: VIP Standing
+        seat:
+          section: VIP
+          row: null
+          seat_number: null
+        holder_display: Jan N.
+        scanned_at: '2026-07-15T19:05:01Z'
+        gate_id: GATE-01-O2ARENA
+        message: Vstup povolen — VIP Standing
+        display_color: green
+
+    ScanSyncResponse:
+      type: object
+      properties:
+        event_id:
+          type: string
+          format: uuid
+          example: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+        sync_timestamp:
+          type: string
+          format: date-time
+          description: Timestamp tohoto syncu (použít jako `since` v dalším volání)
+          example: '2026-07-15T18:30:00Z'
+        changes:
+          type: object
+          properties:
+            new_tickets:
+              type: array
+              description: Nové platné vstupenky od posledního syncu
+              items:
+                $ref: '#/components/schemas/ScanTicketRecord'
+            invalidated_tickets:
+              type: array
+              description: Tickety, které se staly neplatnými (storno, použití)
+              items:
+                type: object
+                properties:
+                  ticket_id:
+                    type: string
+                    format: uuid
+                  reason:
+                    type: string
+                    enum: [cancelled, used, transferred]
+        total_changes:
+          type: integer
+          example: 42
+        has_more:
+          type: boolean
+          description: True pokud je více než 10 000 změn (nutný re-sync)
+          example: false
+
+    ScanTicketRecord:
+      type: object
+      properties:
+        ticket_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        totp_secret_hash:
+          type: string
+          description: SHA-256 hash TOTP secret pro offline validaci
+          example: 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+        ticket_type:
+          type: string
+          example: VIP Standing
+        zone:
+          type: string
+          example: VIP
+        seat_id:
+          type: string
+          nullable: true
+          example: null
+
+    ScanOverrideRequest:
+      type: object
+      required:
+        - ticket_id
+        - reason
+        - supervisor_id
+      properties:
+        ticket_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        supervisor_id:
+          type: string
+          description: ID nebo badge supervisora
+          example: SUP-042
+        reason:
+          type: string
+          enum:
+            - technical_issue
+            - qr_damaged
+            - device_lost
+            - system_outage
+            - other
+          example: qr_damaged
+        reason_note:
+          type: string
+          maxLength: 500
+          description: Povinná poznámka při reason=other
+          example: Vstupenka fyzicky poškozena, zákazník prokázal totožnost dokladem
+        gate_id:
+          type: string
+          example: GATE-01-O2ARENA
+        event_id:
+          type: string
+          format: uuid
+          example: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+
+    ScanOverrideResponse:
+      type: object
+      properties:
+        override_id:
+          type: string
+          format: uuid
+          example: e4d909c2-90d8-4b68-a1c8-2b7e4dcb6a0d
+        ticket_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        supervisor_id:
+          type: string
+          example: SUP-042
+        reason:
+          type: string
+          example: qr_damaged
+        overridden_at:
+          type: string
+          format: date-time
+          example: '2026-07-15T19:10:00Z'
+        gate_id:
+          type: string
+          example: GATE-01-O2ARENA
+        audit_log_id:
+          type: string
+          description: ID záznamu v audit logu
+          example: AUD-20260715-00042
+
+    # ── Pagination ──
+
+    PaginatedMeta:
+      type: object
+      properties:
+        meta:
+          type: object
+          required:
+            - total
+            - page
+            - limit
+            - total_pages
+          properties:
+            total:
+              type: integer
+              description: Celkový počet záznamů
+              example: 248
+            page:
+              type: integer
+              description: Aktuální stránka
+              example: 1
+            limit:
+              type: integer
+              description: Počet záznamů na stránku
+              example: 20
+            total_pages:
+              type: integer
+              description: Celkový počet stránek
+              example: 13
+
+    # ── Error Schemas ──
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: Strojově čitelný kód chyby
+              example: NOT_FOUND
+            message:
+              type: string
+              description: Lidsky čitelný popis chyby (česky)
+              example: Požadovaný zdroj nebyl nalezen
+            details:
+              type: object
+              description: Doplňující detaily chyby (volitelné)
+              additionalProperties: true
+              nullable: true
+            request_id:
+              type: string
+              description: ID požadavku pro dohledání v logu
+              example: req_01HZXP4K8QN9GY1E6RZMW3BVTS
+      example:
+        error:
+          code: NOT_FOUND
+          message: Požadovaný zdroj nebyl nalezen
+          request_id: req_01HZXP4K8QN9GY1E6RZMW3BVTS
+
+    ValidationError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - validation_errors
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Požadavek obsahuje neplatná data
+            validation_errors:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                    description: Dotted path k problematickému poli
+                    example: items[0].quantity
+                  code:
+                    type: string
+                    description: Kód validační chyby
+                    example: MAX_EXCEEDED
+                  message:
+                    type: string
+                    description: Popis chyby pro dané pole
+                    example: Quantity nesmí přesáhnout 8 vstupenek na objednávku
+            request_id:
+              type: string
+              example: req_01HZXP4K8QN9GY1E6RZMW3BVTS
+      example:
+        error:
+          code: VALIDATION_ERROR
+          message: Požadavek obsahuje neplatná data
+          validation_errors:
+            - field: price
+              code: MAX_EXCEEDED
+              message: Cena nesmí překročit face value vstupenky (250000 haléřů)
+          request_id: req_01HZXP4K8QN9GY1E6RZMW3BVTS

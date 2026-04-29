@@ -1,0 +1,20 @@
+# =============================================================================
+# Railway konfigurace — Ticketarium backend služby
+# Docs: https://docs.railway.app/reference/config-as-code
+#
+# Architektura na Railway:
+#   - PostgreSQL  → Railway managed plugin
+#   - Redis       → Railway managed plugin
+#   - Kafka       → Upstash Kafka (serverless, Railway nemá managed Kafka)
+#
+# Next.js app → Vercel (viz vercel.json)
+# =============================================================================
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

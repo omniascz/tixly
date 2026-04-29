@@ -1,0 +1,75 @@
+post-event-report/
+├── src/
+│   ├── types/
+│   │   └── post-event-report.types.ts          (TypeScript interfaces)
+│   ├── lib/
+│   │   ├── report-calculator.ts                (Pure calculation functions)
+│   │   ├── report-calculator.test.ts           (20+ Vitest tests)
+│   │   └── report-queries.sql                  (Reference SQL queries)
+│   ├── services/
+│   │   └── post-event-report.service.ts        (Main business logic)
+│   ├── jobs/
+│   │   └── post-event-report.job.ts            (Cron job - runs every 30 min)
+│   └── app/api/
+│       ├── events/[eventId]/report/
+│       │   ├── route.ts                        (GET - fetch report)
+│       │   └── trigger/route.ts                (POST - manual trigger)
+│       └── organizer/reports/
+│           └── route.ts                        (GET - list reports)
+├── package.json                                 (Dependencies & scripts)
+├── tsconfig.json                                (TypeScript strict config)
+├── vitest.config.ts                             (Test configuration)
+├── .gitignore                                   (Git ignore rules)
+├── INTEGRATION.md                               (Integration guide)
+├── EXAMPLE_ADAPTER.md                           (Prisma adapter example)
+└── STRUCTURE.txt                                (This file)
+
+KEY FEATURES:
+- PostEventReport: Complete 5-part analytics (sales, attendance, finance, marketing, resale)
+- Pure functions: calculateSellthroughPct, calculateNoShowPct, calculateAvgPrice, etc.
+- Parallel data fetching: Promise.all() for all 5 summary sections
+- Type-safe: Full TypeScript strict mode
+- Tested: 20+ Vitest tests with edge case coverage
+- Cron job: Automatic report generation 2 hours after event ends
+- Manual trigger: API endpoint to regenerate if needed
+- Organizer auth: All endpoints check ownership
+- Currency formatting: Czech "1 234,50 Kč" format
+
+MAIN CLASSES:
+1. PostEventReportService
+   - generateReport(eventId, db): Full async report generation
+   - getReport(eventId, organizerId, db): Retrieve with auth check
+   - listReports(organizerId, db): Get all organizer reports
+   - processFinishedEvents(db): Cron job entry point
+
+2. ReportDbAdapter (interface)
+   - 8 query methods to implement
+   - 6 data aggregation endpoints
+   - 4 data persistence/retrieval endpoints
+
+CALCULATIONS:
+- Sellthrough %: (sold / capacity) * 100, capped at 100%
+- No-show %: ((sold - checked_in) / sold) * 100
+- Peak entry time: 15-minute windows with most entries
+- Sales by day: Grouped by ISO date, summed tickets & revenue
+- Resale metrics: Average price, max price, sellthrough %
+- Organizer payout: gross_revenue - platform_fees
+
+API RESPONSES:
+- GET /api/events/[eventId]/report → 200 PostEventReport | 404 "still generating" | 403 unauthorized
+- GET /api/organizer/reports → 200 PostEventReportSummary[]
+- POST /api/events/[eventId]/report/trigger → 201 with report | 403 unauthorized | 404 not found
+
+DATABASE REQUIREMENTS:
+The adapter needs access to:
+- Event details (name, date, capacity)
+- Orders (created_at, amount, quantity, fees)
+- Tickets by type and zone
+- Scan timestamps (check-in data)
+- Will-call pickups
+- Guest list entries
+- Refunds, resale listings, promo codes
+- Referral and affiliate data
+- Installment payments
+
+SQL QUERIES PROVIDED: 8 reference queries for common aggregations

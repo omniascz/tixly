@@ -1,0 +1,46 @@
+{
+  "name": "@tixly/email-copy",
+  "version": "1.0.0",
+  "description": "Email subject line variants for A/B testing campaigns",
+  "private": true,
+  "type": "module",
+  "main": "./dist/subject-lines.js",
+  "types": "./dist/subject-lines.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/subject-lines.js",
+      "types": "./dist/subject-lines.d.ts"
+    },
+    "./helpers": {
+      "import": "./dist/subject-line-helpers.js",
+      "types": "./dist/subject-line-helpers.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint . --ext .ts",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "email",
+    "subject-lines",
+    "a/b-testing",
+    "copywriting",
+    "ticketing"
+  ],
+  "author": "Tixly",
+  "license": "PROPRIETARY",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "dependencies": {}
+}

@@ -1,0 +1,65 @@
+import type { MetadataRoute } from 'next';
+import { Pool } from 'pg';
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+const LOCALES = ['cs', 'en', 'de', 'fr', 'nl', 'es', 'pl', 'sk'];
+
+let pool: Pool | null = null;
+function db(): Pool {
+  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  return pool;
+}
+
+export const revalidate = 3600; // re-generate hourly
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const staticPaths = [
+    { path: '', priority: 1.0, changeFrequency: 'daily' as const },
+    { path: '/events', priority: 0.9, changeFrequency: 'hourly' as const },
+    { path: '/login', priority: 0.4, changeFrequency: 'yearly' as const },
+    { path: '/register', priority: 0.4, changeFrequency: 'yearly' as const },
+    { path: '/tixly-plus', priority: 0.6, changeFrequency: 'weekly' as const },
+  ];
+
+  const entries: MetadataRoute.Sitemap = [];
+  for (const p of staticPaths) {
+    for (const locale of LOCALES) {
+      entries.push({
+        url: `${BASE_URL}/${locale}${p.path}`,
+        lastModified: new Date(),
+        changeFrequency: p.changeFrequency,
+        priority: p.priority,
+        alternates: {
+          languages: Object.fromEntries(
+            LOCALES.map((l) => [l, `${BASE_URL}/${l}${p.path}`]),
+          ),
+        },
+      });
+    }
+  }
+
+  // Published, future events
+  try {
+    const events = await db().query<{ id: string; updated_at: string; date_start: string }>(
+      `SELECT id, updated_at, date_start
+       FROM catalog.events
+       WHERE status = 'published' AND date_start > NOW() - INTERVAL '7 days'
+       ORDER BY date_start ASC
+       LIMIT 1000`,
+    );
+    for (const ev of events.rows) {
+      for (const locale of LOCALES) {
+        entries.push({
+          url: `${BASE_URL}/${locale}/events/${ev.id}`,
+          lastModified: new Date(ev.updated_at),
+          changeFrequency: 'daily',
+          priority: 0.8,
+        });
+      }
+    }
+  } catch (err) {
+    console.error('[sitemap]', err);
+  }
+
+  return entries;
+}

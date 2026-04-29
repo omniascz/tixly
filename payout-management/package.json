@@ -1,0 +1,21 @@
+{
+  "name": "@tixly/payout-management",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@tixly/db-adapter": "file:../shared/db-adapter",
+    "@tixly/rls-multitenancy": "file:../rls-multitenancy",
+    "pdfkit": "^0.15.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/pdfkit": "^0.13.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}

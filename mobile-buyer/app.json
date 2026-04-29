@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Tixly",
+    "slug": "tixly-buyer",
+    "version": "1.0.0",
+    "platforms": ["ios", "android"],
+    "icon": "./assets/icon.png",
+    "plugins": [
+      "expo-notifications",
+      "expo-secure-store"
+    ],
+    "ios": {
+      "bundleIdentifier": "cz.tixly.buyer",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "cz.tixly.buyer"
+    }
+  }
+}

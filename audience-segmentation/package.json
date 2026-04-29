@@ -1,0 +1,24 @@
+{
+  "name": "@tixly/audience-segmentation",
+  "version": "1.0.0",
+  "description": "Audience segment builder for Tixly promoters: geographic, behavioral, RFM, and loyalty-tier filters with campaign export",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tixly/rls-multitenancy": "file:../rls-multitenancy",
+    "next": "^14.2.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@vitest/coverage-v8": "^1.4.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0"
+  }
+}

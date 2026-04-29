@@ -1,0 +1,23 @@
+{
+  "name": "event-staff",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^14.2.0",
+    "pg": "^8.11.0",
+    "zod": "^3.23.0",
+    "@tixly/db-adapter": "file:../shared/db-adapter",
+    "@tixly/rls-multitenancy": "file:../rls-multitenancy"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/pg": "^8.11.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "wero-payments",
+  "version": "1.0.0",
+  "description": "Wero SEPA Instant A2A payment integration for Tixly",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tixly/auth": "workspace:*",
+    "@tixly/database": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.0.0",
+    "next": "^15.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/wero.d.ts"
+    },
+    "./client": {
+      "types": "./dist/lib/wero-client.d.ts",
+      "default": "./dist/lib/wero-client.js"
+    },
+    "./service": {
+      "types": "./dist/services/wero-payment.service.d.ts",
+      "default": "./dist/services/wero-payment.service.js"
+    }
+  }
+}

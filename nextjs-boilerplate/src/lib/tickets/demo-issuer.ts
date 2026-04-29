@@ -1,0 +1,202 @@
+/**
+ * Demo ticket issuer — zjednodušená verze pro lokální demo.
+ *
+ * Liší se od `src/lib/ticket-issuer.ts` (má pre-existing TS dluh + očekává
+ * rozšířené schéma tickets.tickets, které v aktuální DB není). Tady pracujeme
+ * jen se sloupci, které skutečně existují podle `\d tickets.tickets`:
+ *   id, order_id, ticket_type_id, owner_id, original_owner_id, seat_id,
+ *   status, totp_secret_encrypted, totp_secret_iv, original_price.
+ *
+ * TOTP secret (RFC 6238, 20 B = 160 bit) šifrujeme přes @tixly/crypto.
+ * Idempotent: pokud už pro order existují, vrátí existující.
+ */
+
+import { randomBytes, randomUUID } from 'crypto';
+import { Pool, PoolClient } from 'pg';
+import { encryptSecret } from '@/lib/crypto';
+
+export interface IssuedTicket {
+  ticketId: string;
+  ticketTypeName: string;
+  totpSecretBase32: string;
+  totpSecretRaw: Buffer;
+}
+
+interface OrderItemRow {
+  id: string;
+  ticket_type_id: string;
+  quantity: number;
+  unit_price: number;
+  ticket_type_name: string;
+}
+
+interface ExistingTicketRow {
+  id: string;
+  ticket_type_id: string;
+  totp_secret_encrypted: Buffer;
+  totp_secret_iv: Buffer;
+  ticket_type_name: string;
+}
+
+interface OrderRow {
+  user_id: string;
+}
+
+/**
+ * Vydá lístky pro objednávku. Idempotent. Volá se uvnitř transakce.
+ */
+export async function issueTicketsForOrder(
+  orderId: string,
+  db: Pool | PoolClient,
+): Promise<IssuedTicket[]> {
+  // Idempotent check
+  const existing = await db.query<ExistingTicketRow>(
+    `SELECT t.id, t.ticket_type_id, t.totp_secret_encrypted, t.totp_secret_iv,
+            tt.name AS ticket_type_name
+     FROM tickets.tickets t
+     JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
+     WHERE t.order_id = $1`,
+    [orderId],
+  );
+  if (existing.rows.length > 0) {
+    // Ticket už existuje — vrátíme bez secretu (není možné dešifrovat bez heslové orchestrace)
+    // Pro demo posíláme jen už-existující ticketId; PDF nebude regenerován.
+    return existing.rows.map((r) => ({
+      ticketId: r.id,
+      ticketTypeName: r.ticket_type_name,
+      totpSecretBase32: '',
+      totpSecretRaw: Buffer.alloc(0),
+    }));
+  }
+
+  // Najdi user_id z orderu
+  const orderRes = await db.query<OrderRow>(
+    `SELECT user_id FROM orders.orders WHERE id = $1`,
+    [orderId],
+  );
+  if (orderRes.rows.length === 0) {
+    throw new Error(`Order ${orderId} not found`);
+  }
+  const ownerId = orderRes.rows[0]!.user_id;
+
+  // Načti položky
+  const itemsRes = await db.query<OrderItemRow>(
+    `SELECT oi.id, oi.ticket_type_id, oi.quantity, oi.unit_price,
+            tt.name AS ticket_type_name
+     FROM orders.order_items oi
+     JOIN catalog.ticket_types tt ON tt.id = oi.ticket_type_id
+     WHERE oi.order_id = $1`,
+    [orderId],
+  );
+
+  // Get seats for this order (if any) — sequential bind per ticket
+  const seatsRes = await db.query<{ id: string; ticket_type_id: string }>(
+    `SELECT id, ticket_type_id FROM catalog.event_seats
+     WHERE order_id = $1 AND status = 'sold'
+     ORDER BY sector, row, seat_number`,
+    [orderId],
+  );
+  const seatsByType = new Map<string, string[]>();
+  for (const s of seatsRes.rows) {
+    const arr = seatsByType.get(s.ticket_type_id) ?? [];
+    arr.push(s.id);
+    seatsByType.set(s.ticket_type_id, arr);
+  }
+
+  const issued: IssuedTicket[] = [];
+  for (const item of itemsRes.rows) {
+    const typeSeats = seatsByType.get(item.ticket_type_id) ?? [];
+    for (let i = 0; i < item.quantity; i++) {
+      const ticketId = randomUUID();
+      const seatId = typeSeats[i] ?? null;
+      const totpSecretRaw = randomBytes(20);
+      // crypto/index.ts exports encryptSecret(plaintext): base64 (IV+ct+tag bundled).
+      // DB columns totp_secret_encrypted + totp_secret_iv are BYTEA — we store
+      // the full bundle in totp_secret_encrypted and leave iv empty (decrypt
+      // recovers IV from the bundle). The iv column kept for legacy schema compat.
+      const encryptedBundle = Buffer.from(
+        encryptSecret(totpSecretRaw.toString('base64')),
+        'base64',
+      );
+
+      await db.query(
+        `INSERT INTO tickets.tickets
+           (id, order_id, ticket_type_id, owner_id, original_owner_id,
+            status, totp_secret_encrypted, totp_secret_iv, original_price, event_seat_id)
+         VALUES ($1, $2, $3, $4, $4, 'valid', $5, $6, $7, $8)`,
+        [
+          ticketId,
+          orderId,
+          item.ticket_type_id,
+          ownerId,
+          encryptedBundle,
+          Buffer.alloc(0),
+          item.unit_price,
+          seatId,
+        ],
+      );
+
+      if (seatId) {
+        await db.query(
+          `UPDATE catalog.event_seats SET ticket_id = $2 WHERE id = $1`,
+          [seatId, ticketId],
+        );
+      }
+
+      // Pre-event reminders (Phase S.2): naplánovat 1 týden / 1 den / 1 hodinu před event
+      await db.query(
+        `INSERT INTO marketing.event_reminders (ticket_id, reminder_type, scheduled_at)
+         SELECT $1, 'week_before', e.date_start - INTERVAL '7 days'
+         FROM orders.orders o JOIN catalog.events e ON e.id = o.event_id
+         WHERE o.id = $2 AND e.date_start - INTERVAL '7 days' > NOW()
+         ON CONFLICT DO NOTHING`,
+        [ticketId, orderId],
+      );
+      await db.query(
+        `INSERT INTO marketing.event_reminders (ticket_id, reminder_type, scheduled_at)
+         SELECT $1, 'day_before', e.date_start - INTERVAL '1 day'
+         FROM orders.orders o JOIN catalog.events e ON e.id = o.event_id
+         WHERE o.id = $2 AND e.date_start - INTERVAL '1 day' > NOW()
+         ON CONFLICT DO NOTHING`,
+        [ticketId, orderId],
+      );
+      await db.query(
+        `INSERT INTO marketing.event_reminders (ticket_id, reminder_type, scheduled_at)
+         SELECT $1, 'hour_before', e.date_start - INTERVAL '1 hour'
+         FROM orders.orders o JOIN catalog.events e ON e.id = o.event_id
+         WHERE o.id = $2 AND e.date_start - INTERVAL '1 hour' > NOW()
+         ON CONFLICT DO NOTHING`,
+        [ticketId, orderId],
+      );
+
+      issued.push({
+        ticketId,
+        ticketTypeName: item.ticket_type_name,
+        totpSecretBase32: base32Encode(totpSecretRaw),
+        totpSecretRaw,
+      });
+    }
+  }
+
+  return issued;
+}
+
+/** Base32 encoding (RFC 4648) — pro otpauth:// URI. */
+export function base32Encode(buf: Buffer): string {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = 0;
+  let value = 0;
+  let out = '';
+  for (let i = 0; i < buf.length; i++) {
+    value = (value << 8) | buf[i]!;
+    bits += 8;
+    while (bits >= 5) {
+      out += alphabet[(value >>> (bits - 5)) & 31];
+      bits -= 5;
+    }
+  }
+  if (bits > 0) {
+    out += alphabet[(value << (5 - bits)) & 31];
+  }
+  return out;
+}

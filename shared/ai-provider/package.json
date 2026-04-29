@@ -1,0 +1,17 @@
+{
+  "name": "@shared/ai-provider",
+  "version": "1.0.0",
+  "description": "Shared AI provider — Claude API client, caching, cost tracking, rate limiting. Framework-agnostic.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0"
+  }
+}

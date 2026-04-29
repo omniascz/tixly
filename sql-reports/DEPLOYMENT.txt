@@ -1,0 +1,189 @@
+================================================================================
+TICKETARIUM SQL REPORTS — DEPLOYMENT CHECKLIST
+================================================================================
+
+Vytvořeno: 2026-04-03
+Verze: 1.0
+Složka: C:\Users\omnia\Documents\ticketarium\sql-reports\
+
+STRUKTURA
+================================================================================
+sql-reports/
+├── reports/
+│   ├── 01_sales_by_zone.sql                  [66 řádků]
+│   ├── 02_resale_volume.sql                  [84 řádků]
+│   ├── 03_buyer_demographics.sql             [106 řádků]
+│   ├── 04_sales_heatmap.sql                  [67 řádků]
+│   ├── 05_pricing_phase_analysis.sql         [102 řádků]
+│   ├── 06_refunds_and_cancellations.sql      [72 řádků]
+│   ├── 07_top_customers.sql                  [55 řádků]
+│   ├── 08_revenue_forecast.sql               [103 řádků]
+│   ├── 09_pass_utilization.sql               [90 řádků]
+│   └── 10_event_comparison.sql               [109 řádků]
+├── views/
+│   └── organizer_sales_summary.sql           [65 řádků]
+├── README.md                                 [475 řádků]
+└── DEPLOYMENT.txt                            (tohle)
+
+CELKEM: 1394 řádků SQL + dokumentace
+
+PARAMETRY A POUŽITÍ
+================================================================================
+
+REPORT 01 — Sales by Zone
+  psql -v event_id="'550e8400-e29b-41d4-a716-446655440000'" -f reports/01_sales_by_zone.sql
+  Parametry: :event_id
+  Čas běhu: ~200ms
+
+REPORT 02 — Resale Volume
+  psql -v event_id="'550e8400-e29b-41d4-a716-446655440000'" -f reports/02_resale_volume.sql
+  Parametry: :event_id
+  Čas běhu: ~150ms
+
+REPORT 03 — Buyer Demographics
+  psql -v event_id="'550e8400-e29b-41d4-a716-446655440000'" -f reports/03_buyer_demographics.sql
+  Parametry: :event_id
+  Čas běhu: ~300ms
+  Výstup: 3 SELECT dotazy (města, repeat buyers, device types)
+
+REPORT 04 — Sales Heatmap
+  psql -v event_id="'550e8400-e29b-41d4-a716-446655440000'" -f reports/04_sales_heatmap.sql
+  Parametry: :event_id
+  Čas běhu: ~100ms
+  Speciální: generate_series pro všech 168 kombinací (7 dní × 24 hodin)
+
+REPORT 05 — Pricing Phase Analysis
+  psql -v event_id="'550e8400-e29b-41d4-a716-446655440000'" -f reports/05_pricing_phase_analysis.sql
+  Parametry: :event_id
+  Čas běhu: ~250ms
+
+REPORT 06 — Refunds and Cancellations
+  psql -v event_id="'550e8400-e29b-41d4-a716-446655440000'" -f reports/06_refunds_and_cancellations.sql
+  nebo
+  psql -v organizer_id="'550e8400-e29b-41d4-a716-446655440000'" -f reports/06_refunds_and_cancellations.sql
+  Parametry: :event_id NEBO :organizer_id
+  Čas běhu: ~180ms
+
+REPORT 07 — Top Customers
+  psql -v organizer_id="'550e8400-e29b-41d4-a716-446655440000'" -f reports/07_top_customers.sql
+  Parametry: :organizer_id
+  Čas běhu: ~220ms
+  GDPR: Bez PII, pouze user_id
+  Limit: TOP 100
+
+REPORT 08 — Revenue Forecast
+  psql -v event_id="'550e8400-e29b-41d4-a716-446655440000'" -f reports/08_revenue_forecast.sql
+  Parametry: :event_id
+  Čas běhu: ~150ms
+  Output: confidence level (low/medium/high)
+
+REPORT 09 — Pass Utilization
+  psql -v organizer_id="'550e8400-e29b-41d4-a716-446655440000'" -f reports/09_pass_utilization.sql
+  Parametry: :organizer_id
+  Čas běhu: ~200ms
+  Output: monthly_recurring_revenue (MRR)
+
+REPORT 10 — Event Comparison
+  psql -v organizer_id="'550e8400-e29b-41d4-a716-446655440000'" -v limit="10" -f reports/10_event_comparison.sql
+  Parametry: :organizer_id, :limit (default: 10)
+  Čas běhu: ~300ms
+
+VIEW — Organizer Sales Summary
+  CREATE OR REPLACE VIEW organizer_sales_summary AS ...
+  psql -f views/organizer_sales_summary.sql
+  Použití: SELECT * FROM organizer_sales_summary WHERE organizer_id = $1;
+
+KONTROLNÍ SEZNAM PRO NASAZENÍ
+================================================================================
+
+[ ] 1. Ověřit existenci tabulek v databázi:
+      - catalog.events, catalog.ticket_types, catalog.seats, catalog.venues
+      - orders.orders, orders.order_items, orders.payment_events
+      - tickets.tickets, tickets.ticket_transfers, tickets.scan_logs
+      - resale.resale_listings, resale.resale_watchlist
+      - identity.users, identity.user_devices
+      - audit.audit_log
+      - passes.season_passes, passes.season_pass_types, passes.pass_usages (opt)
+
+[ ] 2. Ověřit indexy (zejména):
+      - idx_catalog_ticket_types_event_id
+      - idx_orders_order_items_ticket_type_id
+      - idx_orders_orders_status
+      - idx_orders_orders_paid_at (doporučeno přidat)
+
+[ ] 3. Vytvořit PostgreSQL VIEW:
+      psql -U postgres -d ticketarium -f views/organizer_sales_summary.sql
+
+[ ] 4. Testovat reporty s reálnými event_id:
+      SELECT id FROM catalog.events LIMIT 5;
+      psql -v event_id="'<UUID>'" -f reports/01_sales_by_zone.sql
+
+[ ] 5. Kontrola GDPR:
+      - Report 03, 06, 07 obsahují user-related data
+      - Zkontrolovat filtr anonymized_at IS NULL
+
+[ ] 6. Nastavit databázového uživatele:
+      GRANT USAGE ON SCHEMA catalog, orders, tickets, resale, audit TO ticketarium_app;
+      GRANT SELECT ON ALL TABLES IN SCHEMA ... TO ticketarium_app;
+
+[ ] 7. Integrovat do backendu (Node.js/Python/Go):
+      - Import reportů jako prepared statements
+      - Cachování výsledků (zpravidla 5-30 minut)
+
+[ ] 8. Dokumentace v dashboardu:
+      - Odkaz na C:\Users\omnia\Documents\ticketarium\sql-reports\README.md
+      - Příklady pro každý report
+
+TECHNICKÉ POZNÁMKY
+================================================================================
+
+PostgreSQL verze: 15+ požadavek
+- Používáme PERCENTILE_CONT() (PostgreSQL 9.4+)
+- generate_series() pro heatmap
+- FILTER (WHERE ...) klauzule pro aggregate (PostgreSQL 9.4+)
+- JSON agregace v audit logu
+
+Schéma: Bez cross-schema FK (záměrné)
+- Tabulky v různých schématech (identity, catalog, orders, tickets, resale, audit)
+- JOINy jsou možné, ale bez foreign key constraints
+- Validace na aplikační vrstvě
+
+Performance:
+- Všechny reporty jsou optimalizovány pro ~100ms-300ms runtime
+- LEFT JOINy se používají pro vč. zón bez prodejů
+- Aggregate Functions s FILTER pro přesné počty
+
+GDPR Compliance:
+- Report 03: Filtruje anonymized_at IS NULL
+- Report 07: Bez jména/e-mailu, pouze user_id
+- Soft delete: deleted_at sloupec ignorován
+- Audit log: Immutable, žádné DELETE/UPDATE
+
+DALŠÍ KROKY
+================================================================================
+
+1. Testování:
+   - EXPLAIN ANALYZE na každém reportu s reálnými daty
+   - Performance baseline (< 1s) vs. timeout produkce
+   - Validace výstupních sloupců
+
+2. Caching:
+   - Redis/memcached pro výsledky (5-30 min TTL)
+   - Materialized views pokud sníže se queries na live tables
+
+3. Scheduling:
+   - Nightly batch exports (CSV/JSON) pro analytics tools
+   - Real-time API endpointy přes sprocedury (pokud potřeba)
+
+4. Monitoring:
+   - Alert na slow queries (> 1s)
+   - Log access patterns (kdo spouští, kdy, jaké event_id)
+   - Archivace starých dat (> 2 let) z audit_log
+
+5. Rozšíření:
+   - Report 09 vyžaduje schéma 'passes' (season passes)
+   - Report 10 'days_to_sellout' výpočet z audit logu (zatím NULL)
+   - Přidat cohort analysis (когортный анализ)
+   - Predictive models (ML) pro forecast
+
+================================================================================

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head><meta charset="UTF-8"><title>Potvrzení rezervace</title></head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <h2>Dobrý den, {{customerName}}!</h2>
+  <p>Vaše rezervace EMS tréninku byla potvrzena.</p>
+
+  <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+    <tr>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Datum:</strong></td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{formatDate startsAt}}</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Čas:</strong></td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{time}}</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Pobočka:</strong></td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{branchName}}</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Typ:</strong></td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{slotType}} ({{durationMinutes}} min)</td>
+    </tr>
+    {{#if trainerName}}
+    <tr>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Trenér:</strong></td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{trainerName}}</td>
+    </tr>
+    {{/if}}
+  </table>
+
+  {{#if remainingCredits}}
+  <p>Zbývající vstupy na permanentce: <strong>{{remainingCredits}}</strong></p>
+  {{/if}}
+
+  <p style="color: #666; font-size: 14px;">
+    Storno je možné nejpozději 24 hodin před začátkem.
+    Přesun rezervace se řídí pravidly přesunového klíče.
+  </p>
+
+  <p>
+    <a href="{{portalUrl}}" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+      Zobrazit moje rezervace
+    </a>
+  </p>
+
+  <p style="color: #999; font-size: 12px; margin-top: 30px;">
+    Tento e-mail byl odeslán automaticky. Odpovídejte prosím na {{supportEmail}}.
+  </p>
+</body>
+</html>

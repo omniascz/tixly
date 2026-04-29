@@ -1,0 +1,102 @@
+ticketing-platform/
+├── src/
+│   ├── app/
+│   │   ├── (auth)/
+│   │   │   ├── login/
+│   │   │   │   └── page.tsx
+│   │   │   ├── register/
+│   │   │   │   └── page.tsx
+│   │   │   └── layout.tsx
+│   │   ├── (protected)/
+│   │   │   ├── dashboard/
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   └── [event-id]/
+│   │   │   │       └── page.tsx
+│   │   │   ├── tickets/
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   └── [ticket-id]/
+│   │   │   │       └── page.tsx
+│   │   │   ├── resale/
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── [listing-id]/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── create/
+│   │   │   │       └── page.tsx
+│   │   │   └── layout.tsx
+│   │   ├── api/
+│   │   │   └── auth/
+│   │   │       ├── refresh/
+│   │   │       │   └── route.ts
+│   │   │       └── logout/
+│   │   │           └── route.ts
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   └── globals.css
+│   ├── components/
+│   │   ├── ui/
+│   │   │   ├── button.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── label.tsx
+│   │   │   ├── dialog.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── toast.tsx
+│   │   │   └── toaster.tsx
+│   │   ├── layout/
+│   │   │   ├── Header.tsx
+│   │   │   ├── Footer.tsx
+│   │   │   └── Navigation.tsx
+│   │   ├── auth/
+│   │   │   ├── LoginForm.tsx
+│   │   │   └── RegisterForm.tsx
+│   │   ├── events/
+│   │   │   ├── EventCard.tsx
+│   │   │   ├── EventList.tsx
+│   │   │   └── EventDetails.tsx
+│   │   ├── tickets/
+│   │   │   ├── TicketCard.tsx
+│   │   │   ├── TicketList.tsx
+│   │   │   └── TicketQRCode.tsx
+│   │   └── resale/
+│   │       ├── ResaleListingCard.tsx
+│   │       ├── ResaleListingForm.tsx
+│   │       └── ResaleListingList.tsx
+│   ├── hooks/
+│   │   ├── useAuth.ts
+│   │   ├── useEvents.ts
+│   │   ├── useTickets.ts
+│   │   ├── useResaleListings.ts
+│   │   ├── useQuery.ts
+│   │   └── useMutation.ts
+│   ├── lib/
+│   │   ├── api.ts
+│   │   ├── query-client.ts
+│   │   ├── utils.ts
+│   │   └── validators.ts
+│   ├── store/
+│   │   ├── authStore.ts
+│   │   └── uiStore.ts
+│   ├── types/
+│   │   └── index.ts
+│   └── middleware.ts
+├── public/
+│   ├── icons/
+│   └── images/
+├── tests/
+│   ├── unit/
+│   │   ├── hooks/
+│   │   └── lib/
+│   └── integration/
+├── .env.example
+├── .env.local
+├── .eslintrc.json
+├── .prettierrc
+├── next.config.ts
+├── tsconfig.json
+├── vitest.config.ts
+├── package.json
+├── package-lock.json
+└── README.md

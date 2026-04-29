@@ -1,0 +1,29 @@
+{
+  "name": "gamification",
+  "version": "1.0.0",
+  "description": "Gamification system with badges and achievements for Tixly",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "gamification",
+    "badges",
+    "achievements",
+    "engagement"
+  ],
+  "author": "Tixly Team",
+  "license": "MIT",
+  "dependencies": {
+    "@tixly/rls-multitenancy": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
+  }
+}

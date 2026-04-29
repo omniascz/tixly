@@ -1,0 +1,15 @@
+{
+  "name": "@tixly/resale-price-prediction",
+  "version": "1.0.0",
+  "description": "ML fair-value price prediction for ticket resales",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.1",
+    "typescript": "^5.4.5"
+  }
+}

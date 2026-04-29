@@ -1,0 +1,37 @@
+{
+  "name": "@tixly/sms-barcode",
+  "version": "1.0.0",
+  "description": "SMS doručení vstupenek a Code 128 čárové kódy pro Tixly",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "job:sms-reminder": "node --import tsx/esm src/jobs/sms-reminder.job.ts",
+    "lint": "eslint src --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "bwip-js": "^4.5.1",
+    "next": "^14.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/bwip-js": "^3.1.0",
+    "@types/node": "^20.12.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitest/coverage-v8": "^1.5.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

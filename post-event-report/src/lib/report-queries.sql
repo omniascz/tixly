@@ -1,0 +1,119 @@
+-- SQL queries for post-event report data aggregation
+-- These are reference queries that should be translated to your ORM/query builder
+
+-- ============================================================================
+-- SALES DATA - Tickets sold per day (for sales curve)
+-- ============================================================================
+-- SELECT
+--   DATE(o.created_at) as date,
+--   COUNT(*) as ticket_count,
+--   SUM(o.amount) as total_revenue
+-- FROM orders o
+-- WHERE o.event_id = $1 AND o.status IN ('completed', 'refunded')
+-- GROUP BY DATE(o.created_at)
+-- ORDER BY date ASC;
+
+-- ============================================================================
+-- ATTENDANCE DATA - Peak entry time (15-minute windows)
+-- ============================================================================
+-- SELECT
+--   TO_CHAR(s.scanned_at, 'HH24:MI') as time_window,
+--   COUNT(*) as entry_count
+-- FROM scans s
+-- WHERE s.event_id = $1
+-- GROUP BY TO_CHAR(s.scanned_at, 'HH24:MI')
+-- ORDER BY entry_count DESC
+-- LIMIT 1;
+
+-- Alternative (more precise 15-min windows):
+-- SELECT
+--   DATE_TRUNC('15 minutes', s.scanned_at) as window_start,
+--   COUNT(*) as entry_count
+-- FROM scans s
+-- WHERE s.event_id = $1
+-- GROUP BY DATE_TRUNC('15 minutes', s.scanned_at)
+-- ORDER BY entry_count DESC
+-- LIMIT 1;
+
+-- ============================================================================
+-- MARKETING DATA - Top promo codes by usage
+-- ============================================================================
+-- SELECT
+--   pc.code,
+--   COUNT(*) as usage_count,
+--   SUM(o.discount_amount) as total_discount
+-- FROM orders o
+-- JOIN promo_code_applications pca ON o.id = pca.order_id
+-- JOIN promo_codes pc ON pca.promo_code_id = pc.id
+-- WHERE o.event_id = $1 AND o.status IN ('completed')
+-- GROUP BY pc.id, pc.code
+-- ORDER BY usage_count DESC
+-- LIMIT 10;
+
+-- ============================================================================
+-- RESALE DATA - Secondary market statistics
+-- ============================================================================
+-- SELECT
+--   COUNT(*) as total_listings,
+--   COUNT(CASE WHEN sl.buyer_id IS NOT NULL THEN 1 END) as total_sold,
+--   AVG(sl.ask_price) as avg_resale_price,
+--   MAX(sl.ask_price) as max_resale_price
+-- FROM secondary_listings sl
+-- WHERE sl.event_id = $1;
+
+-- ============================================================================
+-- ATTENDANCE DATA - No-show calculation
+-- ============================================================================
+-- SELECT
+--   COUNT(DISTINCT t.id) as total_tickets_sold,
+--   COUNT(DISTINCT s.ticket_id) as checked_in_count
+-- FROM tickets t
+-- LEFT JOIN scans s ON t.id = s.ticket_id
+-- WHERE t.event_id = $1 AND t.status IN ('active', 'used', 'refunded');
+
+-- ============================================================================
+-- SALES BY TICKET TYPE
+-- ============================================================================
+-- SELECT
+--   tt.name,
+--   COUNT(t.id) as sold_count,
+--   SUM(o.amount) as total_revenue
+-- FROM tickets t
+-- JOIN orders o ON t.order_id = o.id
+-- JOIN ticket_types tt ON t.ticket_type_id = tt.id
+-- WHERE t.event_id = $1 AND o.status IN ('completed')
+-- GROUP BY tt.id, tt.name
+-- ORDER BY sold_count DESC;
+
+-- ============================================================================
+-- REFERRAL & AFFILIATE METRICS
+-- ============================================================================
+-- SELECT
+--   COUNT(DISTINCT o.id) as referral_orders,
+--   SUM(o.amount) as referral_revenue
+-- FROM orders o
+-- WHERE o.event_id = $1 AND o.referral_code IS NOT NULL AND o.status IN ('completed');
+
+-- Affiliate sales:
+-- SELECT
+--   COUNT(DISTINCT o.id) as affiliate_orders,
+--   SUM(o.amount) as affiliate_revenue
+-- FROM orders o
+-- WHERE o.event_id = $1 AND o.affiliate_id IS NOT NULL AND o.status IN ('completed');
+
+-- ============================================================================
+-- INSTALLMENTS PENDING
+-- ============================================================================
+-- SELECT
+--   SUM(ip.remaining_amount) as installments_pending
+-- FROM installment_plans ip
+-- WHERE ip.event_id = $1 AND ip.status IN ('active', 'partially_paid');
+
+-- ============================================================================
+-- GUEST LIST METRICS
+-- ============================================================================
+-- SELECT
+--   COUNT(*) as guest_list_total,
+--   COUNT(CASE WHEN gl.checked_in_at IS NOT NULL THEN 1 END) as guest_list_checked_in
+-- FROM guest_list_entries gl
+-- WHERE gl.event_id = $1;

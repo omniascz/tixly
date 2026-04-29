@@ -1,0 +1,17 @@
+{
+  "name": "@tixly/webhooks",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^1.4.0",
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
+  },
+  "dependencies": {
+    "next": "^14.0.0"
+  }
+}

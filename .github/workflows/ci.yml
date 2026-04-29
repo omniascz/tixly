@@ -1,0 +1,151 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Lint + Type-check
+  # ---------------------------------------------------------------------------
+  lint:
+    name: Lint & Type-check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nextjs-boilerplate
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: nextjs-boilerplate/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Type-check
+        run: npm run type-check
+
+  # ---------------------------------------------------------------------------
+  # 2. Testy (Vitest) — spouští se paralelně pro každý modul
+  # ---------------------------------------------------------------------------
+  test:
+    name: Tests — ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - nextjs-boilerplate
+          - totp-qr
+          - seat-map
+          - pricing-engine
+          - resale-api
+          - season-passes
+          - wallet-passes
+          - organizer-dashboard
+          - recommendation-engine
+          - churn-prediction
+          - optimal-send-time
+          - referral-system
+          - server-side-tracking
+          - jwt-auth
+          - rls-multitenancy
+          - platform-fees
+          - platform-promoters
+          - venue-ownership
+          - price-migration
+          - promoter-onboarding
+          - refund-policy
+          - payout-management
+          - gift-vouchers
+          - event-cloning
+          - inventory-holdback
+          - promo-codes
+          - flash-sales
+          - installments
+          - pdf-ticket
+          - real-time-occupancy
+          - upsell-engine
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.module }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.module }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test -- --reporter=verbose --coverage
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-${{ matrix.module }}
+          path: ${{ matrix.module }}/coverage/
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # 3. Build (Next.js) — jen pokud lint + testy prošly
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build Next.js
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    defaults:
+      run:
+        working-directory: nextjs-boilerplate
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: nextjs-boilerplate/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # Placeholder values pro build — nekontaktují reálné služby
+          DATABASE_URL: postgresql://user:pass@localhost:5432/tixly
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: placeholder-secret-for-build-only-32ch
+          NEXT_PUBLIC_APP_URL: https://tixly.cz
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-build
+          path: nextjs-boilerplate/.next/
+          retention-days: 1
