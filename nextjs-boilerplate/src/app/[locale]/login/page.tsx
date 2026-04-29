@@ -68,8 +68,11 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className="mb-1 block text-xs font-medium">E-mail</label>
+              <label htmlFor="login-email" className="mb-1 block text-xs font-medium">
+                E-mail
+              </label>
               <Input
+                id="login-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -77,8 +80,11 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium">Heslo</label>
+              <label htmlFor="login-password" className="mb-1 block text-xs font-medium">
+                Heslo
+              </label>
               <Input
+                id="login-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

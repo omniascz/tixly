@@ -128,8 +128,8 @@ test('Promotér theatre@hranice.cz se přihlásí a vidí svoje akce v /admin', 
     await page.goto('/cs/login', { waitUntil: 'domcontentloaded' });
     // Reactu dáme čas na hydrace, jinak fill() proběhne před onChange handlery.
     await page.waitForLoadState('networkidle');
-    await page.locator('input[type=email]').fill('theatre@hranice.cz');
-    await page.locator('input[type=password]').fill('Demo2026!');
+    await page.getByLabel('E-mail').fill('theatre@hranice.cz');
+    await page.getByLabel('Heslo').fill('Demo2026!');
     await Promise.all([
       page.waitForResponse(
         (r) => r.url().endsWith('/api/auth/login') && r.request().method() === 'POST',
