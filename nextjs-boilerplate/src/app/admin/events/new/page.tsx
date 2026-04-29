@@ -60,6 +60,10 @@ interface TicketTypeRow {
   maxPerUser: string;
   description?: string;
   access: AccessSpec[];
+  // Seated mapping: zone matchuje název sektoru v venue_seating_charts.layout
+  // (přesně nebo přes prefix). Bez zone = standing event (nedostane sedadla).
+  zone?: string;
+  isSeated?: boolean;
 }
 
 interface FormState {
@@ -589,6 +593,8 @@ export default function NewEventWizardPage() {
               zoneName: a.zoneName,
               level: a.level,
             })),
+            zone: t.zone?.trim() ? t.zone.trim() : null,
+            isSeated: Boolean(t.isSeated),
           })),
           maxTicketsPerOrder: form.maxTicketsPerOrder
             ? parseInt(form.maxTicketsPerOrder, 10)
@@ -979,6 +985,28 @@ export default function NewEventWizardPage() {
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
+                    </div>
+
+                    {/* Seating mapping — pro sály s active seating chart.
+                        Bez zone se sedadla nezkopírují do event_seats. */}
+                    <div className="mt-1 flex items-center gap-3 border-t pt-2 text-xs">
+                      <label className="flex items-center gap-1.5">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(t.isSeated)}
+                          onChange={(e) =>
+                            updateTicket(idx, { isSeated: e.target.checked })
+                          }
+                        />
+                        <span>Sedadlo</span>
+                      </label>
+                      <Input
+                        className="h-7 flex-1 text-xs"
+                        placeholder="Sektor v sále (např. PŘÍZEMÍ, BALKON STŘED)"
+                        value={t.zone ?? ''}
+                        onChange={(e) => updateTicket(idx, { zone: e.target.value })}
+                        disabled={!t.isSeated}
+                      />
                     </div>
 
                     {showAccessMatrix ? (

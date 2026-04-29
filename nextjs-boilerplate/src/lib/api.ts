@@ -5,7 +5,10 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// Prázdný default = same-origin requesty. Browser pošle GET /api/X na origin
+// kde běží frontend, takže nemusíme řešit změnu portu při dev. Přepiš jen
+// pokud je API na jiné doméně (production cross-origin setup).
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   retryCount?: number;

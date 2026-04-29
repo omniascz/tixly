@@ -36,8 +36,10 @@ for (const line of readFileSync(ENV_PATH, 'utf8').split(/\r?\n/)) {
 }
 const DATABASE_URL = env.DATABASE_URL ?? 'postgresql://tixly:tixly_dev@localhost:5433/tixly';
 const ENCRYPTION_KEY = env.ENCRYPTION_KEY;
-const BASE = env.BASE_URL ?? 'http://localhost:3000';
-const MAILHOG = env.MAILHOG_URL ?? 'http://localhost:8025';
+// process.env má precedenci nad .env.local — pro override při změně portu
+// dev serveru (např. když jiný projekt drží 3000 a Tixly běží na 3010).
+const BASE = process.env.BASE_URL ?? env.BASE_URL ?? 'http://localhost:3000';
+const MAILHOG = process.env.MAILHOG_URL ?? env.MAILHOG_URL ?? 'http://localhost:8025';
 
 if (!ENCRYPTION_KEY) {
   console.error('Chybí ENCRYPTION_KEY v .env.local');
