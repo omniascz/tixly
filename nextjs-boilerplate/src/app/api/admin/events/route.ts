@@ -15,6 +15,7 @@ import {
   runAiGate,
   TRUST_THRESHOLD_PUBLISHED_EVENTS,
 } from '@/lib/moderation/ai-gate';
+import { copyLayoutToEventSeats } from '@/lib/seats/copy-layout-to-event-seats';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -84,6 +85,10 @@ const ticketTypeSchema = z.object({
   description: z.string().max(500).optional(),
   // Access manifest — pokud chybí, vstupenka je general/all/all (single event default).
   access: z.array(accessSpecSchema).optional(),
+  // Seating mapping. `zone` matchuje sektor v venue_seating_charts.layout
+  // (přesně nebo přes prefix). Pro standing eventy nech null.
+  zone: z.string().min(1).max(100).nullable().optional(),
+  isSeated: z.boolean().default(false),
 });
 
 const dayInputSchema = z.object({
@@ -382,10 +387,18 @@ export async function POST(req: NextRequest): Promise<Response> {
       const ttr = await client.query<{ id: string }>(
         `INSERT INTO catalog.ticket_types
            (event_id, name, kind, base_price, total_qty, remaining_qty,
-            max_per_user, created_at)
-         VALUES ($1, $2, 'standing', $3, $4, $4, $5, NOW())
+            max_per_user, zone, is_seated, created_at)
+         VALUES ($1, $2, 'standing', $3, $4, $4, $5, $6, $7, NOW())
          RETURNING id`,
-        [eventId, tt.name, tt.priceHalire, tt.capacity, tt.maxPerUser ?? null],
+        [
+          eventId,
+          tt.name,
+          tt.priceHalire,
+          tt.capacity,
+          tt.maxPerUser ?? null,
+          tt.zone ?? null,
+          tt.isSeated ?? false,
+        ],
       );
       const ticketTypeId = ttr.rows[0]!.id;
 
@@ -411,6 +424,11 @@ export async function POST(req: NextRequest): Promise<Response> {
         );
       }
     }
+
+    // Most chart → event_seats. Pokud má sál active seating chart a aspoň
+    // jeden ticket_type má `zone`, naplníme `event_seats` pro buyer SeatPicker.
+    // Bez tohohle volání by buyer viděl prázdnou mapu (P0 bug session 13).
+    const seatCopy = await copyLayoutToEventSeats(client, eventId);
 
     // Audit log (DSA legal trail)
     const decision = autoReject
@@ -459,7 +477,17 @@ export async function POST(req: NextRequest): Promise<Response> {
         : initialStatus === 'published'
           ? 'Akce byla auto-publikována (AI gate + ověřený promotér).'
           : 'Akce čeká na schválení master adminem. Po schválení půjde do prodeje.';
-    return NextResponse.json({ eventId, status: initialStatus, message }, { status: 201 });
+    return NextResponse.json(
+      {
+        eventId,
+        status: initialStatus,
+        message,
+        seatsCreated: seatCopy.insertedSeats,
+        sectorsMapped: seatCopy.matchedSectors,
+        sectorsSkipped: seatCopy.skippedSectors,
+      },
+      { status: 201 },
+    );
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('[POST /api/admin/events]', err);
