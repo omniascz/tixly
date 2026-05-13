@@ -13,6 +13,7 @@ import { Pool } from 'pg';
 import { Card, CardContent } from '@/components/ui/card';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 import { formatDate } from '@/lib/format';
+import { FollowButton } from './FollowButton';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
@@ -137,13 +138,16 @@ export default async function PromoterPage({
             className="absolute right-6 top-6 h-14 w-auto rounded bg-white/90 p-1.5 shadow-sm lg:h-20"
           />
         ) : null}
-        <div className="space-y-2 text-white drop-shadow">
-          <h1 className="text-3xl font-bold lg:text-4xl">{promoter.name}</h1>
-          {promoter.brand_tagline ? (
-            <p className="text-sm font-medium uppercase tracking-wider text-white/90 lg:text-base">
-              {promoter.brand_tagline}
-            </p>
-          ) : null}
+        <div className="flex w-full items-end justify-between gap-4">
+          <div className="space-y-2 text-white drop-shadow">
+            <h1 className="text-3xl font-bold lg:text-4xl">{promoter.name}</h1>
+            {promoter.brand_tagline ? (
+              <p className="text-sm font-medium uppercase tracking-wider text-white/90 lg:text-base">
+                {promoter.brand_tagline}
+              </p>
+            ) : null}
+          </div>
+          <FollowButton promoterId={promoter.id} promoterName={promoter.name} />
         </div>
       </div>
 

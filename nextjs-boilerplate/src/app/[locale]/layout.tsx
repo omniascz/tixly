@@ -23,7 +23,26 @@ export default function LocaleLayout({
       </header>
       <main className="flex-1 container mx-auto px-4 py-8">{children}</main>
       <footer className="border-t bg-card text-xs text-muted-foreground">
-        <div className="container mx-auto px-4 py-3">© Tixly Demo</div>
+        <div className="container mx-auto flex flex-wrap items-center justify-between gap-2 px-4 py-4">
+          <div>© {new Date().getFullYear()} Tixly</div>
+          <nav className="flex flex-wrap gap-3">
+            <Link href={`/${params.locale}/about`} className="hover:underline">
+              O Tixly
+            </Link>
+            <Link href={`/${params.locale}/contact`} className="hover:underline">
+              Kontakt
+            </Link>
+            <Link href={`/${params.locale}/legal/terms`} className="hover:underline">
+              Podmínky
+            </Link>
+            <Link href={`/${params.locale}/legal/privacy`} className="hover:underline">
+              Soukromí
+            </Link>
+            <Link href={`/${params.locale}/status`} className="hover:underline">
+              Status
+            </Link>
+          </nav>
+        </div>
       </footer>
       <CookieConsentBanner />
       <SupportChatWidget />
