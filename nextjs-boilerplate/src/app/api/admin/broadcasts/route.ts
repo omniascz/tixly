@@ -25,7 +25,7 @@ const createSchema = z.object({
   eventId: z.string().uuid(),
   subject: z.string().min(3).max(200),
   body: z.string().min(10).max(10_000),
-  filter: z.enum(['all_buyers', 'paid_only', 'ticket_type', 'waitlist']),
+  filter: z.enum(['all_buyers', 'paid_only', 'ticket_type', 'waitlist', 'followers']),
   ticketTypeId: z.string().uuid().optional(),
 });
 
@@ -158,6 +158,20 @@ export async function POST(req: NextRequest): Promise<Response> {
         JOIN identity.users u ON u.id = w.user_id
         WHERE w.event_id = $1
           AND u.deleted_at IS NULL`;
+      break;
+    case 'followers':
+      // Newsletter subscribers tohoto promotéra (z FollowButton na /p/[slug])
+      // Použijeme $1 = promoter_id; ale máme $1 = event_id — musíme injection změnit
+      recipientArgs[0] = ev.promoter_id; // přepíšeme event_id na promoter_id
+      recipientQuery = `
+        SELECT DISTINCT COALESCE(u.id, gen_random_uuid()) AS user_id,
+               ns.email, ns.name
+        FROM marketing.newsletter_subscribers ns
+        LEFT JOIN identity.users u ON LOWER(u.email) = LOWER(ns.email)
+        WHERE ns.promoter_id = $1
+          AND ns.status = 'confirmed'
+          AND ns.unsubscribed_at IS NULL
+          AND (u.deleted_at IS NULL OR u.id IS NULL)`;
       break;
   }
 

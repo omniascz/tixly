@@ -29,6 +29,7 @@ interface Broadcast {
 }
 
 const FILTER_LABELS: Record<string, string> = {
+  followers: 'Followers (newsletter)',
   all_buyers: 'Všichni kupci',
   paid_only: 'Jen zaplacení',
   ticket_type: 'Konkrétní typ lístku',

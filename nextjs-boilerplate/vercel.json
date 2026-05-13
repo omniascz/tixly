@@ -31,33 +31,16 @@
   ],
 
   "crons": [
-    {
-      "path": "/api/cron/pricing-phase-check",
-      "schedule": "*/15 * * * *"
-    },
-    {
-      "path": "/api/cron/resale-payout",
-      "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/cron/churn-scoring",
-      "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/cron/send-time-batch",
-      "schedule": "0 4 * * *"
-    },
-    {
-      "path": "/api/cron/recommendation-refresh",
-      "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/season-pass-renewal",
-      "schedule": "0 8 * * *"
-    },
-    {
-      "path": "/api/cron/flash-sale-expiry",
-      "schedule": "*/5 * * * *"
-    }
+    { "path": "/api/cron/dispatch?job=expire-pending-orders", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/dispatch?job=release-expired-seat-holds", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/dispatch?job=send-reminders", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/dispatch?job=abandoned-cart", "schedule": "0 */6 * * *" },
+    { "path": "/api/cron/dispatch?job=waitlist-notify", "schedule": "*/30 * * * *" },
+    { "path": "/api/cron/dispatch?job=charge-installments", "schedule": "0 3 * * *" },
+    { "path": "/api/cron/dispatch?job=renew-subscriptions", "schedule": "0 4 * * *" },
+    { "path": "/api/cron/dispatch?job=daily-stats", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/dispatch?job=onboarding-reminder", "schedule": "0 9 * * *" },
+    { "path": "/api/cron/dispatch?job=process-gdpr-deletions", "schedule": "0 2 * * *" },
+    { "path": "/api/cron/dispatch?job=anomaly-detect", "schedule": "0 * * * *" }
   ]
 }

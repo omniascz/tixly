@@ -413,6 +413,18 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Sledování</CardTitle>
+          <CardDescription>Pořadatelé, jejichž novinky chceš dostávat na e-mail.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <a href="follows" className="text-sm text-primary hover:underline">
+            Sledovaní pořadatelé →
+          </a>
+        </CardContent>
+      </Card>
+
       <p className="text-xs text-muted-foreground">
         Účet vytvořen {new Date(profile.createdAt).toLocaleDateString('cs-CZ')}.
       </p>
