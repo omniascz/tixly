@@ -14,6 +14,12 @@ import {
   Mail,
   MessageSquare,
   UserCog,
+  Banknote,
+  Receipt,
+  Lock,
+  FileSearch,
+  Repeat,
+  TrendingUp,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -45,18 +51,35 @@ const sections: NavSection[] = [
     label: 'Prodej',
     items: [
       { href: '/admin/events', label: 'Akce', icon: CalendarDays },
+      { href: '/admin/season', label: 'Sezónní přehled', icon: TrendingUp },
       { href: '/admin/orders', label: 'Objednávky', icon: ShoppingCart },
       { href: '/admin/customers', label: 'Zákazníci', icon: Users },
+      { href: '/admin/pos', label: 'Pokladna (POS)', icon: Banknote },
       { href: '/admin/scanner', label: 'Scanner', icon: ScanLine },
+    ],
+  },
+  {
+    label: 'Finance',
+    items: [
       { href: '/admin/payouts', label: 'Výplaty', icon: Wallet },
+      { href: '/admin/invoices', label: 'Faktury', icon: Receipt },
     ],
   },
   {
     label: 'Marketing',
     items: [
       { href: '/admin/promo-codes', label: 'Promo kódy', icon: Tag },
+      { href: '/admin/access-codes', label: 'Přístupové kódy', icon: Lock },
+      { href: '/admin/broadcasts', label: 'Broadcasty', icon: Mail },
       { href: '/admin/sms-campaigns', label: 'SMS kampaně', icon: MessageSquare },
       { href: '/admin/email-templates', label: 'E-mail šablony', icon: Mail },
+      { href: '/admin/subscription-plans', label: 'Permanentky', icon: Repeat },
+    ],
+  },
+  {
+    label: 'Audit',
+    items: [
+      { href: '/admin/audit-log', label: 'Audit log', icon: FileSearch },
     ],
   },
 ];

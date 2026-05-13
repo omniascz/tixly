@@ -102,10 +102,80 @@ export class ClaudeModerationProvider implements ModerationProvider {
     private readonly model = 'claude-haiku-4-5-20251001',
   ) {}
 
-  async moderate(_input: ModerationInput): Promise<ModerationResult> {
-    void this.apiKey;
-    void this.model;
-    throw new Error('ClaudeModerationProvider není v lokálním demu připojen — use MockModerationProvider');
+  async moderate(input: ModerationInput): Promise<ModerationResult> {
+    const systemPrompt = `Jsi moderátor obsahu ticketing platformy. Vyhodnoť, zda je daný popis akce vhodný k publikaci.
+
+Pravidla:
+- reject (s confidence ≥ 0.8): scam/podvod (zaručený výnos, investiční pyramidy), nelegální obsah (drogy, prostituce, zbraně), extremismus/nenávist, dětské zneužívání, jasné porušení autorských práv (např. „neoficiální" tribute s logem značky)
+- flag (s confidence 0.5-0.8): ambivalentní obsah, který stojí za lidskou kontrolu — sportovní hazard, alkohol bez 18+ gating, neověřitelné medical claims, podezřelé influencer kampaně
+- allow (s confidence ≥ 0.8): běžné akce — koncert, divadlo, festival, konference, sport
+
+Vrať POUZE JSON v tomto formátu, nic jiného:
+{"decision":"allow|flag|reject","categories":[...],"confidence":0-1,"reasoning":"česky max 200 znaků"}`;
+
+    const userContent = `Title: ${input.title}
+Description: ${input.description ?? '(žádný popis)'}
+Ticket types: ${input.ticketTypeNames.join(', ')}`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': this.apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: this.model,
+          max_tokens: 400,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userContent }],
+        }),
+      });
+      if (!res.ok) {
+        console.error('[claude-moderation] HTTP', res.status, await res.text().catch(() => ''));
+        // Bezpečný default: flag pro human review (nikdy auto-reject při chybě)
+        return {
+          decision: 'flag',
+          categories: ['provider_error'],
+          confidence: 0.5,
+          reasoning: `Claude API selhalo (HTTP ${res.status})`,
+        };
+      }
+      const data = (await res.json()) as { content?: Array<{ type: string; text?: string }> };
+      const textBlock = data.content?.find((b) => b.type === 'text')?.text ?? '';
+      // Claude občas obalí JSON v markdown — strip ```json … ```
+      const jsonMatch = textBlock.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        return {
+          decision: 'flag',
+          categories: ['parse_error'],
+          confidence: 0.5,
+          reasoning: 'Claude nevrátil parsovatelný JSON',
+        };
+      }
+      const parsed = JSON.parse(jsonMatch[0]) as Partial<ModerationResult>;
+      return {
+        decision:
+          parsed.decision === 'allow' || parsed.decision === 'reject'
+            ? parsed.decision
+            : 'flag',
+        categories: Array.isArray(parsed.categories) ? parsed.categories : [],
+        confidence:
+          typeof parsed.confidence === 'number'
+            ? Math.max(0, Math.min(1, parsed.confidence))
+            : 0.5,
+        reasoning: typeof parsed.reasoning === 'string' ? parsed.reasoning.slice(0, 200) : '',
+      };
+    } catch (e) {
+      console.error('[claude-moderation] exception', e);
+      return {
+        decision: 'flag',
+        categories: ['exception'],
+        confidence: 0.5,
+        reasoning: e instanceof Error ? e.message.slice(0, 200) : 'unknown error',
+      };
+    }
   }
 }
 

@@ -29,10 +29,14 @@ export async function GET(
     title: string;
     date_start: string;
     venue_name: string | null;
+    promoter_name: string | null;
+    brand_color_hex: string | null;
   }>(
-    `SELECT e.title, e.date_start, v.name AS venue_name
+    `SELECT e.title, e.date_start, v.name AS venue_name,
+            p.name AS promoter_name, p.brand_color_hex
      FROM catalog.events e
      LEFT JOIN catalog.venues v ON v.id = e.venue_id
+     LEFT JOIN platform.promoters p ON p.id = e.promoter_id
      WHERE e.id = $1 AND e.status = 'published'`,
     [params.id],
   );
@@ -41,9 +45,19 @@ export async function GET(
   }
   const ev = r.rows[0]!;
 
-  // Hash hue z eventId pro deterministický gradient
-  const hue =
-    [...params.id].reduce((s, c) => s + c.charCodeAt(0), 0) % 360;
+  // Brand color promotéra > fallback hash hue
+  let bgGradient: string;
+  if (ev.brand_color_hex && /^#[0-9a-f]{6}$/i.test(ev.brand_color_hex)) {
+    const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(ev.brand_color_hex)!;
+    const r0 = parseInt(m[1]!, 16);
+    const g0 = parseInt(m[2]!, 16);
+    const b0 = parseInt(m[3]!, 16);
+    const darker = `rgb(${Math.round(r0 * 0.7)}, ${Math.round(g0 * 0.7)}, ${Math.round(b0 * 0.7)})`;
+    bgGradient = `linear-gradient(135deg, ${ev.brand_color_hex} 0%, ${darker} 100%)`;
+  } else {
+    const hue = [...params.id].reduce((s, c) => s + c.charCodeAt(0), 0) % 360;
+    bgGradient = `linear-gradient(135deg, hsl(${hue}, 70%, 45%) 0%, hsl(${(hue + 60) % 360}, 75%, 35%) 100%)`;
+  }
   const dateStr = new Date(ev.date_start).toLocaleDateString('cs-CZ', {
     day: 'numeric',
     month: 'long',
@@ -60,12 +74,14 @@ export async function GET(
           flexDirection: 'column',
           justifyContent: 'space-between',
           padding: '60px',
-          background: `linear-gradient(135deg, hsl(${hue}, 70%, 45%) 0%, hsl(${(hue + 60) % 360}, 75%, 35%) 100%)`,
+          background: bgGradient,
           color: '#fff',
           fontFamily: 'sans-serif',
         }}
       >
-        <div style={{ fontSize: 32, fontWeight: 700, opacity: 0.9 }}>Tixly</div>
+        <div style={{ fontSize: 32, fontWeight: 700, opacity: 0.9 }}>
+          {ev.promoter_name ?? 'Tixly'}
+        </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div
             style={{

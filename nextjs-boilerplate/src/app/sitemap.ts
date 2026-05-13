@@ -1,8 +1,11 @@
 import type { MetadataRoute } from 'next';
 import { Pool } from 'pg';
+import { LOCALES_ACTIVE } from '@/lib/i18n';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-const LOCALES = ['cs', 'en', 'de', 'fr', 'nl', 'es', 'pl', 'sk'];
+// Sitemap publikuje jen produkčně přeložené locales — vyhneme se duplicate
+// content penalizaci v Google když 7 z 8 locales je hardcoded česky.
+const LOCALES = LOCALES_ACTIVE;
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -58,7 +61,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
   } catch (err) {
-    console.error('[sitemap]', err);
+    console.error('[sitemap events]', err);
+  }
+
+  // Active promoter profile pages (/p/{slug}) — pro veřejné brand pages
+  try {
+    const promoters = await db().query<{ slug: string; updated_at: string }>(
+      `SELECT slug, updated_at FROM platform.promoters
+       WHERE status = 'active' AND slug IS NOT NULL
+       ORDER BY updated_at DESC
+       LIMIT 500`,
+    );
+    for (const p of promoters.rows) {
+      for (const locale of LOCALES) {
+        entries.push({
+          url: `${BASE_URL}/${locale}/p/${p.slug}`,
+          lastModified: new Date(p.updated_at),
+          changeFrequency: 'weekly',
+          priority: 0.7,
+        });
+      }
+    }
+  } catch (err) {
+    console.error('[sitemap promoters]', err);
   }
 
   return entries;

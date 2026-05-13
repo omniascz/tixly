@@ -58,7 +58,7 @@ export function SupportActions({
   tickets,
 }: Props) {
   const router = useRouter();
-  const [tab, setTab] = useState<'resend' | 'transfer' | 'name' | 'cancel' | 'refund'>(
+  const [tab, setTab] = useState<'resend' | 'message' | 'transfer' | 'name' | 'cancel' | 'refund'>(
     'resend',
   );
   const [busy, setBusy] = useState(false);
@@ -66,6 +66,8 @@ export function SupportActions({
   const [feedback, setFeedback] = useState<string | null>(null);
 
   // Per-tab state
+  const [messageSubject, setMessageSubject] = useState('');
+  const [messageBody, setMessageBody] = useState('');
   const [transferTicketId, setTransferTicketId] = useState('');
   const [transferEmail, setTransferEmail] = useState('');
   const [transferName, setTransferName] = useState('');
@@ -145,6 +147,7 @@ export function SupportActions({
       <CardContent>
         <div className="mb-4 flex flex-wrap gap-2">
           <TabButton active={tab === 'resend'} onClick={() => setTab('resend')} label="Resend e-mail" />
+          <TabButton active={tab === 'message'} onClick={() => setTab('message')} label="Napsat zprávu" />
           <TabButton active={tab === 'transfer'} onClick={() => setTab('transfer')} label="Transfer" />
           <TabButton active={tab === 'name'} onClick={() => setTab('name')} label="Změna jména" />
           <TabButton active={tab === 'cancel'} onClick={() => setTab('cancel')} label="Zrušit lístek" />
@@ -169,6 +172,47 @@ export function SupportActions({
               />
               <Button onClick={() => fire({ action: 'resend_email' })} disabled={busy}>
                 {busy ? 'Posílám…' : 'Poslat znovu'}
+              </Button>
+            </>
+          ) : null}
+
+          {tab === 'message' ? (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Pošle individuální zprávu kupci na <strong>{buyerEmail}</strong>.
+                Pro změnu programu, výjimku, omluvu — cokoliv, co není standardní
+                template.
+              </p>
+              <Input
+                placeholder="Předmět"
+                value={messageSubject}
+                onChange={(e) => setMessageSubject(e.target.value)}
+                maxLength={200}
+              />
+              <textarea
+                placeholder="Text zprávy (oslovení už doplníme)"
+                value={messageBody}
+                onChange={(e) => setMessageBody(e.target.value)}
+                rows={6}
+                maxLength={5000}
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+              />
+              <Input
+                placeholder="Poznámka pro audit"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+              />
+              <Button
+                onClick={() =>
+                  fire({
+                    action: 'send_message',
+                    subject: messageSubject,
+                    body: messageBody,
+                  })
+                }
+                disabled={busy || messageSubject.length < 3 || messageBody.length < 10}
+              >
+                {busy ? 'Posílám…' : 'Odeslat zprávu'}
               </Button>
             </>
           ) : null}

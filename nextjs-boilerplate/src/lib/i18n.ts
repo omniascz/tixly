@@ -1,7 +1,18 @@
 // ── Locale configuration ──────────────────────────────────────────────────
+//
+// LOCALES — všechny locales SCHEMA (dictionaries, types, validation). Zachováno
+//           pro budoucí rozšíření; middleware tyto akceptuje jako URL prefix.
+// LOCALES_ACTIVE — locales, které jsou produkčně **plně přeloženy a publikované**:
+//           sitemap je publikuje, language switcher je nabízí, OG meta tags
+//           obsahují jen aktivní alternates. Default sub-set pro CZ provoz je `['cs']`.
+//
+// Až budou EN/DE/PL přeložené (locale dictionary keys vyplněné + UI stránky
+// používají `getDict(locale)`), přidej je do LOCALES_ACTIVE.
 
 export const LOCALES = ['cs', 'en', 'de', 'fr', 'nl', 'es', 'pl', 'sk'] as const
+export const LOCALES_ACTIVE = ['cs'] as const
 export type Locale = (typeof LOCALES)[number]
+export type ActiveLocale = (typeof LOCALES_ACTIVE)[number]
 export const DEFAULT_LOCALE: Locale = 'cs'
 export const LOCALE_COOKIE = 'NEXT_LOCALE'
 
@@ -14,6 +25,10 @@ export const LOCALE_NAMES: Record<Locale, string> = {
   es: 'Español',
   pl: 'Polski',
   sk: 'Slovenčina',
+}
+
+export function isActiveLocale(value: string): value is ActiveLocale {
+  return (LOCALES_ACTIVE as readonly string[]).includes(value)
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────

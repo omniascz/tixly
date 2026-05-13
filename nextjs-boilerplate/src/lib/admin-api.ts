@@ -38,36 +38,27 @@ export const adminApi = {
   },
 
   customers: async (): Promise<AdminCustomer[]> => {
-    const all: AdminCustomer[] = [];
-    let page = 1;
-    const seen = new Map<string, AdminCustomer>();
-    while (page <= 5) {
-      const res = await adminApi.orders({ status: 'paid', page, limit: 100 });
-      for (const o of res.items) {
-        const existing = seen.get(o.buyerEmail);
-        if (existing) {
-          existing.ordersCount += 1;
-          existing.totalSpentHalire += o.totalHalire;
-          if (o.createdAt > existing.lastOrderAt) {
-            existing.lastOrderAt = o.createdAt;
-          }
-        } else {
-          seen.set(o.buyerEmail, {
-            email: o.buyerEmail,
-            name: o.buyerName,
-            phone: o.buyerPhone,
-            ordersCount: 1,
-            totalSpentHalire: o.totalHalire,
-            lastOrderAt: o.createdAt,
-          });
-        }
-      }
-      if (page >= res.totalPages) break;
-      page += 1;
-    }
-    for (const c of seen.values()) all.push(c);
-    all.sort((a, b) => b.totalSpentHalire - a.totalSpentHalire);
-    return all;
+    // Server-side agregace přes /api/admin/customers — nahradilo původní
+    // klient-side reduce z 5 stránek orders (limit 500), které nestačily
+    // pro promotéry s >500 zákazníky.
+    const res = await api.get<{
+      customers: Array<{
+        email: string;
+        name: string | null;
+        phone: string | null;
+        ordersCount: number;
+        totalSpentHalire: number;
+        lastOrderAt: string;
+      }>;
+    }>(`/api/admin/customers?limit=500`);
+    return res.data.customers.map((c) => ({
+      email: c.email,
+      name: c.name ?? c.email,
+      phone: c.phone,
+      ordersCount: c.ordersCount,
+      totalSpentHalire: c.totalSpentHalire,
+      lastOrderAt: c.lastOrderAt,
+    }));
   },
 
   payouts: async (): Promise<AdminPayout[]> => {

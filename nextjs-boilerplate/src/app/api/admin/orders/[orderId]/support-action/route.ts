@@ -46,6 +46,12 @@ const schema = z.discriminatedUnion('action', [
     ticketId: z.string().uuid(),
     note: z.string().max(500).optional(),
   }),
+  z.object({
+    action: z.literal('send_message'),
+    subject: z.string().min(3).max(200),
+    body: z.string().min(10).max(5000),
+    note: z.string().max(500).optional(),
+  }),
 ]);
 
 interface OrderContext {
@@ -186,6 +192,83 @@ export async function POST(
         return NextResponse.json({ error: 'TICKET_NOT_VALID_OR_NOT_IN_ORDER' }, { status: 409 });
       }
       targetTicketId = input.ticketId;
+    } else if (input.action === 'send_message') {
+      // Načti buyer email + promotér brand pro odesílatele
+      const ctx = await client.query<{
+        buyer_email: string;
+        buyer_name: string | null;
+        event_title: string;
+        promoter_name: string;
+        brand_color_hex: string | null;
+      }>(
+        `SELECT u.email AS buyer_email, u.name AS buyer_name,
+                e.title AS event_title,
+                p.name AS promoter_name, p.brand_color_hex
+         FROM orders.orders o
+         JOIN identity.users u ON u.id = o.user_id
+         JOIN catalog.events e ON e.id = o.event_id
+         JOIN platform.promoters p ON p.id = e.promoter_id
+         WHERE o.id = $1`,
+        [order.id],
+      );
+      const c = ctx.rows[0];
+      if (!c) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'CONTEXT_NOT_FOUND' }, { status: 404 });
+      }
+
+      // Sender display + brand color v hlavičce
+      const { default: nodemailer } = await import('nodemailer');
+      const { escapeHtml } = await import('@/lib/html-escape/escape');
+      const brandColor =
+        c.brand_color_hex && /^#[0-9a-f]{6}$/i.test(c.brand_color_hex)
+          ? c.brand_color_hex
+          : '#10b981';
+      const html = `<!DOCTYPE html>
+<html><body style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:0;color:#111">
+  <div style="background:${brandColor};color:#fff;padding:20px 24px">
+    <h1 style="margin:0;font-size:20px">${escapeHtml(c.promoter_name)}</h1>
+    <p style="margin:4px 0 0;font-size:13px;opacity:0.9">k akci „${escapeHtml(c.event_title)}"</p>
+  </div>
+  <div style="padding:24px;line-height:1.6">
+    <p>Ahoj ${escapeHtml(c.buyer_name ?? '')},</p>
+    ${input.body
+      .split('\n')
+      .map((line) => `<p>${escapeHtml(line)}</p>`)
+      .join('')}
+    <p style="margin-top:24px;color:#666;font-size:12px">
+      Tato zpráva byla odeslána pořadatelem akce přes platformu Tixly.
+      Pokud potřebuješ odpovědět, použij prosím odpověď na tento e-mail —
+      ten půjde přímo pořadateli.
+    </p>
+  </div>
+</body></html>`;
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST ?? 'localhost',
+        port: Number(process.env.SMTP_PORT ?? '1025'),
+        secure: false,
+        auth:
+          process.env.SMTP_USER && process.env.SMTP_PASS
+            ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+            : undefined,
+      });
+      try {
+        await transporter.sendMail({
+          from: `"${c.promoter_name}" <${process.env.EMAIL_FROM ?? 'vstupenky@tixly.local'}>`,
+          to: c.buyer_email,
+          subject: input.subject,
+          html,
+          text: input.body,
+        });
+      } catch (e) {
+        console.error('[support send_message]', e);
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { error: 'EMAIL_SEND_FAILED', message: e instanceof Error ? e.message : String(e) },
+          { status: 500 },
+        );
+      }
+      metadata = { subject: input.subject, bodyLength: input.body.length };
     }
 
     // Audit
