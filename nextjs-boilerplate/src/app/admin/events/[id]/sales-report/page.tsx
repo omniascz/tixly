@@ -9,7 +9,15 @@ import { formatMoney, isCurrency } from '@/lib/format';
 
 interface ReportData {
   event: { id: string; title: string; currency: string };
-  byTicketType: { ticketTypeId: string; name: string; soldQty: number; grossHalire: number }[];
+  byTicketType: {
+    ticketTypeId: string;
+    name: string;
+    soldQty: number;
+    grossHalire: number;
+    totalQty: number;
+    remainingQty: number;
+    occupancyPct: number;
+  }[];
   addons: { count: number; totalHalire: number };
   grossOrders: { count: number; totalHalire: number };
   insurance: { count: number; premiumTotalHalire: number };
@@ -113,6 +121,7 @@ export default function SalesReportPage() {
             <thead>
               <tr className="border-b text-left text-xs uppercase text-muted-foreground">
                 <th className="py-2">Typ</th>
+                <th className="text-right">Obsazenost</th>
                 <th className="text-right">Prodáno</th>
                 <th className="text-right">Hrubá tržba</th>
                 <th className="text-right">% z eventu</th>
@@ -121,9 +130,32 @@ export default function SalesReportPage() {
             <tbody>
               {data.byTicketType.map((r) => {
                 const pct = totalGross > 0 ? (r.grossHalire / totalGross) * 100 : 0;
+                const occColor =
+                  r.occupancyPct >= 90
+                    ? 'bg-rose-500'
+                    : r.occupancyPct >= 70
+                      ? 'bg-amber-500'
+                      : 'bg-emerald-500';
                 return (
                   <tr key={r.ticketTypeId} className="border-b">
                     <td className="py-2">{r.name}</td>
+                    <td className="py-2">
+                      <div className="flex items-center gap-2">
+                        <div className="relative h-2 w-24 overflow-hidden rounded bg-muted">
+                          <div
+                            className={`h-full ${occColor}`}
+                            style={{ width: `${r.occupancyPct}%` }}
+                          />
+                        </div>
+                        <span className="w-12 text-right text-xs tabular-nums">
+                          {r.occupancyPct}%
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">
+                        {(r.totalQty - r.remainingQty).toLocaleString('cs-CZ')} /{' '}
+                        {r.totalQty.toLocaleString('cs-CZ')}
+                      </div>
+                    </td>
                     <td className="text-right tabular-nums">{r.soldQty.toLocaleString('cs-CZ')}</td>
                     <td className="text-right tabular-nums">
                       {formatMoney(r.grossHalire, ccy)}
@@ -136,6 +168,11 @@ export default function SalesReportPage() {
               })}
             </tbody>
           </table>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Barva pruhu: <span className="text-emerald-700">≤ 70 %</span> rezerva,{' '}
+            <span className="text-amber-700">70-90 %</span> upozornění,{' '}
+            <span className="text-rose-700">≥ 90 %</span> téměř plno.
+          </p>
         </CardContent>
       </Card>
 

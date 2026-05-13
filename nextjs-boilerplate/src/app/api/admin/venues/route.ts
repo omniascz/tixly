@@ -27,10 +27,15 @@ export async function GET(req: NextRequest): Promise<Response> {
   const promoter = await requirePromoter(req);
   if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  // Skrýt 'Online / TBD' placeholdery vytvořené dřívějšími sessions promoter UI —
+  // promotér je nepotřebuje vidět v dropdownu, vznikly jen jako vedlejší produkt
+  // tvorby online eventů. Master katalog reálných sálů je v /platform/venues.
   const r = await db().query<VenueRow>(
     `SELECT id, name, city, capacity, venue_type
      FROM catalog.venues
      WHERE archived_at IS NULL
+       AND status = 'published'
+       AND name <> 'Online / TBD'
      ORDER BY name
      LIMIT 500`,
   );

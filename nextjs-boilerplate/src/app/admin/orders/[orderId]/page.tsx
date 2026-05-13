@@ -344,6 +344,9 @@ export default async function AdminOrderDetailPage({
       <SupportActions
         orderId={data.id}
         buyerEmail={data.buyer.email}
+        orderStatus={data.status}
+        totalAmount={data.totalAmount}
+        currency={ccy}
         tickets={data.tickets.map((t) => ({
           id: t.id,
           status: t.status,

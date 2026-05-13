@@ -18,6 +18,7 @@ export interface TicketTypeWithAccess {
   available: number;
   access: TicketAccess[];
   is_seated?: boolean;
+  visibility?: 'public' | 'access_code' | 'hidden';
 }
 
 export interface PickerDay {
@@ -94,12 +95,67 @@ export function TicketPicker({ eventId, locale, currency, queueEnabled, ticketTy
   const ccy = isCurrency(currency) ? currency : 'CZK';
   const dict = t ?? FALLBACK;
 
+  // Access code unlock state
+  const [showAccessInput, setShowAccessInput] = useState(false);
+  const [accessCode, setAccessCode] = useState('');
+  const [unlockedIds, setUnlockedIds] = useState<string[]>([]);
+  const [unlockMessage, setUnlockMessage] = useState<string | null>(null);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
+  const [unlocking, setUnlocking] = useState(false);
+
+  const hasAccessGated = ticketTypes.some((tt) => tt.visibility === 'access_code');
+
   const showFilters = days.length > 1 || zones.length > 1;
 
-  const filtered = useMemo(
-    () => ticketTypes.filter((tt) => matches(tt, selectedDay, selectedZone)),
-    [ticketTypes, selectedDay, selectedZone],
+  const visible = useMemo(
+    () =>
+      ticketTypes.filter(
+        (tt) => tt.visibility !== 'access_code' || unlockedIds.includes(tt.id),
+      ),
+    [ticketTypes, unlockedIds],
   );
+
+  const filtered = useMemo(
+    () => visible.filter((tt) => matches(tt, selectedDay, selectedZone)),
+    [visible, selectedDay, selectedZone],
+  );
+
+  async function handleUnlock() {
+    setUnlockError(null);
+    setUnlockMessage(null);
+    setUnlocking(true);
+    try {
+      const res = await fetch(`/api/events/${eventId}/unlock-access-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: accessCode.trim() }),
+      });
+      const data = (await res.json()) as {
+        success?: boolean;
+        ticketTypeIds?: string[];
+        ticketTypeNames?: string[];
+        error?: string;
+        message?: string;
+      };
+      if (!res.ok || !data.success) {
+        setUnlockError(data.message ?? 'Neplatný kód.');
+        return;
+      }
+      const newIds = (data.ticketTypeIds ?? []).filter((id) => !unlockedIds.includes(id));
+      setUnlockedIds((prev) => Array.from(new Set([...prev, ...(data.ticketTypeIds ?? [])])));
+      const names = data.ticketTypeNames ?? [];
+      setUnlockMessage(
+        newIds.length === 0
+          ? 'Kód platný, ale již byl použit (lístky jsou odemčené).'
+          : `Odemčeno: ${names.join(', ')}`,
+      );
+      setAccessCode('');
+    } catch (e) {
+      setUnlockError(e instanceof Error ? e.message : 'Síťová chyba');
+    } finally {
+      setUnlocking(false);
+    }
+  }
 
   function buy(tt: TicketTypeWithAccess) {
     setLoading(tt.id);
@@ -168,6 +224,54 @@ export function TicketPicker({ eventId, locale, currency, queueEnabled, ticketTy
           <div className="text-xs text-muted-foreground">
             {filtered.length} / {ticketTypes.length} {dict.filterCount}
           </div>
+        </div>
+      ) : null}
+
+      {/* Access code unlock — viditelné jen pokud event má aspoň 1 ticket type s visibility='access_code' */}
+      {hasAccessGated ? (
+        <div className="rounded-md border bg-amber-50/30 p-3 text-sm">
+          {!showAccessInput ? (
+            <button
+              type="button"
+              onClick={() => setShowAccessInput(true)}
+              className="text-xs font-medium text-amber-900 hover:underline"
+            >
+              Mám předprodejní / VIP kód
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <label htmlFor="access-code-input" className="block text-xs font-medium">
+                Předprodejní / VIP kód
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="access-code-input"
+                  type="text"
+                  value={accessCode}
+                  onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
+                  placeholder="např. CLENOVE2026"
+                  className="flex-1 rounded-md border bg-background px-3 py-1.5 text-sm uppercase"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  maxLength={40}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => void handleUnlock()}
+                  disabled={unlocking || accessCode.length < 3}
+                >
+                  {unlocking ? '…' : 'Odemknout'}
+                </Button>
+              </div>
+              {unlockMessage ? (
+                <p className="text-xs text-emerald-700">{unlockMessage}</p>
+              ) : null}
+              {unlockError ? (
+                <p className="text-xs text-rose-700">{unlockError}</p>
+              ) : null}
+            </div>
+          )}
         </div>
       ) : null}
 

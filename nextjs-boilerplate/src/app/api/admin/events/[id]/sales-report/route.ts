@@ -140,8 +140,11 @@ export async function GET(
       name: string;
       sold_qty: string;
       gross_halire: string;
+      total_qty: number;
+      remaining_qty: number;
     }>(
       `SELECT tt.id AS ticket_type_id, tt.name,
+              tt.total_qty, tt.remaining_qty,
               COALESCE(SUM(oi.quantity), 0)::text AS sold_qty,
               COALESCE(SUM(oi.total_price), 0)::text AS gross_halire
        FROM catalog.ticket_types tt
@@ -149,7 +152,7 @@ export async function GET(
        LEFT JOIN orders.orders o ON o.id = oi.order_id
          AND o.status IN ('paid', 'paid_partial')
        WHERE tt.event_id = $1
-       GROUP BY tt.id, tt.name
+       GROUP BY tt.id, tt.name, tt.total_qty, tt.remaining_qty
        ORDER BY tt.base_price ASC`,
       [params.id],
     ),
@@ -201,6 +204,9 @@ export async function GET(
       name: r.name,
       soldQty: Number(r.sold_qty),
       grossHalire: Number(r.gross_halire),
+      totalQty: r.total_qty,
+      remainingQty: r.remaining_qty,
+      occupancyPct: r.total_qty > 0 ? Math.round((r.total_qty - r.remaining_qty) / r.total_qty * 100) : 0,
     })),
     addons: {
       count: Number(addons.rows[0]?.count ?? 0),

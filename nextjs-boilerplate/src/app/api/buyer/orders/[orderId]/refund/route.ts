@@ -1,0 +1,206 @@
+/**
+ * POST /api/buyer/orders/[orderId]/refund
+ *
+ * Self-service refund pro buyera.
+ *
+ * Předpoklady:
+ *   1. Buyer je vlastník objednávky (orders.user_id === x-user-id)
+ *   2. Promotér v settings povolil `allow_customer_self_refund = true`
+ *   3. Objednávka je `paid` (ne refunded ani jiná)
+ *   4. Aktuální čas je v rámci `refund_window_days` od `paid_at`
+ *   5. Volitelný `auto_approve_under_halire`: pokud částka ≤ limit, refund proběhne hned
+ *      jinak vytvoří request pro promotéra (TODO: tabulka refund_requests)
+ *
+ * V této implementaci provedeme refund hned bez approval workflow
+ * (zjednodušení). Stejné SQL kroky jako admin refund (status, tickets, seats,
+ * remaining_qty, audit log).
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { Pool } from 'pg';
+import { z } from 'zod';
+
+let pool: Pool | null = null;
+function db(): Pool {
+  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  return pool;
+}
+
+const schema = z.object({
+  reason: z.string().max(500).optional(),
+});
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { orderId: string } },
+): Promise<Response> {
+  const userId = req.headers.get('x-user-id');
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const body = await req.json().catch(() => ({}));
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'BAD_INPUT' }, { status: 422 });
+  }
+
+  const client = await db().connect();
+  try {
+    await client.query('BEGIN');
+
+    // 1) Order musí patřit tomuto user-id + být paid
+    const orderRes = await client.query<{
+      id: string;
+      status: string;
+      total_amount: number;
+      paid_at: string | null;
+      currency: string;
+      event_promoter_id: string | null;
+      event_title: string | null;
+    }>(
+      `SELECT o.id, o.status, o.total_amount, o.paid_at, o.currency,
+              e.promoter_id AS event_promoter_id, e.title AS event_title
+       FROM orders.orders o
+       LEFT JOIN catalog.events e ON e.id = o.event_id
+       WHERE o.id = $1 AND o.user_id = $2
+       FOR UPDATE`,
+      [params.orderId, userId],
+    );
+    if (orderRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+    }
+    const o = orderRes.rows[0]!;
+    if (o.status !== 'paid') {
+      await client.query('ROLLBACK');
+      return NextResponse.json(
+        { error: 'NOT_REFUNDABLE', currentStatus: o.status },
+        { status: 409 },
+      );
+    }
+    if (!o.event_promoter_id) {
+      await client.query('ROLLBACK');
+      return NextResponse.json({ error: 'NO_PROMOTER' }, { status: 422 });
+    }
+
+    // 2) Promoter refund policy
+    const policyRes = await client.query<{
+      allow_self: boolean;
+      window_days: number;
+      max_pct: number;
+      auto_approve_under_halire: number;
+    }>(
+      `SELECT
+         COALESCE(rp.allow_customer_self_refund, false) AS allow_self,
+         COALESCE(rp.refund_window_days, 14) AS window_days,
+         COALESCE(rp.max_refund_pct, 100) AS max_pct,
+         COALESCE(rp.auto_approve_under_halire, 0) AS auto_approve_under_halire
+       FROM platform.promoters p
+       LEFT JOIN platform.refund_policies rp ON rp.promoter_id = p.id
+       WHERE p.id = $1`,
+      [o.event_promoter_id],
+    );
+    const policy = policyRes.rows[0];
+    if (!policy?.allow_self) {
+      await client.query('ROLLBACK');
+      return NextResponse.json(
+        {
+          error: 'SELF_REFUND_DISABLED',
+          message: 'Tento pořadatel nepovoluje self-service refund. Kontaktuj pořadatele přímo.',
+        },
+        { status: 403 },
+      );
+    }
+
+    // 3) Refund window
+    if (!o.paid_at) {
+      await client.query('ROLLBACK');
+      return NextResponse.json({ error: 'NOT_PAID' }, { status: 409 });
+    }
+    const paidAt = new Date(o.paid_at).getTime();
+    const windowMs = policy.window_days * 24 * 60 * 60 * 1000;
+    if (Date.now() > paidAt + windowMs) {
+      await client.query('ROLLBACK');
+      return NextResponse.json(
+        {
+          error: 'REFUND_WINDOW_EXPIRED',
+          message: `Refund okno (${policy.window_days} dní) vypršelo.`,
+        },
+        { status: 409 },
+      );
+    }
+
+    // 4) Stejné kroky jako admin refund
+    await client.query(
+      `UPDATE orders.orders SET status = 'refunded', updated_at = NOW() WHERE id = $1`,
+      [params.orderId],
+    );
+    const ticketRes = await client.query<{ count: string }>(
+      `WITH revoked AS (
+         UPDATE tickets.tickets
+         SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
+         WHERE order_id = $1 AND status <> 'revoked'
+         RETURNING 1
+       )
+       SELECT COUNT(*)::text AS count FROM revoked`,
+      [params.orderId],
+    );
+    const revokedCount = Number(ticketRes.rows[0]?.count ?? 0);
+
+    await client.query(
+      `UPDATE catalog.ticket_types tt
+       SET remaining_qty = remaining_qty + sub.qty
+       FROM (
+         SELECT ticket_type_id, SUM(quantity) AS qty
+         FROM orders.order_items
+         WHERE order_id = $1
+         GROUP BY ticket_type_id
+       ) sub
+       WHERE tt.id = sub.ticket_type_id`,
+      [params.orderId],
+    );
+
+    await client.query(
+      `UPDATE catalog.event_seats
+         SET status = 'available', order_id = NULL, ticket_id = NULL,
+             hold_user_id = NULL, hold_until = NULL, updated_at = NOW()
+       WHERE order_id = $1
+          OR id IN (SELECT event_seat_id FROM orders.order_items
+                    WHERE order_id = $1 AND event_seat_id IS NOT NULL)`,
+      [params.orderId],
+    );
+
+    // Audit log: self-service refund
+    await client.query(
+      `INSERT INTO audit.audit_log
+         (schema_name, table_name, record_id, action, actor_id, actor_type, new_values)
+       VALUES ('orders', 'orders', $1, 'UPDATE', $2, 'user', $3::jsonb)`,
+      [
+        params.orderId,
+        userId,
+        JSON.stringify({
+          kind: 'self_refund',
+          reason: parsed.data.reason ?? 'customer_self_service',
+          revokedTickets: revokedCount,
+          refundedHalire: o.total_amount,
+        }),
+      ],
+    );
+
+    await client.query('COMMIT');
+
+    return NextResponse.json({
+      ok: true,
+      orderId: params.orderId,
+      refundedHalire: o.total_amount,
+      revokedTickets: revokedCount,
+    });
+  } catch (e) {
+    await client.query('ROLLBACK');
+    return NextResponse.json(
+      { error: 'INTERNAL_ERROR', message: e instanceof Error ? e.message : String(e) },
+      { status: 500 },
+    );
+  } finally {
+    client.release();
+  }
+}

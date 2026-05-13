@@ -196,6 +196,18 @@ export async function POST(
       [orderId],
     );
 
+    // 3b) Uvolnit sedadla — refundované sedadlo se vrátí do prodeje.
+    // Vazba: event_seats.order_id (POS / SeatPicker) NEBO order_items.event_seat_id.
+    await client.query(
+      `UPDATE catalog.event_seats
+         SET status = 'available', order_id = NULL, ticket_id = NULL,
+             hold_user_id = NULL, hold_until = NULL, updated_at = NOW()
+       WHERE order_id = $1
+          OR id IN (SELECT event_seat_id FROM orders.order_items
+                    WHERE order_id = $1 AND event_seat_id IS NOT NULL)`,
+      [orderId],
+    );
+
     // 4) Audit log — action constraint allows only INSERT/UPDATE/DELETE,
     //    refund is logged as UPDATE on orders.orders with new_values.kind='refund'
     await client.query(

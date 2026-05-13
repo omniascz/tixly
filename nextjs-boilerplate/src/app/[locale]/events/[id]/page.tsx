@@ -16,6 +16,22 @@ import { Recommendations } from './Recommendations';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
+// Posune hex barvu o `percent` (záporné = ztmavit, kladné = zesvětlit).
+// Slouží jen pro hero gradient, ne pro přesnou barevnou shodu.
+function shadeColor(hex: string, percent: number): string {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return hex;
+  const num = parseInt(m[1]!, 16);
+  let r = (num >> 16) & 0xff;
+  let g = (num >> 8) & 0xff;
+  let b = num & 0xff;
+  const factor = 1 + percent / 100;
+  r = Math.min(255, Math.max(0, Math.round(r * factor)));
+  g = Math.min(255, Math.max(0, Math.round(g * factor)));
+  b = Math.min(255, Math.max(0, Math.round(b * factor)));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+}
+
 interface EventDetail {
   id: string;
   title: string;
@@ -28,6 +44,9 @@ interface EventDetail {
   queue_enabled: boolean;
   promoter_name: string | null;
   promoter_contact_email: string | null;
+  promoter_brand_color_hex: string | null;
+  promoter_brand_logo_url: string | null;
+  promoter_brand_tagline: string | null;
 }
 
 interface TicketTypeRow {
@@ -36,6 +55,7 @@ interface TicketTypeRow {
   base_price: number;
   available: number;
   is_seated: boolean;
+  visibility: 'public' | 'access_code' | 'hidden';
 }
 
 interface EventDay {
@@ -59,7 +79,10 @@ async function fetchDetail(id: string) {
              COALESCE(v.name, 'Online') AS venue_name,
              COALESCE(v.address, '') AS venue_address,
              p.name AS promoter_name,
-             COALESCE(p.contact_email, p.email) AS promoter_contact_email
+             COALESCE(p.contact_email, p.email) AS promoter_contact_email,
+             p.brand_color_hex AS promoter_brand_color_hex,
+             p.brand_logo_url AS promoter_brand_logo_url,
+             p.brand_tagline AS promoter_brand_tagline
       FROM catalog.events e
       LEFT JOIN catalog.venues v ON v.id = e.venue_id
       LEFT JOIN platform.promoters p ON p.id = e.promoter_id
@@ -69,10 +92,14 @@ async function fetchDetail(id: string) {
     );
     if (eventResult.rows.length === 0) return null;
 
+    // 'hidden' = úplně skrytý (nikdy nezobrazit)
+    // 'access_code' = veřejně nezobrazit, ale klient může odemknout kódem
+    // 'public' = vždy zobrazit
     const ticketsResult = await db.query<TicketTypeRow>(
-      `SELECT id, name, base_price, remaining_qty AS available, is_seated
+      `SELECT id, name, base_price, remaining_qty AS available, is_seated, visibility
        FROM catalog.ticket_types
        WHERE event_id = $1
+         AND visibility <> 'hidden'
        ORDER BY base_price ASC`,
       [id],
     );
@@ -114,6 +141,7 @@ async function fetchDetail(id: string) {
     const ticketTypes: TicketTypeWithAccess[] = ticketsResult.rows.map((tt) => ({
       ...tt,
       access: accessByType.get(tt.id) ?? [],
+      visibility: tt.visibility,
     }));
 
     return {
@@ -174,9 +202,15 @@ export default async function EventDetailPage({
   const { event, ticketTypes, days, zones } = data;
   const locale = isValidLocale(params.locale) ? params.locale : DEFAULT_LOCALE;
   const t = getDict(locale);
-  // Hash hue z eventId pro deterministický gradient (žádné externí obrázky)
+
+  // Branding: pokud promotér v `/admin/settings` vyplnil brand_color_hex, použij ho;
+  // jinak fallback na hash hue z eventId (deterministický gradient bez obrázku).
+  const brandColor = event.promoter_brand_color_hex;
   const hue =
     [...event.id].reduce((s, c) => s + c.charCodeAt(0), 0) % 360;
+  const heroStyle = brandColor
+    ? { background: `linear-gradient(135deg, ${brandColor} 0%, ${shadeColor(brandColor, -25)} 100%)` }
+    : { background: `linear-gradient(135deg, hsl(${hue}, 60%, 50%) 0%, hsl(${(hue + 60) % 360}, 70%, 40%) 100%)` };
 
   // JSON-LD Event schema (schema.org)
   const minPrice = ticketTypes.reduce(
@@ -222,12 +256,22 @@ export default async function EventDetailPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div
-        aria-hidden
-        className="h-48 rounded-lg lg:h-64"
-        style={{
-          background: `linear-gradient(135deg, hsl(${hue}, 60%, 50%) 0%, hsl(${(hue + 60) % 360}, 70%, 40%) 100%)`,
-        }}
-      />
+        className="relative flex h-48 items-end overflow-hidden rounded-lg p-6 lg:h-64"
+        style={heroStyle}
+      >
+        {event.promoter_brand_logo_url ? (
+          <img
+            src={event.promoter_brand_logo_url}
+            alt={event.promoter_name ?? ''}
+            className="absolute right-6 top-6 h-12 w-auto rounded bg-white/90 p-1.5 shadow-sm lg:h-16"
+          />
+        ) : null}
+        {event.promoter_brand_tagline ? (
+          <div className="text-sm font-medium uppercase tracking-wider text-white/90 drop-shadow lg:text-base">
+            {event.promoter_brand_tagline}
+          </div>
+        ) : null}
+      </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2 space-y-6">

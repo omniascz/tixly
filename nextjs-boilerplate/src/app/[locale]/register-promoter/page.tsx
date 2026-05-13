@@ -51,7 +51,8 @@ export default function RegisterPromoterPage({
         setError(data.error ?? 'Registrace selhala');
         return;
       }
-      router.push('/admin');
+      // Nový promotér → onboarding wizard, ne přímo dashboard
+      router.push('/admin/onboarding');
       router.refresh();
     } catch {
       setError('Síťová chyba');
@@ -72,30 +73,47 @@ export default function RegisterPromoterPage({
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className="mb-1 block text-xs font-medium">
+              <label
+                htmlFor="promoter-name"
+                className="mb-1 block text-xs font-medium"
+              >
                 Tvoje jméno
               </label>
               <Input
+                id="promoter-name"
+                autoComplete="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium">E-mail</label>
+              <label
+                htmlFor="promoter-email"
+                className="mb-1 block text-xs font-medium"
+              >
+                E-mail
+              </label>
               <Input
+                id="promoter-email"
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium">
+              <label
+                htmlFor="promoter-password"
+                className="mb-1 block text-xs font-medium"
+              >
                 Heslo (min. 8 znaků)
               </label>
               <Input
+                id="promoter-password"
                 type="password"
+                autoComplete="new-password"
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -103,10 +121,15 @@ export default function RegisterPromoterPage({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium">
+              <label
+                htmlFor="promoter-company"
+                className="mb-1 block text-xs font-medium"
+              >
                 Název organizace
               </label>
               <Input
+                id="promoter-company"
+                autoComplete="organization"
                 value={companyName}
                 onChange={(e) => {
                   setCompanyName(e.target.value);
@@ -116,10 +139,14 @@ export default function RegisterPromoterPage({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium">
+              <label
+                htmlFor="promoter-slug"
+                className="mb-1 block text-xs font-medium"
+              >
                 URL slug (a-z, 0-9, pomlčky)
               </label>
               <Input
+                id="promoter-slug"
                 value={slug}
                 onChange={(e) => {
                   setSlug(e.target.value);

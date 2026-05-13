@@ -12,6 +12,7 @@ import { formatDate, formatMoney, isCurrency } from '@/lib/format';
 import { getDict } from '@/lib/i18n-dictionaries';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 import { ResaleButton } from './ResaleButton';
+import { SelfRefundButton } from './SelfRefundButton';
 
 interface OrderRow {
   id: string;
@@ -236,11 +237,14 @@ export default async function OrderConfirmationPage({
           ) : null}
 
           {isPaid && tickets.length > 0 ? (
-            <ResaleButton
-              buyerEmail={order.buyer_email}
-              ticketIds={tickets.map((t) => t.id)}
-              originalPriceHalire={tickets[0]!.original_price}
-            />
+            <div className="space-y-2">
+              <ResaleButton
+                buyerEmail={order.buyer_email}
+                ticketIds={tickets.map((t) => t.id)}
+                originalPriceHalire={tickets[0]!.original_price}
+              />
+              <SelfRefundButton orderId={order.id} />
+            </div>
           ) : null}
 
           <Link

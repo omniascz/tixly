@@ -23,6 +23,8 @@ interface LayoutSector {
 interface Layout {
   viewBox: string;
   sectors: LayoutSector[];
+  stage?: { label: string; position?: 'top' | 'bottom' | 'left' | 'right' | 'center' };
+  field?: { x: number; y: number; width: number; height: number };
 }
 
 interface TicketType {
@@ -217,6 +219,136 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
   );
 }
 
+// Práh pro overview mód. Nad tímto počtem sedadel se defaultně skrývají
+// jednotlivá sedadla a zobrazí se sektory jako bloky, na klik zoom dovnitř.
+// 800 vychází z testů: O2 Arena (16 848) i Letná (50 000) v overview, malý
+// koncertní sál (1500) taky overview, divadlo (308) plná mapa rovnou.
+const OVERVIEW_THRESHOLD = 800;
+
+interface SectorBBox {
+  name: string;
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+  cx: number;
+  cy: number;
+  totalSeats: number;
+  availableSeats: number;
+  ttIds: Set<string>;
+}
+
+function computeBBoxes(data: Data, seatLookup: Map<string, Seat>): SectorBBox[] {
+  const out: SectorBBox[] = [];
+  for (const sector of data.layout.sectors) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let total = 0;
+    let available = 0;
+    const ttIds = new Set<string>();
+    for (const row of sector.rows) {
+      for (const seatPos of row.seats) {
+        if (seatPos.x < minX) minX = seatPos.x;
+        if (seatPos.y < minY) minY = seatPos.y;
+        if (seatPos.x > maxX) maxX = seatPos.x;
+        if (seatPos.y > maxY) maxY = seatPos.y;
+        total++;
+        const seat = seatLookup.get(`${sector.name}|${row.label}|${seatPos.num}`);
+        if (seat) {
+          if (seat.status === 'available') available++;
+          ttIds.add(seat.ttId);
+        }
+      }
+    }
+    out.push({
+      name: sector.name,
+      minX, minY, maxX, maxY,
+      cx: (minX + maxX) / 2,
+      cy: (minY + maxY) / 2,
+      totalSeats: total,
+      availableSeats: available,
+      ttIds,
+    });
+  }
+  return out;
+}
+
+function avgSeatPitch(layout: Layout): number {
+  let sum = 0, count = 0;
+  for (const sector of layout.sectors) {
+    for (const row of sector.rows) {
+      for (let i = 1; i < row.seats.length; i++) {
+        sum += Math.abs(row.seats[i].x - row.seats[i - 1].x);
+        count++;
+      }
+    }
+  }
+  return count > 0 ? sum / count : 20;
+}
+
+function StageMarker({ layout }: { layout: Layout }) {
+  if (!layout.stage) return null;
+  const [vx, vy, vw, vh] = layout.viewBox.split(/\s+/).map(Number);
+  let x = vx + vw / 2;
+  let y = vy + 30;
+  let width = vw * 0.4;
+  let height = 40;
+  const pos = layout.stage.position ?? 'top';
+  if (pos === 'bottom') y = vy + vh - 60;
+  if (pos === 'left') { x = vx + 20; y = vy + vh / 2 - 20; width = 40; height = vh * 0.3; }
+  if (pos === 'right') { x = vx + vw - 60; y = vy + vh / 2 - 20; width = 40; height = vh * 0.3; }
+  // Field má vlastní render, stage label se umístí dovnitř fieldu
+  if (layout.field) {
+    return (
+      <g>
+        <rect
+          x={layout.field.x}
+          y={layout.field.y}
+          width={layout.field.width}
+          height={layout.field.height}
+          fill="#86efac"
+          stroke="#16a34a"
+          strokeWidth={2}
+          rx={8}
+        />
+        <text
+          x={layout.field.x + layout.field.width / 2}
+          y={layout.field.y + layout.field.height / 2}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize={Math.min(layout.field.width, layout.field.height) * 0.08}
+          fontWeight="bold"
+          fill="#14532d"
+        >
+          {layout.stage.label}
+        </text>
+      </g>
+    );
+  }
+  return (
+    <g>
+      <rect
+        x={x - width / 2}
+        y={y}
+        width={width}
+        height={height}
+        fill="#1e293b"
+        rx={4}
+      />
+      <text
+        x={x}
+        y={y + height / 2}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize={height * 0.5}
+        fontWeight="bold"
+        fill="#fff"
+      >
+        {layout.stage.label}
+      </text>
+    </g>
+  );
+}
+
 function SvgChart({
   data,
   selected,
@@ -226,70 +358,193 @@ function SvgChart({
   selected: Set<string>;
   onToggle: (s: Seat) => void;
 }) {
-  // Build seat lookup by (sector, row, num)
-  const seatLookup = new Map<string, Seat>();
-  for (const s of data.seats) {
-    seatLookup.set(`${s.sector}|${s.row}|${s.num}`, s);
-  }
+  const seatLookup = useMemo(() => {
+    const m = new Map<string, Seat>();
+    for (const s of data.seats) m.set(`${s.sector}|${s.row}|${s.num}`, s);
+    return m;
+  }, [data.seats]);
+
+  const bboxes = useMemo(() => computeBBoxes(data, seatLookup), [data, seatLookup]);
+  const pitch = useMemo(() => avgSeatPitch(data.layout), [data.layout]);
+  const seatRadius = Math.max(2, Math.min(12, pitch * 0.42));
+
+  const isLarge = data.seats.length > OVERVIEW_THRESHOLD;
+  const [zoomedSector, setZoomedSector] = useState<string | null>(null);
+
+  // Effective viewBox: pokud zoomed, použij bbox sektoru s paddingem
+  const effectiveViewBox = useMemo(() => {
+    if (!zoomedSector) return data.layout.viewBox;
+    const b = bboxes.find((x) => x.name === zoomedSector);
+    if (!b) return data.layout.viewBox;
+    const pad = pitch * 4;
+    return `${b.minX - pad} ${b.minY - pad} ${b.maxX - b.minX + 2 * pad} ${b.maxY - b.minY + 2 * pad}`;
+  }, [zoomedSector, bboxes, pitch, data.layout.viewBox]);
+
+  const showSeats = !isLarge || zoomedSector !== null;
+  const visibleSectorNames = zoomedSector ? new Set([zoomedSector]) : new Set(data.layout.sectors.map((s) => s.name));
 
   return (
-    <div className="overflow-auto">
-      <svg
-        viewBox={data.layout.viewBox}
-        className="mx-auto block w-full max-w-3xl"
-        style={{ minHeight: 400 }}
-        role="img"
-        aria-label="Plán sálu"
-      >
-        {data.layout.sectors.map((sector) => (
-          <g key={sector.name}>
-            {sector.rows.map((row) =>
-              row.seats.map((seatPos) => {
-                const seat = seatLookup.get(`${sector.name}|${row.label}|${seatPos.num}`);
-                if (!seat) return null;
-                const isSelected = selected.has(seat.id);
-                const fill = isSelected
-                  ? '#10b981'
-                  : seat.status === 'sold' || seat.status === 'held'
-                    ? '#cbd5e1'
-                    : seat.status === 'blocked'
-                      ? '#94a3b8'
-                      : (data.ticketTypes.find((t) => t.id === seat.ttId)
-                          ? colorForType(seat.ttId, data)
-                          : sector.color ?? '#64748b');
-                const interactive = seat.status === 'available';
-                return (
-                  <circle
-                    key={seat.id}
-                    cx={seatPos.x}
-                    cy={seatPos.y}
-                    r={9}
-                    fill={fill}
-                    stroke={isSelected ? '#047857' : '#fff'}
-                    strokeWidth={isSelected ? 2 : 1}
-                    style={{ cursor: interactive ? 'pointer' : 'not-allowed' }}
-                    onClick={() => interactive && onToggle(seat)}
-                    role={interactive ? 'button' : undefined}
-                    tabIndex={interactive ? 0 : -1}
+    <div className="space-y-2">
+      {isLarge ? (
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>
+            {zoomedSector
+              ? `Zoomed: ${zoomedSector} — klikni na sedadla`
+              : 'Klikni na sektor pro výběr sedadel'}
+          </span>
+          {zoomedSector ? (
+            <button
+              type="button"
+              onClick={() => setZoomedSector(null)}
+              className="rounded-md border bg-background px-2 py-1 hover:bg-muted"
+            >
+              ← Celkový pohled
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+      <div className="overflow-auto">
+        <svg
+          viewBox={effectiveViewBox}
+          preserveAspectRatio="xMidYMid meet"
+          className="mx-auto block w-full max-w-4xl bg-slate-50"
+          style={{ minHeight: 480, maxHeight: 720 }}
+          role="img"
+          aria-label="Plán sálu"
+        >
+          <StageMarker layout={data.layout} />
+
+          {/* Overview mód: sektor jako polygon s labelem */}
+          {!showSeats &&
+            bboxes.map((b) => {
+              const sector = data.layout.sectors.find((s) => s.name === b.name)!;
+              const ttId = [...b.ttIds][0];
+              const baseColor = ttId
+                ? colorForType(ttId, data)
+                : sector.color ?? '#64748b';
+              const soldOut = b.availableSeats === 0;
+              const dim = soldOut ? '#cbd5e1' : baseColor;
+              const w = b.maxX - b.minX;
+              const h = b.maxY - b.minY;
+              const labelSize = Math.min(w, h) * 0.18;
+              return (
+                <g key={b.name} style={{ cursor: soldOut ? 'not-allowed' : 'pointer' }}>
+                  <rect
+                    x={b.minX - 4}
+                    y={b.minY - 4}
+                    width={w + 8}
+                    height={h + 8}
+                    fill={dim}
+                    fillOpacity={0.85}
+                    stroke="#fff"
+                    strokeWidth={2}
+                    rx={4}
+                    onClick={() => !soldOut && setZoomedSector(b.name)}
+                    role="button"
+                    tabIndex={soldOut ? -1 : 0}
                     onKeyDown={(e) => {
-                      if (interactive && (e.key === 'Enter' || e.key === ' ')) {
+                      if (!soldOut && (e.key === 'Enter' || e.key === ' ')) {
                         e.preventDefault();
-                        onToggle(seat);
+                        setZoomedSector(b.name);
                       }
                     }}
-                    aria-label={`Sektor ${sector.name}, řada ${row.label}, sedadlo ${seatPos.num}, ${seat.status}`}
+                    aria-label={`Sektor ${b.name}, dostupných ${b.availableSeats} z ${b.totalSeats} sedadel`}
+                  />
+                  <text
+                    x={b.cx}
+                    y={b.cy - labelSize * 0.3}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize={labelSize}
+                    fontWeight="bold"
+                    fill="#fff"
+                    pointerEvents="none"
                   >
-                    <title>
-                      {sector.name} · řada {row.label} · sedadlo {seatPos.num}
-                      {seat.acc ? ' · ♿ accessibility' : ''}
-                    </title>
-                  </circle>
+                    {b.name}
+                  </text>
+                  <text
+                    x={b.cx}
+                    y={b.cy + labelSize * 0.9}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize={labelSize * 0.55}
+                    fill="#fff"
+                    pointerEvents="none"
+                  >
+                    {soldOut ? 'Vyprodáno' : `${b.availableSeats} volných`}
+                  </text>
+                </g>
+              );
+            })}
+
+          {/* Detail mód: jednotlivá sedadla + label sektoru nad nimi */}
+          {showSeats &&
+            data.layout.sectors
+              .filter((s) => visibleSectorNames.has(s.name))
+              .map((sector) => {
+                const b = bboxes.find((x) => x.name === sector.name)!;
+                return (
+                  <g key={sector.name}>
+                    {/* sector label nad bloku */}
+                    <text
+                      x={b.cx}
+                      y={b.minY - pitch}
+                      textAnchor="middle"
+                      fontSize={Math.min(b.maxX - b.minX, b.maxY - b.minY) * 0.12}
+                      fontWeight="bold"
+                      fill="#475569"
+                    >
+                      {sector.name}
+                    </text>
+                    {sector.rows.map((row) =>
+                      row.seats.map((seatPos) => {
+                        const seat = seatLookup.get(`${sector.name}|${row.label}|${seatPos.num}`);
+                        if (!seat) return null;
+                        const isSelected = selected.has(seat.id);
+                        const fill = isSelected
+                          ? '#10b981'
+                          : seat.status === 'sold' || seat.status === 'held'
+                            ? '#cbd5e1'
+                            : seat.status === 'blocked'
+                              ? '#94a3b8'
+                              : (data.ticketTypes.find((t) => t.id === seat.ttId)
+                                  ? colorForType(seat.ttId, data)
+                                  : sector.color ?? '#64748b');
+                        const interactive = seat.status === 'available';
+                        return (
+                          <circle
+                            key={seat.id}
+                            cx={seatPos.x}
+                            cy={seatPos.y}
+                            r={seatRadius}
+                            fill={fill}
+                            stroke={isSelected ? '#047857' : '#fff'}
+                            strokeWidth={isSelected ? Math.max(1, seatRadius * 0.25) : 0.5}
+                            style={{ cursor: interactive ? 'pointer' : 'not-allowed' }}
+                            onClick={() => interactive && onToggle(seat)}
+                            role={interactive ? 'button' : undefined}
+                            tabIndex={interactive ? 0 : -1}
+                            onKeyDown={(e) => {
+                              if (interactive && (e.key === 'Enter' || e.key === ' ')) {
+                                e.preventDefault();
+                                onToggle(seat);
+                              }
+                            }}
+                            aria-label={`Sektor ${sector.name}, řada ${row.label}, sedadlo ${seatPos.num}, ${seat.status}`}
+                          >
+                            <title>
+                              {sector.name} · řada {row.label} · sedadlo {seatPos.num}
+                              {seat.acc ? ' · ♿ accessibility' : ''}
+                            </title>
+                          </circle>
+                        );
+                      }),
+                    )}
+                  </g>
                 );
-              }),
-            )}
-          </g>
-        ))}
-      </svg>
+              })}
+        </svg>
+      </div>
     </div>
   );
 }

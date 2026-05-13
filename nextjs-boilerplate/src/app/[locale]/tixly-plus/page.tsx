@@ -47,6 +47,14 @@ export default async function TixlyPlusPage({
         <p className="mt-2 text-muted-foreground">
           Předplatné, které ti otevírá dveře. Slevy, přednostní prodej, exkluzivní akce.
         </p>
+        <p className="mt-3 text-sm">
+          <a
+            href={`/${params.locale}/subscriptions`}
+            className="text-primary hover:underline"
+          >
+            Už předplatné mám — spravovat moje
+          </a>
+        </p>
       </div>
 
       {plans.length === 0 ? (

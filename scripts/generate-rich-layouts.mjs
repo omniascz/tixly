@@ -1,205 +1,606 @@
-// Generuje 3 seating layouty (Velky sal 1500, Arena 17000, Stadion 50000)
-// Format: stejny jako existujici Stara Strelnice — { viewBox, stage, sectors:[{ name, rows:[{ label, seats:[{ num, x, y }] }] }] }
-// Output: 3 JSON soubory + 1 SQL skript pro INSERT do catalog.venue_seating_charts
+// Generuje 3 realistické seating layouty:
+//   - Velky koncertni sal (1500)  — Rudolfinum-style amfiteátr s lóžemi
+//   - Arena Praha (16 848)        — O2 Arena-style s pódiem nahoře, parter, LB, UB, skyboxy
+//   - Stadion FC Praha (50 000)   — Letná-style fotbalový stadion: 4 tribuny + 4 rohy
+//
+// Format: { viewBox, stage, field?, sectors:[{ name, rows:[{ label, seats:[{ num, x, y }] }] }] }
+// Output: 3 JSON soubory + 1 SQL skript pro INSERT do catalog.venue_seating_charts.
+//
+// Klíčové principy proti předchozímu generátoru (audit 2026-04-30):
+//   1. Sektor = blok rozumné hloubky × šířky, ne 1-řadový proužek.
+//   2. Geometrie odráží reálný půdorys — tribuny ZNATELNĚ větší než pole.
+//   3. Žádné cos/sin po každém sedadle (kruhový shluk z předchozí arény).
+//   4. Stage / field je explicitně součást layoutu, ne implicit z position.
+//   5. Lóže = samostatné sektory (LL01..LL06), ne řady jednoho sektoru.
 
 import { writeFileSync, mkdirSync } from 'node:fs';
 
 const OUT_DIR = './scripts/layouts';
 mkdirSync(OUT_DIR, { recursive: true });
 
-// ----- helpers -----
-function row(label, count, startNum, x0, y, dx) {
+// ─── helpers ────────────────────────────────────────────────────────────────
+
+// Vyrobí jeden řádek v pravoúhlém sektoru — sedadla po pravidelném pitchi
+// ve směru určeném `axis` ('x' nebo 'y').
+function rowAlongAxis(label, count, x0, y0, pitch, axis = 'x', reversed = false) {
   const seats = [];
   for (let i = 0; i < count; i++) {
-    seats.push({ num: String(startNum - i), x: x0 + i * dx, y });
+    const offset = i * pitch;
+    const num = String(reversed ? count - i : i + 1);
+    if (axis === 'x') seats.push({ num, x: x0 + offset, y: y0 });
+    else seats.push({ num, x: x0, y: y0 + offset });
   }
   return { label, seats };
 }
 
-// ----- 1) Velky koncertni sal (1500) -----
+// Vyrobí pravoúhlý sektor s `rows` řadami v dané `orientation`.
+// orientation říká: kterým směrem jdou řady (od stage k zadní řadě).
+//   'top':    řada A je dole (blízko poli), Y roste směrem nahoru
+//   'bottom': řada A je nahoře (blízko poli), Y roste směrem dolů
+//   'left':   řada A je vpravo (blízko poli), X roste směrem doleva
+//   'right':  řada A je vlevo (blízko poli), X roste směrem doprava
+function buildRectSector(name, originX, originY, rows, seatsPerRow, seatPitch, rowPitch, orientation) {
+  const sectorRows = [];
+  for (let r = 0; r < rows; r++) {
+    const rowLabel = String.fromCharCode('A'.charCodeAt(0) + r);
+    let rowX = originX, rowY = originY;
+    let axis = 'x';
+    let reversed = false;
+    switch (orientation) {
+      case 'top':
+        rowY = originY - r * rowPitch;
+        axis = 'x';
+        break;
+      case 'bottom':
+        rowY = originY + r * rowPitch;
+        axis = 'x';
+        break;
+      case 'left':
+        rowX = originX - r * rowPitch;
+        axis = 'y';
+        break;
+      case 'right':
+        rowX = originX + r * rowPitch;
+        axis = 'y';
+        break;
+    }
+    sectorRows.push(rowAlongAxis(rowLabel, seatsPerRow, rowX, rowY, seatPitch, axis, reversed));
+  }
+  return { name, rows: sectorRows };
+}
+
+// autoFitViewBox — spočítá viewBox z bbox všech sedadel + případně field.
+function autoFitViewBox(layout, margin = 80) {
+  const xs = [];
+  const ys = [];
+  for (const sec of layout.sectors)
+    for (const row of sec.rows)
+      for (const s of row.seats) { xs.push(s.x); ys.push(s.y); }
+  if (layout.field) {
+    xs.push(layout.field.x, layout.field.x + layout.field.width);
+    ys.push(layout.field.y, layout.field.y + layout.field.height);
+  }
+  const minX = Math.floor(Math.min(...xs) - margin);
+  const minY = Math.floor(Math.min(...ys) - margin);
+  const w = Math.ceil(Math.max(...xs) - Math.min(...xs) + 2 * margin);
+  const h = Math.ceil(Math.max(...ys) - Math.min(...ys) + 2 * margin);
+  return `${minX} ${minY} ${w} ${h}`;
+}
+
+function totalSeats(layout) {
+  return layout.sectors.reduce(
+    (sum, s) => sum + s.rows.reduce((a, r) => a + r.seats.length, 0),
+    0,
+  );
+}
+
+// ─── 1) Velký koncertní sál (1500) — Rudolfinum amfiteátr ───────────────────
+// Layout (top-down, stage nahoře):
+//                              JEVIŠTĚ
+//                  ┌────────────────────────────┐
+//   LL01 LL02 LL03 │     PARTER (lichoběžník)  │ LP01 LP02 LP03
+//   LL04 LL05 LL06 │     22 řad, 24-32 míst    │ LP04 LP05 LP06
+//                  └────────────────────────────┘
+//                  ┌────────────────────────────┐
+//                  │    BALKON I (15 řad × 30)  │
+//                  └────────────────────────────┘
+//                  ┌────────────────────────────┐
+//                  │    BALKON II (10 řad × 30) │
+//                  └────────────────────────────┘
 function buildVelkySal() {
   const sectors = [];
-  // Parter (25 rad x 28 mist = 700)
+  const STAGE_W = 700, STAGE_H = 80;
+  const STAGE_X = 400, STAGE_Y = 80;
+
+  // PARTER: lichoběžník, řada 1 vepředu (24 míst), řada 22 vzadu (32 míst).
+  // Posun X tak aby parter zůstal centrovaný kolem stage.
   const parterRows = [];
-  for (let r = 0; r < 25; r++) {
-    parterRows.push(row(String(r + 1), 28, 28, 200, 250 + r * 24, 36));
+  const PARTER_Y0 = STAGE_Y + STAGE_H + 60;
+  const PARTER_PITCH = 22; // px mezi řadami
+  for (let r = 0; r < 22; r++) {
+    const seatsInRow = 24 + Math.floor(r * 8 / 21); // 24..32 lineárně
+    const rowWidth = (seatsInRow - 1) * 24;
+    const x0 = STAGE_X + STAGE_W / 2 - rowWidth / 2;
+    const y = PARTER_Y0 + r * PARTER_PITCH;
+    const seats = [];
+    for (let i = 0; i < seatsInRow; i++) {
+      seats.push({ num: String(i + 1), x: Math.round(x0 + i * 24), y });
+    }
+    parterRows.push({ label: String(r + 1), seats });
   }
   sectors.push({ name: 'PARTER', rows: parterRows });
-  // Balkon Stredni (12 rad x 25 = 300)
-  const balkonStr = [];
-  for (let r = 0; r < 12; r++) {
-    balkonStr.push(row(`B-${r + 1}`, 25, 25, 240, 880 + r * 24, 40));
+
+  // 6 lóží levých (LL-1..LL-6) + 6 pravých (LP-1..LP-6) — vedle parteru
+  // Každá lóže = 1 sektor, 2 řady × 4 sedadla = 8 míst (drobná lóže)
+  const LOZE_LEFT_X = 100;
+  const LOZE_RIGHT_X = STAGE_X + STAGE_W + 80;
+  for (let i = 0; i < 6; i++) {
+    const yBase = PARTER_Y0 + i * 80;
+    sectors.push(buildRectSector(`LL-${i + 1}`, LOZE_LEFT_X, yBase, 2, 4, 22, 24, 'bottom'));
+    sectors.push(buildRectSector(`LP-${i + 1}`, LOZE_RIGHT_X, yBase, 2, 4, 22, 24, 'bottom'));
   }
-  sectors.push({ name: 'BALKON STREDNI', rows: balkonStr });
-  // Balkon Levy (10 rad x 20 = 200)
-  const balkonLevy = [];
+
+  // BALKON I — středový, polokruhový dojem dosáhneme tím, že krajní řady
+  // mají méně sedadel (užší). 15 řad, 30..40 míst.
+  const balkonRows = [];
+  const BALKON1_Y0 = PARTER_Y0 + 22 * PARTER_PITCH + 90;
+  const BALKON1_PITCH = 22;
+  for (let r = 0; r < 15; r++) {
+    const seatsInRow = 30 + Math.floor(r * 6 / 14); // 30..36
+    const rowWidth = (seatsInRow - 1) * 26;
+    const x0 = STAGE_X + STAGE_W / 2 - rowWidth / 2;
+    const y = BALKON1_Y0 + r * BALKON1_PITCH;
+    const seats = [];
+    for (let i = 0; i < seatsInRow; i++) {
+      seats.push({ num: String(i + 1), x: Math.round(x0 + i * 26), y });
+    }
+    balkonRows.push({ label: `B1-${r + 1}`, seats });
+  }
+  sectors.push({ name: 'BALKON I', rows: balkonRows });
+
+  // BALKON II — nejvyšší, 10 řad × 28-32 míst
+  const balkon2Rows = [];
+  const BALKON2_Y0 = BALKON1_Y0 + 15 * BALKON1_PITCH + 80;
   for (let r = 0; r < 10; r++) {
-    balkonLevy.push(row(`L-${r + 1}`, 20, 20, 60, 320 + r * 26, 30));
+    const seatsInRow = 28 + Math.floor(r * 4 / 9);
+    const rowWidth = (seatsInRow - 1) * 26;
+    const x0 = STAGE_X + STAGE_W / 2 - rowWidth / 2;
+    const y = BALKON2_Y0 + r * 22;
+    const seats = [];
+    for (let i = 0; i < seatsInRow; i++) {
+      seats.push({ num: String(i + 1), x: Math.round(x0 + i * 26), y });
+    }
+    balkon2Rows.push({ label: `B2-${r + 1}`, seats });
   }
-  sectors.push({ name: 'BALKON LEVY', rows: balkonLevy });
-  // Balkon Pravy (10 x 20 = 200)
-  const balkonPravy = [];
-  for (let r = 0; r < 10; r++) {
-    balkonPravy.push(row(`P-${r + 1}`, 20, 20, 1280, 320 + r * 26, 30));
-  }
-  sectors.push({ name: 'BALKON PRAVY', rows: balkonPravy });
-  // Loze (20 lozi x 5 mist = 100)
-  const loze = [];
-  for (let r = 0; r < 20; r++) {
-    loze.push(row(`L${r + 1}`, 5, 5, 60 + (r % 10) * 130, 80 + Math.floor(r / 10) * 50, 22));
-  }
-  sectors.push({ name: 'LOZE', rows: loze });
+  sectors.push({ name: 'BALKON II', rows: balkon2Rows });
+
   return {
-    viewBox: '0 0 1600 1200',
-    stage: { label: 'JEVISTE', position: 'top' },
+    viewBox: '0 0 1600 1500', // přepíše autoFit
+    stage: { label: 'JEVIŠTĚ', position: 'top' },
+    stageBox: { x: STAGE_X, y: STAGE_Y, width: STAGE_W, height: STAGE_H },
     sectors,
   };
 }
 
-// ----- 2) Arena Praha (17000) — multifunkcni -----
+// ─── 2) O2 Aréna Praha (16 848) — multifunkční hala, koncert config ────────
+// Layout (top-down, pódium nahoře):
+//                        ╔═══ PÓDIUM ═══╗
+//                        ║              ║
+//   ┌─────────────────── PARTER ──────────────────┐
+//   │  GA / VIP standing nebo sedadla (3000)      │
+//   └────────────────────────────────────────────┘
+//
+//   Lower Bowl (LB-101..LB-124) — oblouk kolem parteru, 24 sektorů
+//   Upper Bowl (UB-201..UB-224) — širší oblouk za LB, 24 sektorů
+//   Skybox (BOX-1..BOX-24)      — lóže mezi LB a UB (24 ks po 12 míst)
 function buildArena() {
   const sectors = [];
-  // Parter (60 rad x 50 = 3000) — pro koncert config (parter ne ledova plocha)
-  const parter = [];
-  for (let r = 0; r < 60; r++) {
-    parter.push(row(`PA-${r + 1}`, 50, 50, 600, 1200 + r * 14, 32));
-  }
-  sectors.push({ name: 'PARTER', rows: parter });
-  // Lower bowl 100s (24 sektoru x ~250 = 6000, kazdy sektor 12 rad x 21 mist)
-  for (let s = 1; s <= 24; s++) {
-    const sectorRows = [];
-    const angle = ((s - 1) / 24) * Math.PI * 2;
-    const cx = 1500 + Math.cos(angle) * 1100;
-    const cy = 1200 + Math.sin(angle) * 800;
-    for (let r = 0; r < 12; r++) {
-      const seats = [];
-      for (let i = 0; i < 21; i++) {
-        seats.push({ num: String(21 - i), x: Math.round(cx + (i - 10) * 20 + r * Math.cos(angle) * 8), y: Math.round(cy + r * 18) });
-      }
-      sectorRows.push({ label: `R${r + 1}`, seats });
+
+  const CENTER_X = 1500, CENTER_Y = 1500;
+
+  // PARTER: obdélník před pódiem, 50 řad × 60 míst = 3000
+  // Stage je nahoře (Y=200), parter pod ním
+  const STAGE_W = 700, STAGE_H = 80;
+  const STAGE_X = CENTER_X - STAGE_W / 2;
+  const STAGE_Y = 100;
+
+  const parterRows = [];
+  const PARTER_W = 1300; // šířka parteru
+  const PARTER_X0 = CENTER_X - PARTER_W / 2;
+  const PARTER_Y0 = STAGE_Y + STAGE_H + 50;
+  for (let r = 0; r < 50; r++) {
+    const seats = [];
+    const y = PARTER_Y0 + r * 18;
+    for (let i = 0; i < 60; i++) {
+      seats.push({ num: String(i + 1), x: PARTER_X0 + i * 22, y });
     }
-    sectors.push({ name: `LB-${100 + s}`, rows: sectorRows });
+    parterRows.push({ label: `PA-${r + 1}`, seats });
   }
-  // Upper bowl 200s (24 sektoru x ~290 = 6960, 15 rad x 19)
-  for (let s = 1; s <= 24; s++) {
-    const sectorRows = [];
-    const angle = ((s - 1) / 24) * Math.PI * 2;
-    const cx = 1500 + Math.cos(angle) * 1500;
-    const cy = 1200 + Math.sin(angle) * 1100;
-    for (let r = 0; r < 15; r++) {
-      const seats = [];
-      for (let i = 0; i < 19; i++) {
-        seats.push({ num: String(19 - i), x: Math.round(cx + (i - 9) * 22 + r * Math.cos(angle) * 9), y: Math.round(cy + r * 18) });
-      }
-      sectorRows.push({ label: `R${r + 1}`, seats });
-    }
-    sectors.push({ name: `UB-${200 + s}`, rows: sectorRows });
+  sectors.push({ name: 'PARTER', rows: parterRows });
+
+  // LB — Lower Bowl, 24 sektorů v podkově kolem parteru.
+  // Místo cos/sin po seat: rozmísti sektory na perimetru jako axis-aligned
+  // bloky (ne kruh), a otočím je pomocí center offsetu. Sektor má 11 řad ×
+  // 25 míst = 275 sedadel × 24 sektorů ≈ 6600.
+  // Sektory rozdělíme:
+  //   8 sektorů zadních (za parterem, horizontální)        LB-109..LB-116
+  //   4 sektory boční vlevo (vertikální)                    LB-105..LB-108
+  //   4 sektory boční vpravo (vertikální)                   LB-117..LB-120
+  //   4 sektory u pódia po stranách (horizontální)         LB-101..LB-104, LB-121..LB-124
+  const LB_DEPTH = 200; // hloubka tribuny LB
+  const LB_RING_OFFSET = 100; // mezera od parteru
+
+  // Boční LB (4+4) — stejná Y range jako parter, X vlevo a vpravo
+  for (let s = 0; s < 4; s++) {
+    const yBase = PARTER_Y0 + s * 220;
+    sectors.push(buildRectSector(
+      `LB-${105 + s}`, // LB-105..LB-108 (vlevo)
+      PARTER_X0 - LB_RING_OFFSET,
+      yBase,
+      11, 25, 16, 18, 'left',
+    ));
+    sectors.push(buildRectSector(
+      `LB-${120 - s}`, // LB-120, 119, 118, 117 (vpravo, top→bottom)
+      PARTER_X0 + PARTER_W + LB_RING_OFFSET,
+      yBase,
+      11, 25, 16, 18, 'right',
+    ));
   }
-  // VIP Boxes (80 boxu x 12 mist = 960, sklada se z 6 rad x 2 mist v jedne lozi)
-  for (let b = 1; b <= 80; b++) {
-    const boxRows = [];
-    const angle = ((b - 1) / 80) * Math.PI * 2;
-    const cx = 1500 + Math.cos(angle) * 1300;
-    const cy = 1200 + Math.sin(angle) * 950;
-    for (let r = 0; r < 6; r++) {
-      boxRows.push({
-        label: `${r + 1}`,
-        seats: [
-          { num: '1', x: Math.round(cx - 8), y: Math.round(cy + r * 14) },
-          { num: '2', x: Math.round(cx + 8), y: Math.round(cy + r * 14) },
-        ],
-      });
-    }
-    sectors.push({ name: `BOX-${b}`, rows: boxRows });
+
+  // Zadní LB (8 sektorů za parterem)
+  const PARTER_Y_END = PARTER_Y0 + 50 * 18;
+  const LB_REAR_Y0 = PARTER_Y_END + LB_RING_OFFSET;
+  for (let s = 0; s < 8; s++) {
+    sectors.push(buildRectSector(
+      `LB-${109 + s}`, // LB-109..LB-116
+      PARTER_X0 + s * 200,
+      LB_REAR_Y0,
+      11, 25, 16, 18, 'bottom',
+    ));
   }
+
+  // Přední LB (4+4) — po stranách pódia (mezi pódiem a parterem level)
+  for (let s = 0; s < 4; s++) {
+    const yBase = STAGE_Y + STAGE_H + 50 + s * 80;
+    sectors.push(buildRectSector(
+      `LB-${101 + s}`, // LB-101..LB-104 (vpravo od pódia, vrchní)
+      PARTER_X0 + PARTER_W + LB_RING_OFFSET + 250,
+      yBase,
+      6, 20, 16, 18, 'right',
+    ));
+    sectors.push(buildRectSector(
+      `LB-${124 - s}`, // LB-124..LB-121 (vlevo od pódia)
+      PARTER_X0 - LB_RING_OFFSET - 250,
+      yBase,
+      6, 20, 16, 18, 'left',
+    ));
+  }
+
+  // UB — Upper Bowl, 24 sektorů ve větším poloměru za LB
+  // Boční UB
+  for (let s = 0; s < 4; s++) {
+    const yBase = PARTER_Y0 + s * 220;
+    sectors.push(buildRectSector(
+      `UB-${205 + s}`, PARTER_X0 - LB_RING_OFFSET - LB_DEPTH - 100,
+      yBase, 13, 23, 16, 18, 'left',
+    ));
+    sectors.push(buildRectSector(
+      `UB-${220 - s}`, PARTER_X0 + PARTER_W + LB_RING_OFFSET + LB_DEPTH + 100,
+      yBase, 13, 23, 16, 18, 'right',
+    ));
+  }
+  // Zadní UB (8 sektorů)
+  for (let s = 0; s < 8; s++) {
+    sectors.push(buildRectSector(
+      `UB-${209 + s}`,
+      PARTER_X0 + s * 200,
+      LB_REAR_Y0 + LB_DEPTH + 100,
+      13, 23, 16, 18, 'bottom',
+    ));
+  }
+  // Přední UB (4+4)
+  for (let s = 0; s < 4; s++) {
+    const yBase = STAGE_Y + STAGE_H + 50 + s * 80;
+    sectors.push(buildRectSector(
+      `UB-${201 + s}`,
+      PARTER_X0 + PARTER_W + LB_RING_OFFSET + 250 + LB_DEPTH + 50,
+      yBase, 8, 22, 16, 18, 'right',
+    ));
+    sectors.push(buildRectSector(
+      `UB-${224 - s}`,
+      PARTER_X0 - LB_RING_OFFSET - 250 - LB_DEPTH - 50,
+      yBase, 8, 22, 16, 18, 'left',
+    ));
+  }
+
+  // Skyboxy — 24 lóží, 2 řady × 6 míst = 12 / box
+  // Rozmístíme po obvodu mezi LB a UB
+  for (let s = 0; s < 12; s++) {
+    sectors.push(buildRectSector(
+      `BOX-${s + 1}`,
+      PARTER_X0 + s * 130,
+      LB_REAR_Y0 + LB_DEPTH + 30,
+      2, 6, 16, 18, 'bottom',
+    ));
+  }
+  for (let s = 0; s < 6; s++) {
+    sectors.push(buildRectSector(
+      `BOX-${13 + s}`,
+      PARTER_X0 - LB_RING_OFFSET - LB_DEPTH - 50,
+      PARTER_Y0 + s * 150,
+      2, 6, 16, 18, 'left',
+    ));
+    sectors.push(buildRectSector(
+      `BOX-${19 + s}`,
+      PARTER_X0 + PARTER_W + LB_RING_OFFSET + LB_DEPTH + 50,
+      PARTER_Y0 + s * 150,
+      2, 6, 16, 18, 'right',
+    ));
+  }
+
   return {
-    viewBox: '0 0 3000 2400',
-    stage: { label: 'STAGE', position: 'top' },
+    viewBox: '0 0 3500 3500', // přepíše autoFit
+    stage: { label: 'PÓDIUM', position: 'top' },
+    stageBox: { x: STAGE_X, y: STAGE_Y, width: STAGE_W, height: STAGE_H },
     sectors,
   };
 }
 
-// ----- 3) Stadion FC Praha (50000) — 4 tribuny -----
+// ─── 3) Stadion FC Praha (50 000) — Letná-style fotbal ─────────────────────
+// Layout (top-down). Východ + Západ procházejí přes celou výšku canvasu —
+// pokrývají i rohové oblasti. Sever a Jih jsou jen nad/pod polem (úzká část).
+//
+//   ┌─────────────────────────────────────────────────────────────┐
+//   │ ZAPAD  │             SEVER (8 bloků A-H)              │ V  │
+//   │ A      ├─────────────────────────────────────────────│ Y  │
+//   │ B      │                                              │ C  │
+//   │ ...    │              HŘIŠTĚ (2400×1600)              │ H  │
+//   │ H      │                                              │ O  │
+//   │        ├─────────────────────────────────────────────│ D  │
+//   │        │             JIH (10 bloků A-J)              │ A-L│
+//   └─────────────────────────────────────────────────────────────┘
+//
+// Velikosti:
+//   Sever  8 bloků × 50 řad × 30 míst = 12 000
+//   Jih   10 bloků × 50 řad × 20 míst = 10 000
+//   Východ 12 bloků × 50 řad × 30 míst = 18 000  (hlavní tribuna)
+//   Západ  8 bloků × 50 řad × 25 míst = 10 000
+//   ⇒ celkem 50 000 ✓
+//
+// Tribuny Východ/Západ pokrývají rohy implicitně (sektory A a L jsou v rozích).
 function buildStadium() {
   const sectors = [];
-  const tribuny = [
-    { name: 'SEVER',  baseX: 1000, baseY: 100,  vipMark: false, hostFans: true },
-    { name: 'JIH',    baseX: 1000, baseY: 2200, vipMark: false, hostFans: false },
-    { name: 'VYCHOD', baseX: 2300, baseY: 600,  vipMark: true,  hostFans: false }, // hlavni VIP tribuna
-    { name: 'ZAPAD',  baseX: 100,  baseY: 600,  vipMark: false, hostFans: false },
-  ];
-  for (const t of tribuny) {
-    // Kazda tribuna: 50 rad x 250 mist = 12500
-    const horizontalRows = t.name === 'SEVER' || t.name === 'JIH';
-    for (let r = 0; r < 50; r++) {
-      const seats = [];
-      for (let i = 0; i < 250; i++) {
-        const x = horizontalRows ? t.baseX + i * 4 : t.baseX + r * 12;
-        const y = horizontalRows ? t.baseY + r * 12 : t.baseY + i * 4;
-        seats.push({ num: String(250 - i), x, y });
-      }
-      sectors.push({ name: `${t.name}-${r + 1}`, rows: [{ label: String(r + 1), seats }] });
+  const BLOCK_GAP = 25;
+
+  // Pole uprostřed. Schematic 3:2 ratio (proporce stadium půdorysu).
+  const FIELD_W = 2400, FIELD_H = 1600;
+  // Tribuny okolo: hloubka 1200 px (cca 50% rozměru pole — realistic).
+  const NS_DEPTH = 1200; // sever / jih hloubka
+  const EW_DEPTH = 1200; // východ / západ hloubka
+
+  // Origin systému: západ začíná na X=0, sever začíná na Y=0.
+  const FIELD_X = EW_DEPTH;        // pole vlevo začíná po Západu
+  const FIELD_Y = NS_DEPTH;        // pole nahoře začíná po Severu
+  const TOTAL_W = EW_DEPTH + FIELD_W + EW_DEPTH; // 4800
+  const TOTAL_H = NS_DEPTH + FIELD_H + NS_DEPTH; // 4000
+
+  // ─── SEVER (8 bloků × 50 řad × 30 míst = 12 000) ─────────
+  // Šířka tribuny = šířka pole (2400). Bloky vedle sebe.
+  // 8 × (30 sedadel × pitchX + gap) = FIELD_W
+  // pitchX = (FIELD_W / 8 - gap) / 30 = (300-25)/30 = 9.17
+  {
+    const blockN = 8, rows = 50, spr = 30;
+    const blockSpan = (FIELD_W - (blockN - 1) * BLOCK_GAP) / blockN; // 280.6
+    const seatPitch = blockSpan / spr; // 9.35
+    const rowPitch = NS_DEPTH / rows; // 24
+    for (let b = 0; b < blockN; b++) {
+      const letter = String.fromCharCode('A'.charCodeAt(0) + b);
+      const originX = FIELD_X + b * (blockSpan + BLOCK_GAP);
+      const originY = FIELD_Y - 30; // řada A je u pole (těsně nad polem)
+      sectors.push(buildRectSector(
+        `SEVER-${letter}`, originX, originY,
+        rows, spr, seatPitch, rowPitch, 'top',
+      ));
     }
   }
+
+  // ─── JIH (10 bloků × 50 řad × 20 míst = 10 000) ─────────
+  {
+    const blockN = 10, rows = 50, spr = 20;
+    const blockSpan = (FIELD_W - (blockN - 1) * BLOCK_GAP) / blockN; // 217.5
+    const seatPitch = blockSpan / spr; // 10.87
+    const rowPitch = NS_DEPTH / rows; // 24
+    for (let b = 0; b < blockN; b++) {
+      const letter = String.fromCharCode('A'.charCodeAt(0) + b);
+      const originX = FIELD_X + b * (blockSpan + BLOCK_GAP);
+      const originY = FIELD_Y + FIELD_H + 30;
+      sectors.push(buildRectSector(
+        `JIH-${letter}`, originX, originY,
+        rows, spr, seatPitch, rowPitch, 'bottom',
+      ));
+    }
+  }
+
+  // ─── VÝCHOD (12 bloků × 50 řad × 30 míst = 18 000) ──────
+  // Hlavní tribuna, prochází přes celou výšku canvas (TOTAL_H), zahrnuje rohy.
+  {
+    const blockN = 12, rows = 50, spr = 30;
+    const blockSpan = (TOTAL_H - (blockN - 1) * BLOCK_GAP) / blockN; // 310.4
+    const seatPitch = blockSpan / spr; // 10.35
+    const rowPitch = EW_DEPTH / rows; // 24
+    for (let b = 0; b < blockN; b++) {
+      const letter = String.fromCharCode('A'.charCodeAt(0) + b);
+      const originX = FIELD_X + FIELD_W + 30;
+      const originY = b * (blockSpan + BLOCK_GAP);
+      sectors.push(buildRectSector(
+        `VYCHOD-${letter}`, originX, originY,
+        rows, spr, seatPitch, rowPitch, 'right',
+      ));
+    }
+  }
+
+  // ─── ZÁPAD (8 bloků × 50 řad × 25 míst = 10 000) ────────
+  {
+    const blockN = 8, rows = 50, spr = 25;
+    const blockSpan = (TOTAL_H - (blockN - 1) * BLOCK_GAP) / blockN; // 478.1
+    const seatPitch = blockSpan / spr; // 19.13
+    const rowPitch = EW_DEPTH / rows; // 24
+    for (let b = 0; b < blockN; b++) {
+      const letter = String.fromCharCode('A'.charCodeAt(0) + b);
+      const originX = FIELD_X - 30;
+      const originY = b * (blockSpan + BLOCK_GAP);
+      sectors.push(buildRectSector(
+        `ZAPAD-${letter}`, originX, originY,
+        rows, spr, seatPitch, rowPitch, 'left',
+      ));
+    }
+  }
+
   return {
-    viewBox: '0 0 4000 3000',
-    stage: { label: 'HRACI PLOCHA', position: 'center' },
+    viewBox: '0 0 4800 4000', // přepíše autoFit
+    field: { x: FIELD_X, y: FIELD_Y, width: FIELD_W, height: FIELD_H },
+    stage: { label: 'HRACÍ PLOCHA', position: 'center' },
     sectors,
   };
 }
 
-// ----- vyrob a uloz -----
+// ─── 4) Středně velký stadion (12 000) — Doosan Aréna Plzeň-style ──────────
+// Reálná předloha: Doosan Aréna Plzeň (11 700). Asymetrické 4 tribuny,
+// Východ jako hlavní s VIP, ostatní brankovištěm/proti tribuna menší.
+//
+// Velikosti:
+//   Sever  6 bloků × 22 řad × 20 míst = 2 640  (brankoviště, hosté)
+//   Jih    6 bloků × 22 řad × 20 míst = 2 640  (brankoviště, kotel domácích)
+//   Východ 8 bloků × 22 řad × 22 míst = 3 872  (hlavní s VIP)
+//   Západ  6 bloků × 22 řad × 22 míst = 2 904  (proti hlavní)
+//   ⇒ celkem 12 056 ≈ 12 000 ✓
+//
+// Východ a Západ procházejí přes celou výšku (zahrnují rohy implicitně).
+function buildSmallStadium() {
+  const sectors = [];
+  const BLOCK_GAP = 25;
+
+  const FIELD_W = 1500, FIELD_H = 900; // pole 5:3 (proporce reálného hřiště)
+  const NS_DEPTH = 600;  // sever / jih hloubka
+  const EW_DEPTH = 600;  // východ / západ hloubka
+
+  const FIELD_X = EW_DEPTH;
+  const FIELD_Y = NS_DEPTH;
+  const TOTAL_H = NS_DEPTH + FIELD_H + NS_DEPTH; // 2100
+
+  // SEVER (6 bloků × 22 řad × 20 míst = 2 640)
+  {
+    const blockN = 6, rows = 22, spr = 20;
+    const blockSpan = (FIELD_W - (blockN - 1) * BLOCK_GAP) / blockN;
+    const seatPitch = blockSpan / spr;
+    const rowPitch = NS_DEPTH / rows;
+    for (let b = 0; b < blockN; b++) {
+      const letter = String.fromCharCode('A'.charCodeAt(0) + b);
+      sectors.push(buildRectSector(
+        `SEVER-${letter}`,
+        FIELD_X + b * (blockSpan + BLOCK_GAP),
+        FIELD_Y - 30,
+        rows, spr, seatPitch, rowPitch, 'top',
+      ));
+    }
+  }
+
+  // JIH (6 × 22 × 20 = 2 640)
+  {
+    const blockN = 6, rows = 22, spr = 20;
+    const blockSpan = (FIELD_W - (blockN - 1) * BLOCK_GAP) / blockN;
+    const seatPitch = blockSpan / spr;
+    const rowPitch = NS_DEPTH / rows;
+    for (let b = 0; b < blockN; b++) {
+      const letter = String.fromCharCode('A'.charCodeAt(0) + b);
+      sectors.push(buildRectSector(
+        `JIH-${letter}`,
+        FIELD_X + b * (blockSpan + BLOCK_GAP),
+        FIELD_Y + FIELD_H + 30,
+        rows, spr, seatPitch, rowPitch, 'bottom',
+      ));
+    }
+  }
+
+  // VÝCHOD (8 × 22 × 22 = 3 872, hlavní tribuna s VIP) — pokrývá celou výšku
+  {
+    const blockN = 8, rows = 22, spr = 22;
+    const blockSpan = (TOTAL_H - (blockN - 1) * BLOCK_GAP) / blockN;
+    const seatPitch = blockSpan / spr;
+    const rowPitch = EW_DEPTH / rows;
+    for (let b = 0; b < blockN; b++) {
+      const letter = String.fromCharCode('A'.charCodeAt(0) + b);
+      sectors.push(buildRectSector(
+        `VYCHOD-${letter}`,
+        FIELD_X + FIELD_W + 30,
+        b * (blockSpan + BLOCK_GAP),
+        rows, spr, seatPitch, rowPitch, 'right',
+      ));
+    }
+  }
+
+  // ZÁPAD (6 × 22 × 22 = 2 904) — pokrývá celou výšku
+  {
+    const blockN = 6, rows = 22, spr = 22;
+    const blockSpan = (TOTAL_H - (blockN - 1) * BLOCK_GAP) / blockN;
+    const seatPitch = blockSpan / spr;
+    const rowPitch = EW_DEPTH / rows;
+    for (let b = 0; b < blockN; b++) {
+      const letter = String.fromCharCode('A'.charCodeAt(0) + b);
+      sectors.push(buildRectSector(
+        `ZAPAD-${letter}`,
+        FIELD_X - 30,
+        b * (blockSpan + BLOCK_GAP),
+        rows, spr, seatPitch, rowPitch, 'left',
+      ));
+    }
+  }
+
+  return {
+    viewBox: '0 0 2700 2100',
+    field: { x: FIELD_X, y: FIELD_Y, width: FIELD_W, height: FIELD_H },
+    stage: { label: 'HRACÍ PLOCHA', position: 'center' },
+    sectors,
+  };
+}
+
+// ─── vyrob a uloz ──────────────────────────────────────────────────────────
 const layouts = {
   'velky-sal': buildVelkySal(),
   'arena': buildArena(),
   'stadion': buildStadium(),
+  'stadion-12k': buildSmallStadium(),
 };
+
+for (const layout of Object.values(layouts)) {
+  layout.viewBox = autoFitViewBox(layout, 80);
+}
 
 let report = '';
 for (const [name, layout] of Object.entries(layouts)) {
-  const totalSeats = layout.sectors.reduce(
-    (sum, s) => sum + s.rows.reduce((a, r) => a + r.seats.length, 0),
-    0,
-  );
   writeFileSync(`${OUT_DIR}/${name}.json`, JSON.stringify(layout));
-  report += `${name}: ${layout.sectors.length} sektorů, ${totalSeats} sedadel\n`;
+  report += `${name}: ${layout.sectors.length} sektorů, ${totalSeats(layout)} sedadel, viewBox=${layout.viewBox}\n`;
 }
 console.log(report);
 
-// ----- vygeneruj SQL inserty -----
-// (psql jsonb literal escapes single quotes by doubling them)
-function jsonbLit(obj) {
-  return JSON.stringify(obj).replace(/'/g, "''");
-}
-
-const sql = `
-BEGIN;
+// ─── vygeneruj SQL inserty ─────────────────────────────────────────────────
+const sql = `BEGIN;
 INSERT INTO catalog.venue_seating_charts (id, venue_id, name, layout, total_seats, active, source, notes)
 VALUES
-  ('00000000-0000-4000-a000-000000000301', '00000000-0000-4000-a000-000000000201', 'Velky koncertni sal — full layout',
+  ('00000000-0000-4000-a000-000000000301', '00000000-0000-4000-a000-000000000202', 'Velky koncertni sal — Rudolfinum-style amfiteátr',
     pg_read_file('/tmp/layouts/velky-sal.json')::jsonb,
-    ${layouts['velky-sal'].sectors.reduce((sum, s) => sum + s.rows.reduce((a, r) => a + r.seats.length, 0), 0)},
-    true, 'seed', 'Generated by seed-rich-demo phase 2'),
-  ('00000000-0000-4000-a000-000000000302', '00000000-0000-4000-a000-000000000203', 'Arena Praha — koncert config',
+    ${totalSeats(layouts['velky-sal'])},
+    true, 'seed', 'Generated 2026-04-30 — realistic redesign'),
+  ('00000000-0000-4000-a000-000000000302', '00000000-0000-4000-a000-000000000203', 'Aréna Praha — O2-style koncert config',
     pg_read_file('/tmp/layouts/arena.json')::jsonb,
-    ${layouts['arena'].sectors.reduce((sum, s) => sum + s.rows.reduce((a, r) => a + r.seats.length, 0), 0)},
-    true, 'seed', 'Generated by seed-rich-demo phase 2'),
-  ('00000000-0000-4000-a000-000000000303', '00000000-0000-4000-a000-000000000204', 'Stadion FC Praha — 4 tribuny',
+    ${totalSeats(layouts['arena'])},
+    true, 'seed', 'Generated 2026-04-30 — realistic redesign'),
+  ('00000000-0000-4000-a000-000000000303', '00000000-0000-4000-a000-000000000204', 'Stadion FC Praha — Letná-style 4 tribuny',
     pg_read_file('/tmp/layouts/stadion.json')::jsonb,
-    ${layouts['stadion'].sectors.reduce((sum, s) => sum + s.rows.reduce((a, r) => a + r.seats.length, 0), 0)},
-    true, 'seed', 'Generated by seed-rich-demo phase 2')
+    ${totalSeats(layouts['stadion'])},
+    true, 'seed', 'Generated 2026-04-30 — realistic redesign')
 ON CONFLICT (id) DO NOTHING;
 COMMIT;
-
-SELECT v.name, vsc.name as chart_name, vsc.total_seats, jsonb_array_length(vsc.layout->'sectors') as sektoru
-FROM catalog.venue_seating_charts vsc
-JOIN catalog.venues v ON v.id = vsc.venue_id
-WHERE vsc.id IN (
-  '00000000-0000-4000-a000-000000000301',
-  '00000000-0000-4000-a000-000000000302',
-  '00000000-0000-4000-a000-000000000303'
-)
-ORDER BY vsc.total_seats;
 `;
 writeFileSync('./scripts/seed-rich-demo-phase2.sql', sql);
 console.log('SQL written to scripts/seed-rich-demo-phase2.sql');

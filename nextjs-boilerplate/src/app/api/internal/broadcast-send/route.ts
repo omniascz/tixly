@@ -11,6 +11,7 @@ import { Pool } from 'pg';
 import { timingSafeEqual } from 'crypto';
 import nodemailer from 'nodemailer';
 import { escapeHtml } from '@/lib/html-escape/escape';
+import { issueUnsubscribeToken } from '@/lib/email-verification/unsubscribe-token';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -32,6 +33,7 @@ const schema = z.object({
   recipients: z.array(z.object({
     email: z.string().email(),
     name: z.string().nullable().optional(),
+    userId: z.string().uuid().optional(),
   })),
 });
 
@@ -55,27 +57,54 @@ export async function POST(req: NextRequest): Promise<Response> {
     ignoreTLS: true,
   });
 
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px;">
-      ${parsed.data.body
-        .split('\n')
-        .map((line) => `<p>${escapeHtml(line)}</p>`)
-        .join('')}
-      <hr style="margin-top: 24px; border: none; border-top: 1px solid #e5e7eb">
-      <p style="font-size: 11px; color: #666;">Tato zpráva byla odeslána pořadatelem akce.</p>
-    </div>
-  `;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
   let sent = 0;
   let failed = 0;
   for (const r of parsed.data.recipients) {
+    const unsubToken = r.userId ? issueUnsubscribeToken(r.userId, 'promoter_news') : null;
+    const unsubUrl = unsubToken
+      ? `${baseUrl}/cs/unsubscribe?token=${unsubToken}`
+      : null;
+    const unsubApi = unsubToken
+      ? `${baseUrl}/api/auth/unsubscribe?token=${unsubToken}`
+      : null;
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+        ${parsed.data.body
+          .split('\n')
+          .map((line) => `<p>${escapeHtml(line)}</p>`)
+          .join('')}
+        <hr style="margin-top: 24px; border: none; border-top: 1px solid #e5e7eb">
+        <p style="font-size: 11px; color: #666; margin: 8px 0">
+          Tato zpráva byla odeslána pořadatelem akce přes platformu Tixly.
+        </p>
+        ${
+          unsubUrl
+            ? `<p style="font-size: 11px; color: #666; margin: 8px 0">
+                <a href="${unsubUrl}" style="color: #6b7280">Odhlásit z novinek pořadatelů</a>
+                · <a href="${baseUrl}/cs/profile" style="color: #6b7280">Spravovat notifikace</a>
+              </p>`
+            : ''
+        }
+      </div>
+    `;
+
     try {
+      // RFC 8058: List-Unsubscribe header umožní Gmail one-click unsubscribe
+      const extraHeaders: Record<string, string> = {};
+      if (unsubUrl && unsubApi) {
+        extraHeaders['List-Unsubscribe'] = `<${unsubApi}>, <${unsubUrl}>`;
+        extraHeaders['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click';
+      }
       await transporter.sendMail({
         from: process.env.MAIL_FROM ?? 'noreply@tixly.cz',
         to: r.email,
         subject: parsed.data.subject,
         html,
-        text: parsed.data.body,
+        text: parsed.data.body + (unsubUrl ? `\n\nOdhlásit: ${unsubUrl}` : ''),
+        headers: extraHeaders,
       });
       sent += 1;
     } catch (err) {

@@ -1,7 +1,13 @@
 /**
  * POST /api/subscriptions/subscribe
  *
- * Body: { planId, buyerEmail (guest) | NULL (authed) }
+ * GUEST-FRIENDLY endpoint pro tixly-plus marketing landing page.
+ * Accepts { planId, buyerEmail (guest) | (token = authed) }.
+ *
+ * Pro již přihlášené buyery se preferuje `/api/buyer/subscriptions` POST
+ * (strict-auth, vrací jejich existující sub pokud už existuje). Tento endpoint
+ * akceptuje obojí, ale zákazníky bez účtu vytvoří jako anonymního usera —
+ * což je pro guest checkout flow z tixly-plus landing OK.
  *
  * Demo mock: instant aktivace bez recurring billing flow.
  * V produkci by tu byl Stripe Subscription create + payment intent.

@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
-import { Wallet } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Wallet, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { DataTable, Column } from '@/components/admin/DataTable';
 import { EmptyState } from '@/components/admin/EmptyState';
@@ -165,6 +166,18 @@ export default function AdminPayoutsPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Export pro účetní</CardTitle>
+          <CardDescription>
+            Měsíční CSV se všemi tržbami a DPH rozpisem (jako podklad daňového přiznání).
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <MonthExport />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Bankovní účet pro výplaty</CardTitle>
           <CardDescription>
             Platby probíhají do 5 pracovních dnů od konce výplatního období.
@@ -195,6 +208,67 @@ export default function AdminPayoutsPage() {
           emptyMessage="Zatím žádné výplaty"
         />
       )}
+    </div>
+  );
+}
+
+function MonthExport() {
+  const now = new Date();
+  const [month, setMonth] = useState(
+    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
+  );
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function download() {
+    setBusy(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/admin/payouts/export?month=${month}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) {
+        setError(`HTTP ${res.status}`);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tixly-trzby-${month}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-end gap-2">
+        <div>
+          <label htmlFor="payout-month" className="mb-1 block text-xs font-medium">
+            Měsíc (YYYY-MM)
+          </label>
+          <input
+            id="payout-month"
+            type="month"
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            className="rounded-md border bg-background px-3 py-2 text-sm"
+          />
+        </div>
+        <Button onClick={download} disabled={busy || !month}>
+          <Download className="mr-2 h-4 w-4" aria-hidden />
+          {busy ? 'Stahuji…' : 'Stáhnout CSV'}
+        </Button>
+      </div>
+      {error ? <p className="text-xs text-rose-700">{error}</p> : null}
+      <p className="text-xs text-muted-foreground">
+        Obsahuje: datum, kupec, akce, typ lístku, počet, cena s DPH, základ daně,
+        sazba DPH, DPH, měna, platba, stav. UTF-8 s BOM (Excel ho přečte správně).
+      </p>
     </div>
   );
 }

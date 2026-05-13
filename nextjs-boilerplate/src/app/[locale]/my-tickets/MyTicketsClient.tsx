@@ -291,7 +291,14 @@ function TicketCard({ ticket, locale }: { ticket: Ticket; locale: string }) {
       ) : null}
 
       {ticket.status === 'valid' ? (
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Link
+            href={`/${locale}/tickets/${ticket.id}/show`}
+            className="inline-flex items-center rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+            data-testid="show-qr-link"
+          >
+            📲 Zobrazit QR
+          </Link>
           <Button size="sm" variant="outline" onClick={downloadApple} disabled={walletBusy === 'apple'}>
             {walletBusy === 'apple' ? '…' : '📱 Apple Wallet'}
           </Button>

@@ -37,6 +37,12 @@ function CheckoutForm() {
   const [giftEmail, setGiftEmail] = useState('');
   const [giftName, setGiftName] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
+  const [promoCode, setPromoCode] = useState('');
+  const [useSubscription, setUseSubscription] = useState(false);
+  const [availableSub, setAvailableSub] = useState<{
+    planName: string;
+    remaining: number;
+  } | null>(null);
 
   interface PublicAddon {
     id: string;
@@ -56,6 +62,33 @@ function CheckoutForm() {
       .then((r) => r.json())
       .then((d: { addons: PublicAddon[] }) => setAddons(d.addons ?? []))
       .catch(() => setAddons([]));
+  }, [eventId]);
+
+  // Po načtení zkusit zjistit, zda má buyer aktivní subscription u promotéra
+  // tohoto eventu (vrátí availableSub pro UI checkbox „použít permanentku").
+  useEffect(() => {
+    if (!eventId) return;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    if (!token) return;
+    fetch(`/api/buyer/subscriptions`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { mySubscriptions?: Array<{ planName: string; consumptionsRemaining: number; promoterId: string; status: string }> } | null) => {
+        if (!data?.mySubscriptions) return;
+        // Najdi první aktivní s remaining > 0
+        // Promoter id eventu nemáme, takže ukážeme tlačítko a server pak validuje
+        const active = data.mySubscriptions.find(
+          (s) => s.status === 'active' && s.consumptionsRemaining > 0,
+        );
+        if (active) {
+          setAvailableSub({
+            planName: active.planName,
+            remaining: active.consumptionsRemaining,
+          });
+        }
+      })
+      .catch(() => {});
   }, [eventId]);
 
   if (!eventId || !ticketTypeId) {
@@ -93,6 +126,11 @@ function CheckoutForm() {
         body.giftRecipientEmail = giftEmail;
         body.giftRecipientName = giftName || undefined;
         body.giftMessage = giftMessage || undefined;
+      }
+      if (useSubscription) {
+        body.useSubscription = true;
+      } else if (promoCode.trim()) {
+        body.promoCode = promoCode.trim().toUpperCase();
       }
       // Pass-through z URL: lottery, queue, seat hold, affiliate
       const lotteryEntryId = searchParams.get('lotteryEntryId');
@@ -183,11 +221,47 @@ function CheckoutForm() {
                 required
               />
             </div>
+            {availableSub ? (
+              <label className="flex cursor-pointer items-start gap-2 rounded-md border border-emerald-300 bg-emerald-50 p-3 text-sm">
+                <input
+                  type="checkbox"
+                  checked={useSubscription}
+                  onChange={(e) => {
+                    setUseSubscription(e.target.checked);
+                    if (e.target.checked) setPromoCode('');
+                  }}
+                  className="mt-0.5"
+                />
+                <span>
+                  <strong>Použít permanentku „{availableSub.planName}"</strong>
+                  <span className="block text-xs text-emerald-700">
+                    Zbývá {availableSub.remaining} lístků. Pokud zaškrtnu, tato objednávka
+                    se spotřebuje z permanentky a cena bude 0 Kč.
+                  </span>
+                </span>
+              </label>
+            ) : null}
+            <div className={useSubscription ? 'opacity-50' : ''}>
+              <label htmlFor="checkout-promo" className="mb-1 block text-xs font-medium">
+                Slevový kód <span className="text-muted-foreground">(volitelné)</span>
+              </label>
+              <Input
+                id="checkout-promo"
+                type="text"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value)}
+                placeholder="např. CELETNA20"
+                autoCapitalize="characters"
+                spellCheck={false}
+                className="uppercase"
+                disabled={useSubscription}
+              />
+            </div>
             {addons.length > 0 ? (
-              <div>
-                <label className="mb-2 block text-xs font-medium">
+              <fieldset className="border-0 p-0">
+                <legend className="mb-2 block text-xs font-medium">
                   Doplňky (volitelné)
-                </label>
+                </legend>
                 <div className="space-y-2">
                   {addons.map((a) => {
                     const qty = addonQty[a.id] ?? 0;
@@ -213,6 +287,7 @@ function CheckoutForm() {
                             variant="outline"
                             size="sm"
                             disabled={qty === 0}
+                            aria-label={`Snížit počet doplňku ${a.name}`}
                             onClick={() =>
                               setAddonQty((s) => ({
                                 ...s,
@@ -220,14 +295,20 @@ function CheckoutForm() {
                               }))
                             }
                           >
-                            −
+                            <span aria-hidden>−</span>
                           </Button>
-                          <span className="w-6 text-center text-sm">{qty}</span>
+                          <span
+                            className="w-6 text-center text-sm"
+                            aria-label={`Počet doplňku ${a.name}: ${qty}`}
+                          >
+                            {qty}
+                          </span>
                           <Button
                             type="button"
                             variant="outline"
                             size="sm"
                             disabled={qty >= a.maxQuantity}
+                            aria-label={`Zvýšit počet doplňku ${a.name}`}
                             onClick={() =>
                               setAddonQty((s) => ({
                                 ...s,
@@ -235,20 +316,20 @@ function CheckoutForm() {
                               }))
                             }
                           >
-                            +
+                            <span aria-hidden>+</span>
                           </Button>
                         </div>
                       </div>
                     );
                   })}
                 </div>
-              </div>
+              </fieldset>
             ) : null}
 
-            <div>
-              <label className="mb-1 block text-xs font-medium">
+            <fieldset className="border-0 p-0">
+              <legend className="mb-1 block text-xs font-medium">
                 Platební metoda
-              </label>
+              </legend>
               <div className="flex gap-2">
                 <label
                   className={`flex flex-1 cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'gopay' ? 'border-primary bg-primary/5' : ''}`}
@@ -290,7 +371,7 @@ function CheckoutForm() {
                   <span className="text-xs text-muted-foreground">PL banky</span>
                 </label>
               </div>
-            </div>
+            </fieldset>
             {ageGate ? (
               <div className="space-y-3 rounded-md border border-amber-300 bg-amber-50 p-3">
                 <p className="text-sm font-medium text-amber-900">
@@ -335,26 +416,52 @@ function CheckoutForm() {
               </label>
               {isGift ? (
                 <div className="mt-2 space-y-2">
-                  <Input
-                    type="email"
-                    placeholder="E-mail příjemce"
-                    value={giftEmail}
-                    onChange={(e) => setGiftEmail(e.target.value)}
-                    required
-                  />
-                  <Input
-                    placeholder="Jméno příjemce (volitelné)"
-                    value={giftName}
-                    onChange={(e) => setGiftName(e.target.value)}
-                  />
-                  <textarea
-                    placeholder="Vzkaz (volitelný, zobrazí se v claim emailu)"
-                    value={giftMessage}
-                    onChange={(e) => setGiftMessage(e.target.value)}
-                    rows={2}
-                    maxLength={500}
-                    className="w-full rounded-md border bg-background px-3 py-2 text-xs"
-                  />
+                  <div>
+                    <label
+                      htmlFor="gift-email"
+                      className="mb-1 block text-xs font-medium"
+                    >
+                      E-mail příjemce
+                    </label>
+                    <Input
+                      id="gift-email"
+                      type="email"
+                      autoComplete="email"
+                      value={giftEmail}
+                      onChange={(e) => setGiftEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="gift-name"
+                      className="mb-1 block text-xs font-medium"
+                    >
+                      Jméno příjemce (volitelné)
+                    </label>
+                    <Input
+                      id="gift-name"
+                      autoComplete="name"
+                      value={giftName}
+                      onChange={(e) => setGiftName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="gift-message"
+                      className="mb-1 block text-xs font-medium"
+                    >
+                      Vzkaz (volitelný, zobrazí se v claim emailu)
+                    </label>
+                    <textarea
+                      id="gift-message"
+                      value={giftMessage}
+                      onChange={(e) => setGiftMessage(e.target.value)}
+                      rows={2}
+                      maxLength={500}
+                      className="w-full rounded-md border bg-background px-3 py-2 text-xs"
+                    />
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Po zaplacení dostaneš ty potvrzení a příjemce magic link pro převzetí.
                   </p>

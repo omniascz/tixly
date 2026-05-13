@@ -1,11 +1,17 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
-import { CheckCircle2, XCircle, AlertTriangle, ScanLine, Settings2 } from 'lucide-react';
+import { FormEvent, useEffect, useState, useCallback } from 'react';
+import { CheckCircle2, XCircle, AlertTriangle, ScanLine, Settings2, Wifi, WifiOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/admin/PageHeader';
+import {
+  enqueueScan,
+  flushQueue,
+  getPendingCount,
+  type FlushResult,
+} from '@/lib/scanner/offline-queue';
 
 type ScanResult = {
   result:
@@ -56,11 +62,36 @@ const STORAGE_KEY = 'tixly.scanner.gate';
 export default function ScannerPage() {
   const [ticketId, setTicketId] = useState('');
   const [totpCode, setTotpCode] = useState('');
+
+  // QR payload parser: `tixly:<uuid>:<6-digit code>` → fillne oba inputy.
+  // Pokud uživatel jen pastenul UUID, ponecháme totpCode prázdný (manual mode).
+  function setTicketIdSmart(raw: string) {
+    const trimmed = raw.trim();
+    const m = trimmed.match(/^tixly:([0-9a-f-]{36}):(\d{6})$/i);
+    if (m) {
+      setTicketId(m[1]!);
+      setTotpCode(m[2]!);
+      return;
+    }
+    setTicketId(trimmed);
+  }
   const [result, setResult] = useState<ScanResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState<GateEvent[]>([]);
   const [gate, setGate] = useState<GateState>({ eventId: null, eventDayId: null, zoneId: null });
   const [showSettings, setShowSettings] = useState(true);
+  // Offline mode state
+  const [online, setOnline] = useState(true);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [flushReport, setFlushReport] = useState<FlushResult | null>(null);
+
+  const refreshPending = useCallback(async () => {
+    try {
+      setPendingCount(await getPendingCount());
+    } catch {
+      // IndexedDB nedostupný (SSR / private mode) — silent fallback
+    }
+  }, []);
 
   useEffect(() => {
     try {
@@ -74,7 +105,39 @@ export default function ScannerPage() {
       // ignore
     }
     void loadGates();
-  }, []);
+    void refreshPending();
+
+    // Online/offline detection
+    setOnline(typeof navigator !== 'undefined' ? navigator.onLine : true);
+    function onOnline() { setOnline(true); }
+    function onOffline() { setOnline(false); }
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
+  }, [refreshPending]);
+
+  // Když se vrátí spojení a queue není prázdná, automaticky flushni.
+  useEffect(() => {
+    if (online && pendingCount > 0) {
+      void handleFlush();
+    }
+    // handleFlush dependency by tu způsobila smyčku — disable eslint
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [online, pendingCount]);
+
+  async function handleFlush() {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const report = await flushQueue(token);
+      setFlushReport(report);
+      await refreshPending();
+    } catch {
+      // ignore
+    }
+  }
 
   async function loadGates() {
     try {
@@ -110,19 +173,44 @@ export default function ScannerPage() {
     e.preventDefault();
     setLoading(true);
     setResult(null);
+    const tid = ticketId.trim();
+    const code = totpCode.trim();
+
+    const payload = {
+      ticketId: tid,
+      ...(code ? { totpCode: code } : {}),
+      ...(gate.eventDayId ? { eventDayId: gate.eventDayId } : {}),
+      ...(gate.zoneId ? { zoneId: gate.zoneId } : {}),
+    };
+
+    // Offline: rovnou do queue, optimistic accept (provoz nestojí).
+    if (!online) {
+      try {
+        await enqueueScan(payload, gateLabel);
+        await refreshPending();
+        setResult({
+          result: 'admitted',
+          message: 'Přijato offline — synchronizace proběhne po obnovení připojení.',
+        });
+        setTicketId('');
+        setTotpCode('');
+      } catch {
+        setResult({ result: 'error', message: 'Offline queue selhala (IndexedDB nedostupný).' });
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     try {
       const token = localStorage.getItem('accessToken');
-      const body: Record<string, string> = { ticketId: ticketId.trim() };
-      if (totpCode.trim()) body.totpCode = totpCode.trim();
-      if (gate.eventDayId) body.eventDayId = gate.eventDayId;
-      if (gate.zoneId) body.zoneId = gate.zoneId;
       const res = await fetch('/api/admin/scanner/validate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(payload),
       });
       const data = (await res.json().catch(() => ({}))) as ScanResult;
       setResult({ ...data, result: data.result ?? 'error' });
@@ -131,7 +219,20 @@ export default function ScannerPage() {
         setTotpCode('');
       }
     } catch {
-      setResult({ result: 'error', message: 'Síťová chyba' });
+      // Síť spadla mezi click a fetch — fallback do queue
+      try {
+        await enqueueScan(payload, gateLabel);
+        await refreshPending();
+        setResult({
+          result: 'admitted',
+          message: 'Síť spadla — uloženo do offline queue. Sync po obnovení.',
+        });
+        setTicketId('');
+        setTotpCode('');
+        setOnline(false);
+      } catch {
+        setResult({ result: 'error', message: 'Síťová chyba i offline queue selhala.' });
+      }
     } finally {
       setLoading(false);
     }
@@ -143,6 +244,51 @@ export default function ScannerPage() {
         title="Scanner"
         description="Manuální validace QR lístku. Pro festivaly nastav bránu (akce + den + zóna) a scanner bude validovat per gate."
       />
+
+      {/* Online/offline status badge */}
+      <div
+        className={`flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm ${
+          online
+            ? 'border-emerald-300 bg-emerald-50 text-emerald-900'
+            : 'border-amber-400 bg-amber-50 text-amber-900'
+        }`}
+      >
+        <span className="flex items-center gap-2 font-medium">
+          {online ? <Wifi className="h-4 w-4" aria-hidden /> : <WifiOff className="h-4 w-4" aria-hidden />}
+          {online ? 'Online — server validuje každý sken' : 'Offline — skeny jdou do lokální fronty'}
+        </span>
+        {pendingCount > 0 ? (
+          <span className="flex items-center gap-2">
+            <span className="font-semibold">{pendingCount} čeká na sync</span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void handleFlush()}
+              disabled={!online}
+            >
+              Synchronizovat
+            </Button>
+          </span>
+        ) : null}
+      </div>
+
+      {flushReport && (flushReport.attempted > 0 || flushReport.conflicts.length > 0) ? (
+        <div className="rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-800">
+          Sync: <strong>{flushReport.synced}</strong> přeneseno, <strong>{flushReport.failed}</strong> selhalo
+          {flushReport.conflicts.length > 0
+            ? `, ${flushReport.conflicts.length} konfliktů (lístek byl mezitím neplatný — viz audit)`
+            : ''}
+          .
+          <button
+            type="button"
+            onClick={() => setFlushReport(null)}
+            className="ml-2 text-slate-500 hover:underline"
+          >
+            zavřít
+          </button>
+        </div>
+      ) : null}
 
       <Card>
         <CardHeader>
@@ -272,14 +418,20 @@ export default function ScannerPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
-                <label className="mb-1 block text-xs font-medium">Ticket ID (UUID)</label>
+                <label className="mb-1 block text-xs font-medium">
+                  Ticket ID nebo QR payload{' '}
+                  <code className="text-[11px] text-muted-foreground">
+                    {'tixly:<id>:<code>'}
+                  </code>
+                </label>
                 <Input
                   value={ticketId}
-                  onChange={(e) => setTicketId(e.target.value)}
-                  placeholder="8a4f7b2e-..."
+                  onChange={(e) => setTicketIdSmart(e.target.value)}
+                  placeholder="8a4f7b2e-... nebo tixly:8a4f...:123456"
                   required
                   pattern="[0-9a-fA-F-]{36}"
                   autoFocus
+                  data-testid="scanner-ticket-input"
                 />
               </div>
               <div>

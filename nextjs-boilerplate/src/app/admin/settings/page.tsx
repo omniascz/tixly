@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/admin/PageHeader';
+import { TwoFactorSettings } from './TwoFactorSettings';
 
 interface Settings {
   role: string;
@@ -37,13 +38,14 @@ interface Settings {
   };
 }
 
-type Tab = 'general' | 'branding' | 'billing' | 'refund';
+type Tab = 'general' | 'branding' | 'billing' | 'refund' | 'security';
 
 const TABS: Array<{ id: Tab; label: string }> = [
   { id: 'general', label: 'Obecné' },
   { id: 'branding', label: 'Branding' },
   { id: 'billing', label: 'Billing & Výplaty' },
   { id: 'refund', label: 'Refund policy' },
+  { id: 'security', label: 'Zabezpečení' },
 ];
 
 export default function SettingsPage() {
@@ -385,6 +387,8 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       ) : null}
+
+      {tab === 'security' ? <TwoFactorSettings /> : null}
 
       {tab === 'refund' ? (
         <Card>

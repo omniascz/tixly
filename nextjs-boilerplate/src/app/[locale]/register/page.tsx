@@ -56,28 +56,41 @@ export default function RegisterPage({ params }: { params: { locale: string } })
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className="mb-1 block text-xs font-medium">Jméno</label>
+              <label htmlFor="register-name" className="mb-1 block text-xs font-medium">
+                Jméno
+              </label>
               <Input
+                id="register-name"
+                autoComplete="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium">E-mail</label>
+              <label htmlFor="register-email" className="mb-1 block text-xs font-medium">
+                E-mail
+              </label>
               <Input
+                id="register-email"
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium">
+              <label
+                htmlFor="register-password"
+                className="mb-1 block text-xs font-medium"
+              >
                 Heslo (min. 8 znaků)
               </label>
               <Input
+                id="register-password"
                 type="password"
+                autoComplete="new-password"
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

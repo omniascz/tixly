@@ -34,6 +34,8 @@ export async function GET(
     buyer_email: string;
     buyer_name: string | null;
     promoter_name: string | null;
+    brand_color_hex: string | null;
+    brand_logo_url: string | null;
   }>(
     `SELECT t.id,
             e.title AS event_title,
@@ -42,7 +44,9 @@ export async function GET(
             tt.name AS ticket_type_name,
             u.email AS buyer_email,
             u.name AS buyer_name,
-            p.name AS promoter_name
+            p.name AS promoter_name,
+            p.brand_color_hex,
+            p.brand_logo_url
      FROM tickets.tickets t
      JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
      JOIN orders.orders o ON o.id = t.order_id
@@ -68,11 +72,16 @@ export async function GET(
     venueName: row.venue_name,
     qrPayload: `tixly://ticket/${row.id}`,
     organizationName: row.promoter_name ?? 'Tixly',
+    brandColorHex: row.brand_color_hex,
+    brandLogoUrl: row.brand_logo_url,
   });
 
   return NextResponse.json({
     saveUrl: out.saveUrl,
-    walletStatus: 'unsigned-demo',
-    note: 'Production needs Google Service Account RS256 keypair to sign the JWT.',
+    signed: out.signed,
+    walletStatus: out.signed ? 'signed' : 'unsigned-demo',
+    note: out.signed
+      ? null
+      : 'Pro produkční fungování nastav GOOGLE_WALLET_PRIVATE_KEY_PEM (Service Account RS256).',
   });
 }

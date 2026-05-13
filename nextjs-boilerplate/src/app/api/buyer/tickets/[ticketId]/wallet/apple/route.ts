@@ -1,15 +1,13 @@
 /**
  * GET /api/buyer/tickets/[ticketId]/wallet/apple
  *
- * Vrátí Apple Wallet pass.json. V produkci by zde byl signed .pkpass binary
- * (ZIP s pass.json + assets + manifest + PKCS#7 signature).
- * V demu vrací jen pass.json content (Content-Type: application/json) s hlavičkou
- * X-Wallet-Status: unsigned-demo.
+ * Vrátí binární `.pkpass` (ZIP). Bez Apple Pass Type ID certifikátu vrátí
+ * unsigned bundle — iOS ho odmítne, ale frontend pipeline lze otestovat.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { buildPassJson } from '@/lib/wallet/apple-pass';
+import { buildPkpass } from '@/lib/wallet/apple-pass';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -33,6 +31,11 @@ export async function GET(
     buyer_email: string;
     buyer_name: string | null;
     promoter_name: string | null;
+    brand_color_hex: string | null;
+    brand_logo_url: string | null;
+    sector: string | null;
+    row_label: string | null;
+    seat_number: string | null;
   }>(
     `SELECT t.id,
             e.title AS event_title,
@@ -41,7 +44,10 @@ export async function GET(
             tt.name AS ticket_type_name,
             u.email AS buyer_email,
             u.name AS buyer_name,
-            p.name AS promoter_name
+            p.name AS promoter_name,
+            p.brand_color_hex,
+            p.brand_logo_url,
+            es.sector, es.row AS row_label, es.seat_number
      FROM tickets.tickets t
      JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
      JOIN orders.orders o ON o.id = t.order_id
@@ -49,6 +55,7 @@ export async function GET(
      LEFT JOIN catalog.venues v ON v.id = e.venue_id
      LEFT JOIN platform.promoters p ON p.id = e.promoter_id
      JOIN identity.users u ON u.id = t.owner_id
+     LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
      WHERE t.id = $1 AND t.owner_id = $2 AND t.status = 'valid'`,
     [params.ticketId, userId],
   );
@@ -57,7 +64,11 @@ export async function GET(
   }
   const row = r.rows[0]!;
 
-  const pass = buildPassJson({
+  const seatLabel = row.sector
+    ? `${row.sector} · řada ${row.row_label ?? '?'} · sedadlo ${row.seat_number ?? '?'}`
+    : null;
+
+  const out = buildPkpass({
     ticketId: row.id,
     eventTitle: row.event_title,
     eventDateIso: row.event_date,
@@ -67,14 +78,19 @@ export async function GET(
     venueName: row.venue_name,
     qrPayload: `tixly://ticket/${row.id}`,
     organizationName: row.promoter_name ?? 'Tixly',
+    brandColorHex: row.brand_color_hex,
+    brandLogoUrl: row.brand_logo_url,
+    seatLabel,
   });
 
-  return new NextResponse(JSON.stringify(pass, null, 2), {
+  // Buffer → Uint8Array (BodyInit kompatibilní s NextResponse v Edge i Node runtime)
+  return new NextResponse(new Uint8Array(out.buffer), {
     status: 200,
     headers: {
-      'Content-Type': 'application/json',
-      'X-Wallet-Status': 'unsigned-demo',
-      'X-Wallet-Note': 'Production deployment requires Apple Pass Type ID certificate to sign the .pkpass bundle.',
+      'Content-Type': 'application/vnd.apple.pkpass',
+      'Content-Disposition': `attachment; filename="ticket-${row.id.slice(0, 8)}.pkpass"`,
+      'X-Wallet-Signed': out.signed ? 'true' : 'false',
+      ...(out.note ? { 'X-Wallet-Note': out.note } : {}),
     },
   });
 }

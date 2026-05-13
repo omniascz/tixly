@@ -44,6 +44,11 @@ interface OrderRow {
   event_title: string;
   event_date_start: string;
   venue_name: string | null;
+  promoter_name: string | null;
+  promoter_email: string | null;
+  brand_color_hex: string | null;
+  brand_logo_url: string | null;
+  promoter_vat_rate_pct: number | null;
 }
 
 interface ItemRow {
@@ -78,37 +83,69 @@ function buildEmailHtml(order: OrderRow, items: ItemRow[]): string {
     timeStyle: 'short',
   });
 
+  // Brand color: pokud promotér nemá vyplněno, fallback Tixly green.
+  const brandColor =
+    order.brand_color_hex && /^#[0-9a-f]{6}$/i.test(order.brand_color_hex)
+      ? order.brand_color_hex
+      : '#10b981';
+  const promoterName = order.promoter_name ?? 'Tixly';
+  const senderLine = order.promoter_email
+    ? `${escapeHtml(promoterName)} · ${escapeHtml(order.promoter_email)}`
+    : `${escapeHtml(promoterName)} přes Tixly`;
+
+  // DPH rozpis (gross → net + dph)
+  const vatRatePct = order.promoter_vat_rate_pct ?? 10;
+  const netHalire = Math.round(order.total_amount / (1 + vatRatePct / 100));
+  const vatHalire = order.total_amount - netHalire;
+
   return `<!DOCTYPE html>
-<html><body style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#111">
-  <h1 style="color:#10b981">Děkujeme za nákup!</h1>
-  <p>Tvá objednávka byla zaplacena. Lístky najdeš v účtu na Tixly.</p>
+<html><body style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:0;color:#111">
+  <div style="background:${brandColor};color:#fff;padding:24px;text-align:center">
+    ${order.brand_logo_url ? `<img src="${escapeHtml(order.brand_logo_url)}" alt="${escapeHtml(promoterName)}" style="height:48px;background:#fff;padding:4px;border-radius:4px"/>` : ''}
+    <h1 style="margin:16px 0 4px;font-size:24px">Děkujeme za nákup!</h1>
+    <p style="margin:0;opacity:0.9">${escapeHtml(promoterName)}</p>
+  </div>
 
-  <h2 style="margin-top:32px">${escapeHtml(order.event_title)}</h2>
-  <p style="color:#666;margin:4px 0">📅 ${escapeHtml(dateStart)}</p>
-  <p style="color:#666;margin:4px 0">📍 ${escapeHtml(order.venue_name ?? 'Online / TBD')}</p>
+  <div style="padding:24px">
+    <p>Tvá objednávka byla zaplacena. Lístky najdeš v příloze této zprávy a také v účtu na Tixly.</p>
 
-  <table style="width:100%;border-collapse:collapse;margin-top:24px">
-    <thead>
-      <tr style="background:#f5f5f5">
-        <th style="padding:8px;text-align:left">Typ</th>
-        <th style="padding:8px;text-align:center">Počet</th>
-        <th style="padding:8px;text-align:right">Cena/ks</th>
-        <th style="padding:8px;text-align:right">Celkem</th>
-      </tr>
-    </thead>
-    <tbody>${itemsRows}</tbody>
-    <tfoot>
+    <h2 style="margin-top:24px;color:${brandColor}">${escapeHtml(order.event_title)}</h2>
+    <p style="color:#666;margin:4px 0">📅 ${escapeHtml(dateStart)}</p>
+    <p style="color:#666;margin:4px 0">📍 ${escapeHtml(order.venue_name ?? 'Online / TBD')}</p>
+
+    <table style="width:100%;border-collapse:collapse;margin-top:24px">
+      <thead>
+        <tr style="background:#f5f5f5">
+          <th style="padding:8px;text-align:left">Typ</th>
+          <th style="padding:8px;text-align:center">Počet</th>
+          <th style="padding:8px;text-align:right">Cena/ks</th>
+          <th style="padding:8px;text-align:right">Celkem</th>
+        </tr>
+      </thead>
+      <tbody>${itemsRows}</tbody>
+    </table>
+
+    <table style="width:100%;border-collapse:collapse;margin-top:8px">
       <tr>
-        <td colspan="3" style="padding:12px 8px;text-align:right;font-weight:600">Celkem k úhradě:</td>
-        <td style="padding:12px 8px;text-align:right;font-weight:700;font-size:18px">${formatCzk(order.total_amount)}</td>
+        <td style="padding:4px 8px;text-align:right;color:#666;font-size:13px">Základ daně:</td>
+        <td style="padding:4px 8px;text-align:right;width:120px">${formatCzk(netHalire)}</td>
       </tr>
-    </tfoot>
-  </table>
+      <tr>
+        <td style="padding:4px 8px;text-align:right;color:#666;font-size:13px">DPH ${vatRatePct} %:</td>
+        <td style="padding:4px 8px;text-align:right">${formatCzk(vatHalire)}</td>
+      </tr>
+      <tr style="border-top:2px solid #111">
+        <td style="padding:8px;text-align:right;font-weight:600">Celkem k úhradě:</td>
+        <td style="padding:8px;text-align:right;font-weight:700;font-size:18px">${formatCzk(order.total_amount)}</td>
+      </tr>
+    </table>
 
-  <p style="margin-top:32px;color:#666;font-size:13px">
-    Číslo objednávky: <code>${escapeHtml(order.id)}</code><br/>
-    Tixly Demo · vstupenky@tixly.local
-  </p>
+    <p style="margin-top:32px;color:#666;font-size:13px">
+      Číslo objednávky: <code>${escapeHtml(order.id)}</code><br/>
+      Odesílatel: ${senderLine}<br/>
+      Lístky vystaveny přes platformu Tixly.
+    </p>
+  </div>
 </body></html>`;
 }
 
@@ -131,11 +168,17 @@ export async function POST(request: NextRequest): Promise<Response> {
        o.id, o.status, o.total_amount, o.currency, o.paid_at,
        u.email AS buyer_email, u.name AS buyer_name, u.phone AS buyer_phone,
        e.title AS event_title, e.date_start AS event_date_start,
-       v.name AS venue_name
+       v.name AS venue_name,
+       p.name AS promoter_name,
+       COALESCE(p.contact_email, p.email) AS promoter_email,
+       p.brand_color_hex,
+       p.brand_logo_url,
+       p.vat_rate_pct AS promoter_vat_rate_pct
      FROM orders.orders o
      JOIN identity.users u ON u.id = o.user_id
      LEFT JOIN catalog.events e ON e.id = o.event_id
      LEFT JOIN catalog.venues v ON v.id = e.venue_id
+     LEFT JOIN platform.promoters p ON p.id = e.promoter_id
      WHERE o.id = $1`,
     [orderId],
   );
@@ -187,6 +230,34 @@ export async function POST(request: NextRequest): Promise<Response> {
     }
 
     if (issued.length > 0 && hasFreshSecrets) {
+      // Načti unit_price + seat label per ticket (pro DPH rozpis + sedadla v PDF)
+      const priceRes = await db().query<{
+        ticket_id: string;
+        unit_price: number;
+        sector: string | null;
+        row: string | null;
+        seat_number: string | null;
+      }>(
+        `SELECT t.id AS ticket_id, oi.unit_price,
+                es.sector, es.row, es.seat_number
+         FROM tickets.tickets t
+         JOIN orders.order_items oi ON oi.id = t.order_item_id
+         LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
+         WHERE t.order_id = $1`,
+        [orderId],
+      );
+      const priceByTicket = new Map(
+        priceRes.rows.map((r) => [
+          r.ticket_id,
+          {
+            price: r.unit_price,
+            seat: r.sector
+              ? `${r.sector} · řada ${r.row ?? '?'} · sedadlo ${r.seat_number ?? '?'}`
+              : null,
+          },
+        ]),
+      );
+
       const pdfBuf = await renderTicketsPdf(
         {
           eventTitle: order.event_title,
@@ -195,16 +266,33 @@ export async function POST(request: NextRequest): Promise<Response> {
           buyerName: order.buyer_name ?? order.buyer_email,
           buyerEmail: order.buyer_email,
           orderId: order.id,
+          promoterName: order.promoter_name,
+          brandColorHex: order.brand_color_hex,
+          brandLogoUrl: order.brand_logo_url,
+          vatRatePct: order.promoter_vat_rate_pct ?? 10,
         },
-        issued.map((t) => ({
-          ticketId: t.ticketId,
-          ticketTypeName: t.ticketTypeName,
-          totpSecretBase32: t.totpSecretBase32,
-          holderLabel: order.buyer_email,
-          issuer: order.event_title,
-        })),
+        issued.map((t) => {
+          const meta = priceByTicket.get(t.ticketId);
+          return {
+            ticketId: t.ticketId,
+            ticketTypeName: t.ticketTypeName,
+            totpSecretBase32: t.totpSecretBase32,
+            holderLabel: order.buyer_email,
+            issuer: order.event_title,
+            unitPriceHalire: meta?.price,
+            seatLabel: meta?.seat ?? null,
+          };
+        }),
       );
-      pdfAttachment = { filename: `tixly-${order.id.slice(0, 8)}.pdf`, content: pdfBuf };
+      const filenameSlug = (order.promoter_name ?? 'tixly')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 24);
+      pdfAttachment = {
+        filename: `${filenameSlug || 'tixly'}-${order.id.slice(0, 8)}.pdf`,
+        content: pdfBuf,
+      };
     }
   } catch (err) {
     console.error('[order-completed] ticket issue / PDF failed:', err);
@@ -224,10 +312,15 @@ export async function POST(request: NextRequest): Promise<Response> {
           : undefined,
       tls: { rejectUnauthorized: false },
     });
+    // Sender: pokud má promotér vlastní doménu, použijeme ji jako display name
+    // (technický from header zůstává EMAIL_FROM kvůli SPF/DKIM dokud nemá ověřenou doménu).
+    const senderName = order.promoter_name ?? 'Tixly';
+    const fromAddr = process.env.EMAIL_FROM ?? 'vstupenky@tixly.local';
+    const subjectPrefix = order.promoter_name ?? 'Tixly';
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM ?? 'vstupenky@tixly.local',
+      from: `"${senderName}" <${fromAddr}>`,
       to: order.buyer_email,
-      subject: `Tixly — vstupenky na ${order.event_title}`,
+      subject: `${subjectPrefix} — vstupenky na ${order.event_title}`,
       html,
       attachments: pdfAttachment ? [pdfAttachment] : undefined,
     });

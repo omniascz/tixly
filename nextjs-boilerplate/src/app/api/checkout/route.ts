@@ -60,6 +60,10 @@ const schema = z.object({
     .max(40)
     .regex(/^[A-Z0-9_-]+$/i)
     .optional(),
+  // Subscription consumption — pokud true a buyer má aktivní subscription u promotéra
+  // s nevyčerpaným allowance, spotřebuje N (=quantity) z allowance a aplikuje
+  // 100 % discount. Vzájemně se vylučuje s promoCode.
+  useSubscription: z.boolean().optional(),
   // Volba platební metody. Defaultně 'gopay'. 'wero' = European A2A (#145),
   // 'przelewy24' = polský trh (#140). Všechny mají mock provider v demu.
   paymentMethod: z.enum(['gopay', 'wero', 'przelewy24']).default('gopay'),
@@ -254,8 +258,13 @@ export async function POST(req: NextRequest): Promise<Response> {
           { status: 422 },
         );
       }
-      const heldSeats = await client.query<{ id: string; status: string; ticket_type_id: string }>(
-        `SELECT id, status, ticket_type_id FROM catalog.event_seats
+      const heldSeats = await client.query<{
+        id: string;
+        status: string;
+        ticket_type_id: string;
+        hold_until: string | null;
+      }>(
+        `SELECT id, status, ticket_type_id, hold_until FROM catalog.event_seats
          WHERE id = ANY($1::uuid[]) AND event_id = $2 AND notes = $3
          FOR UPDATE`,
         [input.seatIds, input.eventId, input.seatHoldToken],
@@ -280,6 +289,25 @@ export async function POST(req: NextRequest): Promise<Response> {
         await client.query('ROLLBACK');
         return NextResponse.json(
           { error: 'SEAT_NOT_HELD', seatId: notHeld.id, status: notHeld.status },
+          { status: 409 },
+        );
+      }
+      // hold_until kontrola — chrání před uplatněním expirovaného holdu, který
+      // ještě nestačil release cron (běží 1×/min). Bez tohoto checku by kupec,
+      // který nechá tab otevřený přes expiry window, mohl seat získat zpětně
+      // i když by ho mezitím legitimně mohl koupit někdo jiný.
+      const nowMs = Date.now();
+      const expired = heldSeats.rows.find(
+        (s) => s.hold_until !== null && new Date(s.hold_until).getTime() < nowMs,
+      );
+      if (expired) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'SEAT_HOLD_EXPIRED',
+            message: 'Vaše rezervace sedadel vypršela. Vraťte se k výběru sedadel a vyberte je znovu.',
+            seatId: expired.id,
+          },
           { status: 409 },
         );
       }
@@ -444,11 +472,71 @@ export async function POST(req: NextRequest): Promise<Response> {
       [input.quantity, tt.id],
     );
 
-    // 3b) Promo code — pokud poslán, validuj a aplikuj slevu na subtotal
+    // 3b) Promo code / subscription — pokud poslán, validuj a aplikuj slevu na subtotal
     let subtotalAmount = unitPriceHalire * input.quantity;
     let discountAmount = 0;
     let promoCodeId: string | null = null;
-    if (input.promoCode) {
+    let consumedSubscriptionId: string | null = null;
+
+    // 3b-pre) Subscription consumption (předplatné)
+    // Pokud má buyer aktivní subscription u promotéra eventu a allowance,
+    // spotřebuje N kusů a aplikuje 100 % discount. Promo code se v této
+    // session ignoruje (subscription má prioritu).
+    if (input.useSubscription) {
+      const subRes = await client.query<{
+        id: string;
+        plan_id: string;
+        allowance: number;
+        period_start: string;
+        used: number;
+      }>(
+        `SELECT s.id, s.plan_id, p.allowance_per_period AS allowance,
+                s.current_period_start AS period_start,
+                (SELECT COUNT(*)::int FROM subscriptions.consumptions c
+                 WHERE c.subscription_id = s.id
+                   AND c.period_start = s.current_period_start) AS used
+         FROM subscriptions.subscriptions s
+         JOIN subscriptions.plans p ON p.id = s.plan_id
+         JOIN catalog.events e ON e.id = $1
+         WHERE s.user_id = $2
+           AND s.status = 'active'
+           AND p.promoter_id = e.promoter_id
+           AND s.current_period_end > now()
+         ORDER BY s.created_at DESC
+         LIMIT 1
+         FOR UPDATE OF s`,
+        [input.eventId, userId],
+      );
+      const sub = subRes.rows[0];
+      if (!sub) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'NO_ACTIVE_SUBSCRIPTION',
+            message: 'U tohoto pořadatele nemáš aktivní permanentku.',
+          },
+          { status: 422 },
+        );
+      }
+      const remaining = sub.allowance - sub.used;
+      if (remaining < input.quantity) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'INSUFFICIENT_ALLOWANCE',
+            message: `V permanentce zbývá jen ${remaining}, potřebuješ ${input.quantity}.`,
+            remaining,
+          },
+          { status: 422 },
+        );
+      }
+
+      // Aplikuj 100 % discount
+      discountAmount = subtotalAmount;
+      consumedSubscriptionId = sub.id;
+    }
+
+    if (input.promoCode && !consumedSubscriptionId) {
       const pcRes = await client.query<{
         id: string;
         type: string;
@@ -782,6 +870,19 @@ export async function POST(req: NextRequest): Promise<Response> {
        VALUES ($1, $2, $3, $4, $5, NOW())`,
       [orderId, tt.id, input.quantity, unitPriceHalire, subtotalAmount],
     );
+
+    // Subscription consumption — zapíše N rows (jeden per lístek)
+    if (consumedSubscriptionId) {
+      for (let i = 0; i < input.quantity; i++) {
+        await client.query(
+          `INSERT INTO subscriptions.consumptions
+             (subscription_id, event_id, period_start)
+           VALUES ($1, $2,
+             (SELECT current_period_start FROM subscriptions.subscriptions WHERE id = $1))`,
+          [consumedSubscriptionId, input.eventId],
+        );
+      }
+    }
 
     // Add-on order entries
     for (const addon of validatedAddons) {
