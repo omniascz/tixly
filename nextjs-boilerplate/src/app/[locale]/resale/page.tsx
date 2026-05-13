@@ -14,6 +14,11 @@ interface Listing {
     venueName: string | null;
   };
   ticketTypeName: string;
+  promoter: {
+    name: string;
+    slug: string | null;
+    brandColorHex: string | null;
+  } | null;
 }
 
 async function fetchMarketplace(): Promise<Listing[]> {
@@ -48,42 +53,69 @@ export default async function ResaleMarketplacePage() {
         </div>
       ) : (
         <ul className="space-y-3">
-          {listings.map((l) => (
+          {listings.map((l) => {
+            const brandStripeColor =
+              l.promoter?.brandColorHex && /^#[0-9a-f]{6}$/i.test(l.promoter.brandColorHex)
+                ? l.promoter.brandColorHex
+                : '#94a3b8';
+            return (
             <li
               key={l.listingId}
-              className="rounded-md border bg-card p-4 hover:border-primary"
+              className="overflow-hidden rounded-md border bg-card hover:border-primary"
             >
-              <div className="mb-2 flex items-baseline justify-between gap-3">
-                <div>
-                  <h2 className="font-semibold">{l.event.title}</h2>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(l.event.dateStart).toLocaleString('cs-CZ', {
-                      dateStyle: 'long',
-                      timeStyle: 'short',
-                    })}
-                    {l.event.venueName ? ` · ${l.event.venueName}` : ''}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {l.ticketTypeName}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold">{fmtCzk(l.askPriceHalire)}</div>
-                  <div className="text-xs text-muted-foreground line-through">
-                    {fmtCzk(l.originalPriceHalire)} face value
+              <div
+                aria-hidden
+                className="h-1.5"
+                style={{ background: brandStripeColor }}
+              />
+              <div className="p-4">
+                <div className="mb-2 flex items-baseline justify-between gap-3">
+                  <div>
+                    <h2 className="font-semibold">{l.event.title}</h2>
+                    {l.promoter ? (
+                      <p className="text-[11px] text-muted-foreground">
+                        {l.promoter.slug ? (
+                          <Link
+                            href={`/cs/p/${l.promoter.slug}`}
+                            className="hover:underline"
+                          >
+                            {l.promoter.name}
+                          </Link>
+                        ) : (
+                          l.promoter.name
+                        )}
+                      </p>
+                    ) : null}
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(l.event.dateStart).toLocaleString('cs-CZ', {
+                        dateStyle: 'long',
+                        timeStyle: 'short',
+                      })}
+                      {l.event.venueName ? ` · ${l.event.venueName}` : ''}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {l.ticketTypeName}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold">{fmtCzk(l.askPriceHalire)}</div>
+                    <div className="text-xs text-muted-foreground line-through">
+                      {fmtCzk(l.originalPriceHalire)} face value
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex justify-end">
-                <Link
-                  href={`/cs/resale/${l.listingId}`}
-                  className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90"
-                >
-                  Koupit
-                </Link>
+                <div className="flex justify-end">
+                  <Link
+                    href={`/cs/resale/${l.listingId}`}
+                    className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90"
+                  >
+                    Koupit
+                  </Link>
+                </div>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </div>
