@@ -114,6 +114,37 @@ export default function SubscriptionsPage({ params }: { params: { locale: string
     }
   }
 
+  async function refundProrata(sub: MySub) {
+    const refundEst = Math.floor(
+      (sub.priceHalire * sub.consumptionsRemaining) / sub.allowancePerPeriod,
+    );
+    if (
+      !confirm(
+        `Okamžitě zrušit „${sub.planName}" a vrátit cca ${(refundEst / 100).toLocaleString('cs-CZ')} Kč ` +
+          `za ${sub.consumptionsRemaining} nespotřebovaných z ${sub.allowancePerPeriod} lístků?\n\n` +
+          `Pokud pořadatel nepovolil self-service refund, bude potřeba kontaktovat ho přímo.`,
+      )
+    )
+      return;
+    setBusy(true);
+    setError(null);
+    setMsg(null);
+    try {
+      const res = await authFetch(`/api/buyer/subscriptions/${sub.id}/refund-prorata`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message ?? data.error ?? 'Refund selhal');
+        return;
+      }
+      setMsg(data.note);
+      await load();
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -186,14 +217,26 @@ export default function SubscriptionsPage({ params }: { params: { locale: string
                           {s.status}
                         </span>
                         {s.status === 'active' && !s.cancelAtPeriodEnd ? (
-                          <button
-                            type="button"
-                            onClick={() => void cancel(s)}
-                            disabled={busy}
-                            className="text-xs text-rose-700 hover:underline"
-                          >
-                            Zrušit obnovení
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => void cancel(s)}
+                              disabled={busy}
+                              className="text-xs text-rose-700 hover:underline"
+                            >
+                              Zrušit obnovení
+                            </button>
+                            {s.consumptionsRemaining > 0 ? (
+                              <button
+                                type="button"
+                                onClick={() => void refundProrata(s)}
+                                disabled={busy}
+                                className="text-xs text-rose-700 hover:underline"
+                              >
+                                Vrátit prorata
+                              </button>
+                            ) : null}
+                          </>
                         ) : null}
                       </div>
                     </div>

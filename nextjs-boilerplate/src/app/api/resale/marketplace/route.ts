@@ -26,6 +26,9 @@ interface MarketRow {
   event_date_start: string;
   venue_name: string | null;
   ticket_type_name: string;
+  promoter_name: string | null;
+  promoter_slug: string | null;
+  brand_color_hex: string | null;
 }
 
 export async function GET(): Promise<Response> {
@@ -35,13 +38,15 @@ export async function GET(): Promise<Response> {
        l.listed_at, l.expires_at,
        e.id AS event_id, e.title AS event_title, e.date_start AS event_date_start,
        v.name AS venue_name,
-       tt.name AS ticket_type_name
+       tt.name AS ticket_type_name,
+       p.name AS promoter_name, p.slug AS promoter_slug, p.brand_color_hex
      FROM resale.resale_listings l
      JOIN tickets.tickets t ON t.id = l.ticket_id
      JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
      JOIN orders.orders o ON o.id = t.order_id
      JOIN catalog.events e ON e.id = o.event_id
      LEFT JOIN catalog.venues v ON v.id = e.venue_id
+     LEFT JOIN platform.promoters p ON p.id = e.promoter_id
      WHERE l.status = 'active'
        AND l.expires_at > NOW()
        AND e.date_start > NOW()
@@ -64,6 +69,13 @@ export async function GET(): Promise<Response> {
         venueName: row.venue_name,
       },
       ticketTypeName: row.ticket_type_name,
+      promoter: row.promoter_name
+        ? {
+            name: row.promoter_name,
+            slug: row.promoter_slug,
+            brandColorHex: row.brand_color_hex,
+          }
+        : null,
     })),
   });
 }
