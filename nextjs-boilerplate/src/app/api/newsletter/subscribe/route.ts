@@ -11,7 +11,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { Pool } from 'pg';
 import { randomBytes } from 'crypto';
-import nodemailer from 'nodemailer';
 import { escapeHtml } from '@/lib/html-escape/escape';
 
 let pool: Pool | null = null;
@@ -67,27 +66,20 @@ export async function POST(req: NextRequest): Promise<Response> {
   );
 
   const confirmUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/api/newsletter/confirm?token=${token}`;
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST ?? 'localhost',
-    port: Number(process.env.SMTP_PORT ?? 1025),
-    secure: false,
-    ignoreTLS: true,
-  });
-  await transporter
-    .sendMail({
-      from: process.env.MAIL_FROM ?? 'noreply@tixly.cz',
-      to: parsed.data.email,
-      subject: 'Tixly: potvrď přihlášení k newsletteru',
-      html: `
+  const { sendMail } = await import('@/lib/email/mailer');
+  await sendMail({
+    from: process.env.MAIL_FROM ?? 'noreply@tixly.cz',
+    to: parsed.data.email,
+    subject: 'Tixly: potvrď přihlášení k newsletteru',
+    html: `
         <h2>Potvrď přihlášení</h2>
         <p>${parsed.data.name ? `Ahoj ${escapeHtml(parsed.data.name)},` : 'Ahoj,'}</p>
         <p>Klikni na odkaz pro potvrzení e-mailu <strong>${escapeHtml(parsed.data.email)}</strong>:</p>
         <p><a href="${escapeHtml(confirmUrl)}">Potvrdit přihlášení</a></p>
         <p style="font-size:12px;color:#666">Pokud sis nevyžádal/a tento email, ignoruj jej.</p>
       `,
-      text: `Potvrď přihlášení: ${confirmUrl}`,
-    })
-    .catch((err) => console.error('[newsletter confirm email]', err));
+    text: `Potvrď přihlášení: ${confirmUrl}`,
+  }).catch((err) => console.error('[newsletter confirm email]', err));
 
   return NextResponse.json({ ok: true, id: r.rows[0]!.id, status: 'pending' }, { status: 201 });
 }

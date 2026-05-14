@@ -298,26 +298,16 @@ export async function POST(request: NextRequest): Promise<Response> {
     console.error('[order-completed] ticket issue / PDF failed:', err);
   }
 
-  // Odešli e-mail přes nodemailer (Mailhog na localhost:1025)
+  // Odešli e-mail přes centrální mailer (Mailhog v dev, Resend/Postmark/SES v prod)
   let emailSent = false;
   try {
-    const nodemailer = (await import('nodemailer')).default;
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST ?? 'localhost',
-      port: Number(process.env.SMTP_PORT ?? '1025'),
-      secure: false,
-      auth:
-        process.env.SMTP_USER && process.env.SMTP_PASS
-          ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-          : undefined,
-      tls: { rejectUnauthorized: false },
-    });
+    const { sendMail } = await import('@/lib/email/mailer');
     // Sender: pokud má promotér vlastní doménu, použijeme ji jako display name
     // (technický from header zůstává EMAIL_FROM kvůli SPF/DKIM dokud nemá ověřenou doménu).
     const senderName = order.promoter_name ?? 'Tixly';
     const fromAddr = process.env.EMAIL_FROM ?? 'vstupenky@tixly.local';
     const subjectPrefix = order.promoter_name ?? 'Tixly';
-    await transporter.sendMail({
+    await sendMail({
       from: `"${senderName}" <${fromAddr}>`,
       to: order.buyer_email,
       subject: `${subjectPrefix} — vstupenky na ${order.event_title}`,

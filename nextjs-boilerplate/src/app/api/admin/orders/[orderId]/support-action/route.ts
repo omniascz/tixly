@@ -218,7 +218,7 @@ export async function POST(
       }
 
       // Sender display + brand color v hlavičce
-      const { default: nodemailer } = await import('nodemailer');
+      const { sendMail } = await import('@/lib/email/mailer');
       const { escapeHtml } = await import('@/lib/html-escape/escape');
       const brandColor =
         c.brand_color_hex && /^#[0-9a-f]{6}$/i.test(c.brand_color_hex)
@@ -243,17 +243,8 @@ export async function POST(
     </p>
   </div>
 </body></html>`;
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST ?? 'localhost',
-        port: Number(process.env.SMTP_PORT ?? '1025'),
-        secure: false,
-        auth:
-          process.env.SMTP_USER && process.env.SMTP_PASS
-            ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-            : undefined,
-      });
       try {
-        await transporter.sendMail({
+        await sendMail({
           from: `"${c.promoter_name}" <${process.env.EMAIL_FROM ?? 'vstupenky@tixly.local'}>`,
           to: c.buyer_email,
           subject: input.subject,

@@ -236,15 +236,8 @@ export async function POST(
     // Fire-and-forget refund notification email — failure NESMÍ vrátit refund
     void (async () => {
       try {
-        const nodemailer = (await import('nodemailer')).default;
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST ?? 'localhost',
-          port: Number(process.env.SMTP_PORT ?? '1025'),
-          secure: false,
-          tls: { rejectUnauthorized: false },
-        });
-        await transporter.sendMail({
-          from: process.env.EMAIL_FROM ?? 'vstupenky@tixly.local',
+        const { sendMail } = await import('@/lib/email/mailer');
+        await sendMail({
           to: order.buyer_email,
           subject: `Tixly — refund objednávky ${orderId.slice(0, 8)}`,
           html: buildRefundEmailHtml({

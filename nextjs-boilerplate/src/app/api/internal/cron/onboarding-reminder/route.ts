@@ -18,7 +18,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { timingSafeEqual } from 'crypto';
-import nodemailer from 'nodemailer';
 import { escapeHtml } from '@/lib/html-escape/escape';
 
 let pool: Pool | null = null;
@@ -94,15 +93,7 @@ export async function POST(req: NextRequest): Promise<Response> {
      LIMIT 200`,
   );
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST ?? 'localhost',
-    port: Number(process.env.SMTP_PORT ?? '1025'),
-    secure: false,
-    auth:
-      process.env.SMTP_USER && process.env.SMTP_PASS
-        ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-        : undefined,
-  });
+  const { sendMail } = await import('@/lib/email/mailer');
 
   let sent = 0;
   let failed = 0;
@@ -147,8 +138,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 </body></html>`;
 
     try {
-      await transporter.sendMail({
-        from: process.env.EMAIL_FROM ?? 'vstupenky@tixly.local',
+      await sendMail({
         to: row.owner_email,
         subject: `Tixly: Dokonči onboarding (${todo.length} ${todo.length === 1 ? 'krok' : 'kroky'} chybí)`,
         html,

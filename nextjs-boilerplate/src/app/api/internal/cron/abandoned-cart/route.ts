@@ -10,7 +10,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { timingSafeEqual } from 'crypto';
-import nodemailer from 'nodemailer';
 import { escapeHtml } from '@/lib/html-escape/escape';
 import { formatMoney, isCurrency } from '@/lib/format';
 
@@ -68,12 +67,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json({ ok: true, processed: 0 });
   }
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST ?? 'localhost',
-    port: Number(process.env.SMTP_PORT ?? 1025),
-    secure: false,
-    ignoreTLS: true,
-  });
+  const { sendMail } = await import('@/lib/email/mailer');
 
   let sent = 0;
   let failed = 0;
@@ -90,7 +84,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       <p style="font-size:12px;color:#666">Pokud sis to rozmyslel/a, ignoruj prosím tento e-mail.</p>
     `;
     try {
-      await transporter.sendMail({
+      await sendMail({
         from: process.env.MAIL_FROM ?? 'noreply@tixly.cz',
         to: o.buyer_email,
         subject: `Tixly: lístky na ${o.event_title} čekají`,

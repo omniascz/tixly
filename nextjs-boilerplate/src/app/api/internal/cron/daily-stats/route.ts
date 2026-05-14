@@ -158,22 +158,11 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json(summary);
   }
 
-  const nodemailer = (await import('nodemailer')).default;
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST ?? 'localhost',
-    port: Number(process.env.SMTP_PORT ?? '1025'),
-    secure: false,
-    auth:
-      process.env.SMTP_USER && process.env.SMTP_PASS
-        ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-        : undefined,
-    tls: { rejectUnauthorized: false },
-  });
+  const { sendMail } = await import('@/lib/email/mailer');
 
   for (const stats of r.rows) {
     try {
-      await transporter.sendMail({
-        from: process.env.EMAIL_FROM ?? 'vstupenky@tixly.local',
+      await sendMail({
         to: stats.owner_email,
         subject: `Tixly — denní přehled ${dateLabel}`,
         html: buildHtml(stats, dateLabel),

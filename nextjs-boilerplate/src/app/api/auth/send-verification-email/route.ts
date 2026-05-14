@@ -10,7 +10,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import nodemailer from 'nodemailer';
 import { issueEmailVerificationToken } from '@/lib/email-verification/token';
 import { escapeHtml } from '@/lib/html-escape/escape';
 
@@ -63,17 +62,8 @@ export async function POST(req: NextRequest): Promise<Response> {
 </body></html>`;
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST ?? 'localhost',
-      port: Number(process.env.SMTP_PORT ?? '1025'),
-      secure: false,
-      auth:
-        process.env.SMTP_USER && process.env.SMTP_PASS
-          ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-          : undefined,
-    });
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM ?? 'vstupenky@tixly.local',
+    const { sendMail } = await import('@/lib/email/mailer');
+    await sendMail({
       to: u.email,
       subject: 'Ověření e-mailu — Tixly',
       html,

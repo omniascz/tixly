@@ -218,19 +218,11 @@ export async function POST(
 
     void (async () => {
       try {
-        const nodemailer = (await import('nodemailer')).default;
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST ?? 'localhost',
-          port: Number(process.env.SMTP_PORT ?? '1025'),
-          secure: false,
-          tls: { rejectUnauthorized: false },
-        });
-        const from = process.env.EMAIL_FROM ?? 'vstupenky@tixly.local';
+        const { sendMail } = await import('@/lib/email/mailer');
         const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
         const myTicketsUrl = `${appUrl}/cs/my-tickets`;
 
-        await transporter.sendMail({
-          from,
+        await sendMail({
           to: recipientEmail,
           subject: `Tixly — dostal jsi vstupenku na ${ticket.event_title}`,
           html: buildRecipientEmail({
@@ -243,8 +235,7 @@ export async function POST(
             myTicketsUrl,
           }),
         });
-        await transporter.sendMail({
-          from,
+        await sendMail({
           to: ticket.owner_email,
           subject: `Tixly — lístek odeslán na ${recipientEmail}`,
           html: buildSenderEmail({

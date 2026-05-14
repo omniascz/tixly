@@ -7,7 +7,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
 import { z } from 'zod';
-import nodemailer from 'nodemailer';
 import { escapeHtml } from '@/lib/html-escape/escape';
 
 function safeEqual(a: string, b: string): boolean {
@@ -40,12 +39,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
   const p = parsed.data;
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST ?? 'localhost',
-    port: Number(process.env.SMTP_PORT ?? 1025),
-    secure: false,
-    ignoreTLS: true,
-  });
+  const { sendMail } = await import('@/lib/email/mailer');
 
   const html = `
     <h2>${escapeHtml(p.eventTitle)} — místo se uvolnilo!</h2>
@@ -56,7 +50,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     <p style="font-size:12px;color:#666">Tato pozvánka je jednorázová.</p>
   `;
 
-  await transporter.sendMail({
+  await sendMail({
     from: process.env.MAIL_FROM ?? 'noreply@tixly.cz',
     to: p.toEmail,
     subject: `Tixly: místo se uvolnilo — ${p.eventTitle}`,

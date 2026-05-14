@@ -9,7 +9,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { Pool } from 'pg';
 import { timingSafeEqual } from 'crypto';
-import nodemailer from 'nodemailer';
 import { escapeHtml } from '@/lib/html-escape/escape';
 import { issueUnsubscribeToken } from '@/lib/email-verification/unsubscribe-token';
 
@@ -50,12 +49,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'Validation failed' }, { status: 422 });
   }
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST ?? 'localhost',
-    port: Number(process.env.SMTP_PORT ?? 1025),
-    secure: false,
-    ignoreTLS: true,
-  });
+  const { sendMail } = await import('@/lib/email/mailer');
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
@@ -98,7 +92,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         extraHeaders['List-Unsubscribe'] = `<${unsubApi}>, <${unsubUrl}>`;
         extraHeaders['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click';
       }
-      await transporter.sendMail({
+      await sendMail({
         from: process.env.MAIL_FROM ?? 'noreply@tixly.cz',
         to: r.email,
         subject: parsed.data.subject,
