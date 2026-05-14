@@ -16,14 +16,14 @@ export interface CreatePaymentInput {
   currency: string;
   buyerEmail: string;
   description: string;
-  paymentMethod: 'gopay' | 'wero' | 'przelewy24';
+  paymentMethod: 'gopay' | 'wero' | 'przelewy24' | 'bank_transfer';
   appUrl: string;
 }
 
 export interface CreatePaymentResult {
   paymentId: string;
   gatewayUrl: string;
-  provider: 'stripe' | 'mock-gopay' | 'mock-wero' | 'mock-przelewy24';
+  provider: 'stripe' | 'mock-gopay' | 'mock-wero' | 'mock-przelewy24' | 'bank_transfer';
   paymentIntentId?: string | null;
 }
 
@@ -51,6 +51,17 @@ export async function createPayment(input: CreatePaymentInput): Promise<CreatePa
       gatewayUrl: session.gatewayUrl,
       provider: 'stripe',
       paymentIntentId: session.paymentIntentId,
+    };
+  }
+
+  // Bank transfer = žádný redirect, kupec dostane platební instrukce
+  // (variabilní symbol, bankovní účet) na confirmation page.
+  if (input.paymentMethod === 'bank_transfer') {
+    const paymentId = `bank-${randomUUID().slice(0, 8)}`;
+    return {
+      paymentId,
+      gatewayUrl: `${input.appUrl}/cs/order-confirmation/${input.orderId}?awaiting=bank_transfer`,
+      provider: 'bank_transfer',
     };
   }
 

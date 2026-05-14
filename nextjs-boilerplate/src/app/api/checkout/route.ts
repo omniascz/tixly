@@ -66,7 +66,9 @@ const schema = z.object({
   useSubscription: z.boolean().optional(),
   // Volba platební metody. Defaultně 'gopay'. 'wero' = European A2A (#145),
   // 'przelewy24' = polský trh (#140). Všechny mají mock provider v demu.
-  paymentMethod: z.enum(['gopay', 'wero', 'przelewy24']).default('gopay'),
+  paymentMethod: z
+    .enum(['gopay', 'wero', 'przelewy24', 'bank_transfer'])
+    .default('gopay'),
   // Add-ons (parking, camping, F&B credit, merch…) — Fáze C
   addons: z
     .array(
@@ -752,20 +754,29 @@ export async function POST(req: NextRequest): Promise<Response> {
     // přepíšeme ho session.id po commitu transakce.
     const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
 
+    // Variabilní symbol pro bank_transfer (10 cifer, CZ bankovní standard)
+    const variableSymbol =
+      input.paymentMethod === 'bank_transfer'
+        ? String(Math.floor(Math.random() * 9_000_000_000) + 1_000_000_000)
+        : null;
+
+    // Bank transfer má delší expiraci (3 dny) než instant gateway (15 min)
+    const expiresInterval = input.paymentMethod === 'bank_transfer' ? '3 days' : '15 minutes';
+
     const orderRes = await client.query<{ id: string }>(
       `INSERT INTO orders.orders
          (user_id, event_id, status, total_amount, currency, locale,
           gopay_payment_id, payment_provider, idempotency_key,
           discount_halire, promo_code_id, requires_age_verification,
           is_gift, gift_recipient_email, gift_recipient_name, gift_message, gift_redeem_token,
-          holder_names,
+          holder_names, variable_symbol,
           expires_at, created_at, updated_at)
        VALUES ($1, $2, 'pending', $3, $4, 'cs',
                $5, $6, $7,
                $8, $9, $10,
                $11, $12, $13, $14, $15,
-               $16,
-               NOW() + INTERVAL '15 minutes', NOW(), NOW())
+               $16, $17,
+               NOW() + ($18 || '')::interval, NOW(), NOW())
        RETURNING id`,
       [
         userId,
@@ -773,7 +784,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         totalAmount,
         tt.currency,
         paymentId,
-        input.paymentMethod, // gopay | wero
+        input.paymentMethod, // gopay | wero | przelewy24 | bank_transfer
         randomUUID(),
         discountAmount + bundleDiscountAmount,
         promoCodeId,
@@ -784,6 +795,8 @@ export async function POST(req: NextRequest): Promise<Response> {
         input.giftMessage ?? null,
         input.giftRecipientEmail ? randomUUID() : null,
         input.holderNames && input.holderNames.length > 0 ? input.holderNames : null,
+        variableSymbol,
+        expiresInterval,
       ],
     );
     const orderId = orderRes.rows[0]!.id;
@@ -981,6 +994,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       paymentId: paymentSession.paymentId,
       gatewayUrl: paymentSession.gatewayUrl,
       provider: paymentSession.provider,
+      variableSymbol,
       subtotalAmount,
       discountAmount,
       volumeDiscountAmount,
