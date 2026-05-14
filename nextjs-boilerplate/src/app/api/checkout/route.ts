@@ -105,6 +105,7 @@ interface TicketTypeRow {
   event_id: string;
   remaining_qty: number;
   name: string;
+  event_title: string;
   min_age: number | null;
   currency: string;
   queue_enabled: boolean;
@@ -175,7 +176,8 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     // 1) Najdi ticket_type a zkontroluj že jeho event je published
     const ttRes = await client.query<TicketTypeRow>(
-      `SELECT tt.id, tt.event_id, tt.remaining_qty, tt.name, e.min_age, e.currency, e.queue_enabled,
+      `SELECT tt.id, tt.event_id, tt.remaining_qty, tt.name, e.title AS event_title,
+              e.min_age, e.currency, e.queue_enabled,
               e.insurance_enabled, e.insurance_pct, tt.is_seated
        FROM catalog.ticket_types tt
        JOIN catalog.events e ON e.id = tt.event_id
@@ -705,6 +707,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       totalAmount += insurancePremium;
     }
 
+    // Předgenerujeme placeholder paymentId; pokud poběží Stripe (real provider),
+    // přepíšeme ho session.id po commitu transakce.
     const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
 
     const orderRes = await client.query<{ id: string }>(
@@ -905,16 +909,34 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     await client.query('COMMIT');
 
-    const gatewayUrl =
-      input.paymentMethod === 'wero'
-        ? `/mock-wero/${paymentId}`
-        : input.paymentMethod === 'przelewy24'
-          ? `/mock-przelewy24/${paymentId}`
-          : `/mock-gopay/${paymentId}`;
+    // Po commitu: vytvoř payment session přes provider switcher (Stripe pokud
+    // STRIPE_SECRET_KEY je nastaven, jinak mock fallback se zachovaným URL patternem).
+    const { createPayment } = await import('@/lib/payment/provider');
+    const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+    const paymentSession = await createPayment({
+      orderId,
+      amountHalire: totalAmount,
+      currency: tt.currency,
+      buyerEmail: input.buyerEmail,
+      description: `${tt.event_title} × ${input.quantity}`,
+      paymentMethod: input.paymentMethod,
+      appUrl,
+    });
+
+    // Pokud Stripe → uložíme session.id do gopay_payment_id (sjednocený sloupec
+    // pro payment provider reference). Mock provider zachoval placeholder paymentId.
+    if (paymentSession.provider === 'stripe') {
+      await db().query(
+        `UPDATE orders.orders SET gopay_payment_id = $2, updated_at = NOW() WHERE id = $1`,
+        [orderId, paymentSession.paymentId],
+      );
+    }
+
     return NextResponse.json({
       orderId,
-      paymentId,
-      gatewayUrl,
+      paymentId: paymentSession.paymentId,
+      gatewayUrl: paymentSession.gatewayUrl,
+      provider: paymentSession.provider,
       subtotalAmount,
       discountAmount,
       addonsSubtotal,
