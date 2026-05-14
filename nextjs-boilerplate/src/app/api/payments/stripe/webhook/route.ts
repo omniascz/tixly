@@ -146,6 +146,9 @@ export async function POST(req: NextRequest): Promise<Response> {
         reason: string;
         metadata?: { orderId?: string };
       };
+      const orderId = dispute.metadata?.orderId ?? null;
+
+      // Audit log
       await client.query(
         `INSERT INTO audit.audit_log
            (schema_name, table_name, record_id, action, actor_type, new_values)
@@ -154,13 +157,73 @@ export async function POST(req: NextRequest): Promise<Response> {
           event.id,
           JSON.stringify({
             kind: 'dispute_created',
-            order_id: dispute.metadata?.orderId ?? null,
+            order_id: orderId,
             charge_id: dispute.charge,
             dispute_id: dispute.id,
             amount: dispute.amount,
             reason: dispute.reason,
           }),
         ],
+      );
+
+      // Structured chargeback row (pokud máme orderId mapping)
+      if (orderId) {
+        const ord = await client.query<{ promoter_id: string }>(
+          `SELECT e.promoter_id FROM orders.orders o
+           JOIN catalog.events e ON e.id = o.event_id
+           WHERE o.id = $1`,
+          [orderId],
+        );
+        if (ord.rows.length > 0) {
+          await client.query(
+            `INSERT INTO orders.chargebacks
+               (order_id, promoter_id, stripe_dispute_id, stripe_charge_id,
+                amount_halire, reason)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             ON CONFLICT (stripe_dispute_id) DO NOTHING`,
+            [
+              orderId,
+              ord.rows[0]!.promoter_id,
+              dispute.id,
+              dispute.charge,
+              dispute.amount,
+              dispute.reason,
+            ],
+          );
+
+          // Update order status to 'chargeback' (allowed by orders.status CHECK)
+          await client.query(
+            `UPDATE orders.orders SET status = 'chargeback', updated_at = NOW()
+             WHERE id = $1 AND status NOT IN ('refunded', 'chargeback')`,
+            [orderId],
+          );
+        }
+      }
+    } else if (event.type === 'charge.dispute.closed') {
+      const dispute = event.data.object as {
+        id: string;
+        status: string; // 'won' | 'lost' | 'warning_closed'
+      };
+      const stripeStatus = dispute.status;
+      const mappedStatus =
+        stripeStatus === 'won'
+          ? 'won'
+          : stripeStatus === 'lost'
+            ? 'lost'
+            : stripeStatus === 'warning_closed'
+              ? 'warning_closed'
+              : 'under_review';
+      await client.query(
+        `UPDATE orders.chargebacks
+         SET status = $2, closed_at = NOW(), updated_at = NOW()
+         WHERE stripe_dispute_id = $1`,
+        [dispute.id, mappedStatus],
+      );
+      await client.query(
+        `INSERT INTO audit.audit_log
+           (schema_name, table_name, record_id, action, actor_type, new_values)
+         VALUES ('stripe', 'webhook', $1, 'INSERT', 'system', $2::jsonb)`,
+        [event.id, JSON.stringify({ kind: 'dispute_closed', dispute_id: dispute.id, status: mappedStatus })],
       );
     } else {
       // Neznámý/nesledovaný event — jen idempotency log
