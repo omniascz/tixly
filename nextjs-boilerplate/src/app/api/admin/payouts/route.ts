@@ -70,7 +70,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   }
 
   // 2) Ad-hoc bucket z paid orders (12 týdnů zpět). Demo režim.
-  const buckets = await db().query<BucketRow>(
+  const buckets = await db().query<BucketRow & { chargebacks: string }>(
     `WITH weeks AS (
        SELECT generate_series(
          DATE_TRUNC('week', NOW() - INTERVAL '12 weeks'),
@@ -82,7 +82,16 @@ export async function GET(req: NextRequest): Promise<Response> {
        w.week_start AS period_start,
        (w.week_start + INTERVAL '7 days') AS period_end,
        COALESCE(SUM(o.total_amount) FILTER (WHERE o.status = 'paid'), 0)::text AS gross,
-       COALESCE(SUM(o.total_amount) FILTER (WHERE o.status = 'refunded'), 0)::text AS refunds
+       COALESCE(SUM(o.total_amount) FILTER (WHERE o.status = 'refunded'), 0)::text AS refunds,
+       COALESCE(
+         (SELECT SUM(cb.amount_halire) FROM orders.chargebacks cb
+          WHERE cb.promoter_id = $1
+            AND cb.holdback_applied = FALSE
+            AND cb.status IN ('needs_response', 'under_review', 'lost')
+            AND cb.created_at >= w.week_start
+            AND cb.created_at < w.week_start + INTERVAL '7 days'),
+         0
+       )::text AS chargebacks
      FROM weeks w
      LEFT JOIN catalog.events e ON e.promoter_id = $1
      LEFT JOIN orders.orders o ON o.event_id = e.id
@@ -98,12 +107,13 @@ export async function GET(req: NextRequest): Promise<Response> {
     source: 'computed',
     feePercent: PLATFORM_FEE_BPS / 100,
     payouts: buckets.rows
-      .filter((b) => Number(b.gross) > 0 || Number(b.refunds) > 0)
+      .filter((b) => Number(b.gross) > 0 || Number(b.refunds) > 0 || Number(b.chargebacks) > 0)
       .map((b) => {
         const gross = Number(b.gross);
         const refunds = Number(b.refunds);
+        const chargebacks = Number(b.chargebacks);
         const fees = Math.floor((gross * PLATFORM_FEE_BPS) / 10000);
-        const net = gross - refunds - fees;
+        const net = gross - refunds - chargebacks - fees;
         const periodEnd = new Date(b.period_end);
         return {
           id: `mock-${b.period_start}`,
@@ -112,6 +122,7 @@ export async function GET(req: NextRequest): Promise<Response> {
           grossHalire: gross,
           feesHalire: fees,
           refundsHalire: refunds,
+          chargebacksHalire: chargebacks,
           netHalire: net,
           status: periodEnd < now ? 'pending' : 'in_progress',
           paidAt: null,
