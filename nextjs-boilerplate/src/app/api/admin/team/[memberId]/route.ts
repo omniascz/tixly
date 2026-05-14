@@ -17,7 +17,17 @@ function db(): Pool {
 }
 
 const patchSchema = z.object({
-  role: z.enum(['owner', 'admin', 'staff']),
+  role: z.enum([
+    'owner',
+    'admin',
+    'manager',
+    'finance',
+    'marketing',
+    'staff',
+    'gate',
+    'box_office',
+    'accreditation_manager',
+  ]),
 });
 
 export async function PATCH(

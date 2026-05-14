@@ -74,7 +74,16 @@ export async function GET(req: NextRequest): Promise<Response> {
 
 const inviteSchema = z.object({
   email: z.string().email().max(200),
-  role: z.enum(['admin', 'staff']),
+  role: z.enum([
+    'admin',
+    'manager',
+    'finance',
+    'marketing',
+    'staff',
+    'gate',
+    'box_office',
+    'accreditation_manager',
+  ]),
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
