@@ -1,0 +1,98 @@
+/**
+ * PATCH  /api/admin/ads/campaigns/[id]  — { status: 'active'|'paused', cpcHalire?, budgetTopUpHalire? }
+ * DELETE /api/admin/ads/campaigns/[id]  — soft-delete (status='finished')
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { Pool } from 'pg';
+import { z } from 'zod';
+import { requirePromoter } from '@/lib/admin-auth';
+
+let pool: Pool | null = null;
+function db(): Pool {
+  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  return pool;
+}
+
+const patchSchema = z.object({
+  status: z.enum(['active', 'paused']).optional(),
+  cpcHalire: z.number().int().min(100).max(100000).optional(),
+  budgetTopUpHalire: z.number().int().min(1000).max(10_000_000).optional(),
+});
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+): Promise<Response> {
+  const promoter = await requirePromoter(req);
+  if (!promoter || promoter.status !== 'active') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
+    return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const parsed = patchSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'BAD_INPUT', issues: parsed.error.issues },
+      { status: 422 },
+    );
+  }
+
+  const updates: string[] = [];
+  const args: unknown[] = [params.id, promoter.promoterId];
+  if (parsed.data.status) {
+    args.push(parsed.data.status);
+    updates.push(`status = $${args.length}`);
+  }
+  if (parsed.data.cpcHalire !== undefined) {
+    args.push(parsed.data.cpcHalire);
+    updates.push(`cpc_halire = $${args.length}`);
+  }
+  if (parsed.data.budgetTopUpHalire !== undefined) {
+    args.push(parsed.data.budgetTopUpHalire);
+    updates.push(
+      `budget_halire = budget_halire + $${args.length}, budget_remaining = budget_remaining + $${args.length}`,
+    );
+    // Pokud byla depleted a teď máme budget, reactivate
+    updates.push(`status = CASE WHEN status = 'depleted' THEN 'active' ELSE status END`);
+  }
+  if (updates.length === 0) {
+    return NextResponse.json({ error: 'NOTHING_TO_UPDATE' }, { status: 422 });
+  }
+
+  const r = await db().query<{ id: string }>(
+    `UPDATE marketing.ad_campaigns
+     SET ${updates.join(', ')}, updated_at = NOW()
+     WHERE id = $1 AND promoter_id = $2
+     RETURNING id`,
+    args,
+  );
+  if (r.rows.length === 0) {
+    return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+  }
+  return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+): Promise<Response> {
+  const promoter = await requirePromoter(req);
+  if (!promoter || promoter.status !== 'active') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const r = await db().query<{ id: string }>(
+    `UPDATE marketing.ad_campaigns
+     SET status = 'finished', ends_at = COALESCE(ends_at, NOW()), updated_at = NOW()
+     WHERE id = $1 AND promoter_id = $2
+     RETURNING id`,
+    [params.id, promoter.promoterId],
+  );
+  if (r.rows.length === 0) {
+    return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+  }
+  return NextResponse.json({ ok: true });
+}
