@@ -10,7 +10,7 @@
 // používají `getDict(locale)`), přidej je do LOCALES_ACTIVE.
 
 export const LOCALES = ['cs', 'en', 'de', 'fr', 'nl', 'es', 'pl', 'sk'] as const
-export const LOCALES_ACTIVE = ['cs'] as const
+export const LOCALES_ACTIVE = ['cs', 'en', 'sk'] as const
 export type Locale = (typeof LOCALES)[number]
 export type ActiveLocale = (typeof LOCALES_ACTIVE)[number]
 export const DEFAULT_LOCALE: Locale = 'cs'
