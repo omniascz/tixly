@@ -53,6 +53,7 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
+  const [bestCount, setBestCount] = useState(2);
 
   useEffect(() => {
     let cancelled = false;
@@ -163,6 +164,106 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
     setError(null);
   }
 
+  function pickBestAvailable(count: number): void {
+    if (!data) return;
+    const target = Math.max(1, Math.min(MAX_SELECTION, count));
+    // Filter na vybranou cenovou kategorii (URL ticketTypeId nebo selectedTtId,
+    // jinak fallback na nejlevnější dostupnou).
+    const ttFilter: string | null =
+      ticketTypeId ??
+      selectedTtId ??
+      (data.ticketTypes.length > 0
+        ? data.ticketTypes.slice().sort((a, b) => a.price - b.price)[0]!.id
+        : null);
+
+    // Lookup pro O(1) seat by sector+row+num.
+    const lookup = new Map<string, Seat>();
+    for (const s of data.seats) lookup.set(`${s.sector}|${s.row}|${s.num}`, s);
+
+    type Candidate = { seatIds: string[]; score: number };
+    const candidates: Candidate[] = [];
+
+    for (const sector of data.layout.sectors) {
+      for (const row of sector.rows) {
+        let cur: { seatId: string; idx: number }[] = [];
+        const flush = (run: typeof cur): void => {
+          if (run.length < target) return;
+          // Vyber střední podskupinu o velikosti target — bonus za centeredness.
+          const start = Math.floor((run.length - target) / 2);
+          const subset = run.slice(start, start + target).map((r) => r.seatId);
+          const rowCenter = (row.seats.length - 1) / 2;
+          const midIdx = run[start + Math.floor(target / 2)]!.idx;
+          const centerPenalty = Math.abs(midIdx - rowCenter);
+          // Score: base 1000 + run length (delší run = lepší flexibilita)
+          // − vzdálenost od středu řady (preferuj střed).
+          const score = 1000 + run.length * 5 - centerPenalty;
+          candidates.push({ seatIds: subset, score });
+        };
+
+        for (let i = 0; i < row.seats.length; i++) {
+          const pos = row.seats[i]!;
+          const seat = lookup.get(`${sector.name}|${row.label}|${pos.num}`);
+          if (
+            !seat ||
+            seat.status !== 'available' ||
+            (ttFilter && seat.ttId !== ttFilter)
+          ) {
+            flush(cur);
+            cur = [];
+            continue;
+          }
+          // Mix-type check uvnitř runu — nepřípustné, flush a začni znova.
+          if (cur.length > 0) {
+            const lastSeat = lookup.get(
+              `${sector.name}|${row.label}|${row.seats[cur[cur.length - 1]!.idx]!.num}`,
+            );
+            if (lastSeat && lastSeat.ttId !== seat.ttId) {
+              flush(cur);
+              cur = [];
+            }
+          }
+          cur.push({ seatId: seat.id, idx: i });
+        }
+        flush(cur);
+      }
+    }
+
+    if (candidates.length > 0) {
+      candidates.sort((a, b) => b.score - a.score);
+      setSelected(new Set(candidates[0]!.seatIds));
+      setError(null);
+      return;
+    }
+
+    // Fallback: greedy pick napříč řadami (možná různé řady, ale stejný ttId).
+    const picked: string[] = [];
+    for (const sector of data.layout.sectors) {
+      for (const row of sector.rows) {
+        for (const pos of row.seats) {
+          const seat = lookup.get(`${sector.name}|${row.label}|${pos.num}`);
+          if (!seat || seat.status !== 'available') continue;
+          if (ttFilter && seat.ttId !== ttFilter) continue;
+          picked.push(seat.id);
+          if (picked.length >= target) break;
+        }
+        if (picked.length >= target) break;
+      }
+      if (picked.length >= target) break;
+    }
+    if (picked.length === 0) {
+      setError('Žádná volná sedadla nejsou v této kategorii.');
+      return;
+    }
+    if (picked.length < target) {
+      setError(
+        `Našel jsem jen ${picked.length} volných sedadel (chtěl jsi ${target}). Vybral jsem dostupná, případně zruš výběr a vyber ručně.`,
+      );
+    } else {
+      setError(null);
+    }
+    setSelected(new Set(picked));
+  }
+
   async function holdAndProceed() {
     if (selected.size === 0) return;
     setBusy(true);
@@ -242,6 +343,38 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
             Prodáno
           </span>
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 rounded-md border bg-card p-3">
+        <label className="text-xs text-muted-foreground">Počet sedadel:</label>
+        <input
+          type="number"
+          min={1}
+          max={MAX_SELECTION}
+          value={bestCount}
+          onChange={(e) => setBestCount(Math.max(1, Math.min(MAX_SELECTION, Number(e.target.value) || 1)))}
+          className="w-16 rounded border px-2 py-1 text-xs"
+        />
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => pickBestAvailable(bestCount)}
+          disabled={busy}
+        >
+          ⭐ Vyber nejlepší dostupná
+        </Button>
+        {selected.size > 0 ? (
+          <button
+            type="button"
+            className="text-xs text-muted-foreground hover:underline"
+            onClick={() => {
+              setSelected(new Set());
+              setError(null);
+            }}
+          >
+            Vymazat výběr
+          </button>
+        ) : null}
       </div>
 
       <div className="rounded-md border bg-card p-3">
