@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Download, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { PushSubscribeButton } from '@/components/PushSubscribeButton';
 
 interface Profile {
   id: string;
@@ -228,6 +229,18 @@ export default function ProfilePage() {
               👥 Sleduji
             </a>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Push notifikace</CardTitle>
+          <CardDescription>
+            Připomínky před akcí, informace o slevách, novinky od sledovaných pořadatelů.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PushSubscribeButton />
         </CardContent>
       </Card>
 
