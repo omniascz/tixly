@@ -21,6 +21,10 @@ interface OrderRow {
   currency: string;
   paid_at: string | null;
   buyer_email: string;
+  payment_provider: string | null;
+  variable_symbol: string | null;
+  expires_at: string | null;
+  promoter_bank_account: string | null;
   event_title: string | null;
   event_date_start: string | null;
   venue_name: string | null;
@@ -39,6 +43,8 @@ async function fetchOrder(orderId: string) {
     const orderRes = await db.query<OrderRow>(
       `SELECT
          o.id, o.status, o.total_amount, o.currency, o.paid_at,
+         o.payment_provider, o.variable_symbol, o.expires_at,
+         p.bank_account AS promoter_bank_account,
          u.email AS buyer_email,
          e.title AS event_title, e.date_start AS event_date_start,
          v.name AS venue_name
@@ -46,6 +52,7 @@ async function fetchOrder(orderId: string) {
        JOIN identity.users u ON u.id = o.user_id
        LEFT JOIN catalog.events e ON e.id = o.event_id
        LEFT JOIN catalog.venues v ON v.id = e.venue_id
+       LEFT JOIN platform.promoters p ON p.id = e.promoter_id
        WHERE o.id = $1`,
       [orderId],
     );
@@ -146,6 +153,49 @@ export default async function OrderConfirmationPage({
               )}
             </div>
           )}
+
+          {/* Bank transfer instructions — zobrazí se pro pending bank_transfer orders */}
+          {order.status === 'pending' && order.payment_provider === 'bank_transfer' && order.variable_symbol ? (
+            <div className="rounded-md border-2 border-blue-300 bg-blue-50 p-4 text-blue-900">
+              <h3 className="mb-2 font-semibold">📌 Platba bankovním převodem</h3>
+              <p className="mb-3 text-xs">
+                Vstupenky ti pošleme až po připsání platby. Převeď přesnou částku
+                s variabilním symbolem níže.
+                {order.expires_at ? (
+                  <span>
+                    {' '}Platba musí dorazit do{' '}
+                    <strong>{new Date(order.expires_at).toLocaleString('cs-CZ')}</strong>,
+                    jinak objednávka propadne.
+                  </span>
+                ) : null}
+              </p>
+              <dl className="grid grid-cols-[120px_1fr] gap-y-1 font-mono text-xs">
+                <dt className="opacity-70">Částka:</dt>
+                <dd className="font-bold">{formatMoney(order.total_amount, ccy)}</dd>
+                <dt className="opacity-70">Variabilní symbol:</dt>
+                <dd className="font-bold">{order.variable_symbol}</dd>
+                {order.promoter_bank_account ? (
+                  <>
+                    <dt className="opacity-70">Účet:</dt>
+                    <dd className="font-bold">{order.promoter_bank_account}</dd>
+                  </>
+                ) : (
+                  <>
+                    <dt className="opacity-70">Účet:</dt>
+                    <dd className="italic opacity-70">
+                      Pořadatel ti pošle bankovní údaje samostatným emailem.
+                    </dd>
+                  </>
+                )}
+                <dt className="opacity-70">Zpráva:</dt>
+                <dd>Objednávka {order.id.slice(0, 8)}</dd>
+              </dl>
+              <p className="mt-3 text-[11px] opacity-70">
+                Tip: udělej screenshot této obrazovky. Po připsání platby ti pořadatel
+                vystaví vstupenky a pošle je emailem.
+              </p>
+            </div>
+          ) : null}
 
           <table className="w-full text-sm">
             <thead>
