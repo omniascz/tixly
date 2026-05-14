@@ -238,10 +238,21 @@ export async function renderTicketsPdf(
   }
 
   doc.end();
-  return await new Promise<Buffer>((resolve, reject) => {
+  const unsigned = await new Promise<Buffer>((resolve, reject) => {
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
   });
+
+  // X.509 PAdES signing (volitelné — bez P12 cert nebo signpdf knihovny vrátí
+  // nepodepsaný PDF). Failure nesmí shodit vystavení vstupenek.
+  try {
+    const { signPdfIfConfigured } = await import('./pdf-sign');
+    const result = await signPdfIfConfigured(unsigned);
+    return result.buffer;
+  } catch (err) {
+    console.warn('[pdf-renderer] signing skipped:', err);
+    return unsigned;
+  }
 }
 
 function formatCzk(halire: number): string {
