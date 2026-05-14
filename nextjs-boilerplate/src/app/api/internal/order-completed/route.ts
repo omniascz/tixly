@@ -341,10 +341,21 @@ export async function POST(request: NextRequest): Promise<Response> {
     console.error('[order-completed] email failed:', err);
   }
 
-  // SMS confirmation (volitelné — pokud kupec poskytl telefon)
+  // SMS vstupenky (SMSticket-style) — link na magic show page per ticket.
+  // Pokud kupec má telefon, posíláme:
+  //   - 1 ticket: SMS s URL na fullscreen QR
+  //   - 2+ tickets: SMS s URL na první ticket + zmínka že email má všechny
   let smsSent = false;
-  if (order.buyer_phone) {
-    const smsText = `Tixly: ${order.event_title.slice(0, 40)} — ${ticketsIssued} vstupenek (${formatCzk(order.total_amount)}). Detail v emailu.`;
+  if (order.buyer_phone && issued.length > 0) {
+    const { issueTicketMagicToken } = await import('@/lib/tickets/magic-token');
+    const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+    const firstToken = issueTicketMagicToken(issued[0]!.ticketId);
+    const url = `${appUrl}/cs/t/${firstToken}`;
+    const eventShort = order.event_title.slice(0, 30);
+    const smsText =
+      issued.length === 1
+        ? `Tixly ${eventShort}: vstupenka ${url}`
+        : `Tixly ${eventShort}: ${issued.length} vstupenek (${formatCzk(order.total_amount)}). První: ${url}. Vše v emailu.`;
     const r = await sendSms(
       { to: order.buyer_phone, text: smsText, orderId: order.id },
       db(),
