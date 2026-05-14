@@ -20,6 +20,8 @@ import {
   FileSearch,
   Repeat,
   TrendingUp,
+  Megaphone,
+  AlertOctagon,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -74,6 +76,13 @@ const sections: NavSection[] = [
       { href: '/admin/sms-campaigns', label: 'SMS kampaně', icon: MessageSquare },
       { href: '/admin/email-templates', label: 'E-mail šablony', icon: Mail },
       { href: '/admin/subscription-plans', label: 'Permanentky', icon: Repeat },
+      { href: '/admin/ads', label: 'Marketplace Ads', icon: Megaphone },
+    ],
+  },
+  {
+    label: 'Provoz',
+    items: [
+      { href: '/admin/chargebacks', label: 'Chargebacks', icon: AlertOctagon },
     ],
   },
   {
