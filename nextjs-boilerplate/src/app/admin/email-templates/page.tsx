@@ -32,6 +32,42 @@ export default function EmailTemplatesPage() {
   const [editing, setEditing] = useState<Template | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [previewSubject, setPreviewSubject] = useState<string>('');
+  const [testEmail, setTestEmail] = useState('');
+
+  async function preview(sendTo?: string) {
+    if (!editing) return;
+    const token = localStorage.getItem('accessToken');
+    const r = await fetch('/api/admin/email-templates/preview', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        type: editing.type,
+        subject: editing.subject,
+        bodyHtml: editing.bodyHtml,
+        sendTestTo: sendTo,
+      }),
+    });
+    if (!r.ok) {
+      setFeedback('Preview selhalo.');
+      return;
+    }
+    const j = (await r.json()) as {
+      renderedHtml: string;
+      renderedSubject: string;
+      testSent?: boolean;
+      testSentTo?: string;
+    };
+    setPreviewHtml(j.renderedHtml);
+    setPreviewSubject(j.renderedSubject);
+    if (j.testSent) {
+      setFeedback(`Test mail odeslán na ${j.testSentTo}.`);
+    }
+  }
 
   async function reload() {
     const token = localStorage.getItem('accessToken');
@@ -140,14 +176,51 @@ export default function EmailTemplatesPage() {
                       }
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button onClick={save} disabled={loading}>
                       {loading ? 'Ukládám…' : 'Uložit'}
                     </Button>
-                    <Button variant="outline" onClick={() => setEditing(null)}>
+                    <Button variant="outline" onClick={() => preview()}>
+                      👁 Preview
+                    </Button>
+                    <Button variant="outline" onClick={() => { setEditing(null); setPreviewHtml(null); }}>
                       Zrušit
                     </Button>
                   </div>
+
+                  {previewHtml ? (
+                    <div className="space-y-2 rounded-md border bg-muted/30 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Preview subject</p>
+                          <p className="font-mono text-sm">{previewSubject}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Input
+                            type="email"
+                            placeholder="test@example.com"
+                            value={testEmail}
+                            onChange={(e) => setTestEmail(e.target.value)}
+                            className="w-48"
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => preview(testEmail)}
+                            disabled={!testEmail.trim()}
+                          >
+                            Pošli test mail
+                          </Button>
+                        </div>
+                      </div>
+                      <iframe
+                        srcDoc={previewHtml}
+                        title="Preview"
+                        className="h-96 w-full rounded border bg-white"
+                        sandbox=""
+                      />
+                    </div>
+                  ) : null}
                 </div>
               ) : (
                 <div className="space-y-2 text-sm">
