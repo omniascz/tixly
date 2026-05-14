@@ -26,12 +26,21 @@ type ScanResult = {
     | 'wrong_zone_or_day'
     | 'flex_limit_exhausted'
     | 'day_not_picked'
+    | 'already_inside'
+    | 'reentry_limit_exceeded'
+    | 'not_inside'
+    | 'reentry_disabled'
+    | 'exited'
     | 'error';
-  kind?: 'single_use' | 'multi_day_redemption';
+  kind?: 'single_use' | 'multi_day_redemption' | 'entry' | 'reentry';
   message?: string;
   usedAt?: string;
   revokedAt?: string;
   admittedAt?: string;
+  exitedAt?: string;
+  scanCount?: number;
+  remaining?: number;
+  max?: number;
   picksRequired?: number;
   picksUsed?: number;
   ticket?: {
@@ -62,6 +71,7 @@ const STORAGE_KEY = 'tixly.scanner.gate';
 export default function ScannerPage() {
   const [ticketId, setTicketId] = useState('');
   const [totpCode, setTotpCode] = useState('');
+  const [scanMode, setScanMode] = useState<'auto' | 'reentry_entry' | 'reentry_exit'>('auto');
 
   // QR payload parser: `tixly:<uuid>:<6-digit code>` → fillne oba inputy.
   // Pokud uživatel jen pastenul UUID, ponecháme totpCode prázdný (manual mode).
@@ -204,17 +214,25 @@ export default function ScannerPage() {
 
     try {
       const token = localStorage.getItem('accessToken');
-      const res = await fetch('/api/admin/scanner/validate', {
+      const useReentry = scanMode === 'reentry_entry' || scanMode === 'reentry_exit';
+      const endpoint = useReentry ? '/api/admin/scanner/reentry' : '/api/admin/scanner/validate';
+      const reentryBody = useReentry
+        ? { ...payload, mode: scanMode === 'reentry_entry' ? 'entry' : 'exit' }
+        : payload;
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(reentryBody),
       });
       const data = (await res.json().catch(() => ({}))) as ScanResult;
       setResult({ ...data, result: data.result ?? 'error' });
-      if (res.ok && data.result === 'admitted') {
+      if (
+        res.ok &&
+        (data.result === 'admitted' || (data.result as string) === 'exited')
+      ) {
         setTicketId('');
         setTotpCode('');
       }
@@ -447,8 +465,44 @@ export default function ScannerPage() {
                   maxLength={6}
                 />
               </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium">Režim skenování</label>
+                <div className="grid grid-cols-3 gap-1 rounded-md border p-1 text-xs">
+                  <button
+                    type="button"
+                    className={`rounded px-2 py-1.5 ${scanMode === 'auto' ? 'bg-emerald-600 text-white' : 'hover:bg-muted'}`}
+                    onClick={() => setScanMode('auto')}
+                  >
+                    Standard
+                  </button>
+                  <button
+                    type="button"
+                    className={`rounded px-2 py-1.5 ${scanMode === 'reentry_entry' ? 'bg-blue-600 text-white' : 'hover:bg-muted'}`}
+                    onClick={() => setScanMode('reentry_entry')}
+                  >
+                    ↪ Vstup
+                  </button>
+                  <button
+                    type="button"
+                    className={`rounded px-2 py-1.5 ${scanMode === 'reentry_exit' ? 'bg-amber-600 text-white' : 'hover:bg-muted'}`}
+                    onClick={() => setScanMode('reentry_exit')}
+                  >
+                    ↩ Výstup
+                  </button>
+                </div>
+                {scanMode !== 'auto' ? (
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Re-entry režim pro festivaly / open-air. Vyžaduje event s
+                    <code className="mx-1">reentry_allowed=TRUE</code>.
+                  </p>
+                ) : null}
+              </div>
               <Button type="submit" disabled={loading} className="w-full">
-                {loading ? 'Validuji…' : 'Validovat lístek'}
+                {loading
+                  ? 'Validuji…'
+                  : scanMode === 'reentry_exit'
+                    ? 'Označit výstup'
+                    : 'Validovat lístek'}
               </Button>
             </form>
           </CardContent>
