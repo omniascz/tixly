@@ -40,6 +40,7 @@ interface ExistingTicketRow {
 
 interface OrderRow {
   user_id: string;
+  holder_names: string[] | null;
 }
 
 /**
@@ -69,15 +70,17 @@ export async function issueTicketsForOrder(
     }));
   }
 
-  // Najdi user_id z orderu
+  // Najdi user_id + holder_names z orderu
   const orderRes = await db.query<OrderRow>(
-    `SELECT user_id FROM orders.orders WHERE id = $1`,
+    `SELECT user_id, holder_names FROM orders.orders WHERE id = $1`,
     [orderId],
   );
   if (orderRes.rows.length === 0) {
     throw new Error(`Order ${orderId} not found`);
   }
   const ownerId = orderRes.rows[0]!.user_id;
+  const holderNames = orderRes.rows[0]!.holder_names ?? [];
+  let holderNameIdx = 0;
 
   // Načti položky
   const itemsRes = await db.query<OrderItemRow>(
@@ -119,11 +122,14 @@ export async function issueTicketsForOrder(
         'base64',
       );
 
+      const holderName = holderNames[holderNameIdx++] ?? null;
+
       await db.query(
         `INSERT INTO tickets.tickets
            (id, order_id, ticket_type_id, owner_id, original_owner_id,
-            status, totp_secret_encrypted, totp_secret_iv, original_price, event_seat_id)
-         VALUES ($1, $2, $3, $4, $4, 'valid', $5, $6, $7, $8)`,
+            status, totp_secret_encrypted, totp_secret_iv, original_price, event_seat_id,
+            holder_name)
+         VALUES ($1, $2, $3, $4, $4, 'valid', $5, $6, $7, $8, $9)`,
         [
           ticketId,
           orderId,
@@ -133,6 +139,7 @@ export async function issueTicketsForOrder(
           Buffer.alloc(0),
           item.unit_price,
           seatId,
+          holderName,
         ],
       );
 

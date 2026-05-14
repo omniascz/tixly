@@ -98,6 +98,9 @@ const schema = z.object({
   giftMessage: z.string().max(500).optional(),
   // Affiliate code (Fáze P.2) — buyer přišel přes referral; commission spočítán per order
   affiliateCode: z.string().min(2).max(40).regex(/^[A-Z0-9_-]+$/i).optional(),
+  // Personalizace (Fáze M.4) — pokud ticket_type.requires_personalization=true,
+  // checkout vyžaduje jméno per vstupenku. Length musí být = quantity.
+  holderNames: z.array(z.string().min(2).max(120)).max(10).optional(),
 });
 
 interface TicketTypeRow {
@@ -112,6 +115,7 @@ interface TicketTypeRow {
   insurance_enabled: boolean;
   insurance_pct: number;
   is_seated: boolean;
+  requires_personalization: boolean;
 }
 
 
@@ -178,7 +182,8 @@ export async function POST(req: NextRequest): Promise<Response> {
     const ttRes = await client.query<TicketTypeRow>(
       `SELECT tt.id, tt.event_id, tt.remaining_qty, tt.name, e.title AS event_title,
               e.min_age, e.currency, e.queue_enabled,
-              e.insurance_enabled, e.insurance_pct, tt.is_seated
+              e.insurance_enabled, e.insurance_pct, tt.is_seated,
+              COALESCE(tt.requires_personalization, FALSE) AS requires_personalization
        FROM catalog.ticket_types tt
        JOIN catalog.events e ON e.id = tt.event_id
        WHERE tt.id = $1 AND tt.event_id = $2 AND e.status = 'published'
@@ -193,6 +198,22 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
     const tt = ttRes.rows[0]!;
+
+    // Personalization: pokud ticket_type vyžaduje, holderNames musí mít length = quantity
+    if (tt.requires_personalization) {
+      const names = input.holderNames ?? [];
+      if (names.length !== input.quantity) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'PERSONALIZATION_REQUIRED',
+            message: `Tato akce vyžaduje jméno na každou vstupenku (potřeba ${input.quantity}, zadáno ${names.length}).`,
+          },
+          { status: 422 },
+        );
+      }
+    }
+
     if (tt.remaining_qty < input.quantity) {
       await client.query('ROLLBACK');
       return NextResponse.json(
@@ -737,11 +758,13 @@ export async function POST(req: NextRequest): Promise<Response> {
           gopay_payment_id, payment_provider, idempotency_key,
           discount_halire, promo_code_id, requires_age_verification,
           is_gift, gift_recipient_email, gift_recipient_name, gift_message, gift_redeem_token,
+          holder_names,
           expires_at, created_at, updated_at)
        VALUES ($1, $2, 'pending', $3, $4, 'cs',
                $5, $6, $7,
                $8, $9, $10,
                $11, $12, $13, $14, $15,
+               $16,
                NOW() + INTERVAL '15 minutes', NOW(), NOW())
        RETURNING id`,
       [
@@ -760,6 +783,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         input.giftRecipientName ?? null,
         input.giftMessage ?? null,
         input.giftRecipientEmail ? randomUUID() : null,
+        input.holderNames && input.holderNames.length > 0 ? input.holderNames : null,
       ],
     );
     const orderId = orderRes.rows[0]!.id;
