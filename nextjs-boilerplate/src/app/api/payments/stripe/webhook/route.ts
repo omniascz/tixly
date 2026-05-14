@@ -73,6 +73,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       const session = event.data.object as {
         id: string;
         payment_intent: string | null;
+        customer: string | null;
+        customer_email: string | null;
         payment_status: string;
         amount_total: number;
         currency: string;
@@ -80,13 +82,40 @@ export async function POST(req: NextRequest): Promise<Response> {
       };
       const orderId = session.metadata?.orderId;
       if (orderId && session.payment_status === 'paid') {
+        // Fetch payment_intent pro získání payment_method_id
+        let paymentMethodId: string | null = null;
+        if (session.payment_intent) {
+          try {
+            const piRes = await fetch(
+              `https://api.stripe.com/v1/payment_intents/${session.payment_intent}`,
+              { headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY ?? ''}` } },
+            );
+            if (piRes.ok) {
+              const pi = (await piRes.json()) as { payment_method?: string };
+              paymentMethodId = pi.payment_method ?? null;
+            }
+          } catch (err) {
+            console.warn('[stripe webhook] payment_intent fetch failed:', err);
+          }
+        }
+
+        // Save stripe_customer_id na user (pokud session má customer)
+        if (session.customer && session.customer_email) {
+          await client.query(
+            `UPDATE identity.users SET stripe_customer_id = $2, updated_at = NOW()
+             WHERE LOWER(email) = LOWER($1) AND (stripe_customer_id IS NULL OR stripe_customer_id <> $2)`,
+            [session.customer_email, session.customer],
+          );
+        }
+
         const upd = await client.query<{ id: string; status: string }>(
           `UPDATE orders.orders
            SET status = 'paid', paid_at = NOW(), updated_at = NOW(),
-               gopay_payment_id = COALESCE(gopay_payment_id, $2)
+               gopay_payment_id = COALESCE(gopay_payment_id, $2),
+               stripe_payment_method_id = COALESCE(stripe_payment_method_id, $3)
            WHERE id = $1 AND status = 'pending'
            RETURNING id, status`,
-          [orderId, session.payment_intent],
+          [orderId, session.payment_intent, paymentMethodId],
         );
         if (upd.rows.length > 0) {
           // Trigger internal order-completed (vstupenky + emaily) — fire-and-forget

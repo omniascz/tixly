@@ -87,6 +87,9 @@ export async function createStripeCheckoutSession(
     customer_email: input.buyerEmail,
     'metadata[orderId]': input.orderId,
     'payment_intent_data[metadata][orderId]': input.orderId,
+    // Save payment method on customer pro budoucí instalments / one-click rebook.
+    // Vyžaduje že session vytvoří customer (Stripe to dělá auto pokud poskytnut email).
+    'payment_intent_data[setup_future_usage]': 'on_session',
     'line_items[0][quantity]': 1,
     'line_items[0][price_data][currency]': input.currency.toLowerCase(),
     'line_items[0][price_data][unit_amount]': input.amountHalire,
