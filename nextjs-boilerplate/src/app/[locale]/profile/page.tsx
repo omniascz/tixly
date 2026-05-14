@@ -197,6 +197,40 @@ export default function ProfilePage() {
         </div>
       ) : null}
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Rychlé odkazy</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <a
+              href="/cs/my-tickets"
+              className="rounded-md border bg-card p-3 text-center text-sm hover:bg-muted"
+            >
+              🎟️ Moje lístky
+            </a>
+            <a
+              href="/cs/loyalty"
+              className="rounded-md border bg-card p-3 text-center text-sm hover:bg-muted"
+            >
+              ⭐ Moje body
+            </a>
+            <a
+              href="/cs/subscriptions"
+              className="rounded-md border bg-card p-3 text-center text-sm hover:bg-muted"
+            >
+              🔁 Permanentky
+            </a>
+            <a
+              href="/cs/profile/follows"
+              className="rounded-md border bg-card p-3 text-center text-sm hover:bg-muted"
+            >
+              👥 Sleduji
+            </a>
+          </div>
+        </CardContent>
+      </Card>
+
       {profile.pendingDeletion ? (
         <Card className="border-amber-300 bg-amber-50">
           <CardHeader>
