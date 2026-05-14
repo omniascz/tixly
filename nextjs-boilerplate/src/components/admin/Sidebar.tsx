@@ -65,6 +65,7 @@ const sections: NavSection[] = [
     items: [
       { href: '/admin/payouts', label: 'Výplaty', icon: Wallet },
       { href: '/admin/invoices', label: 'Faktury', icon: Receipt },
+      { href: '/admin/bank-transfers', label: 'Bank výpisy', icon: Banknote },
     ],
   },
   {
