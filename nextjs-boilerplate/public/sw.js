@@ -82,3 +82,37 @@ async function staleWhileRevalidate(request) {
     .catch(() => cached);
   return cached ?? fetchPromise;
 }
+
+// ─── Web Push handlers ─────────────────────────────────────────────
+// Payload format od /lib/push/web-push.ts: { title, body, url?, icon?, badge?, tag?, data? }
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch {
+    payload = { title: 'Tixly', body: event.data.text() };
+  }
+  const opts = {
+    body: payload.body,
+    icon: payload.icon || '/icon-192.png',
+    badge: payload.badge || '/icon-72.png',
+    tag: payload.tag,
+    data: { url: payload.url, ...(payload.data || {}) },
+  };
+  event.waitUntil(self.registration.showNotification(payload.title || 'Tixly', opts));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.endsWith(url) && 'focus' in client) return client.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(url);
+    }),
+  );
+});
