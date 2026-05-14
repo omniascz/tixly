@@ -480,6 +480,26 @@ export async function POST(req: NextRequest): Promise<Response> {
     let promoCodeId: string | null = null;
     let consumedSubscriptionId: string | null = null;
 
+    // 3a) Volume discount (skupinová sleva) — aplikuje se PŘED promo kódem.
+    //     Tier s nejvyšším min_qty <= input.quantity vyhrává.
+    let volumeDiscountAmount = 0;
+    let volumeDiscountPct = 0;
+    if (input.quantity >= 2) {
+      const volRes = await client.query<{ discount_pct: number; min_qty: number }>(
+        `SELECT discount_pct, min_qty
+         FROM catalog.volume_discount_rules
+         WHERE ticket_type_id = $1 AND active = TRUE AND min_qty <= $2
+         ORDER BY min_qty DESC
+         LIMIT 1`,
+        [tt.id, input.quantity],
+      );
+      if (volRes.rows.length > 0) {
+        volumeDiscountPct = volRes.rows[0]!.discount_pct;
+        volumeDiscountAmount = Math.floor((subtotalAmount * volumeDiscountPct) / 100);
+        subtotalAmount -= volumeDiscountAmount;
+      }
+    }
+
     // 3b-pre) Subscription consumption (předplatné)
     // Pokud má buyer aktivní subscription u promotéra eventu a allowance,
     // spotřebuje N kusů a aplikuje 100 % discount. Promo code se v této
@@ -939,6 +959,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       provider: paymentSession.provider,
       subtotalAmount,
       discountAmount,
+      volumeDiscountAmount,
+      volumeDiscountPct,
       addonsSubtotal,
       bundleDiscountAmount,
       bundleId,
