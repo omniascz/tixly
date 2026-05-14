@@ -68,13 +68,68 @@ export async function POST(req: NextRequest): Promise<Response> {
         continue;
       }
 
-      // Mock charge: success
+      // Real Stripe charge pokud máme Customer + PaymentMethod, jinak mock
+      let providerRef = `mock-cron-${inst.id.slice(0, 8)}`;
+      const useStripe = Boolean(process.env.STRIPE_SECRET_KEY);
+
+      if (useStripe) {
+        const ctx = await client.query<{
+          customer_id: string | null;
+          payment_method_id: string | null;
+          currency: string;
+        }>(
+          `SELECT u.stripe_customer_id AS customer_id,
+                  o.stripe_payment_method_id AS payment_method_id,
+                  o.currency
+           FROM orders.payment_installments pi
+           JOIN orders.order_payment_plans opp ON opp.id = pi.order_payment_plan_id
+           JOIN orders.orders o ON o.id = opp.order_id
+           JOIN identity.users u ON u.id = o.user_id
+           WHERE pi.id = $1`,
+          [inst.id],
+        );
+        const row = ctx.rows[0];
+        if (row?.customer_id && row?.payment_method_id) {
+          const { chargeSavedPaymentMethod } = await import('@/lib/payment/stripe');
+          const result = await chargeSavedPaymentMethod({
+            customerId: row.customer_id,
+            paymentMethodId: row.payment_method_id,
+            amountHalire: inst.amount,
+            currency: row.currency,
+            description: `Splatka ${inst.sequence} (instalment ${inst.id.slice(0, 8)})`,
+            idempotencyKey: `inst-${inst.id}`,
+          });
+          if (result.ok) {
+            providerRef = result.paymentIntentId;
+          } else {
+            await client.query(
+              `UPDATE orders.payment_installments
+               SET retry_count = retry_count + 1,
+                   last_attempt_at = NOW(),
+                   last_error = $2,
+                   status = CASE WHEN retry_count >= 2 THEN 'failed' ELSE 'pending' END,
+                   grace_period_ends_at = CASE
+                     WHEN retry_count >= 2 THEN NULL
+                     ELSE NOW() + INTERVAL '3 days'
+                   END
+               WHERE id = $1`,
+              [inst.id, result.reason.slice(0, 500)],
+            );
+            await client.query('COMMIT');
+            failed += 1;
+            continue;
+          }
+        }
+        // Pokud chybí customer_id/payment_method_id, fallback na mock charge
+      }
+
       await client.query(
         `UPDATE orders.payment_installments
          SET status = 'paid', charged_at = NOW(),
-             payment_provider_ref = $2
+             payment_provider_ref = $2,
+             last_error = NULL
          WHERE id = $1`,
-        [inst.id, `mock-cron-${inst.id.slice(0, 8)}`],
+        [inst.id, providerRef],
       );
       paid += 1;
 

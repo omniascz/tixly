@@ -127,6 +127,82 @@ export async function createStripeRefund(input: {
 }
 
 /**
+ * Najdi nebo vytvoř Stripe Customer pro daný email. Vrací customer ID.
+ * Použito v payment plan flow — saved payment method per customer.
+ */
+export async function findOrCreateStripeCustomer(input: {
+  email: string;
+  name?: string;
+}): Promise<{ id: string }> {
+  const list = await stripeRequest<{ data: Array<{ id: string }> }>(
+    `/customers?email=${encodeURIComponent(input.email)}&limit=1`,
+    undefined,
+    { method: 'GET' },
+  );
+  if (list.data.length > 0) {
+    return { id: list.data[0]!.id };
+  }
+  const params: Record<string, string> = { email: input.email };
+  if (input.name) params.name = input.name;
+  const created = await stripeRequest<{ id: string }>(
+    '/customers',
+    stripeFormBody(params),
+  );
+  return { id: created.id };
+}
+
+/**
+ * Charge konkrétní installment přes saved payment method.
+ * Vrátí success/failed result; failed má reason (decline_code).
+ *
+ * Volá se z cronu charge-installments. Vyžaduje:
+ *   - stored payment_method_id v orders.orders
+ *   - Stripe Customer ID v identity.users
+ */
+export async function chargeSavedPaymentMethod(input: {
+  customerId: string;
+  paymentMethodId: string;
+  amountHalire: number;
+  currency: string;
+  description: string;
+  idempotencyKey: string;
+}): Promise<
+  | { ok: true; paymentIntentId: string; status: string }
+  | { ok: false; reason: string; declineCode?: string }
+> {
+  try {
+    const params: Record<string, string | number | boolean> = {
+      amount: input.amountHalire,
+      currency: input.currency.toLowerCase(),
+      customer: input.customerId,
+      payment_method: input.paymentMethodId,
+      'payment_method_types[0]': 'card',
+      off_session: true,
+      confirm: true,
+      description: input.description,
+    };
+    const intent = await stripeRequest<{
+      id: string;
+      status: string;
+      last_payment_error?: { code?: string; decline_code?: string; message?: string };
+    }>('/payment_intents', stripeFormBody(params), {
+      method: 'POST',
+      idempotencyKey: input.idempotencyKey,
+    });
+    if (intent.status === 'succeeded') {
+      return { ok: true, paymentIntentId: intent.id, status: intent.status };
+    }
+    return {
+      ok: false,
+      reason: intent.last_payment_error?.message ?? `status=${intent.status}`,
+      declineCode: intent.last_payment_error?.decline_code,
+    };
+  } catch (err) {
+    return { ok: false, reason: err instanceof Error ? err.message : 'unknown' };
+  }
+}
+
+/**
  * Verifikuje Stripe webhook signature pomocí HMAC SHA-256.
  * Stripe-Signature header format: "t=<timestamp>,v1=<signature>,..."
  *
