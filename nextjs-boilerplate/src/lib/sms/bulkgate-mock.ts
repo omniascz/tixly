@@ -1,9 +1,16 @@
 /**
- * BulkGate SMS — mock provider pro lokální demo.
+ * BulkGate SMS provider (https://www.bulkgate.com/api).
  *
- * V produkci přepojit na skutečný BulkGate API (https://www.bulkgate.com/api).
- * Zde jen logujeme do `audit.audit_log` (table='sms_log') aby se daly zpětně
- * dohledat odeslané zprávy.
+ * Dev / fallback mode: pokud chybí `BULKGATE_APPLICATION_ID` + `BULKGATE_APPLICATION_TOKEN`,
+ * funguje jen jako mock — zaloguje do `audit.audit_log` a vrátí fake messageId.
+ *
+ * Produkční env vars:
+ *   BULKGATE_APPLICATION_ID      (z BulkGate portálu)
+ *   BULKGATE_APPLICATION_TOKEN   (z BulkGate portálu)
+ *   BULKGATE_SENDER_ID           (volitelné, default 'Tixly' — schválené BulkGate)
+ *   BULKGATE_MOCK=1              (přinucené mock i s tokeny — pro testy)
+ *
+ * BulkGate cost: ~0.7–1.5 Kč per segment dle země. Tracked přes audit.audit_log.
  */
 
 import type { Pool, PoolClient } from 'pg';
@@ -30,7 +37,8 @@ export interface SmsSendInput {
   orderId?: string;
 }
 
-const STANDARD_SMS_COST_HALIRE = 100; // 1 Kč mock cost
+const STANDARD_SMS_COST_HALIRE = 100; // 1 Kč fallback estimate (BulkGate vrátí real cost v response)
+const BULKGATE_API_URL = 'https://portal.bulkgate.com/api/1.0/simple/transactional';
 
 function normalizePhone(phone: string): string {
   const trimmed = phone.replace(/\s+/g, '');
@@ -40,11 +48,81 @@ function normalizePhone(phone: string): string {
   return trimmed;
 }
 
+interface BulkGateResponse {
+  data?: {
+    response?: Array<{
+      status?: string;
+      sms_id?: string;
+      price?: { credit?: number; total?: number };
+      error?: string;
+    }>;
+  };
+  error?: string;
+}
+
+async function callBulkGateApi(input: {
+  applicationId: string;
+  applicationToken: string;
+  senderId: string;
+  phone: string;
+  text: string;
+  unicode: boolean;
+}): Promise<{ ok: boolean; messageId: string; costHalire: number; reason?: string }> {
+  try {
+    const res = await fetch(BULKGATE_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        application_id: input.applicationId,
+        application_token: input.applicationToken,
+        number: input.phone,
+        text: input.text,
+        sender_id: 'gText',
+        sender_id_value: input.senderId,
+        unicode: input.unicode,
+        country: 'cz',
+      }),
+    });
+    if (!res.ok) {
+      return { ok: false, messageId: '', costHalire: 0, reason: `BulkGate HTTP ${res.status}` };
+    }
+    const j = (await res.json()) as BulkGateResponse;
+    const first = j.data?.response?.[0];
+    if (j.error || !first || first.status !== 'accepted') {
+      return {
+        ok: false,
+        messageId: first?.sms_id ?? '',
+        costHalire: 0,
+        reason: j.error ?? first?.error ?? `BulkGate status=${first?.status ?? 'unknown'}`,
+      };
+    }
+    // BulkGate cost je v credits (1 credit ≈ jedna SMS). Pro reporting v halířích
+    // multiplikujeme stand. cenou 100 hal (1 Kč). Real billing přes BulkGate dashboard.
+    const credits = first.price?.credit ?? 1;
+    return {
+      ok: true,
+      messageId: first.sms_id ?? '',
+      costHalire: Math.round(credits * STANDARD_SMS_COST_HALIRE),
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      messageId: '',
+      costHalire: 0,
+      reason: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
 export async function sendSms(
   input: SmsSendInput,
   db: Pool | PoolClient,
 ): Promise<SmsSendResult> {
-  const isMock = process.env.BULKGATE_MOCK === '1' || !process.env.BULKGATE_TOKEN;
+  const applicationId = process.env.BULKGATE_APPLICATION_ID;
+  const applicationToken = process.env.BULKGATE_APPLICATION_TOKEN;
+  const senderId = process.env.BULKGATE_SENDER_ID ?? 'Tixly';
+  const isMock =
+    process.env.BULKGATE_MOCK === '1' || !applicationId || !applicationToken;
   const provider: SmsProvider = isMock ? 'mock' : 'bulkgate';
 
   if (input.text.length > 480) {
@@ -68,10 +146,29 @@ export async function sendSms(
     };
   }
 
-  // Mock — log a vrať fake ID. V produkci by zde bylo POST na BulkGate API.
-  const messageId = `${provider}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const segments = Math.ceil(input.text.length / 160);
-  const cost = STANDARD_SMS_COST_HALIRE * segments;
+  let messageId: string;
+  let cost: number;
+  let sendOk = true;
+  let reason: string | undefined;
+
+  if (isMock) {
+    messageId = `${provider}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    cost = STANDARD_SMS_COST_HALIRE * segments;
+  } else {
+    const r = await callBulkGateApi({
+      applicationId: applicationId!,
+      applicationToken: applicationToken!,
+      senderId,
+      phone,
+      text: input.text,
+      unicode: input.unicode ?? false,
+    });
+    sendOk = r.ok;
+    messageId = r.messageId || `bulkgate-failed-${Date.now()}`;
+    cost = r.costHalire;
+    reason = r.reason;
+  }
 
   // Audit log entry — schema=sms, table=sms_log, action=INSERT
   try {
@@ -88,6 +185,8 @@ export async function sendSms(
           text: input.text.slice(0, 200),
           segments,
           cost_halire: cost,
+          ok: sendOk,
+          reason: reason ?? null,
           promoter_id: input.promoterId ?? null,
           order_id: input.orderId ?? null,
         }),
@@ -97,5 +196,7 @@ export async function sendSms(
     console.error('[sms] audit log failed:', err);
   }
 
-  return { ok: true, messageId, provider, costHalire: cost };
+  return sendOk
+    ? { ok: true, messageId, provider, costHalire: cost }
+    : { ok: false, messageId, provider, costHalire: cost, reason };
 }
