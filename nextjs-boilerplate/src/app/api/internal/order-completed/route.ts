@@ -298,6 +298,28 @@ export async function POST(request: NextRequest): Promise<Response> {
     console.error('[order-completed] ticket issue / PDF failed:', err);
   }
 
+  // Loyalty: award points pro user_id (idempotent per order_id)
+  try {
+    const client = await db().connect();
+    try {
+      await client.query('BEGIN');
+      const { awardPointsForOrder } = await import('@/lib/loyalty/engine');
+      await awardPointsForOrder(client, {
+        userId: order.user_id,
+        orderId: order.id,
+        orderTotalHalire: order.total_amount,
+      });
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error('[order-completed] loyalty award failed:', err);
+  }
+
   // Odešli e-mail přes centrální mailer (Mailhog v dev, Resend/Postmark/SES v prod)
   let emailSent = false;
   try {
