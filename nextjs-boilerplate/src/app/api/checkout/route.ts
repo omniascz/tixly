@@ -106,6 +106,8 @@ const schema = z.object({
   // Timed entry slot (Fáze T) — pokud event.timed_entry_enabled, buyer vybere
   // konkrétní slot z /events/[id]/slots. Capacity dekrementuje atomicky.
   entrySlotId: z.string().uuid().optional(),
+  // Gift voucher kód — aplikuje se PO promo kódu jako přímá sleva z balance.
+  voucherCode: z.string().min(8).max(40).optional(),
 });
 
 interface TicketTypeRow {
@@ -795,6 +797,57 @@ export async function POST(req: NextRequest): Promise<Response> {
       totalAmount += insurancePremium;
     }
 
+    // Gift voucher redemption — aplikuje se až po insurance + bundles + promo.
+    // Voucher se odečte z totalAmount do balance limitu.
+    let voucherRedeemedHalire = 0;
+    let voucherId: string | null = null;
+    if (input.voucherCode && totalAmount > 0) {
+      const code = input.voucherCode.trim().toUpperCase();
+      const v = await client.query<{
+        id: string;
+        balance_halire: number;
+        promoter_id: string | null;
+        event_id: string | null;
+        expires_at: string | null;
+      }>(
+        `SELECT id, balance_halire, promoter_id, event_id, expires_at
+         FROM marketing.gift_vouchers
+         WHERE code = $1
+         FOR UPDATE`,
+        [code],
+      );
+      if (v.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'VOUCHER_INVALID' }, { status: 422 });
+      }
+      const voucher = v.rows[0]!;
+      if (voucher.expires_at && new Date(voucher.expires_at).getTime() < Date.now()) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'VOUCHER_EXPIRED' }, { status: 422 });
+      }
+      if (voucher.balance_halire === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'VOUCHER_DEPLETED' }, { status: 422 });
+      }
+      if (voucher.event_id && voucher.event_id !== input.eventId) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'VOUCHER_WRONG_EVENT' }, { status: 422 });
+      }
+      if (voucher.promoter_id) {
+        const ev = await client.query<{ promoter_id: string }>(
+          `SELECT promoter_id FROM catalog.events WHERE id = $1`,
+          [input.eventId],
+        );
+        if (ev.rows.length === 0 || ev.rows[0]!.promoter_id !== voucher.promoter_id) {
+          await client.query('ROLLBACK');
+          return NextResponse.json({ error: 'VOUCHER_WRONG_PROMOTER' }, { status: 422 });
+        }
+      }
+      voucherRedeemedHalire = Math.min(voucher.balance_halire, totalAmount);
+      voucherId = voucher.id;
+      totalAmount -= voucherRedeemedHalire;
+    }
+
     // Předgenerujeme placeholder paymentId; pokud poběží Stripe (real provider),
     // přepíšeme ho session.id po commitu transakce.
     const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
@@ -1010,6 +1063,24 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
 
+    // Voucher: dekrement balance + zápis redemption (uvnitř transakce)
+    if (voucherId && voucherRedeemedHalire > 0) {
+      await client.query(
+        `UPDATE marketing.gift_vouchers
+         SET balance_halire = balance_halire - $2,
+             fully_used_at = CASE WHEN balance_halire - $2 = 0 THEN NOW() ELSE fully_used_at END,
+             updated_at = NOW()
+         WHERE id = $1`,
+        [voucherId, voucherRedeemedHalire],
+      );
+      await client.query(
+        `INSERT INTO marketing.gift_voucher_redemptions
+           (voucher_id, order_id, amount_redeemed_halire)
+         VALUES ($1, $2, $3)`,
+        [voucherId, orderId, voucherRedeemedHalire],
+      );
+    }
+
     await client.query('COMMIT');
 
     // Po commitu: vytvoř payment session přes provider switcher (Stripe pokud
@@ -1048,6 +1119,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       addonsSubtotal,
       bundleDiscountAmount,
       bundleId,
+      voucherRedeemedHalire,
       totalAmount,
       promoCodeApplied: promoCodeId !== null,
     });
