@@ -28,6 +28,7 @@ function db(): Pool {
 
 const schema = z.object({
   reason: z.string().max(500).optional(),
+  ticketIds: z.array(z.string().uuid()).max(100).optional(),
 });
 
 export async function POST(
@@ -129,47 +130,122 @@ export async function POST(
       );
     }
 
-    // 4) Stejné kroky jako admin refund
-    await client.query(
-      `UPDATE orders.orders SET status = 'refunded', updated_at = NOW() WHERE id = $1`,
-      [params.orderId],
-    );
-    const ticketRes = await client.query<{ count: string }>(
-      `WITH revoked AS (
-         UPDATE tickets.tickets
+    // 4) Refund: full (default) nebo partial (ticketIds podset)
+    const isPartial = Array.isArray(parsed.data.ticketIds) && parsed.data.ticketIds.length > 0;
+
+    let refundedHalire = 0;
+    let revokedCount = 0;
+    let remainingValid = 0;
+    let revokedTicketIds: string[] = [];
+
+    if (isPartial) {
+      // Validace: všechny tickety patří k orderu a jsou valid
+      const eligRes = await client.query<{ id: string; original_price: number }>(
+        `SELECT id, original_price
+         FROM tickets.tickets
+         WHERE id = ANY($1::uuid[]) AND order_id = $2 AND status = 'valid'
+         FOR UPDATE`,
+        [parsed.data.ticketIds, params.orderId],
+      );
+      if (eligRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { error: 'NO_ELIGIBLE_TICKETS', message: 'Žádný z vybraných lístků nelze refundovat.' },
+          { status: 409 },
+        );
+      }
+      revokedTicketIds = eligRes.rows.map((r) => r.id);
+      refundedHalire = eligRes.rows.reduce((s, r) => s + r.original_price, 0);
+      revokedCount = eligRes.rows.length;
+
+      await client.query(
+        `UPDATE tickets.tickets
          SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
-         WHERE order_id = $1 AND status <> 'revoked'
-         RETURNING 1
-       )
-       SELECT COUNT(*)::text AS count FROM revoked`,
-      [params.orderId],
-    );
-    const revokedCount = Number(ticketRes.rows[0]?.count ?? 0);
+         WHERE id = ANY($1::uuid[])`,
+        [revokedTicketIds],
+      );
 
-    await client.query(
-      `UPDATE catalog.ticket_types tt
-       SET remaining_qty = remaining_qty + sub.qty
-       FROM (
-         SELECT ticket_type_id, SUM(quantity) AS qty
-         FROM orders.order_items
+      // Restore inventory per ticket_type podle revoked count
+      await client.query(
+        `UPDATE catalog.ticket_types tt
+         SET remaining_qty = remaining_qty + sub.qty
+         FROM (
+           SELECT ticket_type_id, COUNT(*)::int AS qty
+           FROM tickets.tickets
+           WHERE id = ANY($1::uuid[])
+           GROUP BY ticket_type_id
+         ) sub
+         WHERE tt.id = sub.ticket_type_id`,
+        [revokedTicketIds],
+      );
+
+      // Release sedadel pouze pro revoked tickety
+      await client.query(
+        `UPDATE catalog.event_seats
+           SET status = 'available', order_id = NULL, ticket_id = NULL,
+               hold_user_id = NULL, hold_until = NULL, updated_at = NOW()
+         WHERE ticket_id = ANY($1::uuid[])
+            OR id IN (SELECT seat_id FROM tickets.tickets
+                      WHERE id = ANY($1::uuid[]) AND seat_id IS NOT NULL)`,
+        [revokedTicketIds],
+      );
+
+      // Pokud po refundu nezůstal žádný valid lístek → order = refunded
+      const remainRes = await client.query<{ count: string }>(
+        `SELECT COUNT(*)::text AS count FROM tickets.tickets
+         WHERE order_id = $1 AND status = 'valid'`,
+        [params.orderId],
+      );
+      remainingValid = Number(remainRes.rows[0]?.count ?? 0);
+      if (remainingValid === 0) {
+        await client.query(
+          `UPDATE orders.orders SET status = 'refunded', updated_at = NOW() WHERE id = $1`,
+          [params.orderId],
+        );
+      }
+    } else {
+      // Full refund (zachované původní chování)
+      refundedHalire = o.total_amount;
+      await client.query(
+        `UPDATE orders.orders SET status = 'refunded', updated_at = NOW() WHERE id = $1`,
+        [params.orderId],
+      );
+      const ticketRes = await client.query<{ count: string }>(
+        `WITH revoked AS (
+           UPDATE tickets.tickets
+           SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
+           WHERE order_id = $1 AND status <> 'revoked'
+           RETURNING 1
+         )
+         SELECT COUNT(*)::text AS count FROM revoked`,
+        [params.orderId],
+      );
+      revokedCount = Number(ticketRes.rows[0]?.count ?? 0);
+
+      await client.query(
+        `UPDATE catalog.ticket_types tt
+         SET remaining_qty = remaining_qty + sub.qty
+         FROM (
+           SELECT ticket_type_id, SUM(quantity) AS qty
+           FROM orders.order_items
+           WHERE order_id = $1
+           GROUP BY ticket_type_id
+         ) sub
+         WHERE tt.id = sub.ticket_type_id`,
+        [params.orderId],
+      );
+
+      await client.query(
+        `UPDATE catalog.event_seats
+           SET status = 'available', order_id = NULL, ticket_id = NULL,
+               hold_user_id = NULL, hold_until = NULL, updated_at = NOW()
          WHERE order_id = $1
-         GROUP BY ticket_type_id
-       ) sub
-       WHERE tt.id = sub.ticket_type_id`,
-      [params.orderId],
-    );
+            OR id IN (SELECT event_seat_id FROM orders.order_items
+                      WHERE order_id = $1 AND event_seat_id IS NOT NULL)`,
+        [params.orderId],
+      );
+    }
 
-    await client.query(
-      `UPDATE catalog.event_seats
-         SET status = 'available', order_id = NULL, ticket_id = NULL,
-             hold_user_id = NULL, hold_until = NULL, updated_at = NOW()
-       WHERE order_id = $1
-          OR id IN (SELECT event_seat_id FROM orders.order_items
-                    WHERE order_id = $1 AND event_seat_id IS NOT NULL)`,
-      [params.orderId],
-    );
-
-    // Audit log: self-service refund
     await client.query(
       `INSERT INTO audit.audit_log
          (schema_name, table_name, record_id, action, actor_id, actor_type, new_values)
@@ -178,10 +254,12 @@ export async function POST(
         params.orderId,
         userId,
         JSON.stringify({
-          kind: 'self_refund',
+          kind: isPartial ? 'self_refund_partial' : 'self_refund',
           reason: parsed.data.reason ?? 'customer_self_service',
           revokedTickets: revokedCount,
-          refundedHalire: o.total_amount,
+          revokedTicketIds: isPartial ? revokedTicketIds : undefined,
+          remainingValid: isPartial ? remainingValid : 0,
+          refundedHalire,
         }),
       ],
     );
@@ -191,8 +269,10 @@ export async function POST(
     return NextResponse.json({
       ok: true,
       orderId: params.orderId,
-      refundedHalire: o.total_amount,
+      partial: isPartial,
+      refundedHalire,
       revokedTickets: revokedCount,
+      remainingValid,
     });
   } catch (e) {
     await client.query('ROLLBACK');

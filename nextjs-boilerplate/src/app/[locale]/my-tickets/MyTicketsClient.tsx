@@ -44,25 +44,26 @@ export function MyTicketsClient({ locale }: { locale: string }) {
   const [tickets, setTickets] = useState<Ticket[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  async function load() {
+    try {
+      const res = await authFetch('/api/buyer/my-tickets');
+      if (res.status === 401) {
+        setError('Pro zobrazení lístků se musíš přihlásit.');
+        return;
+      }
+      if (!res.ok) {
+        setError(`HTTP ${res.status}`);
+        return;
+      }
+      const json = (await res.json()) as { tickets: Ticket[] };
+      setTickets(json.tickets);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
   useEffect(() => {
     void load();
-    async function load() {
-      try {
-        const res = await authFetch('/api/buyer/my-tickets');
-        if (res.status === 401) {
-          setError('Pro zobrazení lístků se musíš přihlásit.');
-          return;
-        }
-        if (!res.ok) {
-          setError(`HTTP ${res.status}`);
-          return;
-        }
-        const json = (await res.json()) as { tickets: Ticket[] };
-        setTickets(json.tickets);
-      } catch (e) {
-        setError((e as Error).message);
-      }
-    }
   }, []);
 
   if (error) {
@@ -102,12 +103,16 @@ export function MyTicketsClient({ locale }: { locale: string }) {
     <div className="space-y-6">
       {upcoming.length > 0 ? (
         <Section title="Nadcházející">
-          {upcoming.map((t) => <TicketCard key={t.id} ticket={t} locale={locale} />)}
+          {upcoming.map((t) => (
+            <TicketCard key={t.id} ticket={t} locale={locale} onChanged={load} />
+          ))}
         </Section>
       ) : null}
       {past.length > 0 ? (
         <Section title="Proběhlé">
-          {past.map((t) => <TicketCard key={t.id} ticket={t} locale={locale} />)}
+          {past.map((t) => (
+            <TicketCard key={t.id} ticket={t} locale={locale} onChanged={load} />
+          ))}
         </Section>
       ) : null}
     </div>
@@ -123,7 +128,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function TicketCard({ ticket, locale }: { ticket: Ticket; locale: string }) {
+function TicketCard({
+  ticket,
+  locale,
+  onChanged,
+}: {
+  ticket: Ticket;
+  locale: string;
+  onChanged?: () => void | Promise<void>;
+}) {
   const ccy = isCurrency(ticket.order_currency) ? ticket.order_currency : 'CZK';
   const [walletBusy, setWalletBusy] = useState<string | null>(null);
   const [walletError, setWalletError] = useState<string | null>(null);
@@ -131,6 +144,20 @@ function TicketCard({ ticket, locale }: { ticket: Ticket; locale: string }) {
   const [claimReason, setClaimReason] = useState('');
   const [claimBusy, setClaimBusy] = useState(false);
   const [claimResult, setClaimResult] = useState<string | null>(null);
+  const [refundOpen, setRefundOpen] = useState(false);
+  const [refundReason, setRefundReason] = useState('');
+  const [refundBusy, setRefundBusy] = useState(false);
+  const [refundResult, setRefundResult] = useState<{ kind: 'ok' | 'err'; message: string } | null>(
+    null,
+  );
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [transferEmail, setTransferEmail] = useState('');
+  const [transferMessage, setTransferMessage] = useState('');
+  const [transferBusy, setTransferBusy] = useState(false);
+  const [transferResult, setTransferResult] = useState<{
+    kind: 'ok' | 'err';
+    message: string;
+  } | null>(null);
 
   const statusBadge = (() => {
     if (ticket.status === 'valid') {
@@ -179,6 +206,126 @@ function TicketCard({ ticket, locale }: { ticket: Ticket; locale: string }) {
       window.open(j.saveUrl, '_blank', 'noopener');
     } finally {
       setWalletBusy(null);
+    }
+  }
+
+  async function transferTicket() {
+    const email = transferEmail.trim().toLowerCase();
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      setTransferResult({ kind: 'err', message: 'Zadej platný email.' });
+      return;
+    }
+    setTransferBusy(true);
+    setTransferResult(null);
+    try {
+      const res = await authFetch(`/api/buyer/tickets/${ticket.id}/transfer`, {
+        method: 'POST',
+        body: JSON.stringify({
+          recipientEmail: email,
+          message: transferMessage.trim() || undefined,
+        }),
+      });
+      const j = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+        message?: string;
+        recipientEmail?: string;
+        transferCount?: number;
+      };
+      if (res.ok && j.ok) {
+        setTransferResult({
+          kind: 'ok',
+          message: `Lístek odeslán na ${j.recipientEmail}. Příjemce dostal email.`,
+        });
+        setTransferOpen(false);
+        setTransferEmail('');
+        setTransferMessage('');
+        if (onChanged) await onChanged();
+        return;
+      }
+      const msg = (() => {
+        switch (j.error) {
+          case 'NOT_OWNER':
+            return 'Můžeš převést jen vlastní lístek.';
+          case 'TICKET_NOT_VALID':
+            return 'Lístek už není platný.';
+          case 'ORDER_NOT_PAID':
+            return 'Objednávka není zaplacená.';
+          case 'SELF_TRANSFER':
+            return 'Nelze poslat lístek sám sobě.';
+          case 'RECIPIENT_NOT_FOUND':
+            return j.message ?? 'Příjemce s tímto emailem nemá účet na Tixly.';
+          case 'TICKET_NOT_FOUND':
+            return 'Lístek nenalezen.';
+          default:
+            return j.message ?? j.error ?? `HTTP ${res.status}`;
+        }
+      })();
+      setTransferResult({ kind: 'err', message: msg });
+    } catch (e) {
+      setTransferResult({ kind: 'err', message: (e as Error).message });
+    } finally {
+      setTransferBusy(false);
+    }
+  }
+
+  async function requestRefund(scope: 'this' | 'order') {
+    setRefundBusy(true);
+    setRefundResult(null);
+    try {
+      const body: { reason?: string; ticketIds?: string[] } = {};
+      if (refundReason.trim()) body.reason = refundReason.trim();
+      if (scope === 'this') body.ticketIds = [ticket.id];
+
+      const res = await authFetch(`/api/buyer/orders/${ticket.order_id}/refund`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+      const j = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+        message?: string;
+        partial?: boolean;
+        refundedHalire?: number;
+        revokedTickets?: number;
+        remainingValid?: number;
+        currentStatus?: string;
+      };
+      if (res.ok && j.ok) {
+        const remainText = j.partial && (j.remainingValid ?? 0) > 0
+          ? ` Zbývá ${j.remainingValid} platných lístků v objednávce.`
+          : '';
+        setRefundResult({
+          kind: 'ok',
+          message: `Refund schválen: ${formatMoney(j.refundedHalire ?? 0, ccy)} (${j.revokedTickets ?? 0} lístků zrušeno).${remainText}`,
+        });
+        setRefundOpen(false);
+        if (onChanged) await onChanged();
+        return;
+      }
+      const msg = (() => {
+        switch (j.error) {
+          case 'SELF_REFUND_DISABLED':
+            return 'Pořadatel nepovoluje samoobslužný refund. Kontaktuj pořadatele přímo.';
+          case 'REFUND_WINDOW_EXPIRED':
+            return j.message ?? 'Refund okno již vypršelo.';
+          case 'NOT_REFUNDABLE':
+            return `Objednávku nelze refundovat (stav: ${j.currentStatus ?? '?'}).`;
+          case 'NO_ELIGIBLE_TICKETS':
+            return 'Tento lístek už nelze refundovat (možná je už zrušen).';
+          case 'NOT_FOUND':
+            return 'Objednávka nenalezena.';
+          case 'NOT_PAID':
+            return 'Objednávka není zaplacená.';
+          default:
+            return j.message ?? j.error ?? `HTTP ${res.status}`;
+        }
+      })();
+      setRefundResult({ kind: 'err', message: msg });
+    } catch (e) {
+      setRefundResult({ kind: 'err', message: (e as Error).message });
+    } finally {
+      setRefundBusy(false);
     }
   }
 
@@ -317,11 +464,127 @@ function TicketCard({ ticket, locale }: { ticket: Ticket; locale: string }) {
           >
             Detail objednávky →
           </Link>
+          <button
+            type="button"
+            className="text-xs text-blue-700 hover:underline"
+            onClick={() => {
+              setTransferOpen((v) => !v);
+              setTransferResult(null);
+            }}
+          >
+            {transferOpen ? 'Zrušit přesun' : 'Přeposlat na email'}
+          </button>
+          <button
+            type="button"
+            className="text-xs text-rose-700 hover:underline"
+            onClick={() => {
+              setRefundOpen((v) => !v);
+              setRefundResult(null);
+            }}
+          >
+            {refundOpen ? 'Zrušit' : 'Požádat o refundaci'}
+          </button>
         </div>
       ) : null}
-      {walletError ? (
-        <p className="mt-2 text-xs text-rose-700">{walletError}</p>
+
+      {transferOpen ? (
+        <div className="mt-3 rounded-md border border-blue-200 bg-blue-50 p-3 text-xs">
+          <p className="mb-2 font-medium text-blue-900">
+            Lístek převedeš jinému uživateli (musí mít účet na Tixly). Po převodu už lístek
+            neuvidíš ve svém seznamu.
+          </p>
+          <input
+            type="email"
+            className="w-full rounded border border-blue-300 bg-white p-2 text-xs"
+            placeholder="Email příjemce…"
+            value={transferEmail}
+            onChange={(e) => setTransferEmail(e.target.value)}
+            disabled={transferBusy}
+            autoComplete="off"
+          />
+          <textarea
+            className="mt-2 w-full rounded border border-blue-300 bg-white p-2 text-xs"
+            rows={2}
+            placeholder="Zpráva pro příjemce (volitelné)…"
+            value={transferMessage}
+            onChange={(e) => setTransferMessage(e.target.value)}
+            disabled={transferBusy}
+          />
+          <div className="mt-2 flex items-center gap-2">
+            <Button size="sm" onClick={transferTicket} disabled={transferBusy || !transferEmail.trim()}>
+              {transferBusy ? 'Odesílám…' : 'Odeslat lístek'}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setTransferOpen(false)}
+              disabled={transferBusy}
+            >
+              Zpět
+            </Button>
+          </div>
+        </div>
       ) : null}
+
+      {transferResult ? (
+        <p
+          className={`mt-2 text-xs ${transferResult.kind === 'ok' ? 'text-emerald-700' : 'text-rose-700'}`}
+        >
+          {transferResult.message}
+        </p>
+      ) : null}
+
+      {refundOpen ? (
+        <div className="mt-3 rounded-md border border-rose-200 bg-rose-50 p-3 text-xs">
+          <p className="mb-2 font-medium text-rose-900">
+            Vyber rozsah refundace. Peníze se vrátí na původní platební metodu.
+          </p>
+          <textarea
+            className="w-full rounded border border-rose-300 bg-white p-2 text-xs"
+            rows={2}
+            placeholder="Důvod (volitelné)…"
+            value={refundReason}
+            onChange={(e) => setRefundReason(e.target.value)}
+            disabled={refundBusy}
+          />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => requestRefund('this')}
+              disabled={refundBusy}
+            >
+              {refundBusy ? 'Odesílám…' : 'Refundovat tento lístek'}
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => requestRefund('order')}
+              disabled={refundBusy}
+            >
+              Refundovat celou objednávku
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setRefundOpen(false)}
+              disabled={refundBusy}
+            >
+              Zpět
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {refundResult ? (
+        <p
+          className={`mt-2 text-xs ${refundResult.kind === 'ok' ? 'text-emerald-700' : 'text-rose-700'}`}
+        >
+          {refundResult.message}
+        </p>
+      ) : null}
+
+      {walletError ? <p className="mt-2 text-xs text-rose-700">{walletError}</p> : null}
     </div>
   );
 }

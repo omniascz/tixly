@@ -55,6 +55,7 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     void load();
     async function load() {
       try {
@@ -62,15 +63,68 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
         if (eventDayId) url.searchParams.set('eventDayId', eventDayId);
         const res = await fetch(url.toString());
         if (!res.ok) {
-          setError(`HTTP ${res.status}`);
+          if (!cancelled) setError(`HTTP ${res.status}`);
           return;
         }
-        setData((await res.json()) as Data);
+        if (!cancelled) setData((await res.json()) as Data);
       } catch (e) {
-        setError((e as Error).message);
+        if (!cancelled) setError((e as Error).message);
       }
     }
+    return () => {
+      cancelled = true;
+    };
   }, [eventId, eventDayId]);
+
+  // SSE real-time seat updates
+  useEffect(() => {
+    if (!data) return;
+    const url = new URL(`/api/events/${eventId}/seats/stream`, window.location.origin);
+    if (eventDayId) url.searchParams.set('eventDayId', eventDayId);
+    const es = new EventSource(url.toString());
+
+    function applyDelta(payload: { seats: { id: string; status: string }[] }): void {
+      setData((prev) => {
+        if (!prev) return prev;
+        const byId = new Map(prev.seats.map((s) => [s.id, s]));
+        for (const upd of payload.seats) {
+          const ex = byId.get(upd.id);
+          if (ex && ex.status !== upd.status) {
+            byId.set(upd.id, { ...ex, status: upd.status as Seat['status'] });
+          }
+        }
+        return { ...prev, seats: Array.from(byId.values()) };
+      });
+      // Drop now-unavailable from selection
+      setSelected((prev) => {
+        const sold = new Set(
+          payload.seats.filter((s) => s.status !== 'available').map((s) => s.id),
+        );
+        let changed = false;
+        const next = new Set(prev);
+        for (const id of prev) {
+          if (sold.has(id)) {
+            next.delete(id);
+            changed = true;
+          }
+        }
+        return changed ? next : prev;
+      });
+    }
+
+    es.addEventListener('delta', (e) => {
+      try {
+        applyDelta(JSON.parse((e as MessageEvent).data));
+      } catch {
+        // ignore malformed
+      }
+    });
+    es.addEventListener('error', () => {
+      // Browser auto-reconnects EventSource; nothing to do.
+    });
+
+    return () => es.close();
+  }, [eventId, eventDayId, data === null]);
 
   const seatsById = useMemo(() => {
     const m = new Map<string, Seat>();

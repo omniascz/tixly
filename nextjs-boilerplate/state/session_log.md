@@ -1,5 +1,61 @@
-# Session Log
+## Session 2026-05-14 10:41
 
+### Other files modified
+- `.claude/settings.local.json`
+- `nextjs-boilerplate/src/app/[locale]/events/[id]/seats/SeatPicker.tsx`
+- `nextjs-boilerplate/src/app/[locale]/my-tickets/MyTicketsClient.tsx`
+- `nextjs-boilerplate/src/app/api/buyer/orders/[orderId]/refund/route.ts`
+- `nextjs-boilerplate/state/session_log.md`
+
+---
+## Session 2026-05-13 23:25
+
+### Other files modified
+- `.claude/settings.local.json`
+- `nextjs-boilerplate/src/app/[locale]/layout.tsx`
+- `nextjs-boilerplate/src/app/[locale]/p/[slug]/page.tsx`
+- `nextjs-boilerplate/state/session_log.md`
+
+---
+## Session 2026-05-13 22:28
+
+### Other files modified
+- `.claude/settings.local.json`
+- `nextjs-boilerplate/src/app/[locale]/newsletter/confirmed/page.tsx`
+- `nextjs-boilerplate/src/app/admin/orders/[orderId]/SupportActions.tsx`
+- `nextjs-boilerplate/src/app/api/admin/orders/[orderId]/support-action/route.ts`
+- `nextjs-boilerplate/src/app/api/og/events/[id]/route.tsx`
+- `nextjs-boilerplate/src/app/page.tsx`
+- `nextjs-boilerplate/src/app/sitemap.ts`
+- `nextjs-boilerplate/src/components/admin/Sidebar.tsx`
+- `nextjs-boilerplate/src/lib/admin-api.ts`
+- `nextjs-boilerplate/src/lib/i18n.ts`
+- `nextjs-boilerplate/src/lib/moderation/ai-gate.ts`
+- `nextjs-boilerplate/state/session_log.md`
+
+---
+## Session 2026-05-13 22:20
+
+### Other files modified
+- `.claude/settings.local.json`
+- `nextjs-boilerplate/src/app/[locale]/newsletter/confirmed/page.tsx`
+- `nextjs-boilerplate/src/app/api/og/events/[id]/route.tsx`
+- `nextjs-boilerplate/src/app/page.tsx`
+- `nextjs-boilerplate/src/app/sitemap.ts`
+- `nextjs-boilerplate/src/components/admin/Sidebar.tsx`
+- `nextjs-boilerplate/src/lib/admin-api.ts`
+- `nextjs-boilerplate/state/session_log.md`
+
+---
+## Session 2026-05-13 21:49
+
+### Other files modified
+- `.claude/settings.local.json`
+- `nextjs-boilerplate/src/app/[locale]/newsletter/confirmed/page.tsx`
+- `nextjs-boilerplate/src/components/admin/Sidebar.tsx`
+- `nextjs-boilerplate/src/lib/admin-api.ts`
+
+---
 ## Session 2026-05-13 15:26
 
 ### Other files modified
