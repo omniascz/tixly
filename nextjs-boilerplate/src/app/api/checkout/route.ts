@@ -103,6 +103,9 @@ const schema = z.object({
   // Personalizace (Fáze M.4) — pokud ticket_type.requires_personalization=true,
   // checkout vyžaduje jméno per vstupenku. Length musí být = quantity.
   holderNames: z.array(z.string().min(2).max(120)).max(10).optional(),
+  // Timed entry slot (Fáze T) — pokud event.timed_entry_enabled, buyer vybere
+  // konkrétní slot z /events/[id]/slots. Capacity dekrementuje atomicky.
+  entrySlotId: z.string().uuid().optional(),
 });
 
 interface TicketTypeRow {
@@ -200,6 +203,48 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
     const tt = ttRes.rows[0]!;
+
+    // Timed entry: pokud event.timed_entry_enabled, entrySlotId je vyžadován a
+    // musí mít remaining >= quantity.
+    if (input.entrySlotId) {
+      const slot = await client.query<{ id: string; remaining: number; status: string }>(
+        `SELECT id, remaining, status FROM catalog.entry_slots
+         WHERE id = $1 AND event_id = $2
+         FOR UPDATE`,
+        [input.entrySlotId, input.eventId],
+      );
+      if (slot.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { error: 'SLOT_NOT_FOUND' },
+          { status: 404 },
+        );
+      }
+      const s = slot.rows[0]!;
+      if (s.status !== 'open') {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { error: 'SLOT_NOT_OPEN', status: s.status },
+          { status: 409 },
+        );
+      }
+      if (s.remaining < input.quantity) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { error: 'SLOT_INSUFFICIENT_CAPACITY', remaining: s.remaining },
+          { status: 409 },
+        );
+      }
+      // Decrement remaining + auto sold_out
+      await client.query(
+        `UPDATE catalog.entry_slots
+         SET remaining = remaining - $2,
+             status = CASE WHEN remaining - $2 = 0 THEN 'sold_out' ELSE status END,
+             updated_at = NOW()
+         WHERE id = $1`,
+        [input.entrySlotId, input.quantity],
+      );
+    }
 
     // Personalization: pokud ticket_type vyžaduje, holderNames musí mít length = quantity
     if (tt.requires_personalization) {
@@ -769,13 +814,13 @@ export async function POST(req: NextRequest): Promise<Response> {
           gopay_payment_id, payment_provider, idempotency_key,
           discount_halire, promo_code_id, requires_age_verification,
           is_gift, gift_recipient_email, gift_recipient_name, gift_message, gift_redeem_token,
-          holder_names, variable_symbol,
+          holder_names, variable_symbol, entry_slot_id,
           expires_at, created_at, updated_at)
        VALUES ($1, $2, 'pending', $3, $4, 'cs',
                $5, $6, $7,
                $8, $9, $10,
                $11, $12, $13, $14, $15,
-               $16, $17,
+               $16, $17, $19,
                NOW() + ($18 || '')::interval, NOW(), NOW())
        RETURNING id`,
       [
@@ -797,6 +842,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         input.holderNames && input.holderNames.length > 0 ? input.holderNames : null,
         variableSymbol,
         expiresInterval,
+        input.entrySlotId ?? null,
       ],
     );
     const orderId = orderRes.rows[0]!.id;
