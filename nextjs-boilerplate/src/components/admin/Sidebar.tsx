@@ -22,6 +22,7 @@ import {
   TrendingUp,
   Megaphone,
   AlertOctagon,
+  Bell,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -90,6 +91,7 @@ const sections: NavSection[] = [
     label: 'Audit',
     items: [
       { href: '/admin/audit-log', label: 'Audit log', icon: FileSearch },
+      { href: '/admin/notifications', label: 'Notifikace', icon: Bell },
     ],
   },
 ];

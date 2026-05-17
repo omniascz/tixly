@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bell, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Settings, LogOut, ChevronDown } from 'lucide-react';
+import { NotificationsBell } from './NotificationsBell';
 
 interface TopbarProps {
   title: string;
@@ -69,13 +70,7 @@ export function Topbar({ title, subtitle }: TopbarProps) {
         {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
       </div>
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          aria-label="Notifikace"
-          className="relative rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground"
-        >
-          <Bell className="h-4 w-4" />
-        </button>
+        <NotificationsBell />
 
         <div ref={ref} className="relative">
           <button

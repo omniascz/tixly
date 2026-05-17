@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { timingSafeEqual } from 'crypto';
 import { getEffectiveHoldback, computeHoldbackAmount, computeReleaseDate } from '@/lib/payouts/holdback';
+import { notifyPromoter } from '@/lib/notifications/promoter-notify';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -52,6 +53,12 @@ export async function POST(req: NextRequest): Promise<Response> {
   const client = await db().connect();
   let createdCount = 0;
   let totalNetByCurrency: Record<string, number> = {};
+  const pendingNotifications: Array<{
+    promoterId: string;
+    netPayout: number;
+    currency: string;
+    holdback: number;
+  }> = [];
 
   try {
     await client.query('BEGIN');
@@ -165,6 +172,14 @@ export async function POST(req: NextRequest): Promise<Response> {
            AND created_at >= $2 AND created_at < $3`,
         [row.promoter_id, periodStart.toISOString(), periodEnd.toISOString()],
       );
+
+      // Notification do promoter inboxu (mimo transakci — best effort)
+      pendingNotifications.push({
+        promoterId: row.promoter_id,
+        netPayout,
+        currency: row.currency,
+        holdback: holdbackHalire,
+      });
     }
 
     await client.query('COMMIT');
@@ -177,6 +192,30 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   } finally {
     client.release();
+  }
+
+  // Notifikace promotérů po committed payouts — best effort, mimo transakci.
+  for (const n of pendingNotifications) {
+    try {
+      const formatted = (n.netPayout / 100).toLocaleString('cs-CZ', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+      await notifyPromoter({
+        promoterId: n.promoterId,
+        kind: 'payout_settled',
+        severity: 'info',
+        title: `Týdenní výplata: ${formatted} ${n.currency}`,
+        body:
+          n.holdback > 0
+            ? `Zádrženo ${(n.holdback / 100).toFixed(2)} ${n.currency} jako rolling reserve (tier-based holdback).`
+            : 'Bez holdbacku — full payout.',
+        link: '/admin/payouts',
+        payload: { netPayout: n.netPayout, currency: n.currency, holdback: n.holdback },
+      });
+    } catch (err) {
+      console.error('[payouts notify failed]', err);
+    }
   }
 
   return NextResponse.json({

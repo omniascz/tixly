@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { z } from 'zod';
+import { notifyPromoter } from '@/lib/notifications/promoter-notify';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -106,6 +107,21 @@ export async function POST(req: NextRequest): Promise<Response> {
       input.ticketIds ?? null,
     ],
   );
+
+  // Notify promoter — best effort, nelogovat refund queue insert na chybě notif.
+  try {
+    await notifyPromoter({
+      promoterId: order.promoter_id,
+      kind: 'refund_request',
+      severity: 'warn',
+      title: 'Nová žádost o vrácení peněz',
+      body: input.reason.slice(0, 200),
+      link: '/admin/refund-requests',
+      payload: { requestId: ins.rows[0]!.id, orderId: input.orderId },
+    });
+  } catch {
+    // ignore
+  }
 
   return NextResponse.json({ ok: true, requestId: ins.rows[0]!.id }, { status: 201 });
 }
