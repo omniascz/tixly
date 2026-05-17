@@ -171,11 +171,135 @@ export default async function StatusPage() {
         </table>
       </div>
 
+      <ProviderHealthSection />
+
+      <IncidentsSection />
+
       <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
         <p>
           <strong>Pro automatizovaný monitoring:</strong>{' '}
-          <code>GET /api/health/ready</code> vrací 200 nebo 503.
+          <code>GET /api/health/ready</code> vrací 200 nebo 503.{' '}
+          <code>GET /api/health/providers</code> ukazuje stav 3rd-party providerů.
         </p>
+      </div>
+    </div>
+  );
+}
+
+interface ProviderInfo {
+  name: string;
+  category: string;
+  configured: boolean;
+  notes?: string;
+}
+
+async function fetchProviders(): Promise<{ launchReady: boolean; providers: ProviderInfo[] } | null> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+  try {
+    const res = await fetch(`${baseUrl}/api/health/providers`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+async function ProviderHealthSection() {
+  const data = await fetchProviders();
+  if (!data) return null;
+
+  // Group by category, hide stripe-parked & monitoring (not core)
+  const visible = data.providers.filter(
+    (p) => p.name !== 'Stripe (parked)' && p.category !== 'monitoring',
+  );
+  const configured = visible.filter((p) => p.configured).length;
+
+  return (
+    <div className="rounded-lg border bg-card">
+      <div className="flex items-center justify-between border-b px-4 py-3">
+        <h2 className="text-sm font-semibold uppercase text-muted-foreground">
+          3rd party providers
+        </h2>
+        <span className="text-xs text-muted-foreground">
+          {configured} / {visible.length} aktivní
+        </span>
+      </div>
+      <ul className="divide-y">
+        {visible.map((p) => (
+          <li key={p.name} className="flex items-center justify-between px-4 py-2 text-sm">
+            <div>
+              <div className="font-medium">{p.name}</div>
+              <div className="text-xs text-muted-foreground">{p.notes}</div>
+            </div>
+            <span
+              className={
+                p.configured
+                  ? 'rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800'
+                  : 'rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700'
+              }
+            >
+              {p.configured ? 'aktivní' : 'nenakonfigurováno'}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+interface Incident {
+  id: string;
+  title: string;
+  status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
+  started_at: string;
+  resolved_at: string | null;
+  description: string | null;
+}
+
+async function fetchIncidents(): Promise<Incident[]> {
+  // Pro produkci: stáhnout z `platform.incidents` (table TBD).
+  // Zatím vrátíme prázdné pole — žádné incidenty publikované.
+  return [];
+}
+
+async function IncidentsSection() {
+  const incidents = await fetchIncidents();
+
+  return (
+    <div className="rounded-lg border bg-card">
+      <div className="border-b px-4 py-3">
+        <h2 className="text-sm font-semibold uppercase text-muted-foreground">
+          Posledních 14 dní
+        </h2>
+      </div>
+      <div className="px-4 py-6 text-center">
+        {incidents.length === 0 ? (
+          <p className="text-sm text-emerald-700">
+            ✓ Žádné publikované incidenty za posledních 14 dní.
+          </p>
+        ) : (
+          <ul className="space-y-3 text-left text-sm">
+            {incidents.map((inc) => (
+              <li key={inc.id} className="rounded border p-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{inc.title}</span>
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs">
+                    {inc.status}
+                  </span>
+                </div>
+                {inc.description ? (
+                  <p className="mt-1 text-xs text-muted-foreground">{inc.description}</p>
+                ) : null}
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {new Date(inc.started_at).toLocaleString('cs-CZ')}
+                  {inc.resolved_at
+                    ? ` → vyřešeno ${new Date(inc.resolved_at).toLocaleString('cs-CZ')}`
+                    : ''}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
