@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface PromoterDetail {
   id: string;
@@ -28,8 +29,21 @@ interface PromoterDetail {
   kyc_rejection_reason: string | null;
   ares_verified_at: string | null;
   ares_data: Record<string, unknown> | null;
+  country: 'CZ' | 'SR';
+  primary_currency: 'CZK' | 'EUR';
+  tier: 1 | 2 | 3 | 4;
+  tier_locked: boolean;
+  chargeback_holdback_pct: number | null;
+  chargeback_holdback_days: number | null;
   created_at: string;
   updated_at: string;
+}
+
+interface FeeSchedule {
+  percentage_fee: number;
+  buyer_fee_halire: number;
+  currency: string;
+  override_reason: string | null;
 }
 
 interface Member {
@@ -60,6 +74,7 @@ interface Response {
   members: Member[];
   recentEvents: EventRow[];
   documents: PromoterDocument[];
+  feeSchedules: FeeSchedule[];
 }
 
 export default function PromoterDetailPage({
@@ -166,6 +181,13 @@ export default function PromoterDetailPage({
       {error && (
         <div className="rounded-md border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900">{error}</div>
       )}
+
+      <CzSkSettingsCard
+        promoter={p}
+        activeFee={data.feeSchedules[0] ?? null}
+        onUpdated={() => void load()}
+      />
+
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
@@ -378,6 +400,223 @@ export default function PromoterDetailPage({
         </Card>
       )}
     </div>
+  );
+}
+
+function CzSkSettingsCard({
+  promoter,
+  activeFee,
+  onUpdated,
+}: {
+  promoter: PromoterDetail;
+  activeFee: FeeSchedule | null;
+  onUpdated: () => void;
+}) {
+  const [country, setCountry] = useState<'CZ' | 'SR'>(promoter.country);
+  const [currency, setCurrency] = useState<'CZK' | 'EUR'>(promoter.primary_currency);
+  const [tier, setTier] = useState<number>(promoter.tier);
+  const [holdbackPct, setHoldbackPct] = useState<string>(
+    promoter.chargeback_holdback_pct?.toString() ?? '',
+  );
+  const [holdbackDays, setHoldbackDays] = useState<string>(
+    promoter.chargeback_holdback_days?.toString() ?? '',
+  );
+  const [feePct, setFeePct] = useState<string>(
+    activeFee ? (activeFee.percentage_fee / 100).toString() : '',
+  );
+  const [buyerFee, setBuyerFee] = useState<string>(
+    activeFee ? (activeFee.buyer_fee_halire / 100).toString() : '',
+  );
+  const [reason, setReason] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  async function save() {
+    setSaving(true);
+    setFeedback(null);
+    try {
+      const body: Record<string, unknown> = {
+        country,
+        primaryCurrency: currency,
+        tier,
+        chargebackHoldbackPct: holdbackPct === '' ? null : Number(holdbackPct),
+        chargebackHoldbackDays: holdbackDays === '' ? null : Number(holdbackDays),
+      };
+      if (feePct !== '' && buyerFee !== '') {
+        body.feePctBps = Math.round(Number(feePct) * 100);
+        body.buyerFeeHalire = Math.round(Number(buyerFee) * 100);
+        body.feeCurrency = currency;
+        body.feeOverrideReason = reason || undefined;
+      }
+      const res = await fetch(`/api/platform/promoters/${promoter.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        setFeedback(`Chyba: ${j.error ?? res.status}`);
+        return;
+      }
+      setFeedback('Uloženo.');
+      onUpdated();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const tierDefault: Record<number, { pct: number; days: number }> = {
+    1: { pct: 5, days: 90 },
+    2: { pct: 3, days: 60 },
+    3: { pct: 0, days: 0 },
+    4: { pct: 0, days: 0 },
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>CZ/SK launch — tržiště + sazby</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+              Země (určuje DPH sazby)
+            </label>
+            <select
+              value={country}
+              onChange={(e) => setCountry(e.target.value as 'CZ' | 'SR')}
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+            >
+              <option value="CZ">🇨🇿 Česká republika</option>
+              <option value="SR">🇸🇰 Slovenská republika</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+              Primární měna
+            </label>
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value as 'CZK' | 'EUR')}
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+            >
+              <option value="CZK">CZK (koruna)</option>
+              <option value="EUR">EUR</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+              Tier (1-4)
+            </label>
+            <select
+              value={tier}
+              onChange={(e) => setTier(Number(e.target.value))}
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+            >
+              <option value={1}>1 — Nový (manual approve)</option>
+              <option value={2}>2 — Ověřený (auto)</option>
+              <option value={3}>3 — Premium (nižší fee)</option>
+              <option value={4}>4 — Enterprise (custom)</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+              Holdback % (bps, prázdné = tier default)
+            </label>
+            <Input
+              type="number"
+              min={0}
+              max={2000}
+              value={holdbackPct}
+              placeholder={`tier ${tier}: ${tierDefault[tier]?.pct ?? 5}%`}
+              onChange={(e) => setHoldbackPct(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+              Holdback dní (prázdné = tier default)
+            </label>
+            <Input
+              type="number"
+              min={0}
+              max={365}
+              value={holdbackDays}
+              placeholder={`tier ${tier}: ${tierDefault[tier]?.days ?? 90}d`}
+              onChange={(e) => setHoldbackDays(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="rounded-md border bg-muted/30 p-3">
+          <h4 className="mb-2 text-sm font-semibold">Provize (fee override)</h4>
+          <p className="mb-3 text-xs text-muted-foreground">
+            Vytvoří nový aktivní fee_schedule. Stávající aktivní (pro {currency}) bude deaktivován.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+                % z prodeje
+              </label>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                step={0.1}
+                value={feePct}
+                placeholder="např. 5"
+                onChange={(e) => setFeePct(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+                Buyer fee ({currency === 'EUR' ? '€' : 'Kč'} per objednávka)
+              </label>
+              <Input
+                type="number"
+                min={0}
+                step={0.1}
+                value={buyerFee}
+                placeholder="např. 10"
+                onChange={(e) => setBuyerFee(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+                Důvod (audit)
+              </label>
+              <Input
+                value={reason}
+                placeholder="např. kulturní dům, charita, objem >1M"
+                onChange={(e) => setReason(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {activeFee ? (
+          <p className="text-xs text-muted-foreground">
+            Aktuální aktivní fee: {(activeFee.percentage_fee / 100).toFixed(1)} % +{' '}
+            {(activeFee.buyer_fee_halire / 100).toFixed(2)} {activeFee.currency}/obj.
+            {activeFee.override_reason ? ` · ${activeFee.override_reason}` : ''}
+          </p>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Žádný aktivní fee_schedule. Bude použit platform default 5 %.
+          </p>
+        )}
+
+        <div className="flex items-center justify-between">
+          <Button onClick={save} disabled={saving}>
+            {saving ? 'Ukládám…' : 'Uložit změny'}
+          </Button>
+          {feedback ? <span className="text-sm text-emerald-700">{feedback}</span> : null}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
