@@ -33,7 +33,7 @@ export default function EmbedAdminPage({
     <div className="space-y-6 p-6">
       <PageHeader
         title="Embed widget"
-        description="Vlož prodejní widget na svůj web. Po kliknutí na „Koupit" se kupec přesměruje na Tixly checkout."
+        description={'Vlož prodejní widget na svůj web. Po kliknutí na „Koupit" se kupec přesměruje na Tixly checkout.'}
       />
 
       <Card>

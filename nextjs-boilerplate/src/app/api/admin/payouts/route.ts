@@ -70,22 +70,54 @@ export async function GET(req: NextRequest): Promise<Response> {
   }
 
   // 2) Ad-hoc bucket z paid orders (12 týdnů zpět). Demo režim.
-  const buckets = await db().query<BucketRow & { chargebacks: string }>(
+  // Holdback policy per promotér (tier + override z migrace 265)
+  const { getEffectiveHoldback, computeHoldbackAmount } = await import(
+    '@/lib/payouts/holdback'
+  );
+  const promoterRes = await db().query<{
+    tier: number;
+    chargeback_holdback_pct: number | null;
+    chargeback_holdback_days: number | null;
+  }>(
+    `SELECT tier, chargeback_holdback_pct, chargeback_holdback_days
+     FROM platform.promoters WHERE id = $1`,
+    [promoter.promoterId],
+  );
+  const tier = promoterRes.rows[0]?.tier ?? 1;
+  const holdbackPolicy = getEffectiveHoldback(
+    tier,
+    promoterRes.rows[0]?.chargeback_holdback_pct ?? null,
+    promoterRes.rows[0]?.chargeback_holdback_days ?? null,
+  );
+
+  // Per-currency buckets — CZ promotér může mít CZK akce, SK promotér EUR,
+  // hybrid promotér oboje. Settlement musí být oddělený per měna.
+  const buckets = await db().query<BucketRow & { chargebacks: string; currency: string }>(
     `WITH weeks AS (
        SELECT generate_series(
          DATE_TRUNC('week', NOW() - INTERVAL '12 weeks'),
          DATE_TRUNC('week', NOW()),
          '1 week'
        ) AS week_start
+     ),
+     currencies AS (
+       SELECT DISTINCT COALESCE(o.currency, 'CZK') AS currency
+       FROM orders.orders o
+       JOIN catalog.events e ON e.id = o.event_id
+       WHERE e.promoter_id = $1
+       UNION SELECT 'CZK'  -- vždy zahrň CZK aby se zobrazilo i bez orders
      )
      SELECT
        w.week_start AS period_start,
        (w.week_start + INTERVAL '7 days') AS period_end,
-       COALESCE(SUM(o.total_amount) FILTER (WHERE o.status = 'paid'), 0)::text AS gross,
-       COALESCE(SUM(o.total_amount) FILTER (WHERE o.status = 'refunded'), 0)::text AS refunds,
+       c.currency,
+       COALESCE(SUM(o.total_amount) FILTER (WHERE o.status = 'paid' AND o.currency = c.currency), 0)::text AS gross,
+       COALESCE(SUM(o.total_amount) FILTER (WHERE o.status = 'refunded' AND o.currency = c.currency), 0)::text AS refunds,
        COALESCE(
          (SELECT SUM(cb.amount_halire) FROM orders.chargebacks cb
+          JOIN orders.orders co ON co.id = cb.order_id
           WHERE cb.promoter_id = $1
+            AND co.currency = c.currency
             AND cb.holdback_applied = FALSE
             AND cb.status IN ('needs_response', 'under_review', 'lost')
             AND cb.created_at >= w.week_start
@@ -93,12 +125,14 @@ export async function GET(req: NextRequest): Promise<Response> {
          0
        )::text AS chargebacks
      FROM weeks w
+     CROSS JOIN currencies c
      LEFT JOIN catalog.events e ON e.promoter_id = $1
      LEFT JOIN orders.orders o ON o.event_id = e.id
        AND o.created_at >= w.week_start
        AND o.created_at < w.week_start + INTERVAL '7 days'
-     GROUP BY w.week_start
-     ORDER BY w.week_start DESC`,
+       AND o.currency = c.currency
+     GROUP BY w.week_start, c.currency
+     ORDER BY w.week_start DESC, c.currency ASC`,
     [promoter.promoterId],
   );
 
@@ -106,6 +140,11 @@ export async function GET(req: NextRequest): Promise<Response> {
   return NextResponse.json({
     source: 'computed',
     feePercent: PLATFORM_FEE_BPS / 100,
+    holdback: {
+      pctBps: holdbackPolicy.pctBps,
+      retentionDays: holdbackPolicy.retentionDays,
+      tier,
+    },
     payouts: buckets.rows
       .filter((b) => Number(b.gross) > 0 || Number(b.refunds) > 0 || Number(b.chargebacks) > 0)
       .map((b) => {
@@ -113,16 +152,20 @@ export async function GET(req: NextRequest): Promise<Response> {
         const refunds = Number(b.refunds);
         const chargebacks = Number(b.chargebacks);
         const fees = Math.floor((gross * PLATFORM_FEE_BPS) / 10000);
-        const net = gross - refunds - chargebacks - fees;
+        const grossNetOfRefunds = Math.max(0, gross - refunds);
+        const holdbackHalire = computeHoldbackAmount(grossNetOfRefunds, holdbackPolicy);
+        const net = Math.max(0, gross - refunds - chargebacks - fees - holdbackHalire);
         const periodEnd = new Date(b.period_end);
         return {
-          id: `mock-${b.period_start}`,
+          id: `mock-${b.currency}-${b.period_start}`,
           periodStart: b.period_start,
           periodEnd: b.period_end,
+          currency: b.currency,
           grossHalire: gross,
           feesHalire: fees,
           refundsHalire: refunds,
           chargebacksHalire: chargebacks,
+          holdbackHalire,
           netHalire: net,
           status: periodEnd < now ? 'pending' : 'in_progress',
           paidAt: null,

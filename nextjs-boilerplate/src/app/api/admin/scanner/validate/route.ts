@@ -42,7 +42,9 @@ interface TicketRow {
   ticket_type_name: string;
   event_id: string;
   event_title: string;
+  event_date_start: string | null;
   event_promoter_id: string;
+  event_qr_policy: string;
   buyer_email: string;
   buyer_name: string | null;
 }
@@ -78,7 +80,9 @@ export async function POST(req: NextRequest): Promise<Response> {
               tt.name AS ticket_type_name,
               e.id AS event_id,
               e.title AS event_title,
+              e.date_start AS event_date_start,
               e.promoter_id AS event_promoter_id,
+              e.qr_policy AS event_qr_policy,
               u.email AS buyer_email,
               u.name AS buyer_name
        FROM tickets.tickets t
@@ -108,8 +112,37 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
 
+    // QR policy enforcement (migrace 265):
+    //   static_allowed  → TOTP volitelný (offline/static QR funguje vždy)
+    //   rotating_24h    → TOTP volitelný DO 24h před akcí, pak POVINNÝ
+    //   rotating_only   → TOTP POVINNÝ vždy (jen mobile QR)
+    //   photo_required  → TOTP POVINNÝ + foto check ručně u brány
+    const qrPolicy = t.event_qr_policy ?? 'static_allowed';
+    let totpRequired = qrPolicy === 'rotating_only' || qrPolicy === 'photo_required';
+    if (qrPolicy === 'rotating_24h' && t.event_date_start) {
+      const eventTimeMs = new Date(t.event_date_start).getTime();
+      const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+      if (eventTimeMs - Date.now() <= twentyFourHoursMs) {
+        totpRequired = true;
+      }
+    }
+
+    if (totpRequired && !parsed.data.totpCode) {
+      await client.query('ROLLBACK');
+      const msg =
+        qrPolicy === 'photo_required'
+          ? 'Tento lístek vyžaduje rotující QR + fotokontrolu u brány. Použij mobilní vstupenku.'
+          : qrPolicy === 'rotating_24h'
+            ? 'Tato akce vyžaduje rotující QR od 24h před začátkem. PDF nestačí, použij mobilní vstupenku.'
+            : 'Tato akce vyžaduje rotující QR. Použij mobilní vstupenku, ne PDF.';
+      return NextResponse.json(
+        { result: 'totp_required', qrPolicy, message: msg },
+        { status: 401 },
+      );
+    }
+
     // Pokud byl předán TOTP, ověříme ho. Bez kódu povolujeme jen ID-based scan
-    // (offline mode v reálném scanneru může spoléhat na neefemerní QR).
+    // (offline mode v reálném scanneru může spoléhat na neefemerní QR pro static_allowed).
     if (parsed.data.totpCode) {
       const secretB64 = decryptSecret(t.totp_secret_encrypted.toString('base64'));
       const secretRaw = Buffer.from(secretB64, 'base64');

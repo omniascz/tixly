@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,29 @@ const VARS = {
   daily_stats: ['{{revenue}}', '{{ordersCount}}', '{{tickets}}', '{{date}}'],
 };
 
+const SNIPPETS = [
+  {
+    label: 'CTA tlačítko',
+    title: 'Brandované tlačítko s odkazem',
+    html: '<a href="https://example.com" style="display:inline-block;padding:12px 24px;background:#10b981;color:#fff;text-decoration:none;border-radius:6px;font-weight:600">Otevřít vstupenku</a>',
+  },
+  {
+    label: 'Info box',
+    title: 'Šedý box s upozorněním',
+    html: '<div style="margin:16px 0;padding:12px;background:#f3f4f6;border-left:4px solid #6b7280;color:#374151;font-size:14px"><strong>Info:</strong> Vyplň text…</div>',
+  },
+  {
+    label: 'Detail řádek',
+    title: 'Řádek "Štítek: hodnota"',
+    html: '<p style="margin:4px 0"><strong>Štítek:</strong> hodnota</p>',
+  },
+  {
+    label: 'Footer',
+    title: 'Standardní patička',
+    html: '<hr style="margin:24px 0;border:0;border-top:1px solid #e5e7eb"><p style="color:#6b7280;font-size:12px;text-align:center">Tento e-mail je transakční. Pokud máš dotaz, odpověz na něj.</p>',
+  },
+];
+
 export default function EmailTemplatesPage() {
   const [list, setList] = useState<Template[]>([]);
   const [editing, setEditing] = useState<Template | null>(null);
@@ -35,6 +58,47 @@ export default function EmailTemplatesPage() {
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewSubject, setPreviewSubject] = useState<string>('');
   const [testEmail, setTestEmail] = useState('');
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+
+  function insertAtCursor(text: string): void {
+    if (!editing) return;
+    const ta = bodyRef.current;
+    if (!ta) {
+      setEditing({ ...editing, bodyHtml: editing.bodyHtml + text });
+      return;
+    }
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const before = editing.bodyHtml.slice(0, start);
+    const after = editing.bodyHtml.slice(end);
+    const newBody = before + text + after;
+    setEditing({ ...editing, bodyHtml: newBody });
+    requestAnimationFrame(() => {
+      ta.focus();
+      const pos = start + text.length;
+      ta.setSelectionRange(pos, pos);
+    });
+  }
+
+  function wrapSelection(prefix: string, suffix: string, fallback?: string): void {
+    if (!editing) return;
+    const ta = bodyRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const selected = editing.bodyHtml.slice(start, end);
+    const content = selected || fallback || '';
+    const before = editing.bodyHtml.slice(0, start);
+    const after = editing.bodyHtml.slice(end);
+    const newBody = before + prefix + content + suffix + after;
+    setEditing({ ...editing, bodyHtml: newBody });
+    requestAnimationFrame(() => {
+      ta.focus();
+      const newStart = start + prefix.length;
+      const newEnd = newStart + content.length;
+      ta.setSelectionRange(newStart, newEnd);
+    });
+  }
 
   async function preview(sendTo?: string) {
     if (!editing) return;
@@ -168,13 +232,116 @@ export default function EmailTemplatesPage() {
                     <label className="mb-1 block text-xs font-medium">
                       Body (HTML)
                     </label>
+
+                    {/* Toolbar — quick-insert proměnných */}
+                    <div className="mb-2 flex flex-wrap items-center gap-1 rounded-md border bg-muted/40 p-1">
+                      <span className="px-1 text-[11px] uppercase text-muted-foreground">
+                        Vlož:
+                      </span>
+                      {VARS[t.type].map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => insertAtCursor(v)}
+                          className="rounded bg-background px-2 py-0.5 font-mono text-[11px] hover:bg-emerald-100"
+                          title={`Vlož ${v} na pozici kurzoru`}
+                        >
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Toolbar — formátovací tlačítka */}
+                    <div className="mb-2 flex flex-wrap items-center gap-1 rounded-md border bg-muted/40 p-1">
+                      <span className="px-1 text-[11px] uppercase text-muted-foreground">
+                        Formát:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => wrapSelection('<strong>', '</strong>', 'tučný text')}
+                        className="rounded bg-background px-2 py-0.5 text-xs font-bold hover:bg-emerald-100"
+                        title="Tučný (Ctrl+B)"
+                      >
+                        B
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => wrapSelection('<em>', '</em>', 'kurzíva')}
+                        className="rounded bg-background px-2 py-0.5 text-xs italic hover:bg-emerald-100"
+                        title="Kurzíva"
+                      >
+                        I
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => wrapSelection('<h2 style="margin:16px 0 8px;font-size:18px;color:#111">', '</h2>', 'Nadpis')}
+                        className="rounded bg-background px-2 py-0.5 text-xs font-semibold hover:bg-emerald-100"
+                        title="Nadpis úrovně 2"
+                      >
+                        H2
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => wrapSelection('<a href="https://example.com" style="color:#10b981">', '</a>', 'odkaz')}
+                        className="rounded bg-background px-2 py-0.5 text-xs underline hover:bg-emerald-100"
+                        title="Odkaz"
+                      >
+                        🔗
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertAtCursor('<p style="margin:8px 0">Odstavec textu.</p>\n')}
+                        className="rounded bg-background px-2 py-0.5 text-xs hover:bg-emerald-100"
+                        title="Vlož odstavec"
+                      >
+                        ¶
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertAtCursor('<br>\n')}
+                        className="rounded bg-background px-2 py-0.5 text-xs hover:bg-emerald-100"
+                        title="Odřádkování"
+                      >
+                        ↵
+                      </button>
+                    </div>
+
+                    {/* Toolbar — bloky / snippets */}
+                    <div className="mb-2 flex flex-wrap items-center gap-1 rounded-md border bg-muted/40 p-1">
+                      <span className="px-1 text-[11px] uppercase text-muted-foreground">
+                        Bloky:
+                      </span>
+                      {SNIPPETS.map((s) => (
+                        <button
+                          key={s.label}
+                          type="button"
+                          onClick={() => insertAtCursor('\n' + s.html + '\n')}
+                          className="rounded bg-background px-2 py-0.5 text-[11px] hover:bg-emerald-100"
+                          title={s.title}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+
                     <textarea
-                      className="flex min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs"
+                      ref={bodyRef}
+                      className="flex min-h-48 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs"
                       value={editing.bodyHtml}
                       onChange={(e) =>
                         setEditing({ ...editing, bodyHtml: e.target.value })
                       }
+                      onKeyDown={(e) => {
+                        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+                          e.preventDefault();
+                          wrapSelection('<strong>', '</strong>', 'tučný text');
+                        }
+                      }}
                     />
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      Tip: označ text v editoru a klikni na formátovací tlačítko —
+                      wrapne selekci. Ctrl+B pro tučný.
+                    </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button onClick={save} disabled={loading}>

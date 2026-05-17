@@ -94,7 +94,6 @@ function parseCzDate(raw: string): string | undefined {
 
 export default function BankTransfersPage() {
   const [filename, setFilename] = useState('');
-  const [csvText, setCsvText] = useState('');
   const [lines, setLines] = useState<ParsedLine[]>([]);
   const [result, setResult] = useState<ReconcileResult | null>(null);
   const [busy, setBusy] = useState(false);
@@ -107,7 +106,6 @@ export default function BankTransfersPage() {
     const reader = new FileReader();
     reader.onload = () => {
       const text = String(reader.result ?? '');
-      setCsvText(text);
       setLines(parseCsv(text));
     };
     reader.readAsText(file, 'utf-8');

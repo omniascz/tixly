@@ -54,6 +54,12 @@ const editSchema = z.object({
   queueMaxConcurrent: z.number().int().min(1).max(100_000).optional(),
   insuranceEnabled: z.boolean().optional(),
   insurancePct: z.number().int().min(0).max(50).optional(),
+  // CZ/SK launch — per-event refund + QR + DPH policy (migrace 265)
+  refundDeadlineDays: z.number().int().min(0).max(90).nullable().optional(),
+  refundFeePct: z.number().int().min(0).max(10000).nullable().optional(),
+  refundFeeMinHalire: z.number().int().min(0).max(100_000).nullable().optional(),
+  qrPolicy: z.enum(['static_allowed', 'rotating_24h', 'rotating_only', 'photo_required']).optional(),
+  vatCategory: z.enum(['standard', 'cultural', 'food_beverage', 'merchandise', 'reduced']).optional(),
 });
 
 export async function GET(
@@ -66,9 +72,19 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }
 
-  const r = await db().query<EventDetailRow>(
+  const r = await db().query<
+    EventDetailRow & {
+      refund_deadline_days: number | null;
+      refund_fee_pct: number | null;
+      refund_fee_min_halire: number | null;
+      qr_policy: string;
+      vat_category: string;
+    }
+  >(
     `SELECT id, title, description, date_start, status, min_age, promoter_id, venue_id,
-            currency, queue_enabled, queue_max_concurrent, insurance_enabled, insurance_pct
+            currency, queue_enabled, queue_max_concurrent, insurance_enabled, insurance_pct,
+            refund_deadline_days, refund_fee_pct, refund_fee_min_halire,
+            qr_policy, vat_category
      FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
     [params.id, promoter.promoterId],
   );
@@ -88,6 +104,11 @@ export async function GET(
     queueMaxConcurrent: e.queue_max_concurrent,
     insuranceEnabled: e.insurance_enabled,
     insurancePct: e.insurance_pct,
+    refundDeadlineDays: e.refund_deadline_days,
+    refundFeePct: e.refund_fee_pct,
+    refundFeeMinHalire: e.refund_fee_min_halire,
+    qrPolicy: e.qr_policy,
+    vatCategory: e.vat_category,
   });
 }
 
@@ -183,6 +204,11 @@ export async function PATCH(
            queue_max_concurrent = COALESCE($8, queue_max_concurrent),
            insurance_enabled = COALESCE($9, insurance_enabled),
            insurance_pct = COALESCE($10, insurance_pct),
+           refund_deadline_days = COALESCE($11, refund_deadline_days),
+           refund_fee_pct = COALESCE($12, refund_fee_pct),
+           refund_fee_min_halire = COALESCE($13, refund_fee_min_halire),
+           qr_policy = COALESCE($14, qr_policy),
+           vat_category = COALESCE($15, vat_category),
            updated_at = NOW()
        WHERE id = $6`,
       [
@@ -191,6 +217,11 @@ export async function PATCH(
         input.queueMaxConcurrent ?? null,
         input.insuranceEnabled ?? null,
         input.insurancePct ?? null,
+        input.refundDeadlineDays ?? null,
+        input.refundFeePct ?? null,
+        input.refundFeeMinHalire ?? null,
+        input.qrPolicy ?? null,
+        input.vatCategory ?? null,
       ],
     );
 

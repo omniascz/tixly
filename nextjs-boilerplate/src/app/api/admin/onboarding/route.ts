@@ -37,7 +37,10 @@ export async function GET(req: NextRequest): Promise<Response> {
   const r = await db().query<{
     kyc_status: string;
     bank_account: string | null;
+    country: string;
+    primary_currency: string;
     has_branding: boolean;
+    has_fee_schedule: boolean;
     published_events: string;
     team_size: string;
     paid_orders: string;
@@ -45,8 +48,12 @@ export async function GET(req: NextRequest): Promise<Response> {
     `SELECT
        p.kyc_status,
        p.bank_account,
+       p.country,
+       p.primary_currency,
        (EXISTS (SELECT 1 FROM platform.promoter_branding WHERE promoter_id = p.id
          AND (logo_url IS NOT NULL OR primary_color IS NOT NULL))) AS has_branding,
+       (EXISTS (SELECT 1 FROM platform.fee_schedules WHERE promoter_id = p.id
+         AND is_active = TRUE)) AS has_fee_schedule,
        (SELECT COUNT(*)::text FROM catalog.events WHERE promoter_id = p.id AND status = 'published') AS published_events,
        (SELECT COUNT(*)::text FROM platform.promoter_members WHERE promoter_id = p.id) AS team_size,
        (SELECT COUNT(*)::text FROM orders.orders o
@@ -69,10 +76,18 @@ export async function GET(req: NextRequest): Promise<Response> {
       required: true,
     },
     {
+      id: 'market_setup',
+      label: 'Nastav trh a měnu',
+      description: `Země: ${d.country === 'SR' ? '🇸🇰 Slovensko' : '🇨🇿 Česko'}, měna: ${d.primary_currency}`,
+      completed: !!d.country && !!d.primary_currency,
+      href: '/admin/settings/kyc',
+      required: true,
+    },
+    {
       id: 'kyc_approved',
       label: 'Čekej na schválení účtu',
-      description: 'Master admin ověří údaje (typicky do 24h)',
-      completed: d.kyc_status === 'approved',
+      description: 'Master admin ověří údaje (typicky do 24h) a nastaví provize',
+      completed: d.kyc_status === 'approved' && d.has_fee_schedule,
       href: '/admin/settings/kyc',
       required: true,
     },

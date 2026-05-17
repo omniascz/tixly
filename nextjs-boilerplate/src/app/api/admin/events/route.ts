@@ -191,6 +191,16 @@ const createSchema = z.object({
   minAge: z.number().int().min(0).max(99).nullable().optional(),
   resaleAllowed: z.boolean().default(true),
 
+  // CZ/SK launch — volitelné per-event overrides (jinak default z promotér country)
+  refundDeadlineDays: z.number().int().min(0).max(90).nullable().optional(),
+  refundFeePct: z.number().int().min(0).max(10000).nullable().optional(),
+  qrPolicy: z
+    .enum(['static_allowed', 'rotating_24h', 'rotating_only', 'photo_required'])
+    .optional(),
+  vatCategory: z
+    .enum(['standard', 'cultural', 'food_beverage', 'merchandise', 'reduced'])
+    .optional(),
+
   // Krok 6: Publikace (volitelné — promotér může uložit jako draft)
   publishImmediately: z.boolean().default(false),
 });
@@ -228,6 +238,32 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
   const input = parsed.data;
   const client = await db().connect();
+
+  // CZ/SK launch — fetch promoter country/currency pro default fields
+  const promoterDefaults = await db().query<{
+    country: string;
+    primary_currency: string;
+    tier: number;
+  }>(
+    `SELECT country, primary_currency, tier
+       FROM platform.promoters WHERE id = $1`,
+    [promoter.promoterId],
+  );
+  const pd = promoterDefaults.rows[0];
+  const promoterCountry = pd?.country ?? 'CZ';
+  const promoterTier = pd?.tier ?? 1;
+
+  // Resolve event-level defaults (per-event override > promoter country default)
+  const effectiveCurrency =
+    input.currency === 'CZK' && promoterCountry === 'SR' && pd?.primary_currency === 'EUR'
+      ? 'EUR'
+      : input.currency;
+  const effectiveQrPolicy = input.qrPolicy ?? 'static_allowed';
+  const effectiveVatCategory = input.vatCategory ?? 'cultural';
+  // Refund deadline: tier 1 promotéři dostávají kratší default (7 dní), tier 2+ standardní
+  const defaultRefundDeadline = promoterTier >= 2 ? 7 : 7;
+  const effectiveRefundDeadline = input.refundDeadlineDays ?? defaultRefundDeadline;
+  const effectiveRefundFeePct = input.refundFeePct ?? 500; // 5 %
 
   try {
     await client.query('BEGIN');
@@ -310,12 +346,16 @@ export async function POST(req: NextRequest): Promise<Response> {
          date_start, date_end, sale_start_at, sale_end_at,
          status, min_age, max_tickets_per_order,
          resale_allowed, cover_image_url,
-         currency, timezone, created_at, updated_at
+         currency, timezone,
+         refund_deadline_days, refund_fee_pct, qr_policy, vat_category,
+         created_at, updated_at
        ) VALUES (
          $1, $1, $2, $3, $4, $5, $6, $7,
          $8, $9, $10, $11,
          $12, $13, $14, $15, $16,
-         $17, 'Europe/Prague', NOW(), NOW()
+         $17, 'Europe/Prague',
+         $18, $19, $20, $21,
+         NOW(), NOW()
        )
        RETURNING id`,
       [
@@ -335,7 +375,11 @@ export async function POST(req: NextRequest): Promise<Response> {
         input.maxTicketsPerOrder ?? null,
         input.resaleAllowed,
         input.coverImageUrl ?? null,
-        input.currency,
+        effectiveCurrency,
+        effectiveRefundDeadline,
+        effectiveRefundFeePct,
+        effectiveQrPolicy,
+        effectiveVatCategory,
       ],
     );
     const eventId = eventRes.rows[0]!.id;
