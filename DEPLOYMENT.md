@@ -92,12 +92,30 @@ APP_URL=https://your-domain.com
 NODE_ENV=production
 ```
 
-### Pro reálné platby (Stripe — vlož po Fázi 4)
+### Pro reálné platby (GoPay nebo ComGate — vlož po Fázi 4)
+
+**Volba primárního provideru:**
 ```env
-STRIPE_SECRET_KEY=sk_live_xxxxx
-STRIPE_PUBLISHABLE_KEY=pk_live_xxxxx
-STRIPE_WEBHOOK_SECRET=whsec_xxxxx
+PAYMENT_PROVIDER=gopay         # gopay | comgate
+PAYMENT_PROVIDER_EUR=comgate   # volitelné: jiný provider pro EUR akce (SK)
 ```
+
+**GoPay (CZ + SK):**
+```env
+GOPAY_GOID=8123456789
+GOPAY_CLIENT_ID=client-id-from-gopay
+GOPAY_CLIENT_SECRET=client-secret
+GOPAY_SANDBOX=false
+```
+
+**ComGate (CZ + SK, alternativa):**
+```env
+COMGATE_MERCHANT=CG-XXXXXX
+COMGATE_SECRET=your-secret
+COMGATE_TEST=false
+```
+
+> Stripe je v repu parked pro budoucí mezinárodní expanzi. Pro CZ/SK launch ho nepoužíváme.
 
 ### Pro reálné emaily (Resend — vlož po Fázi 5)
 ```env
@@ -134,24 +152,52 @@ SENTRY_DSN=https://xxx@sentry.io/xxx
 
 ---
 
-## Fáze 4 — Stripe setup (KYC 1-3 dny + 30 min konfigurace)
+## Fáze 4 — Platební brána (GoPay / ComGate, KYC 1-7 dní)
 
-1. **https://dashboard.stripe.com** → Sign up
-2. **Aktivace business account**:
-   - IČO, výpis z OR, bankovní účet (IBAN)
-   - Stripe KYC: 1-3 pracovní dny
-3. **API klíče** (po aktivaci): Dashboard → Developers → API keys
-   - `sk_live_xxx` + `pk_live_xxx` → Vercel env
-4. **Webhook**:
-   - Dashboard → Developers → Webhooks → **Add endpoint**
-   - URL: `https://your-domain.com/api/payments/stripe/webhook`
-   - Events:
-     - `checkout.session.completed`
-     - `charge.refunded`
-     - `charge.dispute.created`
-     - `charge.dispute.closed`
-   - Save → **zkopíruj signing secret** (`whsec_xxx`) → Vercel env `STRIPE_WEBHOOK_SECRET`
-5. **Re-deploy Vercel** (env změny vyžadují rebuild).
+Vyber podle nejlepších podmínek (provize, settlement, podpora). Tixly podporuje obě.
+
+### Varianta A — GoPay (standardní volba pro CZ ticketing)
+
+1. **https://account.gopay.cz** → Sign up Tixly s.r.o.
+2. **Aktivace eshop**:
+   - IČO + DIČ + bankovní účet IBAN (Fio CZK + Fio EUR pro SK akce)
+   - Dokumenty: výpis z OR, identifikace jednatele
+   - GoPay KYC: 1-3 dny
+3. **Získej credentials** (po aktivaci): GoPay portál → Účet → API klíče
+   - `GOID` (číselný)
+   - `Client ID` + `Client Secret`
+   - → vlož do Vercel env (`GOPAY_GOID`, `GOPAY_CLIENT_ID`, `GOPAY_CLIENT_SECRET`)
+4. **Webhook URL** v GoPay nastavení:
+   - `https://vstupenky.tixly.cz/api/payments/gopay/webhook`
+   - Žádné HMAC — GoPay ověřuje stav přes API
+5. **Test sandbox nejdřív**:
+   - `GOPAY_SANDBOX=true` + `https://gw.sandbox.gopay.com/api`
+   - Pro produkci: `GOPAY_SANDBOX=false`
+6. **Re-deploy Vercel** (env změny vyžadují rebuild)
+
+### Varianta B — ComGate (alternativní, často lepší pricing)
+
+1. **https://www.comgate.cz** → Žádost o registraci
+2. **Aktivace**:
+   - Stejné dokumenty (IČO, OR výpis, jednatel)
+   - ComGate KYC: 3-5 dní
+3. **Získej credentials**: ComGate Manager → API
+   - `Merchant ID` (CG-XXXXXX)
+   - `Secret` (long string)
+   - → Vercel env (`COMGATE_MERCHANT`, `COMGATE_SECRET`)
+4. **Webhook URL**:
+   - `https://vstupenky.tixly.cz/api/payments/comgate/webhook`
+   - ComGate posílá `secret` v body — verifikuje se serverem
+5. **Test mode**: `COMGATE_TEST=true` → ostrá: `false`
+
+### Multi-provider (CZ GoPay + SK ComGate)
+
+Pokud chceš různé brány per měna:
+```env
+PAYMENT_PROVIDER=gopay
+PAYMENT_PROVIDER_EUR=comgate
+```
+GoPay vyřídí CZK objednávky, ComGate EUR (SK) objednávky. Obě potřebují své credentials.
 
 ---
 
