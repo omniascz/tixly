@@ -134,6 +134,7 @@ export async function GET(): Promise<Response> {
     name: 'Tixly GraphQL API',
     version: '1.0',
     schema_sdl_url: '/api/graphql/schema',
+    docs_url: '/cs/api-docs',
     docs:
       'POST { query, variables? }. Read-only. Bez auth pro public endpoints. ' +
       'Examples: { event(id:"...") { title } }, { events(limit:10, city:"Praha") { nodes { title } } }, ' +

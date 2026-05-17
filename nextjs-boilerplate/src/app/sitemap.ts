@@ -25,6 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/contact', priority: 0.6, changeFrequency: 'monthly' as const },
     { path: '/loyalty', priority: 0.5, changeFrequency: 'monthly' as const },
     { path: '/tixly-plus', priority: 0.6, changeFrequency: 'weekly' as const },
+    { path: '/api-docs', priority: 0.5, changeFrequency: 'monthly' as const },
     { path: '/legal/terms', priority: 0.3, changeFrequency: 'yearly' as const },
     { path: '/legal/privacy', priority: 0.3, changeFrequency: 'yearly' as const },
     { path: '/login', priority: 0.4, changeFrequency: 'yearly' as const },
