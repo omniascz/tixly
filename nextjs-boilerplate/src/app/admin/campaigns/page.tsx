@@ -62,6 +62,30 @@ export default function CampaignsPage() {
   const [segmentLastOrderDays, setSegmentLastOrderDays] = useState('');
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [scheduleMode, setScheduleMode] = useState<'now' | 'manual' | 'smart'>('now');
+  const [scheduledAt, setScheduledAt] = useState('');
+  const [smart, setSmart] = useState<null | {
+    scheduledAtIso: string;
+    bestHourLocal: number;
+    bestDayOfWeek: number;
+    basis: string;
+    confidence: string;
+    sampleSize: number;
+  }>(null);
+  const [smartBusy, setSmartBusy] = useState(false);
+
+  async function fetchSmart(): Promise<void> {
+    setSmartBusy(true);
+    try {
+      const r = await authFetch(`/api/admin/campaigns/smart-send-time?channel=${channel}`);
+      if (r.ok) {
+        const data = (await r.json()) as typeof smart;
+        setSmart(data);
+      }
+    } finally {
+      setSmartBusy(false);
+    }
+  }
 
   useEffect(() => {
     void load();
@@ -85,6 +109,13 @@ export default function CampaignsPage() {
         segment.last_order_older_than_days = Number(segmentLastOrderDays);
       }
 
+      let resolvedScheduledAt: string | undefined;
+      if (scheduleMode === 'manual' && scheduledAt) {
+        resolvedScheduledAt = new Date(scheduledAt).toISOString();
+      } else if (scheduleMode === 'smart' && smart) {
+        resolvedScheduledAt = smart.scheduledAtIso;
+      }
+
       const res = await authFetch('/api/admin/campaigns', {
         method: 'POST',
         body: JSON.stringify({
@@ -96,6 +127,7 @@ export default function CampaignsPage() {
           utmMedium: channel,
           utmCampaign: utmCampaign || name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
           segment,
+          scheduledAt: resolvedScheduledAt,
         }),
       });
       const d = await res.json();
@@ -220,9 +252,94 @@ export default function CampaignsPage() {
               </div>
             </div>
 
+            <div className="rounded-md border bg-muted/30 p-3">
+              <h4 className="mb-2 text-xs font-medium uppercase">Naplánování</h4>
+              <div className="space-y-2 text-sm">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="schedule"
+                    checked={scheduleMode === 'now'}
+                    onChange={() => setScheduleMode('now')}
+                  />
+                  Odeslat hned (draft, ručně spustit „Send")
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="schedule"
+                    checked={scheduleMode === 'manual'}
+                    onChange={() => setScheduleMode('manual')}
+                  />
+                  Naplánovat na konkrétní čas
+                </label>
+                {scheduleMode === 'manual' ? (
+                  <Input
+                    type="datetime-local"
+                    value={scheduledAt}
+                    onChange={(e) => setScheduledAt(e.target.value)}
+                    className="ml-6 max-w-xs"
+                  />
+                ) : null}
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="schedule"
+                    checked={scheduleMode === 'smart'}
+                    onChange={() => {
+                      setScheduleMode('smart');
+                      if (!smart) void fetchSmart();
+                    }}
+                  />
+                  ⚡ Smart send-time (AI doporučí nejlepší moment)
+                </label>
+                {scheduleMode === 'smart' ? (
+                  <div className="ml-6 space-y-1 rounded-md border bg-background p-2 text-xs">
+                    {smartBusy ? (
+                      <span className="text-muted-foreground">Analyzuji historical opens…</span>
+                    ) : smart ? (
+                      <>
+                        <p>
+                          <strong>
+                            {new Date(smart.scheduledAtIso).toLocaleString('cs-CZ')}
+                          </strong>{' '}
+                          (
+                          {
+                            ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'][
+                              smart.bestDayOfWeek
+                            ]
+                          }{' '}
+                          {smart.bestHourLocal}:00)
+                        </p>
+                        <p className="text-muted-foreground">
+                          Základ:{' '}
+                          {smart.basis === 'historical'
+                            ? `historical opens (${smart.sampleSize} samples, ${smart.confidence} confidence)`
+                            : 'industry best practice (žádná historie)'}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={fetchSmart}
+                          className="text-primary underline"
+                        >
+                          Přepočítat
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground">Načtu doporučení…</span>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
             <div className="flex gap-2">
               <Button onClick={create} disabled={busy || !name.trim()}>
-                {busy ? 'Vytvářím…' : 'Vytvořit jako draft'}
+                {busy
+                  ? 'Vytvářím…'
+                  : scheduleMode === 'now'
+                    ? 'Vytvořit jako draft'
+                    : 'Vytvořit a naplánovat'}
               </Button>
               <Button variant="outline" onClick={() => setShowNew(false)}>
                 Zrušit
