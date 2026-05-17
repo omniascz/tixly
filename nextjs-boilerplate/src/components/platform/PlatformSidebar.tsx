@@ -1,13 +1,22 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShieldCheck, Building2, FileSearch, ScrollText, Webhook, MapPin } from 'lucide-react';
+import {
+  ShieldCheck,
+  Building2,
+  FileSearch,
+  ScrollText,
+  Webhook,
+  MapPin,
+  AlertOctagon,
+} from 'lucide-react';
 
 const items = [
   { href: '/platform', label: 'Dashboard', icon: ShieldCheck },
   { href: '/platform/promoters', label: 'Promotéři', icon: Building2 },
   { href: '/platform/venues', label: 'Sály a stadiony', icon: MapPin },
   { href: '/platform/event-moderation', label: 'Moderace akcí', icon: FileSearch },
+  { href: '/platform/incidents', label: 'Incidenty', icon: AlertOctagon },
   { href: '/platform/audit-log', label: 'Audit log', icon: ScrollText },
   { href: '/platform/webhooks', label: 'Webhooks', icon: Webhook },
 ];

@@ -257,9 +257,28 @@ interface Incident {
 }
 
 async function fetchIncidents(): Promise<Incident[]> {
-  // Pro produkci: stáhnout z `platform.incidents` (table TBD).
-  // Zatím vrátíme prázdné pole — žádné incidenty publikované.
-  return [];
+  // Public read: pouze is_public=TRUE incidents za posledních 14 dní.
+  // Pre-migrace 272 fallback — query failne s "relation does not exist",
+  // tehdy vrátíme prázdné pole (žádné incidenty publikované).
+  try {
+    const db = new Pool({ connectionString: process.env.DATABASE_URL });
+    try {
+      const r = await db.query<Incident>(
+        `SELECT id, title, status::text AS status, started_at::text AS started_at,
+                resolved_at::text AS resolved_at, description
+         FROM platform.incidents
+         WHERE is_public = TRUE
+           AND started_at > NOW() - INTERVAL '14 days'
+         ORDER BY started_at DESC
+         LIMIT 50`,
+      );
+      return r.rows;
+    } finally {
+      await db.end();
+    }
+  } catch {
+    return [];
+  }
 }
 
 async function IncidentsSection() {
