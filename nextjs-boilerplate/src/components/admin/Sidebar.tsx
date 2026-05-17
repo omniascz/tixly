@@ -23,6 +23,7 @@ import {
   Megaphone,
   AlertOctagon,
   Bell,
+  Webhook,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -92,6 +93,12 @@ const sections: NavSection[] = [
     items: [
       { href: '/admin/audit-log', label: 'Audit log', icon: FileSearch },
       { href: '/admin/notifications', label: 'Notifikace', icon: Bell },
+    ],
+  },
+  {
+    label: 'Integrace',
+    items: [
+      { href: '/admin/webhooks', label: 'Webhooks', icon: Webhook },
     ],
   },
 ];
