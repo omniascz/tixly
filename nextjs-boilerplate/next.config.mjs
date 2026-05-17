@@ -126,4 +126,26 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+// Sentry wrapper — aktivuje se jen pokud package je nainstalovaný + SENTRY_DSN je v env.
+// Bez instalace: čistý export.
+let exported = nextConfig;
+try {
+  // Dynamic require pro vyhnutí TS dep bez instalovaného balíčku
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { withSentryConfig } = await import('@sentry/nextjs').catch(() => ({ withSentryConfig: null }));
+  if (withSentryConfig && process.env.SENTRY_DSN) {
+    exported = withSentryConfig(nextConfig, {
+      silent: true,
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      hideSourceMaps: true,
+      disableLogger: true,
+      tunnelRoute: '/api/monitoring',
+    });
+  }
+} catch {
+  // Sentry package neni nainstalovan — pokracujeme bez nej
+}
+
+export default exported;
