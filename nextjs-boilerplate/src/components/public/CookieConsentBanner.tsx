@@ -32,17 +32,77 @@ function persist(value: ConsentValue) {
   window.dispatchEvent(new CustomEvent('tixly:consent-changed', { detail: value }));
 }
 
+// Locale strings — drží banner-side, abychom nezávisli na server dict.
+const STRINGS = {
+  cs: {
+    title: 'Tixly používá cookies',
+    description:
+      'Nezbytné cookies vyžadujeme pro fungování (přihlášení, košík). Analytické a marketingové cookies pomáhají vylepšit službu — můžeš je odmítnout.',
+    essential: 'Nezbytné',
+    essentialNote: 'vždy zapnuto (auth, košík)',
+    analyticsLabel: 'Analytika',
+    analyticsNote: 'GA4, agregované metriky',
+    marketingLabel: 'Marketing',
+    marketingNote: 'Meta pixel, retargeting',
+    customChoice: 'Vlastní volba',
+    essentialOnly: 'Jen nezbytné',
+    saveChoice: 'Uložit volbu',
+    acceptAll: 'Přijmout vše',
+  },
+  sk: {
+    title: 'Tixly používa cookies',
+    description:
+      'Nevyhnutné cookies vyžadujeme pre fungovanie (prihlásenie, košík). Analytické a marketingové cookies pomáhajú vylepšiť službu — môžeš ich odmietnuť.',
+    essential: 'Nevyhnutné',
+    essentialNote: 'vždy zapnuté (auth, košík)',
+    analyticsLabel: 'Analytika',
+    analyticsNote: 'GA4, agregované metriky',
+    marketingLabel: 'Marketing',
+    marketingNote: 'Meta pixel, retargeting',
+    customChoice: 'Vlastná voľba',
+    essentialOnly: 'Iba nevyhnutné',
+    saveChoice: 'Uložiť voľbu',
+    acceptAll: 'Prijať všetko',
+  },
+  en: {
+    title: 'Tixly uses cookies',
+    description:
+      'Essential cookies are required for functionality (login, cart). Analytics and marketing cookies help improve the service — you can decline them.',
+    essential: 'Essential',
+    essentialNote: 'always on (auth, cart)',
+    analyticsLabel: 'Analytics',
+    analyticsNote: 'GA4, aggregated metrics',
+    marketingLabel: 'Marketing',
+    marketingNote: 'Meta pixel, retargeting',
+    customChoice: 'Customize',
+    essentialOnly: 'Essential only',
+    saveChoice: 'Save choice',
+    acceptAll: 'Accept all',
+  },
+} as const;
+
+function detectLocale(): keyof typeof STRINGS {
+  if (typeof window === 'undefined') return 'cs';
+  const path = window.location.pathname;
+  if (path.startsWith('/sk')) return 'sk';
+  if (path.startsWith('/en')) return 'en';
+  return 'cs';
+}
+
 export function CookieConsentBanner() {
   const [stored, setStored] = useState<ConsentValue | null>(null);
   const [analytics, setAnalytics] = useState(false);
   const [marketing, setMarketing] = useState(false);
   const [showCustom, setShowCustom] = useState(false);
+  const [locale, setLocale] = useState<keyof typeof STRINGS>('cs');
 
   useEffect(() => {
     setStored(readStored());
+    setLocale(detectLocale());
   }, []);
 
   if (stored !== null) return null;
+  const t = STRINGS[locale];
 
   function decide(opts: { analytics: boolean; marketing: boolean }) {
     const value: ConsentValue = {
@@ -63,18 +123,15 @@ export function CookieConsentBanner() {
     >
       <div className="flex items-start gap-3">
         <div className="flex-1">
-          <h2 className="text-sm font-semibold">Tixly používá cookies</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Nezbytné cookies vyžadujeme pro fungování (přihlášení, košík). Analytické
-            a marketingové cookies pomáhají vylepšit službu — můžeš je odmítnout.
-          </p>
+          <h2 className="text-sm font-semibold">{t.title}</h2>
+          <p className="mt-1 text-xs text-muted-foreground">{t.description}</p>
 
           {showCustom ? (
             <div className="mt-3 space-y-2 text-xs">
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked disabled />
                 <span>
-                  <strong>Nezbytné</strong> · vždy zapnuto (auth, košík)
+                  <strong>{t.essential}</strong> · {t.essentialNote}
                 </span>
               </label>
               <label className="flex items-center gap-2">
@@ -84,7 +141,7 @@ export function CookieConsentBanner() {
                   onChange={(e) => setAnalytics(e.target.checked)}
                 />
                 <span>
-                  <strong>Analytika</strong> · GA4, agregované metriky
+                  <strong>{t.analyticsLabel}</strong> · {t.analyticsNote}
                 </span>
               </label>
               <label className="flex items-center gap-2">
@@ -94,7 +151,7 @@ export function CookieConsentBanner() {
                   onChange={(e) => setMarketing(e.target.checked)}
                 />
                 <span>
-                  <strong>Marketing</strong> · Meta pixel, retargeting
+                  <strong>{t.marketingLabel}</strong> · {t.marketingNote}
                 </span>
               </label>
             </div>
@@ -109,7 +166,7 @@ export function CookieConsentBanner() {
             onClick={() => setShowCustom(true)}
             className="rounded-md border px-3 py-1.5 text-xs hover:bg-accent"
           >
-            Vlastní volba
+            {t.customChoice}
           </button>
         ) : null}
         <button
@@ -117,7 +174,7 @@ export function CookieConsentBanner() {
           onClick={() => decide({ analytics: false, marketing: false })}
           className="rounded-md border px-3 py-1.5 text-xs hover:bg-accent"
         >
-          Jen nezbytné
+          {t.essentialOnly}
         </button>
         {showCustom ? (
           <button
@@ -125,7 +182,7 @@ export function CookieConsentBanner() {
             onClick={() => decide({ analytics, marketing })}
             className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90"
           >
-            Uložit volbu
+            {t.saveChoice}
           </button>
         ) : (
           <button
@@ -133,7 +190,7 @@ export function CookieConsentBanner() {
             onClick={() => decide({ analytics: true, marketing: true })}
             className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90"
           >
-            Přijmout vše
+            {t.acceptAll}
           </button>
         )}
       </div>

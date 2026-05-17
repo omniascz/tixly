@@ -55,11 +55,22 @@ export async function POST(
       total_amount: number;
       paid_at: string | null;
       currency: string;
+      event_id: string | null;
       event_promoter_id: string | null;
       event_title: string | null;
+      event_date_start: string | null;
+      event_refund_deadline_days: number | null;
+      event_refund_fee_pct: number | null;
+      event_refund_fee_min_halire: number | null;
     }>(
       `SELECT o.id, o.status, o.total_amount, o.paid_at, o.currency,
-              e.promoter_id AS event_promoter_id, e.title AS event_title
+              o.event_id,
+              e.promoter_id AS event_promoter_id,
+              e.title AS event_title,
+              e.date_start AS event_date_start,
+              e.refund_deadline_days AS event_refund_deadline_days,
+              e.refund_fee_pct AS event_refund_fee_pct,
+              e.refund_fee_min_halire AS event_refund_fee_min_halire
        FROM orders.orders o
        LEFT JOIN catalog.events e ON e.id = o.event_id
        WHERE o.id = $1 AND o.user_id = $2
@@ -112,22 +123,54 @@ export async function POST(
       );
     }
 
-    // 3) Refund window
+    // 3) Refund window — hybrid hierarchie:
+    //    a) Event-level: refund_deadline_days = N dní PŘED akcí (SMSticket model)
+    //    b) Promoter-level fallback: refund_window_days = N dní PO platbě (legacy)
+    //    Event-level vyhrává pokud je vyplněn.
     if (!o.paid_at) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'NOT_PAID' }, { status: 409 });
     }
-    const paidAt = new Date(o.paid_at).getTime();
-    const windowMs = policy.window_days * 24 * 60 * 60 * 1000;
-    if (Date.now() > paidAt + windowMs) {
-      await client.query('ROLLBACK');
-      return NextResponse.json(
-        {
-          error: 'REFUND_WINDOW_EXPIRED',
-          message: `Refund okno (${policy.window_days} dní) vypršelo.`,
-        },
-        { status: 409 },
-      );
+
+    if (o.event_refund_deadline_days !== null && o.event_date_start) {
+      // Per-event policy: refund self-service do X dní PŘED akcí
+      const deadlineMs =
+        new Date(o.event_date_start).getTime() -
+        o.event_refund_deadline_days * 24 * 60 * 60 * 1000;
+      if (Date.now() > deadlineMs) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'REFUND_DEADLINE_PASSED',
+            message: `Refund je možný nejpozději ${o.event_refund_deadline_days} dní před akcí. Termín už vypršel.`,
+          },
+          { status: 409 },
+        );
+      }
+      if (o.event_refund_deadline_days === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'REFUND_DISABLED_BY_EVENT',
+            message: 'Tato akce nepovoluje refund.',
+          },
+          { status: 403 },
+        );
+      }
+    } else {
+      // Fallback: legacy promoter-level „dní po platbě"
+      const paidAt = new Date(o.paid_at).getTime();
+      const windowMs = policy.window_days * 24 * 60 * 60 * 1000;
+      if (Date.now() > paidAt + windowMs) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'REFUND_WINDOW_EXPIRED',
+            message: `Refund okno (${policy.window_days} dní od platby) vypršelo.`,
+          },
+          { status: 409 },
+        );
+      }
     }
 
     // 4) Refund: full (default) nebo partial (ticketIds podset)
@@ -246,6 +289,21 @@ export async function POST(
       );
     }
 
+    // Refund fee — per-event > platform default
+    const DEFAULT_FEE_BPS = 500; // 5 %
+    const DEFAULT_FEE_MIN_HALIRE_CZK = 3000; // 30 Kč
+    const DEFAULT_FEE_MIN_HALIRE_EUR = 120; // 1.20 EUR
+    const feeBps = o.event_refund_fee_pct ?? DEFAULT_FEE_BPS;
+    const feeMinHalire =
+      o.event_refund_fee_min_halire ??
+      (o.currency === 'EUR' ? DEFAULT_FEE_MIN_HALIRE_EUR : DEFAULT_FEE_MIN_HALIRE_CZK);
+    const percentFeeHalire = Math.floor((refundedHalire * feeBps) / 10000);
+    const refundFeeHalire =
+      refundedHalire > 0 ? Math.max(percentFeeHalire, feeMinHalire) : 0;
+    // Refund cap: fee nesmí být větší než refundovaná částka.
+    const finalFeeHalire = Math.min(refundFeeHalire, refundedHalire);
+    const netRefundHalire = refundedHalire - finalFeeHalire;
+
     await client.query(
       `INSERT INTO audit.audit_log
          (schema_name, table_name, record_id, action, actor_id, actor_type, new_values)
@@ -259,7 +317,10 @@ export async function POST(
           revokedTickets: revokedCount,
           revokedTicketIds: isPartial ? revokedTicketIds : undefined,
           remainingValid: isPartial ? remainingValid : 0,
-          refundedHalire,
+          grossRefundHalire: refundedHalire,
+          refundFeeHalire: finalFeeHalire,
+          refundFeeBps: feeBps,
+          netRefundHalire,
         }),
       ],
     );
@@ -270,7 +331,9 @@ export async function POST(
       ok: true,
       orderId: params.orderId,
       partial: isPartial,
-      refundedHalire,
+      grossRefundHalire: refundedHalire,
+      refundFeeHalire: finalFeeHalire,
+      netRefundHalire,
       revokedTickets: revokedCount,
       remainingValid,
     });

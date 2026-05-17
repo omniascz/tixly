@@ -28,7 +28,7 @@ function formatPrice(halire: number | null): string {
 export function EventsMapClient({ locale }: { locale: string }) {
   const [events, setEvents] = useState<NearbyEvent[]>([]);
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
-  const [radius, setRadius] = useState(50);
+  const [radius] = useState(50);
   const [city, setCity] = useState('');
   const [hover, setHover] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

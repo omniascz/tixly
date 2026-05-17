@@ -29,12 +29,23 @@ interface PromoterRow {
 
 interface EventRow {
   id: string;
+  slug: string | null;
   title: string;
   date_start: string;
   category: string | null;
   venue_name: string | null;
+  city: string | null;
   min_price: number | null;
   currency: string;
+  cover_image: string | null;
+}
+
+interface PromoterStats {
+  total_events: string;
+  upcoming_events: string;
+  past_events: string;
+  avg_rating: number | null;
+  review_count: string;
 }
 
 function shadeColor(hex: string, percent: number): string {
@@ -51,7 +62,11 @@ function shadeColor(hex: string, percent: number): string {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 }
 
-async function fetchPromoter(slug: string): Promise<{ promoter: PromoterRow; events: EventRow[] } | null> {
+async function fetchPromoter(slug: string): Promise<{
+  promoter: PromoterRow;
+  events: EventRow[];
+  stats: PromoterStats;
+} | null> {
   const db = new Pool({ connectionString: process.env.DATABASE_URL });
   try {
     const pRes = await db.query<PromoterRow>(
@@ -63,20 +78,61 @@ async function fetchPromoter(slug: string): Promise<{ promoter: PromoterRow; eve
     if (pRes.rows.length === 0) return null;
     const promoter = pRes.rows[0]!;
 
-    const eRes = await db.query<EventRow>(
-      `SELECT e.id, e.title, e.date_start, e.category, e.currency,
-              v.name AS venue_name,
-              (SELECT MIN(base_price) FROM catalog.ticket_types WHERE event_id = e.id) AS min_price
-       FROM catalog.events e
-       LEFT JOIN catalog.venues v ON v.id = e.venue_id
-       WHERE e.promoter_id = $1
-         AND e.status = 'published'
-         AND e.date_start > now() - interval '6 hours'
-       ORDER BY e.date_start ASC
-       LIMIT 50`,
-      [promoter.id],
-    );
-    return { promoter, events: eRes.rows };
+    const [eRes, sRes] = await Promise.all([
+      db.query<EventRow>(
+        `SELECT e.id, e.slug, e.title, e.date_start, e.category, e.currency,
+                e.cover_image,
+                v.name AS venue_name, v.city,
+                (SELECT MIN(base_price) FROM catalog.ticket_types WHERE event_id = e.id) AS min_price
+         FROM catalog.events e
+         LEFT JOIN catalog.venues v ON v.id = e.venue_id
+         WHERE e.promoter_id = $1
+           AND e.status = 'published'
+           AND e.date_start > now() - interval '6 hours'
+         ORDER BY e.date_start ASC
+         LIMIT 50`,
+        [promoter.id],
+      ),
+      db.query<PromoterStats>(
+        `SELECT
+           COUNT(*) FILTER (WHERE status IN ('published','finished'))::text AS total_events,
+           COUNT(*) FILTER (WHERE status = 'published' AND date_start > now())::text AS upcoming_events,
+           COUNT(*) FILTER (WHERE date_start < now())::text AS past_events,
+           (SELECT AVG(rating)::numeric(3,2)
+              FROM marketing.event_reviews er
+              JOIN catalog.events e2 ON e2.id = er.event_id
+              WHERE e2.promoter_id = $1 AND er.status = 'published') AS avg_rating,
+           (SELECT COUNT(*)::text
+              FROM marketing.event_reviews er
+              JOIN catalog.events e2 ON e2.id = er.event_id
+              WHERE e2.promoter_id = $1 AND er.status = 'published') AS review_count
+         FROM catalog.events
+         WHERE promoter_id = $1`,
+        [promoter.id],
+      ).catch(() => ({
+        rows: [
+          {
+            total_events: '0',
+            upcoming_events: '0',
+            past_events: '0',
+            avg_rating: null,
+            review_count: '0',
+          },
+        ],
+      })),
+    ]);
+
+    return {
+      promoter,
+      events: eRes.rows,
+      stats: sRes.rows[0] ?? {
+        total_events: '0',
+        upcoming_events: '0',
+        past_events: '0',
+        avg_rating: null,
+        review_count: '0',
+      },
+    };
   } finally {
     await db.end();
   }
@@ -108,6 +164,42 @@ export async function generateMetadata({
 
 export const dynamic = 'force-dynamic';
 
+const STRINGS = {
+  cs: {
+    upcoming: 'Nadcházející představení',
+    none: 'Aktuálně žádná představení v prodeji. Sleduj nás na sociálních sítích pro novinky.',
+    from: 'od',
+    contact: 'Kontakt',
+    subscriptions: '🎟️ Permanentky a předplatné',
+    totalEvents: 'akcí celkem',
+    upcomingShort: 'nadcházejících',
+    rating: 'hodnocení',
+    reviews: 'recenzí',
+  },
+  sk: {
+    upcoming: 'Nadchádzajúce predstavenia',
+    none: 'Aktuálne žiadne predstavenia v predaji. Sleduj nás na sociálnych sieťach.',
+    from: 'od',
+    contact: 'Kontakt',
+    subscriptions: '🎟️ Permanentky a predplatné',
+    totalEvents: 'akcií celkom',
+    upcomingShort: 'nadchádzajúcich',
+    rating: 'hodnotenie',
+    reviews: 'recenzií',
+  },
+  en: {
+    upcoming: 'Upcoming shows',
+    none: 'No upcoming shows. Follow us for updates.',
+    from: 'from',
+    contact: 'Contact',
+    subscriptions: '🎟️ Subscriptions & passes',
+    totalEvents: 'events total',
+    upcomingShort: 'upcoming',
+    rating: 'rating',
+    reviews: 'reviews',
+  },
+} as const;
+
 export default async function PromoterPage({
   params,
 }: {
@@ -115,8 +207,9 @@ export default async function PromoterPage({
 }) {
   const data = await fetchPromoter(params.slug);
   if (!data) notFound();
-  const { promoter, events } = data;
+  const { promoter, events, stats } = data;
   const locale = isValidLocale(params.locale) ? params.locale : DEFAULT_LOCALE;
+  const s = STRINGS[locale as keyof typeof STRINGS] ?? STRINGS.cs;
 
   const brandColor = promoter.brand_color_hex;
   const hue =
@@ -151,14 +244,44 @@ export default async function PromoterPage({
         </div>
       </div>
 
+      {/* Stats strip */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Card>
+          <CardContent className="py-4 text-center">
+            <div className="text-2xl font-bold">{stats.total_events}</div>
+            <div className="text-xs text-muted-foreground">{s.totalEvents}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-4 text-center">
+            <div className="text-2xl font-bold text-emerald-700">{stats.upcoming_events}</div>
+            <div className="text-xs text-muted-foreground">{s.upcomingShort}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-4 text-center">
+            <div className="text-2xl font-bold">
+              {stats.avg_rating ? `★ ${Number(stats.avg_rating).toFixed(1)}` : '—'}
+            </div>
+            <div className="text-xs text-muted-foreground">{s.rating}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-4 text-center">
+            <div className="text-2xl font-bold">{stats.review_count}</div>
+            <div className="text-xs text-muted-foreground">{s.reviews}</div>
+          </CardContent>
+        </Card>
+      </div>
+
       <section>
         <h2 className="mb-3 text-xl font-semibold">
-          Nadcházející představení ({events.length})
+          {s.upcoming} ({events.length})
         </h2>
         {events.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
-              Aktuálně žádná představení v prodeji. Sleduj nás na sociálních sítích pro novinky.
+              {s.none}
             </CardContent>
           </Card>
         ) : (
@@ -166,17 +289,19 @@ export default async function PromoterPage({
             {events.map((ev) => (
               <Link
                 key={ev.id}
-                href={`/${locale}/events/${ev.id}`}
+                href={`/${locale}/${ev.slug ? `p/${ev.slug}` : `events/${ev.id}`}`}
                 className="group"
               >
                 <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
                   <div
                     aria-hidden
-                    className="h-24"
+                    className="h-24 bg-cover bg-center"
                     style={{
-                      background: brandColor
-                        ? `linear-gradient(135deg, ${brandColor} 0%, ${shadeColor(brandColor, -25)} 100%)`
-                        : `linear-gradient(135deg, hsl(${hue}, 60%, 50%), hsl(${(hue + 60) % 360}, 70%, 40%))`,
+                      background: ev.cover_image
+                        ? `url(${ev.cover_image}) center/cover`
+                        : brandColor
+                          ? `linear-gradient(135deg, ${brandColor} 0%, ${shadeColor(brandColor, -25)} 100%)`
+                          : `linear-gradient(135deg, hsl(${hue}, 60%, 50%), hsl(${(hue + 60) % 360}, 70%, 40%))`,
                     }}
                   />
                   <CardContent className="space-y-1 pt-3">
@@ -187,11 +312,18 @@ export default async function PromoterPage({
                       {formatDate(ev.date_start, locale)}
                     </p>
                     {ev.venue_name ? (
-                      <p className="text-xs text-muted-foreground">📍 {ev.venue_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        📍 {ev.venue_name}
+                        {ev.city ? `, ${ev.city}` : ''}
+                      </p>
                     ) : null}
                     {ev.min_price !== null ? (
                       <p className="pt-1 text-sm font-medium">
-                        od {(ev.min_price / 100).toLocaleString('cs-CZ')} Kč
+                        {s.from}{' '}
+                        {(ev.min_price / 100).toLocaleString(
+                          locale === 'sk' ? 'sk-SK' : 'cs-CZ',
+                        )}
+                        {ev.currency === 'EUR' ? ' €' : ' Kč'}
                       </p>
                     ) : null}
                   </CardContent>
@@ -207,11 +339,11 @@ export default async function PromoterPage({
           href={`/${locale}/subscriptions?p=${promoter.slug}`}
           className="text-primary hover:underline"
         >
-          🎟️ Permanentky a předplatné
+          {s.subscriptions}
         </Link>
         {promoter.contact_email ? (
           <span className="ml-3 text-xs text-muted-foreground">
-            Kontakt:{' '}
+            {s.contact}:{' '}
             <a href={`mailto:${promoter.contact_email}`} className="text-primary hover:underline">
               {promoter.contact_email}
             </a>

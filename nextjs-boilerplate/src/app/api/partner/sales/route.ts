@@ -152,7 +152,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     void (async () => {
       try {
         const { issueTicketsForOrder } = await import('@/lib/tickets/demo-issuer');
-        await issueTicketsForOrder(db(), orderId);
+        await issueTicketsForOrder(orderId, db());
       } catch (err) {
         console.error('[partner sale] ticket issuance failed:', err);
       }

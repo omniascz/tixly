@@ -18,6 +18,7 @@ import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 import { renderTicketsPdf } from '@/lib/tickets/pdf-renderer';
 import { sendSms } from '@/lib/sms/bulkgate-mock';
 import { escapeHtml } from '@/lib/html-escape/escape';
+import { resolveVatRate, splitGrossToNetVat } from '@/lib/tax/vat-rates';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -34,6 +35,7 @@ function safeEqual(a: string, b: string): boolean {
 
 interface OrderRow {
   id: string;
+  user_id: string;
   status: string;
   total_amount: number;
   currency: string;
@@ -43,9 +45,12 @@ interface OrderRow {
   buyer_phone: string | null;
   event_title: string;
   event_date_start: string;
+  event_qr_policy: string;
+  event_vat_category: string | null;
   venue_name: string | null;
   promoter_name: string | null;
   promoter_email: string | null;
+  promoter_country: string | null;
   brand_color_hex: string | null;
   brand_logo_url: string | null;
   promoter_vat_rate_pct: number | null;
@@ -58,27 +63,107 @@ interface ItemRow {
   total_price: number;
 }
 
-function formatCzk(halire: number): string {
-  return `${(halire / 100).toLocaleString('cs-CZ', {
+function formatMoney(halire: number, currency: string, locale: string): string {
+  const amount = (halire / 100).toLocaleString(locale === 'sk' ? 'sk-SK' : 'cs-CZ', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
-  })} Kč`;
+  });
+  const suffix = currency === 'EUR' ? ' €' : ' Kč';
+  return amount + suffix;
+}
+
+function formatCzk(halire: number): string {
+  return formatMoney(halire, 'CZK', 'cs');
+}
+
+interface EmailStrings {
+  thanksTitle: string;
+  thanksLead: string;
+  typeHeader: string;
+  qtyHeader: string;
+  unitPriceHeader: string;
+  totalHeader: string;
+  netLabel: string;
+  vatLabel: (pct: number) => string;
+  totalLabel: string;
+  orderNumberLabel: string;
+  senderLabel: string;
+  footer: string;
+}
+
+const EMAIL_STRINGS: Record<'cs' | 'sk' | 'en', EmailStrings> = {
+  cs: {
+    thanksTitle: 'Děkujeme za nákup!',
+    thanksLead: 'Tvá objednávka byla zaplacena. Lístky najdeš v příloze této zprávy a také v účtu na Tixly.',
+    typeHeader: 'Typ',
+    qtyHeader: 'Počet',
+    unitPriceHeader: 'Cena/ks',
+    totalHeader: 'Celkem',
+    netLabel: 'Základ daně:',
+    vatLabel: (pct) => `DPH ${pct} %:`,
+    totalLabel: 'Celkem k úhradě:',
+    orderNumberLabel: 'Číslo objednávky',
+    senderLabel: 'Odesílatel',
+    footer: 'Lístky vystaveny přes platformu Tixly.',
+  },
+  sk: {
+    thanksTitle: 'Ďakujeme za nákup!',
+    thanksLead: 'Tvoja objednávka bola zaplatená. Lístky nájdeš v prílohe tejto správy a tiež v účte na Tixly.',
+    typeHeader: 'Typ',
+    qtyHeader: 'Počet',
+    unitPriceHeader: 'Cena/ks',
+    totalHeader: 'Spolu',
+    netLabel: 'Základ dane:',
+    vatLabel: (pct) => `DPH ${pct} %:`,
+    totalLabel: 'Spolu k úhrade:',
+    orderNumberLabel: 'Č. objednávky',
+    senderLabel: 'Odosielateľ',
+    footer: 'Lístky vystavené cez platformu Tixly.',
+  },
+  en: {
+    thanksTitle: 'Thanks for your purchase!',
+    thanksLead: 'Your order has been paid. Tickets are attached to this email and also in your Tixly account.',
+    typeHeader: 'Type',
+    qtyHeader: 'Qty',
+    unitPriceHeader: 'Unit price',
+    totalHeader: 'Total',
+    netLabel: 'Net:',
+    vatLabel: (pct) => `VAT ${pct} %:`,
+    totalLabel: 'Total to pay:',
+    orderNumberLabel: 'Order #',
+    senderLabel: 'Sender',
+    footer: 'Tickets issued via Tixly platform.',
+  },
+};
+
+function pickEmailLocale(order: OrderRow): 'cs' | 'sk' | 'en' {
+  const orderLocale = (order as { locale?: string }).locale;
+  if (orderLocale === 'sk') return 'sk';
+  if (orderLocale === 'en') return 'en';
+  if (order.promoter_country === 'SR') return 'sk';
+  return 'cs';
 }
 
 function buildEmailHtml(order: OrderRow, items: ItemRow[]): string {
+  const locale = pickEmailLocale(order);
+  const s = EMAIL_STRINGS[locale];
+  const currency = order.currency || 'CZK';
+  const fmt = (h: number) => formatMoney(h, currency, locale);
+
   const itemsRows = items
     .map(
       (it) => `
         <tr>
           <td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(it.ticket_type_name)}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;text-align:center">${it.quantity}×</td>
-          <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${formatCzk(it.unit_price)}</td>
-          <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${formatCzk(it.total_price)}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${fmt(it.unit_price)}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${fmt(it.total_price)}</td>
         </tr>`,
     )
     .join('');
 
-  const dateStart = new Date(order.event_date_start).toLocaleString('cs-CZ', {
+  const dateLocale = locale === 'sk' ? 'sk-SK' : locale === 'en' ? 'en-GB' : 'cs-CZ';
+  const dateStart = new Date(order.event_date_start).toLocaleString(dateLocale, {
     dateStyle: 'long',
     timeStyle: 'short',
   });
@@ -93,21 +178,26 @@ function buildEmailHtml(order: OrderRow, items: ItemRow[]): string {
     ? `${escapeHtml(promoterName)} · ${escapeHtml(order.promoter_email)}`
     : `${escapeHtml(promoterName)} přes Tixly`;
 
-  // DPH rozpis (gross → net + dph)
-  const vatRatePct = order.promoter_vat_rate_pct ?? 10;
-  const netHalire = Math.round(order.total_amount / (1 + vatRatePct / 100));
-  const vatHalire = order.total_amount - netHalire;
+  // DPH rozpis (gross → net + dph). Per-event vat_category > promoter flat rate.
+  // SK + cultural = 5 %, CZ + cultural = 10 %, atd.
+  const vatRatePct = order.event_vat_category
+    ? resolveVatRate({
+        country: order.promoter_country,
+        vatCategory: order.event_vat_category,
+      })
+    : (order.promoter_vat_rate_pct ?? 10);
+  const { netHalire, vatHalire } = splitGrossToNetVat(order.total_amount, vatRatePct);
 
   return `<!DOCTYPE html>
 <html><body style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:0;color:#111">
   <div style="background:${brandColor};color:#fff;padding:24px;text-align:center">
     ${order.brand_logo_url ? `<img src="${escapeHtml(order.brand_logo_url)}" alt="${escapeHtml(promoterName)}" style="height:48px;background:#fff;padding:4px;border-radius:4px"/>` : ''}
-    <h1 style="margin:16px 0 4px;font-size:24px">Děkujeme za nákup!</h1>
+    <h1 style="margin:16px 0 4px;font-size:24px">${s.thanksTitle}</h1>
     <p style="margin:0;opacity:0.9">${escapeHtml(promoterName)}</p>
   </div>
 
   <div style="padding:24px">
-    <p>Tvá objednávka byla zaplacena. Lístky najdeš v příloze této zprávy a také v účtu na Tixly.</p>
+    <p>${s.thanksLead}</p>
 
     <h2 style="margin-top:24px;color:${brandColor}">${escapeHtml(order.event_title)}</h2>
     <p style="color:#666;margin:4px 0">📅 ${escapeHtml(dateStart)}</p>
@@ -116,10 +206,10 @@ function buildEmailHtml(order: OrderRow, items: ItemRow[]): string {
     <table style="width:100%;border-collapse:collapse;margin-top:24px">
       <thead>
         <tr style="background:#f5f5f5">
-          <th style="padding:8px;text-align:left">Typ</th>
-          <th style="padding:8px;text-align:center">Počet</th>
-          <th style="padding:8px;text-align:right">Cena/ks</th>
-          <th style="padding:8px;text-align:right">Celkem</th>
+          <th style="padding:8px;text-align:left">${s.typeHeader}</th>
+          <th style="padding:8px;text-align:center">${s.qtyHeader}</th>
+          <th style="padding:8px;text-align:right">${s.unitPriceHeader}</th>
+          <th style="padding:8px;text-align:right">${s.totalHeader}</th>
         </tr>
       </thead>
       <tbody>${itemsRows}</tbody>
@@ -127,23 +217,23 @@ function buildEmailHtml(order: OrderRow, items: ItemRow[]): string {
 
     <table style="width:100%;border-collapse:collapse;margin-top:8px">
       <tr>
-        <td style="padding:4px 8px;text-align:right;color:#666;font-size:13px">Základ daně:</td>
-        <td style="padding:4px 8px;text-align:right;width:120px">${formatCzk(netHalire)}</td>
+        <td style="padding:4px 8px;text-align:right;color:#666;font-size:13px">${s.netLabel}</td>
+        <td style="padding:4px 8px;text-align:right;width:120px">${fmt(netHalire)}</td>
       </tr>
       <tr>
-        <td style="padding:4px 8px;text-align:right;color:#666;font-size:13px">DPH ${vatRatePct} %:</td>
-        <td style="padding:4px 8px;text-align:right">${formatCzk(vatHalire)}</td>
+        <td style="padding:4px 8px;text-align:right;color:#666;font-size:13px">${s.vatLabel(vatRatePct)}</td>
+        <td style="padding:4px 8px;text-align:right">${fmt(vatHalire)}</td>
       </tr>
       <tr style="border-top:2px solid #111">
-        <td style="padding:8px;text-align:right;font-weight:600">Celkem k úhradě:</td>
-        <td style="padding:8px;text-align:right;font-weight:700;font-size:18px">${formatCzk(order.total_amount)}</td>
+        <td style="padding:8px;text-align:right;font-weight:600">${s.totalLabel}</td>
+        <td style="padding:8px;text-align:right;font-weight:700;font-size:18px">${fmt(order.total_amount)}</td>
       </tr>
     </table>
 
     <p style="margin-top:32px;color:#666;font-size:13px">
-      Číslo objednávky: <code>${escapeHtml(order.id)}</code><br/>
-      Odesílatel: ${senderLine}<br/>
-      Lístky vystaveny přes platformu Tixly.
+      ${s.orderNumberLabel}: <code>${escapeHtml(order.id)}</code><br/>
+      ${s.senderLabel}: ${senderLine}<br/>
+      ${s.footer}
     </p>
   </div>
 </body></html>`;
@@ -165,12 +255,15 @@ export async function POST(request: NextRequest): Promise<Response> {
   // Načti objednávku + položky + akci + místo
   const orderRes = await db().query<OrderRow>(
     `SELECT
-       o.id, o.status, o.total_amount, o.currency, o.paid_at,
+       o.id, o.user_id, o.status, o.total_amount, o.currency, o.paid_at,
        u.email AS buyer_email, u.name AS buyer_name, u.phone AS buyer_phone,
        e.title AS event_title, e.date_start AS event_date_start,
+       e.qr_policy AS event_qr_policy,
+       e.vat_category AS event_vat_category,
        v.name AS venue_name,
        p.name AS promoter_name,
        COALESCE(p.contact_email, p.email) AS promoter_email,
+       p.country AS promoter_country,
        p.brand_color_hex,
        p.brand_logo_url,
        p.vat_rate_pct AS promoter_vat_rate_pct
@@ -213,12 +306,22 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   const html = buildEmailHtml(order, itemsRes.rows);
 
+  // Spočítej efektivní DPH sazbu (per-event vat_category > promoter flat rate).
+  // Použito i v renderTicketsPdf níže.
+  const effectiveVatRatePct = order.event_vat_category
+    ? resolveVatRate({
+        country: order.promoter_country,
+        vatCategory: order.event_vat_category,
+      })
+    : (order.promoter_vat_rate_pct ?? 10);
+
   // Issue tickets + render PDF attachment.
   // Failures here must NOT block the email (best-effort) — order is already paid.
   let ticketsIssued = 0;
   let pdfAttachment: { filename: string; content: Buffer } | undefined;
+  let issued: Awaited<ReturnType<typeof issueTicketsForOrder>> = [];
   try {
-    const issued = await issueTicketsForOrder(orderId, db());
+    issued = await issueTicketsForOrder(orderId, db());
     ticketsIssued = issued.length;
     // Skip PDF when this is a duplicate call (existing tickets have empty secrets)
     const hasFreshSecrets = issued.every((t) => t.totpSecretBase32.length > 0);
@@ -229,7 +332,11 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
 
-    if (issued.length > 0 && hasFreshSecrets) {
+    // QR policy: rotating_only nepošle PDF s QR (skipuje generování úplně,
+    // kupec dostane jen email s linkem na /cs/t/[token] pro mobile QR).
+    const skipPdfDueToPolicy = order.event_qr_policy === 'rotating_only';
+
+    if (issued.length > 0 && hasFreshSecrets && !skipPdfDueToPolicy) {
       // Načti unit_price + seat label per ticket (pro DPH rozpis + sedadla v PDF)
       const priceRes = await db().query<{
         ticket_id: string;
@@ -269,7 +376,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           promoterName: order.promoter_name,
           brandColorHex: order.brand_color_hex,
           brandLogoUrl: order.brand_logo_url,
-          vatRatePct: order.promoter_vat_rate_pct ?? 10,
+          vatRatePct: effectiveVatRatePct,
         },
         issued.map((t) => {
           const meta = priceByTicket.get(t.ticketId);
@@ -347,9 +454,13 @@ export async function POST(request: NextRequest): Promise<Response> {
   //   - 2+ tickets: SMS s URL na první ticket + zmínka že email má všechny
   let smsSent = false;
   if (order.buyer_phone && issued.length > 0) {
+    const firstIssued = issued[0];
+    if (!firstIssued) {
+      throw new Error('Unreachable: issued.length > 0 but issued[0] undefined');
+    }
     const { issueTicketMagicToken } = await import('@/lib/tickets/magic-token');
     const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-    const firstToken = issueTicketMagicToken(issued[0]!.ticketId);
+    const firstToken = issueTicketMagicToken(firstIssued.ticketId);
     const url = `${appUrl}/cs/t/${firstToken}`;
     const eventShort = order.event_title.slice(0, 30);
     const smsText =

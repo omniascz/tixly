@@ -12,13 +12,14 @@
  *  - valid_from ≤ now ≤ valid_until
  *  - uses_count < max_uses (pokud limit)
  *
- * Bezpečnost: žádný auth — kódy jsou public sharable URL. Rate-limit per IP
- * by se měla přidat v produkci (TODO).
+ * Bezpečnost: žádný auth (kódy jsou public sharable URL). Rate-limit per (IP, eventId)
+ * 20 pokusů / 5 min, brání brute-force.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { Pool } from 'pg';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -34,6 +35,16 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
+  // Rate limit per (IP, eventId): 20 pokusů / 5 minut. Brání brute-force kódů.
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    req.headers.get('x-real-ip') ??
+    'unknown';
+  const rlKey = `unlock:${params.id}:${ip}`;
+  const rl = checkRateLimit(rlKey, { limit: 20, windowMs: 5 * 60 * 1000 });
+  const rlResp = rateLimitResponse(rl, 'unlock-access-code');
+  if (rlResp) return rlResp;
+
   const body = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) {

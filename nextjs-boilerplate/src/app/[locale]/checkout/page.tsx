@@ -31,8 +31,17 @@ function CheckoutForm() {
   const [birthDate, setBirthDate] = useState('');
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<
-    'gopay' | 'wero' | 'przelewy24'
+    | 'gopay'
+    | 'wero'
+    | 'przelewy24'
+    | 'bank_transfer'
+    | 'pluxee'
+    | 'benefit_plus'
+    | 'gallery_beta'
+    | 'edenred'
+    | 'sodexo'
   >('gopay');
+  const [showBenefitCards, setShowBenefitCards] = useState(false);
   const [isGift, setIsGift] = useState(false);
   const [giftEmail, setGiftEmail] = useState('');
   const [giftName, setGiftName] = useState('');
@@ -330,9 +339,9 @@ function CheckoutForm() {
               <legend className="mb-1 block text-xs font-medium">
                 Platební metoda
               </legend>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 <label
-                  className={`flex flex-1 cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'gopay' ? 'border-primary bg-primary/5' : ''}`}
+                  className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'gopay' ? 'border-primary bg-primary/5' : ''}`}
                 >
                   <input
                     type="radio"
@@ -341,11 +350,22 @@ function CheckoutForm() {
                     checked={paymentMethod === 'gopay'}
                     onChange={() => setPaymentMethod('gopay')}
                   />
-                  <span className="font-medium">GoPay</span>
-                  <span className="text-xs text-muted-foreground">karta</span>
+                  <span className="text-sm font-medium">💳 Karta</span>
                 </label>
                 <label
-                  className={`flex flex-1 cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'wero' ? 'border-primary bg-primary/5' : ''}`}
+                  className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'bank_transfer' ? 'border-primary bg-primary/5' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="bank_transfer"
+                    checked={paymentMethod === 'bank_transfer'}
+                    onChange={() => setPaymentMethod('bank_transfer')}
+                  />
+                  <span className="text-sm font-medium">🏦 Převodem</span>
+                </label>
+                <label
+                  className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'wero' ? 'border-primary bg-primary/5' : ''}`}
                 >
                   <input
                     type="radio"
@@ -354,23 +374,83 @@ function CheckoutForm() {
                     checked={paymentMethod === 'wero'}
                     onChange={() => setPaymentMethod('wero')}
                   />
-                  <span className="font-medium">Wero</span>
-                  <span className="text-xs text-muted-foreground">SEPA Instant</span>
-                </label>
-                <label
-                  className={`flex flex-1 cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'przelewy24' ? 'border-primary bg-primary/5' : ''}`}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="przelewy24"
-                    checked={paymentMethod === 'przelewy24'}
-                    onChange={() => setPaymentMethod('przelewy24')}
-                  />
-                  <span className="font-medium">Przelewy24</span>
-                  <span className="text-xs text-muted-foreground">PL banky</span>
+                  <span className="text-sm font-medium">⚡ Wero</span>
                 </label>
               </div>
+
+              {/* Benefit karty (B2B) — toggle */}
+              <button
+                type="button"
+                onClick={() => setShowBenefitCards((v) => !v)}
+                className="mt-2 text-xs text-primary hover:underline"
+              >
+                {showBenefitCards ? '−' : '+'} Benefit karty (Pluxee, Sodexo, Benefit+, Edenred, Gallery Beta)
+              </button>
+
+              {showBenefitCards ? (
+                <div className="mt-2 grid grid-cols-2 gap-2 rounded-md border bg-muted/30 p-2 sm:grid-cols-3">
+                  <label
+                    className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-xs ${paymentMethod === 'pluxee' ? 'border-primary bg-primary/5' : 'bg-background'}`}
+                  >
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="pluxee"
+                      checked={paymentMethod === 'pluxee'}
+                      onChange={() => setPaymentMethod('pluxee')}
+                    />
+                    <span className="font-medium">Pluxee</span>
+                  </label>
+                  <label
+                    className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-xs ${paymentMethod === 'sodexo' ? 'border-primary bg-primary/5' : 'bg-background'}`}
+                  >
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="sodexo"
+                      checked={paymentMethod === 'sodexo'}
+                      onChange={() => setPaymentMethod('sodexo')}
+                    />
+                    <span className="font-medium">Sodexo</span>
+                  </label>
+                  <label
+                    className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-xs ${paymentMethod === 'benefit_plus' ? 'border-primary bg-primary/5' : 'bg-background'}`}
+                  >
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="benefit_plus"
+                      checked={paymentMethod === 'benefit_plus'}
+                      onChange={() => setPaymentMethod('benefit_plus')}
+                    />
+                    <span className="font-medium">Benefit Plus</span>
+                  </label>
+                  <label
+                    className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-xs ${paymentMethod === 'edenred' ? 'border-primary bg-primary/5' : 'bg-background'}`}
+                  >
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="edenred"
+                      checked={paymentMethod === 'edenred'}
+                      onChange={() => setPaymentMethod('edenred')}
+                    />
+                    <span className="font-medium">Edenred</span>
+                  </label>
+                  <label
+                    className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-xs ${paymentMethod === 'gallery_beta' ? 'border-primary bg-primary/5' : 'bg-background'}`}
+                  >
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="gallery_beta"
+                      checked={paymentMethod === 'gallery_beta'}
+                      onChange={() => setPaymentMethod('gallery_beta')}
+                    />
+                    <span className="font-medium">Gallery Beta</span>
+                  </label>
+                </div>
+              ) : null}
             </fieldset>
             {ageGate ? (
               <div className="space-y-3 rounded-md border border-amber-300 bg-amber-50 p-3">

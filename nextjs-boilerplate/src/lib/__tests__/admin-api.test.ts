@@ -1,28 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import api from '@/lib/api';
 import { adminApi } from '@/lib/admin-api';
-import type { AdminOrder, AdminOrdersResponse } from '@/types/admin';
 
 const mockedApi = api as unknown as { get: ReturnType<typeof vi.fn> };
-
-function makeOrder(overrides: Partial<AdminOrder>): AdminOrder {
-  return {
-    orderId: 'o-1',
-    orderNumber: 'ORD-2026-0001',
-    createdAt: '2026-04-01T10:00:00Z',
-    buyerName: 'Jan Novák',
-    buyerEmail: 'jan@example.com',
-    buyerPhone: null,
-    eventId: 'e-1',
-    eventName: 'Koncert',
-    totalHalire: 50000,
-    ticketCount: 2,
-    ticketSummary: '2× standard',
-    status: 'paid',
-    paidAt: '2026-04-01T10:01:00Z',
-    ...overrides,
-  };
-}
 
 beforeEach(() => {
   mockedApi.get.mockReset();
@@ -70,59 +50,49 @@ describe('adminApi.ordersExportUrl', () => {
 });
 
 describe('adminApi.customers', () => {
-  it('aggregates orders by buyer email', async () => {
-    const response: AdminOrdersResponse = {
-      items: [
-        makeOrder({ orderId: 'o-1', buyerEmail: 'a@x.cz', totalHalire: 10000, createdAt: '2026-01-01T00:00:00Z' }),
-        makeOrder({ orderId: 'o-2', buyerEmail: 'a@x.cz', totalHalire: 20000, createdAt: '2026-02-01T00:00:00Z' }),
-        makeOrder({ orderId: 'o-3', buyerEmail: 'b@x.cz', totalHalire: 5000, createdAt: '2026-03-01T00:00:00Z' }),
-      ],
-      total: 3,
-      totalRevenueHalire: 35000,
-      page: 1,
-      limit: 100,
-      totalPages: 1,
-    };
-    mockedApi.get.mockResolvedValueOnce({ data: response });
+  // Server-side agregace přes /api/admin/customers nahradila client-side reduce z orders pages.
+  // Endpoint vrací { customers: Array<{ email, name, phone, ordersCount, totalSpentHalire, lastOrderAt }> }.
+
+  it('mapuje server response na AdminCustomer[]', async () => {
+    mockedApi.get.mockResolvedValueOnce({
+      data: {
+        customers: [
+          {
+            email: 'a@x.cz',
+            name: 'Alice',
+            phone: '+420111111111',
+            ordersCount: 2,
+            totalSpentHalire: 30000,
+            lastOrderAt: '2026-02-01T00:00:00Z',
+          },
+          {
+            email: 'b@x.cz',
+            name: null,
+            phone: null,
+            ordersCount: 1,
+            totalSpentHalire: 5000,
+            lastOrderAt: '2026-03-01T00:00:00Z',
+          },
+        ],
+      },
+    });
 
     const customers = await adminApi.customers();
 
+    expect(mockedApi.get).toHaveBeenCalledWith('/api/admin/customers?limit=500');
     expect(customers).toHaveLength(2);
     const a = customers.find((c) => c.email === 'a@x.cz');
-    const b = customers.find((c) => c.email === 'b@x.cz');
     expect(a?.ordersCount).toBe(2);
     expect(a?.totalSpentHalire).toBe(30000);
     expect(a?.lastOrderAt).toBe('2026-02-01T00:00:00Z');
-    expect(b?.ordersCount).toBe(1);
-    // sorted descending by totalSpent
-    expect(customers[0]?.email).toBe('a@x.cz');
+    // null name fallback na email
+    const b = customers.find((c) => c.email === 'b@x.cz');
+    expect(b?.name).toBe('b@x.cz');
   });
 
-  it('paginates until totalPages reached', async () => {
-    mockedApi.get
-      .mockResolvedValueOnce({
-        data: {
-          items: [makeOrder({ orderId: 'p1', buyerEmail: 'a@x.cz' })],
-          total: 2,
-          totalRevenueHalire: 50000,
-          page: 1,
-          limit: 100,
-          totalPages: 2,
-        },
-      })
-      .mockResolvedValueOnce({
-        data: {
-          items: [makeOrder({ orderId: 'p2', buyerEmail: 'b@x.cz' })],
-          total: 2,
-          totalRevenueHalire: 50000,
-          page: 2,
-          limit: 100,
-          totalPages: 2,
-        },
-      });
-
+  it('vrátí prázdné pole když server nevrátí žádné zákazníky', async () => {
+    mockedApi.get.mockResolvedValueOnce({ data: { customers: [] } });
     const customers = await adminApi.customers();
-    expect(mockedApi.get).toHaveBeenCalledTimes(2);
-    expect(customers).toHaveLength(2);
+    expect(customers).toEqual([]);
   });
 });

@@ -67,7 +67,17 @@ const schema = z.object({
   // Volba platební metody. Defaultně 'gopay'. 'wero' = European A2A (#145),
   // 'przelewy24' = polský trh (#140). Všechny mají mock provider v demu.
   paymentMethod: z
-    .enum(['gopay', 'wero', 'przelewy24', 'bank_transfer'])
+    .enum([
+      'gopay',
+      'wero',
+      'przelewy24',
+      'bank_transfer',
+      'pluxee',
+      'sodexo',
+      'benefit_plus',
+      'edenred',
+      'gallery_beta',
+    ])
     .default('gopay'),
   // Add-ons (parking, camping, F&B credit, merch…) — Fáze C
   addons: z
@@ -852,10 +862,15 @@ export async function POST(req: NextRequest): Promise<Response> {
     // přepíšeme ho session.id po commitu transakce.
     const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
 
-    // Variabilní symbol pro bank_transfer (10 cifer, CZ bankovní standard)
+    // Variabilní symbol pro bank_transfer (10 cifer, CZ + SR bankovní standard).
+    // Formát: EEEEEENNNN — 6-digit event short ID + 4-digit per-event sequence.
+    // Promotér v bank statement vidí ke které akci platba patří.
     const variableSymbol =
       input.paymentMethod === 'bank_transfer'
-        ? String(Math.floor(Math.random() * 9_000_000_000) + 1_000_000_000)
+        ? await (async () => {
+            const { generateVariableSymbol } = await import('@/lib/payment/vs-generator');
+            return generateVariableSymbol(input.eventId, client);
+          })()
         : null;
 
     // Bank transfer má delší expiraci (3 dny) než instant gateway (15 min)
@@ -1083,19 +1098,50 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     await client.query('COMMIT');
 
-    // Po commitu: vytvoř payment session přes provider switcher (Stripe pokud
-    // STRIPE_SECRET_KEY je nastaven, jinak mock fallback se zachovaným URL patternem).
-    const { createPayment } = await import('@/lib/payment/provider');
+    // Po commitu: vytvoř payment session přes provider switcher.
+    // Benefit karty (Pluxee/Sodexo/Benefit Plus/Edenred/Gallery Beta) jdou přes vlastní lib.
     const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-    const paymentSession = await createPayment({
-      orderId,
-      amountHalire: totalAmount,
-      currency: tt.currency,
-      buyerEmail: input.buyerEmail,
-      description: `${tt.event_title} × ${input.quantity}`,
-      paymentMethod: input.paymentMethod,
-      appUrl,
-    });
+    const benefitProviders = new Set([
+      'pluxee',
+      'sodexo',
+      'benefit_plus',
+      'edenred',
+      'gallery_beta',
+    ]);
+    let paymentSession;
+
+    if (benefitProviders.has(input.paymentMethod)) {
+      const { createBenefitPayment } = await import('@/lib/payment/benefits');
+      // Sodexo používá Pluxee infrastrukturu (Pluxee koupil Sodexo Benefits v 2023)
+      const benefitProvider = (input.paymentMethod === 'sodexo' ? 'pluxee' : input.paymentMethod) as
+        | 'pluxee'
+        | 'benefit_plus'
+        | 'edenred'
+        | 'gallery_beta';
+      const benefitResult = await createBenefitPayment({
+        orderId,
+        amountHalire: totalAmount,
+        buyerEmail: input.buyerEmail,
+        provider: benefitProvider,
+        appUrl,
+      });
+      paymentSession = {
+        paymentId: benefitResult.externalId,
+        gatewayUrl: benefitResult.redirectUrl,
+        provider: input.paymentMethod,
+      };
+    } else {
+      const { createPayment } = await import('@/lib/payment/provider');
+      paymentSession = await createPayment({
+        orderId,
+        amountHalire: totalAmount,
+        currency: tt.currency,
+        buyerEmail: input.buyerEmail,
+        description: `${tt.event_title} × ${input.quantity}`,
+        paymentMethod: input.paymentMethod as 'gopay' | 'wero' | 'przelewy24' | 'bank_transfer',
+        appUrl,
+      });
+    }
 
     // Pokud Stripe → uložíme session.id do gopay_payment_id (sjednocený sloupec
     // pro payment provider reference). Mock provider zachoval placeholder paymentId.

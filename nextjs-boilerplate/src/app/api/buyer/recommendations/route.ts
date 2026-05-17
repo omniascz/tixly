@@ -35,6 +35,7 @@ interface Recommendation {
   promoter_name: string | null;
   promoter_slug: string | null;
   cheapest_price_halire: number | null;
+  recent_sales: number;
   score: number;
   reasons: string[];
 }
@@ -59,6 +60,7 @@ export async function GET(req: NextRequest): Promise<Response> {
        p.name AS promoter_name, p.slug AS promoter_slug,
        (SELECT MIN(tt.base_price) FROM catalog.ticket_types tt
         WHERE tt.event_id = e.id AND tt.remaining_qty > 0) AS cheapest_price_halire,
+       COALESCE(vel.recent_sales, 0)::int AS recent_sales,
        (CASE WHEN vel.recent_sales >= 5 THEN 10 ELSE 0 END) AS score,
        ARRAY[]::text[] AS reasons
      FROM catalog.events e

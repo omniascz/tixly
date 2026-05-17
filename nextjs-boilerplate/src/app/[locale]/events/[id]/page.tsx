@@ -13,6 +13,7 @@ import {
 } from './TicketPicker';
 import { LotteryCard } from './LotteryCard';
 import { Recommendations } from './Recommendations';
+import { ReportButton } from '@/components/public/ReportButton';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
@@ -394,6 +395,13 @@ export default async function EventDetailPage({
       </div>
     </div>
       <Recommendations eventId={event.id} locale={locale} />
+
+      <div className="mt-6 text-center">
+        <ReportButton
+          eventId={event.id}
+          locale={(locale === 'sk' || locale === 'en' ? locale : 'cs') as 'cs' | 'sk' | 'en'}
+        />
+      </div>
     </div>
   );
 }
