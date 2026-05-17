@@ -171,6 +171,14 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
           </form>
           <div className="mt-4 space-y-1 text-xs text-muted-foreground">
             <p>
+              <Link
+                href={`/${params.locale}/forgot-password`}
+                className="text-primary hover:underline"
+              >
+                Zapomenuté heslo?
+              </Link>
+            </p>
+            <p>
               Nemáš účet?{' '}
               <Link
                 href={`/${params.locale}/register`}
