@@ -1,0 +1,93 @@
+name: Database backup to S3
+
+# Týdenní zálohy Postgres → AWS S3 (defense-in-depth k Neon PITR).
+# Spouští se ne 4 ráno UTC (5 SELČ / 6 SELČL). Plus manuální trigger.
+#
+# Setup secrets (Settings → Secrets → Actions):
+#   DATABASE_URL              — postgres://... (s sslmode=require)
+#   AWS_ACCESS_KEY_ID
+#   AWS_SECRET_ACCESS_KEY
+#   AWS_S3_BUCKET            — např. tixly-backups
+#   AWS_REGION               — např. eu-central-1
+#   BACKUP_ENCRYPTION_KEY    — openssl rand -base64 32  (pro symetrickou enkrypci dumpu)
+#
+# Retention: bucket lifecycle policy s 90-day Glacier transition + 365-day expiry.
+
+on:
+  schedule:
+    - cron: "0 4 * * 0"   # každou neděli 4:00 UTC
+  workflow_dispatch:       # manuální spuštění z GH UI
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Install PostgreSQL client + AWS CLI
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-client awscli openssl
+
+      - name: Verify connection
+        env:
+          PGURL: ${{ secrets.DATABASE_URL }}
+        run: |
+          psql "$PGURL" -c "SELECT version();" >/dev/null
+
+      - name: Dump database
+        env:
+          PGURL: ${{ secrets.DATABASE_URL }}
+        run: |
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H-%M-%SZ)
+          mkdir -p backups
+          pg_dump --format=custom --compress=9 --no-owner --no-privileges \
+            --file=backups/tixly-$TIMESTAMP.dump \
+            "$PGURL"
+          ls -lh backups/
+
+      - name: Encrypt dump (AES-256)
+        env:
+          KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+        run: |
+          cd backups
+          for f in *.dump; do
+            openssl enc -aes-256-cbc -salt -pbkdf2 \
+              -in "$f" -out "$f.enc" -pass "pass:$KEY"
+            rm "$f"
+          done
+          ls -lh
+
+      - name: Upload to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+        run: |
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H-%M-%SZ)
+          aws s3 cp backups/ s3://$AWS_S3_BUCKET/postgres/$TIMESTAMP/ \
+            --recursive \
+            --storage-class STANDARD_IA
+
+      - name: Smoke test (decrypt + verify)
+        env:
+          KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+        run: |
+          cd backups
+          for f in *.dump.enc; do
+            openssl enc -d -aes-256-cbc -pbkdf2 \
+              -in "$f" -out "${f%.enc}" -pass "pass:$KEY"
+            pg_restore --list "${f%.enc}" | head -20
+            echo "✓ Backup $f looks valid"
+          done
+
+      - name: Notify Slack (on failure)
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: '⚠️ Tixly DB backup failed. Check Actions log.'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
