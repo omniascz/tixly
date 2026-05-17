@@ -5,6 +5,11 @@
  * Demo (stub): query parsing s intent extraction (when, where, price, audience, vibe)
  * + structured filtering nad existing eventy. Pak content scoring.
  *
+ * Pg_trgm: po migraci 270 fuzzy match přes trigram similarity nad
+ *   catalog.events.title/description, catalog.venues.name/city,
+ *   platform.promoters.name. Typo tolerance ~ 0.3 default threshold,
+ *   ILIKE fallback zůstává.
+ *
  * Pro plnou production: nastavit `pgvector` extension a embeddings cron.
  */
 
@@ -94,10 +99,14 @@ const DATE_RX: Record<string, RegExp> = {
 const PRICE_RX = /\b(?:do|under|max(?:imálně)?)\s*(\d{2,5})\s*(?:Kč|czk|eur|€)?/i;
 
 const CITIES: Record<string, RegExp> = {
-  Prague: /\b(praha|prague)/i,
-  Brno: /\bbrno\b/i,
-  Ostrava: /\bostrava\b/i,
-  Plzeň: /\bplz[eě]ň\b/i,
+  // Czech: Praha / Prahy / Prahu / Praho / Praze / Prahou
+  Prague: /\b(prah[ayuo]|prahou|praze|prague)/i,
+  // Brno / Brna / Brnu / Brně
+  Brno: /\b(brn[aou]|brně)/i,
+  // Ostrava / Ostravy / Ostravě / Ostravou
+  Ostrava: /\b(ostrav[aey]|ostravě|ostravou)/i,
+  // Plzeň / Plzně / Plzni
+  Plzeň: /\b(plz[eě]ň|plzni|plzně)/i,
 };
 
 export function parseIntent(raw: string): ParsedIntent {
@@ -241,7 +250,31 @@ export async function semanticSearch(query: SearchQuery, limit = 20): Promise<{
     conditions.push(`e.ai_tags && $${args.length}::text[]`);
   }
 
-  const r = await db().query<{
+  // Trigram fuzzy match nad keywords — typo tolerance přes pg_trgm.
+  // Když keywords[0..2] mají alespoň 3 znaky, vytvořit OR clauses,
+  // které matchují jak exact substring (ILIKE) tak trigram similarity (%).
+  // Když DB ještě nemá pg_trgm (migrace 270), padne na ILIKE only.
+  let trgmKeyword: string | null = null;
+  if (intent.keywords.length > 0) {
+    trgmKeyword = intent.keywords.slice(0, 3).join(' ');
+    args.push(trgmKeyword);
+    const $idx = args.length;
+    conditions.push(`(
+      e.title ILIKE '%' || $${$idx} || '%'
+      OR e.description ILIKE '%' || $${$idx} || '%'
+      OR e.title % $${$idx}
+      OR v.name % $${$idx}
+      OR v.city % $${$idx}
+    )`);
+  }
+
+  // Order: pokud máme keyword, řadit podle title similarity desc, jinak chronologicky
+  const orderBy = trgmKeyword
+    ? `GREATEST(similarity(e.title, $${args.length}), similarity(COALESCE(v.name, ''), $${args.length})) DESC,
+       e.date_start ASC`
+    : `e.date_start ASC`;
+
+  let rows: Array<{
     id: string;
     title: string;
     description: string | null;
@@ -251,19 +284,61 @@ export async function semanticSearch(query: SearchQuery, limit = 20): Promise<{
     min_price: string | null;
     currency: string;
     ai_tags: string[];
-  }>(
-    `SELECT e.id, e.title, e.description, e.date_start, e.category,
-            v.name AS venue_name,
-            (SELECT MIN(base_price)::text FROM catalog.ticket_types WHERE event_id = e.id) AS min_price,
-            e.currency,
-            COALESCE(e.ai_tags, '{}') AS ai_tags
-     FROM catalog.events e
-     LEFT JOIN catalog.venues v ON v.id = e.venue_id
-     WHERE ${conditions.join(' AND ')}
-     ORDER BY e.date_start ASC
-     LIMIT 200`,
-    args,
-  );
+  }>;
+  try {
+    const r = await db().query<{
+      id: string;
+      title: string;
+      description: string | null;
+      date_start: string;
+      category: string;
+      venue_name: string | null;
+      min_price: string | null;
+      currency: string;
+      ai_tags: string[];
+    }>(
+      `SELECT e.id, e.title, e.description, e.date_start, e.category,
+              v.name AS venue_name,
+              (SELECT MIN(base_price)::text FROM catalog.ticket_types WHERE event_id = e.id) AS min_price,
+              e.currency,
+              COALESCE(e.ai_tags, '{}') AS ai_tags
+       FROM catalog.events e
+       LEFT JOIN catalog.venues v ON v.id = e.venue_id
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY ${orderBy}
+       LIMIT 200`,
+      args,
+    );
+    rows = r.rows;
+  } catch (err) {
+    // Pre-migrace 270 fallback — pg_trgm operátor `%` ještě neexistuje.
+    // Re-run bez trigram conditions, jen ILIKE.
+    if (
+      err instanceof Error &&
+      /operator does not exist.*% text/.test(err.message)
+    ) {
+      const fallbackConditions = conditions.filter(
+        (c) => !c.includes('e.title %') && !c.includes('v.name %') && !c.includes('v.city %'),
+      );
+      const r2 = await db().query(
+        `SELECT e.id, e.title, e.description, e.date_start, e.category,
+                v.name AS venue_name,
+                (SELECT MIN(base_price)::text FROM catalog.ticket_types WHERE event_id = e.id) AS min_price,
+                e.currency,
+                COALESCE(e.ai_tags, '{}') AS ai_tags
+         FROM catalog.events e
+         LEFT JOIN catalog.venues v ON v.id = e.venue_id
+         WHERE ${fallbackConditions.join(' AND ')}
+         ORDER BY e.date_start ASC
+         LIMIT 200`,
+        args,
+      );
+      rows = r2.rows as typeof rows;
+    } else {
+      throw err;
+    }
+  }
+  const r = { rows };
 
   // Score each event vs query keywords + intent
   const results: SearchResult[] = [];
