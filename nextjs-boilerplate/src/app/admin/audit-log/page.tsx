@@ -63,6 +63,7 @@ export default function AuditLogPage() {
   // Filtry
   const [actionFilter, setActionFilter] = useState<'' | 'INSERT' | 'UPDATE' | 'DELETE'>('');
   const [tableFilter, setTableFilter] = useState('');
+  const [actorTypeFilter, setActorTypeFilter] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
@@ -70,17 +71,40 @@ export default function AuditLogPage() {
     void load();
   }, []);
 
-  async function load() {
-    setBusy(true);
+  function buildParams(): URLSearchParams {
     const params = new URLSearchParams();
     if (actionFilter) params.set('action', actionFilter);
     if (tableFilter) params.set('table', tableFilter);
+    if (actorTypeFilter) params.set('actorType', actorTypeFilter);
     if (fromDate) params.set('from', new Date(fromDate).toISOString());
     if (toDate) {
       const t = new Date(toDate);
       t.setDate(t.getDate() + 1);
       params.set('to', t.toISOString());
     }
+    return params;
+  }
+
+  function downloadCsv(): void {
+    const params = buildParams();
+    params.set('format', 'csv');
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    void fetch(`/api/admin/audit-log?${params.toString()}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
+      .then((r) => r.blob())
+      .then((blob) => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `audit-log-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
+  }
+
+  async function load() {
+    setBusy(true);
+    const params = buildParams();
     params.set('limit', '200');
     try {
       const res = await authFetch(`/api/admin/audit-log?${params.toString()}`);
@@ -137,7 +161,7 @@ export default function AuditLogPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
             <div>
               <label className="mb-1 block text-xs font-medium">Akce</label>
               <select
@@ -149,6 +173,20 @@ export default function AuditLogPage() {
                 <option value="INSERT">Vytvoření</option>
                 <option value="UPDATE">Úprava</option>
                 <option value="DELETE">Smazání</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium">Aktér</label>
+              <select
+                value={actorTypeFilter}
+                onChange={(e) => setActorTypeFilter(e.target.value)}
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Všichni</option>
+                <option value="user">Člověk</option>
+                <option value="system">Systém</option>
+                <option value="api">API</option>
+                <option value="cron">Cron</option>
               </select>
             </div>
             <div>
@@ -179,9 +217,14 @@ export default function AuditLogPage() {
               <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
             </div>
           </div>
-          <Button onClick={load} disabled={busy} size="sm" className="mt-3">
-            {busy ? 'Načítám…' : 'Aplikovat filtry'}
-          </Button>
+          <div className="mt-3 flex gap-2">
+            <Button onClick={load} disabled={busy} size="sm">
+              {busy ? 'Načítám…' : 'Aplikovat filtry'}
+            </Button>
+            <Button onClick={downloadCsv} disabled={busy} size="sm" variant="outline">
+              Export CSV
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

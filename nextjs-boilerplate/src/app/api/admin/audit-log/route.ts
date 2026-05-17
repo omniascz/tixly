@@ -2,9 +2,11 @@
  * GET /api/admin/audit-log — promotérův audit (kdo z týmu co udělal)
  *
  * Filtruje `audit.audit_log` na actor_id ∈ promoter_members tohoto promotéra.
- * Filtry: ?action, ?table, ?from, ?to, ?actorId, ?limit (max 200), ?offset
+ * Filtry: ?action, ?table, ?from, ?to, ?actorId, ?actorType,
+ *         ?limit (max 200), ?offset, ?format=csv
  *
- * Vrací JSON list + email actora pro UI.
+ * format=csv vrací text/csv stream místo JSON (limit ignorován,
+ * max export 5000 řádků).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -43,7 +45,12 @@ export async function GET(req: NextRequest): Promise<Response> {
   const from = url.searchParams.get('from');
   const to = url.searchParams.get('to');
   const actorId = url.searchParams.get('actorId');
-  const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') ?? '100', 10)));
+  const actorType = url.searchParams.get('actorType');
+  const format = url.searchParams.get('format');
+  const isCsv = format === 'csv';
+  const limit = isCsv
+    ? 5000
+    : Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') ?? '100', 10)));
   const offset = Math.max(0, parseInt(url.searchParams.get('offset') ?? '0', 10));
 
   const wheres: string[] = [
@@ -73,6 +80,10 @@ export async function GET(req: NextRequest): Promise<Response> {
     args.push(actorId);
     wheres.push(`al.actor_id = $${p++}`);
   }
+  if (actorType && ['user', 'system', 'api', 'cron'].includes(actorType)) {
+    args.push(actorType);
+    wheres.push(`al.actor_type = $${p++}`);
+  }
 
   args.push(limit, offset);
   const limitOffsetPart = `LIMIT $${p++} OFFSET $${p++}`;
@@ -88,6 +99,44 @@ export async function GET(req: NextRequest): Promise<Response> {
      ${limitOffsetPart}`,
     args,
   );
+
+  if (isCsv) {
+    const header = [
+      'created_at',
+      'action',
+      'schema',
+      'table',
+      'record_id',
+      'actor_email',
+      'actor_name',
+      'actor_type',
+      'ip_address',
+    ];
+    const lines = [header.join(',')];
+    for (const row of r.rows) {
+      lines.push(
+        [
+          row.created_at,
+          row.action,
+          row.schema_name,
+          row.table_name,
+          row.record_id,
+          row.actor_email ?? '',
+          row.actor_name ?? '',
+          row.actor_type,
+          row.ip_address ?? '',
+        ]
+          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+          .join(','),
+      );
+    }
+    return new Response(lines.join('\n'), {
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename="audit-log-${new Date().toISOString().slice(0, 10)}.csv"`,
+      },
+    });
+  }
 
   // Distinct tables / actions pro filter dropdown
   const meta = await db().query<{ table_name: string; cnt: string }>(

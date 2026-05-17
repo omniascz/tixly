@@ -2,7 +2,10 @@
  * GET /api/platform/audit-log
  *
  * Master admin endpoint — DSA legal trail moderation rozhodnutí.
- * Filtry: ?eventId, ?actorType, ?decision, ?from, ?to, ?limit (max 200), ?offset.
+ * Filtry: ?eventId, ?actorType, ?decision, ?from, ?to,
+ *         ?limit (max 200), ?offset, ?format=csv.
+ *
+ * format=csv vrací text/csv stream místo JSON (max export 5000 řádků).
  *
  * Auth: middleware vyžaduje platform admin (verify v requirePlatformAdmin).
  */
@@ -42,7 +45,11 @@ export async function GET(req: NextRequest): Promise<Response> {
   const decision = url.searchParams.get('decision');
   const from = url.searchParams.get('from');
   const to = url.searchParams.get('to');
-  const limit = Math.min(200, parseInt(url.searchParams.get('limit') ?? '100', 10));
+  const format = url.searchParams.get('format');
+  const isCsv = format === 'csv';
+  const limit = isCsv
+    ? 5000
+    : Math.min(200, parseInt(url.searchParams.get('limit') ?? '100', 10));
   const offset = Math.max(0, parseInt(url.searchParams.get('offset') ?? '0', 10));
 
   const wheres: string[] = [];
@@ -95,6 +102,42 @@ export async function GET(req: NextRequest): Promise<Response> {
      LIMIT $${i++} OFFSET $${i++}`,
     params,
   );
+
+  if (isCsv) {
+    const header = [
+      'created_at',
+      'event_id',
+      'event_title',
+      'actor_email',
+      'actor_type',
+      'decision',
+      'reason',
+      'ai_score',
+    ];
+    const lines = [header.join(',')];
+    for (const row of r.rows) {
+      lines.push(
+        [
+          row.created_at,
+          row.event_id,
+          row.event_title ?? '',
+          row.actor_email ?? '',
+          row.actor_type,
+          row.decision,
+          row.reason ?? '',
+          row.ai_score ?? '',
+        ]
+          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+          .join(','),
+      );
+    }
+    return new Response(lines.join('\n'), {
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename="moderation-log-${new Date().toISOString().slice(0, 10)}.csv"`,
+      },
+    });
+  }
 
   const totalRes = await db().query<{ total: string }>(
     `SELECT COUNT(*)::text AS total FROM audit.event_moderation_log l ${whereClause}`,

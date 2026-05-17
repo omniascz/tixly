@@ -98,7 +98,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   const ext = EXT_BY_TYPE[file.type] ?? 'bin';
   const rand = Math.random().toString(36).slice(2, 10);
-  const pathname = `events/${promoter.id}/cover-${Date.now()}-${rand}.${ext}`;
+  const pathname = `events/${promoter.promoterId}/cover-${Date.now()}-${rand}.${ext}`;
 
   try {
     const result = await blob.put(pathname, file, {

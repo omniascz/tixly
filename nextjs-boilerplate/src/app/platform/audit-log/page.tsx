@@ -29,20 +29,37 @@ const ACTOR_TONE: Record<string, string> = {
   human: 'bg-blue-100 text-blue-800',
 };
 
+const PAGE_SIZE = 50;
+
 export default function AuditLogPage() {
   const [items, setItems] = useState<LogItem[]>([]);
   const [total, setTotal] = useState(0);
   const [decision, setDecision] = useState('');
   const [actorType, setActorType] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  function buildParams(): URLSearchParams {
+    const params = new URLSearchParams();
+    if (decision) params.set('decision', decision);
+    if (actorType) params.set('actorType', actorType);
+    if (fromDate) params.set('from', new Date(fromDate).toISOString());
+    if (toDate) {
+      const t = new Date(toDate);
+      t.setDate(t.getDate() + 1);
+      params.set('to', t.toISOString());
+    }
+    return params;
+  }
 
   async function load() {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (decision) params.set('decision', decision);
-      if (actorType) params.set('actorType', actorType);
-      params.set('limit', '50');
+      const params = buildParams();
+      params.set('limit', String(PAGE_SIZE));
+      params.set('offset', String(offset));
       const token = localStorage.getItem('accessToken');
       const r = await fetch(`/api/platform/audit-log?${params.toString()}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -57,9 +74,31 @@ export default function AuditLogPage() {
     }
   }
 
+  function downloadCsv(): void {
+    const params = buildParams();
+    params.set('format', 'csv');
+    const token = localStorage.getItem('accessToken');
+    void fetch(`/api/platform/audit-log?${params.toString()}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((r) => r.blob())
+      .then((blob) => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `moderation-log-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
+  }
+
   useEffect(() => {
     void load();
-  }, [decision, actorType]);
+  }, [decision, actorType, fromDate, toDate, offset]);
+
+  // Reset offset když změním filtr
+  useEffect(() => {
+    setOffset(0);
+  }, [decision, actorType, fromDate, toDate]);
 
   return (
     <div className="space-y-6">
@@ -70,7 +109,7 @@ export default function AuditLogPage() {
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-3 rounded-md border bg-card p-3">
+      <div className="flex flex-wrap items-end gap-3 rounded-md border bg-card p-3">
         <div>
           <label className="mb-1 block text-xs font-medium">Rozhodnutí</label>
           <select
@@ -98,10 +137,59 @@ export default function AuditLogPage() {
             <option value="human">Human</option>
           </select>
         </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium">Od</label>
+          <input
+            type="date"
+            className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium">Do</label>
+          <input
+            type="date"
+            className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={downloadCsv}
+          className="h-9 rounded-md border border-input bg-background px-3 text-sm hover:bg-muted"
+        >
+          Export CSV
+        </button>
         <div className="ml-auto self-end text-xs text-muted-foreground">
           {loading ? 'Načítám…' : `Záznamů: ${total}`}
         </div>
       </div>
+
+      {total > PAGE_SIZE ? (
+        <div className="flex items-center justify-end gap-2 text-sm">
+          <button
+            type="button"
+            onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
+            disabled={offset === 0 || loading}
+            className="rounded-md border px-3 py-1 disabled:opacity-50"
+          >
+            ← Předchozí
+          </button>
+          <span className="text-xs text-muted-foreground">
+            {offset + 1}–{Math.min(offset + PAGE_SIZE, total)} z {total}
+          </span>
+          <button
+            type="button"
+            onClick={() => setOffset(offset + PAGE_SIZE)}
+            disabled={offset + PAGE_SIZE >= total || loading}
+            className="rounded-md border px-3 py-1 disabled:opacity-50"
+          >
+            Další →
+          </button>
+        </div>
+      ) : null}
 
       <div className="rounded-md border bg-card">
         {items.length === 0 ? (
