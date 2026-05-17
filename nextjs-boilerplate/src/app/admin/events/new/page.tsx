@@ -25,6 +25,7 @@ import {
   type TemplateId,
   type EventTemplate,
 } from '@/lib/events/templates';
+import { CoverImageUpload } from '@/components/admin/CoverImageUpload';
 
 interface Venue {
   id: string;
@@ -1140,30 +1141,13 @@ export default function NewEventWizardPage() {
           ) : null}
 
           {currentStep.id === 'marketing' ? (
-            <>
-              <div>
-                <label className="mb-1 block text-xs font-medium">Cover image URL</label>
-                <Input
-                  type="url"
-                  value={form.coverImageUrl}
-                  onChange={(e) => update('coverImageUrl', e.target.value)}
-                  placeholder="https://..."
-                />
-              </div>
-              {form.coverImageUrl ? (
-                <div className="overflow-hidden rounded-md border">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={form.coverImageUrl}
-                    alt="cover preview"
-                    className="h-48 w-full object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                </div>
-              ) : null}
-            </>
+            <div>
+              <label className="mb-1 block text-xs font-medium">Cover image</label>
+              <CoverImageUpload
+                value={form.coverImageUrl}
+                onChange={(url) => update('coverImageUrl', url)}
+              />
+            </div>
           ) : null}
 
           {currentStep.id === 'rules' ? (
