@@ -96,7 +96,8 @@
       "WebFetch(domain:pretix.eu)",
       "WebFetch(domain:docs.pretix.eu)",
       "WebFetch(domain:smsticket.cz)",
-      "WebFetch(domain:query.wikidata.org)"
+      "WebFetch(domain:query.wikidata.org)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\omnia\\\\Documents\\\\tixly\" -File | Where-Object { $_.Name -match '\\\\.\\(md|txt\\)$' } | Sort-Object LastWriteTime -Descending | Select-Object Name, LastWriteTime -First 40 | Format-Table -AutoSize)"
     ]
   }
 }
