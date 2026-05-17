@@ -29,8 +29,10 @@ const createSchema = z.object({
       all_buyers: z.boolean().optional(),
       min_orders: z.number().int().min(1).optional(),
       max_orders: z.number().int().min(1).optional(),
-      city: z.string().optional(),
+      city: z.string().max(100).optional(),
       event_attended: z.string().uuid().optional(),
+      event_tag: z.string().max(40).optional(),
+      min_total_spend_halire: z.number().int().min(1).optional(),
       last_order_within_days: z.number().int().min(1).optional(),
       last_order_older_than_days: z.number().int().min(1).optional(),
     })
@@ -104,20 +106,67 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
   const input = parsed.data;
 
-  // Estimate recipient count pomocí segment matching (preview)
+  // Estimate recipient count pomocí segment matching (preview).
+  // Multi-dimenzionální segmentace s parametrizovanými inputs (no injection).
   let recipientCount = 0;
   try {
+    const s = input.segment;
+    const args: unknown[] = [promoter.promoterId];
+    const conds: string[] = ['e.promoter_id = $1', `o.status = 'paid'`];
+    let p = 2;
+
+    if (s.last_order_older_than_days) {
+      conds.push(`o.paid_at < NOW() - ($${p++} || ' days')::interval`);
+      args.push(String(s.last_order_older_than_days));
+    }
+    if (s.last_order_within_days) {
+      conds.push(`o.paid_at > NOW() - ($${p++} || ' days')::interval`);
+      args.push(String(s.last_order_within_days));
+    }
+    if (s.city) {
+      conds.push(`v.city ILIKE $${p++}`);
+      args.push(s.city);
+    }
+    if (s.event_attended) {
+      conds.push(`o.event_id = $${p++}`);
+      args.push(s.event_attended);
+    }
+    if (s.event_tag) {
+      conds.push(`e.ai_tags && ARRAY[$${p++}]::text[]`);
+      args.push(s.event_tag);
+    }
+
+    const havings: string[] = [];
+    let hp = p;
+    if (s.min_orders) {
+      havings.push(`COUNT(DISTINCT o.id) >= $${hp++}`);
+      args.push(s.min_orders);
+    }
+    if (s.max_orders) {
+      havings.push(`COUNT(DISTINCT o.id) <= $${hp++}`);
+      args.push(s.max_orders);
+    }
+    if (s.min_total_spend_halire) {
+      havings.push(`COALESCE(SUM(o.total_halire), 0) >= $${hp++}`);
+      args.push(s.min_total_spend_halire);
+    }
+    const havingClause = havings.length > 0 ? `HAVING ${havings.join(' AND ')}` : '';
+
     const countRes = await db().query<{ count: string }>(
-      `SELECT COUNT(DISTINCT o.user_id)::text AS count
-       FROM orders.orders o
-       JOIN catalog.events e ON e.id = o.event_id
-       WHERE e.promoter_id = $1 AND o.status = 'paid'
-         ${input.segment.last_order_older_than_days ? `AND o.paid_at < NOW() - INTERVAL '${Number(input.segment.last_order_older_than_days)} days'` : ''}
-         ${input.segment.last_order_within_days ? `AND o.paid_at > NOW() - INTERVAL '${Number(input.segment.last_order_within_days)} days'` : ''}`,
-      [promoter.promoterId],
+      `SELECT COUNT(*)::text AS count FROM (
+         SELECT o.user_id
+         FROM orders.orders o
+         JOIN catalog.events e ON e.id = o.event_id
+         LEFT JOIN catalog.venues v ON v.id = e.venue_id
+         WHERE ${conds.join(' AND ')}
+         GROUP BY o.user_id
+         ${havingClause}
+       ) sub`,
+      args,
     );
     recipientCount = Number(countRes.rows[0]?.count ?? 0);
-  } catch {
+  } catch (err) {
+    console.error('[campaigns segment count]', err);
     recipientCount = 0;
   }
 

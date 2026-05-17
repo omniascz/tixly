@@ -60,6 +60,11 @@ export default function CampaignsPage() {
   const [utmCampaign, setUtmCampaign] = useState('');
   const [segmentAllBuyers, setSegmentAllBuyers] = useState(true);
   const [segmentLastOrderDays, setSegmentLastOrderDays] = useState('');
+  const [segmentLastOrderWithin, setSegmentLastOrderWithin] = useState('');
+  const [segmentCity, setSegmentCity] = useState('');
+  const [segmentMinOrders, setSegmentMinOrders] = useState('');
+  const [segmentMinSpend, setSegmentMinSpend] = useState(''); // in Kč
+  const [segmentEventTag, setSegmentEventTag] = useState('');
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [scheduleMode, setScheduleMode] = useState<'now' | 'manual' | 'smart'>('now');
@@ -107,6 +112,21 @@ export default function CampaignsPage() {
       if (segmentAllBuyers) segment.all_buyers = true;
       if (segmentLastOrderDays.trim()) {
         segment.last_order_older_than_days = Number(segmentLastOrderDays);
+      }
+      if (segmentLastOrderWithin.trim()) {
+        segment.last_order_within_days = Number(segmentLastOrderWithin);
+      }
+      if (segmentCity.trim()) {
+        segment.city = segmentCity.trim();
+      }
+      if (segmentMinOrders.trim()) {
+        segment.min_orders = Number(segmentMinOrders);
+      }
+      if (segmentMinSpend.trim()) {
+        segment.min_total_spend_halire = Number(segmentMinSpend) * 100;
+      }
+      if (segmentEventTag.trim()) {
+        segment.event_tag = segmentEventTag.trim();
       }
 
       let resolvedScheduledAt: string | undefined;
@@ -236,20 +256,78 @@ export default function CampaignsPage() {
                   checked={segmentAllBuyers}
                   onChange={(e) => setSegmentAllBuyers(e.target.checked)}
                 />
-                Všichni moji kupci
+                Začni se všemi mými kupci a dále filtruj níže
               </label>
-              <div className="mt-2">
-                <label className="mb-1 block text-xs">
-                  Poslední nákup před X dny (re-engagement)
-                </label>
-                <Input
-                  type="number"
-                  placeholder="např. 90 (kdo nekoupil 90+ dní)"
-                  value={segmentLastOrderDays}
-                  onChange={(e) => setSegmentLastOrderDays(e.target.value)}
-                  className="max-w-48"
-                />
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-xs">
+                    Poslední nákup PŘED X dny (re-engagement spáčů)
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="např. 90"
+                    value={segmentLastOrderDays}
+                    onChange={(e) => setSegmentLastOrderDays(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs">
+                    Poslední nákup DO X dnů (aktivní fanoušci)
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="např. 30"
+                    value={segmentLastOrderWithin}
+                    onChange={(e) => setSegmentLastOrderWithin(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs">
+                    Město venue (kde byl kupec)
+                  </label>
+                  <Input
+                    placeholder="např. Praha"
+                    value={segmentCity}
+                    onChange={(e) => setSegmentCity(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs">
+                    Minimum objednávek od kupce
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="např. 3 (loyal customer)"
+                    value={segmentMinOrders}
+                    onChange={(e) => setSegmentMinOrders(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs">
+                    Minimum celkové útraty (Kč)
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="např. 5000"
+                    value={segmentMinSpend}
+                    onChange={(e) => setSegmentMinSpend(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs">
+                    AI tag akce (genre / audience / vibe)
+                  </label>
+                  <Input
+                    placeholder="např. jazz, family, rock"
+                    value={segmentEventTag}
+                    onChange={(e) => setSegmentEventTag(e.target.value)}
+                  />
+                </div>
               </div>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Kombinace dimenzí filtruje AND. Aktivní filtry se sečtou — kupec
+                musí splňovat všechny.
+              </p>
             </div>
 
             <div className="rounded-md border bg-muted/30 p-3">
