@@ -36,11 +36,15 @@
     { "path": "/api/cron/dispatch?job=send-reminders", "schedule": "*/15 * * * *" },
     { "path": "/api/cron/dispatch?job=abandoned-cart", "schedule": "0 */6 * * *" },
     { "path": "/api/cron/dispatch?job=waitlist-notify", "schedule": "*/30 * * * *" },
+    { "path": "/api/cron/dispatch?job=bank-sync-fio", "schedule": "0 */2 * * *" },
     { "path": "/api/cron/dispatch?job=charge-installments", "schedule": "0 3 * * *" },
     { "path": "/api/cron/dispatch?job=renew-subscriptions", "schedule": "0 4 * * *" },
     { "path": "/api/cron/dispatch?job=daily-stats", "schedule": "0 6 * * *" },
     { "path": "/api/cron/dispatch?job=onboarding-reminder", "schedule": "0 9 * * *" },
     { "path": "/api/cron/dispatch?job=process-gdpr-deletions", "schedule": "0 2 * * *" },
-    { "path": "/api/cron/dispatch?job=anomaly-detect", "schedule": "0 * * * *" }
+    { "path": "/api/cron/dispatch?job=anomaly-detect", "schedule": "0 * * * *" },
+    { "path": "/api/cron/dispatch?job=release-rolling-reserves", "schedule": "0 5 * * *" },
+    { "path": "/api/cron/dispatch?job=promoter-tier-evaluate", "schedule": "0 1 1 * *" },
+    { "path": "/api/cron/dispatch?job=payouts-auto-settle", "schedule": "0 7 * * 1" }
   ]
 }
