@@ -1,11 +1,12 @@
 'use client';
 
 import { FormEvent, useEffect, useState, useCallback } from 'react';
-import { CheckCircle2, XCircle, AlertTriangle, ScanLine, Settings2, Wifi, WifiOff } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, ScanLine, Settings2, Wifi, WifiOff, Camera } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { QrScannerCamera } from '@/components/admin/QrScannerCamera';
 import {
   enqueueScan,
   flushQueue,
@@ -85,6 +86,7 @@ export default function ScannerPage() {
     }
     setTicketId(trimmed);
   }
+  const [cameraOpen, setCameraOpen] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState<GateEvent[]>([]);
@@ -442,15 +444,27 @@ export default function ScannerPage() {
                     {'tixly:<id>:<code>'}
                   </code>
                 </label>
-                <Input
-                  value={ticketId}
-                  onChange={(e) => setTicketIdSmart(e.target.value)}
-                  placeholder="8a4f7b2e-... nebo tixly:8a4f...:123456"
-                  required
-                  pattern="[0-9a-fA-F-]{36}"
-                  autoFocus
-                  data-testid="scanner-ticket-input"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    value={ticketId}
+                    onChange={(e) => setTicketIdSmart(e.target.value)}
+                    placeholder="8a4f7b2e-... nebo tixly:8a4f...:123456"
+                    required
+                    pattern="[0-9a-fA-F-]{36}"
+                    autoFocus
+                    data-testid="scanner-ticket-input"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCameraOpen(true)}
+                    title="Otevřít kameru pro sken QR"
+                    data-testid="scanner-open-camera"
+                  >
+                    <Camera className="h-4 w-4" aria-hidden />
+                  </Button>
+                </div>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium">
@@ -515,6 +529,15 @@ export default function ScannerPage() {
           <CardContent>{renderResult(result)}</CardContent>
         </Card>
       </div>
+
+      <QrScannerCamera
+        open={cameraOpen}
+        onDetected={(raw) => {
+          setTicketIdSmart(raw);
+          setCameraOpen(false);
+        }}
+        onClose={() => setCameraOpen(false)}
+      />
     </div>
   );
 }
