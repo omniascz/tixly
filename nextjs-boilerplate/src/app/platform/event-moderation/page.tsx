@@ -4,6 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCzechDate } from '@/lib/format';
 
+function authFetch(url: string, init?: RequestInit): Promise<Response> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  return fetch(url, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+  });
+}
+
 interface QueueItem {
   id: string;
   title: string;
@@ -25,7 +37,7 @@ export default function EventModerationPage() {
 
   async function load(): Promise<void> {
     try {
-      const res = await fetch('/api/platform/moderation/queue');
+      const res = await authFetch('/api/platform/moderation/queue');
       if (!res.ok) throw new Error(`${res.status}`);
       const data = await res.json();
       setItems(data.items);
@@ -42,7 +54,7 @@ export default function EventModerationPage() {
     setBusyId(id);
     setError(null);
     try {
-      const res = await fetch(`/api/platform/moderation/${id}/approve`, {
+      const res = await authFetch(`/api/platform/moderation/${id}/approve`, {
         method: 'POST',
       });
       if (!res.ok) throw new Error(`${res.status}`);
@@ -60,7 +72,7 @@ export default function EventModerationPage() {
     setBusyId(id);
     setError(null);
     try {
-      const res = await fetch(`/api/platform/moderation/${id}/reject`, {
+      const res = await authFetch(`/api/platform/moderation/${id}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: reason.trim() }),

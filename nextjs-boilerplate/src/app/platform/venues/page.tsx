@@ -6,6 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
+function authFetch(url: string, init?: RequestInit): Promise<Response> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  return fetch(url, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+  });
+}
+
 interface VenueRow {
   id: string;
   name: string;
@@ -46,7 +58,7 @@ export default function PlatformVenuesPage() {
       const params = new URLSearchParams();
       if (statusFilter) params.set('status', statusFilter);
       if (search) params.set('q', search);
-      const res = await fetch(`/api/platform/venues?${params.toString()}`);
+      const res = await authFetch(`/api/platform/venues?${params.toString()}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as { venues: VenueRow[] };
       setItems(data.venues ?? []);
@@ -256,9 +268,8 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
     setBusy(true);
     setErr(null);
     try {
-      const res = await fetch('/api/platform/venues', {
+      const res = await authFetch('/api/platform/venues', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
           venueType,

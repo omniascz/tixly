@@ -4,6 +4,18 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+function authFetch(url: string, init?: RequestInit): Promise<Response> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  return fetch(url, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+  });
+}
+
 interface Promoter {
   id: string;
   name: string;
@@ -22,7 +34,7 @@ export default function PlatformPromotersPage() {
   async function load() {
     setError(null);
     try {
-      const res = await fetch('/api/platform/promoters');
+      const res = await authFetch('/api/platform/promoters');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setItems(data.promoters ?? []);
@@ -38,7 +50,7 @@ export default function PlatformPromotersPage() {
   async function action(id: string, kind: 'approve' | 'suspend') {
     setBusyId(id);
     try {
-      const res = await fetch(`/api/platform/promoters/${id}/${kind}`, {
+      const res = await authFetch(`/api/platform/promoters/${id}/${kind}`, {
         method: 'POST',
       });
       if (!res.ok) {
