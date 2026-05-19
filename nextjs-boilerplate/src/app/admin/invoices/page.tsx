@@ -63,6 +63,25 @@ export default function InvoicesPage() {
     }
   }
 
+  async function downloadIsdoc(invoiceId: string, invoiceNumber: string) {
+    try {
+      const res = await authFetch(`/api/admin/invoices/${invoiceId}/isdoc`);
+      if (!res.ok) {
+        setError(`ISDOC HTTP ${res.status}`);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${invoiceNumber}.isdoc`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Síťová chyba');
+    }
+  }
+
   async function exportCsv() {
     setBusy(true);
     try {
@@ -195,6 +214,7 @@ export default function InvoicesPage() {
                   <th className="text-right">DPH</th>
                   <th className="text-right">Celkem</th>
                   <th>Stav</th>
+                  <th className="text-right">ISDOC</th>
                 </tr>
               </thead>
               <tbody>
@@ -226,6 +246,16 @@ export default function InvoicesPage() {
                             ? 'po splatnosti'
                             : 'nevyrovnaná'}
                       </span>
+                    </td>
+                    <td className="text-right">
+                      <button
+                        type="button"
+                        onClick={() => void downloadIsdoc(i.id, i.invoice_number)}
+                        className="text-xs text-primary hover:underline"
+                        title="Stáhnout ISDOC XML pro Pohoda/Money S3/Helios"
+                      >
+                        .isdoc
+                      </button>
                     </td>
                   </tr>
                 ))}
