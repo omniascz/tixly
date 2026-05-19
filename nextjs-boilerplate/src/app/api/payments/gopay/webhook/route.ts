@@ -72,7 +72,7 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
       return NextResponse.json({ ok: true, reason: 'ORDER_NOT_FOUND', paymentId });
     }
 
-    const order = orderRes.rows[0]!;
+    const order = orderRes.rows[0];
 
     // Zápis do orders.payment_events (canonical webhook log + EET audit trail)
     await client.query(

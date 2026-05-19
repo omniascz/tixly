@@ -13,9 +13,9 @@
  * V produkci volat přes systemd timer / Railway cron / k8s CronJob v 7:00 ráno.
  */
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { timingSafeEqual } from 'crypto';
 import { escapeHtml } from '@/lib/html-escape/escape';
 
 let pool: Pool | null = null;

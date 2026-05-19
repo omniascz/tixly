@@ -1,4 +1,3 @@
-import api from './api';
 import type {
   AdminEvent,
   AdminOrdersResponse,
@@ -6,6 +5,7 @@ import type {
   AdminCustomer,
   AdminPayout,
 } from '@/types/admin';
+import api from './api';
 
 function buildOrderQuery(filters: AdminOrderFilters): string {
   const params = new URLSearchParams();

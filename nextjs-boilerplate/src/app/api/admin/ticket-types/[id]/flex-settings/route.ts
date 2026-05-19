@@ -9,8 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -31,7 +31,7 @@ async function ensureOwnership(
     [ticketTypeId, promoterId],
   );
   if (r.rows.length === 0) return null;
-  return { ttId: r.rows[0]!.id, eventId: r.rows[0]!.event_id };
+  return { ttId: r.rows[0].id, eventId: r.rows[0].event_id };
 }
 
 export async function GET(
@@ -56,7 +56,7 @@ export async function GET(
   if (r.rows.length === 0) {
     return NextResponse.json({ exists: false });
   }
-  const s = r.rows[0]!;
+  const s = r.rows[0];
   return NextResponse.json({
     exists: true,
     picksRequired: s.picks_required,

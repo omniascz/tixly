@@ -6,9 +6,9 @@
  * Vrací status code + body z target serveru pro debug.
  */
 
+import { createHmac } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { createHmac } from 'crypto';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -37,7 +37,7 @@ export async function POST(
   if (endpoint.rowCount === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  const { url, secret } = endpoint.rows[0]!;
+  const { url, secret } = endpoint.rows[0];
 
   const payload = {
     event: 'webhook.test',

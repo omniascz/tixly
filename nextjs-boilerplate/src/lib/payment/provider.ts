@@ -16,9 +16,9 @@
  */
 
 import { randomUUID } from 'crypto';
-import { createStripeCheckoutSession } from './stripe';
-import { createGopaySession, getGopayConfig } from './gopay-real';
 import { createComGateSession, getComGateConfig } from './comgate';
+import { createGopaySession, getGopayConfig } from './gopay-real';
+import { createStripeCheckoutSession } from './stripe';
 
 export interface CreatePaymentInput {
   orderId: string;

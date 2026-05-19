@@ -33,7 +33,7 @@ const cache = new Map<string, CacheEntry>();
 const CACHE_TTL_MS = 60_000;
 
 export async function resolveWhiteLabel(host: string): Promise<WhiteLabelContext | null> {
-  const normalized = host.split(':')[0]!.toLowerCase();
+  const normalized = host.split(':')[0].toLowerCase();
   // Default tixly domains — no white-label
   if (
     normalized === 'localhost' ||
@@ -70,12 +70,12 @@ export async function resolveWhiteLabel(host: string): Promise<WhiteLabelContext
     r.rows.length === 0
       ? null
       : {
-          promoterId: r.rows[0]!.promoter_id,
-          promoterSlug: r.rows[0]!.slug,
-          promoterName: r.rows[0]!.name,
-          brandingLogoUrl: r.rows[0]!.logo_url,
-          brandingPrimaryColor: r.rows[0]!.primary_color,
-          brandingHidePoweredBy: r.rows[0]!.hide_powered_by ?? false,
+          promoterId: r.rows[0].promoter_id,
+          promoterSlug: r.rows[0].slug,
+          promoterName: r.rows[0].name,
+          brandingLogoUrl: r.rows[0].logo_url,
+          brandingPrimaryColor: r.rows[0].primary_color,
+          brandingHidePoweredBy: r.rows[0].hide_powered_by ?? false,
         };
 
   cache.set(normalized, { expires: Date.now() + CACHE_TTL_MS, value });

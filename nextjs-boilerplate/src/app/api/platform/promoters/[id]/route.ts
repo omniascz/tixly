@@ -61,7 +61,7 @@ export async function GET(
   if (!detailRes.rows.length) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  const detail = detailRes.rows[0]!;
+  const detail = detailRes.rows[0];
 
   const [members, events, documents] = await Promise.all([
     db().query<{ user_id: string; email: string; name: string | null; role: string; created_at: string }>(

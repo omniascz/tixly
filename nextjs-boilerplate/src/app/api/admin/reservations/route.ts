@@ -17,9 +17,9 @@
  * Vrací orderId, variabilní symbol, expires_at.
  */
 
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'TICKET_TYPE_NOT_FOUND' }, { status: 404 });
     }
-    const t = tt.rows[0]!;
+    const t = tt.rows[0];
     if (t.remaining_qty < parsed.data.quantity) {
       await client.query('ROLLBACK');
       return NextResponse.json(
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         parsed.data.buyerPhone ?? null,
       ],
     );
-    const userId = userRes.rows[0]!.id;
+    const userId = userRes.rows[0].id;
 
     const totalAmount = t.base_price * parsed.data.quantity;
     const orderId = randomUUID();

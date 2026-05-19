@@ -54,7 +54,7 @@ export async function GET(
   if (r.rows.length === 0) {
     return NextResponse.json({ error: 'Token not found' }, { status: 404 });
   }
-  const token = r.rows[0]!;
+  const token = r.rows[0];
 
   // Try Redis fast-path
   try {
@@ -179,8 +179,8 @@ export async function GET(
     if (upd.rows.length > 0) {
       return NextResponse.json({
         status: 'admitted',
-        admittedAt: upd.rows[0]!.admitted_at,
-        expiresAt: upd.rows[0]!.expires_at,
+        admittedAt: upd.rows[0].admitted_at,
+        expiresAt: upd.rows[0].expires_at,
         message: 'Můžeš přejít do checkoutu.',
       });
     }

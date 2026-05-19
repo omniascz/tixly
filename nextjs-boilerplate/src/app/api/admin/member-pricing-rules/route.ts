@@ -5,8 +5,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         parsed.data.fixedPriceMinor ?? null,
       ],
     );
-    return NextResponse.json({ id: r.rows[0]!.id }, { status: 201 });
+    return NextResponse.json({ id: r.rows[0].id }, { status: 201 });
   } catch (err) {
     console.error('[member pricing rule]', err);
     throw err;

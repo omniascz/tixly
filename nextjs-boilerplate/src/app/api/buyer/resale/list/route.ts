@@ -13,8 +13,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -63,7 +63,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   );
   if (r.rows.length === 0) return NextResponse.json({ active: null });
   return NextResponse.json({
-    active: { listingId: r.rows[0]!.id, askPriceHalire: r.rows[0]!.ask_price },
+    active: { listingId: r.rows[0].id, askPriceHalire: r.rows[0].ask_price },
   });
 }
 
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     if (u.rows.length === 0) {
       return NextResponse.json({ error: 'Owner email not found' }, { status: 404 });
     }
-    userId = u.rows[0]!.id;
+    userId = u.rows[0].id;
   } else {
     return NextResponse.json({ error: 'Auth required (JWT or ownerEmail)' }, { status: 401 });
   }
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
     }
-    const ticket = t.rows[0]!;
+    const ticket = t.rows[0];
     if (ticket.owner_id !== userId) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Not the ticket owner' }, { status: 403 });
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     if (existing.rows.length > 0) {
       await client.query('ROLLBACK');
       return NextResponse.json(
-        { error: 'ALREADY_LISTED', listingId: existing.rows[0]!.id },
+        { error: 'ALREADY_LISTED', listingId: existing.rows[0].id },
         { status: 409 },
       );
     }
@@ -167,7 +167,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     await client.query('COMMIT');
     return NextResponse.json(
       {
-        listingId: ins.rows[0]!.id,
+        listingId: ins.rows[0].id,
         ticketId,
         askPriceHalire,
         maxAllowedHalire: maxAllowed,

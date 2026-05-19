@@ -11,8 +11,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Pool } from 'pg';
 import { Card, CardContent } from '@/components/ui/card';
-import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 import { formatDate } from '@/lib/format';
+import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 import { FollowButton } from './FollowButton';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
@@ -51,7 +51,7 @@ interface PromoterStats {
 function shadeColor(hex: string, percent: number): string {
   const m = /^#([0-9a-f]{6})$/i.exec(hex);
   if (!m) return hex;
-  const num = parseInt(m[1]!, 16);
+  const num = parseInt(m[1], 16);
   let r = (num >> 16) & 0xff;
   let g = (num >> 8) & 0xff;
   let b = num & 0xff;
@@ -76,7 +76,7 @@ async function fetchPromoter(slug: string): Promise<{
       [slug],
     );
     if (pRes.rows.length === 0) return null;
-    const promoter = pRes.rows[0]!;
+    const promoter = pRes.rows[0];
 
     const [eRes, sRes] = await Promise.all([
       db.query<EventRow>(

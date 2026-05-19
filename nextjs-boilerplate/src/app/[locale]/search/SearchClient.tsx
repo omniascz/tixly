@@ -2,8 +2,8 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { formatMoney, isCurrency } from '@/lib/format';
 
 interface ParsedIntent {

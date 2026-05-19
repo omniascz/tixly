@@ -17,9 +17,9 @@
  * `process.env.TICKET_PDF_PRODUCTION_MODE === '1'`.
  */
 
+import { join } from 'node:path';
 import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
-import { join } from 'node:path';
 
 // NotoSans-Regular/Bold (Open Font License, latin-ext = plné české znaky).
 // Bez vlastního TTF by default pdfkit Helvetica zlomil diakritiku na boxy.
@@ -82,7 +82,7 @@ export async function renderTicketsPdf(
 
   for (let i = 0; i < tickets.length; i++) {
     if (i > 0) doc.addPage();
-    const t = tickets[i]!;
+    const t = tickets[i];
 
     // Hlavička: brand color pruh nahoře + jméno promotéra (nebo Tixly)
     const headerName = header.promoterName ?? 'Tixly';

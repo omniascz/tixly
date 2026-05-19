@@ -1,6 +1,4 @@
 'use client';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import {
   ShieldCheck,
   Building2,
@@ -10,6 +8,8 @@ import {
   MapPin,
   AlertOctagon,
 } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const items = [
   { href: '/platform', label: 'Dashboard', icon: ShieldCheck },

@@ -10,11 +10,11 @@
  * Bezpečnost: x-internal-token header musí odpovídat INTERNAL_SERVICE_TOKEN.
  */
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { timingSafeEqual } from 'crypto';
-import { getEffectiveHoldback, computeHoldbackAmount, computeReleaseDate } from '@/lib/payouts/holdback';
 import { notifyPromoter } from '@/lib/notifications/promoter-notify';
+import { getEffectiveHoldback, computeHoldbackAmount, computeReleaseDate } from '@/lib/payouts/holdback';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   const client = await db().connect();
   let createdCount = 0;
-  let totalNetByCurrency: Record<string, number> = {};
+  const totalNetByCurrency: Record<string, number> = {};
   const pendingNotifications: Array<{
     promoterId: string;
     netPayout: number;
@@ -147,7 +147,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           netPayout,
         ],
       );
-      const payoutId = payoutRes.rows[0]!.id;
+      const payoutId = payoutRes.rows[0].id;
       createdCount += 1;
       totalNetByCurrency[row.currency] = (totalNetByCurrency[row.currency] ?? 0) + netPayout;
 

@@ -8,8 +8,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -62,11 +62,11 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
     }
-    if (t.rows[0]!.promoter_id !== promoter.promoterId) {
+    if (t.rows[0].promoter_id !== promoter.promoterId) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Wrong promoter' }, { status: 403 });
     }
-    if (t.rows[0]!.status === 'revoked') {
+    if (t.rows[0].status === 'revoked') {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'TICKET_REVOKED' }, { status: 409 });
     }

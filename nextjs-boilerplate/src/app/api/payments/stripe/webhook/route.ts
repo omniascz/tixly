@@ -212,7 +212,7 @@ export async function POST(req: NextRequest): Promise<Response> {
              ON CONFLICT (stripe_dispute_id) DO NOTHING`,
             [
               orderId,
-              ord.rows[0]!.promoter_id,
+              ord.rows[0].promoter_id,
               dispute.id,
               dispute.charge,
               dispute.amount,

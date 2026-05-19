@@ -15,10 +15,10 @@
  *   5. V produkci: vytvořit GoPay payment + escrow do confirmed delivery
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { Pool } from 'pg';
 import { randomUUID } from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
+import { Pool } from 'pg';
+import { z } from 'zod';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
     }
-    const listing = l.rows[0]!;
+    const listing = l.rows[0];
     if (listing.status !== 'active') {
       await client.query('ROLLBACK');
       return NextResponse.json(
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest): Promise<Response> {
          RETURNING id`,
         [input.buyerEmail!.toLowerCase(), input.buyerName ?? input.buyerEmail!],
       );
-      buyerId = userRes.rows[0]!.id;
+      buyerId = userRes.rows[0].id;
     }
 
     if (buyerId === listing.seller_id) {

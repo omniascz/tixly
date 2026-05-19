@@ -143,7 +143,7 @@ export async function findOrCreateStripeCustomer(input: {
     { method: 'GET' },
   );
   if (list.data.length > 0) {
-    return { id: list.data[0]!.id };
+    return { id: list.data[0].id };
   }
   const params: Record<string, string> = { email: input.email };
   if (input.name) params.name = input.name;

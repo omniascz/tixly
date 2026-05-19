@@ -75,7 +75,7 @@ export async function answerSupport(req: ChatRequest): Promise<ChatResponse> {
       return {
         answer: llmAnswer,
         sources: top.map((f) => ({ id: f.id, question: f.question, category: f.category })),
-        confidence: top[0]!.score > 0.5 ? 'high' : 'medium',
+        confidence: top[0].score > 0.5 ? 'high' : 'medium',
         provider: 'openai',
       };
     } catch (err) {
@@ -84,7 +84,7 @@ export async function answerSupport(req: ChatRequest): Promise<ChatResponse> {
   }
 
   // Stub: pokud má top match >0.4 score, vrátí ho verbatim. Jinak fallback.
-  const best = top[0]!;
+  const best = top[0];
   if (best.score >= 0.4) {
     return {
       answer: best.answer,

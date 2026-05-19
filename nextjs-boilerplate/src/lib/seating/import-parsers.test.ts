@@ -25,9 +25,9 @@ describe('parseCsv', () => {
 "Tribuna A","B","1",100,230`;
     const r = parseCsv(csv);
     expect(r.layout.sectors).toHaveLength(1);
-    expect(r.layout.sectors[0]!.name).toBe('Tribuna A');
-    expect(r.layout.sectors[0]!.rows).toHaveLength(2);
-    expect(r.layout.sectors[0]!.rows[0]!.seats).toHaveLength(2);
+    expect(r.layout.sectors[0].name).toBe('Tribuna A');
+    expect(r.layout.sectors[0].rows).toHaveLength(2);
+    expect(r.layout.sectors[0].rows[0].seats).toHaveLength(2);
   });
 
   it('groups multiple sectors with distinct colors', () => {
@@ -36,7 +36,7 @@ describe('parseCsv', () => {
 "B","A","1",100,0`;
     const r = parseCsv(csv);
     expect(r.layout.sectors).toHaveLength(2);
-    expect(r.layout.sectors[0]!.color).not.toBe(r.layout.sectors[1]!.color);
+    expect(r.layout.sectors[0].color).not.toBe(r.layout.sectors[1].color);
   });
 
   it('respects accessibility column', () => {
@@ -44,9 +44,9 @@ describe('parseCsv', () => {
 "A","A","1",0,0,true
 "A","A","2",10,0,false`;
     const r = parseCsv(csv);
-    const seats = r.layout.sectors[0]!.rows[0]!.seats;
-    expect(seats[0]!.accessibility).toBe(true);
-    expect(seats[1]!.accessibility).toBeUndefined();
+    const seats = r.layout.sectors[0].rows[0].seats;
+    expect(seats[0].accessibility).toBe(true);
+    expect(seats[1].accessibility).toBeUndefined();
   });
 
   it('throws on missing required columns', () => {
@@ -59,7 +59,7 @@ describe('parseCsv', () => {
 "A","A","2",10,20`;
     const r = parseCsv(csv);
     expect(r.warnings.length).toBeGreaterThan(0);
-    expect(r.layout.sectors[0]!.rows[0]!.seats).toHaveLength(1);
+    expect(r.layout.sectors[0].rows[0].seats).toHaveLength(1);
   });
 });
 
@@ -75,7 +75,7 @@ describe('parseJson', () => {
     });
     const r = parseJson(json);
     expect(r.layout.viewBox).toBe('0 0 1000 800');
-    expect(r.layout.sectors[0]!.color).toBe('#3b82f6');
+    expect(r.layout.sectors[0].color).toBe('#3b82f6');
   });
 
   it('assigns default color when missing', () => {
@@ -83,7 +83,7 @@ describe('parseJson', () => {
       sectors: [{ name: 'X', rows: [{ label: 'A', seats: [{ num: '1', x: 0, y: 0 }] }] }],
     });
     const r = parseJson(json);
-    expect(r.layout.sectors[0]!.color).toMatch(/^#[0-9a-fA-F]{6}$/);
+    expect(r.layout.sectors[0].color).toMatch(/^#[0-9a-fA-F]{6}$/);
   });
 
   it('throws on malformed JSON', () => {
@@ -104,7 +104,7 @@ describe('parseSvg', () => {
     const r = parseSvg(svg);
     expect(r.layout.viewBox).toBe('0 0 1000 800');
     expect(r.layout.sectors).toHaveLength(1);
-    expect(r.layout.sectors[0]!.rows[0]!.seats).toHaveLength(2);
+    expect(r.layout.sectors[0].rows[0].seats).toHaveLength(2);
   });
 
   it('groups circles heuristically by fill color when no metadata', () => {
@@ -123,7 +123,7 @@ describe('parseSvg', () => {
       <rect x="100" y="200" width="20" height="20" data-sector="A" data-row="A" data-num="1"/>
     </svg>`;
     const r = parseSvg(svg);
-    const seat = r.layout.sectors[0]!.rows[0]!.seats[0]!;
+    const seat = r.layout.sectors[0].rows[0].seats[0];
     expect(seat.x).toBe(110);
     expect(seat.y).toBe(210);
   });

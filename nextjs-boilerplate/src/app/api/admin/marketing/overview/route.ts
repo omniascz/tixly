@@ -144,7 +144,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   return NextResponse.json({
     period: { days, from: new Date(Date.now() - days * 86400000).toISOString() },
-    summary: summaryRes.rows[0]!,
+    summary: summaryRes.rows[0],
     channels: channelsRes.rows.map((c) => ({
       channel: c.channel,
       touchpoints: Number(c.touchpoints),

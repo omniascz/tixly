@@ -48,7 +48,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   );
   if (existing.rows.length > 0) {
     return NextResponse.json(
-      { error: 'ALREADY_REQUESTED', status: existing.rows[0]!.status },
+      { error: 'ALREADY_REQUESTED', status: existing.rows[0].status },
       { status: 409 },
     );
   }
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     [userId, scheduledAt.toISOString()],
   );
   return NextResponse.json({
-    id: r.rows[0]!.id,
+    id: r.rows[0].id,
     status: 'pending',
     scheduledAt: scheduledAt.toISOString(),
     graceDays: GRACE_DAYS,

@@ -106,7 +106,7 @@ export async function scoreFraudML(input: MLFraudInput): Promise<MLFraudResult> 
   }
 
   // 4) High value
-  const threshold = HIGH_VALUE[input.currency] ?? HIGH_VALUE.CZK!;
+  const threshold = HIGH_VALUE[input.currency] ?? HIGH_VALUE.CZK;
   features.highValue = input.totalAmountMinor >= threshold ? 1 : 0;
 
   // 5) New user × high value (interaction)
@@ -134,7 +134,7 @@ export async function scoreFraudML(input: MLFraudInput): Promise<MLFraudResult> 
 
   // 9) Email/name pattern mismatch (bot generators často emit jméno/email rozdílné)
   if (input.buyerName) {
-    const localPart = input.email.split('@')[0]!.toLowerCase().replace(/[._-]/g, '');
+    const localPart = input.email.split('@')[0].toLowerCase().replace(/[._-]/g, '');
     const nameNoSpace = input.buyerName.toLowerCase().replace(/\s/g, '');
     const overlap = nameNoSpace.length > 3 && localPart.includes(nameNoSpace.slice(0, 3));
     features.emailNamePatternMismatch = overlap ? 0 : 0.5;

@@ -115,7 +115,7 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
 
     es.addEventListener('delta', (e) => {
       try {
-        applyDelta(JSON.parse((e as MessageEvent).data));
+        applyDelta(JSON.parse((e).data));
       } catch {
         // ignore malformed
       }
@@ -173,7 +173,7 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
       ticketTypeId ??
       selectedTtId ??
       (data.ticketTypes.length > 0
-        ? data.ticketTypes.slice().sort((a, b) => a.price - b.price)[0]!.id
+        ? data.ticketTypes.slice().sort((a, b) => a.price - b.price)[0].id
         : null);
 
     // Lookup pro O(1) seat by sector+row+num.
@@ -192,7 +192,7 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
           const start = Math.floor((run.length - target) / 2);
           const subset = run.slice(start, start + target).map((r) => r.seatId);
           const rowCenter = (row.seats.length - 1) / 2;
-          const midIdx = run[start + Math.floor(target / 2)]!.idx;
+          const midIdx = run[start + Math.floor(target / 2)].idx;
           const centerPenalty = Math.abs(midIdx - rowCenter);
           // Score: base 1000 + run length (delší run = lepší flexibilita)
           // − vzdálenost od středu řady (preferuj střed).
@@ -201,7 +201,7 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
         };
 
         for (let i = 0; i < row.seats.length; i++) {
-          const pos = row.seats[i]!;
+          const pos = row.seats[i];
           const seat = lookup.get(`${sector.name}|${row.label}|${pos.num}`);
           if (
             !seat ||
@@ -215,7 +215,7 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
           // Mix-type check uvnitř runu — nepřípustné, flush a začni znova.
           if (cur.length > 0) {
             const lastSeat = lookup.get(
-              `${sector.name}|${row.label}|${row.seats[cur[cur.length - 1]!.idx]!.num}`,
+              `${sector.name}|${row.label}|${row.seats[cur[cur.length - 1].idx].num}`,
             );
             if (lastSeat && lastSeat.ttId !== seat.ttId) {
               flush(cur);
@@ -230,7 +230,7 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
 
     if (candidates.length > 0) {
       candidates.sort((a, b) => b.score - a.score);
-      setSelected(new Set(candidates[0]!.seatIds));
+      setSelected(new Set(candidates[0].seatIds));
       setError(null);
       return;
     }

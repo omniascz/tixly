@@ -39,7 +39,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
 
-  const user = result.rows[0]!;
+  const user = result.rows[0];
   const roles = await getUserRoles(user.id);
   const accessToken = await signAccessToken(user, roles);
   const newRefresh = await signRefreshToken(user);

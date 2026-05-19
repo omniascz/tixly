@@ -105,9 +105,9 @@ export async function GET(req: NextRequest): Promise<Response> {
     ),
   ]);
 
-  const ov = overview.rows[0]!;
-  const co = conversion.rows[0]!;
-  const fr = fraudStats.rows[0]!;
+  const ov = overview.rows[0];
+  const co = conversion.rows[0];
+  const fr = fraudStats.rows[0];
 
   return NextResponse.json({
     overview: {

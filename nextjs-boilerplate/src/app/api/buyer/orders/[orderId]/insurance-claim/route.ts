@@ -9,8 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -54,7 +54,7 @@ export async function POST(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
-    if (ord.rows[0]!.status !== 'paid') {
+    if (ord.rows[0].status !== 'paid') {
       await client.query('ROLLBACK');
       return NextResponse.json(
         { error: 'INVALID_STATE', message: 'Pojistku můžeš uplatnit jen na zaplacené objednávky.' },
@@ -78,32 +78,32 @@ export async function POST(
         { status: 404 },
       );
     }
-    if (ins.rows[0]!.status !== 'active') {
+    if (ins.rows[0].status !== 'active') {
       await client.query('ROLLBACK');
       return NextResponse.json(
-        { error: 'INSURANCE_NOT_ACTIVE', status: ins.rows[0]!.status },
+        { error: 'INSURANCE_NOT_ACTIVE', status: ins.rows[0].status },
         { status: 409 },
       );
     }
 
-    const claimAmount = ord.rows[0]!.total_amount - ins.rows[0]!.premium_amount;
+    const claimAmount = ord.rows[0].total_amount - ins.rows[0].premium_amount;
 
     await client.query(
       `UPDATE orders.order_insurance
        SET status = 'claimed', claim_filed_at = NOW(), claim_resolved_at = NOW(),
            claim_amount = $2, claim_reason = $3
        WHERE id = $1`,
-      [ins.rows[0]!.id, claimAmount, parsed.data.reason],
+      [ins.rows[0].id, claimAmount, parsed.data.reason],
     );
     await client.query(
       `UPDATE orders.orders SET status = 'refunded', updated_at = NOW() WHERE id = $1`,
-      [ord.rows[0]!.id],
+      [ord.rows[0].id],
     );
     // Revoke tickets so they can't be scanned
     await client.query(
       `UPDATE tickets.tickets SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
        WHERE order_id = $1 AND status = 'valid'`,
-      [ord.rows[0]!.id],
+      [ord.rows[0].id],
     );
 
     await client.query('COMMIT');

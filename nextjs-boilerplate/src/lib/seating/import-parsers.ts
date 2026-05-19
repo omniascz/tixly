@@ -49,7 +49,7 @@ export function parseCsv(csv: string): ParseResult {
   if (lines.length < 2) {
     throw new Error('CSV: očekávána aspoň hlavička a 1 řádek dat');
   }
-  const header = splitCsvLine(lines[0]!).map((h) => h.toLowerCase().trim());
+  const header = splitCsvLine(lines[0]).map((h) => h.toLowerCase().trim());
   const idx = {
     sector: header.indexOf('sector'),
     row: header.indexOf('row'),
@@ -68,7 +68,7 @@ export function parseCsv(csv: string): ParseResult {
   let maxX = 0;
   let maxY = 0;
   for (let i = 1; i < lines.length; i++) {
-    const cells = splitCsvLine(lines[i]!);
+    const cells = splitCsvLine(lines[i]);
     const sectorName = cells[idx.sector] ?? '';
     const rowLabel = cells[idx.row] ?? '';
     const num = cells[idx.num] ?? '';
@@ -112,7 +112,7 @@ export function parseCsv(csv: string): ParseResult {
     rows.sort((a, b) => a.label.localeCompare(b.label));
     sectors.push({
       name: sectorName,
-      color: DEFAULT_COLORS[colorIdx % DEFAULT_COLORS.length]!,
+      color: DEFAULT_COLORS[colorIdx % DEFAULT_COLORS.length],
       rows,
     });
     colorIdx++;
@@ -136,7 +136,7 @@ function splitCsvLine(line: string): string[] {
   let cur = '';
   let inQuotes = false;
   for (let i = 0; i < line.length; i++) {
-    const c = line[i]!;
+    const c = line[i];
     if (c === '"' && line[i + 1] === '"') {
       cur += '"';
       i++;
@@ -183,7 +183,7 @@ export function parseJson(json: string): ParseResult {
     const name = String(sec.name ?? `Sector ${sectors.length + 1}`);
     const color = typeof sec.color === 'string' && /^#[0-9a-fA-F]{6}$/.test(sec.color)
       ? sec.color
-      : DEFAULT_COLORS[colorIdx % DEFAULT_COLORS.length]!;
+      : DEFAULT_COLORS[colorIdx % DEFAULT_COLORS.length];
     colorIdx++;
     const rowsRaw = Array.isArray(sec.rows) ? sec.rows : [];
     const rows: ParsedRow[] = [];
@@ -234,7 +234,7 @@ export function parseSvg(svg: string): ParseResult {
   const heightMatch = svg.match(/<svg[^>]*\sheight\s*=\s*"([\d.]+)"/i);
   let viewBox: string;
   if (viewBoxMatch) {
-    viewBox = viewBoxMatch[1]!.trim();
+    viewBox = viewBoxMatch[1].trim();
   } else if (widthMatch && heightMatch) {
     viewBox = `0 0 ${widthMatch[1]} ${heightMatch[1]}`;
   } else {
@@ -249,7 +249,7 @@ export function parseSvg(svg: string): ParseResult {
   const circleRe = /<circle\b([^>]*)\/?>/gi;
   let m: RegExpExecArray | null;
   while ((m = circleRe.exec(svg)) !== null) {
-    const attrs = parseAttrs(m[1]!);
+    const attrs = parseAttrs(m[1]);
     const cx = Number(attrs.cx);
     const cy = Number(attrs.cy);
     if (!Number.isFinite(cx) || !Number.isFinite(cy)) continue;
@@ -267,7 +267,7 @@ export function parseSvg(svg: string): ParseResult {
   // Match rects: use center
   const rectRe = /<rect\b([^>]*)\/?>/gi;
   while ((m = rectRe.exec(svg)) !== null) {
-    const attrs = parseAttrs(m[1]!);
+    const attrs = parseAttrs(m[1]);
     const x = Number(attrs.x);
     const y = Number(attrs.y);
     const w = Number(attrs.width);
@@ -323,7 +323,7 @@ export function parseSvg(svg: string): ParseResult {
         : sectorKey;
     const sectorColor = sectorKey.startsWith('#')
       ? sectorKey
-      : DEFAULT_COLORS[colorIdx % DEFAULT_COLORS.length]!;
+      : DEFAULT_COLORS[colorIdx % DEFAULT_COLORS.length];
 
     const rows: ParsedRow[] = [];
     for (const [rowKey, rowSeats] of rowMap) {
@@ -353,7 +353,7 @@ function parseAttrs(s: string): Record<string, string> {
   const re = /([\w-]+)\s*=\s*"([^"]*)"/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(s)) !== null) {
-    out[m[1]!] = m[2]!;
+    out[m[1]] = m[2]!;
   }
   return out;
 }

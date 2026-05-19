@@ -116,7 +116,7 @@ export async function trackAdClick(input: {
         [input.campaignId],
       );
       if (ev.rows.length === 0) return null;
-      return { eventId: ev.rows[0]!.event_id, eventSlug: ev.rows[0]!.slug };
+      return { eventId: ev.rows[0].event_id, eventSlug: ev.rows[0].slug };
     }
   }
 
@@ -134,7 +134,7 @@ export async function trackAdClick(input: {
       await client.query('ROLLBACK');
       return null;
     }
-    const camp = c.rows[0]!;
+    const camp = c.rows[0];
     if (camp.budget_remaining < camp.cpc_halire) {
       await client.query(
         `UPDATE marketing.ad_campaigns SET status = 'depleted', updated_at = NOW() WHERE id = $1`,

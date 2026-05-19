@@ -78,8 +78,8 @@ export async function issueTicketsForOrder(
   if (orderRes.rows.length === 0) {
     throw new Error(`Order ${orderId} not found`);
   }
-  const ownerId = orderRes.rows[0]!.user_id;
-  const holderNames = orderRes.rows[0]!.holder_names ?? [];
+  const ownerId = orderRes.rows[0].user_id;
+  const holderNames = orderRes.rows[0].holder_names ?? [];
   let holderNameIdx = 0;
 
   // Načti položky
@@ -195,7 +195,7 @@ export function base32Encode(buf: Buffer): string {
   let value = 0;
   let out = '';
   for (let i = 0; i < buf.length; i++) {
-    value = (value << 8) | buf[i]!;
+    value = (value << 8) | buf[i];
     bits += 8;
     while (bits >= 5) {
       out += alphabet[(value >>> (bits - 5)) & 31];

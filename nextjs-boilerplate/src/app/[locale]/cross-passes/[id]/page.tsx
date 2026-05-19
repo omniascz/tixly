@@ -46,7 +46,7 @@ async function fetchBundle(id: string) {
        ORDER BY cpe.display_order, e.date_start`,
       [id],
     );
-    return { bundle: b.rows[0]!, events: events.rows };
+    return { bundle: b.rows[0], events: events.rows };
   } finally {
     await db.end();
   }

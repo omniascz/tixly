@@ -7,9 +7,9 @@
  * Single-row decision přes /[reqId]/route.ts (samostatný endpoint).
  */
 
+import { randomBytes } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { randomBytes } from 'crypto';
 import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
@@ -121,8 +121,8 @@ export async function POST(
         updates.push({
           id: reqId,
           presaleCode: code,
-          email: r.rows[0]!.email,
-          name: r.rows[0]!.name ?? r.rows[0]!.email,
+          email: r.rows[0].email,
+          name: r.rows[0].name ?? r.rows[0].email,
         });
       }
     }

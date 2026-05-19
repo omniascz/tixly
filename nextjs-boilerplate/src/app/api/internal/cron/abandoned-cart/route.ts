@@ -7,11 +7,11 @@
  * Auth: x-internal-token.
  */
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { timingSafeEqual } from 'crypto';
-import { escapeHtml } from '@/lib/html-escape/escape';
 import { formatMoney, isCurrency } from '@/lib/format';
+import { escapeHtml } from '@/lib/html-escape/escape';
 
 let pool: Pool | null = null;
 function db(): Pool {

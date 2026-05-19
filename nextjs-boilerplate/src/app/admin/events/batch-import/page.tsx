@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { PageHeader } from '@/components/admin/PageHeader';
 import { Upload, FileCheck, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 interface VenueOption {
   id: string;
@@ -143,7 +143,7 @@ export default function BatchImportPage() {
         return;
       }
       const [headerRow, ...dataRows] = parsed;
-      const header = headerRow!.map((h) => h.trim().toLowerCase());
+      const header = headerRow.map((h) => h.trim().toLowerCase());
       const idx = (col: string) => header.indexOf(col);
       const required = [
         'title',
@@ -163,7 +163,7 @@ export default function BatchImportPage() {
       const errs: string[] = [];
       const out: ParsedRow[] = [];
       for (let i = 0; i < dataRows.length; i++) {
-        const row = dataRows[i]!;
+        const row = dataRows[i];
         const get = (col: string) => (row[idx(col)] ?? '').trim();
         try {
           const priceCzkRaw = get('ticket_price_czk').replace(',', '.');

@@ -17,17 +17,17 @@
  * orders.seat_locks). Konsolidováno 26.4.2026 — broken kód smazán.
  */
 
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { randomUUID } from 'crypto';
 import { z } from 'zod';
 
+import { calculateAgeYears } from '@/lib/age/calculate';
 import {
   resolveCurrentPrice,
   PriceMismatchError,
   PriceResolutionError,
 } from '@/lib/pricing/resolve-price';
-import { calculateAgeYears } from '@/lib/age/calculate';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -168,14 +168,14 @@ export async function POST(req: NextRequest): Promise<Response> {
          WHERE id = $1 AND event_id = $2`,
         [input.bundleId, input.eventId],
       );
-      if (bundleRes.rows.length === 0 || !bundleRes.rows[0]!.active) {
+      if (bundleRes.rows.length === 0 || !bundleRes.rows[0].active) {
         await client.query('ROLLBACK');
         return NextResponse.json(
           { error: 'BUNDLE_NOT_AVAILABLE' },
           { status: 422 },
         );
       }
-      const bundle = bundleRes.rows[0]!;
+      const bundle = bundleRes.rows[0];
       bundleId = bundle.id;
       bundleDiscountPct = bundle.discount_pct;
       // Expand addons
@@ -214,7 +214,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         { status: 404 },
       );
     }
-    const tt = ttRes.rows[0]!;
+    const tt = ttRes.rows[0];
 
     // Timed entry: pokud event.timed_entry_enabled, entrySlotId je vyžadován a
     // musí mít remaining >= quantity.
@@ -232,7 +232,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           { status: 404 },
         );
       }
-      const s = slot.rows[0]!;
+      const s = slot.rows[0];
       if (s.status !== 'open') {
         await client.query('ROLLBACK');
         return NextResponse.json(
@@ -303,7 +303,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'QUEUE_TOKEN_INVALID' }, { status: 403 });
       }
-      const queueToken = qt.rows[0]!;
+      const queueToken = qt.rows[0];
       if (queueToken.status !== 'admitted') {
         await client.query('ROLLBACK');
         return NextResponse.json(
@@ -455,7 +455,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         `SELECT enabled FROM catalog.dynamic_pricing_rules WHERE ticket_type_id = $1`,
         [tt.id],
       );
-      if (dpr.rows.length > 0 && dpr.rows[0]!.enabled) {
+      if (dpr.rows.length > 0 && dpr.rows[0].enabled) {
         const { computeDynamicPrice } = await import('@/lib/dynamic-pricing/compute');
         const dyn = await computeDynamicPrice(tt.id);
         if (dyn.signals.enabled) {
@@ -489,7 +489,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         [tt.id, input.buyerEmail, unitPriceHalire],
       );
       if (memberRule.rows.length > 0) {
-        const rule = memberRule.rows[0]!;
+        const rule = memberRule.rows[0];
         if (rule.fixed_price_minor !== null) {
           unitPriceHalire = rule.fixed_price_minor;
         } else if (rule.discount_pct !== null) {
@@ -523,7 +523,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         [tt.id, input.buyerEmail, unitPriceHalire],
       );
       if (verifyRule.rows.length > 0) {
-        const rule = verifyRule.rows[0]!;
+        const rule = verifyRule.rows[0];
         const candidatePrice =
           rule.fixed_price_minor !== null
             ? rule.fixed_price_minor
@@ -544,7 +544,7 @@ export async function POST(req: NextRequest): Promise<Response> {
        RETURNING id`,
       [input.buyerEmail.toLowerCase(), input.buyerName],
     );
-    const userId = userRes.rows[0]!.id;
+    const userId = userRes.rows[0].id;
 
     // 3) Decrement inventory
     await client.query(
@@ -574,7 +574,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         [tt.id, input.quantity],
       );
       if (volRes.rows.length > 0) {
-        volumeDiscountPct = volRes.rows[0]!.discount_pct;
+        volumeDiscountPct = volRes.rows[0].discount_pct;
         volumeDiscountAmount = Math.floor((subtotalAmount * volumeDiscountPct) / 100);
         subtotalAmount -= volumeDiscountAmount;
       }
@@ -661,7 +661,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           { status: 422 },
         );
       }
-      const pc = pcRes.rows[0]!;
+      const pc = pcRes.rows[0];
       const now = new Date();
       if (new Date(pc.valid_from) > now) {
         await client.query('ROLLBACK');
@@ -830,7 +830,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'VOUCHER_INVALID' }, { status: 422 });
       }
-      const voucher = v.rows[0]!;
+      const voucher = v.rows[0];
       if (voucher.expires_at && new Date(voucher.expires_at).getTime() < Date.now()) {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'VOUCHER_EXPIRED' }, { status: 422 });
@@ -848,7 +848,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           `SELECT promoter_id FROM catalog.events WHERE id = $1`,
           [input.eventId],
         );
-        if (ev.rows.length === 0 || ev.rows[0]!.promoter_id !== voucher.promoter_id) {
+        if (ev.rows.length === 0 || ev.rows[0].promoter_id !== voucher.promoter_id) {
           await client.query('ROLLBACK');
           return NextResponse.json({ error: 'VOUCHER_WRONG_PROMOTER' }, { status: 422 });
         }
@@ -913,7 +913,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         input.entrySlotId ?? null,
       ],
     );
-    const orderId = orderRes.rows[0]!.id;
+    const orderId = orderRes.rows[0].id;
 
     // Fraud scoring (Fáze W.6 — ML-based, replaces P.3 rules)
     {
@@ -963,7 +963,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         [input.affiliateCode, input.eventId],
       );
       if (aff.rows.length > 0) {
-        const a = aff.rows[0]!;
+        const a = aff.rows[0];
         const commission = Math.floor((totalAmount * a.commission_pct) / 100);
         await client.query(
           `UPDATE orders.orders
@@ -996,14 +996,14 @@ export async function POST(req: NextRequest): Promise<Response> {
           { status: 422 },
         );
       }
-      if (lr.rows[0]!.status !== 'winner') {
+      if (lr.rows[0].status !== 'winner') {
         await client.query('ROLLBACK');
         return NextResponse.json(
-          { error: 'LOTTERY_NOT_WINNER', status: lr.rows[0]!.status },
+          { error: 'LOTTERY_NOT_WINNER', status: lr.rows[0].status },
           { status: 409 },
         );
       }
-      if (new Date(lr.rows[0]!.redeem_deadline).getTime() < Date.now()) {
+      if (new Date(lr.rows[0].redeem_deadline).getTime() < Date.now()) {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'LOTTERY_DEADLINE_PASSED' }, { status: 409 });
       }

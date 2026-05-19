@@ -38,7 +38,7 @@ export async function GET(
      WHERE b.id = $1`,
     [params.id],
   );
-  if (r.rows.length === 0 || !r.rows[0]!.active) {
+  if (r.rows.length === 0 || !r.rows[0].active) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
@@ -58,7 +58,7 @@ export async function GET(
   );
 
   return NextResponse.json({
-    bundle: r.rows[0]!,
+    bundle: r.rows[0],
     events: events.rows,
   });
 }

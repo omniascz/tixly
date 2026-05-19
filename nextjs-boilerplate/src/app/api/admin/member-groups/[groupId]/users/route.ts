@@ -7,8 +7,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -104,7 +104,7 @@ export async function POST(
         m.validUntil ?? null,
       ],
     );
-    if (r.rows[0]!.created) inserted += 1;
+    if (r.rows[0].created) inserted += 1;
     else updated += 1;
   }
   return NextResponse.json({ ok: true, inserted, updated });

@@ -64,7 +64,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     [promoter.promoterId],
   );
   if (r.rows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  const d = r.rows[0]!;
+  const d = r.rows[0];
 
   const items: ChecklistItem[] = [
     {

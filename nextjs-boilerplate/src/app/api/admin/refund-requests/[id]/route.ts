@@ -68,7 +68,7 @@ export async function PATCH(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
     }
-    const rr = rrRes.rows[0]!;
+    const rr = rrRes.rows[0];
     if (rr.status !== 'pending') {
       await client.query('ROLLBACK');
       return NextResponse.json(

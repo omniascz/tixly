@@ -6,8 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -53,7 +53,7 @@ export async function POST(
     if (u.rows.length === 0) {
       return NextResponse.json({ error: 'Owner not found' }, { status: 404 });
     }
-    userId = u.rows[0]!.id;
+    userId = u.rows[0].id;
   }
   if (!userId) {
     return NextResponse.json({ error: 'Auth required' }, { status: 401 });
@@ -71,7 +71,7 @@ export async function POST(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
     }
-    const listing = r.rows[0]!;
+    const listing = r.rows[0];
     if (listing.seller_id !== userId) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Not the seller' }, { status: 403 });

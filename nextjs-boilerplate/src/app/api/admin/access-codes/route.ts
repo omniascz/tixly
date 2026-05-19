@@ -10,8 +10,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -155,7 +155,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         input.validUntil ?? null,
       ],
     );
-    const accessCodeId = codeRes.rows[0]!.id;
+    const accessCodeId = codeRes.rows[0].id;
 
     // 4) Vazba na ticket types
     for (const ttId of input.ticketTypeIds) {

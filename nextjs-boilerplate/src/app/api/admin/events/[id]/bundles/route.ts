@@ -6,8 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -154,7 +154,7 @@ export async function POST(
         input.discountPct,
       ],
     );
-    const bundleId = r.rows[0]!.id;
+    const bundleId = r.rows[0].id;
 
     for (const a of input.addons) {
       await client.query(

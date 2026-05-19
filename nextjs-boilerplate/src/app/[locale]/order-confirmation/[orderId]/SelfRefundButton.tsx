@@ -11,8 +11,8 @@
  */
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export function SelfRefundButton({ orderId }: { orderId: string }) {
   const [open, setOpen] = useState(false);

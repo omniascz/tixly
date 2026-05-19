@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { TrendingUp, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { PageHeader } from '@/components/admin/PageHeader';
-import { TrendingUp, AlertTriangle } from 'lucide-react';
 
 interface EventRow {
   id: string;

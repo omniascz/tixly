@@ -11,8 +11,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 import { runAiGate, TRUST_THRESHOLD_PUBLISHED_EVENTS } from '@/lib/moderation/ai-gate';
 
@@ -91,7 +91,7 @@ export async function GET(
   if (r.rows.length === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  const e = r.rows[0]!;
+  const e = r.rows[0];
   return NextResponse.json({
     id: e.id,
     title: e.title,
@@ -147,7 +147,7 @@ export async function PATCH(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
-    const event = cur.rows[0]!;
+    const event = cur.rows[0];
 
     const newTitle = input.title ?? event.title;
     const newDescription =

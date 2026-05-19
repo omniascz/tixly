@@ -6,8 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -61,27 +61,27 @@ export async function POST(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Wristband not found' }, { status: 404 });
     }
-    if (w.rows[0]!.promoter_id !== promoter.promoterId) {
+    if (w.rows[0].promoter_id !== promoter.promoterId) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Wrong promoter' }, { status: 403 });
     }
-    if (!w.rows[0]!.active) {
+    if (!w.rows[0].active) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'WRISTBAND_BLOCKED' }, { status: 409 });
     }
-    if (w.rows[0]!.balance_halire < input.amountHalire) {
+    if (w.rows[0].balance_halire < input.amountHalire) {
       await client.query('ROLLBACK');
       return NextResponse.json(
         {
           error: 'INSUFFICIENT_BALANCE',
-          balanceHalire: w.rows[0]!.balance_halire,
+          balanceHalire: w.rows[0].balance_halire,
           requestedHalire: input.amountHalire,
         },
         { status: 409 },
       );
     }
 
-    const newBalance = w.rows[0]!.balance_halire - input.amountHalire;
+    const newBalance = w.rows[0].balance_halire - input.amountHalire;
     await client.query(
       `UPDATE tickets.wristbands SET balance_halire = $1 WHERE uid = $2`,
       [newBalance, params.uid],

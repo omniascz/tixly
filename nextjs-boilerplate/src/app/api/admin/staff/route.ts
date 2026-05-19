@@ -11,8 +11,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       { status: 404 },
     );
   }
-  const targetUserId = userRes.rows[0]!.id;
+  const targetUserId = userRes.rows[0].id;
 
   // Already member?
   const existingRes = await db().query<{ role: string }>(
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json(
       {
         error: 'ALREADY_MEMBER',
-        message: `Tento uživatel je už členem (role: ${existingRes.rows[0]!.role}).`,
+        message: `Tento uživatel je už členem (role: ${existingRes.rows[0].role}).`,
       },
       { status: 409 },
     );

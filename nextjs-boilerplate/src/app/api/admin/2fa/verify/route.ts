@@ -5,10 +5,10 @@
  * Po prvním úspěšném verify vygeneruje 10× backup codes (one-time recovery).
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { Pool } from 'pg';
 import { createHash, randomBytes } from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
+import { Pool } from 'pg';
+import { z } from 'zod';
 import { decryptSecret } from '@/lib/crypto';
 import { verifyTotpCode } from '@/lib/totp/verify';
 
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'NOT_ENROLLED' }, { status: 404 });
   }
 
-  const secretB64 = decryptSecret(r.rows[0]!.totp_secret_encrypted.toString('base64'));
+  const secretB64 = decryptSecret(r.rows[0].totp_secret_encrypted.toString('base64'));
   const secretRaw = Buffer.from(secretB64, 'base64');
   const valid = verifyTotpCode(parsed.data.code, secretRaw, { window: 1 });
   if (!valid) {
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   // First-time enrollment? Generate backup codes
   let backupCodes: string[] | null = null;
-  if (!r.rows[0]!.enabled) {
+  if (!r.rows[0].enabled) {
     backupCodes = Array.from({ length: 10 }, generateBackupCode);
     const hashes = backupCodes.map(hashCode);
     await db().query(

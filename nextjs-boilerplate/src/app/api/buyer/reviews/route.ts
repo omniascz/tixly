@@ -55,7 +55,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       { status: 403 },
     );
   }
-  const o = order.rows[0]!;
+  const o = order.rows[0];
 
   await db().query(
     `INSERT INTO marketing.event_reviews

@@ -57,7 +57,7 @@ export async function computeDynamicPrice(ticketTypeId: string): Promise<Pricing
     [ticketTypeId],
   );
 
-  if (r.rows.length === 0 || !r.rows[0]!.enabled) {
+  if (r.rows.length === 0 || !r.rows[0].enabled) {
     // Žádné rule nebo disabled → vrátí base price
     const tt = await db().query<{ base_price: number }>(
       `SELECT base_price FROM catalog.ticket_types WHERE id = $1`,
@@ -78,7 +78,7 @@ export async function computeDynamicPrice(ticketTypeId: string): Promise<Pricing
     };
   }
 
-  const rule = r.rows[0]!;
+  const rule = r.rows[0];
 
   // Velocity: orders za poslední 1h
   const velocityRes = await db().query<{ count: string }>(

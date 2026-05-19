@@ -68,7 +68,7 @@ export async function GET(
   if (r.rows.length === 0) {
     return NextResponse.json({ error: 'Wristband not found' }, { status: 404 });
   }
-  const w = r.rows[0]!;
+  const w = r.rows[0];
   if (w.event_promoter_id !== promoter.promoterId) {
     return NextResponse.json({ error: 'Wrong promoter' }, { status: 403 });
   }

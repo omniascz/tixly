@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { straightRow, arcRow, rowLabel, type Point, type SeatPosition } from './geometry';
 
 const PALETTE = ['#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#84cc16', '#ef4444', '#14b8a6'];
@@ -177,7 +177,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
   function undo() {
     setHistory((h) => {
       if (h.length === 0) return h;
-      const last = h[h.length - 1]!;
+      const last = h[h.length - 1];
       setSectors((prev) => {
         setRedoStack((r) => [prev, ...r].slice(0, 50));
         return last;
@@ -189,7 +189,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
   function redo() {
     setRedoStack((r) => {
       if (r.length === 0) return r;
-      const next = r[0]!;
+      const next = r[0];
       setSectors((prev) => {
         setHistory((h) => [...h, prev]);
         return next;
@@ -247,7 +247,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
         if (countStr) {
           const count = Number.parseInt(countStr, 10);
           if (!Number.isNaN(count) && count > 0 && count <= 200) {
-            addRow(straightRow(next[0]!, next[1]!, count));
+            addRow(straightRow(next[0], next[1], count));
           }
         }
         setPendingPoints([]);
@@ -261,7 +261,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
         if (countStr) {
           const count = Number.parseInt(countStr, 10);
           if (!Number.isNaN(count) && count > 0 && count <= 200) {
-            addRow(arcRow(next[0]!, next[1]!, next[2]!, count));
+            addRow(arcRow(next[0], next[1], next[2], count));
           }
         }
         setPendingPoints([]);
@@ -284,11 +284,11 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
         `Sektor ${String.fromCharCode(65 + next.length)}`,
       );
       if (!name) return;
-      next.push({ name, color: PALETTE[next.length % PALETTE.length]!, rows: [] });
+      next.push({ name, color: PALETTE[next.length % PALETTE.length], rows: [] });
       secIdx = next.length - 1;
       setActiveSectorIdx(secIdx);
     }
-    const sector = next[secIdx]!;
+    const sector = next[secIdx];
     const newSector: Sector = {
       ...sector,
       rows: [...sector.rows, { label: rowLabel(sector.rows.length), seats }],
@@ -340,7 +340,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
   }
 
   function renameSector(idx: number) {
-    const cur = sectors[idx]!;
+    const cur = sectors[idx];
     const name = window.prompt(`Přejmenovat sektor`, cur.name);
     if (!name || name === cur.name) return;
     const next = [...sectors];
@@ -350,12 +350,12 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
 
   function recolorSector(idx: number, color: string) {
     const next = [...sectors];
-    next[idx] = { ...next[idx]!, color };
+    next[idx] = { ...next[idx], color };
     pushHistory(next);
   }
 
   function deleteSector(idx: number) {
-    if (!window.confirm(`Smazat sektor "${sectors[idx]!.name}" a všechna jeho sedadla?`)) return;
+    if (!window.confirm(`Smazat sektor "${sectors[idx].name}" a všechna jeho sedadla?`)) return;
     pushHistory(sectors.filter((_, i) => i !== idx));
     if (activeSectorIdx === idx) setActiveSectorIdx(null);
   }
@@ -584,26 +584,26 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
                 <circle key={i} cx={p.x} cy={p.y} r={6} fill="#f59e0b" stroke="#fff" strokeWidth={2} />
               ))}
               {tool === 'row-straight' && pendingPoints.length === 1 ? (
-                <text x={pendingPoints[0]!.x + 15} y={pendingPoints[0]!.y - 5} fontSize="14" fill="#666">
+                <text x={pendingPoints[0].x + 15} y={pendingPoints[0].y - 5} fontSize="14" fill="#666">
                   Klikni na konec řady
                 </text>
               ) : null}
               {tool === 'row-arc' && pendingPoints.length === 1 ? (
-                <text x={pendingPoints[0]!.x + 15} y={pendingPoints[0]!.y - 5} fontSize="14" fill="#666">
+                <text x={pendingPoints[0].x + 15} y={pendingPoints[0].y - 5} fontSize="14" fill="#666">
                   Klikni na vrchol oblouku
                 </text>
               ) : null}
               {tool === 'row-arc' && pendingPoints.length === 2 ? (
-                <text x={pendingPoints[1]!.x + 15} y={pendingPoints[1]!.y - 5} fontSize="14" fill="#666">
+                <text x={pendingPoints[1].x + 15} y={pendingPoints[1].y - 5} fontSize="14" fill="#666">
                   Klikni na konec oblouku
                 </text>
               ) : null}
               {tool === 'row-arc' && pendingPoints.length === 2 ? (
                 <line
-                  x1={pendingPoints[0]!.x}
-                  y1={pendingPoints[0]!.y}
-                  x2={pendingPoints[1]!.x}
-                  y2={pendingPoints[1]!.y}
+                  x1={pendingPoints[0].x}
+                  y1={pendingPoints[0].y}
+                  x2={pendingPoints[1].x}
+                  y2={pendingPoints[1].y}
                   stroke="#f59e0b"
                   strokeDasharray="4 2"
                 />

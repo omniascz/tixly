@@ -7,8 +7,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -52,7 +52,7 @@ export async function POST(
   if (lottery.rows.length === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  const l = lottery.rows[0]!;
+  const l = lottery.rows[0];
   const now = Date.now();
   if (l.status !== 'open' || new Date(l.opens_at).getTime() > now || new Date(l.closes_at).getTime() < now) {
     return NextResponse.json(
@@ -95,7 +95,7 @@ export async function POST(
   );
 
   return NextResponse.json(
-    { id: r.rows[0]!.id, status: r.rows[0]!.status, created: r.rows[0]!.created },
-    { status: r.rows[0]!.created ? 201 : 200 },
+    { id: r.rows[0].id, status: r.rows[0].status, created: r.rows[0].created },
+    { status: r.rows[0].created ? 201 : 200 },
   );
 }

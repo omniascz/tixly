@@ -102,7 +102,7 @@ export function flattenSector(
 ): Layout {
   const idx = layout.sectors.findIndex((s) => s.name === sectorName);
   if (idx < 0) return layout;
-  const sector = layout.sectors[idx]!;
+  const sector = layout.sectors[idx];
   const all: Seat[] = [];
   for (const row of sector.rows) {
     for (const seat of row.seats) all.push(seat);
@@ -197,7 +197,7 @@ export function spatialCluster(
     let root = i;
     while (parent[root] !== root) root = parent[root]!;
     while (parent[i] !== root) {
-      const next = parent[i]!;
+      const next = parent[i];
       parent[i] = root;
       i = next;
     }
@@ -209,9 +209,9 @@ export function spatialCluster(
     if (ra !== rb) parent[ra] = rb;
   };
   for (let i = 0; i < n; i++) {
-    const si = seats[i]!;
+    const si = seats[i];
     for (let j = i + 1; j < n; j++) {
-      const sj = seats[j]!;
+      const sj = seats[j];
       const dx = Math.abs(si.x - sj.x);
       const dy = Math.abs(si.y - sj.y);
       if (dx <= xMaxDist && dy <= yMax) union(i, j);
@@ -254,7 +254,7 @@ export function suggestSplit(
   return {
     count: clusters.length,
     clusters: clusters.map((idxs) => {
-      const seats = idxs.map((i) => flat[i]!);
+      const seats = idxs.map((i) => flat[i]);
       let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
       for (const s of seats) {
         if (s.x < minX) minX = s.x;
@@ -283,7 +283,7 @@ export function splitSectorBySpatial(
 ): Layout {
   const idx = layout.sectors.findIndex((s) => s.name === sectorName);
   if (idx < 0) return layout;
-  const sector = layout.sectors[idx]!;
+  const sector = layout.sectors[idx];
   const flat = flatten(sector);
   const clusters = spatialCluster(flat, xMaxDist, options.yMaxDist);
   if (clusters.length <= 1) return layout;
@@ -293,7 +293,7 @@ export function splitSectorBySpatial(
 
   const yTol = options.rowYTolerance ?? 15;
   const newSectors: Sector[] = clusters.map((seatIdxs, ci) => {
-    const seatsIn = seatIdxs.map((i) => flat[i]!);
+    const seatsIn = seatIdxs.map((i) => flat[i]);
     // Re-cluster by Y to form rows.
     seatsIn.sort((a, b) => a.y - b.y || a.x - b.x);
     const rows: Row[] = [];
@@ -350,7 +350,7 @@ export function analyzeForSuggestions(layout: Layout): AutoSuggestion[] {
         kind: 'alpha-rows',
         sectorName: sector.name,
         description:
-          `Sektor "${sector.name}" má řady ${sector.rows[0]!.label}–${sector.rows[sector.rows.length - 1]!.label} ` +
+          `Sektor "${sector.name}" má řady ${sector.rows[0].label}–${sector.rows[sector.rows.length - 1].label} ` +
           `(alfanumerické). V ČR je obvyklé číslovat 1–${sector.rows.length}.`,
         op: { type: 'renumber', mode: 'numeric' },
       });

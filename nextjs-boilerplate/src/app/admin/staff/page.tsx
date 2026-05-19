@@ -2,10 +2,10 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { UserCog, UserPlus, Trash2 } from 'lucide-react';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { PageHeader } from '@/components/admin/PageHeader';
 
 interface Member {
   userId: string;
@@ -81,7 +81,7 @@ export default function StaffPage() {
         setError(d.message ?? d.error ?? `HTTP ${r.status}`);
         return;
       }
-      setFeedback(`Uživatel ${email} přidán jako ${ROLE_LABELS[role]!.label}.`);
+      setFeedback(`Uživatel ${email} přidán jako ${ROLE_LABELS[role].label}.`);
       setEmail('');
       await reload();
     } catch {
@@ -103,7 +103,7 @@ export default function StaffPage() {
       body: JSON.stringify({ role: newRole }),
     });
     if (r.ok) {
-      setFeedback(`${member.email} → ${ROLE_LABELS[newRole]!.label}`);
+      setFeedback(`${member.email} → ${ROLE_LABELS[newRole].label}`);
       await reload();
     } else {
       const d = await r.json();

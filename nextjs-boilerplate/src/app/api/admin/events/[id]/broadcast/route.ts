@@ -15,8 +15,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -124,7 +124,7 @@ export async function POST(
       recipients.length,
     ],
   );
-  const broadcastId = r.rows[0]!.id;
+  const broadcastId = r.rows[0].id;
 
   // Trigger async send (fire-and-forget)
   void fetch(

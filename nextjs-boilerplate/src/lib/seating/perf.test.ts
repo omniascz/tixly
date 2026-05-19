@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { classifyChartSize } from './perf';
 import { diffLayouts } from './diff';
+import { classifyChartSize } from './perf';
 
 describe('classifyChartSize', () => {
   it('classifies small charts as ok', () => {

@@ -6,8 +6,8 @@
  * Internal-only — odešle invite email přes nodemailer (Mailhog v demu).
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { escapeHtml } from '@/lib/html-escape/escape';
 

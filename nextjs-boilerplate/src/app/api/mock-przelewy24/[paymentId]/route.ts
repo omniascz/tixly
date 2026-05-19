@@ -43,7 +43,7 @@ export async function POST(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
-    const order = orderResult.rows[0]!;
+    const order = orderResult.rows[0];
 
     if (order.status !== 'pending') {
       await client.query('ROLLBACK');

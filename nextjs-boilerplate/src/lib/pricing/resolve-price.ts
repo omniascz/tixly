@@ -78,7 +78,7 @@ export async function resolveCurrentPrice(
       `Ticket type ${ticketTypeId} not found for event ${eventId}`,
     );
   }
-  const tt = ttRes.rows[0]!;
+  const tt = ttRes.rows[0];
 
   // 1) All-In tier override (display total)
   // Tabulka pricing.price_tiers je z migrace 133 a v některých prostředích

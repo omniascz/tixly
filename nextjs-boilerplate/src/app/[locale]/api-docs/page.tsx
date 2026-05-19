@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { SCHEMA_SDL } from '@/lib/graphql/schema';
 import { Card, CardContent } from '@/components/ui/card';
+import { SCHEMA_SDL } from '@/lib/graphql/schema';
 import { ApiDocsPlayground } from './playground';
 
 export const metadata: Metadata = {

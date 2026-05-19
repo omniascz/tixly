@@ -70,7 +70,7 @@ export async function POST(
   if (ev.rows.length === 0) {
     return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
   }
-  const event = ev.rows[0]!;
+  const event = ev.rows[0];
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {

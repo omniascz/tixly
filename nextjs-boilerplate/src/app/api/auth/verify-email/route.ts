@@ -43,7 +43,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   }
   return NextResponse.json({
     status: 'verified',
-    email: r.rows[0]!.email,
-    verifiedAt: r.rows[0]!.email_verified_at,
+    email: r.rows[0].email,
+    verifiedAt: r.rows[0].email_verified_at,
   });
 }

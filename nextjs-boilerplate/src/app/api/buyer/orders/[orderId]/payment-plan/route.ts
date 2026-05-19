@@ -10,8 +10,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -71,7 +71,7 @@ export async function POST(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
-    const order = ord.rows[0]!;
+    const order = ord.rows[0];
     if (order.status !== 'pending') {
       await client.query('ROLLBACK');
       return NextResponse.json(
@@ -95,11 +95,11 @@ export async function POST(
        WHERE id = $1`,
       [parsed.data.planId],
     );
-    if (plan.rows.length === 0 || !plan.rows[0]!.active) {
+    if (plan.rows.length === 0 || !plan.rows[0].active) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'PLAN_NOT_FOUND' }, { status: 404 });
     }
-    const p = plan.rows[0]!;
+    const p = plan.rows[0];
     if (p.event_id !== order.event_id) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'PLAN_NOT_FOR_EVENT' }, { status: 422 });
@@ -117,7 +117,7 @@ export async function POST(
        RETURNING id`,
       [order.id, p.id, total, order.currency, depositAmount],
     );
-    const oppId = oppRes.rows[0]!.id;
+    const oppId = oppRes.rows[0].id;
 
     if (installmentsCount > 0) {
       // Equal-split (last absorbs remainder)

@@ -60,7 +60,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   if (month && /^\d{4}-\d{2}$/.test(month)) {
     from = `${month}-01`;
     const [y, m] = month.split('-').map(Number);
-    const nextMonth = new Date(y!, m!, 1);
+    const nextMonth = new Date(y, m, 1);
     to = nextMonth.toISOString().slice(0, 10);
   } else {
     const now = new Date();

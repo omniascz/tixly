@@ -7,14 +7,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
-import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 import {
   runAiGate,
   TRUST_THRESHOLD_PUBLISHED_EVENTS,
 } from '@/lib/moderation/ai-gate';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 import { copyLayoutToEventSeats } from '@/lib/seats/copy-layout-to-event-seats';
 
 let pool: Pool | null = null;
@@ -330,7 +330,7 @@ export async function POST(req: NextRequest): Promise<Response> {
          RETURNING id`,
         ['Online / TBD', '—', '—', 'CZ', Math.max(totalCapacity, 1), 'online'],
       );
-      venueId = venueRes.rows[0]!.id;
+      venueId = venueRes.rows[0].id;
     }
 
     // Pokud promotér ve formuláři chce „save as draft", obejdeme moderaci
@@ -382,7 +382,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         effectiveVatCategory,
       ],
     );
-    const eventId = eventRes.rows[0]!.id;
+    const eventId = eventRes.rows[0].id;
 
     // Days — pokud promotér nezadal, vygenerujeme 1 default den z dateStart/dateEnd
     const daysInput = input.days && input.days.length > 0
@@ -397,7 +397,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         ];
     const dayIds: string[] = [];
     for (let i = 0; i < daysInput.length; i++) {
-      const d = daysInput[i]!;
+      const d = daysInput[i];
       const dr = await client.query<{ id: string }>(
         `INSERT INTO catalog.event_days
            (event_id, day_index, starts_at, ends_at, label, notes)
@@ -405,7 +405,7 @@ export async function POST(req: NextRequest): Promise<Response> {
          RETURNING id`,
         [eventId, i, d.startsAt, d.endsAt, d.label ?? null, d.notes ?? null],
       );
-      dayIds.push(dr.rows[0]!.id);
+      dayIds.push(dr.rows[0].id);
     }
 
     // Zones — pokud nejsou, jeden default 'general' zone
@@ -415,7 +415,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         : [{ name: 'Hlavní', zoneType: 'general' as const }];
     const zoneIdsByName = new Map<string, string>();
     for (let i = 0; i < zonesInput.length; i++) {
-      const z = zonesInput[i]!;
+      const z = zonesInput[i];
       const zr = await client.query<{ id: string }>(
         `INSERT INTO catalog.event_zones
            (event_id, name, zone_type, capacity, display_order, description)
@@ -423,7 +423,7 @@ export async function POST(req: NextRequest): Promise<Response> {
          RETURNING id`,
         [eventId, z.name, z.zoneType, z.capacity ?? null, i, z.description ?? null],
       );
-      zoneIdsByName.set(z.name, zr.rows[0]!.id);
+      zoneIdsByName.set(z.name, zr.rows[0].id);
     }
 
     // Ticket types + access manifest
@@ -444,7 +444,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           tt.isSeated ?? false,
         ],
       );
-      const ticketTypeId = ttr.rows[0]!.id;
+      const ticketTypeId = ttr.rows[0].id;
 
       // Default access spec (žádný = wildcard all/all/general)
       const accessSpecs = tt.access && tt.access.length > 0

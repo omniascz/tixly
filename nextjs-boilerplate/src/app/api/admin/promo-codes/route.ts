@@ -7,8 +7,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 
@@ -119,7 +119,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       ],
     );
     return NextResponse.json(
-      { id: r.rows[0]!.id, code: r.rows[0]!.code },
+      { id: r.rows[0].id, code: r.rows[0].code },
       { status: 201 },
     );
   } catch (err: unknown) {

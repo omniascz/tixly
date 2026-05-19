@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   CalendarDays,
@@ -26,6 +24,8 @@ import {
   Webhook,
   type LucideIcon,
 } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 interface NavItem {

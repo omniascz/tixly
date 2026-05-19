@@ -64,7 +64,7 @@ export async function GET(
     [params.id, limit],
   );
 
-  const s = stats.rows[0]!;
+  const s = stats.rows[0];
   return NextResponse.json({
     stats: {
       avgRating: s.avg_rating ? Math.round(Number(s.avg_rating) * 10) / 10 : null,

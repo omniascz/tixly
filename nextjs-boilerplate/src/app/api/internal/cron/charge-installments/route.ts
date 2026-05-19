@@ -10,9 +10,9 @@
  * Auth: x-internal-token.
  */
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { timingSafeEqual } from 'crypto';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest): Promise<Response> {
          WHERE id = $1 FOR UPDATE`,
         [inst.id],
       );
-      if (recheck.rows.length === 0 || recheck.rows[0]!.status !== 'pending') {
+      if (recheck.rows.length === 0 || recheck.rows[0].status !== 'pending') {
         await client.query('ROLLBACK');
         continue;
       }
@@ -151,7 +151,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           await client.query(
             `UPDATE orders.orders SET status = 'paid', paid_at = NOW(), updated_at = NOW()
              WHERE id = $1 AND status IN ('paid_partial', 'pending')`,
-            [opp.rows[0]!.order_id],
+            [opp.rows[0].order_id],
           );
           completedPlans += 1;
         }

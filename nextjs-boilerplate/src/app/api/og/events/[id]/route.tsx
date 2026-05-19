@@ -43,15 +43,15 @@ export async function GET(
   if (r.rows.length === 0) {
     return new Response('Not found', { status: 404 });
   }
-  const ev = r.rows[0]!;
+  const ev = r.rows[0];
 
   // Brand color promotéra > fallback hash hue
   let bgGradient: string;
   if (ev.brand_color_hex && /^#[0-9a-f]{6}$/i.test(ev.brand_color_hex)) {
     const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(ev.brand_color_hex)!;
-    const r0 = parseInt(m[1]!, 16);
-    const g0 = parseInt(m[2]!, 16);
-    const b0 = parseInt(m[3]!, 16);
+    const r0 = parseInt(m[1], 16);
+    const g0 = parseInt(m[2], 16);
+    const b0 = parseInt(m[3], 16);
     const darker = `rgb(${Math.round(r0 * 0.7)}, ${Math.round(g0 * 0.7)}, ${Math.round(b0 * 0.7)})`;
     bgGradient = `linear-gradient(135deg, ${ev.brand_color_hex} 0%, ${darker} 100%)`;
   } else {

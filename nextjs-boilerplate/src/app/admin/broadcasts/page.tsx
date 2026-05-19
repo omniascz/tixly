@@ -1,11 +1,11 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { Mail, Send, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { PageHeader } from '@/components/admin/PageHeader';
-import { Mail, Send, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 interface EventOption {
   id: string;
@@ -168,7 +168,7 @@ export default function BroadcastsPage() {
               <fieldset className="border-0 p-0">
                 <legend className="mb-1 block text-xs font-medium">Komu poslat</legend>
                 <div className="grid grid-cols-2 gap-2">
-                  {(Object.keys(FILTER_LABELS) as (keyof typeof FILTER_LABELS)[]).map((f) => (
+                  {(Object.keys(FILTER_LABELS)).map((f) => (
                     <label
                       key={f}
                       className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${filter === f ? 'border-primary bg-primary/5' : ''}`}

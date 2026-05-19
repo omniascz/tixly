@@ -6,8 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -138,7 +138,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   if (planRes.rows.length === 0) {
     return NextResponse.json({ error: 'PLAN_NOT_FOUND' }, { status: 404 });
   }
-  const plan = planRes.rows[0]!;
+  const plan = planRes.rows[0];
 
   // Duplicate guard — pokud má active subscription stejného plánu, vrátí ji
   const exists = await db().query<{ id: string }>(
@@ -148,7 +148,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   );
   if (exists.rows.length > 0) {
     return NextResponse.json(
-      { error: 'ALREADY_SUBSCRIBED', subscriptionId: exists.rows[0]!.id },
+      { error: 'ALREADY_SUBSCRIBED', subscriptionId: exists.rows[0].id },
       { status: 409 },
     );
   }
@@ -178,7 +178,7 @@ export async function POST(req: NextRequest): Promise<Response> {
        (schema_name, table_name, record_id, action, actor_id, actor_type, new_values)
      VALUES ('subscriptions', 'subscriptions', $1, 'INSERT', $2, 'user', $3::jsonb)`,
     [
-      r.rows[0]!.id,
+      r.rows[0].id,
       userId,
       JSON.stringify({ planId: plan.id, status: 'active', kind: 'subscribe' }),
     ],
@@ -186,7 +186,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   return NextResponse.json(
     {
-      subscriptionId: r.rows[0]!.id,
+      subscriptionId: r.rows[0].id,
       currentPeriodEnd: periodEnd.toISOString(),
       note: 'Bez platební brány — předplatné aktivní okamžitě (demo).',
     },

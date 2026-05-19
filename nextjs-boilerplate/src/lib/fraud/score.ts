@@ -96,7 +96,7 @@ export async function scoreFraud(input: FraudInput): Promise<FraudResult> {
   }
 
   // 4) High value
-  const threshold = HIGH_VALUE[input.currency] ?? HIGH_VALUE.CZK!;
+  const threshold = HIGH_VALUE[input.currency] ?? HIGH_VALUE.CZK;
   signals.highValue = input.totalAmountMinor >= threshold;
   if (input.totalAmountMinor >= threshold) {
     score += 15;

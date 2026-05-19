@@ -20,8 +20,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 import { copyLayoutToEventSeats } from '@/lib/seats/copy-layout-to-event-seats';
 
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const validVenueIds = new Set(venuesRes.rows.map((r) => r.id));
 
     for (let i = 0; i < rows.length; i++) {
-      const row = rows[i]!;
+      const row = rows[i];
       try {
         if (!validVenueIds.has(row.venueId)) {
           results.push({
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest): Promise<Response> {
             row.dateStart,
           ],
         );
-        const eventId = evRes.rows[0]!.id;
+        const eventId = evRes.rows[0].id;
 
         // 2) Ticket type
         await client.query(

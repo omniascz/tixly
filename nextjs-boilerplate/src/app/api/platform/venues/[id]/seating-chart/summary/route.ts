@@ -39,7 +39,7 @@ export async function GET(
   if (!r.rows.length) {
     return NextResponse.json({ summary: null });
   }
-  const c = r.rows[0]!;
+  const c = r.rows[0];
   const sectors = c.layout.sectors.map((s) => {
     let seats = 0;
     for (const row of s.rows) seats += row.seats.length;

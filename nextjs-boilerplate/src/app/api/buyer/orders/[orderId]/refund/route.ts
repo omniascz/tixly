@@ -81,7 +81,7 @@ export async function POST(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
     }
-    const o = orderRes.rows[0]!;
+    const o = orderRes.rows[0];
     if (o.status !== 'paid') {
       await client.query('ROLLBACK');
       return NextResponse.json(

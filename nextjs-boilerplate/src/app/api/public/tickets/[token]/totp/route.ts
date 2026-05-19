@@ -11,8 +11,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { decryptSecret } from '@/lib/crypto';
-import { generateTotpCode } from '@/lib/totp/verify';
 import { verifyTicketMagicToken } from '@/lib/tickets/magic-token';
+import { generateTotpCode } from '@/lib/totp/verify';
 
 const STEP_SECONDS = 30;
 
@@ -59,7 +59,7 @@ export async function GET(
   if (r.rows.length === 0) {
     return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
   }
-  const t = r.rows[0]!;
+  const t = r.rows[0];
 
   if (t.status === 'revoked') {
     return NextResponse.json(

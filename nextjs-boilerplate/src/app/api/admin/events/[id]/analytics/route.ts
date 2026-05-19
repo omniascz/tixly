@@ -136,7 +136,7 @@ export async function GET(
     [params.id],
   );
 
-  const k = kpi.rows[0]!;
+  const k = kpi.rows[0];
 
   return NextResponse.json({
     eventId: params.id,

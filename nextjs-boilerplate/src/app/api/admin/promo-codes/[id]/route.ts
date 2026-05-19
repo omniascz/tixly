@@ -7,8 +7,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -83,5 +83,5 @@ export async function PATCH(
       { status: 404 },
     );
   }
-  return NextResponse.json({ ok: true, id: r.rows[0]!.id, active: r.rows[0]!.active });
+  return NextResponse.json({ ok: true, id: r.rows[0].id, active: r.rows[0].active });
 }

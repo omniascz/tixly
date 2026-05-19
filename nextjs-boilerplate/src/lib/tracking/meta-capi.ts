@@ -90,7 +90,7 @@ export async function sendMetaEvent(
        RETURNING id`,
       [context.eventId, context.orderId ?? null, input.eventName, JSON.stringify(payload)],
     );
-    logId = lr.rows[0]!.id;
+    logId = lr.rows[0].id;
   }
 
   try {

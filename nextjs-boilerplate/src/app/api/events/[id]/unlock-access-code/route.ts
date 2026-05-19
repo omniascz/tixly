@@ -17,8 +17,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 
 let pool: Pool | null = null;
@@ -80,7 +80,7 @@ export async function POST(
       { status: 404 },
     );
   }
-  const ac = r.rows[0]!;
+  const ac = r.rows[0];
   const now = new Date();
   if (ac.valid_from && new Date(ac.valid_from) > now) {
     return NextResponse.json(

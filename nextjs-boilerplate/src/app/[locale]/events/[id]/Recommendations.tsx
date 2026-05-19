@@ -51,7 +51,7 @@ export function Recommendations({ eventId, locale }: { eventId: string; locale: 
     arr.push(r);
     groups.set(r.reason, arr);
   }
-  const primaryReason = recs[0]!.reason;
+  const primaryReason = recs[0].reason;
   const heading = REASON_LABELS[primaryReason] ?? 'Mohlo by tě zajímat';
 
   return (

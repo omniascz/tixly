@@ -10,15 +10,15 @@
  * Body: { orderId: string }
  */
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { timingSafeEqual } from 'crypto';
 
+import { escapeHtml } from '@/lib/html-escape/escape';
+import { sendSms } from '@/lib/sms/bulkgate-mock';
+import { resolveVatRate, splitGrossToNetVat } from '@/lib/tax/vat-rates';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 import { renderTicketsPdf } from '@/lib/tickets/pdf-renderer';
-import { sendSms } from '@/lib/sms/bulkgate-mock';
-import { escapeHtml } from '@/lib/html-escape/escape';
-import { resolveVatRate, splitGrossToNetVat } from '@/lib/tax/vat-rates';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -278,7 +278,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   if (orderRes.rows.length === 0) {
     return NextResponse.json({ error: 'Order not found' }, { status: 404 });
   }
-  const order = orderRes.rows[0]!;
+  const order = orderRes.rows[0];
   if (order.status !== 'paid') {
     return NextResponse.json(
       { skipped: true, reason: `order status is ${order.status}, not paid` },
@@ -524,7 +524,7 @@ async function fireConversionTracking(orderId: string): Promise<void> {
     [orderId],
   );
   if (r.rows.length === 0) return;
-  const o = r.rows[0]!;
+  const o = r.rows[0];
   const valueMajor = o.total_amount / 100;
   const items = o.items ?? [];
 

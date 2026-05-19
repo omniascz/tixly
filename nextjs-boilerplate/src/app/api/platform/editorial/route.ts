@@ -8,9 +8,9 @@
  * Auth: x-internal-token (zatím; v produkci napojit na is_platform_admin).
  */
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { timingSafeEqual } from 'crypto';
 import { z } from 'zod';
 
 let pool: Pool | null = null;
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         parsed.data.readingTimeMin ?? null,
       ],
     );
-    const articleId = r.rows[0]!.id;
+    const articleId = r.rows[0].id;
 
     if (parsed.data.featuredEventIds && parsed.data.featuredEventIds.length > 0) {
       for (let i = 0; i < parsed.data.featuredEventIds.length; i++) {

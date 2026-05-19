@@ -12,8 +12,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         outcomes.push({ orderId, status: 'not_found' });
         continue;
       }
-      const order = orderRes.rows[0]!;
+      const order = orderRes.rows[0];
       if (order.event_promoter_id !== promoter.promoterId) {
         await client.query('ROLLBACK');
         outcomes.push({ orderId, status: 'wrong_promoter' });

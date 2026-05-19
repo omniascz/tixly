@@ -9,8 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       `SELECT vat_rate_pct, vat_payer FROM platform.promoters WHERE id = $1`,
       [promoter.promoterId],
     );
-    const vatRate = promRes.rows[0]!.vat_rate_pct;
+    const vatRate = promRes.rows[0].vat_rate_pct;
 
     // Resolve total + currency from order or hospitality inquiry
     let totalGross: number;
@@ -98,12 +98,12 @@ export async function POST(req: NextRequest): Promise<Response> {
          WHERE o.id = $1 FOR UPDATE`,
         [parsed.data.orderId],
       );
-      if (r.rows.length === 0 || r.rows[0]!.promoter_id !== promoter.promoterId) {
+      if (r.rows.length === 0 || r.rows[0].promoter_id !== promoter.promoterId) {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'Not found' }, { status: 404 });
       }
-      totalGross = r.rows[0]!.total_amount;
-      currency = r.rows[0]!.currency;
+      totalGross = r.rows[0].total_amount;
+      currency = r.rows[0].currency;
     } else {
       const r = await client.query<{ total_amount_minor: number; currency: string; promoter_id: string }>(
         `SELECT i.total_amount_minor, i.currency, e.promoter_id
@@ -113,12 +113,12 @@ export async function POST(req: NextRequest): Promise<Response> {
          WHERE i.id = $1 FOR UPDATE`,
         [parsed.data.hospitalityInquiryId],
       );
-      if (r.rows.length === 0 || r.rows[0]!.promoter_id !== promoter.promoterId) {
+      if (r.rows.length === 0 || r.rows[0].promoter_id !== promoter.promoterId) {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'Not found' }, { status: 404 });
       }
-      totalGross = r.rows[0]!.total_amount_minor;
-      currency = r.rows[0]!.currency;
+      totalGross = r.rows[0].total_amount_minor;
+      currency = r.rows[0].currency;
     }
 
     // VAT extraction (gross → net + VAT)
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest): Promise<Response> {
        ) AS next`,
       [promoter.promoterId, `${year}-%`],
     );
-    const nextNum = String(Number(seq.rows[0]!.next) + 1).padStart(4, '0');
+    const nextNum = String(Number(seq.rows[0].next) + 1).padStart(4, '0');
     const invoiceNumber = `${year}-${nextNum}`;
 
     // Due date: 14 days
@@ -172,7 +172,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     await client.query('COMMIT');
     return NextResponse.json(
       {
-        id: r.rows[0]!.id,
+        id: r.rows[0].id,
         invoiceNumber,
         subtotal,
         vatAmount,

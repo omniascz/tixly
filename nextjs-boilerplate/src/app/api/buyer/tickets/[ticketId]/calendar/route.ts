@@ -56,7 +56,7 @@ export async function GET(
   if (r.rows.length === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  const t = r.rows[0]!;
+  const t = r.rows[0];
 
   const dtStart = icsDate(t.event_date_start);
   const dtEnd = icsDate(

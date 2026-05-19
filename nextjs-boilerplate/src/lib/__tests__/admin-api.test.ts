@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import api from '@/lib/api';
 import { adminApi } from '@/lib/admin-api';
+import api from '@/lib/api';
 
 const mockedApi = api as unknown as { get: ReturnType<typeof vi.fn> };
 

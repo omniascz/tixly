@@ -1,10 +1,10 @@
+import { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { ReactNode } from 'react';
-import { Providers } from './providers';
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar';
 import { SkipToContent } from '@/components/SkipToContent';
 import { WebVitalsReporter } from '@/components/WebVitalsReporter';
+import { Providers } from './providers';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin', 'latin-ext'], variable: '--font-inter' });

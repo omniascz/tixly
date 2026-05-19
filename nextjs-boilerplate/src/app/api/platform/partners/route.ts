@@ -8,9 +8,9 @@
  * v produkci se napojí na users.is_platform_admin).
  */
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { timingSafeEqual } from 'crypto';
 import { z } from 'zod';
 import { generatePartnerToken } from '@/lib/partner/auth';
 
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         parsed.data.commissionPct,
       ],
     );
-    const partnerId = pr.rows[0]!.id;
+    const partnerId = pr.rows[0].id;
 
     const { token, hash } = generatePartnerToken();
     await client.query(

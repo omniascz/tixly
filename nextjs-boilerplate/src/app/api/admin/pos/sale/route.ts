@@ -16,10 +16,10 @@
  * inkasuje promotér sám u kasy. Tixly jen vystaví lístek.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
-import { Pool, type PoolClient } from 'pg';
+import { NextRequest, NextResponse } from 'next/server';
+import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest): Promise<Response> {
        RETURNING id`,
       [walkinEmail, input.buyerName ?? 'Walk-in kupující'],
     );
-    const userId = userRes.rows[0]!.id;
+    const userId = userRes.rows[0].id;
 
     // 5) Order
     const totalAmount = tt.base_price * input.quantity;
@@ -163,7 +163,7 @@ export async function POST(req: NextRequest): Promise<Response> {
        RETURNING id`,
       [userId, totalAmount, ev.currency, input.eventId],
     );
-    const orderId = orderRes.rows[0]!.id;
+    const orderId = orderRes.rows[0].id;
 
     // 6) Order items — pro seated 1 item per seat, pro standing 1 item × quantity
     if (tt.is_seated) {
@@ -193,7 +193,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
 
     // 8) Vystav lístky (přes existing issuer — TOTP secret + insert do tickets.tickets)
-    const issued = await issueTicketsForOrder(orderId, client as PoolClient);
+    const issued = await issueTicketsForOrder(orderId, client);
 
     await client.query('COMMIT');
 

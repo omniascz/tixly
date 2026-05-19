@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   );
   if (existing.rows.length > 0) {
     return NextResponse.json(
-      { error: 'ALREADY_HAS', status: existing.rows[0]!.status },
+      { error: 'ALREADY_HAS', status: existing.rows[0].status },
       { status: 409 },
     );
   }
@@ -76,5 +76,5 @@ export async function POST(req: NextRequest): Promise<Response> {
      RETURNING id`,
     [userId, parsed.data.type, parsed.data.proofUrl, JSON.stringify(parsed.data.proofMetadata ?? {})],
   );
-  return NextResponse.json({ id: r.rows[0]!.id, status: 'pending' }, { status: 201 });
+  return NextResponse.json({ id: r.rows[0].id, status: 'pending' }, { status: 201 });
 }

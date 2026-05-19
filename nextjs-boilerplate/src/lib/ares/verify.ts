@@ -28,13 +28,13 @@ function validIcoChecksum(ico: string): boolean {
   const digits = ico.split('').map((d) => Number.parseInt(d, 10));
   const weights = [8, 7, 6, 5, 4, 3, 2];
   let sum = 0;
-  for (let i = 0; i < 7; i++) sum += digits[i]! * weights[i]!;
+  for (let i = 0; i < 7; i++) sum += digits[i] * weights[i];
   const remainder = sum % 11;
   let checkDigit: number;
   if (remainder === 0) checkDigit = 1;
   else if (remainder === 1) checkDigit = 0;
   else checkDigit = 11 - remainder;
-  return checkDigit === digits[7]!;
+  return checkDigit === digits[7];
 }
 
 export async function verifyIco(ico: string): Promise<AresResult> {

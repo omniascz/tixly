@@ -22,12 +22,12 @@ function generateCode(secretRaw: Buffer, counter: bigint): string {
   buf.writeBigUInt64BE(counter);
 
   const hmac = createHmac('sha1', secretRaw).update(buf).digest();
-  const offset = hmac[hmac.length - 1]! & 0x0f;
+  const offset = hmac[hmac.length - 1] & 0x0f;
   const binary =
-    ((hmac[offset]! & 0x7f) << 24) |
-    ((hmac[offset + 1]! & 0xff) << 16) |
-    ((hmac[offset + 2]! & 0xff) << 8) |
-    (hmac[offset + 3]! & 0xff);
+    ((hmac[offset] & 0x7f) << 24) |
+    ((hmac[offset + 1] & 0xff) << 16) |
+    ((hmac[offset + 2] & 0xff) << 8) |
+    (hmac[offset + 3] & 0xff);
 
   return String(binary % 10 ** DIGITS).padStart(DIGITS, '0');
 }

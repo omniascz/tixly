@@ -11,8 +11,8 @@
  */
 
 import { NextResponse } from 'next/server';
-import { getGopayConfig } from '@/lib/payment/gopay-real';
 import { getComGateConfig } from '@/lib/payment/comgate';
+import { getGopayConfig } from '@/lib/payment/gopay-real';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -143,8 +143,8 @@ export async function GET(): Promise<Response> {
   const summary = providers.reduce<Record<string, { configured: number; total: number }>>(
     (acc, p) => {
       acc[p.category] = acc[p.category] ?? { configured: 0, total: 0 };
-      acc[p.category]!.total += 1;
-      if (p.configured) acc[p.category]!.configured += 1;
+      acc[p.category].total += 1;
+      if (p.configured) acc[p.category].configured += 1;
       return acc;
     },
     {},

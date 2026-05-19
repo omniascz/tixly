@@ -12,10 +12,10 @@
  */
 
 import { FormEvent, useEffect, useState } from 'react';
+import { Shield, ShieldCheck, ShieldOff, Copy, Check, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Shield, ShieldCheck, ShieldOff, Copy, Check, AlertTriangle } from 'lucide-react';
 
 interface Status {
   enabled: boolean;

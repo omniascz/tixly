@@ -7,13 +7,13 @@
  * Token TTL: 1 hodina. Rate limit: 3/15min per IP.
  */
 
+import { randomBytes } from 'crypto';
+import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { z } from 'zod';
-import bcrypt from 'bcryptjs';
-import { randomBytes } from 'crypto';
-import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 import { sendMail } from '@/lib/email/mailer';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     // Anti-enumeration: nedávej najevo, že email neexistuje
     return NextResponse.json({ ok: true });
   }
-  const user = userRes.rows[0]!;
+  const user = userRes.rows[0];
 
   // Sliding-window cleanup expired tokens
   await db().query(

@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { Bell } from 'lucide-react';
+import Link from 'next/link';
 
 function authFetch(url: string): Promise<Response> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;

@@ -7,10 +7,10 @@
  * Po kliknutí na confirm link → status='confirmed'.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { Pool } from 'pg';
 import { randomBytes } from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
+import { Pool } from 'pg';
+import { z } from 'zod';
 import { escapeHtml } from '@/lib/html-escape/escape';
 
 let pool: Pool | null = null;
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     [parsed.data.email, parsed.data.promoterId ?? null],
   );
   if (existing.rows.length > 0) {
-    return NextResponse.json({ ok: true, status: existing.rows[0]!.status, existing: true });
+    return NextResponse.json({ ok: true, status: existing.rows[0].status, existing: true });
   }
 
   const token = randomBytes(24).toString('base64url');
@@ -81,5 +81,5 @@ export async function POST(req: NextRequest): Promise<Response> {
     text: `Potvrď přihlášení: ${confirmUrl}`,
   }).catch((err) => console.error('[newsletter confirm email]', err));
 
-  return NextResponse.json({ ok: true, id: r.rows[0]!.id, status: 'pending' }, { status: 201 });
+  return NextResponse.json({ ok: true, id: r.rows[0].id, status: 'pending' }, { status: 201 });
 }

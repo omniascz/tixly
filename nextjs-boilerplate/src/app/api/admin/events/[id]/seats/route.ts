@@ -15,8 +15,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -122,7 +122,7 @@ export async function POST(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
-    if (!ev.rows[0]!.venue_id) {
+    if (!ev.rows[0].venue_id) {
       await client.query('ROLLBACK');
       return NextResponse.json(
         { error: 'EVENT_HAS_NO_VENUE', message: 'Akce nemá přiřazený sál.' },
@@ -135,7 +135,7 @@ export async function POST(
       `SELECT layout, total_seats FROM catalog.venue_seating_charts
        WHERE venue_id = $1 AND active = true
        ORDER BY created_at DESC LIMIT 1`,
-      [ev.rows[0]!.venue_id],
+      [ev.rows[0].venue_id],
     );
     if (lr.rows.length === 0) {
       await client.query('ROLLBACK');
@@ -144,7 +144,7 @@ export async function POST(
         { status: 422 },
       );
     }
-    const layout = lr.rows[0]!.layout;
+    const layout = lr.rows[0].layout;
 
     // Idempotence — pokud už existují seats pro tento event/day, refuse
     const existing = await client.query<{ count: string }>(

@@ -72,7 +72,7 @@ export async function acquireSeatLocks(
     [seatIds],
   );
   if (holdsRes.rows.length > 0) {
-    throw new SeatUnavailableError(holdsRes.rows[0]!.seat_id, 'in_hold');
+    throw new SeatUnavailableError(holdsRes.rows[0].seat_id, 'in_hold');
   }
 
   // 2) Atomický lock: jen pokud je status='available'

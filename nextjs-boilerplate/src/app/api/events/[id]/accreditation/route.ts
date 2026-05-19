@@ -66,7 +66,7 @@ export async function POST(
   if (ev.rows.length === 0) {
     return NextResponse.json({ error: 'EVENT_NOT_FOUND' }, { status: 404 });
   }
-  const event = ev.rows[0]!;
+  const event = ev.rows[0];
 
   const email = parsed.data.email.trim().toLowerCase();
 

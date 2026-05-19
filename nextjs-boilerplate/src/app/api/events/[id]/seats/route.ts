@@ -30,7 +30,7 @@ export async function GET(
     `SELECT venue_id FROM catalog.events WHERE id = $1 AND status = 'published'`,
     [params.id],
   );
-  if (ev.rows.length === 0 || !ev.rows[0]!.venue_id) {
+  if (ev.rows.length === 0 || !ev.rows[0].venue_id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
@@ -38,7 +38,7 @@ export async function GET(
     `SELECT layout FROM catalog.venue_seating_charts
      WHERE venue_id = $1 AND active = true
      ORDER BY created_at DESC LIMIT 1`,
-    [ev.rows[0]!.venue_id],
+    [ev.rows[0].venue_id],
   );
   if (layout.rows.length === 0) {
     return NextResponse.json({ error: 'NO_LAYOUT' }, { status: 404 });
@@ -87,7 +87,7 @@ export async function GET(
   }
 
   return NextResponse.json({
-    layout: layout.rows[0]!.layout,
+    layout: layout.rows[0].layout,
     seats: seats.rows.map((s) => ({
       id: s.id,
       sector: s.sector,

@@ -5,10 +5,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
+import { z } from 'zod';
 import { logAction, extractRequestContext } from '@/lib/audit/log';
+import { requirePlatformAdmin } from '@/lib/platform-auth';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -133,7 +133,7 @@ export async function PATCH(
     userAgent: reqCtx.userAgent,
   });
 
-  return NextResponse.json({ id: r.rows[0]!.id });
+  return NextResponse.json({ id: r.rows[0].id });
 }
 
 export async function DELETE(
@@ -150,7 +150,7 @@ export async function DELETE(
   );
   if ((usage.rows[0]?.upcoming ?? 0) > 0) {
     return NextResponse.json(
-      { error: 'Cannot archive: venue has upcoming events', upcomingEvents: usage.rows[0]!.upcoming },
+      { error: 'Cannot archive: venue has upcoming events', upcomingEvents: usage.rows[0].upcoming },
       { status: 409 },
     );
   }
@@ -180,5 +180,5 @@ export async function DELETE(
     userAgent: reqCtx.userAgent,
   });
 
-  return NextResponse.json({ id: r.rows[0]!.id, archived: true });
+  return NextResponse.json({ id: r.rows[0].id, archived: true });
 }

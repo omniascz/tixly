@@ -12,11 +12,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
-import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 import { escapeHtml } from '@/lib/html-escape/escape';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -140,7 +140,7 @@ export async function POST(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
-    const order = orderRes.rows[0]!;
+    const order = orderRes.rows[0];
 
     if (order.event_promoter_id !== promoter.promoterId) {
       await client.query('ROLLBACK');

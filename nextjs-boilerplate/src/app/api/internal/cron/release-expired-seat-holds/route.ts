@@ -14,9 +14,9 @@
  * Response: { releasedCount: number, ts: string }
  */
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { timingSafeEqual } from 'crypto';
 
 let pool: Pool | null = null;
 function db(): Pool {

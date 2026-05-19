@@ -157,8 +157,8 @@ export async function sendSms(
     cost = STANDARD_SMS_COST_HALIRE * segments;
   } else {
     const r = await callBulkGateApi({
-      applicationId: applicationId!,
-      applicationToken: applicationToken!,
+      applicationId: applicationId,
+      applicationToken: applicationToken,
       senderId,
       phone,
       text: input.text,

@@ -13,8 +13,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { SCHEMA_SDL } from '@/lib/graphql/schema';
 import { resolvers } from '@/lib/graphql/resolvers';
+import { SCHEMA_SDL } from '@/lib/graphql/schema';
 
 interface GraphQLLib {
   buildSchema: (sdl: string) => unknown;

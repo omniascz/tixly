@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { VenueLayoutPreview } from '@/components/platform/VenueLayoutPreview';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { classifyChartSize } from '@/lib/seating/perf';
-import { VenueLayoutPreview } from '@/components/platform/VenueLayoutPreview';
 
 interface VenueDetail {
   id: string;

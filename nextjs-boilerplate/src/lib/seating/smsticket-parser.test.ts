@@ -33,26 +33,26 @@ describe('parseSmsTicketSvg', () => {
     const r = parseSmsTicketSvg(SAMPLE);
     expect(r.layout.sectors).toHaveLength(2);
     // Largest sector first — but here yellow has 3 seats, green has 2 → yellow wins.
-    expect(r.layout.sectors[0]!.name).toBe('#F7E607');
-    expect(r.layout.sectors[1]!.name).toBe('#14B214');
+    expect(r.layout.sectors[0].name).toBe('#F7E607');
+    expect(r.layout.sectors[1].name).toBe('#14B214');
   });
 
   it('clusters seats by Y into numerically-labeled rows (1, 2, 3...)', () => {
     const r = parseSmsTicketSvg(SAMPLE);
-    const yellow = r.layout.sectors[0]!;
+    const yellow = r.layout.sectors[0];
     expect(yellow.rows).toHaveLength(2); // y=200 and y=240
-    expect(yellow.rows[0]!.label).toBe('1');
-    expect(yellow.rows[1]!.label).toBe('2');
-    expect(yellow.rows[0]!.seats).toHaveLength(2);
+    expect(yellow.rows[0].label).toBe('1');
+    expect(yellow.rows[1].label).toBe('2');
+    expect(yellow.rows[0].seats).toHaveLength(2);
   });
 
   it('reads seat numbers from <text data-parent-code>', () => {
     const r = parseSmsTicketSvg(SAMPLE);
-    const yellow = r.layout.sectors[0]!;
+    const yellow = r.layout.sectors[0];
     // Seats sorted left-to-right by X. s2 is at x=130 with num=1, s1 is at x=100 with num=2.
     // After sort by X ascending: x=100 first (num=2), x=130 second (num=1).
-    expect(yellow.rows[0]!.seats[0]!.num).toBe('2');
-    expect(yellow.rows[0]!.seats[1]!.num).toBe('1');
+    expect(yellow.rows[0].seats[0].num).toBe('2');
+    expect(yellow.rows[0].seats[1].num).toBe('1');
   });
 
   it('extracts viewBox from background image dimensions', () => {
@@ -87,11 +87,11 @@ describe('parseSmsTicketSvg', () => {
     </svg>`;
     const r = parseSmsTicketSvg(svg);
     expect(r.layout.sectors).toHaveLength(1);
-    const seats = r.layout.sectors[0]!.rows.flatMap((row) => row.seats);
+    const seats = r.layout.sectors[0].rows.flatMap((row) => row.seats);
     expect(seats).toHaveLength(2);
     // Center should be at M.x - 16 = 1872.83 - 16 ≈ 1857 (rounded)
-    expect(seats[0]!.x).toBe(1857);
-    expect(seats[0]!.num).toBe('1');
+    expect(seats[0].x).toBe(1857);
+    expect(seats[0].num).toBe('1');
   });
 
   it('handles mixed arc + cubic-bezier in same SVG', () => {
@@ -103,7 +103,7 @@ describe('parseSmsTicketSvg', () => {
       <text data-parent-code="s2"><tspan>A2</tspan></text>
     </svg>`;
     const r = parseSmsTicketSvg(svg);
-    const seats = r.layout.sectors[0]!.rows.flatMap((row) => row.seats);
+    const seats = r.layout.sectors[0].rows.flatMap((row) => row.seats);
     expect(seats).toHaveLength(2);
     // s1 arc-format: center 100,200; s2 cubic: center 150-16=134, 200
     expect(seats.find((s) => s.num === 'A1')?.x).toBe(100);
@@ -130,15 +130,15 @@ describe('applySectorRenames', () => {
       '#F7E607': 'Balkon - Zóna I',
       '#14B214': 'Přízemí - Zóna II',
     });
-    expect(out.sectors[0]!.name).toBe('Balkon - Zóna I');
-    expect(out.sectors[1]!.name).toBe('Přízemí - Zóna II');
+    expect(out.sectors[0].name).toBe('Balkon - Zóna I');
+    expect(out.sectors[1].name).toBe('Přízemí - Zóna II');
     // Color preserved
-    expect(out.sectors[0]!.color).toBe('#F7E607');
+    expect(out.sectors[0].color).toBe('#F7E607');
   });
 
   it('leaves unmapped sectors unchanged', () => {
     const layout = { viewBox: '0 0 100 100', sectors: [{ name: '#FFB800', color: '#FFB800', rows: [] }] };
     const out = applySectorRenames(layout, { '#OTHER': 'X' });
-    expect(out.sectors[0]!.name).toBe('#FFB800');
+    expect(out.sectors[0].name).toBe('#FFB800');
   });
 });

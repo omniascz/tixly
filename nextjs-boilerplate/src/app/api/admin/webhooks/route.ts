@@ -9,9 +9,9 @@
  * v POST response. Promotér si ho uloží — neuvidí ho znovu.
  */
 
+import { randomBytes } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { randomBytes } from 'crypto';
 import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 import { WEBHOOK_EVENT_TYPES } from '@/lib/webhooks/event-types';
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       ],
     );
     return NextResponse.json(
-      { id: r.rows[0]!.id, secret },
+      { id: r.rows[0].id, secret },
       { status: 201 },
     );
   } catch (err) {

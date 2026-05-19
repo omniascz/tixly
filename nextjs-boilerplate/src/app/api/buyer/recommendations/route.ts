@@ -114,7 +114,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     [userId],
   );
 
-  const signals = signalsRes.rows[0]!;
+  const signals = signalsRes.rows[0];
   const avgPriceHalire = signals.avg_price ? Number(signals.avg_price) : null;
   const priceLow = avgPriceHalire ? avgPriceHalire * 0.7 : null;
   const priceHigh = avgPriceHalire ? avgPriceHalire * 1.3 : null;

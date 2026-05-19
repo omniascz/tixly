@@ -4,10 +4,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
+import { z } from 'zod';
 import { logAction, extractRequestContext } from '@/lib/audit/log';
+import { requirePlatformAdmin } from '@/lib/platform-auth';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -124,11 +124,11 @@ export async function POST(req: NextRequest): Promise<Response> {
     actorRole: 'platform_admin',
     action: 'venue.create',
     targetType: 'venue',
-    targetId: r.rows[0]!.id,
+    targetId: r.rows[0].id,
     metadata: { name: d.name, capacity: d.capacity, status: d.status },
     ip: reqCtx.ip,
     userAgent: reqCtx.userAgent,
   });
 
-  return NextResponse.json({ id: r.rows[0]!.id }, { status: 201 });
+  return NextResponse.json({ id: r.rows[0].id }, { status: 201 });
 }

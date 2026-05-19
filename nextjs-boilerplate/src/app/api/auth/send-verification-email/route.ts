@@ -35,7 +35,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   if (r.rows.length === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  const u = r.rows[0]!;
+  const u = r.rows[0];
   if (u.email_verified_at) {
     return NextResponse.json({ alreadyVerified: true });
   }

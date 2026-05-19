@@ -18,7 +18,7 @@ describe('sendSms — phone normalization', () => {
     );
     expect(r.ok).toBe(true);
     const logCall = db.query.mock.calls[0];
-    const newValues = JSON.parse(logCall![1]![1] as string);
+    const newValues = JSON.parse(logCall[1]![1] as string);
     expect(newValues.to).toBe('+420777123456');
   });
 
@@ -109,9 +109,9 @@ describe('sendSms — audit log', () => {
       db as unknown as never,
     );
     expect(db.query).toHaveBeenCalledTimes(1);
-    const sql = db.query.mock.calls[0]![0] as string;
+    const sql = db.query.mock.calls[0][0] as string;
     expect(sql).toContain('audit.audit_log');
-    const params = db.query.mock.calls[0]![1] as unknown[];
+    const params = db.query.mock.calls[0][1] as unknown[];
     const newValues = JSON.parse(params[1] as string);
     expect(newValues.promoter_id).toBe('p-1');
     expect(newValues.order_id).toBe('o-1');

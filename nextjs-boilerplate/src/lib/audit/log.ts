@@ -4,8 +4,8 @@
  * Best-effort: pokud DB write selže, jen logne — nikdy neblockuje original request.
  */
 
-import { Pool } from 'pg';
 import type { NextRequest } from 'next/server';
+import { Pool } from 'pg';
 
 let pool: Pool | null = null;
 function db(): Pool {

@@ -1,19 +1,19 @@
 import type { Metadata } from 'next';
-import { Pool } from 'pg';
 import { notFound } from 'next/navigation';
+import { Pool } from 'pg';
+import { ReportButton } from '@/components/public/ReportButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate } from '@/lib/format';
-import { getDict } from '@/lib/i18n-dictionaries';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
+import { getDict } from '@/lib/i18n-dictionaries';
+import { LotteryCard } from './LotteryCard';
+import { Recommendations } from './Recommendations';
 import { ShareButtons } from './ShareButtons';
 import {
   TicketPicker,
   type TicketAccess,
   type TicketTypeWithAccess,
 } from './TicketPicker';
-import { LotteryCard } from './LotteryCard';
-import { Recommendations } from './Recommendations';
-import { ReportButton } from '@/components/public/ReportButton';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
@@ -22,7 +22,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 function shadeColor(hex: string, percent: number): string {
   const m = /^#([0-9a-f]{6})$/i.exec(hex);
   if (!m) return hex;
-  const num = parseInt(m[1]!, 16);
+  const num = parseInt(m[1], 16);
   let r = (num >> 16) & 0xff;
   let g = (num >> 8) & 0xff;
   let b = num & 0xff;
@@ -146,7 +146,7 @@ async function fetchDetail(id: string) {
     }));
 
     return {
-      event: eventResult.rows[0]!,
+      event: eventResult.rows[0],
       ticketTypes,
       days: daysResult.rows,
       zones: zonesResult.rows,

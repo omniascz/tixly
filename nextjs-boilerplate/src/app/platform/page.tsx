@@ -1,5 +1,5 @@
-import { Pool } from 'pg';
 import Link from 'next/link';
+import { Pool } from 'pg';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Counts {
@@ -115,7 +115,7 @@ async function fetchOverview() {
     ]);
 
     return {
-      counts: counts.rows[0]!,
+      counts: counts.rows[0],
       revenue: revenue.rows,
       topPromoters: topPromoters.rows,
       reserves: reserves.rows[0] ?? { total_held: '0', upcoming_release_7d: '0' },

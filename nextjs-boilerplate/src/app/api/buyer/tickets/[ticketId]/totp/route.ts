@@ -52,7 +52,7 @@ export async function GET(
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  const t = r.rows[0]!;
+  const t = r.rows[0];
   if (t.owner_id !== userId) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }

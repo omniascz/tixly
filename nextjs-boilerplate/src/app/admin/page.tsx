@@ -11,10 +11,10 @@ import {
   Ticket,
   Calculator,
 } from 'lucide-react';
-import { PageHeader } from '@/components/admin/PageHeader';
-import { StatCard } from '@/components/admin/StatCard';
-import { SalesSparkline } from '@/components/admin/SalesSparkline';
 import { DataTable, Column } from '@/components/admin/DataTable';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { SalesSparkline } from '@/components/admin/SalesSparkline';
+import { StatCard } from '@/components/admin/StatCard';
 import { StatusBadge } from '@/components/admin/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAdminEvents, useAdminOrders } from '@/hooks/useAdminData';
@@ -43,7 +43,7 @@ function buildDailyRevenue(orders: AdminOrder[], days = 14): DailyBucket[] {
     const day = o.createdAt.slice(0, 10);
     const idx = index.get(day);
     if (idx !== undefined) {
-      buckets[idx]!.value += o.totalHalire / 100;
+      buckets[idx].value += o.totalHalire / 100;
     }
   }
   return buckets;

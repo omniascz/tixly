@@ -105,7 +105,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json(
       {
         ok: true,
-        reportId: r.rows[0]!.id,
+        reportId: r.rows[0].id,
         priority,
         message:
           priority === 'urgent'

@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Settings, LogOut, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Settings, LogOut, ChevronDown } from 'lucide-react';
 import { NotificationsBell } from './NotificationsBell';
 
 interface TopbarProps {

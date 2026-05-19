@@ -1,6 +1,6 @@
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { timingSafeEqual } from 'crypto';
 import { escapeHtml } from '@/lib/html-escape/escape';
 
 function safeEqual(a: string, b: string): boolean {

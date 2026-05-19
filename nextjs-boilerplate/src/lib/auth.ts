@@ -1,6 +1,6 @@
+import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify, JWTPayload } from 'jose';
 import { Pool } from 'pg';
-import bcrypt from 'bcryptjs';
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-change-me-min-32-chars-please';
 const ACCESS_TTL = parseInt(process.env.JWT_ACCESS_TOKEN_TTL ?? '900', 10);

@@ -1,10 +1,10 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { PageHeader } from '@/components/admin/PageHeader';
 
 interface Post {
   platform: 'facebook' | 'instagram' | 'twitter';
@@ -165,7 +165,7 @@ export default function SocialPostsToolPage() {
       {posts.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {posts.map((p) => {
-            const info = PLATFORM_INFO[p.platform]!;
+            const info = PLATFORM_INFO[p.platform];
             const overLimit = info.charLimit && p.characterCount > info.charLimit;
             return (
               <Card key={p.platform} className={info.color}>

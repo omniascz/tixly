@@ -177,7 +177,7 @@ export function diffLayouts(from: Layout, to: Layout): DiffResult {
     const removedCount = fromSec.get(removedName)?.seats;
     const matchIdx = sectorsAdded.findIndex((n) => toSec.get(n)?.seats === removedCount);
     if (matchIdx >= 0) {
-      renamed.push({ from: removedName, to: sectorsAdded[matchIdx]! });
+      renamed.push({ from: removedName, to: sectorsAdded[matchIdx] });
       sectorsRemoved.splice(sectorsRemoved.indexOf(removedName), 1);
       sectorsAdded.splice(matchIdx, 1);
     }

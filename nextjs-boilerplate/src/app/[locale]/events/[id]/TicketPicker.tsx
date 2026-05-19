@@ -1,9 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { formatMoney, isCurrency } from '@/lib/format';
-import { useRouter } from 'next/navigation';
 
 export interface TicketAccess {
   event_day_id: string | null;

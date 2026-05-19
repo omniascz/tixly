@@ -62,7 +62,7 @@ export async function GET(
   if (r.rows.length === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  const row = r.rows[0]!;
+  const row = r.rows[0];
 
   const seatLabel = row.sector
     ? `${row.sector} · řada ${row.row_label ?? '?'} · sedadlo ${row.seat_number ?? '?'}`

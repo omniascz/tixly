@@ -34,7 +34,7 @@ export async function POST(request: NextRequest): Promise<Response> {
        RETURNING id`,
       [email.toLowerCase(), name, hash],
     );
-    const userId = result.rows[0]!.id;
+    const userId = result.rows[0].id;
     const user = { id: userId, email, name };
     const roles = await getUserRoles(userId);
     const accessToken = await signAccessToken(user, roles);

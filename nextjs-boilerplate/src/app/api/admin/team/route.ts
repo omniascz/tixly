@@ -8,10 +8,10 @@
  *  - staff: scanner + read-only orders
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { Pool } from 'pg';
 import { randomBytes } from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
+import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -170,7 +170,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   ).catch((err) => console.error('[team invite email]', err));
 
   return NextResponse.json(
-    { id: r.rows[0]!.id, inviteUrl, expiresAt: expiresAt.toISOString() },
+    { id: r.rows[0].id, inviteUrl, expiresAt: expiresAt.toISOString() },
     { status: 201 },
   );
 }

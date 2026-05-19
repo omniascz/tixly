@@ -7,8 +7,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { encryptSecret } from '@/lib/crypto';
 import { exchangeCodeForToken, type PSD2Provider } from '@/lib/bank/psd2';
+import { encryptSecret } from '@/lib/crypto';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       { status: 400 },
     );
   }
-  const cred = r.rows[0]!;
+  const cred = r.rows[0];
 
   const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
   const redirectUri = `${appUrl}/api/admin/bank-credentials/psd2/callback`;

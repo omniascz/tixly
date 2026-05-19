@@ -53,7 +53,7 @@ async function fetchOrder(orderId: string): Promise<{ order: OrderData; items: I
        ORDER BY oi.created_at`,
       [orderId],
     );
-    return { order: o.rows[0]!, items: items.rows };
+    return { order: o.rows[0], items: items.rows };
   } finally {
     await pool.end();
   }

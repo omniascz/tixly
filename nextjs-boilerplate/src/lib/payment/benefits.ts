@@ -116,7 +116,7 @@ export async function handleBenefitCallback(input: {
       await client.query('ROLLBACK');
       return { orderId: null, status: 'not_found' };
     }
-    const payment = bp.rows[0]!;
+    const payment = bp.rows[0];
 
     if (payment.status === 'paid') {
       await client.query('ROLLBACK');

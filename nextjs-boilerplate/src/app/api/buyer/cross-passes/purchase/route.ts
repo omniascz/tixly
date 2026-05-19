@@ -5,10 +5,10 @@
  * Demo: instant purchase, mock GoPay vyřazen.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { Pool } from 'pg';
 import { randomBytes } from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
+import { Pool } from 'pg';
+import { z } from 'zod';
 import { encryptSecret } from '@/lib/crypto';
 
 let pool: Pool | null = null;
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest): Promise<Response> {
          RETURNING id`,
         [parsed.data.buyerEmail.toLowerCase(), parsed.data.buyerName ?? parsed.data.buyerEmail],
       );
-      userId = u.rows[0]!.id;
+      userId = u.rows[0].id;
     } else {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Auth required' }, { status: 401 });
@@ -65,11 +65,11 @@ export async function POST(req: NextRequest): Promise<Response> {
        WHERE id = $1 FOR UPDATE`,
       [parsed.data.bundleId],
     );
-    if (b.rows.length === 0 || !b.rows[0]!.active) {
+    if (b.rows.length === 0 || !b.rows[0].active) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'BUNDLE_NOT_AVAILABLE' }, { status: 422 });
     }
-    const bundle = b.rows[0]!;
+    const bundle = b.rows[0];
     if (bundle.remaining_qty !== null && bundle.remaining_qty < 1) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'SOLD_OUT' }, { status: 409 });
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     await client.query('COMMIT');
     return NextResponse.json(
-      { ok: true, membershipId: m.rows[0]!.id, pricePaidHalire: bundle.price_halire },
+      { ok: true, membershipId: m.rows[0].id, pricePaidHalire: bundle.price_halire },
       { status: 201 },
     );
   } catch (err) {

@@ -7,8 +7,8 @@
  */
 
 import { createHash, randomBytes } from 'crypto';
-import { Pool } from 'pg';
 import type { NextRequest } from 'next/server';
+import { Pool } from 'pg';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -41,7 +41,7 @@ export async function requirePartner(req: NextRequest): Promise<PartnerContext |
   const auth = req.headers.get('authorization') ?? '';
   const match = auth.match(/^Bearer\s+(tixly_partner_[a-f0-9]{32})$/i);
   if (!match) return null;
-  const token = match[1]!;
+  const token = match[1];
   const hash = hashToken(token);
 
   const r = await db().query<{
@@ -59,7 +59,7 @@ export async function requirePartner(req: NextRequest): Promise<PartnerContext |
     [hash],
   );
   if (r.rows.length === 0) return null;
-  const row = r.rows[0]!;
+  const row = r.rows[0];
 
   // Update last_used_at fire-and-forget
   void db()

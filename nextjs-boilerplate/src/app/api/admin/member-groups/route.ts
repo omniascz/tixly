@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest): Promise<Response> {
        RETURNING id`,
       [promoter.promoterId, parsed.data.slug, parsed.data.name, parsed.data.description ?? null],
     );
-    return NextResponse.json({ id: r.rows[0]!.id }, { status: 201 });
+    return NextResponse.json({ id: r.rows[0].id }, { status: 201 });
   } catch (err) {
     if ((err as { code?: string }).code === '23505') {
       return NextResponse.json({ error: 'SLUG_TAKEN' }, { status: 409 });

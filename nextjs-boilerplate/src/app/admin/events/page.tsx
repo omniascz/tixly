@@ -1,10 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import { CalendarDays, Plus } from 'lucide-react';
-import { PageHeader } from '@/components/admin/PageHeader';
+import Link from 'next/link';
 import { DataTable, Column } from '@/components/admin/DataTable';
 import { EmptyState } from '@/components/admin/EmptyState';
+import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { useAdminEvents } from '@/hooks/useAdminData';
 import { formatCzechDate } from '@/lib/format';
@@ -201,7 +201,7 @@ export default function AdminEventsPage() {
       {isError ? (
         <EmptyState
           title="Nelze načíst akce"
-          description={(error as Error)?.message ?? 'Zkuste to prosím znovu.'}
+          description={(error)?.message ?? 'Zkuste to prosím znovu.'}
         />
       ) : !isLoading && events.length === 0 ? (
         <EmptyState

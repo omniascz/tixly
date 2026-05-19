@@ -72,7 +72,7 @@ export async function POST(req: NextRequest): Promise<Response> {
        RETURNING id`,
       [promoter.promoterId, promoter.userId, parsed.data.source, parsed.data.filename ?? null, parsed.data.lines.length],
     );
-    const importId = importRes.rows[0]!.id;
+    const importId = importRes.rows[0].id;
 
     let matched = 0;
     let unmatched = 0;
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         );
 
         if (m.rows.length === 1) {
-          const order = m.rows[0]!;
+          const order = m.rows[0];
           if (order.status === 'pending') {
             await client.query(
               `UPDATE orders.orders

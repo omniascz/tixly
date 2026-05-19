@@ -9,10 +9,10 @@
  * Rate limit: 10/15min per IP (anti-brute-force).
  */
 
+import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { z } from 'zod';
-import bcrypt from 'bcryptjs';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 
 let pool: Pool | null = null;

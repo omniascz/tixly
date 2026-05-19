@@ -1,5 +1,5 @@
-import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { Pool } from 'pg';
 import {
   Card,
@@ -9,8 +9,8 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { formatDate, formatMoney, isCurrency } from '@/lib/format';
-import { getDict } from '@/lib/i18n-dictionaries';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
+import { getDict } from '@/lib/i18n-dictionaries';
 import { ResaleButton } from './ResaleButton';
 import { SelfRefundButton } from './SelfRefundButton';
 
@@ -103,7 +103,7 @@ async function fetchOrder(orderId: string) {
     );
 
     return {
-      order: orderRes.rows[0]!,
+      order: orderRes.rows[0],
       items: itemsRes.rows,
       tickets: ticketsRes.rows,
       addons: addonsRes.rows,
@@ -291,7 +291,7 @@ export default async function OrderConfirmationPage({
               <ResaleButton
                 buyerEmail={order.buyer_email}
                 ticketIds={tickets.map((t) => t.id)}
-                originalPriceHalire={tickets[0]!.original_price}
+                originalPriceHalire={tickets[0].original_price}
               />
               <SelfRefundButton orderId={order.id} />
             </div>

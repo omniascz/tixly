@@ -29,25 +29,25 @@ const sampleLayout: Layout = {
 describe('renumberRows', () => {
   it('converts alpha to numeric', () => {
     const r = renumberRows(sampleLayout, 'Sektor A', 'numeric');
-    expect(r.sectors[0]!.rows.map((row) => row.label)).toEqual(['1', '2', '3']);
+    expect(r.sectors[0].rows.map((row) => row.label)).toEqual(['1', '2', '3']);
   });
   it('numeric with custom start', () => {
     const r = renumberRows(sampleLayout, 'Sektor A', 'numeric', { start: 5 });
-    expect(r.sectors[0]!.rows.map((row) => row.label)).toEqual(['5', '6', '7']);
+    expect(r.sectors[0].rows.map((row) => row.label)).toEqual(['5', '6', '7']);
   });
   it('numeric-reverse', () => {
     const r = renumberRows(sampleLayout, 'Sektor A', 'numeric-reverse');
-    expect(r.sectors[0]!.rows.map((row) => row.label)).toEqual(['3', '2', '1']);
+    expect(r.sectors[0].rows.map((row) => row.label)).toEqual(['3', '2', '1']);
   });
   it('alpha-reverse', () => {
     const r = renumberRows(sampleLayout, 'Sektor A', 'alpha-reverse');
-    expect(r.sectors[0]!.rows.map((row) => row.label)).toEqual(['C', 'B', 'A']);
+    expect(r.sectors[0].rows.map((row) => row.label)).toEqual(['C', 'B', 'A']);
   });
   it('custom labels', () => {
     const r = renumberRows(sampleLayout, 'Sektor A', 'custom', {
       customLabels: ['parter', 'lóže', 'zadní'],
     });
-    expect(r.sectors[0]!.rows.map((row) => row.label)).toEqual(['parter', 'lóže', 'zadní']);
+    expect(r.sectors[0].rows.map((row) => row.label)).toEqual(['parter', 'lóže', 'zadní']);
   });
   it('does not modify other sectors', () => {
     const layout: Layout = {
@@ -58,18 +58,18 @@ describe('renumberRows', () => {
       ],
     };
     const r = renumberRows(layout, 'Sektor A', 'numeric');
-    expect(r.sectors[1]!.rows[0]!.label).toBe('X');
+    expect(r.sectors[1].rows[0].label).toBe('X');
   });
 });
 
 describe('renameSector', () => {
   it('renames matching sector', () => {
     const r = renameSector(sampleLayout, 'Sektor A', 'Přízemí');
-    expect(r.sectors[0]!.name).toBe('Přízemí');
+    expect(r.sectors[0].name).toBe('Přízemí');
   });
   it('does nothing if no match', () => {
     const r = renameSector(sampleLayout, 'Foo', 'Bar');
-    expect(r.sectors[0]!.name).toBe('Sektor A');
+    expect(r.sectors[0].name).toBe('Sektor A');
   });
 });
 
@@ -144,7 +144,7 @@ describe('splitSectorBySpatial', () => {
   it('returns layout unchanged when only 1 cluster', () => {
     const r = splitSectorBySpatial(sampleLayout, 'Sektor A', 50);
     expect(r.sectors).toHaveLength(1);
-    expect(r.sectors[0]!.name).toBe('Sektor A');
+    expect(r.sectors[0].name).toBe('Sektor A');
   });
 
   it('splits 3-balcony layout into 3 sectors with custom names', () => {
@@ -173,10 +173,10 @@ describe('splitSectorBySpatial', () => {
     });
     expect(result.sectors).toHaveLength(3);
     // Largest cluster first by seat count (3 center seats > 2 each side)
-    expect(result.sectors[0]!.name).toBe('Balkon střed');
-    expect(result.sectors[0]!.rows[0]!.seats).toHaveLength(3);
+    expect(result.sectors[0].name).toBe('Balkon střed');
+    expect(result.sectors[0].rows[0].seats).toHaveLength(3);
     // Each side balcony has 2 seats (its own row)
-    const sides = [result.sectors[1]!, result.sectors[2]!];
+    const sides = [result.sectors[1], result.sectors[2]];
     for (const s of sides) {
       const total = s.rows.reduce((a, r) => a + r.seats.length, 0);
       expect(total).toBe(2);
@@ -217,25 +217,25 @@ describe('flattenSector', () => {
 
   it('collapses all rows into a single row sorted by Y', () => {
     const r = flattenSector(colLayout, 'Balkon vlevo');
-    expect(r.sectors[0]!.rows).toHaveLength(1);
-    expect(r.sectors[0]!.rows[0]!.seats).toHaveLength(3);
-    expect(r.sectors[0]!.rows[0]!.seats.map((s) => s.y)).toEqual([100, 200, 300]);
+    expect(r.sectors[0].rows).toHaveLength(1);
+    expect(r.sectors[0].rows[0].seats).toHaveLength(3);
+    expect(r.sectors[0].rows[0].seats.map((s) => s.y)).toEqual([100, 200, 300]);
   });
 
   it('default rowLabel is empty string (hides label in UI)', () => {
     const r = flattenSector(colLayout, 'Balkon vlevo');
-    expect(r.sectors[0]!.rows[0]!.label).toBe('');
+    expect(r.sectors[0].rows[0].label).toBe('');
   });
 
   it('renumberSeats option assigns 1-N sequentially', () => {
     const r = flattenSector(colLayout, 'Balkon vlevo', { renumberSeats: true });
-    const seats = r.sectors[0]!.rows[0]!.seats;
+    const seats = r.sectors[0].rows[0].seats;
     expect(seats.map((s) => s.num)).toEqual(['1', '2', '3']);
   });
 
   it('preserves original seat numbers when renumberSeats=false', () => {
     const r = flattenSector(colLayout, 'Balkon vlevo', { renumberSeats: false });
-    const seats = r.sectors[0]!.rows[0]!.seats;
+    const seats = r.sectors[0].rows[0].seats;
     expect(seats.map((s) => s.num)).toEqual(['1', '2', '3']); // original happen to be 1,2,3
   });
 
@@ -252,7 +252,7 @@ describe('flattenSector', () => {
       }],
     };
     const r = flattenSector(layout, 'X', { renumberSeats: true });
-    const seats = r.sectors[0]!.rows[0]!.seats;
+    const seats = r.sectors[0].rows[0].seats;
     // Sorted by Y: 100, 300, 500 → renumbered 1, 2, 3
     expect(seats.map((s) => s.y)).toEqual([100, 300, 500]);
     expect(seats.map((s) => s.num)).toEqual(['1', '2', '3']);
@@ -260,7 +260,7 @@ describe('flattenSector', () => {
 
   it('does nothing if sector not found', () => {
     const r = flattenSector(colLayout, 'Foo');
-    expect(r.sectors[0]!.rows).toHaveLength(3);
+    expect(r.sectors[0].rows).toHaveLength(3);
   });
 });
 

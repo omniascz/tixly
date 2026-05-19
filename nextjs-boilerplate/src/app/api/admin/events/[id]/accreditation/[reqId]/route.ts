@@ -84,7 +84,7 @@ export async function PATCH(
       { status: 404 },
     );
   }
-  const row = r.rows[0]!;
+  const row = r.rows[0];
 
   // Comp ticket auto-issuance po approve.
   // Hledáme ticket_type kind='accreditation' (zero-price). Pokud chybí, ticket
@@ -171,7 +171,7 @@ async function issueCompTicket(input: {
       await client.query('ROLLBACK');
       return null;
     }
-    const tt = ttRes.rows[0]!;
+    const tt = ttRes.rows[0];
 
     // Find or create shadow user (anonymní akreditační účet)
     const userRes = await client.query<{ id: string }>(
@@ -181,7 +181,7 @@ async function issueCompTicket(input: {
        RETURNING id`,
       [input.applicantEmail, input.applicantName],
     );
-    const userId = userRes.rows[0]!.id;
+    const userId = userRes.rows[0].id;
 
     const orderId = randomUUID();
     await client.query(

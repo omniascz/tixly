@@ -9,10 +9,10 @@
  *   4. Promoter klikne „Verify" → server check via DNS lookup → mark verified_at
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { randomBytes } from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
     return NextResponse.json(
       {
-        id: r.rows[0]!.id,
+        id: r.rows[0].id,
         domain,
         verificationToken: token,
         instructions: `Přidej do DNS TXT record na _tixly-verify.${domain} s hodnotou ${token}, pak klikni Verify.`,

@@ -12,9 +12,9 @@
  * Bezpečnost: x-internal-token header musí odpovídat INTERNAL_SERVICE_TOKEN.
  */
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { timingSafeEqual } from 'crypto';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest): Promise<Response> {
          VALUES ('platform', 'rolling_reserves', $1, 'BULK_RELEASE', 'cron', $2::jsonb)`,
         [
           // Použijeme první reserve id jako anchor pro batch
-          r.rows[0]!.id,
+          r.rows[0].id,
           JSON.stringify({
             releasedCount,
             totalAmount,

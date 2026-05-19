@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/admin/PageHeader';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatMoney, isCurrency } from '@/lib/format';
 
 interface FraudOrder {
@@ -115,7 +115,7 @@ export default function FraudQueuePage() {
               <tbody>
                 {orders.map((o) => {
                   const ccy = isCurrency(o.currency) ? o.currency : 'CZK';
-                  const reasons = (o.fraud_signals?.topReasons ?? []) as string[];
+                  const reasons = (o.fraud_signals?.topReasons ?? []);
                   return (
                     <tr key={o.id} className="border-b">
                       <td className="py-2">

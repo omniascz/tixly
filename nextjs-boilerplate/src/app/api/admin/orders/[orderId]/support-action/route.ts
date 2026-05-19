@@ -13,8 +13,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -97,7 +97,7 @@ export async function POST(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
-    const order = ord.rows[0]!;
+    const order = ord.rows[0];
 
     let metadata: Record<string, unknown> = {};
     let targetTicketId: string | null = null;
@@ -128,10 +128,10 @@ export async function POST(
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'TICKET_NOT_IN_ORDER' }, { status: 404 });
       }
-      if (ticket.rows[0]!.status !== 'valid') {
+      if (ticket.rows[0].status !== 'valid') {
         await client.query('ROLLBACK');
         return NextResponse.json(
-          { error: 'TICKET_NOT_VALID', status: ticket.rows[0]!.status },
+          { error: 'TICKET_NOT_VALID', status: ticket.rows[0].status },
           { status: 409 },
         );
       }
@@ -144,7 +144,7 @@ export async function POST(
          RETURNING id`,
         [input.targetEmail.toLowerCase(), input.targetName ?? input.targetEmail],
       );
-      const targetUserId = userRes.rows[0]!.id;
+      const targetUserId = userRes.rows[0].id;
       targetTicketId = input.ticketId;
 
       await client.query(
@@ -176,9 +176,9 @@ export async function POST(
       // Update user name (used jako holder name na ticket PDF/email)
       await client.query(
         `UPDATE identity.users SET name = $1, updated_at = NOW() WHERE id = $2`,
-        [input.newName, ticket.rows[0]!.owner_id],
+        [input.newName, ticket.rows[0].owner_id],
       );
-      metadata = { ownerId: ticket.rows[0]!.owner_id, newName: input.newName };
+      metadata = { ownerId: ticket.rows[0].owner_id, newName: input.newName };
     } else if (input.action === 'cancel_ticket') {
       const upd = await client.query<{ id: string }>(
         `UPDATE tickets.tickets

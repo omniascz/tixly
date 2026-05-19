@@ -19,8 +19,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { escapeHtml } from '@/lib/html-escape/escape';
 
 let pool: Pool | null = null;
@@ -140,7 +140,7 @@ export async function POST(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'TICKET_NOT_FOUND' }, { status: 404 });
     }
-    const ticket = t.rows[0]!;
+    const ticket = t.rows[0];
 
     if (ticket.owner_id !== userId) {
       await client.query('ROLLBACK');
@@ -183,7 +183,7 @@ export async function POST(
         { status: 422 },
       );
     }
-    const recipientId = rec.rows[0]!.id;
+    const recipientId = rec.rows[0].id;
 
     await client.query(
       `UPDATE tickets.tickets

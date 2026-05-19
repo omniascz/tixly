@@ -11,8 +11,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -210,7 +210,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       recipients.length,
     ],
   );
-  const broadcastId = bRes.rows[0]!.id;
+  const broadcastId = bRes.rows[0].id;
 
   // 4) Fire-and-forget na internal route (v produkci queue/worker)
   const internalToken = process.env.INTERNAL_SERVICE_TOKEN ?? '';

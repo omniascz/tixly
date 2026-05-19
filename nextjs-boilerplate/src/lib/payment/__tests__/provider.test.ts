@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createPayment } from '../provider';
-import { _resetGopayCacheForTests } from '../gopay-real';
 import { _resetComGateCacheForTests } from '../comgate';
+import { _resetGopayCacheForTests } from '../gopay-real';
+import { createPayment } from '../provider';
 
 const baseInput = {
   orderId: 'test-order-001',

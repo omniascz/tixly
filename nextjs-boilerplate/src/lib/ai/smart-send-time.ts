@@ -92,7 +92,7 @@ export async function predictSegmentSendTime(
       [req.promoterId, req.channel],
     );
     if (r.rows.length > 0) {
-      const top = r.rows[0]!;
+      const top = r.rows[0];
       bestHour = Number(top.hour);
       bestDay = Number(top.dow);
       sampleSize = Number(top.count);

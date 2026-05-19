@@ -5,8 +5,8 @@
  * Po úspěšné autorizaci bank redirectuje na /api/admin/bank-credentials/psd2/callback.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { requirePromoter } from '@/lib/admin-auth';
 import { buildAuthorizeUrl, type PSD2Provider } from '@/lib/bank/psd2';

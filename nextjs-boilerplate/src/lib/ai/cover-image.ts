@@ -95,7 +95,7 @@ function buildPrompts(req: CoverImageRequest): string[] {
 
 function generateStubVariants(req: CoverImageRequest): CoverImageVariant[] {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-  const palette = VIBE_PALETTES[req.vibe ?? 'default'] ?? VIBE_PALETTES.default!;
+  const palette = VIBE_PALETTES[req.vibe ?? 'default'] ?? VIBE_PALETTES.default;
   // 4 variants — různé hue offsets
   const baseHue = deterministicHue(req.title);
   const variants: CoverImageVariant[] = [];
@@ -103,8 +103,8 @@ function generateStubVariants(req: CoverImageRequest): CoverImageVariant[] {
     const hue = (baseHue + i * 47) % 360;
     const seed = createHash('sha256').update(`${req.title}|${i}`).digest('hex').slice(0, 8);
     variants.push({
-      url: `${baseUrl}/api/ai/cover-stub?seed=${seed}&hue=${hue}&palette=${palette[i % palette.length]!.replace('#', '')}&title=${encodeURIComponent(req.title)}`,
-      prompt: `Stub variant ${i + 1}: hue=${hue}, palette=${palette[i % palette.length]!}`,
+      url: `${baseUrl}/api/ai/cover-stub?seed=${seed}&hue=${hue}&palette=${palette[i % palette.length].replace('#', '')}&title=${encodeURIComponent(req.title)}`,
+      prompt: `Stub variant ${i + 1}: hue=${hue}, palette=${palette[i % palette.length]}`,
       provider: 'stub',
     });
   }

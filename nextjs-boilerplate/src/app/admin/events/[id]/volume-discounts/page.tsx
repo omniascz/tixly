@@ -1,10 +1,10 @@
 'use client';
 
 import { use, useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/admin/PageHeader';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 interface TicketType {
   id: string;
@@ -82,7 +82,7 @@ export default function VolumeDiscountsPage({
   function updateTier(ttId: string, idx: number, key: keyof Tier, value: number): void {
     setTiersByType((prev) => {
       const list = [...(prev[ttId] ?? [])];
-      list[idx] = { ...list[idx]!, [key]: value };
+      list[idx] = { ...list[idx], [key]: value };
       return { ...prev, [ttId]: list };
     });
   }

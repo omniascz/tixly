@@ -51,7 +51,7 @@ const TEAM_IDENTIFIER = process.env.APPLE_TEAM_IDENTIFIER ?? 'TIXLYTEAMID';
 function hexToRgb(hex: string | null | undefined): string {
   if (!hex || !/^#[0-9a-f]{6}$/i.test(hex)) return 'rgb(15, 23, 42)';
   const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex)!;
-  return `rgb(${parseInt(m[1]!, 16)}, ${parseInt(m[2]!, 16)}, ${parseInt(m[3]!, 16)})`;
+  return `rgb(${parseInt(m[1], 16)}, ${parseInt(m[2], 16)}, ${parseInt(m[3], 16)})`;
 }
 
 export function buildPassJson(p: PassData): Record<string, unknown> {

@@ -39,7 +39,7 @@ export async function POST(request: NextRequest): Promise<Response> {
        RETURNING id`,
       [email.toLowerCase(), name, hash],
     );
-    const userId = userRes.rows[0]!.id;
+    const userId = userRes.rows[0].id;
 
     const promoterRes = await client.query<{ id: string }>(
       `INSERT INTO platform.promoters (name, email, contact_email, slug, status, locale, created_at, updated_at)
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest): Promise<Response> {
        RETURNING id`,
       [companyName, email.toLowerCase(), slug],
     );
-    const promoterId = promoterRes.rows[0]!.id;
+    const promoterId = promoterRes.rows[0].id;
 
     await client.query(
       `INSERT INTO platform.promoter_members (promoter_id, user_id, role, created_at, updated_at)

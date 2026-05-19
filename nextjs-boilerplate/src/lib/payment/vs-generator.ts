@@ -43,7 +43,7 @@ async function nextEventSequence(eventId: string, db: Pool | PoolClient): Promis
      WHERE event_id = $1 AND variable_symbol IS NOT NULL`,
     [eventId],
   );
-  return parseInt(r.rows[0]!.next_seq, 10);
+  return parseInt(r.rows[0].next_seq, 10);
 }
 
 /**

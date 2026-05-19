@@ -52,7 +52,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   if (r.rows.length === 0) {
     return NextResponse.json({ error: 'INVALID_CODE' }, { status: 404 });
   }
-  const v = r.rows[0]!;
+  const v = r.rows[0];
 
   if (v.expires_at && new Date(v.expires_at).getTime() < Date.now()) {
     return NextResponse.json({ error: 'EXPIRED', expiredAt: v.expires_at }, { status: 410 });
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       `SELECT promoter_id FROM catalog.events WHERE id = $1`,
       [parsed.data.eventId],
     );
-    if (ev.rows.length === 0 || ev.rows[0]!.promoter_id !== v.promoter_id) {
+    if (ev.rows.length === 0 || ev.rows[0].promoter_id !== v.promoter_id) {
       return NextResponse.json(
         { error: 'WRONG_PROMOTER', message: 'Tento poukaz platí jen na akce jiného pořadatele.' },
         { status: 422 },

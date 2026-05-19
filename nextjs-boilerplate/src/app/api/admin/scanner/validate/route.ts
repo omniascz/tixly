@@ -12,8 +12,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 import { decryptSecret } from '@/lib/crypto';
 import { verifyTotpCode } from '@/lib/totp/verify';
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         { status: 404 },
       );
     }
-    const t = r.rows[0]!;
+    const t = r.rows[0];
 
     if (t.event_promoter_id !== promoter.promoterId) {
       await client.query('ROLLBACK');
@@ -247,21 +247,21 @@ export async function POST(req: NextRequest): Promise<Response> {
          WHERE ticket_type_id = $1`,
         [t.ticket_type_id],
       );
-      if (flex.rows.length > 0 && flex.rows[0]!.pass_kind === 'flex') {
+      if (flex.rows.length > 0 && flex.rows[0].pass_kind === 'flex') {
         const used = await client.query<{ count: string }>(
           `SELECT COUNT(*)::text AS count FROM tickets.ticket_redemptions WHERE ticket_id = $1`,
           [t.id],
         );
         const usedCount = Number(used.rows[0]?.count ?? 0);
-        if (usedCount >= flex.rows[0]!.picks_required) {
+        if (usedCount >= flex.rows[0].picks_required) {
           await client.query('ROLLBACK');
           return NextResponse.json(
             {
               result: 'flex_limit_exhausted',
               ticket: shortTicketInfo(t),
-              picksRequired: flex.rows[0]!.picks_required,
+              picksRequired: flex.rows[0].picks_required,
               picksUsed: usedCount,
-              message: `Flex pass už vyčerpán (${usedCount}/${flex.rows[0]!.picks_required}).`,
+              message: `Flex pass už vyčerpán (${usedCount}/${flex.rows[0].picks_required}).`,
             },
             { status: 409 },
           );
@@ -297,13 +297,13 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
 
       // Pokud je to flex a poslední redemption, můžeme ticket terminovat
-      if (flex.rows.length > 0 && flex.rows[0]!.pass_kind === 'flex') {
+      if (flex.rows.length > 0 && flex.rows[0].pass_kind === 'flex') {
         const usedNow = await client.query<{ count: string }>(
           `SELECT COUNT(*)::text AS count FROM tickets.ticket_redemptions WHERE ticket_id = $1`,
           [t.id],
         );
         const usedNowCount = Number(usedNow.rows[0]?.count ?? 0);
-        if (usedNowCount >= flex.rows[0]!.picks_required) {
+        if (usedNowCount >= flex.rows[0].picks_required) {
           await client.query(
             `UPDATE tickets.tickets SET status = 'used', used_at = NOW() WHERE id = $1`,
             [t.id],

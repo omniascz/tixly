@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Filter, ChevronDown, ChevronRight } from 'lucide-react';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { PageHeader } from '@/components/admin/PageHeader';
-import { Filter, ChevronDown, ChevronRight } from 'lucide-react';
 
 interface LogEntry {
   id: string;
@@ -136,7 +136,7 @@ export default function AuditLogPage() {
     if (e.action === 'DELETE') return `Smazáno: ${t}`;
     // UPDATE — pokus o čitelný diff
     if (e.newValues && typeof e.newValues === 'object') {
-      const v = e.newValues as Record<string, unknown>;
+      const v = e.newValues;
       if (v.kind === 'refund') return 'Refund objednávky';
       if (v.action === 'resend_email') return 'Resend emailu kupci';
       if (v.action === 'transfer') return 'Převod lístku';

@@ -8,9 +8,9 @@
  * Generuje 12-character alphanumeric kód (no ambiguous chars).
  */
 
+import { randomBytes } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { randomBytes } from 'crypto';
 import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
@@ -27,7 +27,7 @@ function generateCode(): string {
   const bytes = randomBytes(12);
   let out = '';
   for (let i = 0; i < 12; i++) {
-    out += CODE_ALPHABET[bytes[i]! % CODE_ALPHABET.length];
+    out += CODE_ALPHABET[bytes[i] % CODE_ALPHABET.length];
   }
   // Format jako XXXX-XXXX-XXXX pro čitelnost
   return `${out.slice(0, 4)}-${out.slice(4, 8)}-${out.slice(8, 12)}`;

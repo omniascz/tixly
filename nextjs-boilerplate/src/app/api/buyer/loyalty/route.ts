@@ -40,7 +40,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       transactions: [],
     });
   }
-  const a = acc.rows[0]!;
+  const a = acc.rows[0];
 
   const tx = await db().query<{
     id: string;

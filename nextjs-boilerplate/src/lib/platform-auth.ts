@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
+import { NextRequest } from 'next/server';
 
 const secretKey = new TextEncoder().encode(
   process.env.JWT_SECRET ?? 'dev-secret-change-me-min-32-chars-please',
@@ -17,7 +17,7 @@ export async function requirePlatformAdmin(
     const { payload } = await jwtVerify(token, secretKey);
     const roles = (payload as { roles?: { isPlatformAdmin?: boolean } }).roles;
     if (!roles?.isPlatformAdmin) return null;
-    const sub = payload.sub as string | undefined;
+    const sub = payload.sub;
     if (!sub) return null;
     return { userId: sub };
   } catch {

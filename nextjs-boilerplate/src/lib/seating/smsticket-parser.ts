@@ -42,7 +42,7 @@ export function parseSmsTicketSvg(svg: string): ParseResult & { backgroundUrl?: 
   let backgroundUrl: string | undefined;
   const imageTag = svg.match(/<image\b([^>]+?)\/?>/);
   if (imageTag) {
-    const attrs = imageTag[1]!;
+    const attrs = imageTag[1];
     const href = attrs.match(/\s(?:xlink:)?href="([^"]+)"/);
     const w = attrs.match(/\swidth="(\d+(?:\.\d+)?)"/);
     const h = attrs.match(/\sheight="(\d+(?:\.\d+)?)"/);
@@ -61,15 +61,15 @@ export function parseSmsTicketSvg(svg: string): ParseResult & { backgroundUrl?: 
   const pathRe = /<path\b([^>]*?)\/?>/g;
   let m: RegExpExecArray | null;
   while ((m = pathRe.exec(svg)) !== null) {
-    const attrs = m[1]!;
+    const attrs = m[1];
     const codeMatch = attrs.match(/\sdata-code="(s\d+)"/);
     if (!codeMatch) continue;
-    if (codeMatch[1]!.endsWith('o')) continue; // overlay path
+    if (codeMatch[1].endsWith('o')) continue; // overlay path
     const fillMatch = attrs.match(/\sfill="(#[0-9a-fA-F]{6})"/);
     if (!fillMatch) continue;
     const dMatch = attrs.match(/\sd="([^"]+)"/);
     if (!dMatch) continue;
-    const d = dMatch[1]!;
+    const d = dMatch[1];
     let x: number;
     let y: number;
     const arcMatch = d.match(/^M\s+(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\s+m\s+-\d+,0\s+a\s+\d+/);
@@ -85,10 +85,10 @@ export function parseSmsTicketSvg(svg: string): ParseResult & { backgroundUrl?: 
       continue;
     }
     seats.push({
-      code: codeMatch[1]!,
+      code: codeMatch[1],
       x,
       y,
-      color: fillMatch[1]!.toUpperCase(),
+      color: fillMatch[1].toUpperCase(),
     });
   }
 
@@ -100,7 +100,7 @@ export function parseSmsTicketSvg(svg: string): ParseResult & { backgroundUrl?: 
   const textRe = /<text\b[^>]*?\sdata-parent-code="(s\d+)"[^>]*?>\s*<tspan[^>]*?>([^<]+)<\/tspan>/g;
   const numByCode = new Map<string, string>();
   while ((m = textRe.exec(svg)) !== null) {
-    numByCode.set(m[1]!, m[2]!.trim());
+    numByCode.set(m[1], m[2].trim());
   }
   let unnumbered = 0;
   for (const seat of seats) {
@@ -133,7 +133,7 @@ export function parseSmsTicketSvg(svg: string): ParseResult & { backgroundUrl?: 
 
     // Sort clusters by seat count desc — větší cluster dostane "základní" jméno.
     const groups = clusterGroups
-      .map((idxs) => idxs.map((i) => colorSeats[i]!))
+      .map((idxs) => idxs.map((i) => colorSeats[i]))
       .sort((a, b) => b.length - a.length);
 
     groups.forEach((groupSeats, ci) => {

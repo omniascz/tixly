@@ -10,8 +10,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 import { sendSms } from '@/lib/sms/bulkgate-mock';
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       recipientsRes.rows.length,
     ],
   );
-  const campaignId = campaignRes.rows[0]!.id;
+  const campaignId = campaignRes.rows[0].id;
 
   // 3) Send to each (in-process, sériově)
   let delivered = 0;

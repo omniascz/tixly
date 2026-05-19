@@ -69,5 +69,5 @@ export async function POST(req: NextRequest): Promise<Response> {
       admin.userId,
     ],
   );
-  return NextResponse.json({ id: r.rows[0]!.id }, { status: 201 });
+  return NextResponse.json({ id: r.rows[0].id }, { status: 201 });
 }

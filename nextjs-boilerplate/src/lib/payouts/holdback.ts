@@ -40,7 +40,7 @@ export function getEffectiveHoldback(
   overridePctBps: number | null,
   overrideDays: number | null,
 ): HoldbackPolicy {
-  const defaults = TIER_DEFAULTS[tier] ?? TIER_DEFAULTS[1]!;
+  const defaults = TIER_DEFAULTS[tier] ?? TIER_DEFAULTS[1];
   return {
     pctBps: overridePctBps ?? defaults.pctBps,
     retentionDays: overrideDays ?? defaults.retentionDays,

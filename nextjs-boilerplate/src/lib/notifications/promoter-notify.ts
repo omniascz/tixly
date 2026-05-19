@@ -54,5 +54,5 @@ export async function notifyPromoter(input: NotifyInput): Promise<string> {
       JSON.stringify(input.payload ?? {}),
     ],
   );
-  return r.rows[0]!.id;
+  return r.rows[0].id;
 }

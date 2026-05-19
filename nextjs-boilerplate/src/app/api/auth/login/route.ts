@@ -38,7 +38,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   if (result.rows.length === 0) {
     return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
   }
-  const row = result.rows[0]!;
+  const row = result.rows[0];
   if (!(await verifyPassword(password, row.password_hash))) {
     return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
   }
@@ -64,13 +64,13 @@ export async function POST(request: NextRequest): Promise<Response> {
     if (totpCode) {
       const { decryptSecret } = await import('@/lib/crypto');
       const { verifyTotpCode } = await import('@/lib/totp/verify');
-      const secretB64 = decryptSecret(twofa.rows[0]!.totp_secret_encrypted.toString('base64'));
+      const secretB64 = decryptSecret(twofa.rows[0].totp_secret_encrypted.toString('base64'));
       const secretRaw = Buffer.from(secretB64, 'base64');
       valid = verifyTotpCode(totpCode, secretRaw, { window: 1 });
     } else if (backupCode) {
       const { createHash } = await import('crypto');
       const hash = createHash('sha256').update(backupCode.replace(/-/g, '').toUpperCase()).digest('hex');
-      const codes = twofa.rows[0]!.backup_codes_hash;
+      const codes = twofa.rows[0].backup_codes_hash;
       if (codes.includes(hash)) {
         valid = true;
         // Consume backup code

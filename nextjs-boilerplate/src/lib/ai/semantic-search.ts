@@ -150,7 +150,7 @@ export function parseIntent(raw: string): ParsedIntent {
   }
   const priceMatch = PRICE_RX.exec(raw);
   if (priceMatch) {
-    out.maxPriceMinor = Number.parseInt(priceMatch[1]!, 10) * 100;
+    out.maxPriceMinor = Number.parseInt(priceMatch[1], 10) * 100;
   }
   // Keywords: words 3+ chars, not stop words
   const STOPWORDS = new Set([

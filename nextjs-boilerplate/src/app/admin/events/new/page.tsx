@@ -1,7 +1,6 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   Check,
   ChevronLeft,
@@ -16,16 +15,17 @@ import {
   Eye,
   Layers,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { CoverImageUpload } from '@/components/admin/CoverImageUpload';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import {
   EVENT_TEMPLATES,
   TEMPLATE_LIST,
   type TemplateId,
   type EventTemplate,
 } from '@/lib/events/templates';
-import { CoverImageUpload } from '@/components/admin/CoverImageUpload';
 
 interface Venue {
   id: string;
@@ -229,9 +229,9 @@ export default function NewEventWizardPage() {
     description: '',
     category: EVENT_TEMPLATES[DEFAULT_TEMPLATE].defaultCategory,
     eventType: EVENT_TEMPLATES[DEFAULT_TEMPLATE].defaultEventType,
-    dateStart: initialFromTemplate.days[0]!.startsAt,
+    dateStart: initialFromTemplate.days[0].startsAt,
     dateEnd:
-      initialFromTemplate.days[initialFromTemplate.days.length - 1]!.endsAt,
+      initialFromTemplate.days[initialFromTemplate.days.length - 1].endsAt,
     saleStartAt: '',
     saleEndAt: '',
     venueId: '',
@@ -248,7 +248,7 @@ export default function NewEventWizardPage() {
   const visibleSteps = ALL_STEPS.filter(
     (s) => !s.templates || s.templates.includes(form.template),
   );
-  const currentStep = visibleSteps[stepIdx]!;
+  const currentStep = visibleSteps[stepIdx];
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -268,8 +268,8 @@ export default function NewEventWizardPage() {
       template: id,
       category: tpl.defaultCategory,
       eventType: tpl.defaultEventType,
-      dateStart: built.days[0]!.startsAt,
-      dateEnd: built.days[built.days.length - 1]!.endsAt,
+      dateStart: built.days[0].startsAt,
+      dateEnd: built.days[built.days.length - 1].endsAt,
       days: built.days,
       zones: built.zones,
       ticketTypes: built.ticketTypes,
@@ -396,7 +396,7 @@ export default function NewEventWizardPage() {
     level: AccessSpec['level'],
   ) {
     setForm((f) => {
-      const ticket = f.ticketTypes[ticketIdx]!;
+      const ticket = f.ticketTypes[ticketIdx];
       const existing = ticket.access.find(
         (a) => a.dayIndex === dayIndex && a.zoneName === zoneName,
       );
@@ -482,7 +482,7 @@ export default function NewEventWizardPage() {
     if (s.id === 'days_zones') {
       if (form.days.length === 0) return 'Přidej alespoň jeden den.';
       for (let i = 0; i < form.days.length; i++) {
-        const d = form.days[i]!;
+        const d = form.days[i];
         if (!d.label.trim()) return `Den #${i + 1}: chybí popis.`;
         if (!d.startsAt || !d.endsAt) return `Den #${i + 1}: chybí datum.`;
         if (new Date(d.endsAt) <= new Date(d.startsAt))
@@ -491,7 +491,7 @@ export default function NewEventWizardPage() {
       if (form.zones.length === 0) return 'Přidej alespoň jednu zónu.';
       const zoneNames = new Set<string>();
       for (let i = 0; i < form.zones.length; i++) {
-        const z = form.zones[i]!;
+        const z = form.zones[i];
         if (!z.name.trim()) return `Zóna #${i + 1}: chybí název.`;
         if (zoneNames.has(z.name)) return `Zóna "${z.name}" duplicitní.`;
         zoneNames.add(z.name);
@@ -500,7 +500,7 @@ export default function NewEventWizardPage() {
     if (s.id === 'tickets_access') {
       if (form.ticketTypes.length === 0) return 'Přidej alespoň jeden ticket type.';
       for (let i = 0; i < form.ticketTypes.length; i++) {
-        const t = form.ticketTypes[i]!;
+        const t = form.ticketTypes[i];
         if (!t.name.trim()) return `Vstupenka #${i + 1}: chybí název.`;
         if (parseFloat(t.priceCzk) < 0) return `Vstupenka #${i + 1}: cena ≥ 0.`;
         if (parseInt(t.capacity, 10) < 1) return `Vstupenka #${i + 1}: kapacita ≥ 1.`;
@@ -539,7 +539,7 @@ export default function NewEventWizardPage() {
   async function handleSubmit(e: FormEvent, publish: boolean) {
     e.preventDefault();
     for (let i = 0; i < visibleSteps.length; i++) {
-      const err = validateStep(visibleSteps[i]!);
+      const err = validateStep(visibleSteps[i]);
       if (err) {
         setStepIdx(i);
         setError(err);

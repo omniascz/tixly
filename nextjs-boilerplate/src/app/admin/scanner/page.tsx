@@ -2,10 +2,10 @@
 
 import { FormEvent, useEffect, useState, useCallback } from 'react';
 import { CheckCircle2, XCircle, AlertTriangle, ScanLine, Settings2, Wifi, WifiOff } from 'lucide-react';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { PageHeader } from '@/components/admin/PageHeader';
 import {
   enqueueScan,
   flushQueue,
@@ -79,8 +79,8 @@ export default function ScannerPage() {
     const trimmed = raw.trim();
     const m = trimmed.match(/^tixly:([0-9a-f-]{36}):(\d{6})$/i);
     if (m) {
-      setTicketId(m[1]!);
-      setTotpCode(m[2]!);
+      setTicketId(m[1]);
+      setTotpCode(m[2]);
       return;
     }
     setTicketId(trimmed);

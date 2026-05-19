@@ -11,10 +11,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
+import { z } from 'zod';
 import { logAction, extractRequestContext } from '@/lib/audit/log';
+import { requirePlatformAdmin } from '@/lib/platform-auth';
 import {
   renumberRows, renameSector, splitSectorBySpatial, flattenSector, setStage,
   suggestSplit, analyzeForSuggestions,
@@ -240,13 +240,13 @@ export async function POST(
       action: 'venue.seating_chart.transform',
       targetType: 'venue',
       targetId: params.id,
-      metadata: { newChartId: r.rows[0]!.id, operations: parsed.data.operations, totalSeats },
+      metadata: { newChartId: r.rows[0].id, operations: parsed.data.operations, totalSeats },
       ip: ctx.ip,
       userAgent: ctx.userAgent,
     });
 
     return NextResponse.json({
-      id: r.rows[0]!.id,
+      id: r.rows[0].id,
       totalSeats,
       log,
     });

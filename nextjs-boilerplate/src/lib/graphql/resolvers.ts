@@ -137,7 +137,7 @@ export const resolvers = {
         params,
       );
 
-      const total = r.rows.length > 0 ? Number(r.rows[0]!.total) : 0;
+      const total = r.rows.length > 0 ? Number(r.rows[0].total) : 0;
       return {
         nodes: r.rows.map((row) => mapEvent(row)),
         total,
@@ -160,11 +160,11 @@ export const resolvers = {
       );
       if (r.rows.length === 0) return null;
       return {
-        id: r.rows[0]!.id,
-        slug: r.rows[0]!.slug,
-        name: r.rows[0]!.name,
-        brandColorHex: r.rows[0]!.brand_color_hex,
-        brandLogoUrl: r.rows[0]!.brand_logo_url,
+        id: r.rows[0].id,
+        slug: r.rows[0].slug,
+        name: r.rows[0].name,
+        brandColorHex: r.rows[0].brand_color_hex,
+        brandLogoUrl: r.rows[0].brand_logo_url,
       };
     },
 
@@ -249,11 +249,11 @@ export const resolvers = {
       );
       if (r.rows.length === 0) return null;
       return {
-        id: r.rows[0]!.id,
-        slug: r.rows[0]!.slug,
-        name: r.rows[0]!.name,
-        brandColorHex: r.rows[0]!.brand_color_hex,
-        brandLogoUrl: r.rows[0]!.brand_logo_url,
+        id: r.rows[0].id,
+        slug: r.rows[0].slug,
+        name: r.rows[0].name,
+        brandColorHex: r.rows[0].brand_color_hex,
+        brandLogoUrl: r.rows[0].brand_logo_url,
       };
     },
     async ticketTypes(parent: { id: string }) {

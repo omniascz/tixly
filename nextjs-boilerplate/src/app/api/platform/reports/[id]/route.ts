@@ -60,7 +60,7 @@ export async function PATCH(
     const reviewedFields = isResolution
       ? ', reviewed_at = NOW(), reviewed_by = $4'
       : '';
-    const params2: unknown[] = [params.id, input.status ?? r.rows[0]!.status];
+    const params2: unknown[] = [params.id, input.status ?? r.rows[0].status];
     let sql = `UPDATE audit.content_reports
                SET status = $2`;
     let pi = 3;
@@ -82,17 +82,17 @@ export async function PATCH(
     if (
       input.status === 'resolved_action' &&
       input.suspendEvent &&
-      r.rows[0]!.event_id
+      r.rows[0].event_id
     ) {
       await client.query(
         `UPDATE catalog.events SET status = 'rejected', updated_at = NOW() WHERE id = $1`,
-        [r.rows[0]!.event_id],
+        [r.rows[0].event_id],
       );
       await client.query(
         `INSERT INTO audit.event_moderation_log
            (event_id, actor_user_id, actor_type, decision, reason)
          VALUES ($1, $2, 'platform_admin', 'rejected', $3)`,
-        [r.rows[0]!.event_id, admin.userId, `DSA report ${params.id}: ${input.actionTaken ?? 'content removed'}`],
+        [r.rows[0].event_id, admin.userId, `DSA report ${params.id}: ${input.actionTaken ?? 'content removed'}`],
       );
     }
 

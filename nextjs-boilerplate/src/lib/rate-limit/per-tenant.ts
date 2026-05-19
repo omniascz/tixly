@@ -45,7 +45,7 @@ export function checkRateLimit(key: string, config: RateLimitConfig): RateLimitR
   const fresh = existing.filter((t) => t > windowStart);
 
   if (fresh.length >= config.limit) {
-    const oldest = fresh[0]!;
+    const oldest = fresh[0];
     const retryAfterMs = oldest + config.windowMs - now;
     return {
       ok: false,

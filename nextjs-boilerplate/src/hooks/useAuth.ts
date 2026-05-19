@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
+import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { LoginCredentials, RegisterCredentials, User, AuthTokens } from '@/types/index';
-import api from '@/lib/api';
 
 interface UseAuthReturn {
   user: User | null;

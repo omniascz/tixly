@@ -8,9 +8,9 @@
  * Auth: x-internal-token musí odpovídat INTERNAL_SERVICE_TOKEN.
  */
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { timingSafeEqual } from 'crypto';
 import { evaluateTierUpgrade, type PromoterTier } from '@/lib/promoter/tier';
 
 let pool: Pool | null = null;

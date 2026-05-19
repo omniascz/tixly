@@ -9,8 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -62,11 +62,11 @@ export async function PATCH(
        WHERE i.id = $1 FOR UPDATE`,
       [params.id],
     );
-    if (cur.rows.length === 0 || cur.rows[0]!.promoter_id !== promoter.promoterId) {
+    if (cur.rows.length === 0 || cur.rows[0].promoter_id !== promoter.promoterId) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
-    const inquiry = cur.rows[0]!;
+    const inquiry = cur.rows[0];
 
     // Pokud transition pending → confirmed, decrement remaining_qty
     if (inquiry.status === 'pending' && parsed.data.status === 'confirmed') {

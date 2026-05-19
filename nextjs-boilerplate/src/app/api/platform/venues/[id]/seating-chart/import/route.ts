@@ -11,10 +11,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
+import { z } from 'zod';
 import { logAction, extractRequestContext } from '@/lib/audit/log';
+import { requirePlatformAdmin } from '@/lib/platform-auth';
 import {
   parseCsv, parseJson, parseSvg, detectFormat,
   type ParseResult,
@@ -211,13 +211,13 @@ export async function POST(
       action: 'venue.seating_chart.import',
       targetType: 'venue',
       targetId: params.id,
-      metadata: { chartId: r.rows[0]!.id, format, name, ...summary, warnings: result.warnings },
+      metadata: { chartId: r.rows[0].id, format, name, ...summary, warnings: result.warnings },
       ip: reqCtx.ip,
       userAgent: reqCtx.userAgent,
     });
 
     return NextResponse.json(
-      { id: r.rows[0]!.id, format, summary, warnings: result.warnings },
+      { id: r.rows[0].id, format, summary, warnings: result.warnings },
       { status: 201 },
     );
   } catch (err) {

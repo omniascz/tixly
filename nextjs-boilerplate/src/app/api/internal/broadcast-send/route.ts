@@ -5,12 +5,12 @@
  * V produkci by tu byl async queue (BullMQ / Kafka), v demu in-process loop.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { Pool } from 'pg';
 import { timingSafeEqual } from 'crypto';
-import { escapeHtml } from '@/lib/html-escape/escape';
+import { NextRequest, NextResponse } from 'next/server';
+import { Pool } from 'pg';
+import { z } from 'zod';
 import { issueUnsubscribeToken } from '@/lib/email-verification/unsubscribe-token';
+import { escapeHtml } from '@/lib/html-escape/escape';
 
 let pool: Pool | null = null;
 function db(): Pool {

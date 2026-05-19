@@ -201,7 +201,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   return NextResponse.json(
     {
       ok: true,
-      id: ins.rows[0]!.id,
+      id: ins.rows[0].id,
       estimatedRecipients: recipientCount,
     },
     { status: 201 },

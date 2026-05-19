@@ -15,9 +15,9 @@
  * Doporučené spouštění: 1× denně přes Vercel cron nebo external scheduler.
  */
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { timingSafeEqual } from 'crypto';
 import { escapeHtml } from '@/lib/html-escape/escape';
 
 let pool: Pool | null = null;

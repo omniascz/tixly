@@ -10,9 +10,9 @@
  * Idempotent: jen pokud status='closed' (musí být po closes_at). Jednou losovaný = 'drawn'.
  */
 
+import { randomBytes } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { randomBytes } from 'crypto';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -69,7 +69,7 @@ export async function POST(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
-    const l = lottery.rows[0]!;
+    const l = lottery.rows[0];
 
     // Auto-close pokud closes_at proběhl
     if (l.status === 'open') {
@@ -154,7 +154,7 @@ export async function POST(
         `SELECT redeem_token FROM catalog.lottery_entries WHERE id = $1`,
         [w.id],
       );
-      const redeemUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/cs/lottery/redeem?token=${tokenRes.rows[0]!.redeem_token}`;
+      const redeemUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/cs/lottery/redeem?token=${tokenRes.rows[0].redeem_token}`;
       void fetch(
         `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/api/internal/lottery-winner-email`,
         {

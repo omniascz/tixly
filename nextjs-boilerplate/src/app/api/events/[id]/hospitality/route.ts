@@ -6,8 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -79,14 +79,14 @@ export async function POST(
   if (pkg.rows.length === 0) {
     return NextResponse.json({ error: 'PACKAGE_NOT_AVAILABLE' }, { status: 404 });
   }
-  if (pkg.rows[0]!.remaining_qty < parsed.data.quantity) {
+  if (pkg.rows[0].remaining_qty < parsed.data.quantity) {
     return NextResponse.json(
-      { error: 'INSUFFICIENT_REMAINING', available: pkg.rows[0]!.remaining_qty },
+      { error: 'INSUFFICIENT_REMAINING', available: pkg.rows[0].remaining_qty },
       { status: 409 },
     );
   }
 
-  const totalAmount = pkg.rows[0]!.price_minor * parsed.data.quantity;
+  const totalAmount = pkg.rows[0].price_minor * parsed.data.quantity;
 
   const r = await db().query<{ id: string }>(
     `INSERT INTO orders.hospitality_inquiries
@@ -104,11 +104,11 @@ export async function POST(
       parsed.data.quantity,
       parsed.data.notes ?? null,
       totalAmount,
-      pkg.rows[0]!.currency,
+      pkg.rows[0].currency,
     ],
   );
   return NextResponse.json(
-    { id: r.rows[0]!.id, totalAmount, currency: pkg.rows[0]!.currency },
+    { id: r.rows[0].id, totalAmount, currency: pkg.rows[0].currency },
     { status: 201 },
   );
 }

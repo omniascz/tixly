@@ -7,8 +7,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -64,11 +64,11 @@ export async function POST(
     const positionRes = await db().query<{ ahead: string }>(
       `SELECT COUNT(*)::text AS ahead FROM catalog.waitlist_entries
        WHERE ticket_type_id = $1 AND status = 'waiting' AND created_at < $2`,
-      [parsed.data.ticketTypeId, existing.rows[0]!.created_at],
+      [parsed.data.ticketTypeId, existing.rows[0].created_at],
     );
     return NextResponse.json({
-      id: existing.rows[0]!.id,
-      status: existing.rows[0]!.status,
+      id: existing.rows[0].id,
+      status: existing.rows[0].status,
       position: Number(positionRes.rows[0]?.ahead ?? 0) + 1,
       existing: true,
     });
@@ -96,7 +96,7 @@ export async function POST(
 
   return NextResponse.json(
     {
-      id: r.rows[0]!.id,
+      id: r.rows[0].id,
       status: 'waiting',
       position: Number(positionRes.rows[0]?.ahead ?? 0),
       existing: false,

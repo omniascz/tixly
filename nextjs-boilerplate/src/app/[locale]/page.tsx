@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { Pool } from 'pg';
 import { Card, CardContent } from '@/components/ui/card';
-import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 import { formatDate } from '@/lib/format';
+import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 

@@ -65,7 +65,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   if (orderRes.rows.length === 0) {
     return NextResponse.json({ error: 'ORDER_NOT_FOUND' }, { status: 404 });
   }
-  const order = orderRes.rows[0]!;
+  const order = orderRes.rows[0];
   if (order.status !== 'paid') {
     return NextResponse.json(
       { error: 'INVALID_ORDER_STATUS', currentStatus: order.status },
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       {
         error: 'DUPLICATE_REQUEST',
         message: 'Žádost o refund je už ve frontě. Vyčkej na odpověď.',
-        existingId: existingRes.rows[0]!.id,
+        existingId: existingRes.rows[0].id,
       },
       { status: 409 },
     );
@@ -117,13 +117,13 @@ export async function POST(req: NextRequest): Promise<Response> {
       title: 'Nová žádost o vrácení peněz',
       body: input.reason.slice(0, 200),
       link: '/admin/refund-requests',
-      payload: { requestId: ins.rows[0]!.id, orderId: input.orderId },
+      payload: { requestId: ins.rows[0].id, orderId: input.orderId },
     });
   } catch {
     // ignore
   }
 
-  return NextResponse.json({ ok: true, requestId: ins.rows[0]!.id }, { status: 201 });
+  return NextResponse.json({ ok: true, requestId: ins.rows[0].id }, { status: 201 });
 }
 
 export async function GET(req: NextRequest): Promise<Response> {

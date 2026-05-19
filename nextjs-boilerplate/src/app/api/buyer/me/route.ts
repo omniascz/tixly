@@ -8,8 +8,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   if (userRes.rows.length === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  const u = userRes.rows[0]!;
+  const u = userRes.rows[0];
 
   const prefRes = await db().query<{
     email_enabled: boolean;

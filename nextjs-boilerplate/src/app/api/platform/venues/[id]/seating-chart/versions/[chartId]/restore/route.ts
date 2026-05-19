@@ -7,8 +7,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
 import { logAction, extractRequestContext } from '@/lib/audit/log';
+import { requirePlatformAdmin } from '@/lib/platform-auth';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -39,7 +39,7 @@ export async function POST(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Version not found' }, { status: 404 });
     }
-    const src = sourceRow.rows[0]!;
+    const src = sourceRow.rows[0];
 
     await client.query(
       `UPDATE catalog.venue_seating_charts SET active = false WHERE venue_id = $1`,
@@ -79,14 +79,14 @@ export async function POST(
       targetId: params.id,
       metadata: {
         sourceChartId: params.chartId,
-        newChartId: inserted.rows[0]!.id,
+        newChartId: inserted.rows[0].id,
         totalSeats: src.total_seats,
       },
       ip: reqCtx.ip,
       userAgent: reqCtx.userAgent,
     });
 
-    return NextResponse.json({ id: inserted.rows[0]!.id, totalSeats: src.total_seats });
+    return NextResponse.json({ id: inserted.rows[0].id, totalSeats: src.total_seats });
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('[seating-chart restore]', err);

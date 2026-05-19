@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from 'react';
 import { Search, Users } from 'lucide-react';
-import { PageHeader } from '@/components/admin/PageHeader';
 import { DataTable, Column } from '@/components/admin/DataTable';
 import { EmptyState } from '@/components/admin/EmptyState';
+import { PageHeader } from '@/components/admin/PageHeader';
 import { StatCard } from '@/components/admin/StatCard';
 import { Input } from '@/components/ui/input';
 import { useAdminCustomers } from '@/hooks/useAdminData';
@@ -156,7 +156,7 @@ export default function AdminCustomersPage() {
       {isError ? (
         <EmptyState
           title="Nelze načíst zákazníky"
-          description={(error as Error)?.message ?? 'Zkuste to prosím znovu.'}
+          description={(error)?.message ?? 'Zkuste to prosím znovu.'}
         />
       ) : !isLoading && customers.length === 0 ? (
         <EmptyState

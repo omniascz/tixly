@@ -3,9 +3,9 @@
 import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 
 interface SectorSpec {
   name: string;
@@ -65,7 +65,7 @@ export default function PlatformSeatingChartPage({
 
   const [chartName, setChartName] = useState('Default');
   const [sectors, setSectors] = useState<SectorSpec[]>([
-    { name: 'Sektor A', rows: 10, seatsPerRow: 20, startX: 50, startY: 50, spacingX: 22, spacingY: 22, color: PALETTE[0]! },
+    { name: 'Sektor A', rows: 10, seatsPerRow: 20, startX: 50, startY: 50, spacingX: 22, spacingY: 22, color: PALETTE[0] },
   ]);
 
   const [jsonInput, setJsonInput] = useState('');
@@ -96,7 +96,7 @@ export default function PlatformSeatingChartPage({
         startY: 50 + sectors.length * 250,
         spacingX: 22,
         spacingY: 22,
-        color: PALETTE[sectors.length % PALETTE.length]!,
+        color: PALETTE[sectors.length % PALETTE.length],
       },
     ]);
   }

@@ -12,8 +12,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 import { decryptSecret } from '@/lib/crypto';
 import { verifyTotpCode } from '@/lib/totp/verify';
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         { status: 404 },
       );
     }
-    const member = m.rows[0]!;
+    const member = m.rows[0];
 
     if (member.status !== 'active' || !member.bundle_active) {
       await client.query('ROLLBACK');
@@ -137,7 +137,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       `SELECT promoter_id, title FROM catalog.events WHERE id = $1`,
       [parsed.data.eventId],
     );
-    if (ev.rows.length === 0 || ev.rows[0]!.promoter_id !== promoter.promoterId) {
+    if (ev.rows.length === 0 || ev.rows[0].promoter_id !== promoter.promoterId) {
       await client.query('ROLLBACK');
       return NextResponse.json(
         { result: 'wrong_promoter', message: 'Akce patří jinému promotérovi.' },
@@ -169,11 +169,11 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query('ROLLBACK');
       return NextResponse.json({
         result: 'already_redeemed',
-        redeemedAt: existing.rows[0]!.redeemed_at,
-        eventTitle: ev.rows[0]!.title,
+        redeemedAt: existing.rows[0].redeemed_at,
+        eventTitle: ev.rows[0].title,
         bundleName: member.bundle_name,
         buyer: { email: member.buyer_email, name: member.buyer_name },
-        message: `Cross-pass už byl použit pro tuto akci ${new Date(existing.rows[0]!.redeemed_at).toLocaleString('cs-CZ')}.`,
+        message: `Cross-pass už byl použit pro tuto akci ${new Date(existing.rows[0].redeemed_at).toLocaleString('cs-CZ')}.`,
       });
     }
 
@@ -193,7 +193,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json({
       result: 'admitted',
       kind: 'cross_pass',
-      eventTitle: ev.rows[0]!.title,
+      eventTitle: ev.rows[0].title,
       bundleName: member.bundle_name,
       buyer: { email: member.buyer_email, name: member.buyer_name },
       admittedAt: new Date().toISOString(),

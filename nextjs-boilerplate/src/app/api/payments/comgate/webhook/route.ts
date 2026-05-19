@@ -13,9 +13,9 @@
  * verifikací a parsováním body.
  */
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { timingSafeEqual } from 'crypto';
 import { getComGatePaymentStatus, getComGateConfig } from '@/lib/payment/comgate';
 
 let pool: Pool | null = null;
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       return NextResponse.json({ ok: true, reason: 'ORDER_NOT_FOUND', transId, refId });
     }
 
-    const order = orderRes.rows[0]!;
+    const order = orderRes.rows[0];
 
     await client.query(
       `INSERT INTO orders.payment_events

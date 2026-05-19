@@ -18,10 +18,10 @@
  * Pro demo: zjednodušíme a uděláme instant (status='paid' přímo).
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { Pool } from 'pg';
 import { randomUUID } from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
+import { Pool } from 'pg';
+import { z } from 'zod';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -61,7 +61,7 @@ export async function GET(
   if (t.rows.length === 0) {
     return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
   }
-  const ticket = t.rows[0]!;
+  const ticket = t.rows[0];
 
   // Najdi ticket types stejné akce s vyšší cenou
   const upgrades = await db().query<{
@@ -136,7 +136,7 @@ export async function POST(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
     }
-    const ticket = t.rows[0]! as TicketRow & {
+    const ticket = t.rows[0] as TicketRow & {
       order_user_id: string;
       owner_email: string;
     };
@@ -186,7 +186,7 @@ export async function POST(
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Target not found' }, { status: 404 });
     }
-    const target = targetRes.rows[0]!;
+    const target = targetRes.rows[0];
     if (target.event_id !== ticket.event_id) {
       await client.query('ROLLBACK');
       return NextResponse.json(

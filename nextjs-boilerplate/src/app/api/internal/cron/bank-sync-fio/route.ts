@@ -10,11 +10,11 @@
  * Auth: x-internal-token.
  */
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { timingSafeEqual } from 'crypto';
-import { decryptSecret } from '@/lib/crypto';
 import { fetchLastFioTransactions } from '@/lib/bank/fio';
+import { decryptSecret } from '@/lib/crypto';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest): Promise<Response> {
          RETURNING id`,
         [cred.promoter_id, `fio-auto-${new Date().toISOString().slice(0, 10)}`, incoming.length],
       );
-      const importId = importRes.rows[0]!.id;
+      const importId = importRes.rows[0].id;
 
       let matched = 0;
       let unmatched = 0;
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           );
 
           if (m.rows.length === 1) {
-            const order = m.rows[0]!;
+            const order = m.rows[0];
             if (order.status === 'pending') {
               await db().query(
                 `UPDATE orders.orders

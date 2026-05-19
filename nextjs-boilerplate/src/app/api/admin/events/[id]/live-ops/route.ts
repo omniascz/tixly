@@ -37,7 +37,7 @@ export async function GET(
   if (owns.rows.length === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  const ev = owns.rows[0]!;
+  const ev = owns.rows[0];
 
   const [sales, scanRate, redemptionsByZone, redemptionsByDay, queue, inventory] =
     await Promise.all([

@@ -81,7 +81,7 @@ export async function awardPointsForOrder(
      RETURNING id, points_balance, lifetime_points, tier`,
     [input.userId],
   );
-  const acc = accRes.rows[0]!;
+  const acc = accRes.rows[0];
 
   const currentTier = acc.tier as LoyaltyTier;
   const multiplier = TIER_MULTIPLIERS[currentTier];
@@ -165,7 +165,7 @@ export async function redeemPoints(
   if (accRes.rows.length === 0) {
     throw new Error('LOYALTY_ACCOUNT_NOT_FOUND');
   }
-  const acc = accRes.rows[0]!;
+  const acc = accRes.rows[0];
 
   const limits = calculateMaxRedemption({
     pointsBalance: acc.points_balance,

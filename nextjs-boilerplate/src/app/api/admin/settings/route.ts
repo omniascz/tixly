@@ -6,8 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 
 let pool: Pool | null = null;
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   if (r.rows.length === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  const s = r.rows[0]!;
+  const s = r.rows[0];
   return NextResponse.json({
     role: promoter.role,
     promoter: {

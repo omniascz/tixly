@@ -13,8 +13,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { detectBot, logDetection } from '@/lib/bot-detection/detect';
 import { redisAvailable, joinQueueRedis } from '@/lib/queue/redis-queue';
 
@@ -96,10 +96,10 @@ export async function POST(
      FROM catalog.events WHERE id = $1`,
     [params.eventId],
   );
-  if (ev.rows.length === 0 || ev.rows[0]!.status !== 'published') {
+  if (ev.rows.length === 0 || ev.rows[0].status !== 'published') {
     return NextResponse.json({ error: 'Event not available' }, { status: 404 });
   }
-  const event = ev.rows[0]!;
+  const event = ev.rows[0];
 
   if (!event.queue_enabled) {
     return NextResponse.json({ queueEnabled: false, token: null });
@@ -117,7 +117,7 @@ export async function POST(
     if (existing.rows.length > 0) {
       return NextResponse.json({
         queueEnabled: true,
-        token: existing.rows[0]!.id,
+        token: existing.rows[0].id,
         existing: true,
       });
     }
@@ -132,7 +132,7 @@ export async function POST(
     if (existing.rows.length > 0) {
       return NextResponse.json({
         queueEnabled: true,
-        token: existing.rows[0]!.id,
+        token: existing.rows[0].id,
         existing: true,
       });
     }
@@ -144,7 +144,7 @@ export async function POST(
      RETURNING id`,
     [event.id, userId, fingerprint, ip],
   );
-  const tokenId = r.rows[0]!.id;
+  const tokenId = r.rows[0].id;
 
   // Mirror do Redis pokud dostupný (best-effort, DB stále zdroj pravdy)
   try {

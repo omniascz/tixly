@@ -1,8 +1,8 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
 import { CookieConsentBanner } from '@/components/public/CookieConsentBanner';
-import { SupportChatWidget } from '@/components/SupportChatWidget';
 import { TopNav } from '@/components/public/TopNav';
+import { SupportChatWidget } from '@/components/SupportChatWidget';
 
 export default function LocaleLayout({
   children,

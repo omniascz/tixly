@@ -46,7 +46,7 @@ export async function POST(
   if (ev.rows.length === 0) {
     return NextResponse.json({ error: 'EVENT_NOT_FOUND' }, { status: 404 });
   }
-  if (!ev.rows[0]!.enabled) {
+  if (!ev.rows[0].enabled) {
     return NextResponse.json(
       { error: 'VERIFIED_FAN_DISABLED', message: 'Tato akce nemá Verified Fan registraci.' },
       { status: 422 },
@@ -61,7 +61,7 @@ export async function POST(
   if (user.rows.length === 0) {
     return NextResponse.json({ error: 'USER_NOT_FOUND' }, { status: 404 });
   }
-  const u = user.rows[0]!;
+  const u = user.rows[0];
   const emailDomain = u.email.split('@')[1] ?? null;
   const ageDays = Math.floor((Date.now() - new Date(u.created_at).getTime()) / 86400_000);
 

@@ -5,8 +5,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Invalid gift' }, { status: 404 });
     }
-    const o = r.rows[0]!;
+    const o = r.rows[0];
     if (o.gift_redeemed_at) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'ALREADY_REDEEMED' }, { status: 409 });
@@ -106,9 +106,9 @@ export async function POST(req: NextRequest): Promise<Response> {
        VALUES ($1, $2, '!gift_recipient', NOW(), NOW(), NOW())
        ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE SET updated_at = NOW()
        RETURNING id`,
-      [o.gift_recipient_email!, o.gift_recipient_name ?? o.gift_recipient_email!],
+      [o.gift_recipient_email, o.gift_recipient_name ?? o.gift_recipient_email],
     );
-    const recipientUserId = userRes.rows[0]!.id;
+    const recipientUserId = userRes.rows[0].id;
 
     // Transfer všechny tickets
     await client.query(

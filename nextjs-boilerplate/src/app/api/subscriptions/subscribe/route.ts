@@ -14,8 +14,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest): Promise<Response> {
          RETURNING id`,
         [input.buyerEmail.toLowerCase(), input.buyerName ?? input.buyerEmail],
       );
-      userId = u.rows[0]!.id;
+      userId = u.rows[0].id;
     } else {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Auth required' }, { status: 401 });
@@ -73,11 +73,11 @@ export async function POST(req: NextRequest): Promise<Response> {
       `SELECT id, billing_cycle, active FROM subscriptions.plans WHERE id = $1`,
       [input.planId],
     );
-    if (planRes.rows.length === 0 || !planRes.rows[0]!.active) {
+    if (planRes.rows.length === 0 || !planRes.rows[0].active) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'PLAN_NOT_AVAILABLE' }, { status: 422 });
     }
-    const plan = planRes.rows[0]!;
+    const plan = planRes.rows[0];
 
     // Already active subscription pro tento plan?
     const existing = await client.query<{ id: string }>(
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       return NextResponse.json(
         {
           error: 'ALREADY_SUBSCRIBED',
-          subscriptionId: existing.rows[0]!.id,
+          subscriptionId: existing.rows[0].id,
         },
         { status: 409 },
       );
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json(
       {
         ok: true,
-        subscriptionId: sub.rows[0]!.id,
+        subscriptionId: sub.rows[0].id,
         currentPeriodEnd: periodEnd.toISOString(),
       },
       { status: 201 },

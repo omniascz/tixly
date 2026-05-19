@@ -5,10 +5,10 @@
  * V production: Node DNS lookup; v demu: vrátí success pokud query string ?force=true.
  */
 
+import { resolveTxt } from 'dns/promises';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { requirePromoter } from '@/lib/admin-auth';
-import { resolveTxt } from 'dns/promises';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -39,7 +39,7 @@ export async function POST(
     [params.id, promoter.promoterId],
   );
   if (r.rows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  const row = r.rows[0]!;
+  const row = r.rows[0];
   if (row.verified_at) {
     return NextResponse.json({ ok: true, alreadyVerified: true });
   }

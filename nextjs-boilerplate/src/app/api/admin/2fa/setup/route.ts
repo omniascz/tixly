@@ -3,9 +3,9 @@
  * GET  /api/admin/2fa/setup — current 2FA status
  */
 
+import { randomBytes } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { randomBytes } from 'crypto';
 import { encryptSecret } from '@/lib/crypto';
 
 let pool: Pool | null = null;
@@ -43,8 +43,8 @@ export async function GET(req: NextRequest): Promise<Response> {
   }
   return NextResponse.json({
     enrolled: true,
-    enabled: r.rows[0]!.enabled,
-    enrolledAt: r.rows[0]!.enrolled_at,
+    enabled: r.rows[0].enabled,
+    enrolledAt: r.rows[0].enrolled_at,
   });
 }
 
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   if (userRes.rows.length === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  const email = userRes.rows[0]!.email;
+  const email = userRes.rows[0].email;
 
   // Generate 20-byte secret
   const secretRaw = randomBytes(20);

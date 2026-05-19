@@ -11,8 +11,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { hashPassword, signAccessToken, getUserRoles } from '@/lib/auth';
 
 let pool: Pool | null = null;
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         { status: 410 },
       );
     }
-    const invite = inv.rows[0]!;
+    const invite = inv.rows[0];
 
     // Find existing user
     const existingUser = await client.query<{ id: string }>(
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
     let userId: string;
     if (existingUser.rows.length > 0) {
-      userId = existingUser.rows[0]!.id;
+      userId = existingUser.rows[0].id;
     } else {
       if (!parsed.data.password || !parsed.data.name) {
         await client.query('ROLLBACK');
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest): Promise<Response> {
          RETURNING id`,
         [invite.email.toLowerCase(), parsed.data.name, hash],
       );
-      userId = ins.rows[0]!.id;
+      userId = ins.rows[0].id;
     }
 
     // Membership upsert

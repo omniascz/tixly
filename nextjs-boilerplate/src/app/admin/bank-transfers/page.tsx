@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/admin/PageHeader';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ParsedLine {
   amountHalire: number;
@@ -42,7 +42,7 @@ function parseCsv(text: string): ParsedLine[] {
   const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
   if (lines.length === 0) return [];
 
-  const headerLine = lines[0]!.toLowerCase();
+  const headerLine = lines[0].toLowerCase();
   const delim = headerLine.includes(';') ? ';' : ',';
   const headers = headerLine.split(delim).map((h) => h.trim().replace(/^"|"$/g, ''));
 
@@ -62,7 +62,7 @@ function parseCsv(text: string): ParsedLine[] {
 
   const results: ParsedLine[] = [];
   for (let i = 1; i < lines.length; i++) {
-    const cells = lines[i]!.split(delim).map((c) => c.trim().replace(/^"|"$/g, ''));
+    const cells = lines[i].split(delim).map((c) => c.trim().replace(/^"|"$/g, ''));
     if (cells.length === 0) continue;
     const amountStr = amountIdx >= 0 ? cells[amountIdx] ?? '' : '';
     const amount = Number(amountStr.replace(/[\s ,]/g, '').replace(',', '.'));
@@ -83,7 +83,7 @@ function parseCzDate(raw: string): string | undefined {
   const m = raw.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})/);
   if (m) {
     const [, d, mo, y] = m;
-    return new Date(`${y}-${mo!.padStart(2, '0')}-${d!.padStart(2, '0')}T12:00:00Z`).toISOString();
+    return new Date(`${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}T12:00:00Z`).toISOString();
   }
   // ISO fallback
   if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {

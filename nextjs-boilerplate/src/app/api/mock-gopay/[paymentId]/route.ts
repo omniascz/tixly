@@ -36,7 +36,7 @@ export async function POST(
         { status: 404 },
       );
     }
-    const order = orderResult.rows[0]!;
+    const order = orderResult.rows[0];
 
     // Idempotency: pokud objednávka už není pending, vrátíme aktuální stav
     if (order.status !== 'pending') {
@@ -69,7 +69,7 @@ export async function POST(
        WHERE opp.order_id = $1 AND opp.status = 'active'`,
       [order.id],
     );
-    const partial = hasPlan.rows.length > 0 && hasPlan.rows[0]!.installments_count > 0;
+    const partial = hasPlan.rows.length > 0 && hasPlan.rows[0].installments_count > 0;
 
     await client.query(
       `UPDATE orders.orders

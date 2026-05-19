@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { Pool } from 'pg';
+import { z } from 'zod';
 import { decryptSecret } from '@/lib/crypto';
 import { verifyTotpCode } from '@/lib/totp/verify';
 
@@ -31,10 +31,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     `SELECT totp_secret_encrypted, enabled FROM identity.user_2fa WHERE user_id = $1`,
     [userId],
   );
-  if (r.rows.length === 0 || !r.rows[0]!.enabled) {
+  if (r.rows.length === 0 || !r.rows[0].enabled) {
     return NextResponse.json({ error: 'NOT_ENABLED' }, { status: 404 });
   }
-  const secretB64 = decryptSecret(r.rows[0]!.totp_secret_encrypted.toString('base64'));
+  const secretB64 = decryptSecret(r.rows[0].totp_secret_encrypted.toString('base64'));
   const secretRaw = Buffer.from(secretB64, 'base64');
   const valid = verifyTotpCode(parsed.data.code, secretRaw, { window: 1 });
   if (!valid) return NextResponse.json({ error: 'INVALID_CODE' }, { status: 401 });

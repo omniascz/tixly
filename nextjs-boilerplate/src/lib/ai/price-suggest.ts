@@ -93,7 +93,7 @@ export async function suggestPrice(input: PriceSuggestionInput): Promise<PriceSu
 
   const prices = r.rows.map((row) => row.base_price).sort((a, b) => a - b);
   const n = prices.length;
-  const median = n % 2 === 0 ? (prices[n / 2 - 1]! + prices[n / 2]!) / 2 : prices[Math.floor(n / 2)]!;
+  const median = n % 2 === 0 ? (prices[n / 2 - 1] + prices[n / 2]) / 2 : prices[Math.floor(n / 2)];
   const p25 = prices[Math.floor(n * 0.25)] ?? median;
   const p75 = prices[Math.floor(n * 0.75)] ?? median;
 
