@@ -1,5 +1,3 @@
-import { Pool } from 'pg';
-
 interface CheckResult {
   service: string;
   status: 'ok' | 'degraded' | 'down';
@@ -7,77 +5,74 @@ interface CheckResult {
   detail?: string;
 }
 
-async function checkDb(): Promise<CheckResult> {
+interface HealthEndpointResponse {
+  status?: string;
+  responseTime?: number;
+  error?: string;
+}
+
+/**
+ * Reuse /api/health/* readiness probes místo přímého pg.Pool / redis client
+ * v page render. Server component v dev workeru padal s WorkerError při
+ * vytváření klientů per-request.
+ */
+async function fetchCheck(path: string, service: string): Promise<CheckResult> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
   const start = Date.now();
   try {
-    const db = new Pool({ connectionString: process.env.DATABASE_URL });
-    await db.query('SELECT 1');
-    await db.end();
-    const ms = Date.now() - start;
-    return {
-      service: 'PostgreSQL',
-      status: ms > 500 ? 'degraded' : 'ok',
-      responseTimeMs: ms,
-    };
+    const res = await fetch(`${baseUrl}${path}`, { cache: 'no-store' });
+    const data: HealthEndpointResponse = await res.json().catch(() => ({}));
+    const ms = data.responseTime ?? Date.now() - start;
+    if (!res.ok || data.status === 'error') {
+      return { service, status: 'down', responseTimeMs: ms, detail: data.error };
+    }
+    const threshold = service === 'Redis' ? 200 : 500;
+    return { service, status: ms > threshold ? 'degraded' : 'ok', responseTimeMs: ms };
   } catch (err) {
     return {
-      service: 'PostgreSQL',
+      service,
       status: 'down',
       responseTimeMs: Date.now() - start,
       detail: err instanceof Error ? err.message : String(err),
     };
   }
+}
+
+async function checkDb(): Promise<CheckResult> {
+  return fetchCheck('/api/health/db', 'PostgreSQL');
 }
 
 async function checkRedis(): Promise<CheckResult> {
-  const start = Date.now();
-  try {
-    const { createClient } = await import('redis');
-    const client = createClient({ url: process.env.REDIS_URL });
-    await client.connect();
-    await client.ping();
-    await client.disconnect();
-    const ms = Date.now() - start;
-    return {
-      service: 'Redis',
-      status: ms > 200 ? 'degraded' : 'ok',
-      responseTimeMs: ms,
-    };
-  } catch (err) {
-    return {
-      service: 'Redis',
-      status: 'down',
-      responseTimeMs: Date.now() - start,
-      detail: err instanceof Error ? err.message : String(err),
-    };
-  }
+  return fetchCheck('/api/health/redis', 'Redis');
 }
 
 async function checkSmtp(): Promise<CheckResult> {
+  // SMTP check via providers endpoint — neexistuje samostatný probe, ale
+  // /api/health/providers nese flag "configured" pro SMTP.
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
   const start = Date.now();
   try {
-    const net = await import('net');
-    await new Promise<void>((resolve, reject) => {
-      const socket = net.createConnection({
-        host: process.env.SMTP_HOST ?? 'localhost',
-        port: Number(process.env.SMTP_PORT ?? '1025'),
-        timeout: 1500,
-      });
-      socket.on('connect', () => {
-        socket.end();
-        resolve();
-      });
-      socket.on('error', reject);
-      socket.on('timeout', () => reject(new Error('SMTP timeout')));
-    });
+    const res = await fetch(`${baseUrl}/api/health/providers`, { cache: 'no-store' });
+    if (!res.ok) {
+      return {
+        service: 'SMTP',
+        status: 'down',
+        responseTimeMs: Date.now() - start,
+      };
+    }
+    const data = (await res.json()) as {
+      providers?: Array<{ name: string; configured: boolean }>;
+    };
+    const smtp = data.providers?.find((p) => p.name.toLowerCase().includes('smtp'));
     return {
-      service: 'SMTP (Mailhog)',
-      status: 'ok',
+      service: 'SMTP',
+      status: smtp?.configured ? 'ok' : 'degraded',
       responseTimeMs: Date.now() - start,
+      detail: smtp?.configured ? undefined : 'Není nakonfigurováno (běží mock)',
     };
   } catch (err) {
     return {
-      service: 'SMTP (Mailhog)',
+      service: 'SMTP',
       status: 'down',
       responseTimeMs: Date.now() - start,
       detail: err instanceof Error ? err.message : String(err),
@@ -257,25 +252,14 @@ interface Incident {
 }
 
 async function fetchIncidents(): Promise<Incident[]> {
-  // Public read: pouze is_public=TRUE incidents za posledních 14 dní.
-  // Pre-migrace 272 fallback — query failne s "relation does not exist",
-  // tehdy vrátíme prázdné pole (žádné incidenty publikované).
+  // Public read přes /api/public/incidents (vrací jen is_public=TRUE).
+  // Server-side pg.Pool v page render způsoboval WorkerError v Next.js dev.
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
   try {
-    const db = new Pool({ connectionString: process.env.DATABASE_URL });
-    try {
-      const r = await db.query<Incident>(
-        `SELECT id, title, status::text AS status, started_at::text AS started_at,
-                resolved_at::text AS resolved_at, description
-         FROM platform.incidents
-         WHERE is_public = TRUE
-           AND started_at > NOW() - INTERVAL '14 days'
-         ORDER BY started_at DESC
-         LIMIT 50`,
-      );
-      return r.rows;
-    } finally {
-      await db.end();
-    }
+    const res = await fetch(`${baseUrl}/api/public/incidents`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    const data = (await res.json()) as { incidents?: Incident[] };
+    return data.incidents ?? [];
   } catch {
     return [];
   }
