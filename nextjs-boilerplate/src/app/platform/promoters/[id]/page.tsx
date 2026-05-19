@@ -6,6 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
+function authFetch(url: string, init?: RequestInit): Promise<Response> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  return fetch(url, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+  });
+}
+
 interface PromoterDetail {
   id: string;
   name: string;
@@ -69,7 +81,7 @@ interface PromoterDocument {
   uploaded_at: string;
 }
 
-interface Response {
+interface PromoterDetailResponse {
   promoter: PromoterDetail;
   members: Member[];
   recentEvents: EventRow[];
@@ -82,16 +94,16 @@ export default function PromoterDetailPage({
 }: {
   params: { id: string };
 }) {
-  const [data, setData] = useState<Response | null>(null);
+  const [data, setData] = useState<PromoterDetailResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function load() {
     setError(null);
     try {
-      const res = await fetch(`/api/platform/promoters/${params.id}`);
+      const res = await authFetch(`/api/platform/promoters/${params.id}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setData((await res.json()) as Response);
+      setData((await res.json()) as PromoterDetailResponse);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -103,7 +115,7 @@ export default function PromoterDetailPage({
     if (kind === 'suspend' && !confirm('Pozastavit promotéra? Nebude moci vytvářet nové akce ani prodávat.')) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/platform/promoters/${params.id}/${kind}`, { method: 'POST' });
+      const res = await authFetch(`/api/platform/promoters/${params.id}/${kind}`, { method: 'POST' });
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string };
         setError(j.error ?? `HTTP ${res.status}`);
@@ -448,7 +460,7 @@ function CzSkSettingsCard({
         body.feeCurrency = currency;
         body.feeOverrideReason = reason || undefined;
       }
-      const res = await fetch(`/api/platform/promoters/${promoter.id}`, {
+      const res = await authFetch(`/api/platform/promoters/${promoter.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

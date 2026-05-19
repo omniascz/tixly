@@ -7,6 +7,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
+function authFetch(url: string, init?: RequestInit): Promise<Response> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  return fetch(url, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+  });
+}
+
 interface SectorSummary {
   name: string;
   color?: string;
@@ -69,7 +81,7 @@ export default function SectorToolsPage({
   async function load() {
     setError(null);
     try {
-      const res = await fetch(`/api/platform/venues/${venueId}/seating-chart/transform`);
+      const res = await authFetch(`/api/platform/venues/${venueId}/seating-chart/transform`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const j = (await res.json()) as AnalysisResponse;
       setAnalysis(j);
@@ -98,7 +110,7 @@ export default function SectorToolsPage({
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/api/platform/venues/${venueId}/seating-chart/transform`, {
+      const res = await authFetch(`/api/platform/venues/${venueId}/seating-chart/transform`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ operations: pending }),

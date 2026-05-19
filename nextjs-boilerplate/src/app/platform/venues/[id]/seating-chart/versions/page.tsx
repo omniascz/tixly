@@ -5,6 +5,18 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+function authFetch(url: string, init?: RequestInit): Promise<Response> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  return fetch(url, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+  });
+}
+
 interface Version {
   id: string;
   name: string;
@@ -79,7 +91,7 @@ export default function PlatformVenueVersionsPage({
   async function load() {
     setError(null);
     try {
-      const res = await fetch(`/api/platform/venues/${venueId}/seating-chart/versions`);
+      const res = await authFetch(`/api/platform/venues/${venueId}/seating-chart/versions`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const j = (await res.json()) as { versions: Version[] };
       setVersions(j.versions);

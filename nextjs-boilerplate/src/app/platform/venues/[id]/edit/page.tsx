@@ -9,6 +9,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { classifyChartSize } from '@/lib/seating/perf';
 
+function authFetch(url: string, init?: RequestInit): Promise<Response> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  return fetch(url, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+  });
+}
+
 interface VenueDetail {
   id: string;
   name: string;
@@ -65,7 +77,7 @@ export default function PlatformVenueEditPage({
   async function load() {
     setError(null);
     try {
-      const res = await fetch(`/api/platform/venues/${params.id}`);
+      const res = await authFetch(`/api/platform/venues/${params.id}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as { venue: VenueDetail };
       const v = data.venue;
@@ -107,7 +119,7 @@ export default function PlatformVenueEditPage({
         floorPlanUrl: floorPlanUrl || null,
         description: description || null,
       };
-      const res = await fetch(`/api/platform/venues/${venue.id}`, {
+      const res = await authFetch(`/api/platform/venues/${venue.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -131,7 +143,7 @@ export default function PlatformVenueEditPage({
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/api/platform/venues/${venue.id}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/platform/venues/${venue.id}`, { method: 'DELETE' });
       const j = (await res.json().catch(() => ({}))) as {
         error?: string; upcomingEvents?: number;
       };
@@ -161,7 +173,7 @@ export default function PlatformVenueEditPage({
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/api/platform/venues/${venue.id}`, {
+      const res = await authFetch(`/api/platform/venues/${venue.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: next }),

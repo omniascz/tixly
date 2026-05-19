@@ -7,6 +7,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
+function authFetch(url: string, init?: RequestInit): Promise<Response> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  return fetch(url, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+  });
+}
+
 type Format = 'auto' | 'csv' | 'svg' | 'json' | 'smsticket';
 
 interface DryRunResult {
@@ -110,7 +122,7 @@ export default function PlatformSeatingChartImportPage({
     setError(null);
     setDryRun(null);
     try {
-      const res = await fetch(`/api/platform/venues/${venueId}/seating-chart/import`, {
+      const res = await authFetch(`/api/platform/venues/${venueId}/seating-chart/import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -150,7 +162,7 @@ export default function PlatformSeatingChartImportPage({
       const renames = Object.fromEntries(
         Object.entries(sectorRenames).filter(([, v]) => v.trim().length > 0),
       );
-      const res = await fetch(`/api/platform/venues/${venueId}/seating-chart/import`, {
+      const res = await authFetch(`/api/platform/venues/${venueId}/seating-chart/import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

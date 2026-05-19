@@ -4,6 +4,18 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { VisualEditor, type Layout } from './VisualEditor';
 
+function authFetch(url: string, init?: RequestInit): Promise<Response> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  return fetch(url, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+  });
+}
+
 export default function PlatformVisualEditorPage({
   params,
 }: {
@@ -19,7 +31,7 @@ export default function PlatformVisualEditorPage({
     void load();
     async function load() {
       try {
-        const res = await fetch(`/api/platform/venues/${venueId}/seating-chart`);
+        const res = await authFetch(`/api/platform/venues/${venueId}/seating-chart`);
         if (!res.ok) {
           setError(`HTTP ${res.status}`);
           setLoaded(true);
@@ -39,7 +51,7 @@ export default function PlatformVisualEditorPage({
   }, [venueId]);
 
   async function save(name: string, layout: Layout) {
-    const res = await fetch(`/api/platform/venues/${venueId}/seating-chart`, {
+    const res = await authFetch(`/api/platform/venues/${venueId}/seating-chart`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, layout }),

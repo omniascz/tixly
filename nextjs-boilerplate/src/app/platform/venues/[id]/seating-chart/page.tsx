@@ -7,6 +7,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
+function authFetch(url: string, init?: RequestInit): Promise<Response> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  return fetch(url, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+  });
+}
+
 interface SectorSpec {
   name: string;
   rows: number;
@@ -74,7 +86,7 @@ export default function PlatformSeatingChartPage({
   useEffect(() => {
     void load();
     async function load() {
-      const res = await fetch(`/api/platform/venues/${venueId}/seating-chart`);
+      const res = await authFetch(`/api/platform/venues/${venueId}/seating-chart`);
       if (res.ok) {
         const j = (await res.json()) as { chart: unknown };
         // Pokud sál už má chart, redirect na detail — grid builder je jen pro prázdný stav.
@@ -112,7 +124,7 @@ export default function PlatformSeatingChartPage({
   async function publish(layout: unknown) {
     setError(null);
     setFeedback(null);
-    const res = await fetch(`/api/platform/venues/${venueId}/seating-chart`, {
+    const res = await authFetch(`/api/platform/venues/${venueId}/seating-chart`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: chartName, layout }),
