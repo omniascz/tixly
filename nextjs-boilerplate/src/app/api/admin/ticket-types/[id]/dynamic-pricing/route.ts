@@ -1,6 +1,6 @@
 /**
- * GET  /api/admin/ticket-types/[ttId]/dynamic-pricing — current rule + computed preview
- * PUT  /api/admin/ticket-types/[ttId]/dynamic-pricing — upsert rule
+ * GET  /api/admin/ticket-types/[id]/dynamic-pricing — current rule + computed preview
+ * PUT  /api/admin/ticket-types/[id]/dynamic-pricing — upsert rule
  * DELETE                                              — remove rule (= disable dynamic pricing)
  */
 
@@ -38,19 +38,19 @@ async function ensureOwnership(promoterId: string, ttId: string): Promise<boolea
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { ttId: string } },
+  { params }: { params: { id: string } },
 ): Promise<Response> {
   const promoter = await requirePromoter(req);
   if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!(await ensureOwnership(promoter.promoterId, params.ttId))) {
+  if (!(await ensureOwnership(promoter.promoterId, params.id))) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
   const ruleRes = await db().query(
     `SELECT * FROM catalog.dynamic_pricing_rules WHERE ticket_type_id = $1`,
-    [params.ttId],
+    [params.id],
   );
-  const preview = await computeDynamicPrice(params.ttId);
+  const preview = await computeDynamicPrice(params.id);
   return NextResponse.json({
     rule: ruleRes.rows[0] ?? null,
     preview,
@@ -59,13 +59,13 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { ttId: string } },
+  { params }: { params: { id: string } },
 ): Promise<Response> {
   const promoter = await requirePromoter(req);
   if (!promoter || promoter.role === 'staff') {
     return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
   }
-  if (!(await ensureOwnership(promoter.promoterId, params.ttId))) {
+  if (!(await ensureOwnership(promoter.promoterId, params.id))) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
@@ -98,7 +98,7 @@ export async function PUT(
        scarcity_uplift_pct = EXCLUDED.scarcity_uplift_pct,
        updated_at = NOW()`,
     [
-      params.ttId,
+      params.id,
       d.enabled,
       d.minPriceMinor,
       d.maxPriceMinor,
@@ -109,28 +109,28 @@ export async function PUT(
     ],
   );
 
-  const result = await refreshDynamicPrice(params.ttId);
+  const result = await refreshDynamicPrice(params.id);
   return NextResponse.json({ ok: true, preview: result });
 }
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { ttId: string } },
+  { params }: { params: { id: string } },
 ): Promise<Response> {
   const promoter = await requirePromoter(req);
   if (!promoter || promoter.role === 'staff') {
     return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
   }
-  if (!(await ensureOwnership(promoter.promoterId, params.ttId))) {
+  if (!(await ensureOwnership(promoter.promoterId, params.id))) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
   await db().query(
     `DELETE FROM catalog.dynamic_pricing_rules WHERE ticket_type_id = $1`,
-    [params.ttId],
+    [params.id],
   );
   await db().query(
     `UPDATE catalog.ticket_types SET dynamic_price_minor = NULL WHERE id = $1`,
-    [params.ttId],
+    [params.id],
   );
   return NextResponse.json({ ok: true });
 }

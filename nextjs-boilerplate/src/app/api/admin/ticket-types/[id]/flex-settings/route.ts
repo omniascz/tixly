@@ -1,7 +1,7 @@
 /**
- * GET  /api/admin/ticket-types/[ttId]/flex-settings
- * PUT  /api/admin/ticket-types/[ttId]/flex-settings — upsert
- * DELETE /api/admin/ticket-types/[ttId]/flex-settings
+ * GET  /api/admin/ticket-types/[id]/flex-settings
+ * PUT  /api/admin/ticket-types/[id]/flex-settings — upsert
+ * DELETE /api/admin/ticket-types/[id]/flex-settings
  *
  * Flex pass setting určuje, jaký typ permanentky to je:
  *   - flex   = kupec si vybírá termíny (Vyber 6 z 12 představení)
@@ -36,11 +36,11 @@ async function ensureOwnership(
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { ttId: string } },
+  { params }: { params: { id: string } },
 ): Promise<Response> {
   const promoter = await requirePromoter(req);
   if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!(await ensureOwnership(params.ttId, promoter.promoterId))) {
+  if (!(await ensureOwnership(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
   const r = await db().query<{
@@ -51,7 +51,7 @@ export async function GET(
   }>(
     `SELECT picks_required, pass_kind, pick_deadline, notes
      FROM catalog.flex_pass_settings WHERE ticket_type_id = $1`,
-    [params.ttId],
+    [params.id],
   );
   if (r.rows.length === 0) {
     return NextResponse.json({ exists: false });
@@ -75,13 +75,13 @@ const upsertSchema = z.object({
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { ttId: string } },
+  { params }: { params: { id: string } },
 ): Promise<Response> {
   const promoter = await requirePromoter(req);
   if (!promoter || promoter.status !== 'active') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  if (!(await ensureOwnership(params.ttId, promoter.promoterId))) {
+  if (!(await ensureOwnership(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
   const body = await req.json().catch(() => ({}));
@@ -104,7 +104,7 @@ export async function PUT(
        notes = EXCLUDED.notes,
        updated_at = NOW()`,
     [
-      params.ttId,
+      params.id,
       input.picksRequired,
       input.passKind,
       input.pickDeadline ?? null,
@@ -116,18 +116,18 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { ttId: string } },
+  { params }: { params: { id: string } },
 ): Promise<Response> {
   const promoter = await requirePromoter(req);
   if (!promoter || promoter.status !== 'active') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  if (!(await ensureOwnership(params.ttId, promoter.promoterId))) {
+  if (!(await ensureOwnership(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
   await db().query(
     `DELETE FROM catalog.flex_pass_settings WHERE ticket_type_id = $1`,
-    [params.ttId],
+    [params.id],
   );
   return NextResponse.json({ ok: true });
 }

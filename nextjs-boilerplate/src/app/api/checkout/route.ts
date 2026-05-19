@@ -1143,9 +1143,10 @@ export async function POST(req: NextRequest): Promise<Response> {
       });
     }
 
-    // Pokud Stripe → uložíme session.id do gopay_payment_id (sjednocený sloupec
-    // pro payment provider reference). Mock provider zachoval placeholder paymentId.
-    if (paymentSession.provider === 'stripe') {
+    // Sjednocený sloupec gopay_payment_id pro všechny providery (gopay/comgate/stripe/mock).
+    // INSERT výše použil placeholder; teď zapíšeme reálný paymentId, podle kterého
+    // mock brána / webhook najde objednávku.
+    if (paymentSession.paymentId !== paymentId) {
       await db().query(
         `UPDATE orders.orders SET gopay_payment_id = $2, updated_at = NOW() WHERE id = $1`,
         [orderId, paymentSession.paymentId],

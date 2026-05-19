@@ -50,8 +50,9 @@ export async function signPdfIfConfigured(pdfBuffer: Buffer): Promise<SignedResu
 
   let signpdf: SignPdfModule | null = null;
   try {
-    // Dynamic import — pokud package není installed, fallback bez podpisu.
-    signpdf = (await import('node-signpdf' as string)) as SignPdfModule;
+    // Dynamic import skrytý před webpack module resolution — package je optional.
+    const moduleName = 'node-signpdf';
+    signpdf = (await import(/* webpackIgnore: true */ moduleName)) as SignPdfModule;
   } catch {
     return { buffer: pdfBuffer, signed: false, reason: 'signpdf_package_missing' };
   }
