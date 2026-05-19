@@ -1,37 +1,30 @@
 import { NextResponse } from 'next/server';
+import { Pool } from 'pg';
 import { checkDatabaseHealth } from '@/lib/health-check/health.service';
 
+let pool: Pool | null = null;
+function getPool(): Pool {
+  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  return pool;
+}
+
 /**
- * GET /api/health/db
- *
- * Database-only health check endpoint
- * Fast endpoint for simple database connectivity verification
- * Target response time: < 200ms
- *
- * @returns Database health status with response time
+ * GET /api/health/db — DB readiness probe.
+ * 200 ok / 503 unreachable. Pinges přes SELECT 1.
  */
 export async function GET() {
-  try {
-    // In production, you would initialize and pass the actual database client:
-    // const db = getDatabase(); // your db initialization
-    // const health = await checkDatabaseHealth(db);
-
-    // For now, return error state (no client initialized)
-    const health = await checkDatabaseHealth(undefined);
-
-    const statusCode = health.status === 'ok' ? 200 : health.status === 'slow' ? 200 : 503;
-
-    return NextResponse.json(health, { status: statusCode });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Database check failed';
-
+  const client = await getPool().connect().catch(() => null);
+  if (!client) {
     return NextResponse.json(
-      {
-        status: 'error',
-        responseTime: 0,
-        error: errorMessage,
-      },
+      { status: 'error', responseTime: 0, error: 'Cannot connect to database' },
       { status: 503 },
     );
+  }
+  try {
+    const health = await checkDatabaseHealth(client as unknown as Parameters<typeof checkDatabaseHealth>[0]);
+    const statusCode = health.status === 'error' ? 503 : 200;
+    return NextResponse.json(health, { status: statusCode });
+  } finally {
+    client.release();
   }
 }

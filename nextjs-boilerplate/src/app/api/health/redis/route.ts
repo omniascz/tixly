@@ -1,37 +1,38 @@
 import { NextResponse } from 'next/server';
+import { createClient } from 'redis';
 import { checkRedisHealth } from '@/lib/health-check/health.service';
 
 /**
- * GET /api/health/redis
+ * GET /api/health/redis — Redis readiness probe.
+ * 200 ok / 503 unreachable. Pinges přes PING.
  *
- * Redis-only health check endpoint
- * Fast endpoint for Redis connectivity verification
- * Target response time: < 50ms
- *
- * @returns Redis health status with response time
+ * Pozn.: vytváříme krátkodobý klient místo singletonu — health probe by neměla
+ * sdílet connection pool s app (jinak při potížích app neumře nezávisle).
  */
 export async function GET() {
+  const url = process.env.REDIS_URL;
+  if (!url) {
+    return NextResponse.json(
+      { status: 'error', responseTime: 0, error: 'REDIS_URL not set' },
+      { status: 503 },
+    );
+  }
+  const client = createClient({ url });
   try {
-    // In production, you would initialize and pass the actual Redis client:
-    // const redis = getRedis(); // your redis initialization
-    // const health = await checkRedisHealth(redis);
-
-    // For now, return error state (no client initialized)
-    const health = await checkRedisHealth(undefined);
-
-    const statusCode = health.status === 'ok' ? 200 : health.status === 'slow' ? 200 : 503;
-
+    await client.connect();
+    const health = await checkRedisHealth(client);
+    const statusCode = health.status === 'error' ? 503 : 200;
     return NextResponse.json(health, { status: statusCode });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Redis check failed';
-
     return NextResponse.json(
       {
         status: 'error',
         responseTime: 0,
-        error: errorMessage,
+        error: error instanceof Error ? error.message : 'Redis check failed',
       },
       { status: 503 },
     );
+  } finally {
+    await client.quit().catch(() => {});
   }
 }

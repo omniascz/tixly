@@ -13,10 +13,10 @@ test.describe('Health & Readiness', () => {
   });
 
   test('GET /api/health/db returns 200 — database is reachable', async () => {
-    const res = await api.get<{ status: string; latencyMs: number }>('/api/health/db');
+    const res = await api.get<{ status: string; responseTime: number }>('/api/health/db');
     expect(res.status).toBe(200);
     expect(res.data.status).toBe('ok');
-    expect(typeof res.data.latencyMs).toBe('number');
+    expect(typeof res.data.responseTime).toBe('number');
   });
 
   test('GET /api/health/redis returns 200 — Redis is reachable', async () => {
