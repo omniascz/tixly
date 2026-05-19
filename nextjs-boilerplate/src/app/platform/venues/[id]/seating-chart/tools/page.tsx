@@ -77,6 +77,18 @@ export default function SectorToolsPage({
   const [renameInputs, setRenameInputs] = useState<Record<string, string>>({});
   const [stagePosition, setStagePosition] = useState<'top' | 'bottom' | 'left' | 'right'>('top');
   const [stageLabel, setStageLabel] = useState<string>('PODIUM');
+  const [overlapResult, setOverlapResult] = useState<{
+    chartName: string;
+    totalSeats: number;
+    totalSectors: number;
+    pitch: number;
+    radius: number;
+    collisions: number;
+    warnings: number;
+    topCollisionSectors: Array<{ pair: string; count: number }>;
+    sampleCollisions: Array<{ a: string; b: string; distance: number }>;
+  } | null>(null);
+  const [overlapBusy, setOverlapBusy] = useState(false);
 
   async function load() {
     setError(null);
@@ -95,6 +107,26 @@ export default function SectorToolsPage({
   }
 
   useEffect(() => { void load(); }, [venueId]);
+
+  async function checkOverlaps() {
+    setOverlapBusy(true);
+    setError(null);
+    try {
+      const res = await authFetch(`/api/platform/venues/${venueId}/seating-chart/overlap-check`, {
+        method: 'POST',
+      });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(j.error ?? `HTTP ${res.status}`);
+      }
+      const j = (await res.json()) as typeof overlapResult;
+      setOverlapResult(j);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setOverlapBusy(false);
+    }
+  }
 
   function queueOp(op: Operation) {
     setPending((prev) => [...prev, op]);
@@ -173,6 +205,81 @@ export default function SectorToolsPage({
       {error && (
         <div className="rounded-md border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900">{error}</div>
       )}
+
+      {/* Overlap detection */}
+      <Card>
+        <CardHeader>
+          <CardTitle>🎯 Detekce překryvů sedadel</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          <p className="text-muted-foreground">
+            Spočítá render radius z layout pitch a najde sedadla, jejichž kruhy se vizuálně překrývají
+            (matches algorithm v <code>scripts/check-overlaps.mjs</code>). Spusť před publikováním.
+          </p>
+          <div className="flex items-center gap-3">
+            <Button onClick={() => void checkOverlaps()} disabled={overlapBusy}>
+              {overlapBusy ? 'Kontroluji…' : '🔍 Spustit overlap check'}
+            </Button>
+            {overlapResult && (
+              <Button variant="outline" size="sm" onClick={() => setOverlapResult(null)}>
+                Skrýt výsledek
+              </Button>
+            )}
+          </div>
+          {overlapResult && (
+            <div className={`rounded-md border p-3 ${
+              overlapResult.collisions === 0
+                ? 'border-emerald-300 bg-emerald-50'
+                : 'border-rose-300 bg-rose-50'
+            }`}>
+              <div className="font-semibold">
+                {overlapResult.collisions === 0
+                  ? `✅ ${overlapResult.chartName}: žádné kolize`
+                  : `❌ ${overlapResult.chartName}: ${overlapResult.collisions} kolizí`}
+              </div>
+              <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-4">
+                <div><strong>Sedadel:</strong> {overlapResult.totalSeats}</div>
+                <div><strong>Sektorů:</strong> {overlapResult.totalSectors}</div>
+                <div><strong>Pitch:</strong> {overlapResult.pitch}</div>
+                <div><strong>Radius:</strong> {overlapResult.radius}</div>
+              </div>
+              {overlapResult.warnings > 0 && (
+                <p className="mt-2 text-xs text-amber-700">
+                  ⚠ {overlapResult.warnings} dvojic je vizuálně těsně (&lt;0.85× pitch)
+                </p>
+              )}
+              {overlapResult.topCollisionSectors.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Top kolize per sektor
+                  </p>
+                  <ul className="mt-1 space-y-0.5 font-mono text-xs">
+                    {overlapResult.topCollisionSectors.map((c) => (
+                      <li key={c.pair}>
+                        {String(c.count).padStart(5)}× {c.pair}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {overlapResult.sampleCollisions.length > 0 && (
+                <details className="mt-3">
+                  <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Ukázka dvojic ({overlapResult.sampleCollisions.length})
+                  </summary>
+                  <ul className="mt-1 space-y-0.5 font-mono text-xs">
+                    {overlapResult.sampleCollisions.map((p, i) => (
+                      <li key={i}>
+                        {p.distance.toFixed(2)}px {p.a} ↔ {p.b}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Auto-suggestions */}
       {analysis.suggestions.length > 0 && (
