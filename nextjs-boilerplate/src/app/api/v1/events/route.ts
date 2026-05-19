@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { b2bResponseHeaders, verifyB2bToken } from '@/lib/b2b-auth';
+import { checkRateLimit } from '@/lib/rate-limit/per-tenant';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -29,6 +30,26 @@ export async function GET(req: NextRequest): Promise<Response> {
     return NextResponse.json(
       { error: 'INSUFFICIENT_SCOPE', message: 'Token does not have events:read scope' },
       { status: 403, headers: b2bResponseHeaders(ctx) },
+    );
+  }
+
+  // Per-tenant rate limit: 1000 req/min per API key
+  const rl = checkRateLimit(`b2b:${ctx.keyId}:events-read`, {
+    limit: 1000,
+    windowMs: 60_000,
+  });
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: 'RATE_LIMITED', retryAfterMs: rl.retryAfterMs },
+      {
+        status: 429,
+        headers: {
+          ...b2bResponseHeaders(ctx),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': String(Math.floor(rl.resetAt / 1000)),
+          'Retry-After': String(Math.ceil((rl.retryAfterMs ?? 60_000) / 1000)),
+        },
+      },
     );
   }
 
@@ -57,7 +78,14 @@ export async function GET(req: NextRequest): Promise<Response> {
         status: e.status,
       })),
     },
-    { status: 200, headers: b2bResponseHeaders(ctx) },
+    {
+      status: 200,
+      headers: {
+        ...b2bResponseHeaders(ctx),
+        'X-RateLimit-Remaining': String(rl.remaining),
+        'X-RateLimit-Reset': String(Math.floor(rl.resetAt / 1000)),
+      },
+    },
   );
 }
 

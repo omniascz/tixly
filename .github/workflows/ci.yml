@@ -112,7 +112,58 @@ jobs:
           retention-days: 7
 
   # ---------------------------------------------------------------------------
-  # 3. Build (Next.js) — jen pokud lint + testy prošly
+  # 3. Seating lint — overlap audit na live DB (Postgres service)
+  # ---------------------------------------------------------------------------
+  seating-lint:
+    name: Seating overlap audit
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: tixly
+          POSTGRES_PASSWORD: tixly_dev
+          POSTGRES_DB: tixly
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Apply migrations
+        run: |
+          # Aplikuj vše do 274 (nejnovější)
+          for f in $(ls migrations/*.sql | sort -V); do
+            PGPASSWORD=tixly_dev psql -h localhost -p 5433 -U tixly -d tixly -f "$f" -v ON_ERROR_STOP=1 -q || true
+          done
+        env:
+          PGPASSWORD: tixly_dev
+
+      - name: Seed venues + charts (minimal)
+        run: |
+          PGPASSWORD=tixly_dev psql -h localhost -p 5433 -U tixly -d tixly -c \
+            "SELECT COUNT(*) FROM catalog.venue_seating_charts WHERE active = TRUE;" || true
+
+      - name: Install pg for script
+        working-directory: nextjs-boilerplate
+        run: npm ci
+
+      - name: Run seating overlap audit
+        run: node scripts/lint-seating.mjs
+        env:
+          DATABASE_URL: postgresql://tixly:tixly_dev@localhost:5433/tixly
+
+  # ---------------------------------------------------------------------------
+  # 4. Build (Next.js) — jen pokud lint + testy prošly
   # ---------------------------------------------------------------------------
   build:
     name: Build Next.js
