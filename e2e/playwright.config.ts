@@ -39,6 +39,14 @@ export default defineConfig({
       },
     },
     {
+      name: 'cz-sk-launch',
+      testMatch: '**/cz-sk-*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        extraHTTPHeaders: { 'Content-Type': 'application/json' },
+      },
+    },
+    {
       name: 'golden-path',
       testMatch: '**/golden-path-*.spec.ts',
       use: {
