@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { typedGet, typedPost, typedFetch, TypedFetchError } from '@/lib/typed-fetch';
 
 interface Campaign {
   id: string;
@@ -35,18 +36,6 @@ const SLOTS = [
   { value: 'search_top', label: 'Top search results' },
 ];
 
-function authFetch(url: string, init?: RequestInit): Promise<Response> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  return fetch(url, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(init?.headers ?? {}),
-    },
-  });
-}
-
 function formatCzk(halire: number): string {
   return `${(halire / 100).toLocaleString('cs-CZ', { maximumFractionDigits: 0 })} Kč`;
 }
@@ -71,18 +60,12 @@ export default function AdsAdminPage() {
 
   async function load(): Promise<void> {
     try {
-      const [cRes, eRes] = await Promise.all([
-        authFetch('/api/admin/ads/campaigns'),
-        authFetch('/api/admin/events'),
+      const [cData, eData] = await Promise.all([
+        typedGet<{ campaigns: Campaign[] }>('/api/admin/ads/campaigns'),
+        typedGet<{ events?: Event[] }>('/api/admin/events'),
       ]);
-      if (cRes.ok) {
-        const j = (await cRes.json()) as { campaigns: Campaign[] };
-        setCampaigns(j.campaigns);
-      }
-      if (eRes.ok) {
-        const j = (await eRes.json()) as { events?: Event[] };
-        setEvents(j.events ?? []);
-      }
+      setCampaigns(cData.campaigns ?? []);
+      setEvents(eData.events ?? []);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -92,44 +75,46 @@ export default function AdsAdminPage() {
     setBusy(true);
     setError(null);
     try {
-      const res = await authFetch('/api/admin/ads/campaigns', {
-        method: 'POST',
-        body: JSON.stringify({
-          eventId,
-          slot,
-          category: category.trim() || undefined,
-          cpcHalire: Math.round(Number(cpcKc) * 100),
-          budgetHalire: Math.round(Number(budgetKc) * 100),
-        }),
-      });
-      const j = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
-      if (!res.ok) {
-        setError(j.message ?? j.error ?? `HTTP ${res.status}`);
-        return;
-      }
+      await typedPost('/api/admin/ads/campaigns', {
+        eventId,
+        slot,
+        category: category.trim() || undefined,
+        cpcHalire: Math.round(Number(cpcKc) * 100),
+        budgetHalire: Math.round(Number(budgetKc) * 100),
+      }, { throwOnError: true });
       setShowForm(false);
       setEventId('');
       setCategory('');
       await load();
+    } catch (err) {
+      if (err instanceof TypedFetchError) {
+        const body = err.body as { error?: string; message?: string } | undefined;
+        setError(body?.message ?? body?.error ?? `HTTP ${err.status}`);
+      } else {
+        setError(err instanceof Error ? err.message : 'Síťová chyba');
+      }
     } finally {
       setBusy(false);
     }
   }
 
-  async function patchCampaign(id: string, body: object): Promise<void> {
+  async function patchCampaign(id: string, body: Record<string, unknown>): Promise<void> {
     setBusy(true);
     setError(null);
     try {
-      const res = await authFetch(`/api/admin/ads/campaigns/${id}`, {
+      await typedFetch(`/api/admin/ads/campaigns/${id}`, {
         method: 'PATCH',
-        body: JSON.stringify(body),
+        body,
+        throwOnError: true,
       });
-      if (!res.ok) {
-        const j = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(j.error ?? `HTTP ${res.status}`);
-        return;
-      }
       await load();
+    } catch (err) {
+      if (err instanceof TypedFetchError) {
+        const errBody = err.body as { error?: string } | undefined;
+        setError(errBody?.error ?? `HTTP ${err.status}`);
+      } else {
+        setError(err instanceof Error ? err.message : 'Síťová chyba');
+      }
     } finally {
       setBusy(false);
     }

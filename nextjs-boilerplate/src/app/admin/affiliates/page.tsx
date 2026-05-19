@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { formatMoney } from '@/lib/format';
+import { typedGet, typedPost, TypedFetchError } from '@/lib/typed-fetch';
 
 interface Affiliate {
   id: string;
@@ -17,18 +18,6 @@ interface Affiliate {
   orders_count: number;
   revenue_total: string;
   commission_total: string;
-}
-
-function authFetch(url: string, init?: RequestInit): Promise<Response> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  return fetch(url, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(init?.headers ?? {}),
-    },
-  });
 }
 
 export default function AffiliatesPage() {
@@ -48,8 +37,12 @@ export default function AffiliatesPage() {
   }, []);
 
   async function load() {
-    const res = await authFetch('/api/admin/affiliates');
-    if (res.ok) setAffiliates((((await res.json()) as { affiliates: Affiliate[] }).affiliates) ?? []);
+    try {
+      const data = await typedGet<{ affiliates: Affiliate[] }>('/api/admin/affiliates');
+      setAffiliates(data.affiliates ?? []);
+    } catch {
+      // silent — pravděpodobně auth issue, error UI ukáže až při create
+    }
   }
 
   async function create(e: FormEvent) {
@@ -58,27 +51,26 @@ export default function AffiliatesPage() {
     setError(null);
     setFeedback(null);
     try {
-      const res = await authFetch('/api/admin/affiliates', {
-        method: 'POST',
-        body: JSON.stringify({
-          code: code.toUpperCase(),
-          name,
-          email: email || null,
-          commissionPct: Number(commissionPct),
-          bankAccount: bankAccount || null,
-        }),
-      });
-      const j = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        setError(j.error ?? `HTTP ${res.status}`);
-        return;
-      }
+      await typedPost('/api/admin/affiliates', {
+        code: code.toUpperCase(),
+        name,
+        email: email || null,
+        commissionPct: Number(commissionPct),
+        bankAccount: bankAccount || null,
+      }, { throwOnError: true });
       setFeedback(`Affiliate ${code} vytvořen.`);
       setCode('');
       setName('');
       setEmail('');
       setBankAccount('');
       await load();
+    } catch (err) {
+      if (err instanceof TypedFetchError) {
+        const body = err.body as { error?: string } | undefined;
+        setError(body?.error ?? `HTTP ${err.status}`);
+      } else {
+        setError(err instanceof Error ? err.message : 'Síťová chyba');
+      }
     } finally {
       setBusy(false);
     }

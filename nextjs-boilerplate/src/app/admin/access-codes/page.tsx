@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { typedGet, typedPost, typedFetch, TypedFetchError } from '@/lib/typed-fetch';
 
 interface EventOption {
   id: string;
@@ -29,17 +30,6 @@ interface AccessCode {
   createdAt: string;
 }
 
-function authFetch(url: string, init?: RequestInit): Promise<Response> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  return fetch(url, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(init?.headers ?? {}),
-    },
-  });
-}
 
 export default function AccessCodesPage() {
   const [events, setEvents] = useState<EventOption[]>([]);
@@ -63,9 +53,7 @@ export default function AccessCodesPage() {
 
   async function loadEvents() {
     try {
-      const res = await authFetch('/api/admin/pos/events');
-      if (!res.ok) return;
-      const data = (await res.json()) as { events: EventOption[] };
+      const data = await typedGet<{ events: EventOption[] }>('/api/admin/pos/events');
       setEvents(data.events ?? []);
     } catch {
       // ignore
@@ -74,9 +62,7 @@ export default function AccessCodesPage() {
 
   async function loadCodes() {
     try {
-      const res = await authFetch('/api/admin/access-codes');
-      if (!res.ok) return;
-      const data = (await res.json()) as { codes: AccessCode[] };
+      const data = await typedGet<{ codes: AccessCode[] }>('/api/admin/access-codes');
       setCodes(data.codes ?? []);
     } catch {
       // ignore
@@ -88,22 +74,14 @@ export default function AccessCodesPage() {
     setError(null);
     setBusy(true);
     try {
-      const res = await authFetch('/api/admin/access-codes', {
-        method: 'POST',
-        body: JSON.stringify({
-          eventId,
-          code: code.toUpperCase().trim(),
-          label: label || undefined,
-          maxUses: maxUses ? Number(maxUses) : undefined,
-          validUntil: validUntil ? new Date(validUntil).toISOString() : undefined,
-          ticketTypeIds,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message ?? data.error ?? `HTTP ${res.status}`);
-        return;
-      }
+      await typedPost<{ id: string }>('/api/admin/access-codes', {
+        eventId,
+        code: code.toUpperCase().trim(),
+        label: label || undefined,
+        maxUses: maxUses ? Number(maxUses) : undefined,
+        validUntil: validUntil ? new Date(validUntil).toISOString() : undefined,
+        ticketTypeIds,
+      }, { throwOnError: true });
       // Reset form + reload
       setCode('');
       setLabel('');
@@ -112,7 +90,12 @@ export default function AccessCodesPage() {
       setTicketTypeIds([]);
       await loadCodes();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Síťová chyba');
+      if (err instanceof TypedFetchError) {
+        const body = err.body as { message?: string; error?: string } | undefined;
+        setError(body?.message ?? body?.error ?? err.message);
+      } else {
+        setError(err instanceof Error ? err.message : 'Síťová chyba');
+      }
     } finally {
       setBusy(false);
     }
@@ -121,15 +104,15 @@ export default function AccessCodesPage() {
   async function handleDelete(id: string) {
     if (!confirm('Opravdu smazat tento kód? Ticket types se vrátí do veřejné nabídky, pokud nemají jiný aktivní kód.')) return;
     try {
-      const res = await authFetch(`/api/admin/access-codes/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.message ?? `HTTP ${res.status}`);
-        return;
-      }
+      await typedFetch(`/api/admin/access-codes/${id}`, { method: 'DELETE', throwOnError: true });
       await loadCodes();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Síťová chyba');
+      if (err instanceof TypedFetchError) {
+        const body = err.body as { message?: string } | undefined;
+        setError(body?.message ?? `HTTP ${err.status}`);
+      } else {
+        setError(err instanceof Error ? err.message : 'Síťová chyba');
+      }
     }
   }
 

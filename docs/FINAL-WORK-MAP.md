@@ -26,9 +26,9 @@ smoke/lint/seating audit/admin tour. **Označeno co je hotové, co částečně,
 |---|---|---|---|
 | **#197** | WCAG 2.1 AA | ✅ HOTOVO | `wcag-compliance` modul + 22 testů (TODO mention) |
 | **#198** | Refund engine (EU 14-day) | ✅ HOTOVO | `refund-engine` modul + 22 testů |
-| **#217** | Event content moderation | 🟡 vrstvy 1+3 hotové | **AI vrstva 2 (Claude API) zbývá** — keyword + human queue funguje, AI gate je optional pro produkci |
+| **#217** | Event content moderation | ✅ HOTOVO | 3-vrstvý flow: keyword blocklist + AI gate (Mock + Claude provider) + human queue. `aiProviderFromEnv()` auto-switch s ANTHROPIC_API_KEY. 21 testů zelené. |
 | **#199** | Age verification (18+) | 🔴 zbývá | Lightweight flow: birthdate při checkoutu + checkbox + optional BankID. Bez něho nelze prodávat 18+ akce (alkohol, kasina). |
-| **#144** | GDPR cookie consent | 🟡 partial | `cookie-consent` modul existuje, propojení UI banner ✓. Audit GDPR Art. 7 (granular consent) ještě by se hodil. |
+| **#144** | GDPR cookie consent | ✅ HOTOVO | Granular consent banner (essential/analytics/marketing) + `/legal/cookie-settings` withdraw page + server-side audit log `compliance.cookie_consent_log` + weekly purge cron (90d retention). |
 
 **Vlastní práce:** ~2 dny — #199 age verification + #217 AI gate dokončení.
 
@@ -40,12 +40,12 @@ smoke/lint/seating audit/admin tour. **Označeno co je hotové, co částečně,
 |---|---|---|---|
 | **#20** | Sentry monitoring | 🟡 sdk hotový | Instrumentace v `nextjs-boilerplate/sentry.*.config.ts` ✓. Čeká na `SENTRY_DSN` env. |
 | **#21** | Backup + uptime monitoring | 🟡 partial | Weekly DB backup workflow + S3 restore drill commit `b0681d1`. Uptime alerting chybí. |
-| **#22** | CI/CD pipeline (GitHub Actions) | 🔴 zbývá | `npm run lint:seating` + `tsc` + `vitest` + `playwright` jako github action. ~1 den. |
-| **#202** | Disaster recovery plán + runbooks | 🔴 zbývá | RPO/RTO definice, runbook DB výpadek/Redis/email queue. ~1 den dokumentu. |
-| **#201** | Blue-green deployment strategy | 🔴 zbývá | Vercel řeší zero-downtime z velké části. Potřeba dokument o DB migration compatibility. |
+| **#22** | CI/CD pipeline (GitHub Actions) | ✅ HOTOVO | `.github/workflows/ci.yml` — test + seating-lint (Postgres service) + build jobs. Pre-merge gate proti seating regression. |
+| **#202** | Disaster recovery plán + runbooks | ✅ HOTOVO | `docs/RUNBOOK-DISASTER-RECOVERY.md` — RPO/RTO targety, per-component runbooky (Postgres/Redis/Email/Payments/Vercel), restore drill procedura, Sentry runbook URL injection. |
+| **#201** | Blue-green deployment strategy | ✅ HOTOVO | §6 v `RUNBOOK-DISASTER-RECOVERY.md` — additive vs breaking migration rules + 3-step pattern pro drop/rename column. |
 | **#213** | PgBouncer connection pooling | 🟡 implicit | Neon/Supabase má vestavěný pooler. Konfigurace `pool_mode=transaction` pro seat locks ✓ (uvedeno v memory). |
 | **#212** | Distributed tracing (OpenTelemetry) | 🔴 zbývá | Pro high-load debug. Honeycomb / Jaeger setup. ~3 dny. |
-| **#214** | Rate limiting per tenant | 🟡 partial | Existuje `rate-limiter` modul (global). Per-tenant scope zbývá. ~1 den. |
+| **#214** | Rate limiting per tenant | ✅ HOTOVO | `lib/rate-limit/per-tenant.ts` sliding window in-memory. Aplikováno na 5 admin endpointů + B2B `/api/v1/events` (1000 req/min per API key). M2: Redis backend. |
 | **#215** | Structured logging + aggregation | 🔴 zbývá | Datadog / Loki setup. ~2 dny. |
 | **#216** | Health check endpoints | ✅ HOTOVO | `/api/health`, `/api/health/db`, `/api/health/redis`, `/api/health/providers`, `/api/health/ready` všechny existují (session work) |
 
