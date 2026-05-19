@@ -25,12 +25,13 @@ export function ResaleButton({
   const [listingId, setListingId] = useState<string | null>(null);
   const [activePrice, setActivePrice] = useState<number | null>(null);
 
-  if (ticketIds.length === 0) return null;
-  const ticketId = ticketIds[0]; // Demo: prodáme první lístek
-
+  // Demo: pracujeme jen s prvním lístkem. Když pole prázdné, ticketId
+  // je undefined a useEffect nemá co fetchnout.
+  const ticketId = ticketIds[0];
   const maxCzk = Math.floor(originalPriceHalire / 100);
 
   useEffect(() => {
+    if (!ticketId) return;
     fetch(`/api/buyer/resale/list?ticketId=${ticketId}`)
       .then((r) => r.json())
       .then((d: { active: { listingId: string; askPriceHalire: number } | null }) => {
@@ -41,6 +42,8 @@ export function ResaleButton({
       })
       .catch(() => {});
   }, [ticketId]);
+
+  if (!ticketId) return null;
 
   async function handleSubmit() {
     setLoading(true);

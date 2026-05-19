@@ -142,7 +142,7 @@ export default function AuditLogPage() {
       if (v.action === 'transfer') return 'Převod lístku';
       if (v.action === 'name_change') return 'Změna jména držitele';
       if (v.action === 'cancel_ticket') return 'Storno lístku';
-      if (v.status) return `Změna stavu na "${v.status}" — ${t}`;
+      if (typeof v.status === 'string') return `Změna stavu na "${v.status}" — ${t}`;
     }
     return `Úprava: ${t}`;
   }

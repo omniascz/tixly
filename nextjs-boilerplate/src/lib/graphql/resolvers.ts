@@ -256,8 +256,8 @@ export const resolvers = {
         brandLogoUrl: r.rows[0].brand_logo_url,
       };
     },
-    async ticketTypes(parent: { id: string }) {
-      const r = await db().query(
+    async ticketTypes(parent: { id: string }): Promise<unknown[]> {
+      const r = await db().query<Record<string, unknown>>(
         `SELECT id, name, kind, base_price AS "basePrice",
                 remaining_qty AS "remainingQty", total_qty AS "totalQty",
                 zone, COALESCE(is_seated, FALSE) AS "isSeated",

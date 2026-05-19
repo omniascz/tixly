@@ -38,8 +38,9 @@ export const queryClient = new QueryClient({
 
 export const handleQueryError = (error: unknown): string => {
   if (axios.isAxiosError(error)) {
-    if (error.response?.data?.message) {
-      return error.response.data.message;
+    const data = error.response?.data as { message?: string } | undefined;
+    if (data?.message) {
+      return data.message;
     }
 
     if (error.response?.status === 401) {

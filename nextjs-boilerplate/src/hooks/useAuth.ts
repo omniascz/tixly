@@ -28,7 +28,7 @@ export const useAuth = (): UseAuthReturn => {
     async (credentials: LoginCredentials): Promise<User> => {
       setLoading(true);
       try {
-        const response = await api.post('/api/auth/login', credentials);
+        const response = await api.post<{ data: { user: User; tokens: AuthTokens } }>('/api/auth/login', credentials);
         const { user: responseUser, tokens } = response.data.data;
 
         storeLogin(responseUser, tokens);
@@ -62,7 +62,7 @@ export const useAuth = (): UseAuthReturn => {
     async (credentials: RegisterCredentials): Promise<User> => {
       setLoading(true);
       try {
-        const response = await api.post('/api/auth/register', credentials);
+        const response = await api.post<{ data: { user: User; tokens: AuthTokens } }>('/api/auth/register', credentials);
         const { user: responseUser, tokens } = response.data.data;
 
         storeLogin(responseUser, tokens);
@@ -79,7 +79,7 @@ export const useAuth = (): UseAuthReturn => {
 
   const refresh = useCallback(async (): Promise<AuthTokens> => {
     try {
-      const response = await api.post('/api/auth/refresh');
+      const response = await api.post<{ data: AuthTokens }>('/api/auth/refresh');
       const tokens = response.data.data;
 
       storeRefresh(tokens);

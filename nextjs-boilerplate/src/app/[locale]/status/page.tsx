@@ -193,7 +193,7 @@ async function fetchProviders(): Promise<{ launchReady: boolean; providers: Prov
   try {
     const res = await fetch(`${baseUrl}/api/health/providers`, { cache: 'no-store' });
     if (!res.ok) return null;
-    return res.json();
+    return (await res.json()) as { launchReady: boolean; providers: ProviderInfo[] };
   } catch {
     return null;
   }

@@ -41,7 +41,7 @@ function getDb() {
  * Helper: check if user is promoter member and return promoter_id
  */
 async function getPromoterIdForUser(db: Pool, userId: string): Promise<string | null> {
-  const result = await db.query(
+  const result = await db.query<{ promoter_id: string }>(
     'SELECT promoter_id FROM platform.promoter_members WHERE user_id = $1 AND status = $2 LIMIT 1',
     [userId, 'active']
   );
