@@ -12,7 +12,7 @@ function getPool(): Pool {
  * GET /api/health/db — DB readiness probe.
  * 200 ok / 503 unreachable. Pinges přes SELECT 1.
  */
-export async function GET() {
+export async function GET(): Promise<Response> {
   const client = await getPool().connect().catch(() => null);
   if (!client) {
     return NextResponse.json(

@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 // Readiness probe — ověří připojení k DB a Redis.
 // Vrací 200 OK pouze pokud jsou obě služby dostupné.
 // Používá se v CI před spuštěním integračních testů.
-export async function GET() {
+export async function GET(): Promise<Response> {
   const checks: Record<string, string> = {};
 
   // DB check

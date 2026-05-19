@@ -14,7 +14,7 @@ import { type ExternalApiCheckResponse } from '@/lib/health-check/types';
  *
  * @returns External API health checks
  */
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<Response> {
   try {
     const urls = request.nextUrl.searchParams.get('urls');
     const timeoutStr = request.nextUrl.searchParams.get('timeout');

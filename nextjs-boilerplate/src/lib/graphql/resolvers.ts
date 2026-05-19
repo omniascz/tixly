@@ -3,7 +3,12 @@
  *
  * Klíčové: každá query je single SQL where possible (žádný N+1).
  * Pro related fields (event.ticketTypes, promoter.upcomingEvents) lazy fetch.
+ *
+ * eslint-disable @typescript-eslint/explicit-module-boundary-types
+ * Schéma je externí kontrakt (schema.graphql) — explicit return types
+ * by jen duplikovaly to, co schema definuje.
  */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Pool } from 'pg';
 

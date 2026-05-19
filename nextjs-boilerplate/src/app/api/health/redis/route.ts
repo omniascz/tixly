@@ -9,7 +9,7 @@ import { checkRedisHealth } from '@/lib/health-check/health.service';
  * Pozn.: vytváříme krátkodobý klient místo singletonu — health probe by neměla
  * sdílet connection pool s app (jinak při potížích app neumře nezávisle).
  */
-export async function GET() {
+export async function GET(): Promise<Response> {
   const url = process.env.REDIS_URL;
   if (!url) {
     return NextResponse.json(

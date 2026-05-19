@@ -85,7 +85,16 @@ export function getConfiguredExternalApis(): string[] {
  * Get health check configuration from environment
  * @returns Health check configuration
  */
-export function getHealthCheckConfig() {
+interface HealthCheckConfig {
+  dbConnectionString: string | undefined;
+  redisUrl: string | undefined;
+  externalApis: string[];
+  dbTimeout: number;
+  redisTimeout: number;
+  externalTimeout: number;
+}
+
+export function getHealthCheckConfig(): HealthCheckConfig {
   return {
     dbConnectionString: process.env.DATABASE_URL,
     redisUrl: process.env.REDIS_URL,
@@ -117,7 +126,13 @@ export function getHealthCheckConfig() {
  * }
  * ```
  */
-export async function getHealthCheckClients() {
+interface HealthCheckClients {
+  db: unknown;
+  redis: unknown;
+  externalApis: string[];
+}
+
+export async function getHealthCheckClients(): Promise<HealthCheckClients> {
   const config = getHealthCheckConfig();
 
   // Initialize clients in parallel

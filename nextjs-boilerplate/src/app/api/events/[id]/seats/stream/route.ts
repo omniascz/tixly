@@ -146,10 +146,10 @@ export async function GET(
             encoder.encode(sseEvent('error', { message: (err as Error).message })),
           );
         }
-        if (!closed) setTimeout(poll, POLL_MS);
+        if (!closed) setTimeout(() => void poll(), POLL_MS);
       };
 
-      setTimeout(poll, POLL_MS);
+      setTimeout(() => void poll(), POLL_MS);
     },
   });
 
