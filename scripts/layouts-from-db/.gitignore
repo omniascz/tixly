@@ -1,0 +1,4 @@
+# Snapshots z DB — generované přes scripts/dump-layouts.mjs.
+# Commitujeme jen pro forensic / audit, ne jako autoritativní zdroj.
+# Pravda žije v DB.
+*.json
