@@ -41,9 +41,14 @@ const SELECT_EVENT_FIELDS = `e.id, e.title, e.slug, e.date_start, e.category, e.
             (SELECT MIN(base_price) FROM catalog.ticket_types
              WHERE event_id = e.id AND visibility = 'public') AS min_price`;
 
+interface FeaturedRow extends EventRow {
+  editorial_blurb: string | null;
+}
+
 async function fetchLanding(): Promise<{
   events: EventRow[];
   thisWeek: EventRow[];
+  featured: FeaturedRow[];
   promoters: PromoterRow[];
   categories: CategoryRow[];
 }> {
@@ -81,6 +86,19 @@ async function fetchLanding(): Promise<{
        LIMIT 6`,
     );
 
+    const featuredPromise = db.query<FeaturedRow>(
+      `SELECT ${SELECT_EVENT_FIELDS}, e.editorial_blurb
+       FROM catalog.events e
+       LEFT JOIN catalog.venues v ON v.id = e.venue_id
+       LEFT JOIN platform.promoters p ON p.id = e.promoter_id
+       WHERE e.editorial_featured = true
+         AND e.status = 'published'
+         AND e.date_start > now()
+         AND (e.editorial_until IS NULL OR e.editorial_until > now())
+       ORDER BY e.editorial_order DESC, e.date_start ASC
+       LIMIT 6`,
+    );
+
     const categoriesPromise = db.query<CategoryRow>(
       `SELECT e.category, COUNT(*)::text AS event_count
        FROM catalog.events e
@@ -90,9 +108,10 @@ async function fetchLanding(): Promise<{
        LIMIT 8`,
     );
 
-    const [events, thisWeek, promoters, categories] = await Promise.all([
+    const [events, thisWeek, featured, promoters, categories] = await Promise.all([
       upcomingPromise,
       thisWeekPromise,
+      featuredPromise,
       promotersPromise,
       categoriesPromise,
     ]);
@@ -100,6 +119,7 @@ async function fetchLanding(): Promise<{
     return {
       events: events.rows,
       thisWeek: thisWeek.rows,
+      featured: featured.rows,
       promoters: promoters.rows,
       categories: categories.rows,
     };
@@ -135,7 +155,7 @@ function shadeColor(hex: string | null, fallbackHue: number): string {
 }
 
 export default async function LandingPage({ params }: { params: { locale: string } }) {
-  const { events, thisWeek, promoters, categories } = await fetchLanding();
+  const { events, thisWeek, featured, promoters, categories } = await fetchLanding();
   const locale = isValidLocale(params.locale) ? params.locale : DEFAULT_LOCALE;
 
   return (
@@ -195,6 +215,77 @@ export default async function LandingPage({ params }: { params: { locale: string
                 </Link>
               );
             })}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Editorial "Tipy redakce" section — manuálně curated platform adminem */}
+      {featured.length > 0 ? (
+        <section
+          aria-labelledby="featured-heading"
+          className="rounded-lg border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-6"
+        >
+          <div className="mb-4 flex items-baseline justify-between">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wider text-primary">
+                {locale === 'sk' ? 'Tipy redakcie' : locale === 'en' ? 'Editor’s picks' : 'Tipy redakce'}
+              </p>
+              <h2 id="featured-heading" className="mt-1 text-2xl font-semibold">
+                {locale === 'sk'
+                  ? '⭐ Vybrané pre teba'
+                  : locale === 'en'
+                    ? '⭐ Hand-picked for you'
+                    : '⭐ Vybráno pro tebe'}
+              </h2>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {featured.map((ev) => (
+              <Link
+                key={ev.id}
+                href={`/${locale}/events/${ev.slug ?? ev.id}`}
+                className="group block overflow-hidden rounded-lg border bg-card transition hover:shadow-lg"
+              >
+                <div
+                  className="h-32 w-full"
+                  style={{ background: shadeColor(ev.brand_color_hex, 200) }}
+                >
+                  {ev.cover_image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={ev.cover_image}
+                      alt=""
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : null}
+                </div>
+                <div className="p-4">
+                  <p className="text-xs uppercase text-muted-foreground">
+                    {formatDate(ev.date_start)}
+                  </p>
+                  <h3 className="mt-1 text-base font-semibold leading-snug group-hover:text-primary">
+                    {ev.title}
+                  </h3>
+                  {ev.editorial_blurb ? (
+                    <p className="mt-2 text-sm italic text-muted-foreground">
+                      „{ev.editorial_blurb}"
+                    </p>
+                  ) : ev.venue_name ? (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {ev.venue_name}
+                      {ev.city ? `, ${ev.city}` : ''}
+                    </p>
+                  ) : null}
+                  {ev.min_price !== null ? (
+                    <p className="mt-2 text-sm font-medium text-primary">
+                      {locale === 'en' ? 'from ' : 'od '}
+                      {formatPrice(ev.min_price, ev.currency, locale)}
+                    </p>
+                  ) : null}
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
       ) : null}
