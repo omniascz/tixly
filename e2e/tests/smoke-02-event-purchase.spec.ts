@@ -27,10 +27,17 @@ let issuedTicketId: string;
 
 test.describe('Purchase Flow', { tag: '@smoke' }, () => {
   test.beforeAll(async ({ request }) => {
-    // B2B organizer API není v dev/staging nasazená — celý describe přeskočíme.
-    // Tests projdou jen proti env s implementovaným /api/organizer/events.
+    // B2B organizer API endpoint existuje (M1), ale full create flow je M2.
+    // Skip pokud nemáme ADMIN_TOKEN env (= staging) nebo endpoint vrátí 404/501.
+    if (!process.env.ADMIN_TOKEN) {
+      test.skip(true, 'ADMIN_TOKEN env not set — B2B organizer flow čeká na M2');
+      return;
+    }
     const probe = await request.get(`/api/organizer/events`).catch(() => null);
-    test.skip(!probe || probe.status() === 404, 'B2B organizer API není nasazená (404)');
+    test.skip(
+      !probe || probe.status() === 404 || probe.status() === 501,
+      'B2B organizer API není v provozním režimu',
+    );
   });
 
   test('Step 1: Create event via organizer API', async () => {

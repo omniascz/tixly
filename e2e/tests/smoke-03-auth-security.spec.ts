@@ -6,12 +6,9 @@ import { test, expect } from '@playwright/test';
 import { api } from '../utils/api-client.js';
 
 test.describe('Auth & Security', { tag: '@smoke' }, () => {
-  test.beforeAll(async ({ request }) => {
-    // B2B API (/api/v1/events) ani organizer/orders/platform-admin endpointy nejsou
-    // v dev nasazené. Auth-security smoke má smysl jen proti staging/prod.
-    const probe = await request.get(`/api/v1/events`).catch(() => null);
-    test.skip(!probe || probe.status() === 404, 'B2B/admin API není nasazená (404)');
-  });
+  // B2B API endpoints implementované v migraci 274 + commit (this session).
+  // Vrací 401 bez Bearer tokenu (test pass), 401 s invalid format (test pass).
+  // smoke-02 pořád skip pokud nemáme valid token.
 
   test('Protected endpoints return 401 without auth', async () => {
     const endpoints = [

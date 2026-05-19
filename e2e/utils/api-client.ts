@@ -28,7 +28,8 @@ async function request<T>(
 
   if (options.token) {
     headers['Authorization'] = `Bearer ${options.token}`;
-  } else {
+  } else if (!('x-user-id' in (options.headers ?? {}))) {
+    // Default fallback jen pokud test nevyplnil explicit override (= '' = bez auth)
     headers['x-user-id'] = ADMIN_TOKEN;
   }
 
