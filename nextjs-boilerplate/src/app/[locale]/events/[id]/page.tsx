@@ -9,6 +9,7 @@ import { getDict } from '@/lib/i18n-dictionaries';
 import { LotteryCard } from './LotteryCard';
 import { Recommendations } from './Recommendations';
 import { ShareButtons } from './ShareButtons';
+import { RsvpButtons } from './RsvpButtons';
 import {
   TicketPicker,
   type TicketAccess,
@@ -356,6 +357,11 @@ export default async function EventDetailPage({
             ) : null}
           </div>
         ) : null}
+
+        <RsvpButtons
+          eventId={event.id}
+          locale={(locale === 'sk' || locale === 'en' ? locale : 'cs') as 'cs' | 'sk' | 'en'}
+        />
 
         <ShareButtons
           url={`/cs/events/${event.id}`}
