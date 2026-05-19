@@ -88,7 +88,7 @@ export async function PUT(
   const ok = await authorizeTicketTypeOwnership(params.id, promoter.promoterId);
   if (!ok) return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
 
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = putSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

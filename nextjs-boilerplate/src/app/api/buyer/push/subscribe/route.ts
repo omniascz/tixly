@@ -34,7 +34,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   const userId = req.headers.get('x-user-id');
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: 'BAD_INPUT', issues: parsed.error.issues }, { status: 422 });
@@ -66,7 +66,7 @@ export async function DELETE(req: NextRequest): Promise<Response> {
   const userId = req.headers.get('x-user-id');
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = deleteSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: 'BAD_INPUT' }, { status: 422 });

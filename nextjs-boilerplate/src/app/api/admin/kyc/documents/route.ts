@@ -29,7 +29,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   if (!promoter || promoter.role !== 'owner') {
     return NextResponse.json({ error: 'OWNER_ONLY' }, { status: 403 });
   }
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

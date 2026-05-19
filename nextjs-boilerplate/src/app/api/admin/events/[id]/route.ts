@@ -124,7 +124,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }
 
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = editSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

@@ -31,7 +31,7 @@ export async function POST(
     return NextResponse.json({ error: 'Bad id' }, { status: 400 });
   }
 
-  const body = await req.json().catch(() => null);
+  const body: unknown = await req.json().catch(() => null);
   const parsed = Schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid', issues: parsed.error.issues }, { status: 422 });

@@ -88,7 +88,7 @@ export async function POST(
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
   }
 
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = bulkSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

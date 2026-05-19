@@ -56,7 +56,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = inquirySchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

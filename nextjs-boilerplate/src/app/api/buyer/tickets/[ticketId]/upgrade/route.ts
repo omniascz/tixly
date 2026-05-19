@@ -108,7 +108,7 @@ export async function POST(
   if (!/^[0-9a-f-]{36}$/i.test(params.ticketId)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = upgradeSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: 'Validation failed' }, { status: 422 });

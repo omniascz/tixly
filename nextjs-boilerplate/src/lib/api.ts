@@ -56,7 +56,7 @@ api.interceptors.response.use(
         config.retryCount += 1;
 
         try {
-          const refreshResponse = await axios.post(`${API_URL}/api/auth/refresh`, {
+          const refreshResponse = await axios.post<{ accessToken: string }>(`${API_URL}/api/auth/refresh`, {
             headers: {
               Cookie: document.cookie,
             },

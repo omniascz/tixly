@@ -59,7 +59,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 
 export async function POST(req: NextRequest): Promise<Response> {
   if (!isAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = upsertSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: 'BAD_INPUT', issues: parsed.error.issues }, { status: 422 });

@@ -75,7 +75,7 @@ export async function POST(
   );
   if (owns.rows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

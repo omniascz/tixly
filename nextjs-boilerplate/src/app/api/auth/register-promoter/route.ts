@@ -18,7 +18,7 @@ const schema = z.object({
 });
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const body = await request.json().catch(() => null);
+  const body: unknown = await request.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

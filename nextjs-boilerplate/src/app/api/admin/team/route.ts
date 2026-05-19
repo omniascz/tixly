@@ -95,7 +95,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = inviteSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

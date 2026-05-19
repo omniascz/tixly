@@ -50,7 +50,7 @@ export async function POST(
     return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
   }
 
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

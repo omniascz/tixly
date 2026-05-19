@@ -73,7 +73,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
-  const body = await req.json().catch(() => null);
+  const body: unknown = await req.json().catch(() => null);
   if (!body || typeof body !== 'object' || !('query' in body)) {
     return NextResponse.json(
       { errors: [{ message: 'Missing query in body' }] },

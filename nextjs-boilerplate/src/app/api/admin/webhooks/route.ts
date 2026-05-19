@@ -53,7 +53,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   const promoter = await requirePromoter(req);
   if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const body = await req.json().catch(() => null);
+  const body: unknown = await req.json().catch(() => null);
   const parsed = CreateSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

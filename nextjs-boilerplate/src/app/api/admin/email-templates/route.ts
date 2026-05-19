@@ -96,7 +96,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   if (!promoter || promoter.status !== 'active') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = upsertSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

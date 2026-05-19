@@ -86,7 +86,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   const rlResp = rateLimitResponse(rl, 'promo-create');
   if (rlResp) return rlResp;
 
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

@@ -84,7 +84,7 @@ export async function PUT(
   if (!(await ensureOwnership(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = upsertSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

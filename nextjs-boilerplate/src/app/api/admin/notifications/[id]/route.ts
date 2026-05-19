@@ -24,8 +24,8 @@ export async function PATCH(
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
     return NextResponse.json({ error: 'Bad id' }, { status: 400 });
   }
-  const body = await req.json().catch(() => ({}));
-  const readAtVal = body?.readAt === true ? 'NOW()' : body?.readAt === false ? 'NULL' : null;
+  const body = (await req.json().catch(() => ({}))) as { readAt?: boolean };
+  const readAtVal = body.readAt === true ? 'NOW()' : body.readAt === false ? 'NULL' : null;
   if (!readAtVal) {
     return NextResponse.json({ error: 'readAt boolean required' }, { status: 422 });
   }

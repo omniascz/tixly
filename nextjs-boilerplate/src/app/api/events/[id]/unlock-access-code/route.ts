@@ -45,7 +45,7 @@ export async function POST(
   const rlResp = rateLimitResponse(rl, 'unlock-access-code');
   if (rlResp) return rlResp;
 
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: 'BAD_INPUT' }, { status: 422 });

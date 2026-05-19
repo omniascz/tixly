@@ -43,7 +43,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'PARTNER_NOT_ACTIVE', status: partner.status }, { status: 403 });
   }
 
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

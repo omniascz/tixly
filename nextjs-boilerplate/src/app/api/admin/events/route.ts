@@ -228,7 +228,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   const rlResp = rateLimitResponse(rl, 'event-create');
   if (rlResp) return rlResp;
 
-  const body = await req.json().catch(() => null);
+  const body: unknown = await req.json().catch(() => null);
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

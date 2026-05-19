@@ -85,8 +85,8 @@ export async function POST(req: NextRequest): Promise<Response> {
   if (!promoter) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const body = await req.json().catch(() => ({}));
-  if (body?.action !== 'mark-all-read') {
+  const body = (await req.json().catch(() => ({}))) as { action?: string };
+  if (body.action !== 'mark-all-read') {
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
   }
   const r = await db().query<{ count: string }>(

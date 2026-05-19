@@ -137,7 +137,7 @@ interface TicketTypeRow {
 
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const body = await req.json().catch(() => null);
+  const body: unknown = await req.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

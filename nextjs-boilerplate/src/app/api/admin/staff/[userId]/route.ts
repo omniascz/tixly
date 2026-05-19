@@ -38,7 +38,7 @@ export async function PATCH(
     );
   }
 
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: 'Validation failed' }, { status: 422 });

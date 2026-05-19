@@ -19,7 +19,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const category = req.nextUrl.searchParams.get('category');
 
   if (slug) {
-    const article = await db().query(
+    const article = await db().query<{ id: string }>(
       `SELECT id, slug, title, excerpt, body_html, cover_image, category,
               reading_time_min, view_count, published_at, author_user_id
        FROM marketing.editorial_articles
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     if (article.rows.length === 0) {
       return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
     }
-    const a = article.rows[0]!;
+    const a = article.rows[0];
 
     // Featured events
     const events = await db().query(

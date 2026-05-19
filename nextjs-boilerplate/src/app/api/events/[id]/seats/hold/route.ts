@@ -30,7 +30,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
@@ -136,8 +136,8 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const body = await req.json().catch(() => ({}));
-  const holdToken = body?.holdToken as string | undefined;
+  const body = (await req.json().catch(() => ({}))) as { holdToken?: string };
+  const holdToken = body.holdToken;
   if (!holdToken || !/^[0-9a-f-]{36}$/i.test(holdToken)) {
     return NextResponse.json({ error: 'Invalid hold token' }, { status: 422 });
   }

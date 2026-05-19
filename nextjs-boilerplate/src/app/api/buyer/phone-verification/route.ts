@@ -36,7 +36,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   const userId = req.headers.get('x-user-id');
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const body = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as { code?: string; phone?: string };
   // Path matching — confirm má `code`, request má jen `phone`
   if (body.code) {
     return confirm(userId, body);

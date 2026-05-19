@@ -107,7 +107,7 @@ export async function POST(
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
   }
 
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
@@ -187,7 +187,7 @@ export async function DELETE(
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
   }
 
-  const body = await req.json().catch(() => ({}));
+  const body: unknown = await req.json().catch(() => ({}));
   const parsed = deleteSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
