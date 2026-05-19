@@ -15,6 +15,7 @@ import { Pool } from 'pg';
 import { z } from 'zod';
 import { requirePromoter } from '@/lib/admin-auth';
 import { runAiGate, TRUST_THRESHOLD_PUBLISHED_EVENTS } from '@/lib/moderation/ai-gate';
+import { notifyFollowers } from '@/lib/push/notify-followers';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -240,7 +241,19 @@ export async function PATCH(
       );
     }
 
+    const becamePublished = event.status !== 'published' && newStatus === 'published';
+
     await client.query('COMMIT');
+
+    // Push notification followerům promotéra (post-commit, fire-and-forget)
+    if (becamePublished) {
+      void notifyFollowers({
+        promoterId: promoter.promoterId,
+        eventId: event.id,
+        eventTitle: newTitle,
+      }).catch((e) => console.error('[push followers] failed:', e));
+    }
+
     return NextResponse.json({ ok: true, id: event.id, status: newStatus });
   } catch (err) {
     await client.query('ROLLBACK');
