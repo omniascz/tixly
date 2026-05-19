@@ -2,10 +2,13 @@
  * Tixly embed widget — auto-resize iframe according to content height.
  *
  * Použití na externím webu:
- *   <div data-tixly-event="EVENT_UUID" data-variant="card"></div>
+ *   Single event:
+ *     <div data-tixly-event="EVENT_UUID" data-variant="card"></div>
+ *   Promoter event list:
+ *     <div data-tixly-promoter="promoter-slug" data-limit="12"></div>
  *   <script async src="https://tixly.cz/embed.js"></script>
  *
- * Varianty: "card" (default), "button"
+ * Varianty (event): "card" (default), "button"
  * Volitelně: data-theme="light|dark"
  */
 (function () {
@@ -19,7 +22,7 @@
     return u.origin;
   })();
 
-  function createIframe(container) {
+  function createEventIframe(container) {
     var eventId = container.getAttribute('data-tixly-event');
     var variant = container.getAttribute('data-variant') || 'card';
     var theme = container.getAttribute('data-theme') || 'light';
@@ -41,10 +44,36 @@
     container.__tixlyIframe = iframe;
   }
 
+  function createPromoterIframe(container) {
+    var slug = container.getAttribute('data-tixly-promoter');
+    var theme = container.getAttribute('data-theme') || 'light';
+    var limit = container.getAttribute('data-limit') || '12';
+    if (!slug) return;
+
+    var iframe = document.createElement('iframe');
+    iframe.src =
+      TIXLY_ORIGIN + '/embed/promoter/' + encodeURIComponent(slug) +
+      '?theme=' + encodeURIComponent(theme) +
+      '&limit=' + encodeURIComponent(limit);
+    iframe.style.width = '100%';
+    iframe.style.border = '0';
+    iframe.style.minHeight = '400px';
+    iframe.setAttribute('loading', 'lazy');
+    iframe.setAttribute('title', 'Tixly — vstupenky promotéra');
+    iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+
+    container.appendChild(iframe);
+    container.__tixlyIframe = iframe;
+  }
+
   function init() {
-    var containers = document.querySelectorAll('[data-tixly-event]');
-    Array.prototype.forEach.call(containers, function (c) {
-      if (!c.__tixlyIframe) createIframe(c);
+    var eventContainers = document.querySelectorAll('[data-tixly-event]');
+    Array.prototype.forEach.call(eventContainers, function (c) {
+      if (!c.__tixlyIframe) createEventIframe(c);
+    });
+    var promoterContainers = document.querySelectorAll('[data-tixly-promoter]');
+    Array.prototype.forEach.call(promoterContainers, function (c) {
+      if (!c.__tixlyIframe) createPromoterIframe(c);
     });
   }
 
