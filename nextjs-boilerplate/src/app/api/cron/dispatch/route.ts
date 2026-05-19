@@ -21,6 +21,7 @@ const ALLOWED_JOBS = new Set([
   'anomaly-detect',
   'bank-sync-fio',
   'charge-installments',
+  'consent-log-purge',
   'daily-stats',
   'expire-pending-orders',
   'onboarding-reminder',

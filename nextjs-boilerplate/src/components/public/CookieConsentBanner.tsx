@@ -30,6 +30,17 @@ function persist(value: ConsentValue) {
   )}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
   // Globální event pro analytic loaders, aby reagovali bez page reload
   window.dispatchEvent(new CustomEvent('tixly:consent-changed', { detail: value }));
+  // Server-side audit log (GDPR Art. 7 burden of proof) — best-effort
+  void fetch('/api/consent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      essential: value.essential,
+      analytics: value.analytics,
+      marketing: value.marketing,
+      source: 'banner',
+    }),
+  }).catch(() => undefined);
 }
 
 // Locale strings — drží banner-side, abychom nezávisli na server dict.

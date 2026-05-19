@@ -57,7 +57,7 @@ function getContent(locale: string): PrivacyContent {
         },
         {
           heading: '7. Cookies a tracking',
-          html: 'Pri prvej návšteve sa ti zobrazí cookie banner s troma kategóriami (nevyhnutné, analytické, marketingové). Bez súhlasu spúšťame iba nevyhnutné cookies.',
+          html: 'Pri prvej návšteve sa ti zobrazí cookie banner s troma kategóriami (nevyhnutné, analytické, marketingové). Bez súhlasu spúšťame iba nevyhnutné cookies. Súhlas môžeš kedykoľvek zmeniť alebo odvolať na stránke <a href="/sk/legal/cookie-settings" class="underline">nastavenie cookies</a>.',
         },
       ],
     };
@@ -101,7 +101,7 @@ function getContent(locale: string): PrivacyContent {
       },
       {
         heading: '7. Cookies a tracking',
-        html: 'Při první návštěvě se ti zobrazí cookie banner se třemi kategoriemi (nezbytné, analytické, marketingové). Bez souhlasu spouštíme pouze nezbytné cookies. Souhlas můžeš kdykoliv změnit smazáním cookie <code>tixly_cookie_consent</code> v prohlížeči.',
+        html: 'Při první návštěvě se ti zobrazí cookie banner se třemi kategoriemi (nezbytné, analytické, marketingové). Bez souhlasu spouštíme pouze nezbytné cookies. Souhlas můžeš kdykoliv změnit nebo odvolat na stránce <a href="/cs/legal/cookie-settings" class="underline">nastavení cookies</a>.',
       },
     ],
   };
