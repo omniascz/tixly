@@ -345,10 +345,13 @@ export async function POST(request: NextRequest): Promise<Response> {
         row: string | null;
         seat_number: string | null;
       }>(
+        // tickets.tickets nemá order_item_id sloupec — join přes
+        // (order_id, ticket_type_id), což je v order_items unikátní.
         `SELECT t.id AS ticket_id, oi.unit_price,
                 es.sector, es.row, es.seat_number
          FROM tickets.tickets t
-         JOIN orders.order_items oi ON oi.id = t.order_item_id
+         JOIN orders.order_items oi
+           ON oi.order_id = t.order_id AND oi.ticket_type_id = t.ticket_type_id
          LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
          WHERE t.order_id = $1`,
         [orderId],
