@@ -7,7 +7,7 @@ VALUES
     true, 'seed', 'Generated 2026-04-30 — realistic redesign'),
   ('00000000-0000-4000-a000-000000000302', '00000000-0000-4000-a000-000000000203', 'Aréna Praha — O2-style koncert config',
     pg_read_file('/tmp/layouts/arena.json')::jsonb,
-    6612,
+    13728,
     true, 'seed', 'Generated 2026-04-30 — realistic redesign'),
   ('00000000-0000-4000-a000-000000000303', '00000000-0000-4000-a000-000000000204', 'Stadion FC Praha — Letná-style 4 tribuny',
     pg_read_file('/tmp/layouts/stadion.json')::jsonb,
