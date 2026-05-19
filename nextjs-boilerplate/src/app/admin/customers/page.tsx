@@ -89,7 +89,9 @@ export default function AdminCustomersPage() {
   const { data, isLoading, isError, error } = useAdminCustomers();
   const [search, setSearch] = useState('');
 
-  const customers = data ?? [];
+  // Memoize fallback empty array tak, aby `data ?? []` neměnil identitu
+  // mezi rendery — dva useMemo níže pak nepřepočítávají zbytečně.
+  const customers = useMemo(() => data ?? [], [data]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

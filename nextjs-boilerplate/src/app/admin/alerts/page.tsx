@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -49,18 +49,18 @@ export default function AlertsPage() {
   const [showAll, setShowAll] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    void load();
-  }, [showAll]);
-
-  async function load() {
+  const load = useCallback(async () => {
     const res = await authFetch(`/api/admin/alerts${showAll ? '?all=true' : ''}`);
     if (!res.ok) {
       setError(`HTTP ${res.status}`);
       return;
     }
     setAlerts((((await res.json()) as { alerts: Alert[] }).alerts) ?? []);
-  }
+  }, [showAll]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   async function ack(id: string) {
     await authFetch(`/api/admin/alerts/${id}/ack`, { method: 'POST' });
