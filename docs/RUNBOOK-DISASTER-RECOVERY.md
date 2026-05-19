@@ -393,9 +393,9 @@ Pokud nový deploy něco rozbije:
 | `PAYMENT_DEFERRED_MODE` feature flag | TBD | M2 |
 | Status page Twitter integration | TBD — manuální zatím | M2 |
 | Better Uptime / UptimeRobot probes | TBD — `/api/health/ready` připravený | M1 final |
-| Sentry runbook URLs v `tags.runbook` | TBD | M1 final |
-| `POSTMORTEM-TEMPLATE.md` | TBD | M1 final |
-| `RESTORE-DRILL-LOG.md` | TBD — první drill po launchi | post-launch |
+| Sentry runbook URLs v `tags.runbook` | ✅ — `sentry.server.config.ts beforeSend` | — |
+| `POSTMORTEM-TEMPLATE.md` | ✅ — `docs/POSTMORTEM-TEMPLATE.md` | — |
+| `RESTORE-DRILL-LOG.md` | ✅ skeleton — `docs/RESTORE-DRILL-LOG.md`, první drill po launchi | post-launch |
 
 ---
 
