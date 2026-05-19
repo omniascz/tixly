@@ -553,7 +553,10 @@ function SvgChart({
 
   const bboxes = useMemo(() => computeBBoxes(data, seatLookup), [data, seatLookup]);
   const pitch = useMemo(() => avgSeatPitch(data.layout), [data.layout]);
-  const seatRadius = Math.max(2, Math.min(12, pitch * 0.42));
+  // Radius = pitch / 3 — vždy 33 % volné mezery mezi okraji kruhů, i s hover stroke (1.2 px).
+  // Předtím (pitch × 0.42) zanechával jen ~1 px volného místa pro pitch < 12, sedadla se
+  // vizuálně lepila i bez hard kolize. Audit 2026-05-19 (scripts/check-overlaps.mjs).
+  const seatRadius = Math.max(2, Math.min(12, pitch / 3));
 
   const isLarge = data.seats.length > OVERVIEW_THRESHOLD;
   const [zoomedSector, setZoomedSector] = useState<string | null>(null);

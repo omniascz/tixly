@@ -230,24 +230,29 @@ function buildArena() {
   const LB_DEPTH = 200; // hloubka tribuny LB
   const LB_RING_OFFSET = 100; // mezera od parteru
 
-  // Boční LB (4+4) — stejná Y range jako parter, X vlevo a vpravo
+  // Boční LB (4+4) — stejná Y range jako parter, X vlevo a vpravo.
+  // 25 sedadel × seatPitch 16 = 400 px sector height; yBase += 220 by způsobilo
+  // 180 px overlap se sousedním sektorem. Audit 2026-05-19: zmenšeno na 13 sedadel
+  // (= 208 px height, 12 px gap mezi sektory).
   for (let s = 0; s < 4; s++) {
     const yBase = PARTER_Y0 + s * 220;
     sectors.push(buildRectSector(
       `LB-${105 + s}`, // LB-105..LB-108 (vlevo)
       PARTER_X0 - LB_RING_OFFSET,
       yBase,
-      11, 25, 16, 18, 'left',
+      11, 13, 16, 18, 'left',
     ));
     sectors.push(buildRectSector(
       `LB-${120 - s}`, // LB-120, 119, 118, 117 (vpravo, top→bottom)
       PARTER_X0 + PARTER_W + LB_RING_OFFSET,
       yBase,
-      11, 25, 16, 18, 'right',
+      11, 13, 16, 18, 'right',
     ));
   }
 
-  // Zadní LB (8 sektorů za parterem)
+  // Zadní LB (8 sektorů za parterem) — horizontálně 'bottom' orientation, axis=x.
+  // 25 sedadel × 16 = 400 px width vs s * 200 spacing = 200 px overlap mezi sektory.
+  // Zmenšeno na 11 sedadel (176 width, 24 gap).
   const PARTER_Y_END = PARTER_Y0 + 50 * 18;
   const LB_REAR_Y0 = PARTER_Y_END + LB_RING_OFFSET;
   for (let s = 0; s < 8; s++) {
@@ -255,61 +260,64 @@ function buildArena() {
       `LB-${109 + s}`, // LB-109..LB-116
       PARTER_X0 + s * 200,
       LB_REAR_Y0,
-      11, 25, 16, 18, 'bottom',
+      11, 11, 16, 18, 'bottom',
     ));
   }
 
-  // Přední LB (4+4) — po stranách pódia (mezi pódiem a parterem level)
+  // Přední LB (4+4) — po stranách pódia (mezi pódiem a parterem level).
+  // 20 sedadel × 16 = 320 vertical extent vs yBase += 80 = massive overlap.
+  // Zmenšeno na 4 sedadla (64 height, 16 px gap).
   for (let s = 0; s < 4; s++) {
     const yBase = STAGE_Y + STAGE_H + 50 + s * 80;
     sectors.push(buildRectSector(
       `LB-${101 + s}`, // LB-101..LB-104 (vpravo od pódia, vrchní)
       PARTER_X0 + PARTER_W + LB_RING_OFFSET + 250,
       yBase,
-      6, 20, 16, 18, 'right',
+      6, 4, 16, 18, 'right',
     ));
     sectors.push(buildRectSector(
       `LB-${124 - s}`, // LB-124..LB-121 (vlevo od pódia)
       PARTER_X0 - LB_RING_OFFSET - 250,
       yBase,
-      6, 20, 16, 18, 'left',
+      6, 4, 16, 18, 'left',
     ));
   }
 
-  // UB — Upper Bowl, 24 sektorů ve větším poloměru za LB
-  // Boční UB
+  // UB — Upper Bowl, 24 sektorů ve větším poloměru za LB.
+  // Stejný overlap bug jako boční LB: 23 sedadel × 16 = 368, yBase += 220.
+  // Zmenšeno na 13 sedadel (208 height, 12 px gap).
   for (let s = 0; s < 4; s++) {
     const yBase = PARTER_Y0 + s * 220;
     sectors.push(buildRectSector(
       `UB-${205 + s}`, PARTER_X0 - LB_RING_OFFSET - LB_DEPTH - 100,
-      yBase, 13, 23, 16, 18, 'left',
+      yBase, 13, 13, 16, 18, 'left',
     ));
     sectors.push(buildRectSector(
       `UB-${220 - s}`, PARTER_X0 + PARTER_W + LB_RING_OFFSET + LB_DEPTH + 100,
-      yBase, 13, 23, 16, 18, 'right',
+      yBase, 13, 13, 16, 18, 'right',
     ));
   }
-  // Zadní UB (8 sektorů)
+  // Zadní UB (8 sektorů) — stejný fix.
   for (let s = 0; s < 8; s++) {
     sectors.push(buildRectSector(
       `UB-${209 + s}`,
       PARTER_X0 + s * 200,
       LB_REAR_Y0 + LB_DEPTH + 100,
-      13, 23, 16, 18, 'bottom',
+      13, 11, 16, 18, 'bottom',
     ));
   }
-  // Přední UB (4+4)
+  // Přední UB (4+4) — stejný fix jako přední LB.
   for (let s = 0; s < 4; s++) {
     const yBase = STAGE_Y + STAGE_H + 50 + s * 80;
     sectors.push(buildRectSector(
       `UB-${201 + s}`,
       PARTER_X0 + PARTER_W + LB_RING_OFFSET + 250 + LB_DEPTH + 50,
-      yBase, 8, 22, 16, 18, 'right',
+      yBase, 8, 4, 16, 18, 'right',
     ));
     sectors.push(buildRectSector(
       `UB-${224 - s}`,
       PARTER_X0 - LB_RING_OFFSET - 250 - LB_DEPTH - 50,
-      yBase, 8, 22, 16, 18, 'left',
+      yBase, 8, 4, 16, 18, 'left',
     ));
   }
 
