@@ -193,161 +193,165 @@ function buildVelkySal() {
 //   Lower Bowl (LB-101..LB-124) — oblouk kolem parteru, 24 sektorů
 //   Upper Bowl (UB-201..UB-224) — širší oblouk za LB, 24 sektorů
 //   Skybox (BOX-1..BOX-24)      — lóže mezi LB a UB (24 ks po 12 míst)
+// ─── 2) Arena Praha (O2 Arena-style, ~7 700 míst) ──────────────────────────
+//
+// REWRITE 2026-05-19: původní layout měl 4 895 hard kolizí (audit s
+// scripts/check-overlaps.mjs) protože "přední LB/UB" sektory intersect
+// spatially s "boční UB/LB". Nový layout odstraňuje přední sektory úplně —
+// čistá podkova bez křížení.
+//
+// Layout (top-down):
+//   STAGE (rect, top)
+//   PARTER (50 rows × 40 seats = 2 000)            — přímo pod stage
+//   ─── ring 1: LB (Lower Bowl) ──────────────────  — okolo parteru
+//     LB-105..LB-108 vlevo (4 sektory stacked Y)   — pitch 22, 11 řad × 12 seats
+//     LB-117..LB-120 vpravo (4 sektory stacked Y)
+//     LB-109..LB-114 zadní (6 sektorů side-by-side X) — 10 řad × 16 seats
+//   ─── ring 2: UB (Upper Bowl) ──────────────────  — za LB
+//     UB-205..UB-209 vlevo (5 sektorů Y)           — 13 řad × 10 seats
+//     UB-216..UB-220 vpravo (5 sektorů Y)
+//     UB-210..UB-215 zadní (6 sektorů X)           — 12 řad × 16 seats
+//   SKYBOXES (12) — mezi LB a UB, malé VIP boxy
+//
+// Žádné cos/sin per sedadlo. Všechno axis-aligned, žádné překryvy.
 function buildArena() {
   const sectors = [];
 
-  const CENTER_X = 1500, CENTER_Y = 1500;
+  // ── Souřadnicový systém ──
+  // (X, Y) = SVG koordináty, Y rostoucí dolů. Center = (1500, ?).
+  // Pitch 22 px = uniform pro celý layout (kompatibilní s render patch
+  // SeatPicker.tsx:556 — radius = pitch/3 = 7.33, dia 14.67, gap ~7).
+  const PITCH = 22;
+  const ROW_PITCH = 22;
 
-  // PARTER: obdélník před pódiem, 50 řad × 60 míst = 3000
-  // Stage je nahoře (Y=200), parter pod ním
-  const STAGE_W = 700, STAGE_H = 80;
-  const STAGE_X = CENTER_X - STAGE_W / 2;
-  const STAGE_Y = 100;
+  // ── Stage ──
+  const STAGE_X = 1100, STAGE_Y = 100, STAGE_W = 800, STAGE_H = 100;
 
-  const parterRows = [];
-  const PARTER_W = 1300; // šířka parteru
-  const PARTER_X0 = CENTER_X - PARTER_W / 2;
-  const PARTER_Y0 = STAGE_Y + STAGE_H + 50;
-  for (let r = 0; r < 50; r++) {
-    const seats = [];
-    const y = PARTER_Y0 + r * 18;
-    for (let i = 0; i < 60; i++) {
-      seats.push({ num: String(i + 1), x: PARTER_X0 + i * 22, y });
+  // ── Parter (50 × 40 = 2 000) ──
+  // Šířka = 40 × 22 = 880. Centered na X=1500 → X 1060-1940.
+  // Y pod stage: 250 - 1350 (50 × 22 = 1100).
+  const PARTER_X0 = 1060;
+  const PARTER_Y0 = 250;
+  const PARTER_W = 40 * PITCH;
+  const PARTER_H = 50 * ROW_PITCH;
+  const PARTER_X_END = PARTER_X0 + PARTER_W;
+  const PARTER_Y_END = PARTER_Y0 + PARTER_H;
+  {
+    const rows = [];
+    for (let r = 0; r < 50; r++) {
+      const seats = [];
+      const y = PARTER_Y0 + r * ROW_PITCH;
+      for (let i = 0; i < 40; i++) {
+        seats.push({ num: String(i + 1), x: PARTER_X0 + i * PITCH, y });
+      }
+      rows.push({ label: `PA-${r + 1}`, seats });
     }
-    parterRows.push({ label: `PA-${r + 1}`, seats });
+    sectors.push({ name: 'PARTER', rows });
   }
-  sectors.push({ name: 'PARTER', rows: parterRows });
 
-  // LB — Lower Bowl, 24 sektorů v podkově kolem parteru.
-  // Místo cos/sin po seat: rozmísti sektory na perimetru jako axis-aligned
-  // bloky (ne kruh), a otočím je pomocí center offsetu. Sektor má 11 řad ×
-  // 25 míst = 275 sedadel × 24 sektorů ≈ 6600.
-  // Sektory rozdělíme:
-  //   8 sektorů zadních (za parterem, horizontální)        LB-109..LB-116
-  //   4 sektory boční vlevo (vertikální)                    LB-105..LB-108
-  //   4 sektory boční vpravo (vertikální)                   LB-117..LB-120
-  //   4 sektory u pódia po stranách (horizontální)         LB-101..LB-104, LB-121..LB-124
-  const LB_DEPTH = 200; // hloubka tribuny LB
-  const LB_RING_OFFSET = 100; // mezera od parteru
-
-  // Boční LB (4+4) — stejná Y range jako parter, X vlevo a vpravo.
-  // 25 sedadel × seatPitch 16 = 400 px sector height; yBase += 220 by způsobilo
-  // 180 px overlap se sousedním sektorem. Audit 2026-05-19: zmenšeno na 13 sedadel
-  // (= 208 px height, 12 px gap mezi sektory).
+  // ── LB (Lower Bowl) ──
+  // Boční LB: 11 řad × 12 sedadel = 132 / sektor × 8 = 1 056.
+  // Sektor 'left'/'right' orientation: rows go horizontal, seats vertical.
+  // Extent: 11 × 22 = 242 width (rows), 12 × 22 = 264 height (seats).
+  // 4 sektory stacked Y, spacing 275 (264 + 11 gap). 4 × 275 = 1 100 = parter height ✓
+  const LB_GAP = 40; // mezera mezi parterem a LB
+  const LB_SECTOR_H = 12 * PITCH; // 264
+  const LB_SECTOR_W = 11 * ROW_PITCH; // 242
+  const LB_VERT_SPACING = 275;
   for (let s = 0; s < 4; s++) {
-    const yBase = PARTER_Y0 + s * 220;
+    const yBase = PARTER_Y0 + s * LB_VERT_SPACING;
     sectors.push(buildRectSector(
-      `LB-${105 + s}`, // LB-105..LB-108 (vlevo)
-      PARTER_X0 - LB_RING_OFFSET,
+      `LB-${105 + s}`, // LB-105..LB-108 vlevo
+      PARTER_X0 - LB_GAP,
       yBase,
-      11, 13, 16, 18, 'left',
+      11, 12, PITCH, ROW_PITCH, 'left',
     ));
     sectors.push(buildRectSector(
-      `LB-${120 - s}`, // LB-120, 119, 118, 117 (vpravo, top→bottom)
-      PARTER_X0 + PARTER_W + LB_RING_OFFSET,
+      `LB-${120 - s}`, // LB-117..LB-120 vpravo (top→bottom)
+      PARTER_X_END + LB_GAP,
       yBase,
-      11, 13, 16, 18, 'right',
+      11, 12, PITCH, ROW_PITCH, 'right',
     ));
   }
+  const LB_LEFT_X_END = PARTER_X0 - LB_GAP - LB_SECTOR_W; // 1060-40-242 = 778
+  const LB_RIGHT_X_END = PARTER_X_END + LB_GAP + LB_SECTOR_W; // 1940+40+242 = 2222
 
-  // Zadní LB (8 sektorů za parterem) — horizontálně 'bottom' orientation, axis=x.
-  // 25 sedadel × 16 = 400 px width vs s * 200 spacing = 200 px overlap mezi sektory.
-  // Zmenšeno na 11 sedadel (176 width, 24 gap).
-  const PARTER_Y_END = PARTER_Y0 + 50 * 18;
-  const LB_REAR_Y0 = PARTER_Y_END + LB_RING_OFFSET;
-  for (let s = 0; s < 8; s++) {
+  // Zadní LB: 6 sektorů side-by-side. 10 řad × 16 sedadel × 22 pitch = 352 W × 220 H.
+  // 6 × 360 = 2 160 width. Center na 1500 → start X = 1500 - 1080 = 420.
+  const LB_REAR_GAP = 30;
+  const LB_REAR_Y0 = PARTER_Y_END + LB_REAR_GAP;
+  const LB_REAR_SECTOR_W = 16 * PITCH; // 352
+  const LB_REAR_HSPACE = 360; // 352 + 8 gap
+  const LB_REAR_X0 = 1500 - (6 * LB_REAR_HSPACE) / 2; // center
+  for (let s = 0; s < 6; s++) {
     sectors.push(buildRectSector(
-      `LB-${109 + s}`, // LB-109..LB-116
-      PARTER_X0 + s * 200,
+      `LB-${109 + s}`, // LB-109..LB-114
+      LB_REAR_X0 + s * LB_REAR_HSPACE,
       LB_REAR_Y0,
-      11, 11, 16, 18, 'bottom',
+      10, 16, PITCH, ROW_PITCH, 'bottom',
     ));
   }
+  const LB_REAR_Y_END = LB_REAR_Y0 + 10 * ROW_PITCH; // 1620+220 = 1840
 
-  // Přední LB (4+4) — po stranách pódia (mezi pódiem a parterem level).
-  // 20 sedadel × 16 = 320 vertical extent vs yBase += 80 = massive overlap.
-  // Zmenšeno na 4 sedadla (64 height, 16 px gap).
-  for (let s = 0; s < 4; s++) {
-    const yBase = STAGE_Y + STAGE_H + 50 + s * 80;
+  // ── UB (Upper Bowl) ──
+  // Boční UB: 13 řad × 10 sedadel = 130 / sektor × 10 = 1 300.
+  // Extent 13 × 22 = 286 W × 220 H. 5 sektorů × 220 = 1 100 height (matches parter)
+  const UB_GAP = 50; // mezera mezi LB a UB
+  const UB_SECTOR_H = 10 * PITCH; // 220
+  const UB_SECTOR_W = 13 * ROW_PITCH; // 286
+  for (let s = 0; s < 5; s++) {
+    const yBase = PARTER_Y0 + s * UB_SECTOR_H;
     sectors.push(buildRectSector(
-      `LB-${101 + s}`, // LB-101..LB-104 (vpravo od pódia, vrchní)
-      PARTER_X0 + PARTER_W + LB_RING_OFFSET + 250,
+      `UB-${205 + s}`, // UB-205..UB-209 vlevo
+      LB_LEFT_X_END - UB_GAP,
       yBase,
-      6, 4, 16, 18, 'right',
+      13, 10, PITCH, ROW_PITCH, 'left',
     ));
     sectors.push(buildRectSector(
-      `LB-${124 - s}`, // LB-124..LB-121 (vlevo od pódia)
-      PARTER_X0 - LB_RING_OFFSET - 250,
+      `UB-${220 - s}`, // UB-216..UB-220 vpravo
+      LB_RIGHT_X_END + UB_GAP,
       yBase,
-      6, 4, 16, 18, 'left',
+      13, 10, PITCH, ROW_PITCH, 'right',
     ));
   }
 
-  // UB — Upper Bowl, 24 sektorů ve větším poloměru za LB.
-  // Stejný overlap bug jako boční LB: 23 sedadel × 16 = 368, yBase += 220.
-  // Zmenšeno na 13 sedadel (208 height, 12 px gap).
-  for (let s = 0; s < 4; s++) {
-    const yBase = PARTER_Y0 + s * 220;
+  // Zadní UB: 6 sektorů × 12 řad × 16 sedadel = 1 152.
+  // Extent 16 × 22 = 352 W × 264 H. 6 × 360 = 2 160 width (matches LB zadní)
+  const UB_REAR_Y0 = LB_REAR_Y_END + UB_GAP;
+  for (let s = 0; s < 6; s++) {
     sectors.push(buildRectSector(
-      `UB-${205 + s}`, PARTER_X0 - LB_RING_OFFSET - LB_DEPTH - 100,
-      yBase, 13, 13, 16, 18, 'left',
-    ));
-    sectors.push(buildRectSector(
-      `UB-${220 - s}`, PARTER_X0 + PARTER_W + LB_RING_OFFSET + LB_DEPTH + 100,
-      yBase, 13, 13, 16, 18, 'right',
-    ));
-  }
-  // Zadní UB (8 sektorů) — stejný fix.
-  for (let s = 0; s < 8; s++) {
-    sectors.push(buildRectSector(
-      `UB-${209 + s}`,
-      PARTER_X0 + s * 200,
-      LB_REAR_Y0 + LB_DEPTH + 100,
-      13, 11, 16, 18, 'bottom',
-    ));
-  }
-  // Přední UB (4+4) — stejný fix jako přední LB.
-  for (let s = 0; s < 4; s++) {
-    const yBase = STAGE_Y + STAGE_H + 50 + s * 80;
-    sectors.push(buildRectSector(
-      `UB-${201 + s}`,
-      PARTER_X0 + PARTER_W + LB_RING_OFFSET + 250 + LB_DEPTH + 50,
-      yBase, 8, 4, 16, 18, 'right',
-    ));
-    sectors.push(buildRectSector(
-      `UB-${224 - s}`,
-      PARTER_X0 - LB_RING_OFFSET - 250 - LB_DEPTH - 50,
-      yBase, 8, 4, 16, 18, 'left',
+      `UB-${210 + s}`, // UB-210..UB-215
+      LB_REAR_X0 + s * LB_REAR_HSPACE,
+      UB_REAR_Y0,
+      12, 16, PITCH, ROW_PITCH, 'bottom',
     ));
   }
 
-  // Skyboxy — 24 lóží, 2 řady × 6 míst = 12 / box
-  // Rozmístíme po obvodu mezi LB a UB
+  // ── Skyboxes (12) ──
+  // 2 řady × 6 sedadel = 12 / box. Extent 6×22=132 W × 44 H (orientation 'bottom').
+  // Umístěné MEZI zadní LB a zadní UB v Y směru (gap UB_GAP = 50).
+  // Tam je 50 px mezera kterou jinak nic neobsazuje.
+  const BOX_W = 6 * PITCH; // 132
+  const BOX_H = 2 * ROW_PITCH; // 44 — vejde se do UB_GAP (50)
+  const BOX_Y = LB_REAR_Y_END + 3; // 3 px padding od LB zadní
+  const BOX_SPACING = BOX_W + 16; // 148
+  const BOX_TOTAL_W = 12 * BOX_SPACING - 16; // 1760
+  const BOX_X0 = 1500 - BOX_TOTAL_W / 2;
   for (let s = 0; s < 12; s++) {
     sectors.push(buildRectSector(
       `BOX-${s + 1}`,
-      PARTER_X0 + s * 130,
-      LB_REAR_Y0 + LB_DEPTH + 30,
-      2, 6, 16, 18, 'bottom',
-    ));
-  }
-  for (let s = 0; s < 6; s++) {
-    sectors.push(buildRectSector(
-      `BOX-${13 + s}`,
-      PARTER_X0 - LB_RING_OFFSET - LB_DEPTH - 50,
-      PARTER_Y0 + s * 150,
-      2, 6, 16, 18, 'left',
-    ));
-    sectors.push(buildRectSector(
-      `BOX-${19 + s}`,
-      PARTER_X0 + PARTER_W + LB_RING_OFFSET + LB_DEPTH + 50,
-      PARTER_Y0 + s * 150,
-      2, 6, 16, 18, 'right',
+      BOX_X0 + s * BOX_SPACING,
+      BOX_Y,
+      2, 6, PITCH, ROW_PITCH, 'bottom',
     ));
   }
 
+  // ──
+  // Pozn.: viewBox bude auto-fitnutý generator workflow (autoFit logic
+  // v hlavičce souboru spočítá bounding box ze všech seat koordinát).
+  // Stage box pro renderer:
   return {
-    viewBox: '0 0 3500 3500', // přepíše autoFit
+    viewBox: '0 0 3500 2500', // přepíše autoFit níže
     stage: { label: 'PÓDIUM', position: 'top' },
     stageBox: { x: STAGE_X, y: STAGE_Y, width: STAGE_W, height: STAGE_H },
     sectors,
