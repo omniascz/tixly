@@ -55,12 +55,16 @@ export async function checkDatabaseHealth(
 }
 
 /**
- * Check Redis connection health
- * @param redis Redis client (any type to avoid dependency on redis package)
- * @returns Health status with response time
+ * Check Redis connection health.
+ * Duck-typed na `{ ping(): Promise<unknown> }` aby modul nezáviselo na konkrétním
+ * Redis package (může to být `redis` nebo `ioredis`).
  */
+interface RedisLike {
+  ping(): Promise<unknown>;
+}
+
 export async function checkRedisHealth(
-  redis?: any,
+  redis?: RedisLike,
 ): Promise<RedisHealthResponse> {
   if (!redis) {
     return {
@@ -236,7 +240,7 @@ export function determineServiceStatus(checks: {
  */
 export async function getSystemHealth(
   db?: PgClient,
-  redis?: any,
+  redis?: RedisLike,
   externalApis?: string[],
 ): Promise<SystemHealth> {
   const timestamp = new Date().toISOString();

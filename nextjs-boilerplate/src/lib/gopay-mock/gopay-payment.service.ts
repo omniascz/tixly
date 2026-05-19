@@ -42,7 +42,7 @@ export function createGopayPayment(): GopayPaymentService {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
   return {
-    async createPayment(input: CreatePaymentInput): Promise<GopayPayment> {
+    createPayment(input: CreatePaymentInput): Promise<GopayPayment> {
       const id = `mock-pay-${randomUUID().slice(0, 8)}`;
       const now = new Date().toISOString();
       const payment: GopayPayment = {
@@ -57,23 +57,23 @@ export function createGopayPayment(): GopayPaymentService {
         paymentInstrument: null,
       };
       store.set(id, payment);
-      return payment;
+      return Promise.resolve(payment);
     },
-    async getPayment(paymentId: string): Promise<GopayPayment> {
+    getPayment(paymentId: string): Promise<GopayPayment> {
       const p = store.get(paymentId);
-      if (!p) throw new Error(`Mock payment not found: ${paymentId}`);
-      return p;
+      if (!p) return Promise.reject(new Error(`Mock payment not found: ${paymentId}`));
+      return Promise.resolve(p);
     },
-    async refundPayment(paymentId: string): Promise<GopayPayment> {
+    refundPayment(paymentId: string): Promise<GopayPayment> {
       const p = store.get(paymentId);
-      if (!p) throw new Error(`Mock payment not found: ${paymentId}`);
+      if (!p) return Promise.reject(new Error(`Mock payment not found: ${paymentId}`));
       const refunded: GopayPayment = {
         ...p,
         status: 'REFUNDED',
         updatedAt: new Date().toISOString(),
       };
       store.set(paymentId, refunded);
-      return refunded;
+      return Promise.resolve(refunded);
     },
   };
 }

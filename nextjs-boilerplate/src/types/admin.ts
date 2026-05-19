@@ -17,7 +17,7 @@ export interface AdminEvent {
   id: string;
   name: string;
   date: string;
-  moderationStatus?: ModerationStatus | string;
+  moderationStatus?: ModerationStatus;
   rejectionReason?: string | null;
 }
 

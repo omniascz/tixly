@@ -57,7 +57,7 @@ export const useTransferTicket = (ticketId: string) => {
       return response.data.data;
     },
     onSuccess: (updatedTicket) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: TICKETS_QUERY_KEY,
       });
       queryClient.setQueryData([...TICKETS_QUERY_KEY, ticketId], updatedTicket);

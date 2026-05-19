@@ -74,7 +74,7 @@ export default function SocialPostsToolPage() {
 
   function copy(text: string, key: string) {
     if (typeof navigator !== 'undefined') {
-      navigator.clipboard.writeText(text);
+      void navigator.clipboard.writeText(text);
       setCopied(key);
       setTimeout(() => setCopied(null), 2000);
     }

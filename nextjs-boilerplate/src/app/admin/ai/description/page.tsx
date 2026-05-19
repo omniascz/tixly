@@ -91,7 +91,7 @@ export default function DescriptionToolPage() {
 
   function copy(text: string, idx: number) {
     if (typeof navigator !== 'undefined') {
-      navigator.clipboard.writeText(text);
+      void navigator.clipboard.writeText(text);
       setCopied(idx);
       setTimeout(() => setCopied(null), 2000);
     }

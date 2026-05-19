@@ -194,7 +194,7 @@ export default function AdminOrdersPage() {
           ? `Objednávka ${vars.orderId.slice(0, 8)} už byla vrácena.`
           : `Vráceno ${amountKc ?? '?'} Kč. Vstupenek revoke: ${data.revokedTickets ?? 0}.`,
       );
-      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
     },
     onError: (err: Error) => {
       setFeedback(`Refund selhal: ${err.message}`);
@@ -251,7 +251,7 @@ export default function AdminOrdersPage() {
         `Hromadný refund: ${res.refundedCount} vráceno (${formatCzk(res.totalRefundedHalire)}), ${res.alreadyRefundedCount} už bylo vráceno, ${res.errorCount} chyb.`,
       );
       setSelected(new Set());
-      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
     } catch (err) {
       setFeedback(`Bulk refund selhal: ${(err as Error).message}`);
     } finally {

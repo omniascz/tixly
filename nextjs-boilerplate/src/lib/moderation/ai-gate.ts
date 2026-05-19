@@ -45,6 +45,8 @@ export interface ModerationProvider {
  *   - allow: jinak
  */
 export class MockModerationProvider implements ModerationProvider {
+  // Mock provider — synchronous, ale implementuje async interface.
+  // eslint-disable-next-line @typescript-eslint/require-await
   async moderate(input: ModerationInput): Promise<ModerationResult> {
     const text = [input.title, input.description ?? '', ...input.ticketTypeNames]
       .join(' ')

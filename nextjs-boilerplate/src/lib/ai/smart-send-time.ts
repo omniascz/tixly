@@ -32,15 +32,15 @@ export interface SendTimeResult {
 const FALLBACK_HOUR = 10;
 const FALLBACK_DAY = 2; // Tuesday
 
-export async function predictBestSendTime(_req: SendTimeRequest): Promise<SendTimeResult> {
+export function predictBestSendTime(_req: SendTimeRequest): Promise<SendTimeResult> {
   // V produkci by zde bylo: SELECT date_part('hour', opened_at) FROM marketing.email_opens WHERE user_id = $1 GROUP BY hour ORDER BY COUNT(*) DESC LIMIT 1
-  // Pro demo: vrátíme fallback s low confidence
-  return {
+  // Pro demo: vrátíme fallback s low confidence — stale Promise pro interface match.
+  return Promise.resolve({
     bestHourLocal: FALLBACK_HOUR,
     bestDayOfWeek: FALLBACK_DAY,
     basis: 'fallback',
     confidence: 'low',
-  };
+  });
 }
 
 export interface SegmentSendTimeRequest {

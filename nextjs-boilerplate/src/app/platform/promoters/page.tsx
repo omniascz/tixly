@@ -32,7 +32,7 @@ export default function PlatformPromotersPage() {
   }
 
   useEffect(() => {
-    load();
+    void load();
   }, []);
 
   async function action(id: string, kind: 'approve' | 'suspend') {

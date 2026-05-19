@@ -57,7 +57,7 @@ export const useCreateResaleListing = () => {
       return response.data.data;
     },
     onSuccess: (newListing) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: RESALE_QUERY_KEY,
       });
       queryClient.setQueryData([...RESALE_QUERY_KEY, newListing.id], newListing);
@@ -79,7 +79,7 @@ export const useUpdateResaleListing = (listingId: string) => {
       return response.data.data;
     },
     onSuccess: (updatedListing) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: RESALE_QUERY_KEY,
       });
       queryClient.setQueryData([...RESALE_QUERY_KEY, listingId], updatedListing);
@@ -95,7 +95,7 @@ export const useDeleteResaleListing = () => {
       await api.delete(`/api/resale/${listingId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: RESALE_QUERY_KEY,
       });
     },
@@ -117,7 +117,7 @@ export const usePurchaseResaleListing = () => {
       return response.data.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: RESALE_QUERY_KEY,
       });
     },

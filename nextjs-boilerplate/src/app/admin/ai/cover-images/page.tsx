@@ -83,7 +83,7 @@ export default function CoverImagesPage() {
 
   function copyUrl(url: string) {
     if (typeof navigator !== 'undefined') {
-      navigator.clipboard.writeText(url);
+      void navigator.clipboard.writeText(url);
       setCopied(url);
       setTimeout(() => setCopied(null), 2000);
     }

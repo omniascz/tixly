@@ -44,7 +44,7 @@ export const useCreateEvent = () => {
       return response.data.data;
     },
     onSuccess: (newEvent) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: EVENTS_QUERY_KEY,
       });
       queryClient.setQueryData([...EVENTS_QUERY_KEY, newEvent.id], newEvent);
@@ -71,7 +71,7 @@ export const useUpdateEvent = (eventId: string) => {
       return response.data.data;
     },
     onSuccess: (updatedEvent) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: EVENTS_QUERY_KEY,
       });
       queryClient.setQueryData([...EVENTS_QUERY_KEY, eventId], updatedEvent);
@@ -87,7 +87,7 @@ export const useDeleteEvent = () => {
       await api.delete(`/api/events/${eventId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: EVENTS_QUERY_KEY,
       });
     },

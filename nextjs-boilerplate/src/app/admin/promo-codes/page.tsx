@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 interface PromoCode {
   id: string;
   code: string;
-  type: 'percentage' | 'fixed' | string;
+  type: 'percentage' | 'fixed';
   discountValue: number;
   maxUses: number | null;
   usesCount: number;

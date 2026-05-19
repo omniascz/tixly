@@ -50,7 +50,7 @@ interface ZoneInput {
 
 interface AccessSpec {
   dayIndex: number | 'all';
-  zoneName: string | 'all';
+  zoneName: string;
   level: 'general' | 'premium' | 'vip' | 'backstage' | 'accessibility';
 }
 

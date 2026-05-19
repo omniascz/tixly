@@ -76,7 +76,7 @@ export default function PlatformSeatingChartPage({
     async function load() {
       const res = await fetch(`/api/platform/venues/${venueId}/seating-chart`);
       if (res.ok) {
-        const j = (await res.json()) as { chart: unknown | null };
+        const j = (await res.json()) as { chart: unknown };
         // Pokud sál už má chart, redirect na detail — grid builder je jen pro prázdný stav.
         if (j.chart) {
           router.replace(`/platform/venues/${venueId}/edit`);

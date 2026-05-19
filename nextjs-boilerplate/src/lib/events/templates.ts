@@ -34,7 +34,7 @@ export interface AccessSpec {
   /** Index dne v `days` array (0-based), nebo 'all' pro wildcard. */
   dayIndex: number | 'all';
   /** Název zóny (musí matchnout zone.name), nebo 'all' pro všechny zóny. */
-  zoneName: string | 'all';
+  zoneName: string;
   level: 'general' | 'premium' | 'vip' | 'backstage' | 'accessibility';
 }
 

@@ -31,7 +31,7 @@ export default function ResaleListingPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch('/api/resale/marketplace')
+    void fetch('/api/resale/marketplace')
       .then((r) => r.json())
       .then((d: { listings: Listing[] }) => {
         const found = d.listings.find((x) => x.listingId === listingId);

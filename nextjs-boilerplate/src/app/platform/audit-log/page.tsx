@@ -7,8 +7,8 @@ interface LogItem {
   eventId: string;
   eventTitle: string | null;
   actorEmail: string | null;
-  actorType: 'auto_keyword' | 'auto_ai' | 'human' | string;
-  decision: 'submitted' | 'approved' | 'rejected' | 'flagged' | string;
+  actorType: 'auto_keyword' | 'auto_ai' | 'human';
+  decision: 'submitted' | 'approved' | 'rejected' | 'flagged';
   reason: string | null;
   matchedKeywords: string[] | null;
   aiScore: number | null;

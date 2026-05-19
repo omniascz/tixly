@@ -38,7 +38,7 @@ export async function initializeDatabaseClient(
  * @param redisUrl Redis connection URL
  * @returns Initialized client or null if connection fails
  */
-export async function initializeRedisClient(redisUrl?: string): Promise<any | null> {
+export async function initializeRedisClient(redisUrl?: string): Promise<unknown> {
   if (!redisUrl) {
     return null;
   }

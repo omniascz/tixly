@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 interface Notification {
   id: string;
   kind: string;
-  severity: 'info' | 'warn' | 'critical' | string;
+  severity: 'info' | 'warn' | 'critical';
   title: string;
   body: string | null;
   link: string | null;
