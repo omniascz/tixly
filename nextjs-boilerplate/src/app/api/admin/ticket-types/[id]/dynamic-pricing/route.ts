@@ -46,7 +46,7 @@ export async function GET(
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  const ruleRes = await db().query(
+  const ruleRes = await db().query<Record<string, unknown>>(
     `SELECT * FROM catalog.dynamic_pricing_rules WHERE ticket_type_id = $1`,
     [params.id],
   );

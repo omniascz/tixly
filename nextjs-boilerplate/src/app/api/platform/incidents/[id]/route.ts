@@ -35,7 +35,7 @@ export async function GET(
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
     return NextResponse.json({ error: 'Bad id' }, { status: 400 });
   }
-  const incident = await db().query(
+  const incident = await db().query<Record<string, unknown>>(
     `SELECT id, title, description, status, severity, affected_services,
             is_public, started_at, resolved_at, created_at, updated_at
      FROM platform.incidents WHERE id = $1`,

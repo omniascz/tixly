@@ -44,7 +44,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const promoter = await requirePromoter(req);
   if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const r = await db().query(
+  const r = await db().query<Record<string, unknown>>(
     `SELECT * FROM platform.promoter_branding WHERE promoter_id = $1`,
     [promoter.promoterId],
   );

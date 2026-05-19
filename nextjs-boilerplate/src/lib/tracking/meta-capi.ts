@@ -100,7 +100,7 @@ export async function sendMetaEvent(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    const body = await res.json().catch(() => ({}));
+    const body: unknown = await res.json().catch(() => ({}));
     if (logId) {
       await db().query(
         `UPDATE marketing.tracking_events

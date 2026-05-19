@@ -58,7 +58,7 @@ export async function GET(
   const admin = await requirePlatformAdmin(req);
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  const r = await db().query(
+  const r = await db().query<Record<string, unknown>>(
     `SELECT v.id, v.name, v.venue_type, v.city, v.country, v.address, v.capacity,
             v.gps_lat, v.gps_lng, v.photo_url, v.floor_plan_url, v.description,
             v.status, v.archived_at, v.created_at, v.last_modified_at,

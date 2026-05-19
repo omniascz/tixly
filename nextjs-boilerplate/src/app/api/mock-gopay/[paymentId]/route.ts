@@ -17,7 +17,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { paymentId: string } },
 ): Promise<Response> {
-  const { action } = await request.json().catch(() => ({}));
+  const { action } = (await request.json().catch(() => ({}))) as { action?: string };
 
   const client = await db().connect();
   try {

@@ -95,7 +95,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       ),
     ]);
 
-  const data = {
+  const data: Record<string, unknown> = {
     exportGeneratedAt: new Date().toISOString(),
     userId,
     profile: profile.rows[0] ?? null,

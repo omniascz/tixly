@@ -186,7 +186,7 @@ export async function refundComGatePayment(
     const text = await res.text().catch(() => '');
     return { ok: false, raw: { status: res.status, body: text } };
   }
-  const json = await res.json().catch(() => ({}));
+  const json: unknown = await res.json().catch(() => ({}));
   return { ok: res.status >= 200 && res.status < 300, raw: json };
 }
 

@@ -42,6 +42,7 @@ export function ThermalReceipt({ order, items }: { order: Order; items: Item[] }
 
   return (
     <>
+      {/* eslint-disable-next-line react/no-unknown-property */}
       <style jsx global>{`
         @page {
           size: 58mm auto;

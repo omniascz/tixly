@@ -70,7 +70,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       },
       body: '{}',
     });
-    const data = await res.json().catch(() => ({}));
+    const data: unknown = await res.json().catch(() => ({}));
     return NextResponse.json({
       job,
       status: res.status,

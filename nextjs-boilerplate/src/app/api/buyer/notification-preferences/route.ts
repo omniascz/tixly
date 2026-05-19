@@ -28,7 +28,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const userId = req.headers.get('x-user-id');
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const r = await db().query(
+  const r = await db().query<Record<string, unknown>>(
     `SELECT * FROM identity.notification_preferences WHERE user_id = $1`,
     [userId],
   );

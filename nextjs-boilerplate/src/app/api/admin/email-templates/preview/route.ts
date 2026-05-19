@@ -43,7 +43,7 @@ const MOCK_VARS: Record<(typeof TEMPLATE_TYPES)[number], Record<string, string>>
 };
 
 function render(template: string, vars: Record<string, string>): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (match, key) => vars[key] ?? match);
+  return template.replace(/\{\{(\w+)\}\}/g, (match: string, key: string) => vars[key] ?? match);
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
