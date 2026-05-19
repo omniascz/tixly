@@ -38,6 +38,8 @@ test('Promotér projde wizardem /admin/events/new a vytvoří seated event', asy
 
   await test.step('Login promotér', async () => {
     await page.goto('/cs/login', { waitUntil: 'domcontentloaded' });
+    // Login page potřebuje hydrate React handlery — networkidle pre-auth funguje
+    // (žádné SSE/polling). Po auth se přepínáme na heading-based čekání.
     await page.waitForLoadState('networkidle');
     await page.getByLabel('E-mail').fill('theatre@hranice.cz');
     await page.getByLabel('Heslo').fill('Demo2026!');
@@ -53,21 +55,28 @@ test('Promotér projde wizardem /admin/events/new a vytvoří seated event', asy
 
   await test.step('Otevři wizard /admin/events/new', async () => {
     await page.goto('/admin/events/new', { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('networkidle');
+    // Nepoužívat networkidle — admin layout má notification polling + SSE,
+    // network nikdy neidlne. Stačí počkat na heading, který je client-rendered.
     await expect(page.getByRole('heading', { name: /Nová akce/i, level: 1 })).toBeVisible({
-      timeout: 10_000,
+      timeout: 15_000,
     });
   });
 
   await test.step('Krok 1: Typ akce — Klubový koncert (single_event default)', async () => {
-    // Default je single_event vybraný — klikneme explicitně, ať si jsme jistí.
-    await page.getByRole('button', { name: /Klubový koncert/i }).click();
-    await page.getByRole('button', { name: /Pokračovat/i }).click();
+    // Dev server může wizard kompilovat 20+s — počkat na první template button.
+    const tplBtn = page.getByRole('button', { name: /Klubový koncert/i });
+    await expect(tplBtn).toBeVisible({ timeout: 30_000 });
+    await tplBtn.click();
+    // Po výběru template React přebuduje form (zones/ticketTypes z templatu).
+    // Dáme čas na state propagaci, jinak Pokračovat click může fire před useState.
+    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: /^Pokračovat/i }).click();
   });
 
   const title = `PWT UI Drama ${Date.now()}`;
 
   await test.step('Krok 2: basics — název', async () => {
+    await expect(page.getByPlaceholder(/Letní festival/i)).toBeVisible({ timeout: 15_000 });
     await page.getByPlaceholder(/Letní festival/i).fill(title);
     await page.getByRole('button', { name: /Pokračovat/i }).click();
   });
@@ -80,6 +89,9 @@ test('Promotér projde wizardem /admin/events/new a vytvoří seated event', asy
     // Najdi venue option, který obsahuje "Stará střelnice" v textu, a vezmi
     // jeho value. selectOption accepts string label nebo value, ne regex.
     const venueSelect = page.locator('select').last();
+    // Venues se loadují async přes useEffect — počkat než option naskočí.
+    await expect(venueSelect.locator('option', { hasText: /Stará střelnice/i }))
+      .toHaveCount(1, { timeout: 10_000 });
     const venueOptions = await venueSelect.locator('option').allTextContents();
     const venueLabel = venueOptions.find((t) => /Stará střelnice/i.test(t));
     expect(venueLabel, 'venue Stará střelnice je v dropdown').toBeTruthy();
