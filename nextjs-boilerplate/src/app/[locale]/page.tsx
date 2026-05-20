@@ -3,6 +3,7 @@ import { Pool } from 'pg';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatDate } from '@/lib/format';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
+import { ForYouFeed } from '@/components/ForYouFeed';
 
 export const dynamic = 'force-dynamic';
 
@@ -218,6 +219,11 @@ export default async function LandingPage({ params }: { params: { locale: string
           </div>
         </section>
       ) : null}
+
+      {/* Personalized "For you" feed — auth user dostane scored feed, anon trending */}
+      <ForYouFeed
+        locale={(locale === 'sk' || locale === 'en' ? locale : 'cs') as 'cs' | 'sk' | 'en'}
+      />
 
       {/* Editorial "Tipy redakce" section — manuálně curated platform adminem */}
       {featured.length > 0 ? (
