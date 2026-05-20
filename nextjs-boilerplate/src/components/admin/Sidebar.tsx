@@ -55,6 +55,7 @@ const sections: NavSection[] = [
     label: 'Prodej',
     items: [
       { href: '/admin/events', label: 'Akce', icon: CalendarDays },
+      { href: '/admin/subscriptions', label: 'Abonentky', icon: TrendingUp },
       { href: '/admin/season', label: 'Sezónní přehled', icon: TrendingUp },
       { href: '/admin/orders', label: 'Objednávky', icon: ShoppingCart },
       { href: '/admin/customers', label: 'Zákazníci', icon: Users },
