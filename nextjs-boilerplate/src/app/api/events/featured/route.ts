@@ -45,10 +45,7 @@ export async function GET(req: NextRequest): Promise<Response> {
             e.editorial_blurb,
             (SELECT MIN(base_price) FROM catalog.ticket_types
               WHERE event_id = e.id AND visibility = 'public') AS min_price_halire,
-            COALESCE(
-              (SELECT currency FROM catalog.ticket_types WHERE event_id = e.id LIMIT 1),
-              'CZK'
-            ) AS currency
+            COALESCE(e.currency, 'CZK') AS currency
        FROM catalog.events e
        LEFT JOIN catalog.venues v ON v.id = e.venue_id
        LEFT JOIN platform.promoters p ON p.id = e.promoter_id
