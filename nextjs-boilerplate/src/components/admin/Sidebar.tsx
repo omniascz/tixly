@@ -22,6 +22,7 @@ import {
   AlertOctagon,
   Bell,
   Webhook,
+  Gift,
   type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -75,6 +76,7 @@ const sections: NavSection[] = [
     label: 'Marketing',
     items: [
       { href: '/admin/promo-codes', label: 'Promo kódy', icon: Tag },
+      { href: '/admin/vouchers', label: 'Dárkové poukazy', icon: Gift },
       { href: '/admin/access-codes', label: 'Přístupové kódy', icon: Lock },
       { href: '/admin/broadcasts', label: 'Broadcasty', icon: Mail },
       { href: '/admin/sms-campaigns', label: 'SMS kampaně', icon: MessageSquare },
