@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { Pool } from 'pg';
+import { runWithPromoterContext } from './db/rls-pool';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -35,6 +36,35 @@ export {
   queryAsPlatformAdmin,
   queryAnon,
 } from './db/with-context';
+
+/**
+ * Convenience: requirePromoter + run callback v RLS context jediným voláním.
+ *
+ * Použití v route handleru:
+ *
+ *   export async function GET(req: NextRequest) {
+ *     return runAsPromoter(req, async (ctx) => {
+ *       // Uvnitř ALS context — všechny `db().query()` calls automaticky
+ *       // s SET LOCAL app.current_promoter_id = ctx.promoterId
+ *       const r = await pool.query('SELECT * FROM catalog.events');
+ *       return NextResponse.json(r.rows);
+ *     });
+ *   }
+ *
+ * Vrátí 401 pokud user není promoter member.
+ */
+import { NextResponse } from 'next/server';
+
+export async function runAsPromoter<T>(
+  req: NextRequest,
+  callback: (ctx: PromoterContext) => Promise<T>,
+): Promise<T | Response> {
+  const ctx = await requirePromoter(req);
+  if (!ctx) {
+    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  }
+  return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
+}
 
 /**
  * Resolve the active promoter context for the authenticated user.

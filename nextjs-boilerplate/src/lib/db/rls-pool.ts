@@ -1,0 +1,179 @@
+/**
+ * RlsPool — pg.Pool s automatickou RLS session context injection.
+ *
+ * Pattern: AsyncLocalStorage (cls-hooked alternative).
+ *
+ * Per-request middleware/helper nastaví promoterId do `tenantStore.run(...)`.
+ * Pool.connect() pak na každém acquire-u clienta volá:
+ *   SET LOCAL app.current_promoter_id = '<uuid>'
+ *   (uvnitř transakce co wrapne celý callback)
+ *
+ * Endpointy NEMUSÍ refactor — `query()` API zůstává stejné jako pg.Pool.
+ *
+ * Použití:
+ *
+ *   import { runWithPromoterContext, db } from '@/lib/db/rls-pool';
+ *
+ *   // V route handleru:
+ *   const ctx = await requirePromoter(req);
+ *   return runWithPromoterContext(ctx.promoterId, async () => {
+ *     const r = await db().query('SELECT * FROM catalog.events');
+ *     return NextResponse.json(r.rows);
+ *   });
+ *
+ * Bez `runWithPromoterContext` zůstává session var = NULL (RLS vrátí 0 rows
+ * kromě public-policy fallbacks jako `OR status='published'`).
+ */
+import { AsyncLocalStorage } from 'async_hooks';
+import { Pool, PoolClient, QueryConfig, QueryResult, QueryResultRow } from 'pg';
+
+interface RlsContext {
+  promoterId?: string;
+  isPlatformAdmin?: boolean;
+}
+
+const tenantStore = new AsyncLocalStorage<RlsContext>();
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+let pool: Pool | null = null;
+
+function getRawPool(): Pool {
+  if (!pool) {
+    pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  }
+  return pool;
+}
+
+/**
+ * Wrap async callback s promoter context.
+ * Všechny `db().query()` volání uvnitř automaticky scoped na promoter_id.
+ */
+export function runWithPromoterContext<T>(
+  promoterId: string,
+  callback: () => Promise<T>,
+): Promise<T> {
+  if (!UUID_RE.test(promoterId)) {
+    return Promise.reject(new Error('runWithPromoterContext: invalid promoterId UUID'));
+  }
+  return tenantStore.run({ promoterId }, callback);
+}
+
+/**
+ * Wrap async callback s platform admin context (RLS bypass via policy).
+ */
+export function runWithPlatformAdminContext<T>(callback: () => Promise<T>): Promise<T> {
+  return tenantStore.run({ isPlatformAdmin: true }, callback);
+}
+
+/**
+ * `db()` — drop-in replacement pro existující `new Pool(...)`.
+ *
+ * Vrací proxy objekt s `.query()` metodou co:
+ *   1. Acquire raw client
+ *   2. BEGIN + SET LOCAL session vars (z ALS contextu)
+ *   3. Execute query
+ *   4. COMMIT + release
+ *
+ * Pokud není context (volání mimo runWith*), query proběhne bez session
+ * vars — RLS vrátí jen public-policy rows.
+ */
+class RlsAwarePool {
+  async query<R extends QueryResultRow = QueryResultRow>(
+    text: string | QueryConfig<unknown[]>,
+    params?: unknown[],
+  ): Promise<QueryResult<R>> {
+    const ctx = tenantStore.getStore();
+    const rawPool = getRawPool();
+
+    if (!ctx || (!ctx.promoterId && !ctx.isPlatformAdmin)) {
+      // Bez context — direct query (RLS vrátí jen public rows)
+      return rawPool.query<R>(text as string, params);
+    }
+
+    const client = await rawPool.connect();
+    try {
+      await client.query('BEGIN');
+      if (ctx.promoterId) {
+        await client.query(`SET LOCAL app.current_promoter_id = '${ctx.promoterId}'`);
+      }
+      if (ctx.isPlatformAdmin) {
+        await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+      }
+      const result = await client.query<R>(text as string, params);
+      await client.query('COMMIT');
+      return result;
+    } catch (err) {
+      await client.query('ROLLBACK').catch(() => undefined);
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Connect pro explicit transakce. Endpoint musí volat client.release().
+   * Caller je zodpovědný za BEGIN/COMMIT/ROLLBACK + SET LOCAL.
+   *
+   * RLS session var se injectne automaticky před prvním query, pokud je
+   * context aktivní.
+   */
+  async connect(): Promise<PoolClient> {
+    const ctx = tenantStore.getStore();
+    const client = await getRawPool().connect();
+
+    if (ctx?.promoterId || ctx?.isPlatformAdmin) {
+      // Set session-level (ne LOCAL) — bude reset-nuté při release
+      if (ctx.promoterId) {
+        await client.query(`SET app.current_promoter_id = '${ctx.promoterId}'`);
+      }
+      if (ctx.isPlatformAdmin) {
+        await client.query(`SET app.is_platform_admin = 'true'`);
+      }
+      // Wrap release aby vyresetoval session vars
+      const originalRelease = client.release.bind(client);
+      (client as PoolClient & { release: typeof originalRelease }).release = ((
+        err?: Error | boolean,
+      ): void => {
+        // Best-effort reset — connection se vrátí čistá do poolu
+        void client
+          .query('RESET app.current_promoter_id; RESET app.is_platform_admin;')
+          .catch(() => undefined)
+          .finally(() => originalRelease(err));
+      }) as typeof originalRelease;
+    }
+
+    return client;
+  }
+
+  /**
+   * Pure pass-through pro existující code co `pool.end()` volá při shutdown.
+   */
+  async end(): Promise<void> {
+    if (pool) {
+      await pool.end();
+      pool = null;
+    }
+  }
+}
+
+const rlsPool = new RlsAwarePool();
+
+/**
+ * Drop-in replacement pro `new Pool(...)`:
+ *
+ *   - Před:  const pool = new Pool({ connectionString: ... });
+ *            await pool.query(sql);
+ *
+ *   - Po:    import { db } from '@/lib/db/rls-pool';
+ *            await db().query(sql);
+ */
+export function db(): RlsAwarePool {
+  return rlsPool;
+}
+
+/**
+ * Pro debug/test: získat aktuální RLS context (nebo undefined).
+ */
+export function getCurrentRlsContext(): RlsContext | undefined {
+  return tenantStore.getStore();
+}

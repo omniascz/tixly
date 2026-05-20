@@ -1,5 +1,6 @@
 import { jwtVerify } from 'jose';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { runWithPlatformAdminContext } from './db/rls-pool';
 
 const secretKey = new TextEncoder().encode(
   process.env.JWT_SECRET ?? 'dev-secret-change-me-min-32-chars-please',
@@ -23,4 +24,26 @@ export async function requirePlatformAdmin(
   } catch {
     return null;
   }
+}
+
+/**
+ * Convenience: requirePlatformAdmin + run v RLS bypass context.
+ *
+ *   export async function GET(req: NextRequest) {
+ *     return runAsPlatformAdmin(req, async (admin) => {
+ *       // Všechny db().query() calls automaticky bypass RLS
+ *       const r = await pool.query('SELECT * FROM catalog.events');
+ *       return NextResponse.json(r.rows);
+ *     });
+ *   }
+ */
+export async function runAsPlatformAdmin<T>(
+  req: NextRequest,
+  callback: (admin: { userId: string }) => Promise<T>,
+): Promise<T | Response> {
+  const admin = await requirePlatformAdmin(req);
+  if (!admin) {
+    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  }
+  return runWithPlatformAdminContext(async () => callback(admin));
 }

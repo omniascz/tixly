@@ -21,7 +21,8 @@ CREATE OR REPLACE FUNCTION app_current_promoter_id() RETURNS uuid AS $$
 $$ LANGUAGE sql STABLE;
 
 CREATE OR REPLACE FUNCTION app_is_platform_admin() RETURNS boolean AS $$
-  SELECT COALESCE(current_setting('app.is_platform_admin', true)::boolean, false);
+  -- current_setting() vrací '' (empty string) když není set; NULLIF + COALESCE převede na 'false'
+  SELECT COALESCE(NULLIF(current_setting('app.is_platform_admin', true), ''), 'false')::boolean;
 $$ LANGUAGE sql STABLE;
 
 -- catalog.events

@@ -10,15 +10,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
+import { runAsPromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
 
 const createSchema = z.object({
   eventId: z.string().uuid(),
@@ -35,9 +29,9 @@ const createSchema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
+  // RLS automaticky scoped přes app.current_promoter_id = promoter.promoterId.
+  // WHERE promoter_id = $1 zachováno jako defense-in-depth (i pro dev s tixly user).
   const eventId = req.nextUrl.searchParams.get('eventId');
   const args: unknown[] = [promoter.promoterId];
   let where = `ac.promoter_id = $1`;
@@ -94,11 +88,12 @@ export async function GET(req: NextRequest): Promise<Response> {
       ticketTypeNames: row.ticket_type_names ?? [],
     })),
   });
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
+  return runAsPromoter(req, async (promoter) => {
+  if (promoter.status !== 'active') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   const body: unknown = await req.json().catch(() => ({}));
@@ -193,4 +188,5 @@ export async function POST(req: NextRequest): Promise<Response> {
   } finally {
     client.release();
   }
+  });
 }
