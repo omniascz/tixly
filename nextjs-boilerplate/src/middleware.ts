@@ -250,6 +250,9 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon\\.ico|robots\\.txt|sitemap\\.xml).*)',
+    // Exclude Next.js internals + static assets v /public co se servují přímo.
+    // embed.js, sw.js a manifest.json MUSÍ být accessible bez locale prefix
+    // (3rd party embeds + service worker registrations).
+    '/((?!_next/static|_next/image|favicon\\.ico|robots\\.txt|sitemap\\.xml|embed\\.js|sw\\.js|manifest\\.json|icons/).*)',
   ],
 };
