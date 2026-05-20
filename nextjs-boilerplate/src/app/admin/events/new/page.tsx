@@ -26,6 +26,11 @@ import {
   type TemplateId,
   type EventTemplate,
 } from '@/lib/events/templates';
+import {
+  TOP_CATEGORIES,
+  TOP_CATEGORY_MAP,
+  FORMATS,
+} from '@/lib/events/categories';
 
 interface Venue {
   id: string;
@@ -72,8 +77,9 @@ interface FormState {
   // Krok 2: Základ
   title: string;
   description: string;
-  category: string;
-  eventType: string;
+  category: string;       // TOP — music, theatre, sport, ...
+  subcategory: string;    // SUB — concert_club, play, hockey, ... (musí patřit do category)
+  eventType: string;      // Format — physical, online, hybrid
   // Krok 3: Datum & místo
   dateStart: string;
   dateEnd: string;
@@ -125,32 +131,27 @@ const ALL_STEPS: WizardStepDef[] = [
   { id: 'review', label: 'Náhled', icon: Eye },
 ];
 
-const CATEGORIES: Record<string, string> = {
-  concert: 'Koncert',
-  festival: 'Festival',
-  theatre: 'Divadlo',
-  club_party: 'Klubová party',
-  sports: 'Sport',
-  conference: 'Konference',
-  workshop: 'Workshop',
-  family: 'Rodinná akce',
-  comedy: 'Komedie / Stand-up',
-  other: 'Jiné',
+// Hierarchická taxonomie — viz src/lib/events/categories.ts
+// (TOP druh × SUB žánr × Format formát)
+
+// Mapping ze starých template defaultCategory na nový TOP + SUB.
+// Použito v selectTemplate() pro auto-init formuláře.
+const TEMPLATE_TOP_SUB: Record<string, { top: string; sub: string }> = {
+  concert:    { top: 'music',      sub: 'concert_club' },
+  festival:   { top: 'music',      sub: 'festival_one_day' },
+  theatre:    { top: 'theatre',    sub: 'play' },
+  club_party: { top: 'club',       sub: 'club_party' },
+  sports:     { top: 'sport',      sub: 'hockey' },
+  conference: { top: 'conference', sub: 'b2b_conference' },
+  workshop:   { top: 'conference', sub: 'workshop_pro' },
+  family:     { top: 'family',     sub: 'kids_show' },
+  comedy:     { top: 'comedy',     sub: 'standup' },
+  other:      { top: 'other',      sub: 'other_other' },
 };
 
-const EVENT_TYPES: Record<string, string> = {
-  concert: 'Koncert',
-  theatre: 'Divadlo',
-  sport: 'Sport',
-  festival: 'Festival',
-  conference: 'Konference',
-  workshop: 'Workshop',
-  club: 'Klub',
-  family: 'Rodinné',
-  online: 'Online',
-  hybrid: 'Hybrid',
-  other: 'Jiné',
-};
+function templateToTopSub(defaultCategory: string): { top: string; sub: string } {
+  return TEMPLATE_TOP_SUB[defaultCategory] ?? { top: 'other', sub: 'other_other' };
+}
 
 const ZONE_TYPES: Record<string, string> = {
   general: 'GA / general',
@@ -223,12 +224,15 @@ export default function NewEventWizardPage() {
     [initialBase],
   );
 
-  const [form, setForm] = useState<FormState>({
+  const [form, setForm] = useState<FormState>(() => {
+    const ts = templateToTopSub(EVENT_TEMPLATES[DEFAULT_TEMPLATE].defaultCategory);
+    return {
     template: DEFAULT_TEMPLATE,
     title: '',
     description: '',
-    category: EVENT_TEMPLATES[DEFAULT_TEMPLATE].defaultCategory,
-    eventType: EVENT_TEMPLATES[DEFAULT_TEMPLATE].defaultEventType,
+    category: ts.top,
+    subcategory: ts.sub,
+    eventType: 'physical',
     dateStart: initialFromTemplate.days[0].startsAt,
     dateEnd:
       initialFromTemplate.days[initialFromTemplate.days.length - 1].endsAt,
@@ -243,6 +247,7 @@ export default function NewEventWizardPage() {
     minAge: '',
     resaleAllowed: true,
     publishImmediately: false,
+    };
   });
 
   const visibleSteps = ALL_STEPS.filter(
@@ -263,11 +268,13 @@ export default function NewEventWizardPage() {
   function selectTemplate(id: TemplateId) {
     const tpl = EVENT_TEMPLATES[id];
     const built = buildFromTemplate(tpl, initialBase);
+    const ts = templateToTopSub(tpl.defaultCategory);
     setForm((f) => ({
       ...f,
       template: id,
-      category: tpl.defaultCategory,
-      eventType: tpl.defaultEventType,
+      category: ts.top,
+      subcategory: ts.sub,
+      eventType: f.eventType,  // Format zachovat (orthogonal)
       dateStart: built.days[0].startsAt,
       dateEnd: built.days[built.days.length - 1].endsAt,
       days: built.days,
@@ -561,6 +568,7 @@ export default function NewEventWizardPage() {
           title: form.title,
           description: form.description || undefined,
           category: form.category,
+          subcategory: form.subcategory,
           eventType: form.eventType,
           dateStart: new Date(form.dateStart).toISOString(),
           dateEnd: form.dateEnd ? new Date(form.dateEnd).toISOString() : null,
@@ -726,34 +734,66 @@ export default function NewEventWizardPage() {
                   {form.description.length}/5000 znaků
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium">Kategorie</label>
+                  <label className="mb-1 block text-xs font-medium">
+                    Druh <span className="text-rose-500">*</span>
+                  </label>
                   <select
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                     value={form.category}
-                    onChange={(e) => update('category', e.target.value)}
+                    onChange={(e) => {
+                      const newTop = e.target.value;
+                      // Auto-vyber první sub z nové TOP kategorie
+                      const firstSub = TOP_CATEGORY_MAP[newTop]?.subcategories[0]?.id ?? '';
+                      setForm((f) => ({ ...f, category: newTop, subcategory: firstSub }));
+                    }}
                   >
-                    {Object.entries(CATEGORIES).map(([k, v]) => (
-                      <option key={k} value={k}>
-                        {v}
+                    {TOP_CATEGORIES.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.icon} {t.label}
                       </option>
                     ))}
                   </select>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Hlavní téma akce (Hudba, Divadlo, Sport, ...)
+                  </p>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium">Typ akce</label>
+                  <label className="mb-1 block text-xs font-medium">
+                    Žánr <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    value={form.subcategory}
+                    onChange={(e) => update('subcategory', e.target.value)}
+                  >
+                    {(TOP_CATEGORY_MAP[form.category]?.subcategories ?? []).map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Konkrétní žánr v rámci druhu
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium">Formát</label>
                   <select
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                     value={form.eventType}
                     onChange={(e) => update('eventType', e.target.value)}
                   >
-                    {Object.entries(EVENT_TYPES).map(([k, v]) => (
-                      <option key={k} value={k}>
-                        {v}
+                    {FORMATS.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.label}
                       </option>
                     ))}
                   </select>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Kde se odehrává
+                  </p>
                 </div>
               </div>
             </>

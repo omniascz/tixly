@@ -128,31 +128,24 @@ const TEMPLATE_IDS = [
   'online_stream',
 ] as const;
 
+// Nový TOP enum (viz src/lib/events/categories.ts)
+// Legacy hodnoty (concert, festival, sports, club_party, workshop) zachovány pro
+// backward compat (existující eventy před migrací 287).
 const EVENT_CATEGORIES = [
-  'concert',
-  'festival',
-  'theatre',
-  'club_party',
-  'sports',
-  'conference',
-  'workshop',
-  'family',
-  'comedy',
-  'other',
+  // New TOP
+  'music', 'theatre', 'comedy', 'sport', 'conference', 'family',
+  'club', 'gastro', 'exhibition', 'education', 'other',
+  // Legacy (auto-remap v migraci 287, ale schema sample valid)
+  'concert', 'festival', 'club_party', 'sports', 'workshop',
 ] as const;
 
+// Format = orthogonální dimenze (physical | online | hybrid)
+// Legacy hodnoty zachovány pro backward compat
 const EVENT_TYPES = [
-  'concert',
-  'theatre',
-  'sport',
-  'festival',
-  'conference',
-  'workshop',
-  'club',
-  'family',
-  'online',
-  'hybrid',
-  'other',
+  'physical', 'online', 'hybrid',
+  // Legacy
+  'concert', 'theatre', 'sport', 'festival', 'conference',
+  'workshop', 'club', 'family', 'other',
 ] as const;
 
 const createSchema = z.object({
@@ -162,8 +155,9 @@ const createSchema = z.object({
   // Krok 1: Základ
   title: z.string().min(2).max(200),
   description: z.string().max(5000).optional(),
-  category: z.enum(EVENT_CATEGORIES).default('concert'),
-  eventType: z.enum(EVENT_TYPES).default('concert'),
+  category: z.enum(EVENT_CATEGORIES).default('music'),
+  subcategory: z.string().min(1).max(60).optional(),
+  eventType: z.enum(EVENT_TYPES).default('physical'),
 
   // Krok 2: Datum & místo
   dateStart: z.string().datetime(),
@@ -342,7 +336,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const eventRes = await client.query<{ id: string }>(
       `INSERT INTO catalog.events (
          organizer_id, promoter_id, venue_id, title, description,
-         category, event_type, template,
+         category, subcategory, event_type, template,
          date_start, date_end, sale_start_at, sale_end_at,
          status, min_age, max_tickets_per_order,
          resale_allowed, cover_image_url,
@@ -351,11 +345,11 @@ export async function POST(req: NextRequest): Promise<Response> {
          slug,
          created_at, updated_at
        ) VALUES (
-         $1, $1, $2, $3, $4, $5, $6, $7,
-         $8, $9, $10, $11,
-         $12, $13, $14, $15, $16,
-         $17, 'Europe/Prague',
-         $18, $19, $20, $21,
+         $1, $1, $2, $3, $4, $5, $6, $7, $8,
+         $9, $10, $11, $12,
+         $13, $14, $15, $16, $17,
+         $18, 'Europe/Prague',
+         $19, $20, $21, $22,
          regexp_replace(regexp_replace(lower(translate($3,
            'áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ',
            'acdeeinorstuuyzacdeeinorstuuyz'
@@ -370,6 +364,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         input.title,
         input.description ?? null,
         input.category,
+        input.subcategory ?? null,
         input.eventType,
         input.template,
         input.dateStart,
