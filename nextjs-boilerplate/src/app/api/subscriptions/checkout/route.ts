@@ -140,16 +140,19 @@ export async function POST(req: NextRequest): Promise<Response> {
     const validUntil = new Date(pkg.sale_start);
     validUntil.setFullYear(validUntil.getFullYear() + 1);
 
-    // 5. INSERT holder
+    // 5. INSERT holder se status='pending_payment' (aktivace po confirm-payment)
+    const paymentId = randomUUID();
     let holderId: string;
     try {
       const h = await client.query<{ id: string }>(
         `INSERT INTO subscriptions.holders
            (package_id, user_id, holder_name, holder_email, holder_phone,
             preferred_seat_id, preferred_zone, status,
+            payment_status, payment_id, payment_provider,
             valid_from, valid_until, price_paid_halire, currency)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 'active',
-                 NOW(), $8::timestamptz, $9, $10)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending_payment',
+                 'pending', $8, 'mock',
+                 NOW(), $9::timestamptz, $10, $11)
          RETURNING id`,
         [
           pkg.id,
@@ -159,6 +162,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           d.buyerPhone ?? null,
           d.preferredSeatId ?? null,
           d.preferredZone ?? null,
+          paymentId,
           validUntil.toISOString(),
           pricePaid,
           pkg.currency,
@@ -175,8 +179,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     // 6. Mock payment session
-    const paymentId = randomUUID();
-    const gatewayUrl = `/mock-gopay/${paymentId}?subscription=${holderId}`;
+    const gatewayUrl = `/mock-subscription/${paymentId}`;
 
     await client.query('COMMIT');
 

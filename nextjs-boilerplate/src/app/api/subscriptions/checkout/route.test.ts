@@ -136,7 +136,7 @@ describe('POST /api/subscriptions/checkout', () => {
     expect(json.holderId).toBe('holder-1');
     expect(json.pricePaidHalire).toBe(250000);
     expect(json.currency).toBe('CZK');
-    expect(json.gatewayUrl).toMatch(/^\/mock-gopay\/.+/);
+    expect(json.gatewayUrl).toMatch(/^\/mock-subscription\/.+/);
   });
 
   it('early-bird cena aplikovaná pokud early_bird_until v budoucnosti', async () => {
