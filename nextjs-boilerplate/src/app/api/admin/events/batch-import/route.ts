@@ -109,9 +109,14 @@ export async function POST(req: NextRequest): Promise<Response> {
         const evRes = await client.query<{ id: string }>(
           `INSERT INTO catalog.events
              (organizer_id, promoter_id, venue_id, title, description, category,
-              date_start, status, event_type, currency, timezone)
+              date_start, status, event_type, currency, timezone, slug)
            VALUES ($1, $1, $2, $3, $4, $5,
-                   $6, 'draft', 'concert', 'CZK', 'Europe/Prague')
+                   $6, 'draft', 'concert', 'CZK', 'Europe/Prague',
+                   regexp_replace(regexp_replace(lower(translate($3,
+                     'áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ',
+                     'acdeeinorstuuyzacdeeinorstuuyz'
+                   )), '[^a-z0-9]+', '-', 'g'), '(^-|-$)', '', 'g')
+                   || '-' || substring(gen_random_uuid()::text FROM 1 FOR 6))
            RETURNING id`,
           [
             promoter.promoterId,

@@ -104,10 +104,10 @@ const CATEGORY_LABELS: Record<string, string> = {
 export default async function SubscriptionLandingPage({
   params,
 }: {
-  params: Promise<{ locale: string; promoter: string; slug: string }>;
+  params: Promise<{ locale: string; slug: string; packageSlug: string }>;
 }) {
-  const { locale, promoter, slug } = await params;
-  const data = await fetchPackage(promoter, slug);
+  const { locale, slug: promoterSlug, packageSlug } = await params;
+  const data = await fetchPackage(promoterSlug, packageSlug);
   if (!data) notFound();
 
   const { pkg, events } = data;
@@ -135,7 +135,7 @@ export default async function SubscriptionLandingPage({
     <div className="container mx-auto max-w-4xl px-4 py-10">
       <div className="mb-6">
         <Link
-          href={`/${locale}/p/${promoter}`}
+          href={`/${locale}/p/${promoterSlug}`}
           className="text-sm text-muted-foreground hover:underline"
         >
           ← {pkg.promoter_name}

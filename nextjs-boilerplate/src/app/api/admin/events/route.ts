@@ -348,6 +348,7 @@ export async function POST(req: NextRequest): Promise<Response> {
          resale_allowed, cover_image_url,
          currency, timezone,
          refund_deadline_days, refund_fee_pct, qr_policy, vat_category,
+         slug,
          created_at, updated_at
        ) VALUES (
          $1, $1, $2, $3, $4, $5, $6, $7,
@@ -355,6 +356,11 @@ export async function POST(req: NextRequest): Promise<Response> {
          $12, $13, $14, $15, $16,
          $17, 'Europe/Prague',
          $18, $19, $20, $21,
+         regexp_replace(regexp_replace(lower(translate($3,
+           'áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ',
+           'acdeeinorstuuyzacdeeinorstuuyz'
+         )), '[^a-z0-9]+', '-', 'g'), '(^-|-$)', '', 'g')
+         || '-' || substring(gen_random_uuid()::text FROM 1 FOR 6),
          NOW(), NOW()
        )
        RETURNING id`,
