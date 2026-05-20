@@ -9,6 +9,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { formatCzk, formatCzechDateShort } from '@/lib/format.js';
 
+export const dynamic = 'force-dynamic';
+
+
 interface OrderRow {
   order_id: string;
   created_at: string;

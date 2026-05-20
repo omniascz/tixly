@@ -8,6 +8,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
+export const dynamic = 'force-dynamic';
+
+
 interface OrderRow {
   order_id: string;
   created_at: string;

@@ -8,6 +8,9 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
+export const dynamic = 'force-dynamic';
+
+
 let pool: Pool | null = null;
 function db(): Pool {
   if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
