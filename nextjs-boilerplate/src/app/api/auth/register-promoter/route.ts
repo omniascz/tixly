@@ -8,6 +8,7 @@ import {
   setAuthCookies,
   getUserRoles,
 } from '@/lib/auth';
+import { checkAres, computeInitialRiskScore } from '@/lib/compliance/ares';
 
 const schema = z.object({
   email: z.string().email(),
@@ -15,6 +16,7 @@ const schema = z.object({
   name: z.string().min(1).max(120),
   companyName: z.string().min(2).max(200),
   slug: z.string().regex(/^[a-z0-9-]+$/, 'Pouze a-z, 0-9 a pomlčky'),
+  ico: z.string().regex(/^\d{8}$/, 'IČO musí mít 8 číslic').optional(),
 });
 
 export async function POST(request: NextRequest): Promise<Response> {
@@ -26,8 +28,16 @@ export async function POST(request: NextRequest): Promise<Response> {
       { status: 422 },
     );
   }
-  const { email, password, name, companyName, slug } = parsed.data;
+  const { email, password, name, companyName, slug, ico } = parsed.data;
   const hash = await hashPassword(password);
+
+  // ARES check (best-effort, non-blocking) — P0 risk mitigace
+  // Pokud IČO valid + active → low risk score. Pokud invalid → high risk.
+  const aresResult = ico
+    ? await checkAres(ico)
+    : { valid: false, active: false, error: 'NO_ICO_PROVIDED' };
+  const riskScore = computeInitialRiskScore(aresResult);
+
   const client = await db().connect();
 
   try {
@@ -42,10 +52,26 @@ export async function POST(request: NextRequest): Promise<Response> {
     const userId = userRes.rows[0].id;
 
     const promoterRes = await client.query<{ id: string }>(
-      `INSERT INTO platform.promoters (name, email, contact_email, slug, status, locale, created_at, updated_at)
-       VALUES ($1, $2, $2, $3, 'pending', 'cs', NOW(), NOW())
+      `INSERT INTO platform.promoters
+         (name, email, contact_email, slug, status, locale,
+          ico, ares_checked_at, ares_ico_valid, ares_company_active, ares_raw_response,
+          risk_score, pre_review_volume_cap_halire,
+          created_at, updated_at)
+       VALUES ($1, $2, $2, $3, 'pending', 'cs',
+               $4, NOW(), $5, $6, $7::jsonb,
+               $8, 10000000,
+               NOW(), NOW())
        RETURNING id`,
-      [companyName, email.toLowerCase(), slug],
+      [
+        companyName,
+        email.toLowerCase(),
+        slug,
+        ico ?? null,
+        aresResult.valid,
+        aresResult.active,
+        aresResult.raw ? JSON.stringify(aresResult.raw) : null,
+        riskScore,
+      ],
     );
     const promoterId = promoterRes.rows[0].id;
 

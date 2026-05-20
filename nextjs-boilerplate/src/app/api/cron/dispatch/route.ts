@@ -24,6 +24,7 @@ const ALLOWED_JOBS = new Set([
   'consent-log-purge',
   'daily-stats',
   'newsletter-digest',
+  'verify-event-completion',
   'expire-pending-orders',
   'onboarding-reminder',
   'payouts-auto-settle',

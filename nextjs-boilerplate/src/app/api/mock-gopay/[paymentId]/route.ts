@@ -78,6 +78,22 @@ export async function POST(
        WHERE id = $1`,
       [order.id, partial ? 'paid_partial' : 'paid'],
     );
+
+    // P0 RISK MITIGATION: inkrement pre_review_volume_used pro hard cap tracking
+    // (jen pokud promotér ještě nepass review)
+    await client.query(
+      `UPDATE platform.promoters
+          SET pre_review_volume_used_halire = pre_review_volume_used_halire + (
+            SELECT COALESCE(total_amount, 0) FROM orders.orders WHERE id = $1
+          )
+        WHERE id = (
+          SELECT e.promoter_id FROM orders.orders o
+          JOIN catalog.events e ON e.id = o.event_id
+          WHERE o.id = $1
+        )
+          AND pre_review_passed_at IS NULL`,
+      [order.id],
+    );
     await client.query(
       `INSERT INTO orders.payment_events (order_id, event_type, gopay_status, raw_payload, payment_provider)
        VALUES ($1, $2, $3, $4::jsonb, 'gopay')`,

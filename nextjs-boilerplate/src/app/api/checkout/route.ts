@@ -200,7 +200,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       `SELECT tt.id, tt.event_id, tt.remaining_qty, tt.name, e.title AS event_title,
               e.min_age, e.currency, e.queue_enabled,
               e.insurance_enabled, e.insurance_pct, tt.is_seated,
-              COALESCE(tt.requires_personalization, FALSE) AS requires_personalization
+              COALESCE(tt.requires_personalization, FALSE) AS requires_personalization,
+              e.promoter_id
        FROM catalog.ticket_types tt
        JOIN catalog.events e ON e.id = tt.event_id
        WHERE tt.id = $1 AND tt.event_id = $2 AND e.status = 'published'
@@ -214,7 +215,36 @@ export async function POST(req: NextRequest): Promise<Response> {
         { status: 404 },
       );
     }
-    const tt = ttRes.rows[0];
+    const tt = ttRes.rows[0] as { id: string; event_id: string; remaining_qty: number; name: string; event_title: string; min_age: number | null; currency: string; queue_enabled: boolean; insurance_enabled: boolean; insurance_pct: number; is_seated: boolean; requires_personalization: boolean; promoter_id: string };
+
+    // P0 RISK MITIGATION: hard cap pro T1 promotery
+    // Pokud promotér ještě nepass pre-review, kontrolujeme volume_used + nový order < cap
+    const capRes = await client.query<{ cap: number | null; used: number; passed_at: string | null }>(
+      `SELECT pre_review_volume_cap_halire AS cap,
+              pre_review_volume_used_halire AS used,
+              pre_review_passed_at::text AS passed_at
+         FROM platform.promoters
+        WHERE id = $1
+        FOR UPDATE`,
+      [tt.promoter_id],
+    );
+    if (capRes.rows.length > 0 && capRes.rows[0].passed_at === null && capRes.rows[0].cap !== null) {
+      // Promotér ještě nepass review — check cap
+      // (cap kontrola je orientační — finální check po vypočítání ceny níže)
+      const remainingCap = capRes.rows[0].cap - capRes.rows[0].used;
+      if (remainingCap <= 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'PROMOTER_VOLUME_CAP_REACHED',
+            message:
+              'Tento pořadatel dosáhl předregistračního limitu prodeje. ' +
+              'Akce čeká na schválení Tixly. Zkuste prosím později.',
+          },
+          { status: 403 },
+        );
+      }
+    }
 
     // Timed entry: pokud event.timed_entry_enabled, entrySlotId je vyžadován a
     // musí mít remaining >= quantity.

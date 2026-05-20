@@ -107,6 +107,14 @@ export async function POST(req: NextRequest): Promise<Response> {
          )::text AS chargebacks
        FROM active_promoters ap
        LEFT JOIN catalog.events e ON e.promoter_id = ap.id
+         -- P0 RISK MITIGATION: pre-event hold
+         -- 1. Akce už proběhla (date_end < periodEnd)
+         -- 2. EU 14-day refund window expired (date_end + 14 dní < periodEnd)
+         -- 3. Completion verified (scanner ≥ 30%) NEBO admin manual approval
+         AND COALESCE(e.date_end, e.date_start) + INTERVAL '14 days' < $2
+         AND (e.completion_status IN ('completed', 'no_show', 'cancelled')
+              OR e.payout_hold_until IS NULL
+              OR e.payout_hold_until < $2)
        LEFT JOIN orders.orders o ON o.event_id = e.id
          AND o.created_at >= $1 AND o.created_at < $2
        LEFT JOIN promoter_fee pf ON pf.promoter_id = ap.id
