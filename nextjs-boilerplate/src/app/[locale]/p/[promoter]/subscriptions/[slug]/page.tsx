@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Pool } from 'pg';
+import { BuyButton } from './BuyButton';
 
 interface PackageRow {
   id: string;
@@ -248,34 +249,22 @@ export default async function SubscriptionLandingPage({
             <p className="text-base font-medium">
               Posledních {remaining} {remaining === 1 ? 'kus' : 'kusů'}
             </p>
-            <button
-              type="button"
-              className="mt-3 inline-flex items-center rounded-md px-6 py-2 text-sm font-medium text-white"
-              style={{ background: brand }}
-              disabled
-              title="Buyer checkout flow — M2 milestone"
-            >
-              Koupit abonentku
-            </button>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Checkout flow se připravuje (M2 milestone).
-            </p>
+            <BuyButton
+              packageId={pkg.id}
+              brandColor={brand}
+              label="Koupit abonentku"
+              locale={(locale === 'sk' || locale === 'en' ? locale : 'cs') as 'cs' | 'sk' | 'en'}
+            />
           </>
         ) : (
           <>
             <p className="text-base font-medium">Připoj se k abonentům</p>
-            <button
-              type="button"
-              className="mt-3 inline-flex items-center rounded-md px-6 py-2 text-sm font-medium text-white"
-              style={{ background: brand }}
-              disabled
-              title="Buyer checkout flow — M2 milestone"
-            >
-              Koupit abonentku
-            </button>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Checkout flow se připravuje (M2 milestone).
-            </p>
+            <BuyButton
+              packageId={pkg.id}
+              brandColor={brand}
+              label="Koupit abonentku"
+              locale={(locale === 'sk' || locale === 'en' ? locale : 'cs') as 'cs' | 'sk' | 'en'}
+            />
           </>
         )}
       </section>
