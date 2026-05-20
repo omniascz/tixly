@@ -17,6 +17,26 @@ export interface PromoterContext {
 }
 
 /**
+ * RLS-aware DB helpers — re-export. Endpointy by měly volat:
+ *
+ *   const ctx = await requirePromoter(req);
+ *   await withPromoterDb(ctx.promoterId, async (client) => {
+ *     await client.query('SELECT * FROM catalog.events');
+ *     // RLS automaticky scoped na promoter_id = ctx.promoterId
+ *   });
+ *
+ * Bez session vars: app jako `tixly_app` user vidí jen `status='published'`.
+ */
+export {
+  withPromoterDb,
+  withPlatformAdminDb,
+  withAnonDb,
+  queryAsPromoter,
+  queryAsPlatformAdmin,
+  queryAnon,
+} from './db/with-context';
+
+/**
  * Resolve the active promoter context for the authenticated user.
  * Returns null if there's no active membership (or no user header).
  *
