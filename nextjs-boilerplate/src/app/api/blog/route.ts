@@ -34,7 +34,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     // Featured events
     const events = await db().query(
       `SELECT e.id, e.title, e.slug, e.date_start::text,
-              v.city, v.name AS venue_name, e.cover_image,
+              v.city, v.name AS venue_name, e.cover_image_url AS cover_image,
               (SELECT MIN(tt.base_price) FROM catalog.ticket_types tt
                WHERE tt.event_id = e.id AND tt.remaining_qty > 0) AS cheapest_price_halire
        FROM marketing.editorial_article_events aev

@@ -39,12 +39,12 @@ export async function GET(req: NextRequest): Promise<Response> {
   const limit = Math.min(Math.max(Number(req.nextUrl.searchParams.get('limit') ?? '6'), 1), 12);
 
   const r = await db().query<FeaturedEvent>(
-    `SELECT e.id, e.title, e.slug, e.date_start::text, e.cover_image,
+    `SELECT e.id, e.title, e.slug, e.date_start::text, e.cover_image_url AS cover_image,
             v.city, v.name AS venue_name,
             p.name AS promoter_name, p.slug AS promoter_slug, p.brand_color_hex,
             e.editorial_blurb,
-            (SELECT MIN(base_price_halire) FROM catalog.ticket_types
-              WHERE event_id = e.id AND is_active) AS min_price_halire,
+            (SELECT MIN(base_price) FROM catalog.ticket_types
+              WHERE event_id = e.id AND visibility = 'public') AS min_price_halire,
             COALESCE(
               (SELECT currency FROM catalog.ticket_types WHERE event_id = e.id LIMIT 1),
               'CZK'

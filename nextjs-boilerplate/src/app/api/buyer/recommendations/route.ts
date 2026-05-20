@@ -56,7 +56,7 @@ export async function GET(req: NextRequest): Promise<Response> {
      )
      SELECT
        e.id, e.title, e.slug, e.date_start::text, v.city, v.name AS venue_name,
-       e.event_type, e.cover_image,
+       e.event_type, e.cover_image_url AS cover_image,
        p.name AS promoter_name, p.slug AS promoter_slug,
        (SELECT MIN(tt.base_price) FROM catalog.ticket_types tt
         WHERE tt.event_id = e.id AND tt.remaining_qty > 0) AS cheapest_price_halire,
@@ -136,7 +136,7 @@ export async function GET(req: NextRequest): Promise<Response> {
      )
      SELECT
        e.id, e.title, e.slug, e.date_start::text, v.city, v.name AS venue_name,
-       e.event_type, e.cover_image,
+       e.event_type, e.cover_image_url AS cover_image,
        p.name AS promoter_name, p.slug AS promoter_slug,
        cheapest.price AS cheapest_price_halire,
        COALESCE(vel.recent_sales, 0)::int AS recent_sales,

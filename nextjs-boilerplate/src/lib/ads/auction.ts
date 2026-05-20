@@ -51,7 +51,7 @@ export async function findPlacementsForSlot(
     promoter_name: string;
     cpc_halire: number;
   }>(
-    `SELECT ac.id, ac.event_id, e.title AS event_title, e.cover_image AS event_image_url,
+    `SELECT ac.id, ac.event_id, e.title AS event_title, e.cover_image_url AS cover_image AS event_image_url,
             ac.promoter_id, p.name AS promoter_name, ac.cpc_halire
      FROM marketing.ad_campaigns ac
      JOIN catalog.events e ON e.id = ac.event_id

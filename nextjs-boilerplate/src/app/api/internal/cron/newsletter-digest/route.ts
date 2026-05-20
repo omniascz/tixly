@@ -166,10 +166,10 @@ export async function POST(req: NextRequest): Promise<Response> {
   for (const { promoter, emails } of byPromoter.values()) {
     // Load top 5 upcoming events
     const eventsRes = await db().query<EventRow>(
-      `SELECT e.id, e.title, e.slug, e.date_start::text, e.cover_image,
+      `SELECT e.id, e.title, e.slug, e.date_start::text, e.cover_image_url AS cover_image,
               v.name AS venue_name, v.city,
-              (SELECT MIN(base_price_halire) FROM catalog.ticket_types
-                WHERE event_id = e.id AND is_active) AS min_price_halire
+              (SELECT MIN(base_price) FROM catalog.ticket_types
+                WHERE event_id = e.id AND visibility = 'public') AS min_price_halire
          FROM catalog.events e
          LEFT JOIN catalog.venues v ON v.id = e.venue_id
         WHERE e.promoter_id = $1

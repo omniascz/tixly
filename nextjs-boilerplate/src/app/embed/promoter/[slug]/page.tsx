@@ -40,9 +40,9 @@ async function fetchPromoterAndEvents(
     const promoter = p.rows[0];
 
     const e = await db.query<EventRow>(
-      `SELECT e.id, e.title, e.slug, e.date_start::text, e.cover_image,
+      `SELECT e.id, e.title, e.slug, e.date_start::text, e.cover_image_url AS cover_image,
               v.city, v.name AS venue_name,
-              (SELECT MIN(base_price_halire) FROM catalog.ticket_types tt WHERE tt.event_id = e.id AND tt.is_active) AS min_price_halire,
+              (SELECT MIN(base_price) FROM catalog.ticket_types tt WHERE tt.event_id = e.id AND tt.visibility = 'public') AS min_price_halire,
               (SELECT currency FROM catalog.ticket_types tt WHERE tt.event_id = e.id LIMIT 1) AS currency
          FROM catalog.events e
          LEFT JOIN catalog.venues v ON v.id = e.venue_id

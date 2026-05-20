@@ -70,7 +70,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     `SELECT
        e.id, e.title, e.slug, e.date_start::text,
        v.city, v.name AS venue_name, v.latitude AS lat, v.longitude AS lng,
-       e.event_type, e.cover_image,
+       e.event_type, e.cover_image_url AS cover_image,
        p.name AS promoter_name,
        (SELECT MIN(tt.base_price)
         FROM catalog.ticket_types tt

@@ -19,7 +19,7 @@ async function fetchEvent(eventId: string): Promise<EventRow | null> {
   const db = new Pool({ connectionString: process.env.DATABASE_URL });
   try {
     const r = await db.query<EventRow>(
-      `SELECT e.id, e.title, e.slug, e.date_start::text, e.cover_image,
+      `SELECT e.id, e.title, e.slug, e.date_start::text, e.cover_image_url AS cover_image,
               v.city, v.name AS venue_name,
               p.name AS promoter_name, p.brand_color_hex
        FROM catalog.events e

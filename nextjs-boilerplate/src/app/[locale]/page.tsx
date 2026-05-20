@@ -36,7 +36,7 @@ interface CategoryRow {
 }
 
 const SELECT_EVENT_FIELDS = `e.id, e.title, e.slug, e.date_start, e.category, e.currency,
-            e.cover_image,
+            e.cover_image_url AS cover_image,
             v.name AS venue_name, v.city,
             p.name AS promoter_name, p.brand_color_hex,
             (SELECT MIN(base_price) FROM catalog.ticket_types

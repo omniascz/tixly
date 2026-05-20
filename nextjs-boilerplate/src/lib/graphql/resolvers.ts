@@ -69,7 +69,7 @@ export const resolvers = {
         return null;
       }
       const r = await db().query<EventRow & { cheapest_price: string | null; sold_out: boolean }>(
-        `SELECT e.id, e.slug, e.title, e.description, e.cover_image, e.event_type,
+        `SELECT e.id, e.slug, e.title, e.description, e.cover_image_url AS cover_image, e.event_type,
                 e.status, e.date_start::text, e.date_end::text, e.min_age, e.currency,
                 e.venue_id, e.promoter_id,
                 (SELECT MIN(tt.base_price)::text FROM catalog.ticket_types tt
@@ -125,7 +125,7 @@ export const resolvers = {
       const offsetIdx = params.length;
 
       const r = await db().query<EventRow & { cheapest_price: string | null; sold_out: boolean; total: string }>(
-        `SELECT e.id, e.slug, e.title, e.description, e.cover_image, e.event_type,
+        `SELECT e.id, e.slug, e.title, e.description, e.cover_image_url AS cover_image, e.event_type,
                 e.status, e.date_start::text, e.date_end::text, e.min_age, e.currency,
                 e.venue_id, e.promoter_id,
                 (SELECT MIN(tt.base_price)::text FROM catalog.ticket_types tt
@@ -177,7 +177,7 @@ export const resolvers = {
       const limit = Math.min(50, args.limit ?? 20);
       const q = `%${args.query.trim()}%`;
       const r = await db().query<EventRow & { cheapest_price: string | null; sold_out: boolean }>(
-        `SELECT e.id, e.slug, e.title, e.description, e.cover_image, e.event_type,
+        `SELECT e.id, e.slug, e.title, e.description, e.cover_image_url AS cover_image, e.event_type,
                 e.status, e.date_start::text, e.date_end::text, e.min_age, e.currency,
                 e.venue_id, e.promoter_id,
                 (SELECT MIN(tt.base_price)::text FROM catalog.ticket_types tt
@@ -205,7 +205,7 @@ export const resolvers = {
            WHERE e.status = 'published' AND e.date_start > NOW()
            GROUP BY e.id
          )
-         SELECT e.id, e.slug, e.title, e.description, e.cover_image, e.event_type,
+         SELECT e.id, e.slug, e.title, e.description, e.cover_image_url AS cover_image, e.event_type,
                 e.status, e.date_start::text, e.date_end::text, e.min_age, e.currency,
                 e.venue_id, e.promoter_id,
                 (SELECT MIN(tt.base_price)::text FROM catalog.ticket_types tt

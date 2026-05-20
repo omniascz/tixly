@@ -81,7 +81,7 @@ async function fetchPromoter(slug: string): Promise<{
     const [eRes, sRes] = await Promise.all([
       db.query<EventRow>(
         `SELECT e.id, e.slug, e.title, e.date_start, e.category, e.currency,
-                e.cover_image,
+                e.cover_image_url AS cover_image,
                 v.name AS venue_name, v.city,
                 (SELECT MIN(base_price) FROM catalog.ticket_types WHERE event_id = e.id) AS min_price
          FROM catalog.events e
