@@ -23,6 +23,7 @@ import {
   Bell,
   Webhook,
   Gift,
+  Layers,
   type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -56,6 +57,7 @@ const sections: NavSection[] = [
     label: 'Prodej',
     items: [
       { href: '/admin/events', label: 'Akce', icon: CalendarDays },
+      { href: '/admin/event-groups', label: 'Event Groups', icon: Layers },
       { href: '/admin/subscriptions', label: 'Abonentky', icon: TrendingUp },
       { href: '/admin/season', label: 'Sezónní přehled', icon: TrendingUp },
       { href: '/admin/orders', label: 'Objednávky', icon: ShoppingCart },
