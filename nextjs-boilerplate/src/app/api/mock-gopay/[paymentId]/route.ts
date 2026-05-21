@@ -127,6 +127,62 @@ export async function POST(
       }
     })();
 
+    // Eventim Pass-style: record buyer + phone purchase counts + bind phone na hot eventy.
+    void (async () => {
+      try {
+        const purchaseCtx = await db().query<{
+          event_id: string;
+          user_id: string;
+          phone: string | null;
+          ticket_count: number;
+          require_phone_binding: boolean;
+        }>(
+          `SELECT o.event_id, o.user_id, u.phone,
+                  (SELECT COUNT(*)::int FROM tickets.tickets WHERE order_id = o.id) AS ticket_count,
+                  COALESCE(e.require_phone_binding, false) AS require_phone_binding
+             FROM orders.orders o
+             JOIN identity.users u ON u.id = o.user_id
+             JOIN catalog.events e ON e.id = o.event_id
+            WHERE o.id = $1`,
+          [order.id],
+        );
+        if (purchaseCtx.rows.length === 0) return;
+        const ctx = purchaseCtx.rows[0];
+
+        await db().query(
+          `INSERT INTO orders.buyer_event_purchases (user_id, event_id, tickets_count)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (user_id, event_id)
+           DO UPDATE SET tickets_count = orders.buyer_event_purchases.tickets_count + EXCLUDED.tickets_count,
+                         last_purchase_at = now()`,
+          [ctx.user_id, ctx.event_id, ctx.ticket_count],
+        );
+
+        if (ctx.phone) {
+          await db().query(
+            `INSERT INTO orders.phone_event_purchases (phone_e164, event_id, tickets_count)
+             VALUES ($1, $2, $3)
+             ON CONFLICT (phone_e164, event_id)
+             DO UPDATE SET tickets_count = orders.phone_event_purchases.tickets_count + EXCLUDED.tickets_count,
+                           last_purchase_at = now()`,
+            [ctx.phone, ctx.event_id, ctx.ticket_count],
+          );
+        }
+
+        // Auto-bind phone na tickets pokud event vyžaduje
+        if (ctx.require_phone_binding && ctx.phone) {
+          await db().query(
+            `UPDATE tickets.tickets
+                SET bound_phone_e164 = $1, phone_bound_at = now()
+              WHERE order_id = $2 AND bound_phone_e164 IS NULL`,
+            [ctx.phone, order.id],
+          );
+        }
+      } catch (err) {
+        console.error('[mock-gopay] buyer purchase tracking failed', err);
+      }
+    })();
+
     // Fire-and-forget interní webhook (e-mail s lístkem) — mimo transakci
     void fetch(
       `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/api/internal/order-completed`,
