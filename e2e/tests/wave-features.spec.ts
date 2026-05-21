@@ -111,7 +111,7 @@ test.describe('Buyer self-service (Vlna 1)', () => {
 
   test('Cancel order page loaduje (pokud má lístek)', async ({ page, context }) => {
     await devLoginAsBuyer(page, context);
-    await page.goto('/cs/my-tickets', { waitUntil: 'networkidle' });
+    await page.goto('/cs/my-tickets', { waitUntil: 'domcontentloaded' });
 
     // Najdi první "Zrušit objednávku" link
     const cancelLink = page.getByRole('link', { name: /Zrušit objednávku/i }).first();
@@ -128,7 +128,7 @@ test.describe('Buyer self-service (Vlna 1)', () => {
 
   test('Edit attendee info loaduje', async ({ page, context }) => {
     await devLoginAsBuyer(page, context);
-    await page.goto('/cs/my-tickets', { waitUntil: 'networkidle' });
+    await page.goto('/cs/my-tickets', { waitUntil: 'domcontentloaded' });
     const editLink = page.getByRole('link', { name: /Změnit jméno/i }).first();
     if (await editLink.isVisible({ timeout: 3000 }).catch(() => false)) {
       await editLink.click();
@@ -139,7 +139,7 @@ test.describe('Buyer self-service (Vlna 1)', () => {
 
   test('Change ticket type loaduje', async ({ page, context }) => {
     await devLoginAsBuyer(page, context);
-    await page.goto('/cs/my-tickets', { waitUntil: 'networkidle' });
+    await page.goto('/cs/my-tickets', { waitUntil: 'domcontentloaded' });
     const changeLink = page.getByRole('link', { name: /Změnit typ lístku/i }).first();
     if (await changeLink.isVisible({ timeout: 3000 }).catch(() => false)) {
       await changeLink.click();
@@ -154,7 +154,7 @@ test.describe('Buyer self-service (Vlna 1)', () => {
 test.describe('Admin event-detail navigation (Vlna 3)', () => {
   test('Layout obsahuje dropdown menu se 7 kategoriemi', async ({ page, context }) => {
     await devLoginAsAdmin(page, context);
-    await page.goto('/admin/events', { waitUntil: 'networkidle' });
+    await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
 
     // Najdi první event link
     const eventLink = page.locator('a[href*="/admin/events/"][href*="/edit"]').first();
@@ -171,7 +171,7 @@ test.describe('Admin event-detail navigation (Vlna 3)', () => {
 
   test('Klik na Hot mode kategorii vede na hot-mode page', async ({ page, context }) => {
     await devLoginAsAdmin(page, context);
-    await page.goto('/admin/events', { waitUntil: 'networkidle' });
+    await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
 
     const firstEdit = page.locator('a[href*="/admin/events/"][href*="/edit"]').first();
     if (await firstEdit.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -215,7 +215,7 @@ test.describe('Admin OAuth apps (Vlna 2)', () => {
 test.describe('Admin postpone event (Vlna 1)', () => {
   test('Postpone page loaduje pro existující event', async ({ page, context }) => {
     await devLoginAsAdmin(page, context);
-    await page.goto('/admin/events', { waitUntil: 'networkidle' });
+    await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
     const firstEdit = page.locator('a[href*="/admin/events/"][href*="/edit"]').first();
 
     if (await firstEdit.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -241,7 +241,7 @@ test.describe('Admin postpone event (Vlna 1)', () => {
 test.describe('Admin donation campaign (Vlna 2)', () => {
   test('Donation page loaduje', async ({ page, context }) => {
     await devLoginAsAdmin(page, context);
-    await page.goto('/admin/events', { waitUntil: 'networkidle' });
+    await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
     const firstEdit = page.locator('a[href*="/admin/events/"][href*="/edit"]').first();
 
     if (await firstEdit.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -263,7 +263,7 @@ test.describe('Admin donation campaign (Vlna 2)', () => {
 test.describe('Admin group discounts (Vlna 2)', () => {
   test('Group discounts page loaduje', async ({ page, context }) => {
     await devLoginAsAdmin(page, context);
-    await page.goto('/admin/events', { waitUntil: 'networkidle' });
+    await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
     const firstEdit = page.locator('a[href*="/admin/events/"][href*="/edit"]').first();
 
     if (await firstEdit.isVisible({ timeout: 5000 }).catch(() => false)) {
