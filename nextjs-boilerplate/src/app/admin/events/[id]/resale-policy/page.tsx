@@ -73,7 +73,15 @@ export default function ResalePolicyPage(): JSX.Element {
   }
 
   if (!policy || !stats) {
-    return <div className="p-6 text-sm text-muted-foreground">{error ?? 'Načítám…'}</div>;
+    return (
+      <div className="space-y-6 p-6">
+        <PageHeader
+          title="Resale politika"
+          description="Eventim fanSALE-style: kdo, kdy a za jakých podmínek může přeprodat lístek"
+        />
+        <div className="text-sm text-muted-foreground">{error ?? 'Načítám…'}</div>
+      </div>
+    );
   }
 
   return (

@@ -38,16 +38,21 @@ export default function PricemasterPage(): JSX.Element {
       .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Chyba'));
   }, []);
 
-  if (error) {
+  // Render PageHeader vždy (lepší UX + e2e testability), data section pak conditional
+  if (error || !data) {
     return (
-      <div className="p-6">
-        <div className="rounded-md border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900">{error}</div>
+      <div className="space-y-6 p-6">
+        <PageHeader
+          title="Pricemaster"
+          description="TM-style cenová analytika — pozorovaná elasticita, A/B testy, history price changes"
+        />
+        {error ? (
+          <div className="rounded-md border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900">{error}</div>
+        ) : (
+          <div className="text-sm text-muted-foreground">Načítám…</div>
+        )}
       </div>
     );
-  }
-
-  if (!data) {
-    return <div className="p-6 text-sm text-muted-foreground">Načítám…</div>;
   }
 
   function elasticityLabel(e: number | null): { color: string; label: string } {

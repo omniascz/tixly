@@ -92,7 +92,12 @@ export default function PostponePage(): JSX.Element {
   }
 
   if (!event) {
-    return <div className="p-6 text-sm text-muted-foreground">{error ?? 'Načítám…'}</div>;
+    return (
+      <div className="space-y-6 p-6">
+        <PageHeader title="Odložit akci" description="Postponed status — akce se odloží, tickety zůstávají platné. Buyer dostanou notifikaci." />
+        <div className="text-sm text-muted-foreground">{error ?? 'Načítám…'}</div>
+      </div>
+    );
   }
 
   const isPostponed = event.postponed_at !== null;

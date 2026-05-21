@@ -84,7 +84,12 @@ export default function WillCallPage(): JSX.Element {
   }
 
   if (!config) {
-    return <div className="p-6 text-sm text-muted-foreground">{error ?? 'Načítám…'}</div>;
+    return (
+      <div className="space-y-6 p-6">
+        <PageHeader title="Will Call (vyzvednutí na pokladně)" description="Doplňková možnost vedle digital lístků. Buyer si v checkoutu zvolí Will Call, na akci přijde s dokladem na pokladnu." />
+        <div className="text-sm text-muted-foreground">{error ?? 'Načítám…'}</div>
+      </div>
+    );
   }
 
   const willCallEnabled = config.delivery_methods.includes('will_call');

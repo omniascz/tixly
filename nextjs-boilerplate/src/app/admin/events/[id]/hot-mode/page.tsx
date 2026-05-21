@@ -64,7 +64,12 @@ export default function HotEventModePage(): JSX.Element {
   }
 
   if (!config) {
-    return <div className="p-6 text-sm text-muted-foreground">{error ?? 'Načítám…'}</div>;
+    return (
+      <div className="space-y-6 p-6">
+        <PageHeader title="Hot Event Mode" description="Eventim Pass-style anti-scalp arsenal pro high-demand akce (Sheeran/Beyoncé scénář)" />
+        <div className="text-sm text-muted-foreground">{error ?? 'Načítám…'}</div>
+      </div>
+    );
   }
 
   return (
