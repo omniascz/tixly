@@ -176,3 +176,116 @@ export async function trackAdClick(input: {
     client.release();
   }
 }
+
+// ─── Vickrey (TM-style) auction s quality score ────────────────────
+
+export interface VickreyContext {
+  slot: AdSlot;
+  shownOnEventId?: string;
+  shownOnPromoterId?: string;
+  category?: string;
+  sessionHash?: string;
+}
+
+export interface VickreyResult {
+  winningCampaignId: string | null;
+  winningEventId: string | null;
+  chargedHalire: number;
+  participantsCount: number;
+  topScore: number;
+}
+
+/**
+ * Second-price auction s CTR-based quality score. Score = bid × quality_factor,
+ * vítěz platí (2nd_score / winner_quality) + 1 (cap na vlastní bid).
+ * Solo bidder → platí 50 % bid (min 100 hal).
+ */
+export async function runVickreyAuction(ctx: VickreyContext): Promise<VickreyResult> {
+  const conditions: string[] = [
+    `ac.status = 'active'`,
+    `ac.budget_remaining > 0`,
+    `(ac.ends_at IS NULL OR ac.ends_at > now())`,
+    `ac.starts_at <= now()`,
+    `ac.slot = $1`,
+  ];
+  const args: unknown[] = [ctx.slot];
+
+  if (ctx.category) {
+    args.push(ctx.category);
+    conditions.push(`(ac.category IS NULL OR ac.category = $${args.length})`);
+  }
+  if (ctx.shownOnPromoterId) {
+    args.push(ctx.shownOnPromoterId);
+    conditions.push(`(ac.promoter_id = $${args.length} OR ac.cross_promo_enabled = true)`);
+  }
+
+  const r = await db().query<{
+    id: string; event_id: string; cpc_halire: number;
+    impressions: number; clicks: number;
+  }>(
+    `SELECT ac.id, ac.event_id, ac.cpc_halire, ac.impressions, ac.clicks
+       FROM marketing.ad_campaigns ac
+      WHERE ${conditions.join(' AND ')}`,
+    args,
+  );
+
+  function quality(impressions: number, clicks: number): number {
+    if (impressions < 100) return 1.0;
+    const ctr = clicks / impressions;
+    return Math.max(0.3, Math.min(2.5, 1.0 + (ctr - 0.02) * 25));
+  }
+
+  if (r.rows.length === 0) {
+    void logVickrey(ctx, [], null, 0, 0);
+    return { winningCampaignId: null, winningEventId: null, chargedHalire: 0, participantsCount: 0, topScore: 0 };
+  }
+
+  const scored = r.rows.map((c) => {
+    const q = quality(c.impressions, c.clicks);
+    return { ...c, q, score: c.cpc_halire * q };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  const winner = scored[0];
+
+  let charged: number;
+  if (scored.length > 1) {
+    const second = scored[1].score;
+    charged = Math.min(winner.cpc_halire, Math.ceil(second / Math.max(winner.q, 0.01)) + 1);
+  } else {
+    charged = Math.max(100, Math.round(winner.cpc_halire * 0.5));
+  }
+
+  void logVickrey(
+    ctx,
+    scored.map((s) => ({
+      campaign_id: s.id, bid_halire: s.cpc_halire,
+      ctr: s.clicks / Math.max(s.impressions, 1), score: s.score,
+    })),
+    winner.id, winner.score, charged,
+  );
+
+  return {
+    winningCampaignId: winner.id,
+    winningEventId: winner.event_id,
+    chargedHalire: charged,
+    participantsCount: scored.length,
+    topScore: winner.score,
+  };
+}
+
+async function logVickrey(
+  ctx: VickreyContext,
+  participants: { campaign_id: string; bid_halire: number; ctr: number; score: number }[],
+  winnerId: string | null, topScore: number, charged: number,
+): Promise<void> {
+  await db().query(
+    `INSERT INTO marketing.ad_auction_log
+       (slot, shown_on_event_id, shown_on_promoter_id, participants,
+        winning_campaign_id, winning_score, charged_halire, user_session_hash)
+     VALUES ($1, $2, $3, $4::jsonb, $5, $6, $7, $8)`,
+    [
+      ctx.slot, ctx.shownOnEventId ?? null, ctx.shownOnPromoterId ?? null,
+      JSON.stringify(participants), winnerId, topScore, charged, ctx.sessionHash ?? null,
+    ],
+  ).catch((e) => console.error('[ad_auction_log]', e));
+}

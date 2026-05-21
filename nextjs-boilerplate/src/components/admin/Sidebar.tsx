@@ -47,6 +47,7 @@ const sections: NavSection[] = [
     items: [
       { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/admin/dashboard/live', label: 'Live prodej', icon: TrendingUp },
+      { href: '/admin/pricemaster', label: 'Pricemaster', icon: TrendingUp },
     ],
   },
   {
