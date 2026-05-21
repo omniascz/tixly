@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Apple, Smartphone, Send, X, RotateCw } from 'lucide-react';
+import { Apple, Smartphone, Send, X, RotateCw, Nfc, Shield } from 'lucide-react';
+import { computeDeviceFingerprint } from '@/lib/safetix/fingerprint';
 
 interface Props {
   ticketId: string;
@@ -19,12 +20,36 @@ interface Props {
 export function MobileTicketView(props: Props): JSX.Element {
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [transferOpen, setTransferOpen] = useState(false);
+  const [nfcOpen, setNfcOpen] = useState(false);
+  const [now, setNow] = useState(() => new Date());
+  const [bindingWarning, setBindingWarning] = useState<string | null>(null);
 
   useEffect(() => {
-    // Boost brightness on mobile (works only on standalone PWA on iOS 16.4+)
+    // Wake-lock pro screen brightness na iOS standalone PWA
     if ('wakeLock' in navigator) {
       navigator.wakeLock.request('screen').catch(() => null);
     }
+
+    // Device binding — first-view fingerprint lock
+    void (async () => {
+      try {
+        const fp = await computeDeviceFingerprint();
+        const r = await fetch(`/api/buyer/tickets/${props.ticketId}/bind-device`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fingerprint: fp }),
+        });
+        if (r.status === 409) {
+          const data = await r.json() as { message?: string };
+          setBindingWarning(data.message ?? 'Lístek je svázán s jiným zařízením.');
+        }
+      } catch {
+        // silent
+      }
+    })();
+
+    // Tick clock pro watermark
+    const clockInterval = setInterval(() => setNow(new Date()), 1000);
 
     // Fetch dynamic rotating QR
     let cancelled = false;
@@ -47,6 +72,7 @@ export function MobileTicketView(props: Props): JSX.Element {
     return () => {
       cancelled = true;
       clearInterval(interval);
+      clearInterval(clockInterval);
       if (qrUrl) URL.revokeObjectURL(qrUrl);
     };
   }, [props.ticketId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -105,10 +131,17 @@ export function MobileTicketView(props: Props): JSX.Element {
         </div>
       ) : null}
 
+      {bindingWarning ? (
+        <div className="mx-5 my-2 flex items-center gap-2 rounded-md border border-yellow-400 bg-yellow-50 p-2 text-xs text-yellow-900">
+          <Shield className="h-4 w-4 flex-shrink-0" />
+          <span>{bindingWarning}</span>
+        </div>
+      ) : null}
+
       {/* QR card */}
       <main className="flex flex-1 flex-col items-center justify-center px-5">
-        <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
-          <div className="aspect-square w-full overflow-hidden rounded-lg bg-white">
+        <div className="relative w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
+          <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-white">
             {qrUrl ? (
               <img src={qrUrl} alt="QR kód" className="h-full w-full object-contain" />
             ) : (
@@ -116,6 +149,12 @@ export function MobileTicketView(props: Props): JSX.Element {
                 <RotateCw className="h-8 w-8 animate-spin text-slate-400" />
               </div>
             )}
+            {/* Anti-screenshot watermark — live timestamp + ticket id + holder */}
+            <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-2">
+              <p className="rounded bg-white/80 px-2 py-0.5 font-mono text-[9px] text-slate-700">
+                {props.holderName.slice(0, 16)} · {now.toLocaleTimeString('cs-CZ')} · {props.ticketId.slice(0, 6)}
+              </p>
+            </div>
           </div>
           <div className="mt-4 space-y-1 text-center">
             <p className="text-xs uppercase tracking-wide text-slate-500">{props.ticketTypeName}</p>
@@ -127,7 +166,7 @@ export function MobileTicketView(props: Props): JSX.Element {
         </div>
 
         <p className="mt-3 text-center text-xs text-white/70">
-          Kód se obměňuje co 30 sekund. Screenshot nepoužitelný.
+          Kód se obměňuje co 30 sekund. Screenshot nepoužitelný — watermark zobrazuje aktuální čas.
         </p>
       </main>
 
@@ -149,6 +188,13 @@ export function MobileTicketView(props: Props): JSX.Element {
         </button>
         <button
           type="button"
+          onClick={() => setNfcOpen(true)}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/20 px-4 py-3 text-sm font-semibold text-white"
+        >
+          <Nfc className="h-4 w-4" /> NFC tap-to-enter
+        </button>
+        <button
+          type="button"
           onClick={() => setTransferOpen(true)}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/20 px-4 py-3 text-sm font-semibold text-white"
         >
@@ -162,6 +208,81 @@ export function MobileTicketView(props: Props): JSX.Element {
           onClose={() => setTransferOpen(false)}
         />
       ) : null}
+      {nfcOpen ? (
+        <NfcSheet
+          ticketId={props.ticketId}
+          onClose={() => setNfcOpen(false)}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function NfcSheet({ ticketId, onClose }: { ticketId: string; onClose: () => void }): JSX.Element {
+  const [token, setToken] = useState<string | null>(null);
+  const [ttl, setTtl] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function refresh() {
+      try {
+        const r = await fetch(`/api/buyer/tickets/${ticketId}/nfc-payload`);
+        if (!r.ok) {
+          const e = await r.json() as { error?: string };
+          throw new Error(e.error ?? `HTTP ${r.status}`);
+        }
+        const data = await r.json() as { token: string; ttlSeconds: number };
+        if (!cancelled) {
+          setToken(data.token);
+          setTtl(data.ttlSeconds);
+        }
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : 'Chyba');
+      }
+    }
+    void refresh();
+    const interval = setInterval(refresh, 7000);
+    const tick = setInterval(() => setTtl((t) => Math.max(0, t - 1)), 1000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      clearInterval(tick);
+    };
+  }, [ticketId]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end bg-black/60 sm:items-center sm:justify-center">
+      <div className="w-full rounded-t-3xl bg-white p-6 sm:max-w-sm sm:rounded-3xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-semibold">NFC tap-to-enter</h2>
+          <button type="button" onClick={onClose} aria-label="Zavřít">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {error ? (
+          <p className="text-sm text-rose-700">{error}</p>
+        ) : !token ? (
+          <p className="text-sm text-slate-500">Generuji…</p>
+        ) : (
+          <>
+            <div className="mb-3 rounded-lg bg-emerald-50 p-3 text-center">
+              <Nfc className="mx-auto h-10 w-10 text-emerald-600" />
+              <p className="mt-2 text-xs text-emerald-800">
+                Přilož telefon ke scanneru u brány. Payload vyprší za <strong>{ttl}s</strong>.
+              </p>
+            </div>
+            <details className="rounded-lg border bg-slate-50 p-3 text-xs">
+              <summary className="cursor-pointer font-semibold">Zobrazit token (debug)</summary>
+              <p className="mt-2 break-all font-mono text-[10px]">{token}</p>
+            </details>
+            <p className="mt-3 text-center text-[10px] text-slate-500">
+              Native app zapíše token do NFC tag emulation. PWA: scanner musí umět číst přes Web NFC API.
+            </p>
+          </>
+        )}
+      </div>
     </div>
   );
 }
