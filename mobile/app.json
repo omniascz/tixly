@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "Tixly",
+    "slug": "tixly",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#6C47FF"
+    },
+    "scheme": "tixly",
+    "ios": {
+      "bundleIdentifier": "cz.tixly.app",
+      "supportsTablet": true,
+      "associatedDomains": ["applinks:tixly.cz", "applinks:app.tixly.cz"],
+      "infoPlist": {
+        "NSCameraUsageDescription": "Tixly potřebuje fotoaparát pro skenování vstupenek na vstupu.",
+        "NSFaceIDUsageDescription": "Tixly použije Face ID pro rychlé přihlášení."
+      }
+    },
+    "android": {
+      "package": "cz.tixly.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#6C47FF"
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [{ "scheme": "https", "host": "tixly.cz" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      ["expo-local-authentication", { "faceIDPermission": "Použít Face ID pro přihlášení" }]
+    ],
+    "extra": {
+      "apiBaseUrl": "https://app.tixly.cz"
+    }
+  }
+}
