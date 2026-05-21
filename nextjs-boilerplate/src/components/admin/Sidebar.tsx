@@ -89,6 +89,9 @@ const sections: NavSection[] = [
       { href: '/admin/email-templates', label: 'E-mail šablony', icon: Mail },
       { href: '/admin/subscription-plans', label: 'Permanentky', icon: Repeat },
       { href: '/admin/ads', label: 'Marketplace Ads', icon: Megaphone },
+      { href: '/admin/collections', label: 'Kolekce', icon: Layers },
+      { href: '/admin/tracking-pixels', label: 'Tracking Pixely', icon: Tag },
+      { href: '/admin/event-templates', label: 'Event templates', icon: Repeat },
     ],
   },
   {
@@ -108,6 +111,7 @@ const sections: NavSection[] = [
     label: 'Integrace',
     items: [
       { href: '/admin/webhooks', label: 'Webhooks', icon: Webhook },
+      { href: '/admin/oauth-apps', label: 'OAuth apps', icon: Lock },
     ],
   },
 ];
