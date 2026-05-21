@@ -19,6 +19,7 @@ import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { z } from 'zod';
+import { reissueTicket, enqueueSellerPayout } from '@/lib/resale/reissue';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -113,23 +114,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       return NextResponse.json({ error: 'Cannot buy your own listing' }, { status: 409 });
     }
 
-    // Mark listing sold
-    await client.query(
-      `UPDATE resale.resale_listings
-       SET status = 'sold', sold_at = NOW(), buyer_id = $1
-       WHERE id = $2`,
-      [buyerId, listing.id],
-    );
-
-    // Transfer ticket ownership + increment transfer_count
-    await client.query(
-      `UPDATE tickets.tickets
-       SET owner_id = $1, transfer_count = transfer_count + 1, updated_at = NOW()
-       WHERE id = $2`,
-      [buyerId, listing.ticket_id],
-    );
-
-    // Create a fresh paid order for the buyer (track in identity)
+    // Create a fresh paid order for the buyer
     const newOrderId = randomUUID();
     await client.query(
       `INSERT INTO orders.orders
@@ -151,13 +136,41 @@ export async function POST(req: NextRequest): Promise<Response> {
       ],
     );
 
+    // Eventim-style re-issue: revoke original, mint new s novým TOTP
+    const reissue = await reissueTicket({
+      client,
+      originalTicketId: listing.ticket_id,
+      newOwnerId: buyerId,
+      newOrderId,
+      reason: 'resale_sale',
+    });
+
+    // Mark listing sold + link na re-issued ticket
+    await client.query(
+      `UPDATE resale.resale_listings
+       SET status = 'sold', sold_at = NOW(), buyer_id = $1, reissued_ticket_id = $2
+       WHERE id = $3`,
+      [buyerId, reissue.newTicketId, listing.id],
+    );
+
+    // Enqueue seller payout (4 dny default)
+    const payout = await enqueueSellerPayout({
+      client,
+      listingId: listing.id,
+      sellerId: listing.seller_id,
+      salePriceHalire: listing.ask_price,
+      eventId: listing.event_id,
+    });
+
     await client.query('COMMIT');
     return NextResponse.json({
       ok: true,
       listingId: listing.id,
-      ticketId: listing.ticket_id,
+      originalTicketId: listing.ticket_id,
+      newTicketId: reissue.newTicketId,
       newOrderId,
       pricePaidHalire: listing.ask_price,
+      sellerPayoutScheduledFor: payout.scheduledFor.toISOString(),
     });
   } catch (err) {
     await client.query('ROLLBACK');

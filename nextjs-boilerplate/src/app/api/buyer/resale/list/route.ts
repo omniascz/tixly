@@ -15,6 +15,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { z } from 'zod';
+import { checkResaleEligibility } from '@/lib/resale/reissue';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -67,6 +68,18 @@ export async function GET(req: NextRequest): Promise<Response> {
   });
 }
 
+function humanResaleReason(reason: string): string {
+  switch (reason) {
+    case 'event_resale_disabled': return 'Pořadatel resale neumožňuje.';
+    case 'ticket_type_not_resellable': return 'Tento typ vstupenky nelze přeprodat.';
+    case 'combo_excluded': return 'Balíčkové vstupenky nelze přeprodat (vyloučeno politikou).';
+    case 'ticket_not_valid': return 'Lístek není v platném stavu.';
+    case 'past_deadline': return 'Deadline pro resale už uplynul.';
+    case 'ticket_not_found': return 'Lístek nenalezen.';
+    default: return 'Lístek nelze přeprodat.';
+  }
+}
+
 export async function POST(req: NextRequest): Promise<Response> {
   const headerUserId = req.headers.get('x-user-id');
 
@@ -117,12 +130,17 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Not the ticket owner' }, { status: 403 });
     }
-    if (ticket.status !== 'valid') {
+
+    // Eventim-style eligibility (policy + deadline + combo + status)
+    const eligibility = await checkResaleEligibility(ticketId);
+    if (!eligibility.eligible) {
       await client.query('ROLLBACK');
-      return NextResponse.json(
-        { error: `Ticket status is "${ticket.status}", only "valid" can be listed` },
-        { status: 409 },
-      );
+      return NextResponse.json({
+        error: 'RESALE_NOT_ELIGIBLE',
+        reason: eligibility.reason,
+        resaleDeadline: eligibility.resaleDeadline,
+        message: humanResaleReason(eligibility.reason),
+      }, { status: 409 });
     }
 
     // EU price cap
