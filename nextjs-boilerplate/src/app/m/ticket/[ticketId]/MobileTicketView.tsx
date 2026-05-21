@@ -140,7 +140,23 @@ export function MobileTicketView(props: Props): JSX.Element {
 
       {/* QR card */}
       <main className="flex flex-1 flex-col items-center justify-center px-5">
-        <div className="relative w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
+        <div className="relative w-full max-w-sm animate-pulse rounded-3xl bg-white p-6 shadow-2xl" style={{ animationDuration: '4s' }}>
+          {/* Live ticket animation overlay — shimmer effect (TM Enhanced Wallet parita) */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl">
+            <div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+              style={{
+                animation: 'shimmer 3s infinite',
+                transform: 'translateX(-100%)',
+              }}
+            />
+          </div>
+          <style jsx>{`
+            @keyframes shimmer {
+              0% { transform: translateX(-100%); }
+              100% { transform: translateX(200%); }
+            }
+          `}</style>
           <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-white">
             {qrUrl ? (
               <img src={qrUrl} alt="QR kód" className="h-full w-full object-contain" />
