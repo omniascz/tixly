@@ -22,6 +22,8 @@ interface Campaign {
   starts_at: string;
   ends_at: string | null;
   created_at: string;
+  cross_promo_enabled?: boolean;
+  bid_strategy?: 'cpc' | 'cpm' | 'auto';
 }
 
 interface Event {
@@ -53,6 +55,8 @@ export default function AdsAdminPage() {
   const [category, setCategory] = useState('');
   const [cpcKc, setCpcKc] = useState('5');
   const [budgetKc, setBudgetKc] = useState('500');
+  const [crossPromo, setCrossPromo] = useState(false);
+  const [bidStrategy, setBidStrategy] = useState<'cpc' | 'cpm' | 'auto'>('cpc');
 
   useEffect(() => {
     void load();
@@ -81,6 +85,8 @@ export default function AdsAdminPage() {
         category: category.trim() || undefined,
         cpcHalire: Math.round(Number(cpcKc) * 100),
         budgetHalire: Math.round(Number(budgetKc) * 100),
+        crossPromoEnabled: crossPromo,
+        bidStrategy,
       }, { throwOnError: true });
       setShowForm(false);
       setEventId('');
@@ -208,6 +214,37 @@ export default function AdsAdminPage() {
                 />
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium">Bidding strategie</label>
+                <select
+                  value={bidStrategy}
+                  onChange={(e) => setBidStrategy(e.target.value as 'cpc' | 'cpm' | 'auto')}
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                >
+                  <option value="cpc">CPC — platíš za klik</option>
+                  <option value="cpm">CPM — platíš za 1000 impresí</option>
+                  <option value="auto">Auto — algoritmus optimalizuje</option>
+                </select>
+              </div>
+              <div className="flex items-end">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={crossPromo}
+                    onChange={(e) => setCrossPromo(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <span>
+                    Cross-promo
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      (zobrazovat na jiných promotérech)
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
             <Button onClick={createCampaign} disabled={busy || !eventId}>
               {busy ? 'Vytvářím…' : 'Vytvořit kampaň'}
             </Button>

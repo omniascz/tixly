@@ -106,6 +106,27 @@ export async function POST(
     );
     await client.query('COMMIT');
 
+    // Real-time sales stream — append do revenue.sales_stream pro SSE dashboard.
+    // Mimo transakci — nesmí blokovat odpověď ani rollbacknout order při chybě.
+    void (async () => {
+      try {
+        await db().query(
+          `INSERT INTO revenue.sales_stream
+             (promoter_id, event_id, order_id, amount_halire, currency, ticket_count, event_title)
+           SELECT
+             e.promoter_id, o.event_id, o.id, o.total_amount, COALESCE(o.currency, 'CZK'),
+             (SELECT COUNT(*)::int FROM tickets.tickets WHERE order_id = o.id),
+             e.title
+           FROM orders.orders o
+           JOIN catalog.events e ON e.id = o.event_id
+           WHERE o.id = $1`,
+          [order.id],
+        );
+      } catch (err) {
+        console.error('[mock-gopay] sales_stream insert failed', err);
+      }
+    })();
+
     // Fire-and-forget interní webhook (e-mail s lístkem) — mimo transakci
     void fetch(
       `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/api/internal/order-completed`,

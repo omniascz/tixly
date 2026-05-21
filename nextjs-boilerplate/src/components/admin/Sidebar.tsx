@@ -44,7 +44,10 @@ interface NavSection {
 const sections: NavSection[] = [
   {
     label: 'Přehled',
-    items: [{ href: '/admin', label: 'Dashboard', icon: LayoutDashboard }],
+    items: [
+      { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/admin/dashboard/live', label: 'Live prodej', icon: TrendingUp },
+    ],
   },
   {
     label: 'Setup',
