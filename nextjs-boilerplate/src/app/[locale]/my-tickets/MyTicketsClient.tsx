@@ -484,6 +484,24 @@ function TicketCard({
           >
             {refundOpen ? 'Zrušit' : 'Požádat o refundaci'}
           </button>
+          <Link
+            href={`/${locale}/my-tickets/${ticket.id}/attendee`}
+            className="text-xs text-slate-700 hover:underline"
+          >
+            ✏️ Změnit jméno/email
+          </Link>
+          <Link
+            href={`/${locale}/my-tickets/${ticket.id}/change`}
+            className="text-xs text-amber-700 hover:underline"
+          >
+            ↔️ Změnit typ lístku
+          </Link>
+          <Link
+            href={`/${locale}/my-tickets/${ticket.id}/cancel-order`}
+            className="text-xs text-rose-800 hover:underline"
+          >
+            ✕ Zrušit objednávku
+          </Link>
         </div>
       ) : null}
 

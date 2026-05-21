@@ -168,6 +168,7 @@ const columns: Column<AdminEvent>[] = [
         >
           🔥 Dynamic
         </Link>
+        <CloneButton eventId={row.id} eventTitle={row.name} />
         <Link
           href={`/admin/orders?eventId=${row.id}`}
           className="font-medium text-primary hover:underline"
@@ -178,6 +179,41 @@ const columns: Column<AdminEvent>[] = [
     ),
   },
 ];
+
+function CloneButton({ eventId, eventTitle }: { eventId: string; eventTitle: string }): JSX.Element {
+  return (
+    <button
+      type="button"
+      className="font-medium text-purple-700 hover:underline"
+      onClick={async () => {
+        const newTitle = prompt(`Název kopie akce "${eventTitle}":`, `${eventTitle} (kopie)`);
+        if (!newTitle) return;
+        const newDate = prompt('Nové datum (YYYY-MM-DD HH:MM):', '2026-12-31 20:00');
+        if (!newDate) return;
+        try {
+          const iso = new Date(newDate.replace(' ', 'T')).toISOString();
+          const r = await fetch(`/api/admin/events/${eventId}/clone`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ newTitle, newDateStart: iso }),
+          });
+          const data = await r.json() as { newEventId?: string; error?: string; cloned?: { ticket_types: number } };
+          if (!r.ok) {
+            alert(data.error ?? `HTTP ${r.status}`);
+            return;
+          }
+          alert(`Akce naklonována. ${data.cloned?.ticket_types ?? 0} typů lístků zkopírováno.`);
+          window.location.href = `/admin/events/${data.newEventId}/edit`;
+        } catch (e) {
+          alert(e instanceof Error ? e.message : 'Chyba');
+        }
+      }}
+    >
+      📋 Klon
+    </button>
+  );
+}
 
 export default function AdminEventsPage() {
   const { data, isLoading, isError, error } = useAdminEvents();
