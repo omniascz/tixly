@@ -1,0 +1,32 @@
+/**
+ * GET /api/cron/inventory-refresh
+ *
+ * Refresh materialized view catalog.mv_event_inventory_status.
+ * Spouští se á 1 minuta přes Vercel cron.
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { Pool } from 'pg';
+
+let pool: Pool | null = null;
+function db(): Pool {
+  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  return pool;
+}
+
+export async function GET(req: NextRequest): Promise<Response> {
+  const isVercelCron = req.headers.get('x-vercel-cron') !== null;
+  const secret = req.headers.get('x-cron-secret');
+  if (!isVercelCron && secret !== process.env.CRON_SECRET) {
+    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  }
+
+  const start = Date.now();
+  await db().query(`REFRESH MATERIALIZED VIEW CONCURRENTLY catalog.mv_event_inventory_status`)
+    .catch(async () => {
+      // Fallback non-concurrent pokud index neexistuje
+      await db().query(`REFRESH MATERIALIZED VIEW catalog.mv_event_inventory_status`);
+    });
+
+  const durationMs = Date.now() - start;
+  return NextResponse.json({ refreshed: true, durationMs, at: new Date().toISOString() });
+}
