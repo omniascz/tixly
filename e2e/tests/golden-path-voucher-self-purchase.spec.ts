@@ -213,3 +213,114 @@ test('Voucher landing page UI: 1000 Kč quick amount + form + redirect', async (
   const code = await page.getByTestId('voucher-code').textContent();
   expect(code).toMatch(/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/);
 });
+
+test('Voucher partial payment: použít kód v event checkout → balance debited', async ({
+  context,
+}) => {
+  const amountKc = 500;
+
+  // Voucher musí být scoped na stejného promotéra jako event (WRONG_PROMOTER
+  // check v lookup). Použijeme demo-promoter (Pending Events s.r.o.) — má
+  // published GA events. PROMOTER_SLUG (divadlo-verze) má jen seated events.
+  const PROMO_FOR_PARTIAL = 'demo-promoter';
+
+  // 1. Koupit + zaplatit voucher u demo-promoter
+  const create = await context.request.post(
+    `/api/p/${PROMO_FOR_PARTIAL}/vouchers/checkout`,
+    {
+      headers: { 'Content-Type': 'application/json' },
+      data: {
+        amountKc,
+        buyerEmail: `partial+${Date.now()}@example.cz`,
+        buyerName: 'Partial Test',
+      },
+    },
+  );
+  const { paymentId, voucherCode } = (await create.json()) as {
+    paymentId: string;
+    voucherCode: string;
+  };
+  await context.request.post(`/api/vouchers/holders/${paymentId}/confirm`, {
+    data: { action: 'pay' },
+  });
+
+  // 2. Najít published GA event demo-promoter
+  const promoLogin = await context.request.post('/api/auth/login', {
+    data: { email: 'admin@tixly.cz', password: 'Demo2026!' },
+  });
+  const { accessToken: promoToken } = (await promoLogin.json()) as {
+    accessToken: string;
+  };
+  const evs = await context.request.get('/api/admin/events', {
+    headers: { Authorization: `Bearer ${promoToken}` },
+  });
+  const evBody = (await evs.json()) as
+    | Array<{ id: string; moderationStatus?: string }>
+    | { events?: Array<{ id: string; moderationStatus?: string }> };
+  const events = Array.isArray(evBody) ? evBody : (evBody.events ?? []);
+
+  let eventId = '';
+  let ticketTypeId = '';
+  let unitPriceHalire = 0;
+  for (const ev of events) {
+    // Skip pending_review — voucher check vyžaduje status='published'
+    if (ev.moderationStatus && ev.moderationStatus !== 'published') continue;
+    const tt = await context.request.get(`/api/events/${ev.id}/ticket-types`);
+    if (!tt.ok()) continue;
+    const ttBody = (await tt.json()) as {
+      ticketTypes: Array<{
+        id: string;
+        remainingQty: number;
+        basePrice: number;
+        isSeated: boolean;
+      }>;
+    };
+    const usable = ttBody.ticketTypes.find(
+      (t) => !t.isSeated && t.remainingQty > 0 && t.basePrice > 0,
+    );
+    if (usable) {
+      eventId = ev.id;
+      ticketTypeId = usable.id;
+      unitPriceHalire = usable.basePrice;
+      break;
+    }
+  }
+  test.skip(!eventId, 'No usable published GA event found');
+
+  // 3. Checkout s voucherCode
+  const co = await context.request.post('/api/checkout', {
+    headers: { 'Content-Type': 'application/json' },
+    data: {
+      eventId,
+      ticketTypeId,
+      quantity: 1,
+      buyerEmail: `partial+${Date.now()}@example.cz`,
+      buyerName: 'Partial Test',
+      voucherCode,
+    },
+  });
+  expect(co.status()).toBeLessThan(400);
+  const coBody = (await co.json()) as {
+    totalAmountHalire?: number;
+    voucherRedeemedHalire?: number;
+    orderId?: string;
+  };
+  // Voucher apply: total = max(0, base - voucher_balance)
+  const expectedRedeemed = Math.min(amountKc * 100, unitPriceHalire);
+  if (coBody.voucherRedeemedHalire !== undefined) {
+    expect(coBody.voucherRedeemedHalire).toBe(expectedRedeemed);
+  }
+
+  // 4. Lookup voucher → balance snížený
+  const lookup = await context.request.post('/api/buyer/vouchers/lookup', {
+    headers: { 'Content-Type': 'application/json' },
+    data: { code: voucherCode },
+  });
+  if (lookup.status() === 200) {
+    const lookupBody = (await lookup.json()) as { balanceHalire: number };
+    expect(lookupBody.balanceHalire).toBe(amountKc * 100 - expectedRedeemed);
+  } else if (lookup.status() === 410) {
+    // DEPLETED — voucher zcela vyčerpán
+    expect(expectedRedeemed).toBe(amountKc * 100);
+  }
+});
