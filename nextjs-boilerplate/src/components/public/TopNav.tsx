@@ -90,6 +90,9 @@ export function TopNav({ locale }: { locale: string }) {
         </>
       ) : (
         <>
+          <Link href={`/${locale}/pricing`} className="text-muted-foreground">
+            Ceník
+          </Link>
           <Link href={`/${locale}/login`}>Přihlásit</Link>
           <Link
             href={`/${locale}/register-promoter`}
