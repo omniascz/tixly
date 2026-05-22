@@ -30,18 +30,27 @@ export async function GET(
   { params }: { params: { id: string } },
 ): Promise<Response> {
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
-    return NextResponse.json({ addons: [] });
+    return NextResponse.json({ addons: [], insurance: null });
   }
-  const r = await db().query<AddonRow>(
-    `SELECT id, name, description, category, price_halire, max_quantity,
-            stock_available, image_url, display_order
-     FROM public.checkout_addons
-     WHERE event_id = $1 AND available = TRUE
-     ORDER BY display_order, name`,
-    [params.id],
-  );
+  // Paralelně načteme addons + insurance config (jeden roundtrip z checkout UI).
+  const [addonsRes, eventRes] = await Promise.all([
+    db().query<AddonRow>(
+      `SELECT id, name, description, category, price_halire, max_quantity,
+              stock_available, image_url, display_order
+       FROM public.checkout_addons
+       WHERE event_id = $1 AND available = TRUE
+       ORDER BY display_order, name`,
+      [params.id],
+    ),
+    db().query<{ insurance_enabled: boolean; insurance_pct: number; currency: string }>(
+      `SELECT insurance_enabled, insurance_pct, currency
+       FROM catalog.events WHERE id = $1`,
+      [params.id],
+    ),
+  ]);
+  const event = eventRes.rows[0];
   return NextResponse.json({
-    addons: r.rows.map((a) => ({
+    addons: addonsRes.rows.map((a) => ({
       id: a.id,
       name: a.name,
       description: a.description,
@@ -51,5 +60,8 @@ export async function GET(
       stockAvailable: a.stock_available,
       imageUrl: a.image_url,
     })),
+    insurance: event?.insurance_enabled
+      ? { enabled: true, pct: event.insurance_pct, currency: event.currency }
+      : null,
   });
 }

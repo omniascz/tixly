@@ -17,6 +17,7 @@ interface TtRow {
   name: string;
   base_price: number;
   remaining_qty: number;
+  is_seated: boolean;
   picks_required: number | null;
   pass_kind: string | null;
 }
@@ -30,6 +31,7 @@ export async function GET(
   }
   const r = await db().query<TtRow>(
     `SELECT tt.id, tt.name, tt.base_price, tt.remaining_qty,
+            COALESCE(tt.is_seated, false) AS is_seated,
             f.picks_required, f.pass_kind
      FROM catalog.ticket_types tt
      LEFT JOIN catalog.flex_pass_settings f ON f.ticket_type_id = tt.id
@@ -43,6 +45,7 @@ export async function GET(
       name: t.name,
       basePrice: t.base_price,
       remainingQty: t.remaining_qty,
+      isSeated: t.is_seated,
       passSettings:
         t.pass_kind && t.picks_required
           ? { kind: t.pass_kind, picksRequired: t.picks_required }

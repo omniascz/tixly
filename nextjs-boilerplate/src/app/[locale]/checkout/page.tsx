@@ -62,16 +62,39 @@ function CheckoutForm() {
     maxQuantity: number;
     stockAvailable: number | null;
   }
+  interface InsuranceInfo {
+    enabled: true;
+    pct: number;
+    currency: string;
+  }
   const [addons, setAddons] = useState<PublicAddon[]>([]);
   const [addonQty, setAddonQty] = useState<Record<string, number>>({});
+  const [insurance, setInsurance] = useState<InsuranceInfo | null>(null);
+  const [insuranceOptIn, setInsuranceOptIn] = useState(false);
+  const [unitPriceHalire, setUnitPriceHalire] = useState<number | null>(null);
 
   useEffect(() => {
     if (!eventId) return;
     fetch(`/api/events/${eventId}/addons`)
       .then((r) => r.json())
-      .then((d: { addons: PublicAddon[] }) => setAddons(d.addons ?? []))
+      .then((d: { addons: PublicAddon[]; insurance: InsuranceInfo | null }) => {
+        setAddons(d.addons ?? []);
+        setInsurance(d.insurance);
+      })
       .catch(() => setAddons([]));
   }, [eventId]);
+
+  // Pro live preview pojistného načteme cenu ticket typu (base price).
+  useEffect(() => {
+    if (!eventId || !ticketTypeId) return;
+    fetch(`/api/events/${eventId}/ticket-types`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { ticketTypes?: Array<{ id: string; basePrice: number }> } | null) => {
+        const tt = d?.ticketTypes?.find((t) => t.id === ticketTypeId);
+        if (tt) setUnitPriceHalire(tt.basePrice);
+      })
+      .catch(() => {});
+  }, [eventId, ticketTypeId]);
 
   // Po načtení zkusit zjistit, zda má buyer aktivní subscription u promotéra
   // tohoto eventu (vrátí availableSub pro UI checkbox „použít permanentku").
@@ -154,6 +177,7 @@ function CheckoutForm() {
       if (seatHoldToken) body.seatHoldToken = seatHoldToken;
       if (seatIdsCsv) body.seatIds = seatIdsCsv.split(',');
       if (ref) body.affiliateCode = ref;
+      if (insurance && insuranceOptIn) body.insuranceOptIn = true;
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -485,6 +509,33 @@ function CheckoutForm() {
                 </label>
               </div>
             ) : null}
+            {insurance ? (() => {
+              const qty = Math.max(1, parseInt(quantity, 10) || 1);
+              const subtotal = (unitPriceHalire ?? 0) * qty;
+              const premium = Math.floor((subtotal * insurance.pct) / 100);
+              const ccy = insurance.currency === 'EUR' ? '€' : 'Kč';
+              const premiumStr = `${(premium / 100).toLocaleString('cs-CZ', { maximumFractionDigits: 0 })} ${ccy}`;
+              return (
+                <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
+                  <label className="flex cursor-pointer items-start gap-2 text-sm font-medium text-amber-900">
+                    <input
+                      type="checkbox"
+                      checked={insuranceOptIn}
+                      onChange={(e) => setInsuranceOptIn(e.target.checked)}
+                      className="mt-0.5"
+                      data-testid="insurance-opt-in"
+                    />
+                    <span>
+                      <span className="block">🛡️ Pojištění zrušení{premium > 0 ? ` (+${premiumStr})` : ''}</span>
+                      <span className="mt-0.5 block text-xs font-normal text-amber-800">
+                        Když ti zabrání nemoc, úraz nebo úmrtí v rodině jít na akci, vrátíme ti
+                        plnou cenu vstupenky včetně poplatků. Pojistné {insurance.pct} % z ceny.
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              );
+            })() : null}
             <div className="rounded-md border bg-muted/30 p-3">
               <label className="flex items-center gap-2 text-sm font-medium">
                 <input
