@@ -9,6 +9,7 @@ import { getDict } from '@/lib/i18n-dictionaries';
 import { LotteryCard } from './LotteryCard';
 import { Recommendations } from './Recommendations';
 import { ShareButtons } from './ShareButtons';
+import { RestwertBalanceBadge } from './RestwertBalanceBadge';
 import { RsvpButtons } from './RsvpButtons';
 import {
   TicketPicker,
@@ -44,6 +45,7 @@ interface EventDetail {
   min_age: number | null;
   currency: string;
   queue_enabled: boolean;
+  promoter_id: string | null;
   promoter_name: string | null;
   promoter_contact_email: string | null;
   promoter_brand_color_hex: string | null;
@@ -80,6 +82,7 @@ async function fetchDetail(id: string) {
       SELECT e.id, e.title, e.description, e.date_start, e.min_age, e.currency, e.queue_enabled,
              COALESCE(v.name, 'Online') AS venue_name,
              COALESCE(v.address, '') AS venue_address,
+             e.promoter_id,
              p.name AS promoter_name,
              COALESCE(p.contact_email, p.email) AS promoter_contact_email,
              p.brand_color_hex AS promoter_brand_color_hex,
@@ -384,6 +387,12 @@ export default async function EventDetailPage({
                   eventId={event.id}
                   ticketTypes={ticketTypes.map((tt) => ({ id: tt.id, name: tt.name }))}
                 />
+                {event.promoter_id ? (
+                  <RestwertBalanceBadge
+                    promoterId={event.promoter_id}
+                    locale={locale}
+                  />
+                ) : null}
                 <TicketPicker
                   eventId={event.id}
                   locale={locale}

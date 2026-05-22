@@ -512,6 +512,52 @@ test('Wahl-Abo Restwert: cancel-pick vrátí kredit + uvolní pick slot', async 
   });
 });
 
+test('Restwert balance endpoint: per-promoter aggregation', async ({ context }) => {
+  const buyer = await apiLogin(context, BUYER_EMAIL, BUYER_PASSWORD);
+
+  // Bez query → vrátí per-promoter breakdown
+  const all = await context.request.get('/api/buyer/restwert-balance', {
+    headers: { 'x-user-id': buyer.userId },
+  });
+  expect(all.status()).toBe(200);
+  const allBody = (await all.json()) as {
+    total: number;
+    promoters: Array<{ promoterId: string; balanceHalire: number; promoterName: string }>;
+  };
+  expect(typeof allBody.total).toBe('number');
+  expect(Array.isArray(allBody.promoters)).toBe(true);
+
+  // S query promoterId → vrátí jen pro toho jednoho
+  const promoterId = '00000000-0000-4000-a000-000000000115'; // Divadlo Verze
+  const r = await context.request.get(
+    `/api/buyer/restwert-balance?promoterId=${promoterId}`,
+    { headers: { 'x-user-id': buyer.userId } },
+  );
+  expect(r.status()).toBe(200);
+  const body = (await r.json()) as {
+    promoterId: string;
+    balanceHalire: number;
+    holdersWithCredit: number;
+  };
+  expect(body.promoterId).toBe(promoterId);
+  expect(typeof body.balanceHalire).toBe('number');
+  expect(body.balanceHalire).toBeGreaterThanOrEqual(0);
+});
+
+test('Restwert balance: bez auth → 401', async ({ context }) => {
+  const r = await context.request.get('/api/buyer/restwert-balance');
+  expect(r.status()).toBe(401);
+});
+
+test('Restwert balance: invalid promoterId → 422', async ({ context }) => {
+  const buyer = await apiLogin(context, BUYER_EMAIL, BUYER_PASSWORD);
+  const r = await context.request.get(
+    '/api/buyer/restwert-balance?promoterId=not-a-uuid',
+    { headers: { 'x-user-id': buyer.userId } },
+  );
+  expect(r.status()).toBe(422);
+});
+
 test('Wahl-Abo Restwert: apply jako partial payment v event checkout', async ({
   context,
 }) => {
