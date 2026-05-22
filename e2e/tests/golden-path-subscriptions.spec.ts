@@ -512,6 +512,132 @@ test('Wahl-Abo Restwert: cancel-pick vrátí kredit + uvolní pick slot', async 
   });
 });
 
+test('Wahl-Abo Restwert: apply jako partial payment v event checkout', async ({
+  context,
+}) => {
+  const promoter = await apiLogin(context, PROMOTER_EMAIL, PROMOTER_PASSWORD);
+  // Použijeme stávajícího Anny — predchozí Restwert testy už k ní mohou mít
+  // přiřazené holdery, tak akceptujeme že debit FIFO může jít do staršího
+  // holderu. Test ověřuje jen že nějaký debit proběhl + suma odpovídá.
+  const buyer = await apiLogin(context, BUYER_EMAIL, BUYER_PASSWORD);
+  const eventIds = await listPublishedEventIds(context, promoter.accessToken, 3);
+  expect(eventIds.length).toBeGreaterThanOrEqual(2);
+
+  // 1. Setup: Wahl-Abo, 2 picks, cancel 1 → credit 1000 Kč
+  const createRes = await context.request.post('/api/admin/subscriptions/packages', {
+    headers: {
+      Authorization: `Bearer ${promoter.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      name: 'Restwert Apply Test',
+      slug: uniqSlug('restwert-apply'),
+      seasonLabel: '2026/27',
+      basePriceHalire: 200000, // 2000 Kč / 2 picks = 1000/pick
+      eventIds,
+      aboType: 'choice',
+      maxPicksForChoice: 2,
+    },
+  });
+  const { id: packageId } = (await createRes.json()) as { id: string };
+  await context.request.patch(`/api/admin/subscriptions/packages/${packageId}`, {
+    headers: {
+      Authorization: `Bearer ${promoter.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    data: { status: 'on_sale' },
+  });
+
+  const co = await context.request.post('/api/subscriptions/checkout', {
+    headers: { 'Content-Type': 'application/json', 'x-user-id': buyer.userId },
+    data: { packageId, buyerEmail: BUYER_EMAIL, buyerName: 'Anna Nova' },
+  });
+  const { paymentId, holderId } = (await co.json()) as {
+    paymentId: string;
+    holderId: string;
+  };
+  await context.request.post(`/api/subscriptions/holders/${paymentId}/confirm`, {
+    data: { action: 'pay' },
+  });
+
+  // Pick + cancel → 1000 Kč credit
+  await context.request.post(`/api/buyer/subscriptions/${holderId}/pick`, {
+    headers: { 'Content-Type': 'application/json', 'x-user-id': buyer.userId },
+    data: { eventId: eventIds[0] },
+  });
+  await context.request.delete(
+    `/api/buyer/subscriptions/${holderId}/pick/${eventIds[0]}`,
+    { headers: { 'x-user-id': buyer.userId } },
+  );
+
+  // 2. Najít GA ticket type u stejného promotéra pro event checkout
+  const promoterEventsRes = await context.request.get('/api/admin/events', {
+    headers: { Authorization: `Bearer ${promoter.accessToken}` },
+  });
+  const evBody = (await promoterEventsRes.json()) as
+    | Array<{ id: string; moderationStatus?: string }>
+    | { events?: Array<{ id: string; moderationStatus?: string }> };
+  const events = Array.isArray(evBody) ? evBody : (evBody.events ?? []);
+
+  let usableEventId = '';
+  let ticketTypeId = '';
+  let unitPriceHalire = 0;
+  for (const ev of events) {
+    if (ev.moderationStatus && ev.moderationStatus !== 'published') continue;
+    const tt = await context.request.get(`/api/events/${ev.id}/ticket-types`);
+    if (!tt.ok()) continue;
+    const ttBody = (await tt.json()) as {
+      ticketTypes: Array<{
+        id: string;
+        remainingQty: number;
+        basePrice: number;
+        isSeated: boolean;
+      }>;
+    };
+    const usable = ttBody.ticketTypes.find(
+      (t) => !t.isSeated && t.remainingQty > 0 && t.basePrice > 0,
+    );
+    if (usable) {
+      usableEventId = ev.id;
+      ticketTypeId = usable.id;
+      unitPriceHalire = usable.basePrice;
+      break;
+    }
+  }
+  test.skip(!usableEventId, 'No usable GA event found pro promotéra');
+
+  // 3. Checkout s useRestwertCredit=true
+  const checkout = await context.request.post('/api/checkout', {
+    headers: { 'Content-Type': 'application/json', 'x-user-id': buyer.userId },
+    data: {
+      eventId: usableEventId,
+      ticketTypeId,
+      quantity: 1,
+      buyerEmail: BUYER_EMAIL,
+      buyerName: 'Anna Nova',
+      useRestwertCredit: true,
+    },
+  });
+  expect(checkout.status()).toBeLessThan(400);
+  const checkoutBody = (await checkout.json()) as {
+    restwertAppliedHalire: number;
+    restwertHolders: Array<{ holderId: string; debited: number }>;
+    totalAmount: number;
+  };
+  const expectedApplied = Math.min(100000, unitPriceHalire); // 1000 Kč credit
+  expect(checkoutBody.restwertAppliedHalire).toBeGreaterThanOrEqual(expectedApplied);
+  expect(checkoutBody.totalAmount).toBeLessThanOrEqual(
+    unitPriceHalire - expectedApplied,
+  );
+  expect(checkoutBody.restwertHolders.length).toBeGreaterThanOrEqual(1);
+  // Buyer může mít víc holderů z minulých testů — ověř že nějaký debit proběhl
+  const totalDebited = checkoutBody.restwertHolders.reduce(
+    (s, h) => s + h.debited,
+    0,
+  );
+  expect(totalDebited).toBe(checkoutBody.restwertAppliedHalire);
+});
+
 test('Wahl-Abo Restwert: Festabo (fixed) → 409 NOT_CHOICE_ABO', async ({
   context,
 }) => {

@@ -118,6 +118,10 @@ const schema = z.object({
   entrySlotId: z.string().uuid().optional(),
   // Gift voucher kód — aplikuje se PO promo kódu jako přímá sleva z balance.
   voucherCode: z.string().min(8).max(40).optional(),
+  // Restwert kredit (DACH P0-2 Q4 polish) — buyer uplatní zbytkový kredit ze
+  // svých subscriptions.holders u téhož promotéra. Aplikuje se PO voucheru.
+  // Vyžaduje x-user-id header (přihlášený buyer; guest nemá historii).
+  useRestwertCredit: z.boolean().optional(),
   // Marketing QR kampaň ID — buyer přišel přes QR z plakátu/letáku.
   // Cookie qr_ref se zapíše po /api/qr/[slug] redirectu, client ho posílá.
   qrRef: z.string().uuid().optional(),
@@ -891,6 +895,49 @@ export async function POST(req: NextRequest): Promise<Response> {
       totalAmount -= voucherRedeemedHalire;
     }
 
+    // Restwert kredit (P0-2 polish) — aplikuje se po voucheru. Pull holders
+    // buyer-a (`userId` z guest lookup nebo existing email) u promotéra
+    // eventu se zbytkovým kreditem; debit FIFO podle created_at.
+    let restwertAppliedHalire = 0;
+    const restwertHolders: Array<{ holderId: string; debited: number }> = [];
+    if (input.useRestwertCredit && totalAmount > 0) {
+      const evPromoter = await client.query<{ promoter_id: string }>(
+        `SELECT promoter_id FROM catalog.events WHERE id = $1`,
+        [input.eventId],
+      );
+      if (evPromoter.rows.length > 0) {
+        const promoterId = evPromoter.rows[0].promoter_id;
+        const holdersRes = await client.query<{
+          id: string;
+          restwert_credit_halire: number;
+        }>(
+          `SELECT h.id, h.restwert_credit_halire
+             FROM subscriptions.holders h
+             JOIN subscriptions.packages p ON p.id = h.package_id
+            WHERE h.user_id = $1
+              AND p.promoter_id = $2
+              AND h.status = 'active'
+              AND h.restwert_credit_halire > 0
+            ORDER BY h.created_at ASC
+            FOR UPDATE OF h`,
+          [userId, promoterId],
+        );
+        for (const h of holdersRes.rows) {
+          if (totalAmount === 0) break;
+          const debit = Math.min(h.restwert_credit_halire, totalAmount);
+          await client.query(
+            `UPDATE subscriptions.holders
+                SET restwert_credit_halire = restwert_credit_halire - $2
+              WHERE id = $1`,
+            [h.id, debit],
+          );
+          totalAmount -= debit;
+          restwertAppliedHalire += debit;
+          restwertHolders.push({ holderId: h.id, debited: debit });
+        }
+      }
+    }
+
     // Předgenerujeme placeholder paymentId; pokud poběží Stripe (real provider),
     // přepíšeme ho session.id po commitu transakce.
     const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
@@ -1217,6 +1264,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       bundleDiscountAmount,
       bundleId,
       voucherRedeemedHalire,
+      restwertAppliedHalire,
+      restwertHolders,
       totalAmount,
       promoCodeApplied: promoCodeId !== null,
     });
