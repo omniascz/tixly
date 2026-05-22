@@ -16,9 +16,10 @@
  *
  * Auth: žádný — payment_id je shared secret z mock-gopay flow.
  */
-import { randomUUID } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
+import { encryptSecret } from '@/lib/crypto';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -40,6 +41,9 @@ export async function POST(
   const client = await db().connect();
   try {
     await client.query('BEGIN');
+    // RLS bypass — payment_id je shared secret z mock-gopay flow.
+    // Holder ownership není v tomto endpointu vyžadováno (buyer prošel checkout).
+    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
 
     const holderRes = await client.query<{
       id: string;
@@ -48,10 +52,14 @@ export async function POST(
       holder_email: string;
       status: string;
       payment_status: string;
+      abo_type: string;
+      max_picks_for_choice: number | null;
     }>(
-      `SELECT id, package_id, user_id, holder_email, status, payment_status
-         FROM subscriptions.holders
-        WHERE payment_id = $1
+      `SELECT h.id, h.package_id, h.user_id, h.holder_email, h.status, h.payment_status,
+              p.abo_type, p.max_picks_for_choice
+         FROM subscriptions.holders h
+         JOIN subscriptions.packages p ON p.id = h.package_id
+        WHERE h.payment_id = $1
         FOR UPDATE`,
       [paymentId],
     );
@@ -91,7 +99,7 @@ export async function POST(
       });
     }
 
-    // PAY → aktivovat + auto-issue tickets pro events v packagi
+    // PAY → aktivovat
     await client.query(
       `UPDATE subscriptions.holders
           SET status = 'active',
@@ -101,7 +109,27 @@ export async function POST(
       [holder.id],
     );
 
-    // Najdi všechna events v package + jejich first ticket_type
+    // Choice abo: NEauto-issue, buyer si vybere ručně přes /pick endpoint
+    if (holder.abo_type === 'choice') {
+      // Vrátíme total events v pool-u + max_picks pro klienta
+      const pool = await client.query<{ total: string }>(
+        `SELECT COUNT(*)::text AS total FROM subscriptions.package_events
+          WHERE package_id = $1`,
+        [holder.package_id],
+      );
+      await client.query('COMMIT');
+      return NextResponse.json({
+        holderId: holder.id,
+        status: 'active',
+        paymentStatus: 'paid',
+        aboType: 'choice',
+        maxPicks: holder.max_picks_for_choice,
+        eventsInPool: Number(pool.rows[0].total),
+        ticketsIssued: 0,
+      });
+    }
+
+    // Fixed abo: auto-issue ticket per event v package_events
     const eventsRes = await client.query<{
       event_id: string;
       ticket_type_id: string | null;
@@ -126,17 +154,23 @@ export async function POST(
       try {
         // Minimal order shell (subscription tickets nemají separate payment)
         await client.query(
-          `INSERT INTO orders.orders (id, user_id, event_id, status, total_amount, currency)
-           VALUES ($1, $2, $3, 'paid', 0, 'CZK')
+          `INSERT INTO orders.orders (id, user_id, event_id, status, total_amount, currency, expires_at, paid_at)
+           VALUES ($1, $2, $3, 'paid', 0, 'CZK', NOW() + INTERVAL '30 days', NOW())
            ON CONFLICT DO NOTHING`,
           [orderId, holder.user_id, ev.event_id],
         );
+        const totpRaw = randomBytes(20);
+        const totpBundle = Buffer.from(
+          encryptSecret(totpRaw.toString('base64')),
+          'base64',
+        );
         await client.query(
           `INSERT INTO tickets.tickets
-             (id, order_id, ticket_type_id, owner_id, holder_email, status)
-           VALUES ($1, $2, $3, $4, $5, 'valid')
+             (id, order_id, ticket_type_id, owner_id, original_owner_id, status,
+              totp_secret_encrypted, totp_secret_iv, original_price)
+           VALUES ($1, $2, $3, $4, $4, 'valid', $5, $6, 0)
            ON CONFLICT DO NOTHING`,
-          [ticketId, orderId, ev.ticket_type_id, holder.user_id, holder.holder_email],
+          [ticketId, orderId, ev.ticket_type_id, holder.user_id, totpBundle, Buffer.alloc(0)],
         );
         // Log redemption (issued, ne yet redeemed)
         await client.query(
@@ -159,6 +193,7 @@ export async function POST(
       holderId: holder.id,
       status: 'active',
       paymentStatus: 'paid',
+      aboType: 'fixed',
       ticketsIssued: issued,
       totalEvents: eventsRes.rows.length,
     });
