@@ -17,6 +17,7 @@ import { Pool } from 'pg';
 import { escapeHtml } from '@/lib/html-escape/escape';
 import { sendSms } from '@/lib/sms/bulkgate-mock';
 import { resolveVatRate, splitGrossToNetVat } from '@/lib/tax/vat-rates';
+import { awardPointsForOrder } from '@/lib/loyalty/engine';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 import { renderTicketsPdf } from '@/lib/tickets/pdf-renderer';
 
@@ -323,6 +324,28 @@ export async function POST(request: NextRequest): Promise<Response> {
   try {
     issued = await issueTicketsForOrder(orderId, db());
     ticketsIssued = issued.length;
+
+    // Loyalty award (CZ priority #6) — fire-and-forget, idempotent na order_id.
+    // Award points pouze pokud order má user_id (guest checkouts get bod-less).
+    if (order.user_id && order.total_amount > 0) {
+      const loyaltyClient = await db().connect();
+      try {
+        await loyaltyClient.query('BEGIN');
+        await loyaltyClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+        await awardPointsForOrder(loyaltyClient, {
+          userId: order.user_id,
+          orderId,
+          orderTotalHalire: order.total_amount,
+        });
+        await loyaltyClient.query('COMMIT');
+      } catch (err) {
+        await loyaltyClient.query('ROLLBACK').catch(() => undefined);
+        console.error('[order-completed] loyalty award failed', err);
+      } finally {
+        loyaltyClient.release();
+      }
+    }
+
     // Skip PDF when this is a duplicate call (existing tickets have empty secrets)
     const hasFreshSecrets = issued.every((t) => t.totpSecretBase32.length > 0);
     // Fire-and-forget conversion tracking (Q.2) — Meta CAPI + GA4

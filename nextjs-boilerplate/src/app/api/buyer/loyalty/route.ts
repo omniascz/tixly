@@ -19,6 +19,10 @@ export async function GET(req: NextRequest): Promise<Response> {
   const userId = req.headers.get('x-user-id');
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  // Optional ?orderId=X filter — vrátí TX jen pro konkrétní order (užitečné
+  // pro post-purchase confirmation, bypass LIMIT 20).
+  const orderIdFilter = req.nextUrl.searchParams.get('orderId');
+
   const acc = await db().query<{
     id: string;
     points_balance: number;
@@ -51,12 +55,17 @@ export async function GET(req: NextRequest): Promise<Response> {
     created_at: string;
     expires_at: string | null;
   }>(
-    `SELECT id, points_delta, kind, reason, order_id, created_at, expires_at
-     FROM marketing.loyalty_transactions
-     WHERE account_id = $1
-     ORDER BY created_at DESC
-     LIMIT 20`,
-    [a.id],
+    orderIdFilter
+      ? `SELECT id, points_delta, kind, reason, order_id, created_at, expires_at
+         FROM marketing.loyalty_transactions
+         WHERE account_id = $1 AND order_id = $2
+         ORDER BY created_at DESC`
+      : `SELECT id, points_delta, kind, reason, order_id, created_at, expires_at
+         FROM marketing.loyalty_transactions
+         WHERE account_id = $1
+         ORDER BY created_at DESC
+         LIMIT 20`,
+    orderIdFilter ? [a.id, orderIdFilter] : [a.id],
   );
 
   const tier = a.tier as 'bronze' | 'silver' | 'gold';

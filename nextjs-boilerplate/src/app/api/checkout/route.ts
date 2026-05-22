@@ -131,6 +131,9 @@ const schema = z.object({
   // CZ priority #3 — anti-bot ochrana top eventů (Karel Gott reissue, festival
   // announcement).
   otpToken: z.string().min(20).max(80).optional(),
+  // Loyalty points redemption (CZ priority #6) — buyer uplatní existing
+  // loyalty body. 1 bod = 1 Kč sleva, max 50% z subtotal.
+  redeemLoyaltyPoints: z.number().int().min(0).max(100_000).optional(),
   // Marketing QR kampaň ID — buyer přišel přes QR z plakátu/letáku.
   // Cookie qr_ref se zapíše po /api/qr/[slug] redirectu, client ho posílá.
   qrRef: z.string().uuid().optional(),
@@ -975,6 +978,33 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
     }
 
+    // Loyalty points pre-calculation (CZ priority #6) — kalkulace discount
+    // PŘED orderId creation; engine.redeemPoints volán v post-orderId block.
+    let loyaltyDiscountHalire = 0;
+    let loyaltyRedeemed = 0;
+    let loyaltyMaxPointsAvailable = 0;
+    if (
+      input.redeemLoyaltyPoints &&
+      input.redeemLoyaltyPoints > 0 &&
+      totalAmount > 0
+    ) {
+      const { calculateMaxRedemption } = await import('@/lib/loyalty/engine');
+      const acc = await client.query<{ points_balance: number }>(
+        `SELECT points_balance FROM marketing.loyalty_accounts WHERE user_id = $1`,
+        [userId],
+      );
+      if (acc.rows.length > 0) {
+        const limits = calculateMaxRedemption({
+          pointsBalance: acc.rows[0].points_balance,
+          orderSubtotalHalire: subtotalAmount,
+        });
+        loyaltyMaxPointsAvailable = limits.maxPoints;
+        loyaltyRedeemed = Math.min(input.redeemLoyaltyPoints, limits.maxPoints);
+        loyaltyDiscountHalire = loyaltyRedeemed * 100; // 1 bod = 1 Kč = 100 halire
+        totalAmount = Math.max(0, totalAmount - loyaltyDiscountHalire);
+      }
+    }
+
     // Předgenerujeme placeholder paymentId; pokud poběží Stripe (real provider),
     // přepíšeme ho session.id po commitu transakce.
     const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
@@ -1230,6 +1260,19 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
 
+    // Loyalty points apply (CZ priority #6) — INSERT transaction + UPDATE
+    // balance. Engine vyhodí pokud account nebyl pre-validated, ale my
+    // jsme pre-calc už ověřili.
+    if (loyaltyRedeemed > 0) {
+      const { redeemPoints } = await import('@/lib/loyalty/engine');
+      await redeemPoints(client, {
+        userId,
+        orderId,
+        pointsToRedeem: loyaltyRedeemed,
+        orderSubtotalHalire: subtotalAmount,
+      });
+    }
+
     await client.query('COMMIT');
 
     // Po commitu: vytvoř payment session přes provider switcher.
@@ -1312,6 +1355,9 @@ export async function POST(req: NextRequest): Promise<Response> {
       voucherRedeemedHalire,
       restwertAppliedHalire,
       restwertHolders,
+      loyaltyDiscountHalire,
+      loyaltyRedeemed,
+      loyaltyMaxPointsAvailable,
       totalAmount,
       promoCodeApplied: promoCodeId !== null,
     });
