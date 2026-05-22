@@ -101,14 +101,22 @@ export default function ResaleListingPage() {
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className="mb-1 block text-xs font-medium">
+              <label htmlFor="resale-buyer-name" className="mb-1 block text-xs font-medium">
                 Jméno a příjmení
               </label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} required />
+              <Input
+                id="resale-buyer-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium">E-mail</label>
+              <label htmlFor="resale-buyer-email" className="mb-1 block text-xs font-medium">
+                E-mail
+              </label>
               <Input
+                id="resale-buyer-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

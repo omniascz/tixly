@@ -137,13 +137,20 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
 
     // Eventim-style re-issue: revoke original, mint new s novým TOTP
-    const reissue = await reissueTicket({
-      client,
-      originalTicketId: listing.ticket_id,
-      newOwnerId: buyerId,
-      newOrderId,
-      reason: 'resale_sale',
-    });
+    let reissue;
+    try {
+      reissue = await reissueTicket({
+        client,
+        originalTicketId: listing.ticket_id,
+        newOwnerId: buyerId,
+        newOrderId,
+        reason: 'resale_sale',
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('[resale/buy] reissueTicket failed:', msg);
+      throw err;
+    }
 
     // Mark listing sold + link na re-issued ticket
     await client.query(
@@ -154,13 +161,20 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
 
     // Enqueue seller payout (4 dny default)
-    const payout = await enqueueSellerPayout({
-      client,
-      listingId: listing.id,
-      sellerId: listing.seller_id,
-      salePriceHalire: listing.ask_price,
-      eventId: listing.event_id,
-    });
+    let payout;
+    try {
+      payout = await enqueueSellerPayout({
+        client,
+        listingId: listing.id,
+        sellerId: listing.seller_id,
+        salePriceHalire: listing.ask_price,
+        eventId: listing.event_id,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('[resale/buy] enqueueSellerPayout failed:', msg);
+      throw err;
+    }
 
     await client.query('COMMIT');
     return NextResponse.json({
@@ -174,8 +188,12 @@ export async function POST(req: NextRequest): Promise<Response> {
     });
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('[POST /api/buyer/resale/buy]', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[POST /api/buyer/resale/buy]', msg, err);
+    return NextResponse.json(
+      { error: 'Internal server error', detail: msg },
+      { status: 500 },
+    );
   } finally {
     client.release();
   }

@@ -158,6 +158,29 @@ function TicketCard({
     kind: 'ok' | 'err';
     message: string;
   } | null>(null);
+  const [resaleOpen, setResaleOpen] = useState(false);
+  const [resaleAskKc, setResaleAskKc] = useState('');
+  const [resaleBusy, setResaleBusy] = useState(false);
+  const [resaleResult, setResaleResult] = useState<{
+    kind: 'ok' | 'err';
+    message: string;
+  } | null>(null);
+  const [activeResaleListingId, setActiveResaleListingId] = useState<string | null>(null);
+
+  // Detekce aktivního listingu (pokud buyer už vystavil → ukážeme "Stáhnout").
+  useEffect(() => {
+    if (ticket.status !== 'valid') return;
+    let cancelled = false;
+    void fetch(`/api/buyer/resale/list?ticketId=${ticket.id}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { active: { listingId: string; askPriceHalire: number } | null } | null) => {
+        if (!cancelled) setActiveResaleListingId(data?.active?.listingId ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [ticket.id, ticket.status]);
 
   const statusBadge = (() => {
     if (ticket.status === 'valid') {
@@ -266,6 +289,80 @@ function TicketCard({
       setTransferResult({ kind: 'err', message: (e as Error).message });
     } finally {
       setTransferBusy(false);
+    }
+  }
+
+  async function listForResale() {
+    const askKc = Number(resaleAskKc.replace(',', '.'));
+    if (!Number.isFinite(askKc) || askKc <= 0) {
+      setResaleResult({ kind: 'err', message: 'Zadej cenu v Kč (kladné číslo).' });
+      return;
+    }
+    const askHalire = Math.round(askKc * 100);
+    setResaleBusy(true);
+    setResaleResult(null);
+    try {
+      const res = await authFetch('/api/buyer/resale/list', {
+        method: 'POST',
+        body: JSON.stringify({ ticketId: ticket.id, askPriceHalire: askHalire }),
+      });
+      const j = (await res.json().catch(() => ({}))) as {
+        listingId?: string;
+        error?: string;
+        message?: string;
+        maxHalire?: number;
+        reason?: string;
+      };
+      if (res.ok && j.listingId) {
+        setResaleResult({
+          kind: 'ok',
+          message: `Lístek vystaven na marketplace za ${formatMoney(askHalire, ccy)}. Až někdo koupí, dostaneš peníze do 4 dnů.`,
+        });
+        setActiveResaleListingId(j.listingId);
+        setResaleOpen(false);
+        setResaleAskKc('');
+        return;
+      }
+      const msg = (() => {
+        switch (j.error) {
+          case 'ALREADY_LISTED':
+            return 'Tento lístek je už na marketplace.';
+          case 'PRICE_CAP_EXCEEDED':
+            return `Maximální cena je face value (${formatMoney(j.maxHalire ?? 0, ccy)}). Resale nad face value je zakázán.`;
+          case 'RESALE_NOT_ELIGIBLE':
+            return j.message ?? 'Lístek nelze přeprodat.';
+          case 'Not the ticket owner':
+            return 'Můžeš prodat jen vlastní lístek.';
+          default:
+            return j.message ?? j.error ?? `HTTP ${res.status}`;
+        }
+      })();
+      setResaleResult({ kind: 'err', message: msg });
+    } catch (e) {
+      setResaleResult({ kind: 'err', message: (e as Error).message });
+    } finally {
+      setResaleBusy(false);
+    }
+  }
+
+  async function cancelResale() {
+    if (!activeResaleListingId) return;
+    if (!confirm('Stáhnout lístek z marketplace?')) return;
+    setResaleBusy(true);
+    try {
+      const res = await authFetch(
+        `/api/buyer/resale/list/${activeResaleListingId}/cancel`,
+        { method: 'POST' },
+      );
+      if (res.ok) {
+        setActiveResaleListingId(null);
+        setResaleResult({ kind: 'ok', message: 'Lístek stažen z marketplace.' });
+      } else {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        setResaleResult({ kind: 'err', message: j.error ?? `HTTP ${res.status}` });
+      }
+    } finally {
+      setResaleBusy(false);
     }
   }
 
@@ -474,6 +571,29 @@ function TicketCard({
           >
             {transferOpen ? 'Zrušit přesun' : 'Přeposlat na email'}
           </button>
+          {activeResaleListingId ? (
+            <button
+              type="button"
+              className="text-xs text-violet-700 hover:underline"
+              onClick={() => void cancelResale()}
+              disabled={resaleBusy}
+              data-testid="resale-cancel-button"
+            >
+              💰 Stáhnout z marketplace
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="text-xs text-violet-700 hover:underline"
+              onClick={() => {
+                setResaleOpen((v) => !v);
+                setResaleResult(null);
+              }}
+              data-testid="resale-sell-button"
+            >
+              {resaleOpen ? 'Zrušit prodej' : '💰 Prodat na marketplace'}
+            </button>
+          )}
           <button
             type="button"
             className="text-xs text-rose-700 hover:underline"
@@ -549,6 +669,58 @@ function TicketCard({
           className={`mt-2 text-xs ${transferResult.kind === 'ok' ? 'text-emerald-700' : 'text-rose-700'}`}
         >
           {transferResult.message}
+        </p>
+      ) : null}
+
+      {resaleOpen ? (
+        <div className="mt-3 rounded-md border border-violet-200 bg-violet-50 p-3 text-xs">
+          <p className="mb-2 font-medium text-violet-900">
+            Lístek nabídneš na resale marketplace. Cena nesmí být vyšší než face value
+            (anti-scalping). Až někdo koupí, dostaneš peníze do 4 dnů a kupec dostane nový
+            lístek se svým jménem (původní bude neplatný).
+          </p>
+          <label className="mb-1 block font-medium text-violet-900">
+            Cena v Kč
+          </label>
+          <input
+            type="number"
+            min="1"
+            step="1"
+            inputMode="decimal"
+            className="w-full rounded border border-violet-300 bg-white p-2"
+            placeholder="např. 450"
+            value={resaleAskKc}
+            onChange={(e) => setResaleAskKc(e.target.value)}
+            disabled={resaleBusy}
+            data-testid="resale-ask-price-input"
+          />
+          <div className="mt-2 flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => void listForResale()}
+              disabled={resaleBusy || !resaleAskKc.trim()}
+              data-testid="resale-confirm-button"
+            >
+              {resaleBusy ? 'Vystavuji…' : 'Vystavit na marketplace'}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setResaleOpen(false)}
+              disabled={resaleBusy}
+            >
+              Zpět
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {resaleResult ? (
+        <p
+          className={`mt-2 text-xs ${resaleResult.kind === 'ok' ? 'text-emerald-700' : 'text-rose-700'}`}
+          data-testid="resale-result-message"
+        >
+          {resaleResult.message}
         </p>
       ) : null}
 

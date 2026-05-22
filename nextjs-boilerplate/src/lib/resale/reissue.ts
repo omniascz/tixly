@@ -69,56 +69,76 @@ export async function reissueTicket(input: ReissueInput): Promise<ReissueResult>
   }
 
   // 1. Revoke original
-  await input.client.query(
-    `UPDATE tickets.tickets
-        SET status = 'revoked', updated_at = now()
-      WHERE id = $1`,
-    [input.originalTicketId],
-  );
+  try {
+    await input.client.query(
+      `UPDATE tickets.tickets
+          SET status = 'revoked', updated_at = now()
+        WHERE id = $1`,
+      [input.originalTicketId],
+    );
+  } catch (err) {
+    console.error('[reissue] STEP 1 revoke failed:', err);
+    throw err;
+  }
 
   // 2. Generate new TOTP secret (32 bytes random → encrypted at rest)
   const newSecretRaw = crypto.randomBytes(32);
   const newSecretEncrypted = encryptSecret(newSecretRaw.toString('base64'));
   const newSecretBuffer = Buffer.from(newSecretEncrypted, 'base64');
 
-  // 3. Mint new ticket with same seat (if any) + new TOTP + parent link
-  const newTicketRes = await input.client.query<{ id: string }>(
-    `INSERT INTO tickets.tickets
-       (ticket_type_id, order_id, owner_id, status, original_price,
-        totp_secret_encrypted, event_seat_id,
-        reissue_parent_id, reissue_count, reissue_reason,
-        transfer_count, created_at, updated_at)
-     VALUES ($1, $2, $3, 'valid', $4, $5, $6, $7, $8, $9, 0, now(), now())
-     RETURNING id`,
-    [
-      orig.ticket_type_id,
-      input.newOrderId,
-      input.newOwnerId,
-      orig.original_price,
-      newSecretBuffer,
-      orig.event_seat_id,
-      input.originalTicketId,
-      orig.reissue_count + 1,
-      input.reason ?? 'resale_sale',
-    ],
-  );
+  // 3. Mint new ticket with same seat (if any) + new TOTP + parent link.
+  //    totp_secret_iv je NOT NULL — encryptSecret() vrací IV+ct+tag v jednom bundle,
+  //    takže iv-only sloupec držíme jako prázdný buffer (legacy compat,
+  //    decrypt vytahuje IV z bundle). Viz demo-issuer.ts řádek 138-139.
+  let newTicketRes;
+  try {
+    newTicketRes = await input.client.query<{ id: string }>(
+      `INSERT INTO tickets.tickets
+         (ticket_type_id, order_id, owner_id, original_owner_id, status, original_price,
+          totp_secret_encrypted, totp_secret_iv, event_seat_id,
+          reissue_parent_id, reissue_count, reissue_reason,
+          transfer_count, created_at, updated_at)
+       VALUES ($1, $2, $3, $3, 'valid', $4, $5, $6, $7, $8, $9, $10, 0, now(), now())
+       RETURNING id`,
+      [
+        orig.ticket_type_id,
+        input.newOrderId,
+        input.newOwnerId,
+        orig.original_price,
+        newSecretBuffer,
+        Buffer.alloc(0),
+        orig.event_seat_id,
+        input.originalTicketId,
+        orig.reissue_count + 1,
+        input.reason ?? 'resale_sale',
+      ],
+    );
+  } catch (err) {
+    console.error('[reissue] STEP 3 mint new ticket failed:', err);
+    throw err;
+  }
 
   const newTicketId = newTicketRes.rows[0].id;
 
   // 4. Audit log
-  await input.client.query(
-    `INSERT INTO audit.audit_log
-       (schema_name, table_name, record_id, action, actor_id, actor_type, new_values)
-     VALUES ('tickets', 'tickets', $1, 'INSERT', $2, 'system', $3::jsonb)`,
-    [
-      newTicketId, input.newOwnerId,
-      JSON.stringify({
-        reissue_from: input.originalTicketId,
-        reissue_count: orig.reissue_count + 1,
-        reason: input.reason ?? 'resale_sale',
-      }),
-    ],
-  );
+  try {
+    await input.client.query(
+      `INSERT INTO audit.audit_log
+         (schema_name, table_name, record_id, action, actor_id, actor_type, new_values)
+       VALUES ('tickets', 'tickets', $1, 'INSERT', $2, 'system', $3::jsonb)`,
+      [
+        newTicketId, input.newOwnerId,
+        JSON.stringify({
+          reissue_from: input.originalTicketId,
+          reissue_count: orig.reissue_count + 1,
+          reason: input.reason ?? 'resale_sale',
+        }),
+      ],
+    );
+  } catch (err) {
+    console.error('[reissue] STEP 4 audit log failed:', err);
+    throw err;
+  }
 
   return {
     newTicketId,
@@ -154,18 +174,12 @@ export async function enqueueSellerPayout(input: {
   const scheduledFor = new Date();
   scheduledFor.setDate(scheduledFor.getDate() + Number(policy.payout_delay_days));
 
-  // Load seller's IBAN (if set on user profile — may not exist yet)
-  const sellerBank = await input.client.query<{
-    bank_iban: string | null;
-    bank_account_holder: string | null;
-  }>(
-    `SELECT
-       (SELECT iban FROM identity.user_bank_accounts
-         WHERE user_id = $1 AND is_default = true LIMIT 1) AS bank_iban,
-       (SELECT account_holder_name FROM identity.user_bank_accounts
-         WHERE user_id = $1 AND is_default = true LIMIT 1) AS bank_account_holder`,
-    [input.sellerId],
-  ).catch(() => ({ rows: [{ bank_iban: null, bank_account_holder: null }] }));
+  // Load seller's IBAN — tabulka identity.user_bank_accounts ještě neexistuje
+  // (memory: čeká na implementaci v session 17). Bez ní necháme bank fields prázdné
+  // a payout zůstane ve stavu 'pending' k manuálnímu zpracování.
+  const sellerBank: { rows: Array<{ bank_iban: string | null; bank_account_holder: string | null }> } = {
+    rows: [{ bank_iban: null, bank_account_holder: null }],
+  };
 
   const r = await input.client.query<{ id: string }>(
     `INSERT INTO resale.seller_payouts
