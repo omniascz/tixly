@@ -217,6 +217,17 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     return NextResponse.next();
   }
 
+  // PWA assets — manifest, service worker, icons, offline fallback page.
+  // Tyto musí být dostupné bez locale prefix (browser/PWA spec).
+  if (
+    pathname === '/manifest.json' ||
+    pathname === '/sw.js' ||
+    pathname === '/offline' ||
+    /^\/icon-\d+\.png$/.test(pathname)
+  ) {
+    return NextResponse.next();
+  }
+
   // Locale handling for the rest of the frontend
   const currentLocale = getPathnameLocale(pathname);
 

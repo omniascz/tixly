@@ -4,14 +4,15 @@
 //   - /api/buyer/my-tickets, /api/buyer/tickets/*: network-first, cache fallback
 //   - Static assets: cache-first
 
-const CACHE_VERSION = 'tixly-v1';
+const CACHE_VERSION = 'tixly-v2';
 const RUNTIME_CACHE = 'tixly-runtime';
+const OFFLINE_URL = '/offline';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_VERSION).then((cache) =>
-      cache.addAll(['/manifest.json']).catch(() => null),
+      cache.addAll(['/manifest.json', OFFLINE_URL, '/icon-192.png']).catch(() => null),
     ),
   );
 });
@@ -46,6 +47,19 @@ self.addEventListener('fetch', (event) => {
   // Stale-while-revalidate pro my-tickets pages
   if (url.pathname.includes('/my-tickets') || url.pathname.includes('/order-confirmation/')) {
     event.respondWith(staleWhileRevalidate(event.request));
+    return;
+  }
+
+  // Navigations (page loads) → offline fallback při fail
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(async () => {
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
+        const offline = await caches.match(OFFLINE_URL);
+        return offline ?? new Response('Offline', { status: 503 });
+      }),
+    );
     return;
   }
 
