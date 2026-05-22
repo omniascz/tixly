@@ -210,7 +210,9 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     pathname.startsWith('/mock-gopay/') ||
     pathname.startsWith('/mock-wero/') ||
     pathname.startsWith('/mock-przelewy24/') ||
-    pathname.startsWith('/mock-benefit/')
+    pathname.startsWith('/mock-benefit/') ||
+    pathname.startsWith('/mock-subscription/') ||
+    pathname.startsWith('/mock-voucher/')
   ) {
     return NextResponse.next();
   }
