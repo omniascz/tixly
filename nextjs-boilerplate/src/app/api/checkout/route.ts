@@ -127,6 +127,10 @@ const schema = z.object({
   // svých subscriptions.holders u téhož promotéra. Aplikuje se PO voucheru.
   // Vyžaduje x-user-id header (přihlášený buyer; guest nemá historii).
   useRestwertCredit: z.boolean().optional(),
+  // OTP token z /api/buyer/otp/verify — povinný pokud events.requires_otp_validation=true.
+  // CZ priority #3 — anti-bot ochrana top eventů (Karel Gott reissue, festival
+  // announcement).
+  otpToken: z.string().min(20).max(80).optional(),
   // Marketing QR kampaň ID — buyer přišel přes QR z plakátu/letáku.
   // Cookie qr_ref se zapíše po /api/qr/[slug] redirectu, client ho posílá.
   qrRef: z.string().uuid().optional(),
@@ -213,7 +217,7 @@ export async function POST(req: NextRequest): Promise<Response> {
               e.min_age, e.currency, e.queue_enabled,
               e.insurance_enabled, e.insurance_pct, tt.is_seated,
               COALESCE(tt.requires_personalization, FALSE) AS requires_personalization,
-              e.promoter_id
+              e.promoter_id, e.requires_otp_validation
        FROM catalog.ticket_types tt
        JOIN catalog.events e ON e.id = tt.event_id
        WHERE tt.id = $1 AND tt.event_id = $2 AND e.status = 'published'
@@ -227,7 +231,35 @@ export async function POST(req: NextRequest): Promise<Response> {
         { status: 404 },
       );
     }
-    const tt = ttRes.rows[0] as { id: string; event_id: string; remaining_qty: number; name: string; event_title: string; min_age: number | null; currency: string; queue_enabled: boolean; insurance_enabled: boolean; insurance_pct: number; is_seated: boolean; requires_personalization: boolean; promoter_id: string };
+    const tt = ttRes.rows[0] as { id: string; event_id: string; remaining_qty: number; name: string; event_title: string; min_age: number | null; currency: string; queue_enabled: boolean; insurance_enabled: boolean; insurance_pct: number; is_seated: boolean; requires_personalization: boolean; promoter_id: string; requires_otp_validation: boolean };
+
+    // OTP validation (CZ priority #3) — pokud event vyžaduje, validuj otpToken
+    if (tt.requires_otp_validation) {
+      if (!input.otpToken) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { error: 'OTP_REQUIRED', message: 'Tato akce vyžaduje ověření telefonu SMS kódem.' },
+          { status: 422 },
+        );
+      }
+      const otpCheck = await client.query<{ verified_at: string | null; expires_at: string }>(
+        `SELECT verified_at::text, expires_at::text
+           FROM marketing.otp_codes
+          WHERE token = $1
+            AND (event_id IS NULL OR event_id = $2)`,
+        [input.otpToken, input.eventId],
+      );
+      if (otpCheck.rows.length === 0 || !otpCheck.rows[0].verified_at) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'OTP_INVALID' }, { status: 422 });
+      }
+      const verifiedAt = new Date(otpCheck.rows[0].verified_at).getTime();
+      // Token OK valid pro 30 min od verifikace
+      if (Date.now() - verifiedAt > 30 * 60 * 1000) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'OTP_EXPIRED' }, { status: 422 });
+      }
+    }
 
     // P0 RISK MITIGATION: hard cap pro T1 promotery
     // Pokud promotér ještě nepass pre-review, kontrolujeme volume_used + nový order < cap
