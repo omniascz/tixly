@@ -346,6 +346,36 @@ export async function POST(request: NextRequest): Promise<Response> {
       }
     }
 
+    // Group invitation auto-complete (CZ priority #5) — pokud tento order byl
+    // linkován na group_invitation, zkontroluj jestli už dosáhl target_seats
+    // a status flipni na 'completed'.
+    {
+      const groupClient = await db().connect();
+      try {
+        await groupClient.query('BEGIN');
+        await groupClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+        await groupClient.query(
+          `UPDATE orders.group_invitations gi
+              SET status = 'completed'
+            WHERE gi.id = (
+                  SELECT group_invitation_id FROM orders.orders WHERE id = $1
+                )
+              AND gi.status = 'open'
+              AND (
+                  SELECT COUNT(*) FROM orders.orders
+                   WHERE group_invitation_id = gi.id AND status = 'paid'
+              ) >= gi.target_seats`,
+          [orderId],
+        );
+        await groupClient.query('COMMIT');
+      } catch (err) {
+        await groupClient.query('ROLLBACK').catch(() => undefined);
+        console.error('[order-completed] group_invitation completion failed', err);
+      } finally {
+        groupClient.release();
+      }
+    }
+
     // Skip PDF when this is a duplicate call (existing tickets have empty secrets)
     const hasFreshSecrets = issued.every((t) => t.totpSecretBase32.length > 0);
     // Fire-and-forget conversion tracking (Q.2) — Meta CAPI + GA4

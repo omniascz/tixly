@@ -8,6 +8,7 @@ import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 import { getDict } from '@/lib/i18n-dictionaries';
 import { LotteryCard } from './LotteryCard';
 import { Recommendations } from './Recommendations';
+import { GroupInviteButton } from './GroupInviteButton';
 import { ShareButtons } from './ShareButtons';
 import { RestwertBalanceBadge } from './RestwertBalanceBadge';
 import { RsvpButtons } from './RsvpButtons';
@@ -366,10 +367,13 @@ export default async function EventDetailPage({
           locale={(locale === 'sk' || locale === 'en' ? locale : 'cs') as 'cs' | 'sk' | 'en'}
         />
 
-        <ShareButtons
-          url={`/cs/events/${event.id}`}
-          title={event.title}
-        />
+        <div className="space-y-3">
+          <ShareButtons
+            url={`/cs/events/${event.id}`}
+            title={event.title}
+          />
+          <GroupInviteButton eventId={event.id} />
+        </div>
       </div>
       <div>
         <Card>

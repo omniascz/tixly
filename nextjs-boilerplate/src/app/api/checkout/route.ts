@@ -134,6 +134,9 @@ const schema = z.object({
   // Loyalty points redemption (CZ priority #6) — buyer uplatní existing
   // loyalty body. 1 bod = 1 Kč sleva, max 50% z subtotal.
   redeemLoyaltyPoints: z.number().int().min(0).max(100_000).optional(),
+  // Group invitation token (CZ priority #5) — friend přišel přes share link.
+  // Order se napojí na group_invitation pro "X z N already paid" tracking.
+  groupInvitationToken: z.string().min(20).max(80).optional(),
   // Marketing QR kampaň ID — buyer přišel přes QR z plakátu/letáku.
   // Cookie qr_ref se zapíše po /api/qr/[slug] redirectu, client ho posílá.
   qrRef: z.string().uuid().optional(),
@@ -1097,6 +1100,25 @@ export async function POST(req: NextRequest): Promise<Response> {
         return NextResponse.json(
           { error: 'FRAUD_BLOCK', score: fraud.score, reasons: fraud.topReasons },
           { status: 403 },
+        );
+      }
+    }
+
+    // Group invitation linkage (CZ priority #5) — friend přišel přes share URL.
+    // Najdi open invitation s matching event_id a link order.
+    if (input.groupInvitationToken) {
+      const gi = await client.query<{ id: string; target_seats: number }>(
+        `SELECT id, target_seats FROM orders.group_invitations
+          WHERE invite_token = $1
+            AND event_id = $2
+            AND status = 'open'
+            AND expires_at > NOW()`,
+        [input.groupInvitationToken, input.eventId],
+      );
+      if (gi.rows.length > 0) {
+        await client.query(
+          `UPDATE orders.orders SET group_invitation_id = $2 WHERE id = $1`,
+          [orderId, gi.rows[0].id],
         );
       }
     }
