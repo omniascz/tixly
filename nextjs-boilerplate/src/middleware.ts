@@ -203,13 +203,14 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   }
 
   // Mock payment gateway pages live outside the [locale] segment
-  // (src/app/mock-gopay/, /mock-wero/, /mock-przelewy24/). Locale prefix
-  // would redirect to /cs/mock-gopay/X — which has no matching route file
-  // and 404s. Pass through unchanged.
+  // (src/app/mock-gopay/, /mock-wero/, /mock-przelewy24/, /mock-benefit/).
+  // Locale prefix would redirect to /cs/mock-X/Y — which has no matching
+  // route file and 404s. Pass through unchanged.
   if (
     pathname.startsWith('/mock-gopay/') ||
     pathname.startsWith('/mock-wero/') ||
-    pathname.startsWith('/mock-przelewy24/')
+    pathname.startsWith('/mock-przelewy24/') ||
+    pathname.startsWith('/mock-benefit/')
   ) {
     return NextResponse.next();
   }
