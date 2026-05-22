@@ -23,6 +23,7 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     // Tickety + Sedadla
     { href: `/admin/events/${eventId}/tickets`, label: 'Lístky', group: 'Lístky' },
     { href: `/admin/events/${eventId}/holds`, label: 'Holds', group: 'Lístky' },
+    { href: `/admin/events/${eventId}/view-photos`, label: 'Pohled ze sedadla', group: 'Lístky' },
     { href: `/admin/events/${eventId}/custom-fields`, label: 'Doplňkové otázky', group: 'Lístky' },
     { href: `/admin/events/${eventId}/accreditation`, label: 'Akreditace', group: 'Lístky' },
     { href: `/admin/events/${eventId}/wristbands`, label: 'Náramky', group: 'Lístky' },
