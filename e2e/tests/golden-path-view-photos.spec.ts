@@ -208,3 +208,41 @@ test('Click&View: invalid event_id v public endpoint → 400/404', async ({
   const body = (await r.json()) as { error: string };
   expect(body.error).toBe('EVENT_NOT_FOUND');
 });
+
+test('Click&View: buyer seat picker volá public endpoint a renderuje ring + modal', async ({
+  page,
+  context,
+}) => {
+  // Setup: upload foto pro nějaké event_seats Divadlo Verze (seated venue)
+  const token = await apiLogin(context, PROMOTER_EMAIL, PROMOTER_PASSWORD);
+  const { eventId, seatIds } = await findSeatedEvent(context, token);
+  expect(seatIds.length).toBeGreaterThanOrEqual(1);
+
+  await context.request.post(`/api/admin/events/${eventId}/view-photos`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      photos: [
+        {
+          eventSeatId: seatIds[0],
+          photoUrl: 'https://example.cdn/buyer-test/seat1.jpg',
+          caption: 'Pohled z testovacího sedadla',
+        },
+      ],
+    },
+  });
+
+  // Buyer otevře public seat picker — fetch /api/events/[id]/seat-view-photos
+  // proběhne v useEffect, circle dostane data-has-view-photo attribute.
+  // Pozn.: SeatPicker má EventSource SSE pro live updates → networkidle nikdy.
+  // Použít domcontentloaded a explicit wait na první circle.
+  await page.goto(`/cs/events/${eventId}/seats`, { waitUntil: 'domcontentloaded' });
+
+  // Mrkneme zda alespoň 1 circle má attribute data-has-view-photo="true"
+  const ringSeats = page.locator('circle[data-has-view-photo="true"]');
+  await expect(ringSeats.first()).toBeAttached({ timeout: 15_000 });
+  const count = await ringSeats.count();
+  expect(count).toBeGreaterThanOrEqual(1);
+});

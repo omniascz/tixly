@@ -39,6 +39,12 @@ interface Data {
   ticketTypes: TicketType[];
 }
 
+interface ViewPhoto {
+  photoUrl: string;
+  thumbnailUrl: string | null;
+  caption: string | null;
+}
+
 const MAX_SELECTION = 10;
 
 interface Props {
@@ -54,6 +60,29 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [bestCount, setBestCount] = useState(2);
+  // Click&View (DACH P2-6): mapa seatId → photoUrl pro buyer preview.
+  const [viewPhotos, setViewPhotos] = useState<Record<string, ViewPhoto>>({});
+  const [previewSeat, setPreviewSeat] = useState<{
+    seatId: string;
+    sector: string;
+    row: string;
+    num: string;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/events/${eventId}/seat-view-photos`)
+      .then((r) => (r.ok ? r.json() : { photos: {} }))
+      .then((d: { photos: Record<string, ViewPhoto> }) => {
+        if (!cancelled) setViewPhotos(d.photos ?? {});
+      })
+      .catch(() => {
+        /* graceful — žádné photos */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -378,8 +407,55 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
       </div>
 
       <div className="rounded-md border bg-card p-3">
-        <SvgChart data={data} selected={selected} onToggle={toggle} />
+        <SvgChart
+          data={data}
+          selected={selected}
+          onToggle={toggle}
+          viewPhotos={viewPhotos}
+          onPreview={setPreviewSeat}
+        />
       </div>
+
+      {previewSeat && viewPhotos[previewSeat.seatId] ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setPreviewSeat(null)}
+          data-testid="seat-view-modal"
+        >
+          <div
+            className="max-w-2xl rounded-lg bg-card p-4 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="font-semibold">
+                Pohled ze sedadla {previewSeat.sector} · {previewSeat.row}/
+                {previewSeat.num}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setPreviewSeat(null)}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="Zavřít"
+              >
+                ×
+              </button>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={viewPhotos[previewSeat.seatId].photoUrl}
+              alt={`Pohled ze sedadla ${previewSeat.row}/${previewSeat.num}`}
+              className="max-h-[70vh] w-full rounded-md object-contain"
+            />
+            {viewPhotos[previewSeat.seatId].caption ? (
+              <p className="mt-2 text-sm text-muted-foreground">
+                {viewPhotos[previewSeat.seatId].caption}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       <div className="sticky bottom-0 rounded-md border bg-card p-4 shadow-md">
         <div className="flex items-center justify-between gap-3">
@@ -540,10 +616,14 @@ function SvgChart({
   data,
   selected,
   onToggle,
+  viewPhotos,
+  onPreview,
 }: {
   data: Data;
   selected: Set<string>;
   onToggle: (s: Seat) => void;
+  viewPhotos: Record<string, ViewPhoto>;
+  onPreview: (info: { seatId: string; sector: string; row: string; num: string }) => void;
 }) {
   const seatLookup = useMemo(() => {
     const m = new Map<string, Seat>();
@@ -701,6 +781,7 @@ function SvgChart({
                                   ? colorForType(seat.ttId, data)
                                   : sector.color ?? '#64748b');
                         const interactive = seat.status === 'available';
+                        const hasViewPhoto = !!viewPhotos[seat.id];
                         return (
                           <circle
                             key={seat.id}
@@ -708,10 +789,39 @@ function SvgChart({
                             cy={seatPos.y}
                             r={seatRadius}
                             fill={fill}
-                            stroke={isSelected ? '#047857' : '#fff'}
-                            strokeWidth={isSelected ? Math.max(1, seatRadius * 0.25) : 0.5}
+                            stroke={
+                              isSelected
+                                ? '#047857'
+                                : hasViewPhoto
+                                  ? '#f59e0b'
+                                  : '#fff'
+                            }
+                            strokeWidth={
+                              isSelected
+                                ? Math.max(1, seatRadius * 0.25)
+                                : hasViewPhoto
+                                  ? Math.max(0.8, seatRadius * 0.2)
+                                  : 0.5
+                            }
                             style={{ cursor: interactive ? 'pointer' : 'not-allowed' }}
-                            onClick={() => interactive && onToggle(seat)}
+                            onClick={(e) => {
+                              if (!interactive) return;
+                              // Shift/Cmd/Ctrl + click = open view photo modal (pokud má);
+                              // standard click = toggle selection
+                              if (
+                                hasViewPhoto &&
+                                (e.shiftKey || e.ctrlKey || e.metaKey)
+                              ) {
+                                onPreview({
+                                  seatId: seat.id,
+                                  sector: sector.name,
+                                  row: row.label,
+                                  num: seatPos.num,
+                                });
+                                return;
+                              }
+                              onToggle(seat);
+                            }}
                             role={interactive ? 'button' : undefined}
                             tabIndex={interactive ? 0 : -1}
                             onKeyDown={(e) => {
@@ -720,11 +830,13 @@ function SvgChart({
                                 onToggle(seat);
                               }
                             }}
-                            aria-label={`Sektor ${sector.name}, řada ${row.label}, sedadlo ${seatPos.num}, ${seat.status}`}
+                            aria-label={`Sektor ${sector.name}, řada ${row.label}, sedadlo ${seatPos.num}, ${seat.status}${hasViewPhoto ? ', má foto pohledu' : ''}`}
+                            data-has-view-photo={hasViewPhoto || undefined}
                           >
                             <title>
                               {sector.name} · řada {row.label} · sedadlo {seatPos.num}
-                              {seat.acc ? ' · ♿ accessibility' : ''}
+                              {seat.acc ? ' · ♿' : ''}
+                              {hasViewPhoto ? ' · 📷 Shift+klik = foto' : ''}
                             </title>
                           </circle>
                         );
