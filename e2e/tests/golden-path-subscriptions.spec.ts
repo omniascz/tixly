@@ -371,6 +371,200 @@ test('Wahl-Abo: cizí holder GET pick → 403 FORBIDDEN', async ({ context }) =>
   expect(r.status()).toBe(404); // NOT_FOUND (lepší než 403, security audit OK)
 });
 
+test('Wahl-Abo Restwert: cancel-pick vrátí kredit + uvolní pick slot', async ({
+  context,
+}) => {
+  const promoter = await apiLogin(context, PROMOTER_EMAIL, PROMOTER_PASSWORD);
+  const buyer = await apiLogin(context, BUYER_EMAIL, BUYER_PASSWORD);
+  const eventIds = await listPublishedEventIds(context, promoter.accessToken, 4);
+  expect(eventIds.length).toBeGreaterThanOrEqual(3);
+
+  const maxPicks = 3;
+  const pricePaidHalire = 300000; // 3000 Kč → 1000 Kč per pick
+
+  // Setup: choice abo
+  const createRes = await context.request.post('/api/admin/subscriptions/packages', {
+    headers: {
+      Authorization: `Bearer ${promoter.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      name: 'Restwert Test',
+      slug: uniqSlug('restwert'),
+      seasonLabel: '2026/27',
+      basePriceHalire: pricePaidHalire,
+      eventIds,
+      aboType: 'choice',
+      maxPicksForChoice: maxPicks,
+    },
+  });
+  expect(createRes.status()).toBe(201);
+  const { id: packageId } = (await createRes.json()) as { id: string };
+  await context.request.patch(`/api/admin/subscriptions/packages/${packageId}`, {
+    headers: {
+      Authorization: `Bearer ${promoter.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    data: { status: 'on_sale' },
+  });
+
+  const co = await context.request.post('/api/subscriptions/checkout', {
+    headers: { 'Content-Type': 'application/json', 'x-user-id': buyer.userId },
+    data: { packageId, buyerEmail: BUYER_EMAIL, buyerName: 'Anna Nova' },
+  });
+  const { paymentId, holderId } = (await co.json()) as {
+    paymentId: string;
+    holderId: string;
+  };
+  await context.request.post(`/api/subscriptions/holders/${paymentId}/confirm`, {
+    data: { action: 'pay' },
+  });
+
+  // Pick 2 events
+  for (let i = 0; i < 2; i++) {
+    const r = await context.request.post(
+      `/api/buyer/subscriptions/${holderId}/pick`,
+      {
+        headers: { 'Content-Type': 'application/json', 'x-user-id': buyer.userId },
+        data: { eventId: eventIds[i] },
+      },
+    );
+    expect(r.status()).toBe(200);
+  }
+
+  // Před cancel: credit=0, picksUsed=2
+  await test.step('GET pick state: credit=0 picksUsed=2', async () => {
+    const r = await context.request.get(
+      `/api/buyer/subscriptions/${holderId}/pick`,
+      { headers: { 'x-user-id': buyer.userId } },
+    );
+    const body = (await r.json()) as {
+      picksUsed: number;
+      restwertCreditHalire: number;
+      pricePaidHalire: number;
+    };
+    expect(body.picksUsed).toBe(2);
+    expect(body.restwertCreditHalire).toBe(0);
+    expect(body.pricePaidHalire).toBe(pricePaidHalire);
+  });
+
+  // DELETE pick → credit += per_pick = 300000/3 = 100000
+  await test.step('DELETE pick → kredit +1000 Kč, picksUsed=1', async () => {
+    const r = await context.request.delete(
+      `/api/buyer/subscriptions/${holderId}/pick/${eventIds[0]}`,
+      { headers: { 'x-user-id': buyer.userId } },
+    );
+    expect(r.status()).toBe(200);
+    const body = (await r.json()) as {
+      restwertCreditHalire: number;
+      perPickValueHalire: number;
+    };
+    expect(body.perPickValueHalire).toBe(100000); // 1000 Kč
+    expect(body.restwertCreditHalire).toBe(100000);
+
+    // GET state: picksUsed=1, picksRemaining=2 (uvolnil se slot)
+    const after = await context.request.get(
+      `/api/buyer/subscriptions/${holderId}/pick`,
+      { headers: { 'x-user-id': buyer.userId } },
+    );
+    const afterBody = (await after.json()) as {
+      picksUsed: number;
+      picksRemaining: number;
+      restwertCreditHalire: number;
+    };
+    expect(afterBody.picksUsed).toBe(1);
+    expect(afterBody.picksRemaining).toBe(2);
+    expect(afterBody.restwertCreditHalire).toBe(100000);
+  });
+
+  // Po cancel: re-pick jiný event (uvolněný slot funguje)
+  await test.step('Re-pick jiný event (uvolněný slot) → 200', async () => {
+    const r = await context.request.post(
+      `/api/buyer/subscriptions/${holderId}/pick`,
+      {
+        headers: { 'Content-Type': 'application/json', 'x-user-id': buyer.userId },
+        data: { eventId: eventIds[3] },
+      },
+    );
+    expect(r.status()).toBe(200);
+  });
+
+  // Druhý cancel = credit kumuluje
+  await test.step('Druhý cancel → kredit kumuluje na 2000 Kč', async () => {
+    const r = await context.request.delete(
+      `/api/buyer/subscriptions/${holderId}/pick/${eventIds[1]}`,
+      { headers: { 'x-user-id': buyer.userId } },
+    );
+    expect(r.status()).toBe(200);
+    const body = (await r.json()) as { restwertCreditHalire: number };
+    expect(body.restwertCreditHalire).toBe(200000); // 2000 Kč cumulative
+  });
+
+  // Cancel non-existent → 404
+  await test.step('Cancel event, který nebyl picknutý → 404 NOT_PICKED', async () => {
+    const r = await context.request.delete(
+      `/api/buyer/subscriptions/${holderId}/pick/${eventIds[2]}`,
+      { headers: { 'x-user-id': buyer.userId } },
+    );
+    expect(r.status()).toBe(404);
+    const body = (await r.json()) as { error: string };
+    expect(body.error).toBe('NOT_PICKED');
+  });
+});
+
+test('Wahl-Abo Restwert: Festabo (fixed) → 409 NOT_CHOICE_ABO', async ({
+  context,
+}) => {
+  const promoter = await apiLogin(context, PROMOTER_EMAIL, PROMOTER_PASSWORD);
+  const buyer = await apiLogin(context, BUYER_EMAIL, BUYER_PASSWORD);
+  const eventIds = await listPublishedEventIds(context, promoter.accessToken, 2);
+
+  // Setup Festabo
+  const createRes = await context.request.post('/api/admin/subscriptions/packages', {
+    headers: {
+      Authorization: `Bearer ${promoter.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      name: 'Fixed Test Restwert',
+      slug: uniqSlug('fixed-restwert'),
+      seasonLabel: '2026/27',
+      basePriceHalire: 200000,
+      eventIds,
+      aboType: 'fixed',
+    },
+  });
+  const { id: packageId } = (await createRes.json()) as { id: string };
+  await context.request.patch(`/api/admin/subscriptions/packages/${packageId}`, {
+    headers: {
+      Authorization: `Bearer ${promoter.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    data: { status: 'on_sale' },
+  });
+
+  const co = await context.request.post('/api/subscriptions/checkout', {
+    headers: { 'Content-Type': 'application/json', 'x-user-id': buyer.userId },
+    data: { packageId, buyerEmail: BUYER_EMAIL, buyerName: 'Anna Nova' },
+  });
+  const { paymentId, holderId } = (await co.json()) as {
+    paymentId: string;
+    holderId: string;
+  };
+  await context.request.post(`/api/subscriptions/holders/${paymentId}/confirm`, {
+    data: { action: 'pay' },
+  });
+
+  // Cancel-pick na fixed → 409
+  const r = await context.request.delete(
+    `/api/buyer/subscriptions/${holderId}/pick/${eventIds[0]}`,
+    { headers: { 'x-user-id': buyer.userId } },
+  );
+  expect(r.status()).toBe(409);
+  const body = (await r.json()) as { error: string };
+  expect(body.error).toBe('NOT_CHOICE_ABO');
+});
+
 test('Wahl-Abo: buyer pick page UI funguje (smoke)', async ({ page, context }) => {
   // Setup: vytvoř choice package + holder
   const promoter = await apiLogin(context, PROMOTER_EMAIL, PROMOTER_PASSWORD);

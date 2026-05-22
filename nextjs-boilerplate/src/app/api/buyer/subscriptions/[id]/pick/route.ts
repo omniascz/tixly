@@ -42,19 +42,25 @@ interface HolderRow {
   max_picks_for_choice: number | null;
 }
 
+interface HolderRowExt extends HolderRow {
+  restwert_credit_halire: number;
+  price_paid_halire: number;
+}
+
 async function loadHolder(
   client: { query: Pool['query'] },
   id: string,
   forUpdate: boolean,
-): Promise<HolderRow | null> {
+): Promise<HolderRowExt | null> {
   const sql = `
     SELECT h.id, h.user_id, h.holder_email, h.status, h.payment_status,
-           h.package_id, p.abo_type, p.max_picks_for_choice
+           h.package_id, p.abo_type, p.max_picks_for_choice,
+           h.restwert_credit_halire, h.price_paid_halire
       FROM subscriptions.holders h
       JOIN subscriptions.packages p ON p.id = h.package_id
      WHERE h.id = $1
      ${forUpdate ? 'FOR UPDATE OF h' : ''}`;
-  const r = await client.query<HolderRow>(sql, [id]);
+  const r = await client.query<HolderRowExt>(sql, [id]);
   return r.rows[0] ?? null;
 }
 
@@ -100,12 +106,15 @@ export async function GET(
 
   const picksUsed = eventsRes.rows.filter((r) => r.already_picked).length;
 
+  const picksRemaining = (holder.max_picks_for_choice ?? 0) - picksUsed;
   return NextResponse.json({
-    id: holder.id,
+    holderId: holder.id,
     aboType: holder.abo_type,
     maxPicks: holder.max_picks_for_choice,
     picksUsed,
-    picksRemaining: (holder.max_picks_for_choice ?? 0) - picksUsed,
+    picksRemaining,
+    restwertCreditHalire: holder.restwert_credit_halire,
+    pricePaidHalire: holder.price_paid_halire,
     events: eventsRes.rows.map((r) => ({
       eventId: r.event_id,
       title: r.title,

@@ -34,14 +34,23 @@ async function assertOwnership(
   packageId: string,
   promoterId: string,
 ): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
-  const r = await db().query<{ promoter_id: string }>(
-    `SELECT promoter_id FROM subscriptions.packages WHERE id = $1`,
-    [packageId],
-  );
-  if (r.rows.length === 0) return { ok: false, status: 404, error: 'NOT_FOUND' };
-  if (r.rows[0].promoter_id !== promoterId)
-    return { ok: false, status: 403, error: 'FORBIDDEN' };
-  return { ok: true };
+  // RLS bypass — ownership check sám validuje promoter scope.
+  const client = await db().connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    const r = await client.query<{ promoter_id: string }>(
+      `SELECT promoter_id FROM subscriptions.packages WHERE id = $1`,
+      [packageId],
+    );
+    await client.query('COMMIT');
+    if (r.rows.length === 0) return { ok: false, status: 404, error: 'NOT_FOUND' };
+    if (r.rows[0].promoter_id !== promoterId)
+      return { ok: false, status: 403, error: 'FORBIDDEN' };
+    return { ok: true };
+  } finally {
+    client.release();
+  }
 }
 
 export async function GET(
@@ -125,6 +134,8 @@ export async function PATCH(
   const client = await db().connect();
   try {
     await client.query('BEGIN');
+    // RLS bypass — ownership ověřena v assertOwnership výš.
+    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
 
     if (sets.length > 0) {
       sets.push(`updated_at = NOW()`);

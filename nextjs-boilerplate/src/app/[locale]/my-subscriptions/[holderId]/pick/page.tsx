@@ -25,6 +25,8 @@ interface PickState {
   maxPicks: number;
   picksUsed: number;
   picksRemaining: number;
+  restwertCreditHalire: number;
+  pricePaidHalire: number;
   events: EventOption[];
 }
 
@@ -89,6 +91,29 @@ export default function WahlAboPickPage(): JSX.Element {
     }
   }
 
+  async function handleCancelPick(eventId: string): Promise<void> {
+    if (!state) return;
+    if (!window.confirm('Opravdu zrušit tento výběr? Vstupenka bude zneplatněna a získáš zpět kredit.')) {
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await authFetch(
+        `/api/buyer/subscriptions/${params.holderId}/pick/${eventId}`,
+        { method: 'DELETE' },
+      );
+      if (!r.ok) {
+        const body = (await r.json().catch(() => ({}))) as { error?: string; message?: string };
+        setError(body.message ?? body.error ?? `HTTP ${r.status}`);
+        return;
+      }
+      await load();
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (error && !state) {
     return (
       <div className="mx-auto mt-12 max-w-2xl px-4">
@@ -139,9 +164,21 @@ export default function WahlAboPickPage(): JSX.Element {
               style={{ width: `${(state.picksUsed / state.maxPicks) * 100}%` }}
             />
           </div>
-          <p className="text-xs text-muted-foreground">
-            Použito {state.picksUsed} / {state.maxPicks}
-          </p>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">
+              Použito {state.picksUsed} / {state.maxPicks}
+            </span>
+            {state.restwertCreditHalire > 0 ? (
+              <span
+                className="rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-900"
+                data-testid="restwert-badge"
+                title="Kredit ze zrušených výběrů — uplatníte při dalším nákupu u tohoto pořadatele"
+              >
+                💰 Restwert kredit:{' '}
+                <strong>{(state.restwertCreditHalire / 100).toLocaleString('cs-CZ')} Kč</strong>
+              </span>
+            ) : null}
+          </div>
         </CardContent>
       </Card>
 
@@ -170,9 +207,21 @@ export default function WahlAboPickPage(): JSX.Element {
                   </div>
                 </div>
                 {picked ? (
-                  <span className="rounded-full bg-emerald-200 px-3 py-1 text-xs font-medium text-emerald-900">
-                    ✓ Vstupenka vystavena
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-emerald-200 px-3 py-1 text-xs font-medium text-emerald-900">
+                      ✓ Vstupenka vystavena
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => void handleCancelPick(ev.eventId)}
+                      disabled={busy}
+                      className="text-xs text-muted-foreground underline hover:text-rose-700"
+                      data-testid={`cancel-pick-${ev.eventId}`}
+                      title="Zrušit výběr a získat zpět kredit"
+                    >
+                      Zrušit
+                    </button>
+                  </div>
                 ) : done ? (
                   <span className="text-xs text-muted-foreground">limit vyčerpán</span>
                 ) : (
