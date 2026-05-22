@@ -148,6 +148,16 @@ const EVENT_TYPES = [
   'workshop', 'club', 'family', 'other',
 ] as const;
 
+// DB CHECK constraint `events_event_type_check` neakceptuje 'physical'
+// (orthogonal Format koncept, ne event druh). Mapujeme na 'other' a skutečný
+// druh akce drží category sloupec ('music', 'theatre', ...).
+const EVENT_TYPE_DB_MAP: Record<string, string> = {
+  physical: 'other',
+};
+function mapEventTypeForDb(eventType: string): string {
+  return EVENT_TYPE_DB_MAP[eventType] ?? eventType;
+}
+
 const createSchema = z.object({
   // Template
   template: z.enum(TEMPLATE_IDS).default('single_event'),
@@ -365,7 +375,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         input.description ?? null,
         input.category,
         input.subcategory ?? null,
-        input.eventType,
+        mapEventTypeForDb(input.eventType),
         input.template,
         input.dateStart,
         input.dateEnd ?? null,

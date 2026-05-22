@@ -62,15 +62,36 @@ test('Promotér projde wizardem /admin/events/new a vytvoří seated event', asy
     });
   });
 
+  /**
+   * Klikne Pokračovat a počká dokud "Krok N z 7" indikátor nepřejde dál.
+   * React state batching může způsobit že single click → next() neproběhne,
+   * pokud Pokračovat klik fire dřív než selectTemplate setForm() propaguje
+   * (závody na hot-reload dev serveru). Retry guarantuje progress.
+   */
+  async function clickContinueAndAdvance(fromStepLabel: string): Promise<void> {
+    const fromIndicator = page.getByText(fromStepLabel);
+    await expect(fromIndicator).toBeVisible();
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await page.getByRole('button', { name: /^Pokračovat/i }).click();
+      try {
+        await fromIndicator.waitFor({ state: 'detached', timeout: 3_000 });
+        return;
+      } catch {
+        // Krok nepokročil, retry — možná React state race
+      }
+    }
+    throw new Error(`Wizard nepřešel z "${fromStepLabel}" po 3 pokusech`);
+  }
+
   await test.step('Krok 1: Typ akce — Klubový koncert (single_event default)', async () => {
-    // Dev server může wizard kompilovat 20+s — počkat na první template button.
     const tplBtn = page.getByRole('button', { name: /Klubový koncert/i });
     await expect(tplBtn).toBeVisible({ timeout: 30_000 });
     await tplBtn.click();
-    // Po výběru template React přebuduje form (zones/ticketTypes z templatu).
-    // Dáme čas na state propagaci, jinak Pokračovat click může fire před useState.
-    await page.waitForTimeout(300);
-    await page.getByRole('button', { name: /^Pokračovat/i }).click();
+    // Ověř že template selection proběhl (Check icon visible v selected button)
+    await expect(
+      page.locator('button:has-text("Klubový koncert") svg').first(),
+    ).toBeVisible({ timeout: 3_000 });
+    await clickContinueAndAdvance('Krok 1 z 7');
   });
 
   const title = `PWT UI Drama ${Date.now()}`;
@@ -78,7 +99,7 @@ test('Promotér projde wizardem /admin/events/new a vytvoří seated event', asy
   await test.step('Krok 2: basics — název', async () => {
     await expect(page.getByPlaceholder(/Letní festival/i)).toBeVisible({ timeout: 15_000 });
     await page.getByPlaceholder(/Letní festival/i).fill(title);
-    await page.getByRole('button', { name: /Pokračovat/i }).click();
+    await clickContinueAndAdvance('Krok 2 z 7');
   });
 
   await test.step('Krok 3: datetime + venue Stará střelnice', async () => {
@@ -96,29 +117,24 @@ test('Promotér projde wizardem /admin/events/new a vytvoří seated event', asy
     const venueLabel = venueOptions.find((t) => /Stará střelnice/i.test(t));
     expect(venueLabel, 'venue Stará střelnice je v dropdown').toBeTruthy();
     await venueSelect.selectOption({ label: venueLabel! });
-    await page.getByRole('button', { name: /Pokračovat/i }).click();
+    await clickContinueAndAdvance('Krok 3 z 7');
   });
 
   await test.step('Krok 4: tickets — Přízemí 232 ks, Sedadlo + zone PŘÍZEMÍ', async () => {
-    // single_event template předvyplnil 2 ticket types (Standard, VIP).
-    // První (Standard) přepíšeme na seated Přízemí; druhý smazneme.
     const firstName = page.getByPlaceholder(/Název.*Standard.*VIP/).first();
     await firstName.fill('Přízemí');
     await page.getByPlaceholder('Cena Kč').first().fill('350');
     await page.getByPlaceholder('Kapacita').first().fill('232');
 
-    // Sedadlo checkbox + zone (UI inputy přidané 2026-04-29 pro P0 fix).
-    // .click() spíš než .check() — radix Input je custom, ne native checked
-    // attribute, ale onChange handler reaguje na click.
     const seatedCb = page.getByRole('checkbox', { name: /Sedadlo/i }).first();
     await seatedCb.click();
     await page.getByPlaceholder(/Sektor v sále/i).first().fill('PŘÍZEMÍ');
-    await page.getByRole('button', { name: /Pokračovat/i }).click();
+    await clickContinueAndAdvance('Krok 4 z 7');
   });
 
-  await test.step('Krok 5–7: marketing, rules — skip', async () => {
-    await page.getByRole('button', { name: /Pokračovat/i }).click(); // marketing
-    await page.getByRole('button', { name: /Pokračovat/i }).click(); // rules
+  await test.step('Krok 5–6: marketing, rules — skip', async () => {
+    await clickContinueAndAdvance('Krok 5 z 7'); // marketing → rules
+    await clickContinueAndAdvance('Krok 6 z 7'); // rules → review
   });
 
   await test.step('Review → Publikovat → POST /api/admin/events', async () => {
