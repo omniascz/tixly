@@ -60,6 +60,9 @@ const editSchema = z.object({
   refundFeePct: z.number().int().min(0).max(10000).nullable().optional(),
   refundFeeMinHalire: z.number().int().min(0).max(100_000).nullable().optional(),
   qrPolicy: z.enum(['static_allowed', 'rotating_24h', 'rotating_only', 'photo_required']).optional(),
+  // Eventim Pass-style — kolik minut před eventem se QR kód odhalí buyerovi.
+  // 0 = až při startu eventu, 999999 = okamžitě (vhodné pro standard kulturní akce).
+  qrRevealMinutesBefore: z.number().int().min(0).max(999999).optional(),
   vatCategory: z.enum(['standard', 'cultural', 'food_beverage', 'merchandise', 'reduced']).optional(),
 });
 
@@ -210,6 +213,7 @@ export async function PATCH(
            refund_fee_min_halire = COALESCE($13, refund_fee_min_halire),
            qr_policy = COALESCE($14, qr_policy),
            vat_category = COALESCE($15, vat_category),
+           qr_reveal_minutes_before = COALESCE($16, qr_reveal_minutes_before),
            updated_at = NOW()
        WHERE id = $6`,
       [
@@ -223,6 +227,7 @@ export async function PATCH(
         input.refundFeeMinHalire ?? null,
         input.qrPolicy ?? null,
         input.vatCategory ?? null,
+        input.qrRevealMinutesBefore ?? null,
       ],
     );
 
