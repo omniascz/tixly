@@ -118,6 +118,9 @@ const schema = z.object({
   entrySlotId: z.string().uuid().optional(),
   // Gift voucher kód — aplikuje se PO promo kódu jako přímá sleva z balance.
   voucherCode: z.string().min(8).max(40).optional(),
+  // Marketing QR kampaň ID — buyer přišel přes QR z plakátu/letáku.
+  // Cookie qr_ref se zapíše po /api/qr/[slug] redirectu, client ho posílá.
+  qrRef: z.string().uuid().optional(),
 });
 
 interface TicketTypeRow {
@@ -1000,6 +1003,23 @@ export async function POST(req: NextRequest): Promise<Response> {
            SET affiliate_id = $2, affiliate_commission_minor = $3
            WHERE id = $1`,
           [orderId, a.id, commission],
+        );
+      }
+    }
+
+    // QR campaign attribution — buyer přišel přes /api/qr/[slug] redirect a
+    // cookie qr_ref se posílá v checkout body. Linkujeme order na kampaň pro
+    // conversion tracking (po payment se inkrementuje conversion_count
+    // v mock-gopay/[paymentId] route).
+    if (input.qrRef) {
+      const qr = await client.query<{ id: string }>(
+        `SELECT id FROM marketing.qr_campaigns WHERE id = $1 AND event_id = $2`,
+        [input.qrRef, input.eventId],
+      );
+      if (qr.rows.length > 0) {
+        await client.query(
+          `UPDATE orders.orders SET qr_campaign_id = $2 WHERE id = $1`,
+          [orderId, qr.rows[0].id],
         );
       }
     }

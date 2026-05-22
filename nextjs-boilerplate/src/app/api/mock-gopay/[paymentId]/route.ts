@@ -106,6 +106,26 @@ export async function POST(
     );
     await client.query('COMMIT');
 
+    // QR campaign conversion — pokud order má qr_campaign_id (set v checkoutu),
+    // inkrement conversion_count + total. Mimo transakci, fire-and-forget.
+    void (async () => {
+      try {
+        await db().query(
+          `UPDATE marketing.qr_campaigns
+             SET conversion_count = conversion_count + 1,
+                 conversion_total_halire = conversion_total_halire + COALESCE(
+                   (SELECT total_amount FROM orders.orders WHERE id = $1), 0
+                 ),
+                 updated_at = now()
+           WHERE id = (SELECT qr_campaign_id FROM orders.orders WHERE id = $1)
+             AND id IS NOT NULL`,
+          [order.id],
+        );
+      } catch (err) {
+        console.error('[mock-gopay] qr_campaign conversion update failed', err);
+      }
+    })();
+
     // Real-time sales stream — append do revenue.sales_stream pro SSE dashboard.
     // Mimo transakci — nesmí blokovat odpověď ani rollbacknout order při chybě.
     void (async () => {

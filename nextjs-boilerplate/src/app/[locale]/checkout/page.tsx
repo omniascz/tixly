@@ -178,6 +178,13 @@ function CheckoutForm() {
       if (seatIdsCsv) body.seatIds = seatIdsCsv.split(',');
       if (ref) body.affiliateCode = ref;
       if (insurance && insuranceOptIn) body.insuranceOptIn = true;
+      // QR attribution: cookie qr_ref nastavená v /api/qr/[slug] redirect
+      // (90 days TTL). Server validuje že kampaň patří k tomuto eventu.
+      const qrRefMatch =
+        typeof document !== 'undefined'
+          ? document.cookie.match(/(?:^|;\s*)qr_ref=([0-9a-f-]{36})/i)
+          : null;
+      if (qrRefMatch) body.qrRef = qrRefMatch[1];
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

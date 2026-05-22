@@ -43,6 +43,7 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/addons`, label: 'Add-ons', group: 'Marketing' },
     { href: `/admin/events/${eventId}/donation`, label: 'Donation', group: 'Marketing' },
     { href: `/admin/events/${eventId}/lotteries`, label: 'Lotterie', group: 'Marketing' },
+    { href: `/admin/events/${eventId}/marketing-qr`, label: 'Print QR', group: 'Marketing' },
 
     // Mobile / Pass
     { href: `/admin/events/${eventId}/hot-mode`, label: 'Hot mode', group: 'Mobile/Pass' },
