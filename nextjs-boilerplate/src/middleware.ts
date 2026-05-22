@@ -67,7 +67,10 @@ const FRONTEND_PLATFORM = ['/platform'];
 const FRONTEND_AUTH_ONLY = ['/login', '/register', '/register-promoter'];
 
 // Public mock-gopay endpoints (skip auth entirely, even in API)
-const PUBLIC_API_PREFIXES = ['/api/health', '/api/internal/', '/api/mock-gopay', '/api/team/accept', '/api/lottery/', '/api/gift/', '/api/newsletter/', '/api/support/chat'];
+// GET /api/transfer/accept/[token] je public (recipient ještě nepřihlášený);
+// POST /api/transfer/accept/[token] vyžaduje x-user-id ale endpoint si to ověří
+// sám — middleware ho pustí.
+const PUBLIC_API_PREFIXES = ['/api/health', '/api/internal/', '/api/mock-gopay', '/api/mock-bnpl/', '/api/team/accept', '/api/lottery/', '/api/gift/', '/api/newsletter/', '/api/support/chat', '/api/transfer/accept/'];
 
 // ── Middleware ──────────────────────────────────────────────────────────────
 
@@ -212,7 +215,8 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     pathname.startsWith('/mock-przelewy24/') ||
     pathname.startsWith('/mock-benefit/') ||
     pathname.startsWith('/mock-subscription/') ||
-    pathname.startsWith('/mock-voucher/')
+    pathname.startsWith('/mock-voucher/') ||
+    pathname.startsWith('/mock-bnpl/')
   ) {
     return NextResponse.next();
   }

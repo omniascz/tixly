@@ -77,6 +77,11 @@ const schema = z.object({
       'benefit_plus',
       'edenred',
       'gallery_beta',
+      // BNPL providers (CZ priority #2): Twisto (Mastercard owned, 1M+ CZ
+      // users), Skip Pay (ČSOB). Mock mode → /mock-bnpl/[provider]/[paymentId]
+      // gateway URL podobně jak benefit pay.
+      'twisto',
+      'skippay',
     ])
     .default('gopay'),
   // Add-ons (parking, camping, F&B credit, merch…) — Fáze C
@@ -1207,7 +1212,16 @@ export async function POST(req: NextRequest): Promise<Response> {
     ]);
     let paymentSession;
 
-    if (benefitProviders.has(input.paymentMethod)) {
+    const bnplProviders = new Set(['twisto', 'skippay']);
+    if (bnplProviders.has(input.paymentMethod)) {
+      // BNPL mock provider — žádný real API, dev mode similar k mock-gopay
+      const bnplPaymentId = randomUUID();
+      paymentSession = {
+        paymentId: bnplPaymentId,
+        gatewayUrl: `${appUrl}/mock-bnpl/${input.paymentMethod}/${bnplPaymentId}`,
+        provider: input.paymentMethod,
+      };
+    } else if (benefitProviders.has(input.paymentMethod)) {
       const { createBenefitPayment } = await import('@/lib/payment/benefits');
       // Sodexo používá Pluxee infrastrukturu (Pluxee koupil Sodexo Benefits v 2023)
       const benefitProvider = (input.paymentMethod === 'sodexo' ? 'pluxee' : input.paymentMethod) as
