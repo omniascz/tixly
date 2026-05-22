@@ -48,23 +48,41 @@ export async function resolveWhiteLabel(host: string): Promise<WhiteLabelContext
     return cached.value;
   }
 
-  const r = await db().query<{
+  // RLS bypass — public read-only lookup, žádný session context není
+  // dostupný (host header arrives před auth resolution).
+  const client = await db().connect();
+  let r: { rows: Array<{
     promoter_id: string;
     slug: string;
     name: string;
     logo_url: string | null;
     primary_color: string | null;
     hide_powered_by: boolean;
-  }>(
-    `SELECT pd.promoter_id, p.slug, p.name,
-            pb.logo_url, pb.primary_color, pb.hide_powered_by
-     FROM platform.promoter_domains pd
-     JOIN platform.promoters p ON p.id = pd.promoter_id
-     LEFT JOIN platform.promoter_branding pb ON pb.promoter_id = pd.promoter_id
-     WHERE LOWER(pd.domain) = $1 AND pd.verified_at IS NOT NULL
-       AND p.status = 'active'`,
-    [normalized],
-  );
+  }> };
+  try {
+    await client.query('BEGIN');
+    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    r = await client.query<{
+      promoter_id: string;
+      slug: string;
+      name: string;
+      logo_url: string | null;
+      primary_color: string | null;
+      hide_powered_by: boolean;
+    }>(
+      `SELECT pd.promoter_id, p.slug, p.name,
+              pb.logo_url, pb.primary_color, pb.hide_powered_by
+       FROM platform.promoter_domains pd
+       JOIN platform.promoters p ON p.id = pd.promoter_id
+       LEFT JOIN platform.promoter_branding pb ON pb.promoter_id = pd.promoter_id
+       WHERE LOWER(pd.domain) = $1 AND pd.verified_at IS NOT NULL
+         AND p.status = 'active'`,
+      [normalized],
+    );
+    await client.query('COMMIT');
+  } finally {
+    client.release();
+  }
 
   const value =
     r.rows.length === 0

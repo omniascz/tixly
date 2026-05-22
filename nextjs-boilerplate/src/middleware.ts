@@ -53,7 +53,7 @@ function jsonResponse(body: object, status: number): NextResponse {
 
 const API_AUTH_PREFIX = '/api/auth/';
 
-const API_PUBLIC_GET_ROUTES = ['/api/events/', '/api/search', '/api/cross-passes/', '/api/subscriptions/plans'];
+const API_PUBLIC_GET_ROUTES = ['/api/events/', '/api/search', '/api/cross-passes/', '/api/subscriptions/plans', '/api/public/'];
 
 // API routes that require auth + admin (platform admin OR promoter membership)
 const API_PROMOTER_PREFIXES = ['/api/admin/', '/api/orders/'];

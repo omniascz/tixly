@@ -5,6 +5,7 @@ import { InstallPrompt } from '@/components/InstallPrompt';
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar';
 import { SkipToContent } from '@/components/SkipToContent';
 import { WebVitalsReporter } from '@/components/WebVitalsReporter';
+import { WhiteLabelTheme } from '@/components/WhiteLabelTheme';
 import { Providers } from './providers';
 import './globals.css';
 
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
         <meta name="mobile-web-app-capable" content="yes" />
+        <WhiteLabelTheme />
       </head>
       <body className="font-sans antialiased">
         <SkipToContent />
