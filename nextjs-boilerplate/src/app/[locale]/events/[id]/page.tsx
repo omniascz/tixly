@@ -390,7 +390,9 @@ export default async function EventDetailPage({
                 {event.promoter_id ? (
                   <RestwertBalanceBadge
                     promoterId={event.promoter_id}
-                    locale={locale}
+                    locale={
+                      locale === 'sk' || locale === 'en' ? locale : 'cs'
+                    }
                   />
                 ) : null}
                 <TicketPicker

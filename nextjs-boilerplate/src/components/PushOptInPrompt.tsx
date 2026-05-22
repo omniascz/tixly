@@ -114,7 +114,9 @@ export function PushOptInPrompt(): JSX.Element | null {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey),
+        // DOM types v Node 24 mají ArrayBufferView<ArrayBuffer> strict;
+        // BufferSource cast je safe — Uint8Array je validní BufferSource.
+        applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
       });
 
       const json = subscription.toJSON() as {
