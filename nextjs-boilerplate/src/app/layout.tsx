@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { InstallPrompt } from '@/components/InstallPrompt';
+import { PushOptInPrompt } from '@/components/PushOptInPrompt';
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar';
 import { SkipToContent } from '@/components/SkipToContent';
 import { WebVitalsReporter } from '@/components/WebVitalsReporter';
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Providers>{children}</Providers>
         <ServiceWorkerRegistrar />
         <InstallPrompt />
+        <PushOptInPrompt />
         <WebVitalsReporter />
       </body>
     </html>
