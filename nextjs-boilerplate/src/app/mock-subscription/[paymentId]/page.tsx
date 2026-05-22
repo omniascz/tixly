@@ -20,8 +20,11 @@ export default function MockSubscriptionPaymentPage({
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{
     holderId: string;
+    aboType?: 'fixed' | 'choice';
     ticketsIssued?: number;
     totalEvents?: number;
+    maxPicks?: number;
+    eventsInPool?: number;
   } | null>(null);
 
   async function handleAction(action: 'pay' | 'cancel') {
@@ -55,27 +58,46 @@ export default function MockSubscriptionPaymentPage({
   }
 
   if (result) {
+    const isChoice = result.aboType === 'choice';
     return (
       <div className="mx-auto mt-12 max-w-md px-4">
         <Card>
           <CardHeader>
             <CardTitle>✅ Abonentka aktivní</CardTitle>
             <CardDescription>
-              Platba úspěšná. Lístky pro {result.ticketsIssued} z{' '}
-              {result.totalEvents} představení vystaveny.
+              {isChoice
+                ? `Platba úspěšná. Nyní si vyberte ${result.maxPicks} z ${result.eventsInPool} představení.`
+                : `Platba úspěšná. Lístky pro ${result.ticketsIssued} z ${result.totalEvents} představení vystaveny.`}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-xs text-muted-foreground">
               Holder ID: <code>{result.holderId}</code>
             </p>
-            <p className="text-sm">
-              Lístky najdeš v sekci Moje vstupenky. Při vstupu skener detekuje
-              abonentku a označí přítomnost.
-            </p>
-            <Button onClick={() => router.push('/cs/my-tickets')} className="w-full">
-              Moje vstupenky
-            </Button>
+            {isChoice ? (
+              <>
+                <p className="text-sm">
+                  Vyberte si konkrétní představení, na která chcete dostat
+                  vstupenky. Po výběru se vstupenka okamžitě vystaví.
+                </p>
+                <Button
+                  onClick={() => router.push(`/cs/my-subscriptions/${result.holderId}/pick`)}
+                  className="w-full"
+                >
+                  Vybrat představení
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-sm">
+                  Lístky najdeš v sekci Moje vstupenky. Při vstupu skener detekuje
+                  abonentku a označí přítomnost.
+                </p>
+                <Button onClick={() => router.push('/cs/my-tickets')} className="w-full">
+                  Moje vstupenky
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

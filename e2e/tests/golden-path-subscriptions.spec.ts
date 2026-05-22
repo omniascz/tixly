@@ -370,3 +370,68 @@ test('Wahl-Abo: cizí holder GET pick → 403 FORBIDDEN', async ({ context }) =>
   );
   expect(r.status()).toBe(404); // NOT_FOUND (lepší než 403, security audit OK)
 });
+
+test('Wahl-Abo: buyer pick page UI funguje (smoke)', async ({ page, context }) => {
+  // Setup: vytvoř choice package + holder
+  const promoter = await apiLogin(context, PROMOTER_EMAIL, PROMOTER_PASSWORD);
+  const buyer = await apiLogin(context, BUYER_EMAIL, BUYER_PASSWORD);
+  const eventIds = await listPublishedEventIds(context, promoter.accessToken, 3);
+  expect(eventIds.length).toBeGreaterThanOrEqual(2);
+
+  const createRes = await context.request.post('/api/admin/subscriptions/packages', {
+    headers: {
+      Authorization: `Bearer ${promoter.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      name: 'UI Smoke Wahl',
+      slug: uniqSlug('ui-wahl'),
+      seasonLabel: '2026/27',
+      basePriceHalire: 100000,
+      eventIds,
+      aboType: 'choice',
+      maxPicksForChoice: 1,
+    },
+  });
+  expect(createRes.status()).toBe(201);
+  const { id: packageId } = (await createRes.json()) as { id: string };
+  await context.request.patch(`/api/admin/subscriptions/packages/${packageId}`, {
+    headers: {
+      Authorization: `Bearer ${promoter.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    data: { status: 'on_sale' },
+  });
+  const co = await context.request.post('/api/subscriptions/checkout', {
+    headers: { 'Content-Type': 'application/json', 'x-user-id': buyer.userId },
+    data: { packageId, buyerEmail: BUYER_EMAIL, buyerName: 'Anna Nova' },
+  });
+  const { paymentId, holderId } = (await co.json()) as {
+    paymentId: string;
+    holderId: string;
+  };
+  await context.request.post(`/api/subscriptions/holders/${paymentId}/confirm`, {
+    data: { action: 'pay' },
+  });
+
+  // Inject localStorage před jakoukoliv navigaci (page.context.addInitScript
+  // se aplikuje na všechny budoucí navigations).
+  await context.addInitScript(
+    ({ uid, token }: { uid: string; token: string }) => {
+      window.localStorage.setItem('userId', uid);
+      window.localStorage.setItem('accessToken', token);
+    },
+    { uid: buyer.userId, token: buyer.accessToken },
+  );
+
+  await page.goto(`/cs/my-subscriptions/${holderId}/pick`);
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByTestId('wahl-pick-page')).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText(/máte zaplaceno/)).toBeVisible();
+
+  const pickButton = page.getByTestId(`pick-event-${eventIds[0]}`);
+  await pickButton.click();
+
+  await expect(page.getByText('✓ Vstupenka vystavena').first()).toBeVisible({ timeout: 5000 });
+});

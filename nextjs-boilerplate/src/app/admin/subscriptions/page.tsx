@@ -20,6 +20,8 @@ interface SubscriptionPackage {
   saleStart: string;
   saleEnd: string | null;
   capacity: number | null;
+  aboType: 'fixed' | 'choice';
+  maxPicksForChoice: number | null;
   eventsCount: number;
   holdersCount: number;
   createdAt: string;
@@ -71,6 +73,8 @@ export default function SubscriptionsAdminPage() {
   const [earlyBirdUntil, setEarlyBirdUntil] = useState('');
   const [earlyBirdPriceKc, setEarlyBirdPriceKc] = useState('');
   const [selectedEventIds, setSelectedEventIds] = useState<string[]>([]);
+  const [aboType, setAboType] = useState<'fixed' | 'choice'>('fixed');
+  const [maxPicks, setMaxPicks] = useState('4');
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -100,6 +104,41 @@ export default function SubscriptionsAdminPage() {
     );
   }
 
+  async function patchStatus(id: string, status: 'on_sale' | 'closed'): Promise<void> {
+    setError(null);
+    setSuccess(null);
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+      const res = await fetch(`/api/admin/subscriptions/packages/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
+        setError(j.message ?? j.error ?? `HTTP ${res.status}`);
+        return;
+      }
+      setSuccess(
+        status === 'on_sale' ? 'Abonentka spuštěna do prodeje.' : 'Abonentka uzavřena.',
+      );
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Síťová chyba');
+    }
+  }
+
+  function activatePackage(id: string): Promise<void> {
+    return patchStatus(id, 'on_sale');
+  }
+
+  function closePackage(id: string): Promise<void> {
+    return patchStatus(id, 'closed');
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -121,6 +160,8 @@ export default function SubscriptionsAdminPage() {
             ? Math.round(Number(earlyBirdPriceKc) * 100)
             : undefined,
           eventIds: selectedEventIds.length > 0 ? selectedEventIds : undefined,
+          aboType,
+          maxPicksForChoice: aboType === 'choice' ? Number(maxPicks) : undefined,
         },
         { throwOnError: true },
       );
@@ -273,6 +314,58 @@ export default function SubscriptionsAdminPage() {
                   placeholder="Popis abonentky pro buyer landing page..."
                 />
               </div>
+              <div className="md:col-span-2 rounded-md border bg-muted/30 p-3">
+                <label className="mb-2 block text-xs font-medium uppercase">Typ abonementu</label>
+                <div className="flex gap-2">
+                  <label className={`flex flex-1 cursor-pointer items-start gap-2 rounded-md border p-3 text-sm ${aboType === 'fixed' ? 'border-primary bg-background' : 'opacity-70'}`}>
+                    <input
+                      type="radio"
+                      name="aboType"
+                      value="fixed"
+                      checked={aboType === 'fixed'}
+                      onChange={() => setAboType('fixed')}
+                      className="mt-1"
+                    />
+                    <div>
+                      <div className="font-medium">Festabo — pevný balíček</div>
+                      <div className="text-xs text-muted-foreground">Předplatitel dostane vstupenku na všechna vybraná představení automaticky.</div>
+                    </div>
+                  </label>
+                  <label className={`flex flex-1 cursor-pointer items-start gap-2 rounded-md border p-3 text-sm ${aboType === 'choice' ? 'border-primary bg-background' : 'opacity-70'}`}>
+                    <input
+                      type="radio"
+                      name="aboType"
+                      value="choice"
+                      checked={aboType === 'choice'}
+                      onChange={() => setAboType('choice')}
+                      className="mt-1"
+                    />
+                    <div>
+                      <div className="font-medium">Wahl-Abo — výběrový</div>
+                      <div className="text-xs text-muted-foreground">Předplatitel si vybere X z N představení sám (Reservix model).</div>
+                    </div>
+                  </label>
+                </div>
+                {aboType === 'choice' ? (
+                  <div className="mt-3">
+                    <label className="mb-1 block text-xs font-medium">Kolik představení smí vybrat (max)</label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={selectedEventIds.length || undefined}
+                      value={maxPicks}
+                      onChange={(e) => setMaxPicks(e.target.value)}
+                      required
+                      className="max-w-[120px]"
+                    />
+                    {selectedEventIds.length > 0 && Number(maxPicks) > selectedEventIds.length ? (
+                      <p className="mt-1 text-xs text-rose-700">
+                        Max výběrů ({maxPicks}) nesmí být víc než počet představení v pool-u ({selectedEventIds.length}).
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
               <div className="md:col-span-2">
                 <label className="mb-1 block text-xs font-medium">
                   Představení v balíčku ({selectedEventIds.length} vybráno)
@@ -330,11 +423,13 @@ export default function SubscriptionsAdminPage() {
                 <tr className="border-b text-left text-xs uppercase text-muted-foreground">
                   <th className="py-2">Název</th>
                   <th>Sezóna</th>
+                  <th>Typ</th>
                   <th>Kategorie</th>
                   <th className="text-right">Cena</th>
                   <th className="text-right">Představení</th>
                   <th className="text-right">Předplatitelé</th>
                   <th>Stav</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -350,6 +445,17 @@ export default function SubscriptionsAdminPage() {
                         <div className="font-mono text-xs text-muted-foreground">{p.slug}</div>
                       </td>
                       <td>{p.seasonLabel}</td>
+                      <td>
+                        {p.aboType === 'choice' ? (
+                          <span className="rounded bg-violet-100 px-1.5 py-0.5 text-xs font-medium text-violet-800">
+                            Wahl {p.maxPicksForChoice}/{p.eventsCount}
+                          </span>
+                        ) : (
+                          <span className="rounded bg-sky-100 px-1.5 py-0.5 text-xs font-medium text-sky-800">
+                            Festabo
+                          </span>
+                        )}
+                      </td>
                       <td>{CATEGORY_LABELS[p.category] ?? p.category}</td>
                       <td className="text-right tabular-nums">
                         {formatPrice(p.basePriceHalire, p.currency)}
@@ -367,6 +473,23 @@ export default function SubscriptionsAdminPage() {
                         >
                           {status.label}
                         </span>
+                      </td>
+                      <td className="text-right">
+                        {p.status === 'draft' ? (
+                          <button
+                            onClick={() => void activatePackage(p.id)}
+                            className="rounded-md border px-2 py-1 text-xs hover:bg-muted/50"
+                          >
+                            Spustit prodej
+                          </button>
+                        ) : p.status === 'on_sale' ? (
+                          <button
+                            onClick={() => void closePackage(p.id)}
+                            className="rounded-md border px-2 py-1 text-xs text-rose-700 hover:bg-rose-50"
+                          >
+                            Uzavřít
+                          </button>
+                        ) : null}
                       </td>
                     </tr>
                   );
