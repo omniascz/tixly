@@ -12,6 +12,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { z } from 'zod';
+import {
+  buildAuthorizeUrl,
+  generatePkce,
+  getSpotifyConfig,
+} from '@/lib/spotify/oauth';
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -50,14 +55,37 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   if (!isMockMode()) {
-    // Production: vygenerovat OAuth state token + return authorize URL
-    return NextResponse.json(
-      {
-        error: 'NOT_IMPLEMENTED',
-        message: 'Spotify production OAuth není v MVP. Nastav SPOTIFY_CLIENT_ID + endpoint v produkci.',
-      },
-      { status: 501 },
-    );
+    // Production OAuth: PKCE + Authorization Code Flow.
+    // Vygenerujeme verifier + state, uložíme do marketing.spotify_oauth_pending,
+    // vrátíme authorize URL pro client-side redirect.
+    const cfg = getSpotifyConfig();
+    if (!cfg) {
+      return NextResponse.json(
+        { error: 'CONFIG_MISSING', message: 'SPOTIFY_CLIENT_SECRET chybí' },
+        { status: 500 },
+      );
+    }
+    const pkce = generatePkce();
+    const client = await db().connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+      await client.query(
+        `INSERT INTO marketing.spotify_oauth_pending
+           (state, user_id, code_verifier)
+         VALUES ($1, $2, $3)`,
+        [pkce.state, userId, pkce.verifier],
+      );
+      await client.query('COMMIT');
+    } finally {
+      client.release();
+    }
+    return NextResponse.json({
+      ok: true,
+      isMock: false,
+      authorizeUrl: buildAuthorizeUrl(cfg, pkce),
+      state: pkce.state,
+    });
   }
 
   const client = await db().connect();

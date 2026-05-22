@@ -77,6 +77,16 @@ export default function DiscoverPage(): JSX.Element {
         setError(b.message ?? b.error ?? `HTTP ${r.status}`);
         return;
       }
+      const body = (await r.json()) as {
+        isMock: boolean;
+        authorizeUrl?: string;
+      };
+      // Real OAuth → redirect na Spotify authorize. Po callback se buyer
+      // vrátí na /cs/discover?connected=1.
+      if (!body.isMock && body.authorizeUrl) {
+        window.location.href = body.authorizeUrl;
+        return;
+      }
       await load();
     } finally {
       setBusy(false);
