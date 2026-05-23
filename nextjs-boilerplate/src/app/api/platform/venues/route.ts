@@ -67,11 +67,33 @@ export async function GET(req: NextRequest): Promise<Response> {
     last_modified_at: string;
     last_modifier_email: string | null;
     has_seating_chart: boolean;
+    chart_thumbnail: unknown;
   }>(
+    // chart_thumbnail = lehká reprezentace aktivního chartu pro list mini-preview:
+    // { viewBox, stage_position, sectors: [{ name, color, seat_count }] }.
+    // Bez plného layoutu (sedadla per coordinates) — to by bylo MB dat při 200 venues.
+    // Pro skutečný full preview má venue detail samostatný /seating-chart endpoint.
     `SELECT v.id, v.name, v.venue_type, v.city, v.country, v.address, v.capacity,
             v.status, v.photo_url, v.last_modified_at,
             u.email AS last_modifier_email,
-            EXISTS (SELECT 1 FROM catalog.venue_seating_charts WHERE venue_id = v.id AND active = true) AS has_seating_chart
+            EXISTS (SELECT 1 FROM catalog.venue_seating_charts WHERE venue_id = v.id AND active = true) AS has_seating_chart,
+            (
+              SELECT jsonb_build_object(
+                'viewBox', layout->>'viewBox',
+                'stage', layout->'stage',
+                'sectors', (
+                  SELECT jsonb_agg(jsonb_build_object(
+                    'name', sec->>'name',
+                    'color', sec->>'color',
+                    'seats', sec->'rows'
+                  ))
+                  FROM jsonb_array_elements(layout->'sectors') sec
+                )
+              )
+              FROM catalog.venue_seating_charts
+              WHERE venue_id = v.id AND active = true
+              LIMIT 1
+            ) AS chart_thumbnail
      FROM catalog.venues v
      LEFT JOIN identity.users u ON u.id = v.last_modified_by_user_id
      WHERE ${conditions.join(' AND ')}

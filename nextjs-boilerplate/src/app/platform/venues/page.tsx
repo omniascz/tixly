@@ -18,6 +18,19 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
+interface ChartThumbnail {
+  viewBox: string | null;
+  stage: { position: 'top' | 'bottom' | 'left' | 'right'; label?: string } | null;
+  sectors: Array<{
+    name: string;
+    color: string;
+    seats: Array<{
+      label: string;
+      seats: Array<{ x: number; y: number; num: string }>;
+    }>;
+  }> | null;
+}
+
 interface VenueRow {
   id: string;
   name: string;
@@ -31,6 +44,7 @@ interface VenueRow {
   last_modified_at: string;
   last_modifier_email: string | null;
   has_seating_chart: boolean;
+  chart_thumbnail: ChartThumbnail | null;
 }
 
 const STATUS_FILTERS: { value: '' | 'draft' | 'published' | 'archived'; label: string }[] = [
@@ -148,6 +162,7 @@ export default function PlatformVenuesPage() {
                 <th className="text-right">Kapacita</th>
                 <th>Status</th>
                 <th>Seating</th>
+                <th className="w-32">Náhled</th>
                 <th>Naposledy upravil</th>
                 <th className="text-right">Akce</th>
               </tr>
@@ -155,7 +170,7 @@ export default function PlatformVenuesPage() {
             <tbody>
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-muted-foreground">
+                  <td colSpan={9} className="py-8 text-center text-muted-foreground">
                     Žádné sály. Začni klikem na <strong>+ Nový sál</strong>.
                   </td>
                 </tr>
@@ -199,6 +214,18 @@ export default function PlatformVenuesPage() {
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </td>
+                    <td>
+                      {v.chart_thumbnail ? (
+                        <Link
+                          href={`/platform/venues/${v.id}/seating-chart`}
+                          title="Otevřít plný plán"
+                        >
+                          <SeatingMiniSvg thumb={v.chart_thumbnail} />
+                        </Link>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </td>
                     <td className="text-xs text-muted-foreground">
                       {new Date(v.last_modified_at).toLocaleDateString('cs-CZ')}
                       {v.last_modifier_email && (
@@ -237,6 +264,57 @@ function StatCard({
       <div className="text-xs uppercase opacity-70">{label}</div>
       <div className="mt-1 text-2xl font-bold tabular-nums">{value}</div>
     </div>
+  );
+}
+
+/**
+ * Mini SVG render seating chartu — pro list preview thumbnails.
+ * Velikost 120×80, scale-to-fit dle viewBox. Sedadla jako kruhy r=1.2,
+ * stage label barevný pruh nahoře/dole/vlevo/vpravo.
+ */
+function SeatingMiniSvg({ thumb }: { thumb: ChartThumbnail }) {
+  if (!thumb.viewBox || !thumb.sectors) return null;
+  const [vbX, vbY, vbW, vbH] = thumb.viewBox.split(/\s+/).map(Number);
+  const stagePos = thumb.stage?.position ?? null;
+
+  // Stage bar 8px tall/wide, na příslušné straně viewBoxu
+  let stageBar = null;
+  if (stagePos === 'top') {
+    stageBar = <rect x={vbX} y={vbY} width={vbW} height={20} fill="#1e293b" />;
+  } else if (stagePos === 'bottom') {
+    stageBar = <rect x={vbX} y={vbY + vbH - 20} width={vbW} height={20} fill="#1e293b" />;
+  } else if (stagePos === 'left') {
+    stageBar = <rect x={vbX} y={vbY} width={20} height={vbH} fill="#1e293b" />;
+  } else if (stagePos === 'right') {
+    stageBar = <rect x={vbX + vbW - 20} y={vbY} width={20} height={vbH} fill="#1e293b" />;
+  }
+
+  return (
+    <svg
+      viewBox={thumb.viewBox}
+      width={120}
+      height={80}
+      preserveAspectRatio="xMidYMid meet"
+      className="rounded border bg-slate-50"
+      role="img"
+      aria-label="Seating chart preview"
+    >
+      {stageBar}
+      {thumb.sectors.map((sec, sIdx) =>
+        sec.seats?.flatMap((row) =>
+          row.seats.map((seat, idx) => (
+            <circle
+              key={`${sIdx}-${row.label}-${idx}`}
+              cx={seat.x}
+              cy={seat.y}
+              r={5}
+              fill={sec.color}
+              opacity={0.85}
+            />
+          )),
+        ),
+      )}
+    </svg>
   );
 }
 

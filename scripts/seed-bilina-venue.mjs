@@ -111,7 +111,7 @@ function buildLayout(seats) {
   return {
     viewBox: '0 0 1200 900',
     sectors,
-    stage: { position: 'bottom', label: 'Pódium Městské divadlo' },
+    stage: { position: 'top', label: 'Pódium Městské divadlo' },
   };
 }
 

@@ -119,59 +119,81 @@ function groundRow(rowNum, y, seatCount, accessibilityRows = []) {
 }
 
 // ── Build CSV ───────────────────────────────────────────────────────────────
+//
+// NOVÝ LAYOUT (po user feedbacku): pódium NAHOŘE.
+// Logika divadelního číslování: řada 1 = nejblíž pódiu = nahoře (malé y).
+// Vyšší číslo řady = dál od pódia = níž (velké y).
+//
+// Vertikální stack shora dolů:
+//   y 30:     stage label „Pódium"
+//   y 80-416: Přízemí (řady 1-13, 28 unit per row)
+//   y 500-720: Balkón (řady 1-8, 32 unit per row)
+//
+// Číslování v řadě zůstává: 1 vpravo → n vlevo (standardní divadelní logika
+// pohled ze sedadla na pódium).
 
 header();
 
-// BALKÓN — Y od 80 (řada 8 nahoře) do 80 + 7×30 = 290 (řada 1 dole)
-// Logic v PDF: řada 8 je nahoře (nejdál od jeviště), řada 1 dole (blízko)
-// Y: 8 → 80, 7 → 110, ..., 1 → 290
-
-// Řady 8-5 (16 sedadel s mezerou)
-for (let r = 8; r >= 5; r--) {
-  const y = 80 + (8 - r) * ROW_H;
-  balconyBackRow(r, y);
-}
-
-// Řady 4-1 (20 sedadel bez mezery)
-for (let r = 4; r >= 1; r--) {
-  const y = 80 + (8 - r) * ROW_H;
-  balconyFrontRow(r, y);
-}
-
-// PŘÍZEMÍ — Y od 500 (řada 13 nejvzdálenější) až 500+12×30=860 (řada 1 nejblíž)
-// Z PDF: řada 13 nahoře, řada 1 dole (blízko pódia)
-// Wait — actually PDF má řadu 13 nejdál od jeviště (nahoře),
-// řadu 1 nejblíž jevišti (dole).
-// V plánku PDF jsou rows od shora dolů 13, 12, 11, ..., 1
-// Tj. row 13 je vzadu (větší y), row 1 vepředu (menší y).
-// Pro Tixly chart: pódium dole, takže row 1 je nejblíž pódiu (větší y),
-// row 13 je nejdál (menší y).
+// PŘÍZEMÍ — řady shora dolů: 1 nejblíž pódiu (y=80), 13 nejdál (y=416)
 
 // Layout per řadu (počty sedadel z PDF):
 const groundRows = [
-  { r: 13, seats: 15 },
-  { r: 12, seats: 16 },
-  { r: 11, seats: 15 },
-  { r: 10, seats: 16 },
-  { r: 9, seats: 19 },
-  { r: 8, seats: 19 },
-  { r: 7, seats: 19 },
-  { r: 6, seats: 19 },
-  { r: 5, seats: 19 },
-  { r: 4, seats: 19 },
-  { r: 3, seats: 19 },
-  { r: 2, seats: 17 },
   { r: 1, seats: 16 },
+  { r: 2, seats: 17 },
+  { r: 3, seats: 19 },
+  { r: 4, seats: 19 },
+  { r: 5, seats: 19 },
+  { r: 6, seats: 19 },
+  { r: 7, seats: 19 },
+  { r: 8, seats: 19 },
+  { r: 9, seats: 19 },
+  { r: 10, seats: 16 },
+  { r: 11, seats: 15 },
+  { r: 12, seats: 16 },
+  { r: 13, seats: 15 },
 ];
 
+const GROUND_START_Y = 80;
+const GROUND_ROW_H = 28;
 groundRows.forEach((row, idx) => {
-  // Y: row 13 je top (y=500), row 1 je near stage (y=860)
-  const y = 500 + idx * ROW_H;
+  const y = GROUND_START_Y + idx * GROUND_ROW_H;
   groundRow(row.r, y, row.seats);
 });
+
+// BALKÓN — pod přízemím. Řady 1 nejblíž pódiu (= nahoře v balkónu, y=500),
+// řada 8 nejdál (y=500+7×ROW_H=710).
+
+const BALCONY_START_Y = 500;
+const BALCONY_ROW_H = ROW_H; // 30
+
+// Řady 1-4 (20 sedadel bez mezery) — blíž pódiu (nahoře v balkón sekci)
+for (let r = 1; r <= 4; r++) {
+  const y = BALCONY_START_Y + (r - 1) * BALCONY_ROW_H;
+  balconyFrontRow(r, y);
+}
+
+// Řady 5-8 (16 sedadel s prostředním vchodem) — dál od pódia (níž)
+for (let r = 5; r <= 8; r++) {
+  const y = BALCONY_START_Y + (r - 1) * BALCONY_ROW_H;
+  balconyBackRow(r, y);
+}
+
+// Oddělím sekce vizuálně — old positions byly:
+// PŘÍZEMÍ původně Y 500-860 (řady 13→1 shora dolů)
+// BALKÓN původně Y 80-290 (řady 8→1 shora dolů)
+// stage='bottom'
+//
+// Teď stage='top':
+// Stage y 30
+// PŘÍZEMÍ Y 80-416 (řady 1→13 shora dolů)
+// BALKÓN Y 500-710 (řady 1→8 shora dolů)
+// Mezera mezi sekcemi je 80 unit (vchod / patro)
 
 // Write CSV
 writeFileSync(OUTPUT, rows.join('\n') + '\n', 'utf8');
 console.log(`✓ Generated ${OUTPUT}`);
 console.log(`  Total seats: ${rows.length - 1}`);
 console.log(`  Expected: 372 (228 přízemí + 144 balkón)`);
+console.log(`  Layout: pódium NAHOŘE (stage='top')`);
+console.log(`           ↓ pod ním přízemí (řady 1-13)`);
+console.log(`           ↓ pod ním balkón (řady 1-8)`);
