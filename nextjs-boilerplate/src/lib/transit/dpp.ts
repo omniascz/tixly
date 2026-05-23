@@ -123,33 +123,21 @@ export class TransitProviderUnavailableError extends Error {
   }
 }
 
-type TransitProviderHandler = (
+export type TransitProviderHandler = (
   input: IssueTransitPassInput,
 ) => Promise<{ validationSignature: string; qrPayload: string }>;
 
-// Per-partner real implementace. Doplň jakmile máš DPP/IDOS sandbox docs.
-// Každý handler dělá POST /api/passes na vendor a vrací stejný shape.
+// Per-partner real implementace. Slug → handler. Real handlery v
+// src/lib/transit/partners/ — best-effort REST shape, real validation v
+// sandbox testu nutná před produkčním nasazením.
+//
+// Pokud handler hodí (vendor 4xx/5xx, parse fail), issueTransitPass to
+// převede na TransitProviderUnavailableError s reason='vendor_call_failed'.
+import { createDppPass, createIdosBrnoPass } from './partners';
+
 const PARTNER_HANDLERS: Record<string, TransitProviderHandler | undefined> = {
-  // dpp: async (input) => {
-  //   const res = await fetch('https://api.dpp.cz/passes', {
-  //     method: 'POST',
-  //     headers: {
-  //       Authorization: `Bearer ${process.env.DPP_API_KEY}`,
-  //       'Content-Type': 'application/json',
-  //       'Idempotency-Key': input.orderId,
-  //     },
-  //     body: JSON.stringify({
-  //       partner: 'tixly',
-  //       zones: input.zones,
-  //       validFrom: input.validFrom.toISOString(),
-  //       validUntil: input.validUntil.toISOString(),
-  //       externalRef: input.orderId,
-  //     }),
-  //   });
-  //   if (!res.ok) throw new TransitProviderUnavailableError('dpp', 'vendor_call_failed');
-  //   const body = await res.json() as { qrPayload: string; signature: string };
-  //   return { qrPayload: body.qrPayload, validationSignature: body.signature };
-  // },
+  dpp: createDppPass,
+  'idos-brno': createIdosBrnoPass,
 };
 
 function shouldUseMock(): boolean {
@@ -163,14 +151,23 @@ export async function issueTransitPass(
   const handler = PARTNER_HANDLERS[input.partnerSlug];
   const hasCreds = !isMockMode();
 
-  // Real vendor path
+  // Real vendor path — pokud handler hodí (vendor 4xx/5xx, network, parse),
+  // konvertujeme na typed error aby caller mohl 503 buyerovi.
   if (hasCreds && handler) {
-    const real = await handler(input);
-    return {
-      validationSignature: real.validationSignature,
-      qrPayload: real.qrPayload,
-      isMock: false,
-    };
+    try {
+      const real = await handler(input);
+      return {
+        validationSignature: real.validationSignature,
+        qrPayload: real.qrPayload,
+        isMock: false,
+      };
+    } catch (err) {
+      console.error(`[transit ${input.partnerSlug}] vendor call failed`, err);
+      throw new TransitProviderUnavailableError(
+        input.partnerSlug,
+        'vendor_call_failed',
+      );
+    }
   }
 
   // Mock fallback (dev/CI nebo TRANSIT_DEV_MOCK_FALLBACK=1)

@@ -19,7 +19,7 @@ function db(): Pool {
   return pool;
 }
 
-export async function GET(): Promise<Response> {
+async function runRefresh(): Promise<Response> {
   const cfg = getSpotifyConfig();
   if (!cfg) {
     return NextResponse.json({ ok: true, skipped: true, reason: 'CONFIG_MISSING' });
@@ -80,4 +80,12 @@ export async function GET(): Promise<Response> {
   }
 
   return NextResponse.json({ ok: true, refreshed, failed });
+}
+
+// Vercel dispatcher POSTuje, manual test / curl může GET.
+export async function POST(): Promise<Response> {
+  return runRefresh();
+}
+export async function GET(): Promise<Response> {
+  return runRefresh();
 }

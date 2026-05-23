@@ -23,7 +23,7 @@ function db(): Pool {
   return pool;
 }
 
-export async function GET(): Promise<Response> {
+async function runRecompute(): Promise<Response> {
   const client = await db().connect();
   let processed = 0;
   let updated = 0;
@@ -73,4 +73,12 @@ export async function GET(): Promise<Response> {
   }
 
   return NextResponse.json({ ok: true, processed, updated, failed });
+}
+
+// Vercel dispatcher POSTuje; manual test může GET.
+export async function POST(): Promise<Response> {
+  return runRecompute();
+}
+export async function GET(): Promise<Response> {
+  return runRecompute();
 }

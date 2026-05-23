@@ -35,6 +35,9 @@ const ALLOWED_JOBS = new Set([
   'renew-subscriptions',
   'send-reminders',
   'waitlist-notify',
+  // P4 — recently added internal crons:
+  'recompute-dynamic-pricing', // P1.6 — every 5 min recompute prices
+  'refresh-spotify',           // P4 — refresh Spotify tokens expiring soon
 ]);
 
 export async function GET(req: NextRequest): Promise<Response> {
