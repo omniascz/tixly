@@ -346,6 +346,49 @@ export async function POST(request: NextRequest): Promise<Response> {
       }
     }
 
+    // Modular pass pickup — pokud order byl checkout přes
+    // /api/buyer/modular-pass/checkout, máme uložené buyer-selected (day×zone)
+    // tuples v marketing.modular_pass_pending_selections. Insertneme je do
+    // tickets.ticket_modular_access pro každý issued ticket (typicky 1 ticket
+    // per modular order — buyer si kupuje 1 modular pass).
+    {
+      const modClient = await db().connect();
+      try {
+        await modClient.query('BEGIN');
+        await modClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+        const pending = await modClient.query<{ selections: Array<{ dayId: string; zoneId: string }> }>(
+          `SELECT selections FROM marketing.modular_pass_pending_selections
+            WHERE order_id = $1`,
+          [orderId],
+        );
+        if (pending.rows.length > 0 && issued.length > 0) {
+          const selections = pending.rows[0].selections;
+          for (const t of issued) {
+            for (const sel of selections) {
+              await modClient.query(
+                `INSERT INTO tickets.ticket_modular_access
+                   (ticket_id, event_day_id, zone_id, access_level)
+                 VALUES ($1, $2, $3, 'general')
+                 ON CONFLICT (ticket_id, event_day_id, zone_id) DO NOTHING`,
+                [t.ticketId, sel.dayId, sel.zoneId],
+              );
+            }
+          }
+          // Cleanup pending row
+          await modClient.query(
+            `DELETE FROM marketing.modular_pass_pending_selections WHERE order_id = $1`,
+            [orderId],
+          );
+        }
+        await modClient.query('COMMIT');
+      } catch (err) {
+        await modClient.query('ROLLBACK').catch(() => undefined);
+        console.error('[order-completed] modular pass pickup failed', err);
+      } finally {
+        modClient.release();
+      }
+    }
+
     // Group invitation auto-complete (CZ priority #5) — pokud tento order byl
     // linkován na group_invitation, zkontroluj jestli už dosáhl target_seats
     // a status flipni na 'completed'.

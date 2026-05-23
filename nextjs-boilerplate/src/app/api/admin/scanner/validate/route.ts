@@ -185,28 +185,33 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
 
-    // Day+zone aware access check (Fáze B).
-    // Pokud scanner posílá eventDayId/zoneId (= obsluha vybrala bránu/scénu),
-    // ověříme, že ticket má v access manifestu pokrytí.
+    // Day+zone aware access check (Fáze B + Fáze C modular fallthrough).
+    // Priorita:
+    //   1) Per-ticket modular access (tickets.ticket_modular_access) — buyer si
+    //      v build-your-own-pass UI vybral konkrétní (day × zone) kombinace.
+    //      Pokud řádky existují, validujeme PROTI NIM (ignorujeme ticket_type_access).
+    //   2) Per-type access (catalog.ticket_type_access) — promoter-defined matrix
+    //      pro pre-defined ticket types (festival "Day 1 pass", "Weekend all-access").
+    //   3) Žádné access entries v ani jedné tabulce → legacy single-event ticket,
+    //      povolíme bez kontroly (backward compat).
     if (parsed.data.eventDayId || parsed.data.zoneId) {
-      const accessRows = await client.query<AccessRow>(
-        `SELECT event_day_id, zone_id, access_level
-         FROM catalog.ticket_type_access
-         WHERE ticket_type_id = $1`,
-        [t.ticket_type_id],
+      // 1) Check modular per-ticket overrides first
+      const modularRows = await client.query<{
+        event_day_id: string;
+        zone_id: string;
+      }>(
+        `SELECT event_day_id, zone_id
+         FROM tickets.ticket_modular_access
+         WHERE ticket_id = $1`,
+        [t.id],
       );
-      // Pokud ticket nemá ŽÁDNÉ access entries, je to legacy single-event ticket
-      // (pre-Fáze A) — povolíme bez kontroly.
-      if (accessRows.rows.length > 0) {
-        const hasMatch = accessRows.rows.some((a) => {
-          const dayMatch =
-            a.event_day_id === null ||
-            (parsed.data.eventDayId !== undefined && a.event_day_id === parsed.data.eventDayId);
-          const zoneMatch =
-            a.zone_id === null ||
-            (parsed.data.zoneId !== undefined && a.zone_id === parsed.data.zoneId);
-          return dayMatch && zoneMatch;
-        });
+      if (modularRows.rows.length > 0) {
+        const hasMatch = modularRows.rows.some(
+          (a) =>
+            (parsed.data.eventDayId === undefined ||
+              a.event_day_id === parsed.data.eventDayId) &&
+            (parsed.data.zoneId === undefined || a.zone_id === parsed.data.zoneId),
+        );
         if (!hasMatch) {
           await client.query('ROLLBACK');
           return NextResponse.json(
@@ -214,10 +219,41 @@ export async function POST(req: NextRequest): Promise<Response> {
               result: 'wrong_zone_or_day',
               ticket: shortTicketInfo(t),
               message:
-                'Lístek nemá přístup do této zóny nebo na tento den. Zkontroluj typ vstupenky.',
+                'Lístek (modular pass) nemá přístup do této zóny nebo na tento den.',
             },
             { status: 403 },
           );
+        }
+      } else {
+        // 2) Fallback na ticket_type_access matrix
+        const accessRows = await client.query<AccessRow>(
+          `SELECT event_day_id, zone_id, access_level
+           FROM catalog.ticket_type_access
+           WHERE ticket_type_id = $1`,
+          [t.ticket_type_id],
+        );
+        if (accessRows.rows.length > 0) {
+          const hasMatch = accessRows.rows.some((a) => {
+            const dayMatch =
+              a.event_day_id === null ||
+              (parsed.data.eventDayId !== undefined && a.event_day_id === parsed.data.eventDayId);
+            const zoneMatch =
+              a.zone_id === null ||
+              (parsed.data.zoneId !== undefined && a.zone_id === parsed.data.zoneId);
+            return dayMatch && zoneMatch;
+          });
+          if (!hasMatch) {
+            await client.query('ROLLBACK');
+            return NextResponse.json(
+              {
+                result: 'wrong_zone_or_day',
+                ticket: shortTicketInfo(t),
+                message:
+                  'Lístek nemá přístup do této zóny nebo na tento den. Zkontroluj typ vstupenky.',
+              },
+              { status: 403 },
+            );
+          }
         }
       }
     }
