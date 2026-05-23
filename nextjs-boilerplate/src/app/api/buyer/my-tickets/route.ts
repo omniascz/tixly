@@ -45,7 +45,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const r = await db().query<TicketRow>(
-    `SELECT t.id, t.status, t.used_at, t.revoked_at,
+    `SELECT t.id, t.status, t.used_at, t.revoked_at, t.original_price,
             o.id AS order_id, o.status AS order_status, o.currency AS order_currency,
             e.id AS event_id, e.title AS event_title, e.date_start AS event_date,
             tt.id AS ticket_type_id, tt.name AS ticket_type_name,

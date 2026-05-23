@@ -13,12 +13,43 @@
  *   4) Cleanup
  */
 import { test, expect } from '@playwright/test';
+import { Pool } from 'pg';
 
-// Fixed seed domain — vytvořena pre-test Bash skriptem (docker exec psql).
-// Test pak read-only verifikuje endpoint behavior.
 const TEST_DOMAIN = 'e2e-whitelabel-test.cz';
 const PRIMARY_COLOR = '#ff3366';
 const PROMOTER_ID = '00000000-0000-4000-a000-000000000115'; // Divadlo Verze
+
+// Seed self-managed — test si garantuje že verified domain row + branding
+// existují (předtím vyžadovalo manual docker exec psql skript before run).
+const pool = new Pool({
+  connectionString:
+    process.env.DATABASE_URL ?? 'postgresql://tixly:tixly_dev@localhost:5433/tixly',
+});
+
+test.beforeAll(async () => {
+  await pool.query(
+    `INSERT INTO platform.promoter_domains
+       (promoter_id, domain, verification_token, verified_at)
+     VALUES ($1, $2, $3, NOW())
+     ON CONFLICT (domain) DO UPDATE
+       SET verified_at = NOW(), promoter_id = EXCLUDED.promoter_id`,
+    [PROMOTER_ID, TEST_DOMAIN, 'tixly-verify-e2e-token'],
+  );
+  await pool.query(
+    `INSERT INTO platform.promoter_branding
+       (promoter_id, primary_color, hide_powered_by, logo_url)
+     VALUES ($1, $2, TRUE, 'https://example.cdn/test-logo.png')
+     ON CONFLICT (promoter_id) DO UPDATE
+       SET primary_color = EXCLUDED.primary_color,
+           hide_powered_by = TRUE,
+           logo_url = EXCLUDED.logo_url`,
+    [PROMOTER_ID, PRIMARY_COLOR],
+  );
+});
+
+test.afterAll(async () => {
+  await pool.end();
+});
 
 test('White-label: default tixly.cz host → whitelabel=false', async ({
   context,

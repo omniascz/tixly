@@ -18,9 +18,45 @@
  *   - Event resale_policy = 'enabled'
  */
 import { test, expect, type BrowserContext, type Page } from '@playwright/test';
+import { Pool } from 'pg';
 
 const SELLER_EMAIL = 'anna.nova@example.cz';
 const SELLER_PASSWORD = 'Demo2026!';
+
+// Self-managed DB cleanup — bez tohoto se test stane flaky když Anna má
+// active listings z předchozích runs ('Stáhnout z marketplace' button
+// místo 'Prodat na marketplace').
+const pool = new Pool({
+  connectionString:
+    process.env.DATABASE_URL ?? 'postgresql://tixly:tixly_dev@localhost:5433/tixly',
+});
+
+test.beforeAll(async () => {
+  // 1) Cancel všechny aktivní Anna's listings — UI by jinak ukazovala
+  // "Stáhnout z marketplace" místo "Prodat na marketplace".
+  await pool.query(
+    `UPDATE resale.resale_listings
+        SET status = 'cancelled', cancelled_at = NOW()
+      WHERE seller_id = (SELECT id FROM identity.users WHERE email = $1)
+        AND status = 'active'`,
+    [SELLER_EMAIL],
+  );
+  // 2) Revoke Anna's charity-claimed tickety (original_price=0) — UI by
+  // jinak nabídla resale na ně, ale PRICE_CAP_EXCEEDED hodí pro jakoukoli
+  // cenu > 0 → test by failoval na první kliknutí.
+  await pool.query(
+    `UPDATE tickets.tickets
+        SET status = 'revoked', revoked_at = NOW()
+      WHERE owner_id = (SELECT id FROM identity.users WHERE email = $1)
+        AND status = 'valid'
+        AND original_price = 0`,
+    [SELLER_EMAIL],
+  );
+});
+
+test.afterAll(async () => {
+  await pool.end();
+});
 
 async function presetCookieConsent(context: BrowserContext): Promise<void> {
   await context.addInitScript(() => {
@@ -83,32 +119,47 @@ test('FanSALE: seller vystaví ticket, buyer ho koupí, starý je revoked', asyn
 
   let listingPriceCzk = '';
 
-  await test.step('2. Seller otevře my-tickets a vystaví Romeo & Julie', async () => {
+  await test.step('2. Seller otevře my-tickets a vystaví na marketplace', async () => {
     await page.goto('/cs/my-tickets', { waitUntil: 'domcontentloaded' });
-    // Počkat na load tickets
-    await expect(page.getByText(/Romeo a Julie/i).first()).toBeVisible({ timeout: 15_000 });
-
-    // Najdi první ticket card s Romeo a Julie, který má aktivní "Prodat na marketplace"
-    // (pokud má aktivní listing, button je "Stáhnout z marketplace" — preferujeme čistý ticket).
+    // Počkat na resale-sell-button (libovolný ticket — předtím hardcoded
+    // "Romeo a Julie" ale Anna má teď E2E Test Concert tickety z předchozích
+    // test runs, ne Romeo. Test ověřuje resale flow, ne konkrétní event title).
     const sellButton = page.getByTestId('resale-sell-button').first();
+    await expect(sellButton).toBeVisible({ timeout: 15_000 });
     await sellButton.scrollIntoViewIfNeeded();
     await sellButton.click();
 
-    // Cena pod face value (350 Kč). 300 = 30000 halire, OK.
-    listingPriceCzk = '300';
+    // Cena 100 Kč — pod face value pro libovolný ticket > 100 Kč face.
+    listingPriceCzk = '100';
     await page.getByTestId('resale-ask-price-input').fill(listingPriceCzk);
     await page.getByTestId('resale-confirm-button').click();
 
-    const result = page.getByTestId('resale-result-message');
-    await expect(result).toBeVisible({ timeout: 10_000 });
+    // resale-result-message je renderován v každém ticket card → multiple
+    // matches. Pro success branch otevřeného formuláře by měl být právě 1
+    // viditelný (ostatní jsou v collapsed sekcích bez výsledku).
+    // Plus 30s timeout — Next.js dev může compile cold API route delší.
+    const result = page.getByTestId('resale-result-message').first();
+    await expect(result).toBeVisible({ timeout: 30_000 });
+    // Po úspěšném listing message obsahuje "vystaven" + 100 Kč.
+    // Pokud test ticket byl charity-claimed (original_price=0), zde
+    // dostaneme PRICE_CAP_EXCEEDED → test by failoval na assertion.
+    // Pre-cleanup v beforeAll smaže listings ALE NEMĚNÍ original_price na
+    // ticketu. Test musí klepnout na první ticket KTERÝ má original_price > 0.
+    const txt = (await result.textContent()) ?? '';
+    if (/face value \(0 Kč\)/i.test(txt)) {
+      throw new Error(
+        'První click padl na ticket s original_price=0 (charity-claimed). ' +
+          'Test by měl předkliknout na jiný ticket. Doplň testid filtraci.',
+      );
+    }
     await expect(result).toContainText(/vystaven/i);
-    await expect(result).toContainText('300');
+    await expect(result).toContainText('100');
   });
 
   let createdListingId = '';
   let createdEventTitle = '';
 
-  await test.step('3. Marketplace API obsahuje nový listing za 300 Kč', async () => {
+  await test.step('3. Marketplace API obsahuje nový listing za 100 Kč', async () => {
     const res = await context.request.get('/api/resale/marketplace');
     expect(res.status()).toBe(200);
     const body = (await res.json()) as {
@@ -119,11 +170,10 @@ test('FanSALE: seller vystaví ticket, buyer ho koupí, starý je revoked', asyn
         originalPriceHalire: number;
       }>;
     };
-    // Najdi listing 300 Kč (face value 350 Kč) — nepředpokládáme titul, jen invariant.
-    const found = body.listings.find(
-      (l) => l.askPriceHalire === 30000 && l.originalPriceHalire === 35000,
-    );
-    expect(found, '300 Kč listing s face value 350 Kč viditelný v marketplace').toBeTruthy();
+    // Najdi listing s ask=100 Kč (10000 halire). Face value (originalPriceHalire)
+    // záleží na konkrétním ticket type — netestujeme equality.
+    const found = body.listings.find((l) => l.askPriceHalire === 10000);
+    expect(found, '100 Kč listing viditelný v marketplace').toBeTruthy();
     createdListingId = found!.listingId;
     createdEventTitle = found!.event.title;
   });
@@ -138,19 +188,19 @@ test('FanSALE: seller vystaví ticket, buyer ho koupí, starý je revoked', asyn
     await expect(guestPage.getByRole('heading', { name: /Resale marketplace/i })).toBeVisible();
     const row = guestPage.locator('li', { hasText: createdEventTitle }).first();
     await expect(row).toBeVisible({ timeout: 10_000 });
-    await expect(row.getByText(/300 Kč/)).toBeVisible();
+    await expect(row.getByText(/100 Kč/)).toBeVisible();
 
     await test.step('5. Klik na "Koupit" → detail s formulářem', async () => {
       await row.getByRole('link', { name: /^Koupit$/ }).click();
       await guestPage.waitForURL(new RegExp(`/cs/resale/${createdListingId}`), { timeout: 10_000 });
-      await expect(guestPage.getByText(/Koupit za 300 Kč/i)).toBeVisible();
+      await expect(guestPage.getByText(/Koupit za 100 Kč/i)).toBeVisible();
     });
 
     await test.step('6. Vyplnit jméno + email a submitnout', async () => {
       const testEmail = `pw-resale-${Date.now()}@example.cz`;
       await guestPage.getByLabel('Jméno a příjmení').fill('Test Resale Kupec');
       await guestPage.getByLabel('E-mail').fill(testEmail);
-      await guestPage.getByRole('button', { name: /Koupit za 300 Kč/i }).click();
+      await guestPage.getByRole('button', { name: /Koupit za 100 Kč/i }).click();
 
       await guestPage.waitForURL(/\/cs\/order-confirmation\/[0-9a-f-]{36}/, {
         timeout: 15_000,
@@ -172,16 +222,25 @@ test('FanSALE: nad face value cena vrátí 422 PRICE_CAP_EXCEEDED (API)', async 
   expect(loginRes.status()).toBe(200);
   const { accessToken } = (await loginRes.json()) as { accessToken: string };
 
-  // Najít Anna's valid Romeo & Julie ticket (35000 face value)
+  // Najít Anna's valid Romeo & Julie ticket (face value > 0). Charity-claimed
+  // tickety mají original_price=0 — filtrujeme je out, jinak PRICE_CAP check
+  // by se počítal jako 0 a test by failoval na maxHalire=0.
   const ticketsRes = await request.get('/api/buyer/my-tickets', {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   expect(ticketsRes.status()).toBe(200);
   const { tickets } = (await ticketsRes.json()) as {
-    tickets: Array<{ id: string; status: string; event_title: string }>;
+    tickets: Array<{
+      id: string;
+      status: string;
+      event_title: string;
+      original_price: number;
+    }>;
   };
-  const valid = tickets.find((t) => t.status === 'valid');
-  expect(valid, 'Anna má alespoň 1 valid ticket').toBeTruthy();
+  const valid = tickets.find(
+    (t) => t.status === 'valid' && t.original_price > 0,
+  );
+  expect(valid, 'Anna má alespoň 1 valid ticket s face value > 0').toBeTruthy();
 
   // 50000 halire = 500 Kč > 350 Kč face value = PRICE_CAP_EXCEEDED
   const listRes = await request.post('/api/buyer/resale/list', {

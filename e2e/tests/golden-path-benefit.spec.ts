@@ -107,8 +107,17 @@ async function waitForTicketIssued(
 }
 
 test.beforeAll(async ({ request }) => {
-  // Warm up: kompilace mock-benefit cesty v dev serveru (cold first compile ~10s).
+  // Warm up: kompilace mock-benefit page + callback API route. Next.js dev
+  // server compile-on-demand → první request může trvat 5-15s. Bez warmup
+  // page.waitForResponse v test 3 timeoutuje protože POST trvá déle než 15s.
   await request.get('/mock-benefit/pluxee/warmup');
+  // Také ping callback API aby Next.js compiled route handler (POST returns
+  // 422 bez body, ale to nás nezajímá — chceme jen compile).
+  await request.post('/api/payments/benefit/callback', {
+    headers: { 'Content-Type': 'application/json' },
+    data: {},
+    failOnStatusCode: false,
+  });
 });
 
 test('Benefit Pay (Pluxee): checkout → mock portal → "Zaplatit" → ticket', async ({
@@ -158,6 +167,9 @@ test('Benefit Pay (Pluxee): checkout → mock portal → "Zaplatit" → ticket',
     await expect(page.getByTestId('benefit-vendor-header')).toContainText(/Pluxee/i);
     await expect(page.getByTestId('benefit-external-id')).toContainText(paymentId);
     // Čekat na hydraci — button musí být interactive (React onClick attached).
+    // page.waitForLoadState('networkidle') zaručí že React hydrace dokončila
+    // — bez toho click prošel ale handler ještě nebyl attached → fetch nebyl odeslán.
+    await page.waitForLoadState('networkidle');
     await expect(page.getByTestId('benefit-pay')).toBeEnabled({ timeout: 5_000 });
   });
 
