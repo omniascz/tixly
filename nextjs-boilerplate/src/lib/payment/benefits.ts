@@ -84,21 +84,29 @@ export class BenefitProviderUnavailableError extends Error {
   }
 }
 
-type ProviderHandler = (
+export type BenefitProviderHandler = (
   input: CreateBenefitPaymentInput,
   externalId: string,
 ) => Promise<{ redirectUrl: string }>;
 
-// Per-provider real handlery. Doplň postupně jak získáš vendor docs/sandbox.
-// Každý handler musí vrátit { redirectUrl } NEBO vyhodit chybu — žádný silent
-// mock fallback! Mock se aktivuje jen na úrovni createBenefitPayment switche.
-const PROVIDER_HANDLERS: Partial<Record<BenefitProvider, ProviderHandler>> = {
-  // pluxee: async (input, externalId) => {
-  //   const res = await fetch('https://api.pluxee.cz/transactional/create', { ... });
-  //   if (!res.ok) throw new BenefitProviderUnavailableError('pluxee', 'vendor_call_failed');
-  //   const body = await res.json() as { redirect_url: string };
-  //   return { redirectUrl: body.redirect_url };
-  // },
+// Per-provider real handlery. Implementace v src/lib/payment/benefit-providers/.
+// Pokud handler vyhodí, createBenefitPayment ho zachytí a převede na
+// BenefitProviderUnavailableError s reason='vendor_call_failed'.
+//
+// Žádný silent mock fallback uvnitř handleru! Mock se aktivuje jen na úrovni
+// createBenefitPayment switche když hasRealCredentials === false A shouldUseMock().
+import {
+  createBenefitPlusPayment,
+  createEdenredPayment,
+  createGalleryBetaPayment,
+  createPluxeePayment,
+} from './benefit-providers';
+
+const PROVIDER_HANDLERS: Partial<Record<BenefitProvider, BenefitProviderHandler>> = {
+  pluxee: createPluxeePayment,
+  benefit_plus: createBenefitPlusPayment,
+  edenred: createEdenredPayment,
+  gallery_beta: createGalleryBetaPayment,
 };
 
 function shouldUseMock(): boolean {
@@ -117,9 +125,19 @@ export async function createBenefitPayment(
   let isMock = false;
 
   if (hasCreds && handler) {
-    // Skutečný vendor call
-    const result = await handler(input, externalId);
-    redirectUrl = result.redirectUrl;
+    // Skutečný vendor call — pokud handler hodí (vendor 4xx/5xx, network,
+    // parse fail), překonvertujeme na typed error aby caller mohl správně
+    // 503 odpovědět buyer-side a my logovali na incident.
+    try {
+      const result = await handler(input, externalId);
+      redirectUrl = result.redirectUrl;
+    } catch (err) {
+      console.error(`[benefit ${input.provider}] vendor call failed`, err);
+      throw new BenefitProviderUnavailableError(
+        input.provider,
+        'vendor_call_failed',
+      );
+    }
   } else if (shouldUseMock()) {
     // Dev/test mock fallback — explicit opt-in via NODE_ENV nebo env flag
     redirectUrl = `${input.appUrl}/mock-benefit/${input.provider}/${externalId}`;

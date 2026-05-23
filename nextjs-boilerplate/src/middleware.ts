@@ -70,7 +70,7 @@ const FRONTEND_AUTH_ONLY = ['/login', '/register', '/register-promoter'];
 // GET /api/transfer/accept/[token] je public (recipient ještě nepřihlášený);
 // POST /api/transfer/accept/[token] vyžaduje x-user-id ale endpoint si to ověří
 // sám — middleware ho pustí.
-const PUBLIC_API_PREFIXES = ['/api/health', '/api/internal/', '/api/mock-gopay', '/api/mock-bnpl/', '/api/team/accept', '/api/lottery/', '/api/gift/', '/api/newsletter/', '/api/support/chat', '/api/transfer/accept/', '/api/group-invitations/', '/api/charity/claim/'];
+const PUBLIC_API_PREFIXES = ['/api/health', '/api/internal/', '/api/mock-gopay', '/api/mock-bnpl/', '/api/team/accept', '/api/lottery/', '/api/gift/', '/api/newsletter/', '/api/support/chat', '/api/transfer/accept/', '/api/group-invitations/', '/api/charity/claim/', '/api/payments/benefit/'];
 
 // ── Middleware ──────────────────────────────────────────────────────────────
 
