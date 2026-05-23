@@ -108,10 +108,73 @@ export function verifyPass(input: VerifyPassInput): VerifyPassResult {
   return { valid: true };
 }
 
+export class TransitProviderUnavailableError extends Error {
+  readonly code = 'TRANSIT_PROVIDER_UNAVAILABLE' as const;
+  constructor(
+    readonly partnerSlug: string,
+    readonly reason: 'no_credentials' | 'no_handler' | 'vendor_call_failed',
+  ) {
+    super(
+      `Transit provider ${partnerSlug} unavailable: ${reason}. ` +
+        `DPP partnership + DPP_API_KEY required for production, ` +
+        `set TRANSIT_DEV_MOCK_FALLBACK=1 to use signed mock pass.`,
+    );
+    this.name = 'TransitProviderUnavailableError';
+  }
+}
+
+type TransitProviderHandler = (
+  input: IssueTransitPassInput,
+) => Promise<{ validationSignature: string; qrPayload: string }>;
+
+// Per-partner real implementace. Doplň jakmile máš DPP/IDOS sandbox docs.
+// Každý handler dělá POST /api/passes na vendor a vrací stejný shape.
+const PARTNER_HANDLERS: Record<string, TransitProviderHandler | undefined> = {
+  // dpp: async (input) => {
+  //   const res = await fetch('https://api.dpp.cz/passes', {
+  //     method: 'POST',
+  //     headers: {
+  //       Authorization: `Bearer ${process.env.DPP_API_KEY}`,
+  //       'Content-Type': 'application/json',
+  //       'Idempotency-Key': input.orderId,
+  //     },
+  //     body: JSON.stringify({
+  //       partner: 'tixly',
+  //       zones: input.zones,
+  //       validFrom: input.validFrom.toISOString(),
+  //       validUntil: input.validUntil.toISOString(),
+  //       externalRef: input.orderId,
+  //     }),
+  //   });
+  //   if (!res.ok) throw new TransitProviderUnavailableError('dpp', 'vendor_call_failed');
+  //   const body = await res.json() as { qrPayload: string; signature: string };
+  //   return { qrPayload: body.qrPayload, validationSignature: body.signature };
+  // },
+};
+
+function shouldUseMock(): boolean {
+  if (process.env.TRANSIT_DEV_MOCK_FALLBACK === '1') return true;
+  return process.env.NODE_ENV !== 'production';
+}
+
 export async function issueTransitPass(
   input: IssueTransitPassInput,
 ): Promise<TransitPassResult> {
-  if (isMockMode()) {
+  const handler = PARTNER_HANDLERS[input.partnerSlug];
+  const hasCreds = !isMockMode();
+
+  // Real vendor path
+  if (hasCreds && handler) {
+    const real = await handler(input);
+    return {
+      validationSignature: real.validationSignature,
+      qrPayload: real.qrPayload,
+      isMock: false,
+    };
+  }
+
+  // Mock fallback (dev/CI nebo TRANSIT_DEV_MOCK_FALLBACK=1)
+  if (shouldUseMock()) {
     const signature = signPass({
       orderId: input.orderId,
       partnerSlug: input.partnerSlug,
@@ -128,11 +191,10 @@ export async function issueTransitPass(
       isMock: true,
     };
   }
-  // Production: POST na DPP API /api/passes
-  //   - body: { partner: input.partnerSlug, zones, validFrom, validUntil, externalRef: input.orderId }
-  //   - response: { passId, qrPayload, signature }
-  //   - error handling: rate limits, retries, idempotency-key = orderId
-  throw new Error('Real DPP integration not implemented (require DPP partnership)');
-}
 
-void randomBytes; // reserved for future jitter / nonce
+  // Produkce + chybějící real handler/credentials → fail loud (ne silent throw)
+  throw new TransitProviderUnavailableError(
+    input.partnerSlug,
+    !hasCreds ? 'no_credentials' : 'no_handler',
+  );
+}

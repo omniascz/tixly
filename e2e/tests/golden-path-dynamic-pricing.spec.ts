@@ -1,15 +1,14 @@
 /**
- * Golden Path: Dynamic pricing engine (CZ priority #7, ROI 6/10)
+ * Golden Path: Dynamic pricing — admin CRUD + cron (CZ priority #7).
  *
- * Tixly už mělo backend (engine.ts s velocity + scarcity formulas +
- * dynamic_pricing_rules schema + admin endpoint). CHYBĚL periodic
- * recompute cron — added GET /api/internal/cron/recompute-dynamic-pricing.
+ * Tento test pokrývá:
+ *   - Admin GET/PUT pravidla per ticket_type
+ *   - Cron `recompute-dynamic-pricing` shape ({processed, updated, failed})
  *
- * Pokrytí:
- *   1. GET /api/admin/ticket-types/[id]/dynamic-pricing — vrátí current rule
- *   2. PUT update rule (admin)
- *   3. GET cron recompute endpoint → processed/updated/failed counts
- *   4. Recompute bez enabled rules → updated=0
+ * KRITICKÁ buyer-perspective enforcement (že subtotal === dynamic_price_minor)
+ * je v separate testu `golden-path-dynamic-pricing-gate.spec.ts` — P1.6 fix
+ * doplnil `resolve-price.ts` branch, předtím engine počítal cenu ale
+ * checkout ji nečetl.
  */
 import { test, expect, type BrowserContext } from '@playwright/test';
 

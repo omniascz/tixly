@@ -1384,25 +1384,43 @@ export async function POST(req: NextRequest): Promise<Response> {
         provider: input.paymentMethod,
       };
     } else if (benefitProviders.has(input.paymentMethod)) {
-      const { createBenefitPayment } = await import('@/lib/payment/benefits');
+      const { createBenefitPayment, BenefitProviderUnavailableError } =
+        await import('@/lib/payment/benefits');
       // Sodexo používá Pluxee infrastrukturu (Pluxee koupil Sodexo Benefits v 2023)
       const benefitProvider = (input.paymentMethod === 'sodexo' ? 'pluxee' : input.paymentMethod) as
         | 'pluxee'
         | 'benefit_plus'
         | 'edenred'
         | 'gallery_beta';
-      const benefitResult = await createBenefitPayment({
-        orderId,
-        amountHalire: totalAmount,
-        buyerEmail: input.buyerEmail,
-        provider: benefitProvider,
-        appUrl,
-      });
-      paymentSession = {
-        paymentId: benefitResult.externalId,
-        gatewayUrl: benefitResult.redirectUrl,
-        provider: input.paymentMethod,
-      };
+      try {
+        const benefitResult = await createBenefitPayment({
+          orderId,
+          amountHalire: totalAmount,
+          buyerEmail: input.buyerEmail,
+          provider: benefitProvider,
+          appUrl,
+        });
+        paymentSession = {
+          paymentId: benefitResult.externalId,
+          gatewayUrl: benefitResult.redirectUrl,
+          provider: input.paymentMethod,
+        };
+      } catch (e) {
+        if (e instanceof BenefitProviderUnavailableError) {
+          await client.query('ROLLBACK');
+          return NextResponse.json(
+            {
+              error: 'PAYMENT_METHOD_UNAVAILABLE',
+              message:
+                'Tato benefit karta není v tomto prostředí k dispozici. Zvolte jinou metodu.',
+              provider: benefitProvider,
+              reason: e.reason,
+            },
+            { status: 503 },
+          );
+        }
+        throw e;
+      }
     } else {
       const { createPayment } = await import('@/lib/payment/provider');
       paymentSession = await createPayment({

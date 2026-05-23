@@ -118,13 +118,32 @@ export async function GET(
   const validFrom = new Date(eventDate.getTime() + combo.valid_from_offset_hours * 3600 * 1000);
   const validUntil = new Date(eventDate.getTime() + combo.valid_until_offset_hours * 3600 * 1000);
 
-  const result = await issueTransitPass({
-    orderId: order.id,
-    partnerSlug: combo.partner_slug,
-    zones: combo.zones,
-    validFrom,
-    validUntil,
-  });
+  let result;
+  try {
+    result = await issueTransitPass({
+      orderId: order.id,
+      partnerSlug: combo.partner_slug,
+      zones: combo.zones,
+      validFrom,
+      validUntil,
+    });
+  } catch (err) {
+    if (
+      err instanceof Error &&
+      (err as { code?: string }).code === 'TRANSIT_PROVIDER_UNAVAILABLE'
+    ) {
+      return NextResponse.json(
+        {
+          error: 'TRANSIT_PROVIDER_UNAVAILABLE',
+          message:
+            'MHD jízdenka momentálně nedostupná. Zkuste později nebo kontaktujte pořadatele.',
+          partnerSlug: combo.partner_slug,
+        },
+        { status: 503 },
+      );
+    }
+    throw err;
+  }
 
   await db().query(
     `INSERT INTO orders.transit_passes

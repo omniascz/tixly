@@ -55,25 +55,81 @@ function hasRealCredentials(provider: BenefitProvider): boolean {
 }
 
 /**
- * Vytvoří benefit payment session pro daný order. Pokud chybí vendor credentials,
- * vrátí mock redirect na lokální /mock-benefit/[provider]/[id].
+ * Vytvoří benefit payment session pro daný order.
+ *
+ * Resolution priorita:
+ *   1. Real vendor URL — pokud `hasRealCredentials(provider)===true` a
+ *      per-provider create funkce existuje.
+ *   2. Mock fallback — jen pokud `BENEFIT_DEV_MOCK_FALLBACK=1` (explicit
+ *      opt-in pro dev/CI) NEBO `NODE_ENV !== 'production'`.
+ *   3. Jinak vyhodí `BenefitProviderUnavailableError` — produkce s chybějícími
+ *      env vendor klíči se nebude tichá fallbackovat (předtím byl bug:
+ *      vždy redirect na mock i s credentials).
+ *
+ * Per-provider real implementace zatím chybí (vendor partnership nutná);
+ * až je doplníš v src/lib/payment/benefit-providers/<provider>.ts, importuj
+ * sem do PROVIDER_HANDLERS mapy.
  */
+export class BenefitProviderUnavailableError extends Error {
+  readonly code = 'BENEFIT_PROVIDER_UNAVAILABLE' as const;
+  constructor(
+    readonly provider: BenefitProvider,
+    readonly reason: 'no_credentials' | 'no_handler' | 'vendor_call_failed',
+  ) {
+    super(
+      `Benefit provider ${provider} unavailable: ${reason}. ` +
+        `Set vendor env keys + implement createXxxPayment in benefit-providers/.`,
+    );
+    this.name = 'BenefitProviderUnavailableError';
+  }
+}
+
+type ProviderHandler = (
+  input: CreateBenefitPaymentInput,
+  externalId: string,
+) => Promise<{ redirectUrl: string }>;
+
+// Per-provider real handlery. Doplň postupně jak získáš vendor docs/sandbox.
+// Každý handler musí vrátit { redirectUrl } NEBO vyhodit chybu — žádný silent
+// mock fallback! Mock se aktivuje jen na úrovni createBenefitPayment switche.
+const PROVIDER_HANDLERS: Partial<Record<BenefitProvider, ProviderHandler>> = {
+  // pluxee: async (input, externalId) => {
+  //   const res = await fetch('https://api.pluxee.cz/transactional/create', { ... });
+  //   if (!res.ok) throw new BenefitProviderUnavailableError('pluxee', 'vendor_call_failed');
+  //   const body = await res.json() as { redirect_url: string };
+  //   return { redirectUrl: body.redirect_url };
+  // },
+};
+
+function shouldUseMock(): boolean {
+  if (process.env.BENEFIT_DEV_MOCK_FALLBACK === '1') return true;
+  return process.env.NODE_ENV !== 'production';
+}
+
 export async function createBenefitPayment(
   input: CreateBenefitPaymentInput,
 ): Promise<BenefitPaymentResult> {
   const externalId = randomUUID();
-  const isMock = !hasRealCredentials(input.provider);
+  const hasCreds = hasRealCredentials(input.provider);
+  const handler = PROVIDER_HANDLERS[input.provider];
 
   let redirectUrl: string;
-  if (isMock) {
+  let isMock = false;
+
+  if (hasCreds && handler) {
+    // Skutečný vendor call
+    const result = await handler(input, externalId);
+    redirectUrl = result.redirectUrl;
+  } else if (shouldUseMock()) {
+    // Dev/test mock fallback — explicit opt-in via NODE_ENV nebo env flag
     redirectUrl = `${input.appUrl}/mock-benefit/${input.provider}/${externalId}`;
+    isMock = true;
   } else {
-    // TODO: real provider redirect URL po vendor docs
-    // Pluxee:        POST /api/transactional/create → response.redirect_url
-    // Benefit Plus:  POST /payment/init → response.payUrl
-    // Gallery Beta:  GET vendor portal s queryparams
-    // Pro MVP: fallback na mock (zatím)
-    redirectUrl = `${input.appUrl}/mock-benefit/${input.provider}/${externalId}`;
+    // Produkce + chybějící credentials/handler — fail loud
+    throw new BenefitProviderUnavailableError(
+      input.provider,
+      !hasCreds ? 'no_credentials' : 'no_handler',
+    );
   }
 
   await db().query(

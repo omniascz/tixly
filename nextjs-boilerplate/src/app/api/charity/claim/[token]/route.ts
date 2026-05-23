@@ -149,21 +149,24 @@ export async function POST(
     if (u.rows.length > 0) {
       userId = u.rows[0].id;
     } else {
+      // password_hash NOT NULL — guest user, nemůže se přihlásit, hash je
+      // permanentně neplatný (žádné platné heslo se nehashne na 'charity-guest')
       const newUser = await client.query<{ id: string }>(
-        `INSERT INTO identity.users (email, name, gdpr_consent_at)
-         VALUES ($1, $2, NOW())
+        `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at)
+         VALUES ($1, $2, 'charity-guest-no-login', NOW())
          RETURNING id`,
         [parsed.data.email.toLowerCase(), parsed.data.name ?? null],
       );
       userId = newUser.rows[0].id;
     }
 
-    // Default ticket_type_id když není specified — first on-sale type pro event
+    // Default ticket_type_id když není specified — nejlevnější ticket type
+    // pro event (charity dostává standardní místa, ne VIP).
     let ttId = s.ticket_type_id;
     if (!ttId) {
-      const tt = await client.query<{ id: string; currency: string }>(
-        `SELECT id, currency FROM catalog.ticket_types
-          WHERE event_id = $1 ORDER BY price LIMIT 1`,
+      const tt = await client.query<{ id: string }>(
+        `SELECT id FROM catalog.ticket_types
+          WHERE event_id = $1 ORDER BY base_price LIMIT 1`,
         [s.event_id],
       );
       if (tt.rows.length === 0) {
@@ -175,11 +178,12 @@ export async function POST(
       }
       ttId = tt.rows[0].id;
     }
-    const ttCur = await client.query<{ currency: string }>(
-      `SELECT currency FROM catalog.ticket_types WHERE id = $1`,
-      [ttId],
+    // Event-level currency (ticket_types nemá currency column, je na events)
+    const evCur = await client.query<{ currency: string }>(
+      `SELECT currency FROM catalog.events WHERE id = $1`,
+      [s.event_id],
     );
-    const currency = ttCur.rows[0]?.currency ?? 'CZK';
+    const currency = evCur.rows[0]?.currency ?? 'CZK';
 
     // Vytvoř order — provider=charity, paid status, amount=0
     const order = await client.query<{ id: string }>(
@@ -203,8 +207,8 @@ export async function POST(
 
     await client.query(
       `INSERT INTO orders.order_items
-         (order_id, ticket_type_id, quantity, unit_price)
-       VALUES ($1, $2, 1, 0)`,
+         (order_id, ticket_type_id, quantity, unit_price, total_price)
+       VALUES ($1, $2, 1, 0, 0)`,
       [orderId, ttId],
     );
 
