@@ -95,7 +95,10 @@ test('Affiliate: create → tracking redirect → checkout linked → stats', as
   );
   expect([302, 307]).toContain(redirect.status());
   const location = redirect.headers()['location'] ?? '';
+  // KRITICKÉ — po fix musí redirect URL obsahovat ?ref=CODE (předtím jen
+  // cookie, kterou checkout/page.tsx nečetl, takže attribution byla dead).
   expect(location).toContain(`/cs/events/${eventId}`);
+  expect(location).toContain(`ref=${code.toUpperCase()}`);
   const setCookie = redirect.headers()['set-cookie'] ?? '';
   expect(setCookie).toContain('aff_code=');
   expect(setCookie).toContain(code.toUpperCase());
@@ -117,21 +120,9 @@ test('Affiliate: create → tracking redirect → checkout linked → stats', as
   const coBody = (await co.json()) as { orderId: string; paymentId: string };
   expect(coBody.orderId).toBeTruthy();
 
-  // 4. Pay via mock-gopay → order paid → commission ready
-  const pay = await context.request.post(
-    `/api/mock-gopay/${coBody.paymentId}/confirm`,
-    {
-      headers: { 'Content-Type': 'application/json' },
-      data: { action: 'approve' },
-    },
-  );
-  // 200 nebo 404 (mock-gopay endpoint může být jiný path) — pro tento test
-  // stačí ověřit že order měl affiliate linkován i bez payment confirm
-  void pay;
-
-  // 5. Stats — paid orders se započítají do orders_count
-  // Pokud payment selhal, stats budou prázdné — to OK pro tento test,
-  // hlavní validace je že affiliate_id byl uložen do orderu.
+  // 4. Stats — orders_count se zvýší až po payment. Pro tento test stačí ověřit,
+  // že affiliate je v listu (před fixem `mine` mohlo být undefined když
+  // marketing.affiliates tabulka neexistovala — viz schema drift report).
   const stats = await context.request.get('/api/admin/affiliates', {
     headers: { Authorization: `Bearer ${admin.accessToken}` },
   });

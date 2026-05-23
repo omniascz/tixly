@@ -2,12 +2,17 @@
  * GET /r/[code]?event=<eventId> — public affiliate tracking redirect
  *
  * Skiddle Rep pattern (CZ priority #10, ROI 4/10). Affiliate (klub manager,
- * influencer) sdílí URL `tixly.cz/r/<code>?event=<id>`, kupec klikne,
- * cookie aff_code se nastaví, redirect na event detail. Checkout přečte
- * cookie / přijme aff body field a linkne order na affiliate.
+ * influencer) sdílí URL `tixly.cz/r/<code>?event=<id>`, kupec klikne →
+ * redirect na event detail s ?ref=CODE v URL + cookie aff_code jako záloha.
  *
- * Cookie aff_code je 30-day, sameSite=lax aby přežil cross-domain (sdílení
- * z FB / Insta link). Domain wide — všechny eventy v session counted.
+ * Checkout integration (`[locale]/checkout/page.tsx:172-179`) čte
+ * `searchParams.get('ref')` a fallback `localStorage.getItem('tixly.ref')`.
+ * Cross-session attribution drží přes localStorage (set na event detail page
+ * po prvním kliku — TODO pokud chcem fancier attribution; pro MVP stačí
+ * že kupec dorazí na checkout s ?ref= v URL).
+ *
+ * Cookie aff_code je 30-day backup pro server-side cases (qr-style flows,
+ * embedded checkout). httpOnly=false aby ji JS mohl číst v UI.
  */
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -23,16 +28,18 @@ export async function GET(
     return NextResponse.redirect(new URL('/cs/events', req.url));
   }
 
+  const code = params.code.toUpperCase();
   const eventId = req.nextUrl.searchParams.get('event');
-  const target = eventId
-    ? `/cs/events/${eventId}`
-    : '/cs/events';
+  // Připoj ?ref=CODE do target URL aby checkout/page.tsx ho přečetl přes
+  // searchParams.get('ref') (existing wired path).
+  const basePath = eventId ? `/cs/events/${eventId}` : '/cs/events';
+  const target = `${basePath}?ref=${encodeURIComponent(code)}`;
 
   const res = NextResponse.redirect(new URL(target, req.url));
-  res.cookies.set(COOKIE_NAME, params.code.toUpperCase(), {
+  res.cookies.set(COOKIE_NAME, code, {
     maxAge: COOKIE_MAX_AGE,
     sameSite: 'lax',
-    httpOnly: false, // čteme z client (checkout form) i serveru
+    httpOnly: false,
     path: '/',
   });
   return res;

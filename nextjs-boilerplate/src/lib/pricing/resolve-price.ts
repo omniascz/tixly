@@ -2,19 +2,23 @@
  * Server-side price resolution — JEDINÁ autorita pro cenu vstupenky.
  *
  * Hierarchie (top-down, vyšší vyhrává):
- *   1. pricing.price_tiers.total_hellers   — All-In Pricing (face + fee + VAT)
+ *   1. catalog.ticket_types.dynamic_price_minor — Dynamic pricing engine
+ *      (P1.6 fix). Cron `recompute-dynamic-pricing` přepočítá ceny podle
+ *      velocity + scarcity; pokud je non-null, override všeho ostatního.
+ *      Pokud dynamic pricing není enabled na eventu, sloupec je NULL → fallthrough.
+ *   2. pricing.price_tiers.total_hellers   — All-In Pricing (face + fee + VAT)
  *      → použito pro display TOTAL (final cena pro kupce)
- *   2. catalog.pricing_rules.price          — fázové (early_bird/regular/late/door)
+ *   3. catalog.pricing_rules.price          — fázové (early_bird/regular/late/door)
  *      → aktivní pravidlo s nejnižší priority value (= nejvyšší prioritou) vyhraje;
  *        threshold_qty + threshold_date určují, zda je pravidlo aktivní
- *   3. catalog.ticket_types.base_price      — fallback default
+ *   4. catalog.ticket_types.base_price      — fallback default
  *
  * Tato funkce se MUSÍ volat na serveru z trusted kontextu (checkout, billing).
  * NIKDY nesmí klient poslat cenu v requestu — server ji vždy resolve sám.
  */
 
 
-export type PriceSource = 'tier' | 'rule' | 'base';
+export type PriceSource = 'dynamic' | 'tier' | 'rule' | 'base';
 
 export interface ResolvedPrice {
   unitPriceHalire: number;
@@ -36,6 +40,7 @@ interface TicketTypeRow {
   event_id: string;
   base_price: number;
   remaining_qty: number;
+  dynamic_price_minor: number | null;
 }
 
 interface PricingRuleRow {
@@ -65,8 +70,21 @@ export async function resolveCurrentPrice(
 ): Promise<ResolvedPrice> {
   const now = options?.now ?? new Date();
 
+  // dynamic_price_minor existuje od migrace pro #7 Dynamic pricing. V starších
+  // prostředích (např. test DB co byla pre-migrate) chybí, takže fallback
+  // COALESCE → NULL aby se neudělala broken query.
+  const hasDynamicCol = await columnExists(
+    db,
+    'catalog',
+    'ticket_types',
+    'dynamic_price_minor',
+  );
+  const dynColSelect = hasDynamicCol
+    ? 'dynamic_price_minor'
+    : 'NULL::integer AS dynamic_price_minor';
+
   const ttRes = (await db.query(
-    `SELECT id, event_id, base_price, remaining_qty
+    `SELECT id, event_id, base_price, remaining_qty, ${dynColSelect}
      FROM catalog.ticket_types
      WHERE id = $1 AND event_id = $2
      LIMIT 1`,
@@ -80,7 +98,22 @@ export async function resolveCurrentPrice(
   }
   const tt = ttRes.rows[0];
 
-  // 1) All-In tier override (display total)
+  // 1) Dynamic pricing (cron-computed). Pokud engine přepočítal cenu
+  // (velocity + scarcity), override všeho ostatního. Null = engine disabled.
+  if (tt.dynamic_price_minor !== null && tt.dynamic_price_minor > 0) {
+    return finalize(
+      {
+        unitPriceHalire: tt.dynamic_price_minor,
+        source: 'dynamic',
+        ticketTypeId,
+        ruleId: null,
+        tierId: null,
+      },
+      options?.expectedHalire,
+    );
+  }
+
+  // 2) All-In tier override (display total)
   // Tabulka pricing.price_tiers je z migrace 133 a v některých prostředích
   // (lokální demo) ještě nemusí být aplikovaná. Existence kontrolujeme předem
   // (cached), aby pád nezneškodnil aktuální transakci (chyba 25P02).
@@ -200,6 +233,27 @@ async function tableExists(
        WHERE table_schema = $1 AND table_name = $2
      ) AS exists`,
     [schema, name],
+  )) as { rows: Array<{ exists: boolean }> };
+  const exists = res.rows[0]?.exists === true;
+  tableExistsCache.set(key, exists);
+  return exists;
+}
+
+async function columnExists(
+  db: DbExecutor,
+  schema: string,
+  table: string,
+  column: string,
+): Promise<boolean> {
+  const key = `${schema}.${table}.${column}`;
+  const cached = tableExistsCache.get(key);
+  if (cached !== undefined) return cached;
+  const res = (await db.query(
+    `SELECT EXISTS (
+       SELECT 1 FROM information_schema.columns
+       WHERE table_schema = $1 AND table_name = $2 AND column_name = $3
+     ) AS exists`,
+    [schema, table, column],
   )) as { rows: Array<{ exists: boolean }> };
   const exists = res.rows[0]?.exists === true;
   tableExistsCache.set(key, exists);

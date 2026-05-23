@@ -94,7 +94,7 @@ export async function GET(
         targetSeats: i.target_seats,
       },
       checkoutUrl: i.ticket_type_id
-        ? `/cs/checkout?event=${i.event_id}&ticketType=${i.ticket_type_id}&groupInvitation=${params.token}`
+        ? `/cs/checkout?eventId=${i.event_id}&ticketTypeId=${i.ticket_type_id}&groupInvitation=${params.token}`
         : `/cs/events/${i.event_id}?groupInvitation=${params.token}`,
       expiresAt: i.expires_at,
     });

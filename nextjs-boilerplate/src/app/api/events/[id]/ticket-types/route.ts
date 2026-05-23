@@ -39,6 +39,23 @@ export async function GET(
      ORDER BY tt.base_price`,
     [params.id],
   );
+
+  // Event-level flags potřebné v checkout UI: requires_otp_validation,
+  // verified_fan_enabled. Bez nich buyer netuší, že potřebuje OTP/presale_code.
+  const ev = await db().query<{
+    requires_otp_validation: boolean;
+    verified_fan_enabled: boolean;
+  }>(
+    `SELECT COALESCE(requires_otp_validation, FALSE) AS requires_otp_validation,
+            COALESCE(verified_fan_enabled, FALSE) AS verified_fan_enabled
+       FROM catalog.events WHERE id = $1`,
+    [params.id],
+  );
+  const flags = ev.rows[0] ?? {
+    requires_otp_validation: false,
+    verified_fan_enabled: false,
+  };
+
   return NextResponse.json({
     ticketTypes: r.rows.map((t) => ({
       id: t.id,
@@ -51,5 +68,9 @@ export async function GET(
           ? { kind: t.pass_kind, picksRequired: t.picks_required }
           : null,
     })),
+    eventFlags: {
+      requiresOtp: flags.requires_otp_validation,
+      verifiedFanEnabled: flags.verified_fan_enabled,
+    },
   });
 }

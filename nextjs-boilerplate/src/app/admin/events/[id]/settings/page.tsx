@@ -22,6 +22,9 @@ interface EventSettings {
   refundFeeMinHalire: number | null;
   qrPolicy: 'static_allowed' | 'rotating_24h' | 'rotating_only' | 'photo_required';
   vatCategory: 'standard' | 'cultural' | 'food_beverage' | 'merchandise' | 'reduced';
+  // P1.5 + P1.8 toggles (anti-bot / verified fan gates)
+  verifiedFanEnabled?: boolean;
+  requiresOtpValidation?: boolean;
 }
 
 const QR_POLICY_LABELS: Record<EventSettings['qrPolicy'], { title: string; desc: string }> = {
@@ -232,6 +235,56 @@ export default function EventSettingsPage() {
               Demo: ~100. Real festival on-sale: 500–2000 dle DB scaling.
             </p>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* P1.5 + P1.8 — Anti-bot / Verified Fan gates */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Anti-bot gates</CardTitle>
+          <CardDescription>
+            Volitelné gates v checkoutu pro top-poptávkové akce (Helena
+            Vondráčková, derby, festival announcement). Zapni jednotlivě —
+            mohou způsobit drop conversion u běžných akcí.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={data.verifiedFanEnabled ?? false}
+              onChange={(e) =>
+                saveSettings({ verifiedFanEnabled: e.target.checked })
+              }
+              disabled={saving}
+            />
+            <span>
+              <span className="font-medium">Verified Fan presale</span>
+              <span className="block text-xs text-muted-foreground">
+                Jen schválení fanoušci s PSL-xxxx kódem mohou koupit. Admin
+                schvaluje na záložce Verified Fan. Pattern: Ticketmaster
+                Verified Fan.
+              </span>
+            </span>
+          </label>
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={data.requiresOtpValidation ?? false}
+              onChange={(e) =>
+                saveSettings({ requiresOtpValidation: e.target.checked })
+              }
+              disabled={saving}
+            />
+            <span>
+              <span className="font-medium">SMS OTP ověření</span>
+              <span className="block text-xs text-muted-foreground">
+                Kupec musí ověřit telefon SMS kódem před nákupem. Anti-bot
+                opatření (IT Legge anti-bagarinaggio pattern). Bez Twilio
+                env keys SMS se nepošle reálně (jen mock).
+              </span>
+            </span>
+          </label>
         </CardContent>
       </Card>
 

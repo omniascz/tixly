@@ -131,6 +131,11 @@ const schema = z.object({
   // CZ priority #3 — anti-bot ochrana top eventů (Karel Gott reissue, festival
   // announcement).
   otpToken: z.string().min(20).max(80).optional(),
+  // Verified Fan presale code (CZ priority #4) — admin bulk-approve generuje
+  // PSL-xxxx kódy, fan ho dostane emailem, použije v checkout body pokud má
+  // event verified_fan_enabled. Po úspěšném order INSERT se code označí jako
+  // used_order_id v marketing.verified_fan_requests.
+  presaleCode: z.string().min(4).max(40).optional(),
   // Loyalty points redemption (CZ priority #6) — buyer uplatní existing
   // loyalty body. 1 bod = 1 Kč sleva, max 50% z subtotal.
   redeemLoyaltyPoints: z.number().int().min(0).max(100_000).optional(),
@@ -223,7 +228,10 @@ export async function POST(req: NextRequest): Promise<Response> {
               e.min_age, e.currency, e.queue_enabled,
               e.insurance_enabled, e.insurance_pct, tt.is_seated,
               COALESCE(tt.requires_personalization, FALSE) AS requires_personalization,
-              e.promoter_id, e.requires_otp_validation
+              e.promoter_id, e.requires_otp_validation,
+              COALESCE(e.verified_fan_enabled, FALSE) AS verified_fan_enabled,
+              e.verified_fan_presale_starts_at::text AS vf_starts_at,
+              e.verified_fan_presale_ends_at::text AS vf_ends_at
        FROM catalog.ticket_types tt
        JOIN catalog.events e ON e.id = tt.event_id
        WHERE tt.id = $1 AND tt.event_id = $2 AND e.status = 'published'
@@ -237,7 +245,51 @@ export async function POST(req: NextRequest): Promise<Response> {
         { status: 404 },
       );
     }
-    const tt = ttRes.rows[0] as { id: string; event_id: string; remaining_qty: number; name: string; event_title: string; min_age: number | null; currency: string; queue_enabled: boolean; insurance_enabled: boolean; insurance_pct: number; is_seated: boolean; requires_personalization: boolean; promoter_id: string; requires_otp_validation: boolean };
+    const tt = ttRes.rows[0] as { id: string; event_id: string; remaining_qty: number; name: string; event_title: string; min_age: number | null; currency: string; queue_enabled: boolean; insurance_enabled: boolean; insurance_pct: number; is_seated: boolean; requires_personalization: boolean; promoter_id: string; requires_otp_validation: boolean; verified_fan_enabled: boolean; vf_starts_at: string | null; vf_ends_at: string | null };
+
+    // Verified Fan gate (CZ priority #4) — pokud event má VF enabled, jen
+    // approved fans s unused presale_code mohou koupit. Po úspěšném zápisu
+    // do orderu označíme code jako used_order_id (až po INSERT order).
+    let verifiedFanRequestId: string | null = null;
+    if (tt.verified_fan_enabled) {
+      // Pokud existuje VF presale window a jsme MIMO něj, gate platí?
+      // MVP: gate je vždy aktivní pokud verified_fan_enabled=true.
+      // Promotér může window vymazat aby gate vypnul.
+      if (!input.presaleCode) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'VERIFIED_FAN_REQUIRED',
+            message: 'Tato akce je v presale módu. Vyžaduje Verified Fan presale_code.',
+          },
+          { status: 422 },
+        );
+      }
+      const vfRes = await client.query<{ id: string; user_id: string }>(
+        `SELECT id, user_id FROM marketing.verified_fan_requests
+          WHERE presale_code = $1
+            AND event_id = $2
+            AND status = 'approved'
+            AND used_order_id IS NULL
+          FOR UPDATE`,
+        [input.presaleCode.toUpperCase().trim(), input.eventId],
+      );
+      if (vfRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'PRESALE_CODE_INVALID',
+            message: 'Presale kód není platný nebo už byl použit.',
+          },
+          { status: 422 },
+        );
+      }
+      // TODO: ověř že code patří aktuálnímu userovi (anti-share na social).
+      // Userid je resolved až později v checkout flow (line ~684 z lookup
+      // buyer email → users.id), tak tady ho nemáme. Buď přesunout user
+      // resolution výš, nebo akceptovat že code lze sdílet (MVP).
+      verifiedFanRequestId = vfRes.rows[0].id;
+    }
 
     // OTP validation (CZ priority #3) — pokud event vyžaduje, validuj otpToken
     if (tt.requires_otp_validation) {
@@ -1102,6 +1154,19 @@ export async function POST(req: NextRequest): Promise<Response> {
           { status: 403 },
         );
       }
+    }
+
+    // Verified Fan — označ presale_code jako použitý (one-time use, prevents
+    // share na social media). Pokud user platbu nedotáhne, expires_at na
+    // orderu uvolní hold, ale code je permanentně burnt — to je záměrné
+    // anti-abuse opatření (re-issue přes admin endpoint pokud user napíše).
+    if (verifiedFanRequestId) {
+      await client.query(
+        `UPDATE marketing.verified_fan_requests
+            SET status = 'used', used_order_id = $2, used_at = NOW()
+          WHERE id = $1`,
+        [verifiedFanRequestId, orderId],
+      );
     }
 
     // Group invitation linkage (CZ priority #5) — friend přišel přes share URL.

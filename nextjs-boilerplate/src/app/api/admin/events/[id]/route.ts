@@ -64,6 +64,10 @@ const editSchema = z.object({
   // 0 = až při startu eventu, 999999 = okamžitě (vhodné pro standard kulturní akce).
   qrRevealMinutesBefore: z.number().int().min(0).max(999999).optional(),
   vatCategory: z.enum(['standard', 'cultural', 'food_beverage', 'merchandise', 'reduced']).optional(),
+  // P1.5 + P1.8 admin toggles — Verified Fan presale gate + OTP SMS validation.
+  // Bez UI toggle buyer flow nikdy nedostane šanci tyto gates vidět.
+  verifiedFanEnabled: z.boolean().optional(),
+  requiresOtpValidation: z.boolean().optional(),
 });
 
 export async function GET(
@@ -88,7 +92,9 @@ export async function GET(
     `SELECT id, title, description, date_start, status, min_age, promoter_id, venue_id,
             currency, queue_enabled, queue_max_concurrent, insurance_enabled, insurance_pct,
             refund_deadline_days, refund_fee_pct, refund_fee_min_halire,
-            qr_policy, vat_category
+            qr_policy, vat_category,
+            COALESCE(verified_fan_enabled, FALSE) AS verified_fan_enabled,
+            COALESCE(requires_otp_validation, FALSE) AS requires_otp_validation
      FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
     [params.id, promoter.promoterId],
   );
@@ -108,6 +114,8 @@ export async function GET(
     queueMaxConcurrent: e.queue_max_concurrent,
     insuranceEnabled: e.insurance_enabled,
     insurancePct: e.insurance_pct,
+    verifiedFanEnabled: (e as { verified_fan_enabled?: boolean }).verified_fan_enabled ?? false,
+    requiresOtpValidation: (e as { requires_otp_validation?: boolean }).requires_otp_validation ?? false,
     refundDeadlineDays: e.refund_deadline_days,
     refundFeePct: e.refund_fee_pct,
     refundFeeMinHalire: e.refund_fee_min_halire,
@@ -214,6 +222,8 @@ export async function PATCH(
            qr_policy = COALESCE($14, qr_policy),
            vat_category = COALESCE($15, vat_category),
            qr_reveal_minutes_before = COALESCE($16, qr_reveal_minutes_before),
+           verified_fan_enabled = COALESCE($17, verified_fan_enabled),
+           requires_otp_validation = COALESCE($18, requires_otp_validation),
            updated_at = NOW()
        WHERE id = $6`,
       [
@@ -228,6 +238,8 @@ export async function PATCH(
         input.qrPolicy ?? null,
         input.vatCategory ?? null,
         input.qrRevealMinutesBefore ?? null,
+        input.verifiedFanEnabled ?? null,
+        input.requiresOtpValidation ?? null,
       ],
     );
 

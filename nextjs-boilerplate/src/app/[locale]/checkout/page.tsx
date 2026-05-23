@@ -40,6 +40,8 @@ function CheckoutForm() {
     | 'gallery_beta'
     | 'edenred'
     | 'sodexo'
+    | 'twisto'
+    | 'skippay'
   >('gopay');
   const [showBenefitCards, setShowBenefitCards] = useState(false);
   const [isGift, setIsGift] = useState(false);
@@ -73,6 +75,23 @@ function CheckoutForm() {
   const [insuranceOptIn, setInsuranceOptIn] = useState(false);
   const [unitPriceHalire, setUnitPriceHalire] = useState<number | null>(null);
 
+  // Event-level gates (P1.5+P1.8 fixes) — VF presale + OTP SMS.
+  const [eventFlags, setEventFlags] = useState<{
+    requiresOtp: boolean;
+    verifiedFanEnabled: boolean;
+  }>({ requiresOtp: false, verifiedFanEnabled: false });
+
+  // OTP state
+  const [otpPhone, setOtpPhone] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [otpToken, setOtpToken] = useState<string | null>(null);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+
+  // Verified Fan presale code
+  const [presaleCode, setPresaleCode] = useState('');
+
   useEffect(() => {
     if (!eventId) return;
     fetch(`/api/events/${eventId}/addons`)
@@ -84,17 +103,67 @@ function CheckoutForm() {
       .catch(() => setAddons([]));
   }, [eventId]);
 
-  // Pro live preview pojistného načteme cenu ticket typu (base price).
+  // Pro live preview pojistného načteme cenu ticket typu (base price)
+  // a eventFlags (OTP/VF requirements).
   useEffect(() => {
     if (!eventId || !ticketTypeId) return;
     fetch(`/api/events/${eventId}/ticket-types`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((d: { ticketTypes?: Array<{ id: string; basePrice: number }> } | null) => {
-        const tt = d?.ticketTypes?.find((t) => t.id === ticketTypeId);
-        if (tt) setUnitPriceHalire(tt.basePrice);
-      })
+      .then(
+        (d: {
+          ticketTypes?: Array<{ id: string; basePrice: number }>;
+          eventFlags?: { requiresOtp: boolean; verifiedFanEnabled: boolean };
+        } | null) => {
+          const tt = d?.ticketTypes?.find((t) => t.id === ticketTypeId);
+          if (tt) setUnitPriceHalire(tt.basePrice);
+          if (d?.eventFlags) setEventFlags(d.eventFlags);
+        },
+      )
       .catch(() => {});
   }, [eventId, ticketTypeId]);
+
+  async function requestOtp(): Promise<void> {
+    setOtpSending(true);
+    setOtpError(null);
+    try {
+      const r = await fetch('/api/buyer/otp/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: otpPhone, eventId }),
+      });
+      if (!r.ok) {
+        const b = (await r.json().catch(() => ({}))) as { error?: string };
+        throw new Error(b.error ?? `HTTP_${r.status}`);
+      }
+      setOtpSent(true);
+    } catch (e) {
+      setOtpError((e as Error).message);
+    } finally {
+      setOtpSending(false);
+    }
+  }
+
+  async function verifyOtp(): Promise<void> {
+    setOtpSending(true);
+    setOtpError(null);
+    try {
+      const r = await fetch('/api/buyer/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: otpPhone, code: otpCode, eventId }),
+      });
+      if (!r.ok) {
+        const b = (await r.json().catch(() => ({}))) as { error?: string };
+        throw new Error(b.error ?? `HTTP_${r.status}`);
+      }
+      const body = (await r.json()) as { otpToken: string };
+      setOtpToken(body.otpToken);
+    } catch (e) {
+      setOtpError((e as Error).message);
+    } finally {
+      setOtpSending(false);
+    }
+  }
 
   // Po načtení zkusit zjistit, zda má buyer aktivní subscription u promotéra
   // tohoto eventu (vrátí availableSub pro UI checkbox „použít permanentku").
@@ -178,6 +247,20 @@ function CheckoutForm() {
       if (seatIdsCsv) body.seatIds = seatIdsCsv.split(',');
       if (ref) body.affiliateCode = ref;
       if (insurance && insuranceOptIn) body.insuranceOptIn = true;
+      // Group bookings — friend přišel přes /cs/group/[token] share link
+      // (checkoutUrl returned z /api/group-invitations/[token]). Token se
+      // propaguje sem přes ?groupInvitation= a backend linkne order na
+      // orders.group_invitations.
+      const groupInvitation = searchParams.get('groupInvitation');
+      if (groupInvitation) body.groupInvitationToken = groupInvitation;
+      // OTP (P1.8) — pokud event vyžaduje requires_otp_validation, posíláme
+      // ověřený token získaný přes /api/buyer/otp/verify. Backend (checkout
+      // route.ts ~243) odmítne pokud chybí nebo expired.
+      if (eventFlags.requiresOtp && otpToken) body.otpToken = otpToken;
+      // Verified Fan presale code (P1.5) — admin bulk-approve vygeneruje
+      // PSL-xxxx code, fan ho zadá tady aby projel gate v checkout/route.ts.
+      if (eventFlags.verifiedFanEnabled && presaleCode.trim())
+        body.presaleCode = presaleCode.trim().toUpperCase();
       // QR attribution: cookie qr_ref nastavená v /api/qr/[slug] redirect
       // (90 days TTL). Server validuje že kampaň patří k tomuto eventu.
       const qrRefMatch =
@@ -366,6 +449,97 @@ function CheckoutForm() {
               </fieldset>
             ) : null}
 
+            {/* Verified Fan presale code (P1.5) — viditelné jen pro VF events */}
+            {eventFlags.verifiedFanEnabled ? (
+              <div className="rounded-md border border-amber-300 bg-amber-50 p-3">
+                <label className="block text-xs font-medium text-amber-900">
+                  Verified Fan presale kód *
+                  <input
+                    type="text"
+                    required
+                    value={presaleCode}
+                    onChange={(e) =>
+                      setPresaleCode(e.target.value.toUpperCase())
+                    }
+                    placeholder="PSL-XXXX-XXXX"
+                    className="mt-1 block w-full rounded-md border border-amber-300 px-3 py-2 font-mono text-sm"
+                  />
+                </label>
+                <p className="mt-1 text-xs text-amber-800">
+                  Tato akce je v presale módu. Kód jsi obdržel(a) emailem po
+                  schválení Verified Fan žádosti.
+                </p>
+              </div>
+            ) : null}
+
+            {/* OTP SMS verification (P1.8) — viditelné jen pro events s requires_otp_validation */}
+            {eventFlags.requiresOtp ? (
+              <div className="rounded-md border border-sky-300 bg-sky-50 p-3 space-y-2">
+                <p className="text-xs font-medium text-sky-900">
+                  📱 Ověření telefonu SMS (anti-bot)
+                </p>
+                {!otpToken ? (
+                  <>
+                    <label className="block text-xs font-medium text-slate-700">
+                      Telefon (formát +420...)
+                      <div className="mt-1 flex gap-2">
+                        <input
+                          type="tel"
+                          value={otpPhone}
+                          onChange={(e) => setOtpPhone(e.target.value)}
+                          placeholder="+420777123456"
+                          disabled={otpSent}
+                          className="flex-1 rounded-md border px-3 py-2 text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={requestOtp}
+                          disabled={otpSending || otpSent || !otpPhone}
+                          className="rounded-md bg-sky-600 px-3 py-2 text-xs font-medium text-white hover:bg-sky-700 disabled:opacity-50"
+                        >
+                          {otpSent ? '✓ Posláno' : 'Pošli kód'}
+                        </button>
+                      </div>
+                    </label>
+                    {otpSent ? (
+                      <label className="block text-xs font-medium text-slate-700">
+                        6-místný kód
+                        <div className="mt-1 flex gap-2">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="\d{6}"
+                            maxLength={6}
+                            value={otpCode}
+                            onChange={(e) =>
+                              setOtpCode(e.target.value.replace(/\D/g, ''))
+                            }
+                            placeholder="123456"
+                            className="w-32 rounded-md border px-3 py-2 font-mono text-sm tracking-widest"
+                          />
+                          <button
+                            type="button"
+                            onClick={verifyOtp}
+                            disabled={otpSending || otpCode.length !== 6}
+                            className="rounded-md bg-sky-600 px-3 py-2 text-xs font-medium text-white hover:bg-sky-700 disabled:opacity-50"
+                          >
+                            Ověř
+                          </button>
+                        </div>
+                      </label>
+                    ) : null}
+                    {otpError ? (
+                      <p className="text-xs text-rose-600">{otpError}</p>
+                    ) : null}
+                  </>
+                ) : (
+                  <p className="text-xs text-emerald-700">
+                    ✓ Telefon ověřen ({otpPhone})
+                  </p>
+                )}
+              </div>
+            ) : null}
+
             <fieldset className="border-0 p-0">
               <legend className="mb-1 block text-xs font-medium">
                 Platební metoda
@@ -406,6 +580,38 @@ function CheckoutForm() {
                     onChange={() => setPaymentMethod('wero')}
                   />
                   <span className="text-sm font-medium">⚡ Wero</span>
+                </label>
+              </div>
+
+              {/* BNPL — Buy Now Pay Later (CZ: Twisto / Skip Pay) */}
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <label
+                  className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'twisto' ? 'border-primary bg-primary/5' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="twisto"
+                    checked={paymentMethod === 'twisto'}
+                    onChange={() => setPaymentMethod('twisto')}
+                  />
+                  <span className="font-medium">
+                    Twisto <span className="text-xs text-muted-foreground">— 3 splátky</span>
+                  </span>
+                </label>
+                <label
+                  className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'skippay' ? 'border-primary bg-primary/5' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="skippay"
+                    checked={paymentMethod === 'skippay'}
+                    onChange={() => setPaymentMethod('skippay')}
+                  />
+                  <span className="font-medium">
+                    Skip Pay <span className="text-xs text-muted-foreground">— 4 splátky (ČSOB)</span>
+                  </span>
                 </label>
               </div>
 
