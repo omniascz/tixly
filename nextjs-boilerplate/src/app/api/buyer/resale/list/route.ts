@@ -13,15 +13,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { z } from 'zod';
 import { checkResaleEligibility } from '@/lib/resale/reissue';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 // DB constraint resale_listings.chk_resale_face_value_enforcement vynucuje
 // ask_price <= original_price (žádný markup). To je nejstriktnější výklad EU
@@ -52,6 +47,8 @@ interface ExistingListing {
  * Nevyžaduje auth (read-only); slouží UI k podmíněnému zobrazení tlačítka.
  */
 export async function GET(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const ticketId = new URL(req.url).searchParams.get('ticketId');
   if (!ticketId || !/^[0-9a-f-]{36}$/i.test(ticketId)) {
     return NextResponse.json({ active: null });
@@ -65,6 +62,8 @@ export async function GET(req: NextRequest): Promise<Response> {
   if (r.rows.length === 0) return NextResponse.json({ active: null });
   return NextResponse.json({
     active: { listingId: r.rows[0].id, askPriceHalire: r.rows[0].ask_price },
+  });
+
   });
 }
 
@@ -81,6 +80,8 @@ function humanResaleReason(reason: string): string {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const headerUserId = req.headers.get('x-user-id');
 
   const body: unknown = await req.json().catch(() => ({}));
@@ -199,4 +200,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   } finally {
     client.release();
   }
+
+  });
 }

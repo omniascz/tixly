@@ -17,20 +17,17 @@
  * Auth: žádný — payment_id je shared secret z mock-gopay flow.
  */
 import { randomBytes, randomUUID } from 'crypto';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { encryptSecret } from '@/lib/crypto';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ paymentId: string }> },
 ): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const { paymentId } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) {
     return NextResponse.json({ error: 'INVALID_PAYMENT_ID' }, { status: 400 });
@@ -204,4 +201,6 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }

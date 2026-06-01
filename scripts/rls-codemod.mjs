@@ -156,6 +156,21 @@ const FILE_LISTS = {
       'public/incidents', 'public/insurance-plans',
     ],
   },
+  // subscriptions veřejné GET (plans/packages katalog) → anon
+  'subscriptions-anon': {
+    cfg: [{ noWrap: true }],
+    files: ['subscriptions/packages/[slug]', 'subscriptions/plans'],
+  },
+  // guest-supported writes (resale list/cancel/transfer + subscription checkout/confirm) → service
+  'buyer-sub-service': {
+    cfg: WRAP.internal,
+    files: [
+      'buyer/resale/list/[id]/cancel', 'buyer/resale/list',
+      'buyer/tickets/[ticketId]/transfer',
+      'subscriptions/checkout', 'subscriptions/subscribe',
+      'subscriptions/holders/[paymentId]/confirm',
+    ],
+  },
   'buyer-service': {
     cfg: WRAP.internal,
     files: [

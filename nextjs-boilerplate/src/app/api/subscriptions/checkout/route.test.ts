@@ -5,8 +5,19 @@
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
+// dataQuery = jen DATA dotazy (SELECT/INSERT/...). Control statements (SET app.role
+// injektovaný rls-pool kontextem, BEGIN/COMMIT/ROLLBACK) jsou transparentní —
+// nekonzumují sekvenci mockResolvedValueOnce. Tím je mock nezávislý na tom, kolik
+// SET LOCAL rls-pool přidá.
+const dataQuery = vi.fn();
 const mockClient = {
-  query: vi.fn(),
+  query: vi.fn((sql: string, params?: unknown[]) => {
+    const s = String(sql).trim().toUpperCase();
+    if (s.startsWith('SET') || s.startsWith('RESET') || s === 'BEGIN' || s === 'COMMIT' || s === 'ROLLBACK') {
+      return Promise.resolve({ rows: [] });
+    }
+    return dataQuery(sql, params);
+  }),
   release: vi.fn(),
 };
 const mockPool = {
@@ -35,8 +46,10 @@ const VALID_BODY = {
 };
 
 beforeEach(() => {
-  mockClient.query.mockReset();
-  mockClient.release.mockReset();
+  dataQuery.mockReset();
+  mockClient.query.mockClear();
+  // rls-pool connect() přepíše client.release vlastním RESET wrapperem → reassign na čistý vi.fn
+  mockClient.release = vi.fn();
   mockPool.connect.mockClear();
 });
 
@@ -47,9 +60,7 @@ describe('POST /api/subscriptions/checkout', () => {
   });
 
   it('404 pokud package neexistuje', async () => {
-    mockClient.query
-      .mockResolvedValueOnce(undefined) // BEGIN
-      .mockResolvedValueOnce({ rows: [] }); // SELECT package
+    dataQuery.mockResolvedValueOnce({ rows: [] }); // SELECT package
     const res = await POST(makeReq(VALID_BODY));
     expect(res.status).toBe(404);
     const json = await res.json();
@@ -57,7 +68,7 @@ describe('POST /api/subscriptions/checkout', () => {
   });
 
   it('409 pokud package není on_sale', async () => {
-    mockClient.query.mockResolvedValueOnce(undefined).mockResolvedValueOnce({
+    dataQuery.mockResolvedValueOnce({
       rows: [
         {
           id: VALID_BODY.packageId,
@@ -80,8 +91,7 @@ describe('POST /api/subscriptions/checkout', () => {
   });
 
   it('409 pokud SOLD_OUT (capacity exhausted)', async () => {
-    mockClient.query
-      .mockResolvedValueOnce(undefined) // BEGIN
+    dataQuery
       .mockResolvedValueOnce({
         rows: [
           {
@@ -106,8 +116,7 @@ describe('POST /api/subscriptions/checkout', () => {
   });
 
   it('200 happy path, vrátí holderId + gatewayUrl + price', async () => {
-    mockClient.query
-      .mockResolvedValueOnce(undefined) // BEGIN
+    dataQuery
       .mockResolvedValueOnce({
         rows: [
           {
@@ -126,8 +135,7 @@ describe('POST /api/subscriptions/checkout', () => {
       })
       .mockResolvedValueOnce({ rows: [{ count: '5' }] }) // sold count (under capacity)
       .mockResolvedValueOnce({ rows: [{ id: 'user-1' }] }) // guest user upsert
-      .mockResolvedValueOnce({ rows: [{ id: 'holder-1' }] }) // holder insert
-      .mockResolvedValueOnce(undefined); // COMMIT
+      .mockResolvedValueOnce({ rows: [{ id: 'holder-1' }] }); // holder insert
 
     const res = await POST(makeReq(VALID_BODY));
     expect(res.status).toBe(200);
@@ -141,8 +149,7 @@ describe('POST /api/subscriptions/checkout', () => {
 
   it('early-bird cena aplikovaná pokud early_bird_until v budoucnosti', async () => {
     const future = new Date(Date.now() + 7 * 86400000).toISOString();
-    mockClient.query
-      .mockResolvedValueOnce(undefined)
+    dataQuery
       .mockResolvedValueOnce({
         rows: [
           {
@@ -160,8 +167,7 @@ describe('POST /api/subscriptions/checkout', () => {
         ],
       })
       .mockResolvedValueOnce({ rows: [{ id: 'user-1' }] })
-      .mockResolvedValueOnce({ rows: [{ id: 'holder-1' }] })
-      .mockResolvedValueOnce(undefined);
+      .mockResolvedValueOnce({ rows: [{ id: 'holder-1' }] });
 
     const res = await POST(makeReq(VALID_BODY));
     expect(res.status).toBe(200);
@@ -170,8 +176,7 @@ describe('POST /api/subscriptions/checkout', () => {
   });
 
   it('409 SEAT_TAKEN při konfliktu uq constraint', async () => {
-    mockClient.query
-      .mockResolvedValueOnce(undefined)
+    dataQuery
       .mockResolvedValueOnce({
         rows: [
           {

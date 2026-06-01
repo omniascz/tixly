@@ -15,13 +15,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 interface Recommendation {
   id: string;
@@ -41,6 +35,10 @@ interface Recommendation {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
+  // Read-only doporučovací feed. Velocity = agregát paid orders (musí vidět napříč
+  // tenanty), personalizace filtruje WHERE o.user_id = $1 → service kontext.
+  // Response vrací jen event doporučení, žádná cizí privátní data.
+  return runWithServiceContext(async () => {
   const userId = req.headers.get('x-user-id');
   const limit = Math.min(50, Math.max(5, Number(req.nextUrl.searchParams.get('limit') ?? '20')));
 
@@ -193,5 +191,6 @@ export async function GET(req: NextRequest): Promise<Response> {
   return NextResponse.json({
     personalized: true,
     recommendations: recs,
+  });
   });
 }
