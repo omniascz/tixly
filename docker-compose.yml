@@ -25,6 +25,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/01-schema.sh:/docker-entrypoint-initdb.d/01-schema.sh:ro
+      - ./db:/docker/db:ro
+      - ./scripts/layouts:/tmp/layouts:ro
       - ./ticketing_schema.sql:/docker/ticketing_schema.sql:ro
       - ./migrations:/docker/migrations:ro
     healthcheck:
