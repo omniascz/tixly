@@ -60,7 +60,11 @@ BEGIN
   END IF;
   SELECT layout INTO v_layout FROM catalog.venue_seating_charts WHERE venue_id = v_venue_id AND active = true ORDER BY created_at DESC LIMIT 1;
   IF v_layout IS NULL THEN
-    RAISE EXCEPTION 'Venue % has no active seating chart', v_venue_id;
+    -- POZN. (oprava 2026-06-01): dříve RAISE EXCEPTION, což shodilo celou
+    -- phase3-seats transakci (a tím i Romeo/Hamlet sedadla) kvůli jednomu
+    -- venue bez chartu. Teď event bez chartu přeskočíme (0 sedadel).
+    RAISE NOTICE 'Venue % nemá aktivní seating chart — event % přeskočen (0 sedadel)', v_venue_id, p_event_id;
+    RETURN 0;
   END IF;
 
   FOR v_sector IN SELECT jsonb_array_elements(v_layout->'sectors') LOOP

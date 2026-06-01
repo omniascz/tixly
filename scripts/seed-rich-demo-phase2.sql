@@ -15,3 +15,7 @@ VALUES
     true, 'seed', 'Generated 2026-04-30 — realistic redesign')
 ON CONFLICT (id) DO NOTHING;
 COMMIT;
+
+-- POZN. (2026-06-01): chart pro Stará střelnice (ba5a2248, golden-path) je
+-- v samostatném scripts/seed-strelnice-chart.sql — tento soubor je GENEROVANÝ
+-- (scripts/generate-rich-layouts.mjs), tak sem nic ručního nepatří.

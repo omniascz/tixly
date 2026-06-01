@@ -41,6 +41,14 @@ VALUES
   ('00000000-0000-4000-a000-000000000204', 'Stadion FC Praha',          'Strahovska 1200, Praha 6',    'Praha', 'CZ', 50000, 'stadium', 'published', 50.0826, 14.3905, 'Fotbalovy stadion 50 000. 4 tribuny: Sever, Jih, Vychod, Zapad.')
 ON CONFLICT (id) DO NOTHING;
 
+-- 3b) Divadlo Stará střelnice (Hranice) — golden-path venue pro Romeo/Hamlet.
+-- POZN. (oprava 2026-06-01): seed dříve jen UPDATEoval tento venue a předpokládal,
+-- že už existuje (vznikal mimo seed) → na čisté DB padal events_venue_id_fkey.
+INSERT INTO catalog.venues (id, name, address, city, country, capacity, venue_type, status, description)
+VALUES
+  ('ba5a2248-c11c-42ec-85fe-63929f4d4f3f', 'Divadlo Stará střelnice', 'Stará střelnice, Hranice', 'Hranice', 'CZ', 308, 'venue', 'published', 'Mestske divadlo v Hranicich. Prizemi, balkon, galerie — 308 sedadel.')
+ON CONFLICT (id) DO NOTHING;
+
 -- 4) Linkuj sály na promotéry
 UPDATE catalog.venues SET promoter_id = '00000000-0000-4000-a000-000000000111' WHERE id = 'ba5a2248-c11c-42ec-85fe-63929f4d4f3f';
 UPDATE catalog.venues SET promoter_id = '00000000-0000-4000-a000-000000000112' WHERE id = '00000000-0000-4000-a000-000000000201';

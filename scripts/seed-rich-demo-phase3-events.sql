@@ -3,13 +3,16 @@ BEGIN;
 
 -- ID konvence pro eventy: 00000000-0000-4000-a000-0000000004XX
 -- ID konvence pro ticket types: 00000000-0000-4000-a000-0000000005XX
+-- POZN. (oprava 2026-06-01): catalog.events.slug je NOT NULL bez defaultu —
+-- seed ho dříve nedodával a na čisté DB padal. Doplněno deterministicky (-demo).
 
 -- 1) Romeo a Julie (Stara Strelnice, divadelni hra)
-INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, title, description, category, event_type, date_start, date_end, sale_start_at, sale_end_at, status, currency, max_tickets_per_order, cover_image_url)
+INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, slug, title, description, category, event_type, date_start, date_end, sale_start_at, sale_end_at, status, currency, max_tickets_per_order, cover_image_url)
 VALUES (
   '00000000-0000-4000-a000-000000000401',
   '00000000-0000-4000-a000-000000000111', '00000000-0000-4000-a000-000000000111',
   'ba5a2248-c11c-42ec-85fe-63929f4d4f3f',
+  'romeo-a-julie-demo',
   'Romeo a Julie',
   'Klasicke shakespearovske drama v moderni inscenaci. Reziser: Jan Mikulasek. Ucinkuji: Tatiana Vilhelmova, Vojtech Dyk.',
   'theatre', 'concert',
@@ -19,11 +22,12 @@ VALUES (
 ) ON CONFLICT (id) DO NOTHING;
 
 -- 2) Hamlet (Stara Strelnice)
-INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
+INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, slug, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
 VALUES (
   '00000000-0000-4000-a000-000000000402',
   '00000000-0000-4000-a000-000000000111', '00000000-0000-4000-a000-000000000111',
   'ba5a2248-c11c-42ec-85fe-63929f4d4f3f',
+  'hamlet-demo',
   'Hamlet',
   'Hamlet, princ damsky. Tragedie o smrti, pomsteni a sileni. Reziser: Daniel Spinar.',
   'theatre', 'concert',
@@ -32,11 +36,12 @@ VALUES (
 ) ON CONFLICT (id) DO NOTHING;
 
 -- 3) Klasicky koncert (Velky sal)
-INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
+INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, slug, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
 VALUES (
   '00000000-0000-4000-a000-000000000403',
   '00000000-0000-4000-a000-000000000112', '00000000-0000-4000-a000-000000000112',
   '00000000-0000-4000-a000-000000000201',
+  'symfonicky-koncert-demo',
   'Symfonicky koncert: Dvorak / Smetana',
   'Ceska filharmonie, dirigent Jakub Hrusa. Dvorakova 9. symfonie + Smetanova Vltava.',
   'classical', 'concert',
@@ -45,11 +50,12 @@ VALUES (
 ) ON CONFLICT (id) DO NOTHING;
 
 -- 4) Velky koncert v Arene (mainstream)
-INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
+INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, slug, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
 VALUES (
   '00000000-0000-4000-a000-000000000404',
   '00000000-0000-4000-a000-000000000113', '00000000-0000-4000-a000-000000000113',
   '00000000-0000-4000-a000-000000000203',
+  'mainstream-tribute-show-demo',
   'Mainstream Tribute Show',
   'Velky tribute koncert v Arene Praha. 17 000 navstevniku. Speciální host: Marek Ztracený.',
   'concert', 'concert',
@@ -58,11 +64,12 @@ VALUES (
 ) ON CONFLICT (id) DO NOTHING;
 
 -- 5) Fotbalove derby (Stadion)
-INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order, resale_allowed)
+INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, slug, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order, resale_allowed)
 VALUES (
   '00000000-0000-4000-a000-000000000405',
   '00000000-0000-4000-a000-000000000113', '00000000-0000-4000-a000-000000000113',
   '00000000-0000-4000-a000-000000000204',
+  'fc-praha-sk-brno-derby-demo',
   'FC Praha vs. SK Brno — derby',
   'Top zapas sezony. 50 000 navstevniku. Sektor Sever urcen pouze pro hostujici fanousky.',
   'sport', 'concert',
@@ -71,11 +78,12 @@ VALUES (
 ) ON CONFLICT (id) DO NOTHING;
 
 -- 6) Punk festival (Klub Underground — standing)
-INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
+INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, slug, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
 VALUES (
   '00000000-0000-4000-a000-000000000406',
   '00000000-0000-4000-a000-000000000114', '00000000-0000-4000-a000-000000000114',
   '00000000-0000-4000-a000-000000000202',
+  'punk-underground-night-demo',
   'Punk Underground Night',
   '4 ceske punkove kapely. Bez sedadel, jen standing. Pristup od 18 let.',
   'concert', 'concert',
@@ -84,11 +92,12 @@ VALUES (
 ) ON CONFLICT (id) DO NOTHING;
 
 -- 7) Pending review (jazz night ve Velkem sale)
-INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
+INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, slug, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
 VALUES (
   '00000000-0000-4000-a000-000000000407',
   '00000000-0000-4000-a000-000000000112', '00000000-0000-4000-a000-000000000112',
   '00000000-0000-4000-a000-000000000201',
+  'jazz-night-sting-tribute-demo',
   'Jazz Night — Sting Tribute',
   'Tribute Stingovi. Zbrusu nova akce, ceka na schvaleni master adminem.',
   'jazz', 'concert',
@@ -97,11 +106,12 @@ VALUES (
 ) ON CONFLICT (id) DO NOTHING;
 
 -- 8) Rejected (akce s podezrelym nazvem)
-INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
+INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, slug, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
 VALUES (
   '00000000-0000-4000-a000-000000000408',
   '00000000-0000-4000-a000-000000000114', '00000000-0000-4000-a000-000000000114',
   '00000000-0000-4000-a000-000000000202',
+  'investicni-prilezitost-demo',
   'Investicni prilezitost — 100% guarantee',
   'Akce s podezrelym scam patternem. Zamitnuta automaticky.',
   'other', 'concert',
@@ -110,11 +120,12 @@ VALUES (
 ) ON CONFLICT (id) DO NOTHING;
 
 -- 9) Free workshop (Klub Underground)
-INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
+INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, slug, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
 VALUES (
   '00000000-0000-4000-a000-000000000409',
   '00000000-0000-4000-a000-000000000114', '00000000-0000-4000-a000-000000000114',
   '00000000-0000-4000-a000-000000000202',
+  'workshop-kytarove-improvizace-demo',
   'Workshop kytarove improvizace (zdarma)',
   'Worskhop pro zacinajici hudebniky. Vstup zdarma, registrace povinna.',
   'workshop', 'concert',
@@ -123,11 +134,12 @@ VALUES (
 ) ON CONFLICT (id) DO NOTHING;
 
 -- 10) Akce v minulosti (Stara Strelnice, sold out)
-INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
+INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, slug, title, description, category, event_type, date_start, sale_start_at, sale_end_at, status, currency, max_tickets_per_order)
 VALUES (
   '00000000-0000-4000-a000-000000000410',
   '00000000-0000-4000-a000-000000000111', '00000000-0000-4000-a000-000000000111',
   'ba5a2248-c11c-42ec-85fe-63929f4d4f3f',
+  'strindberg-tanec-smrti-demo',
   'Strindberg — Tanec smrti (proběhlo)',
   'Akce probehla pred 6 tydny. Prodeje uzavreny.',
   'theatre', 'concert',

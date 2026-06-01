@@ -9,12 +9,16 @@
  *   3. INSERT do catalog.venue_seating_charts (active=true)
  *   4. Vypíše venue_id pro otevření v master admin UI
  */
-import pg from 'pg';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+// pg žije v nextjs-boilerplate/node_modules — naimportujeme ho odtamtud,
+// aby skript šel spustit z root scripts/ (ESM bare import 'pg' jinak selže).
+const requireFromApp = createRequire(join(__dirname, '..', 'nextjs-boilerplate', 'noop.js'));
+const pg = requireFromApp('pg');
 const ROOT = join(__dirname, '..');
 const CSV = join(ROOT, 'docs', 'bilina-seating.csv');
 
