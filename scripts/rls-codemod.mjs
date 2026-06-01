@@ -147,6 +147,15 @@ const FILE_LISTS = {
       'events/featured', 'events/nearby',
     ],
   },
+  // public-anon: veřejné GET endpointy pod /api/public (anon kontext, public policy)
+  'public-anon': {
+    cfg: [{ noWrap: true }],
+    files: [
+      'public/collections/[slug]', 'public/events/[id]/custom-fields',
+      'public/events/[id]/pixels', 'public/events/[id]/price-preview',
+      'public/incidents', 'public/insurance-plans',
+    ],
+  },
   'buyer-service': {
     cfg: WRAP.internal,
     files: [

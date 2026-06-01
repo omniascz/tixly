@@ -8,15 +8,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 const schema = z.object({
   eventId: z.string().uuid().optional(),
@@ -81,25 +75,28 @@ export async function POST(req: NextRequest): Promise<Response> {
   const priority = URGENT_CATEGORIES.has(input.category) ? 'urgent' : 'normal';
 
   try {
-    const r = await db().query<{ id: string }>(
-      `INSERT INTO audit.content_reports
-         (event_id, promoter_id, reported_url, category, reason,
-          reporter_user_id, reporter_email, reporter_ip, reporter_ua,
-          priority)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       RETURNING id`,
-      [
-        input.eventId ?? null,
-        input.promoterId ?? null,
-        input.reportedUrl ?? null,
-        input.category,
-        input.reason,
-        reporterUserId ?? null,
-        input.reporterEmail ?? null,
-        ip,
-        req.headers.get('user-agent')?.slice(0, 500) ?? null,
-        priority,
-      ],
+    // Anonymní reporter možný (bez x-user-id) → service kontext pro INSERT.
+    const r = await runWithServiceContext(() =>
+      db().query<{ id: string }>(
+        `INSERT INTO audit.content_reports
+           (event_id, promoter_id, reported_url, category, reason,
+            reporter_user_id, reporter_email, reporter_ip, reporter_ua,
+            priority)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         RETURNING id`,
+        [
+          input.eventId ?? null,
+          input.promoterId ?? null,
+          input.reportedUrl ?? null,
+          input.category,
+          input.reason,
+          reporterUserId ?? null,
+          input.reporterEmail ?? null,
+          ip,
+          req.headers.get('user-agent')?.slice(0, 500) ?? null,
+          priority,
+        ],
+      ),
     );
 
     return NextResponse.json(

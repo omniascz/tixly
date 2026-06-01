@@ -1,11 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
+import { db } from '@/lib/db/rls-pool';
 
 /**
  * GET /api/public/incidents — veřejné incidenty za posledních 14 dní.
