@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 21wX0dw1H3JzTNREbBswR5be9dfiZINJU0gtwWjjPDYOU6JpK1XwaZRUz633bmJ
+\restrict w2cr9mgRbP81085wFoQHrakxtANTBYi5AVtLwh88CZiQsUH9V8DSo4kII4oPi0m
 
 -- Dumped from database version 16.13
 -- Dumped by pg_dump version 16.13
@@ -4661,7 +4661,7 @@ CREATE TABLE conference.booths (
     price_hellers integer DEFAULT 0 NOT NULL,
     notes text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT booths_status_check CHECK (((status)::text = ANY ((ARRAY['available'::character varying, 'reserved'::character varying, 'confirmed'::character varying, 'blocked'::character varying])::text[])))
+    CONSTRAINT booths_status_check CHECK (((status)::text = ANY (ARRAY[('available'::character varying)::text, ('reserved'::character varying)::text, ('confirmed'::character varying)::text, ('blocked'::character varying)::text])))
 );
 
 
@@ -4721,7 +4721,7 @@ CREATE TABLE conference.exhibitor_staff (
     badge_printed boolean DEFAULT false NOT NULL,
     access_token uuid DEFAULT gen_random_uuid() NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT exhibitor_staff_role_check CHECK (((role)::text = ANY ((ARRAY['manager'::character varying, 'staff'::character varying, 'presenter'::character varying])::text[])))
+    CONSTRAINT exhibitor_staff_role_check CHECK (((role)::text = ANY (ARRAY[('manager'::character varying)::text, ('staff'::character varying)::text, ('presenter'::character varying)::text])))
 );
 
 
@@ -4742,8 +4742,8 @@ CREATE TABLE conference.exhibitors (
     status character varying(20) DEFAULT 'pending'::character varying NOT NULL,
     promoter_id uuid,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT exhibitors_status_check CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'approved'::character varying, 'rejected'::character varying])::text[]))),
-    CONSTRAINT exhibitors_tier_check CHECK (((tier)::text = ANY ((ARRAY['platinum'::character varying, 'gold'::character varying, 'silver'::character varying, 'bronze'::character varying, 'standard'::character varying])::text[])))
+    CONSTRAINT exhibitors_status_check CHECK (((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('approved'::character varying)::text, ('rejected'::character varying)::text]))),
+    CONSTRAINT exhibitors_tier_check CHECK (((tier)::text = ANY (ARRAY[('platinum'::character varying)::text, ('gold'::character varying)::text, ('silver'::character varying)::text, ('bronze'::character varying)::text, ('standard'::character varying)::text])))
 );
 
 
@@ -10070,7 +10070,7 @@ CREATE TABLE reservations.availability_overrides (
     price_hellers integer,
     capacity_override integer,
     reason text,
-    CONSTRAINT availability_overrides_override_type_check CHECK (((override_type)::text = ANY ((ARRAY['closed'::character varying, 'open'::character varying, 'price_override'::character varying, 'capacity_override'::character varying])::text[])))
+    CONSTRAINT availability_overrides_override_type_check CHECK (((override_type)::text = ANY (ARRAY[('closed'::character varying)::text, ('open'::character varying)::text, ('price_override'::character varying)::text, ('capacity_override'::character varying)::text])))
 );
 
 
@@ -10150,7 +10150,7 @@ CREATE TABLE reservations.bookings (
     reminder_sent_at timestamp with time zone,
     permanentka_usage_id uuid,
     CONSTRAINT bookings_quantity_ge_1 CHECK ((quantity >= 1)),
-    CONSTRAINT bookings_status_check CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'confirmed'::character varying, 'cancelled'::character varying, 'no_show'::character varying, 'completed'::character varying])::text[])))
+    CONSTRAINT bookings_status_check CHECK (((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('confirmed'::character varying)::text, ('cancelled'::character varying)::text, ('no_show'::character varying)::text, ('completed'::character varying)::text])))
 );
 
 
@@ -10217,7 +10217,7 @@ CREATE TABLE reservations.branch_settings (
     setting_value text,
     setting_type character varying(20) DEFAULT 'string'::character varying NOT NULL,
     updated_at timestamp with time zone DEFAULT now(),
-    CONSTRAINT branch_settings_setting_type_check CHECK (((setting_type)::text = ANY ((ARRAY['string'::character varying, 'integer'::character varying, 'boolean'::character varying, 'json'::character varying])::text[])))
+    CONSTRAINT branch_settings_setting_type_check CHECK (((setting_type)::text = ANY (ARRAY[('string'::character varying)::text, ('integer'::character varying)::text, ('boolean'::character varying)::text, ('json'::character varying)::text])))
 );
 
 
@@ -10234,7 +10234,7 @@ CREATE TABLE reservations.branch_staff (
     hired_at date,
     notes text,
     created_at timestamp with time zone DEFAULT now(),
-    CONSTRAINT branch_staff_role_check CHECK (((role)::text = ANY ((ARRAY['manager'::character varying, 'staff'::character varying, 'receptionist'::character varying, 'instructor'::character varying, 'viewer'::character varying])::text[])))
+    CONSTRAINT branch_staff_role_check CHECK (((role)::text = ANY (ARRAY[('manager'::character varying)::text, ('staff'::character varying)::text, ('receptionist'::character varying)::text, ('instructor'::character varying)::text, ('viewer'::character varying)::text])))
 );
 
 
@@ -10350,7 +10350,7 @@ CREATE TABLE reservations.package_items (
     unit character varying(50) DEFAULT 'session'::character varying NOT NULL,
     sort_order integer DEFAULT 0 NOT NULL,
     metadata jsonb DEFAULT '{}'::jsonb NOT NULL,
-    CONSTRAINT package_items_item_type_check CHECK (((item_type)::text = ANY ((ARRAY['service'::character varying, 'credit'::character varying, 'access'::character varying, 'custom'::character varying])::text[])))
+    CONSTRAINT package_items_item_type_check CHECK (((item_type)::text = ANY (ARRAY[('service'::character varying)::text, ('credit'::character varying)::text, ('access'::character varying)::text, ('custom'::character varying)::text])))
 );
 
 
@@ -10372,7 +10372,7 @@ CREATE TABLE reservations.package_purchases (
     gift_message text,
     transfer_token uuid,
     notes text,
-    CONSTRAINT package_purchases_status_check CHECK (((status)::text = ANY ((ARRAY['active'::character varying, 'expired'::character varying, 'fully_used'::character varying, 'cancelled'::character varying, 'transferred'::character varying])::text[])))
+    CONSTRAINT package_purchases_status_check CHECK (((status)::text = ANY (ARRAY[('active'::character varying)::text, ('expired'::character varying)::text, ('fully_used'::character varying)::text, ('cancelled'::character varying)::text, ('transferred'::character varying)::text])))
 );
 
 
@@ -10418,7 +10418,7 @@ CREATE TABLE reservations.packages (
     terms_text text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT packages_activations_check CHECK ((activations_sold <= max_activations)),
-    CONSTRAINT packages_package_type_check CHECK (((package_type)::text = ANY ((ARRAY['bundle'::character varying, 'series'::character varying, 'membership'::character varying, 'gift'::character varying])::text[])))
+    CONSTRAINT packages_package_type_check CHECK (((package_type)::text = ANY (ARRAY[('bundle'::character varying)::text, ('series'::character varying)::text, ('membership'::character varying)::text, ('gift'::character varying)::text])))
 );
 
 
@@ -10566,8 +10566,8 @@ CREATE TABLE reservations.service_pricing_rules (
     advance_hours_max integer,
     is_active boolean DEFAULT true NOT NULL,
     priority integer DEFAULT 0 NOT NULL,
-    CONSTRAINT service_pricing_rules_price_modifier_type_check CHECK (((price_modifier_type)::text = ANY ((ARRAY['fixed'::character varying, 'percentage'::character varying, 'absolute'::character varying])::text[]))),
-    CONSTRAINT service_pricing_rules_rule_type_check CHECK (((rule_type)::text = ANY ((ARRAY['peak_hours'::character varying, 'off_peak'::character varying, 'weekend'::character varying, 'weekday'::character varying, 'member'::character varying, 'group'::character varying, 'advance'::character varying, 'last_minute'::character varying])::text[])))
+    CONSTRAINT service_pricing_rules_price_modifier_type_check CHECK (((price_modifier_type)::text = ANY (ARRAY[('fixed'::character varying)::text, ('percentage'::character varying)::text, ('absolute'::character varying)::text]))),
+    CONSTRAINT service_pricing_rules_rule_type_check CHECK (((rule_type)::text = ANY (ARRAY[('peak_hours'::character varying)::text, ('off_peak'::character varying)::text, ('weekend'::character varying)::text, ('weekday'::character varying)::text, ('member'::character varying)::text, ('group'::character varying)::text, ('advance'::character varying)::text, ('last_minute'::character varying)::text])))
 );
 
 
@@ -10631,7 +10631,7 @@ CREATE TABLE reservations.services (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT services_duration_minutes_check CHECK ((duration_minutes > 0)),
-    CONSTRAINT services_price_type_check CHECK (((price_type)::text = ANY ((ARRAY['fixed'::character varying, 'per_person'::character varying, 'per_hour'::character varying, 'free'::character varying])::text[])))
+    CONSTRAINT services_price_type_check CHECK (((price_type)::text = ANY (ARRAY[('fixed'::character varying)::text, ('per_person'::character varying)::text, ('per_hour'::character varying)::text, ('free'::character varying)::text])))
 );
 
 
@@ -10652,7 +10652,7 @@ CREATE TABLE reservations.slots (
     generated_from_rule_id uuid,
     override_id uuid,
     CONSTRAINT slots_booked_le_capacity CHECK ((booked_count <= capacity)),
-    CONSTRAINT slots_status_check CHECK (((status)::text = ANY ((ARRAY['available'::character varying, 'partial'::character varying, 'full'::character varying, 'closed'::character varying, 'cancelled'::character varying])::text[])))
+    CONSTRAINT slots_status_check CHECK (((status)::text = ANY (ARRAY[('available'::character varying)::text, ('partial'::character varying)::text, ('full'::character varying)::text, ('closed'::character varying)::text, ('cancelled'::character varying)::text])))
 );
 
 
@@ -10692,7 +10692,7 @@ CREATE TABLE reservations.webhook_deliveries (
     last_error text,
     created_at timestamp with time zone DEFAULT now(),
     delivered_at timestamp with time zone,
-    CONSTRAINT webhook_deliveries_status_check CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'success'::character varying, 'failed'::character varying, 'retrying'::character varying])::text[])))
+    CONSTRAINT webhook_deliveries_status_check CHECK (((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('success'::character varying)::text, ('failed'::character varying)::text, ('retrying'::character varying)::text])))
 );
 
 
@@ -12024,7 +12024,8 @@ CREATE TABLE tickets.access_tokens (
     CONSTRAINT chk_access_token_has_auth CHECK (((totp_secret_encrypted IS NOT NULL) OR (nfc_payload_encrypted IS NOT NULL))),
     CONSTRAINT chk_access_token_nfc_pair CHECK ((((nfc_payload_encrypted IS NULL) AND (nfc_payload_iv IS NULL)) OR ((nfc_payload_encrypted IS NOT NULL) AND (nfc_payload_iv IS NOT NULL)))),
     CONSTRAINT chk_access_token_totp_pair CHECK ((((totp_secret_encrypted IS NULL) AND (totp_secret_iv IS NULL)) OR ((totp_secret_encrypted IS NOT NULL) AND (totp_secret_iv IS NOT NULL)))),
-    CONSTRAINT chk_access_token_window CHECK ((valid_until > valid_from))
+    CONSTRAINT chk_access_token_window CHECK ((valid_until > valid_from)),
+    CONSTRAINT chk_access_tokens_totp_iv_pairing CHECK (((totp_secret_encrypted IS NULL) = (totp_secret_iv IS NULL)))
 );
 
 
@@ -12205,6 +12206,7 @@ CREATE TABLE tickets.cross_pass_memberships (
     totp_secret_encrypted bytea,
     totp_secret_iv bytea,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT chk_cross_pass_totp_iv_pairing CHECK (((totp_secret_encrypted IS NULL) = (totp_secret_iv IS NULL))),
     CONSTRAINT cross_pass_memberships_status_check CHECK ((status = ANY (ARRAY['active'::text, 'revoked'::text])))
 );
 
@@ -13081,7 +13083,7 @@ CREATE TABLE venues.cultural_venues (
     accessibility_info text,
     is_active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT cultural_venues_venue_type_check CHECK (((venue_type)::text = ANY ((ARRAY['museum'::character varying, 'gallery'::character varying, 'zoo'::character varying, 'botanical_garden'::character varying, 'national_park'::character varying, 'historic_site'::character varying, 'aquarium'::character varying, 'planetarium'::character varying])::text[])))
+    CONSTRAINT cultural_venues_venue_type_check CHECK (((venue_type)::text = ANY (ARRAY[('museum'::character varying)::text, ('gallery'::character varying)::text, ('zoo'::character varying)::text, ('botanical_garden'::character varying)::text, ('national_park'::character varying)::text, ('historic_site'::character varying)::text, ('aquarium'::character varying)::text, ('planetarium'::character varying)::text])))
 );
 
 
@@ -13117,7 +13119,7 @@ CREATE TABLE venues.daily_tickets (
     included_zones uuid[] DEFAULT '{}'::uuid[] NOT NULL,
     max_capacity_per_day integer,
     is_active boolean DEFAULT true NOT NULL,
-    CONSTRAINT daily_tickets_ticket_type_check CHECK (((ticket_type)::text = ANY ((ARRAY['full_day'::character varying, 'half_day'::character varying, 'evening'::character varying, 'morning'::character varying, 'weekend'::character varying, 'annual'::character varying])::text[])))
+    CONSTRAINT daily_tickets_ticket_type_check CHECK (((ticket_type)::text = ANY (ARRAY[('full_day'::character varying)::text, ('half_day'::character varying)::text, ('evening'::character varying)::text, ('morning'::character varying)::text, ('weekend'::character varying)::text, ('annual'::character varying)::text])))
 );
 
 
@@ -13140,7 +13142,7 @@ CREATE TABLE venues.entry_bookings (
     checked_in_at timestamp with time zone,
     notes text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT entry_bookings_status_check CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'confirmed'::character varying, 'cancelled'::character varying, 'used'::character varying, 'expired'::character varying])::text[])))
+    CONSTRAINT entry_bookings_status_check CHECK (((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('confirmed'::character varying)::text, ('cancelled'::character varying)::text, ('used'::character varying)::text, ('expired'::character varying)::text])))
 );
 
 
@@ -13158,7 +13160,7 @@ CREATE TABLE venues.entry_slots (
     booked_count integer DEFAULT 0 NOT NULL,
     status character varying(20) DEFAULT 'available'::character varying NOT NULL,
     notes text,
-    CONSTRAINT entry_slots_status_check CHECK (((status)::text = ANY ((ARRAY['available'::character varying, 'full'::character varying, 'closed'::character varying, 'cancelled'::character varying])::text[])))
+    CONSTRAINT entry_slots_status_check CHECK (((status)::text = ANY (ARRAY[('available'::character varying)::text, ('full'::character varying)::text, ('closed'::character varying)::text, ('cancelled'::character varying)::text])))
 );
 
 
@@ -13182,7 +13184,7 @@ CREATE TABLE venues.escape_bookings (
     status character varying(20) DEFAULT 'pending'::character varying NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT escape_bookings_player_count_check CHECK ((player_count >= 1)),
-    CONSTRAINT escape_bookings_status_check CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'confirmed'::character varying, 'completed'::character varying, 'cancelled'::character varying, 'no_show'::character varying])::text[])))
+    CONSTRAINT escape_bookings_status_check CHECK (((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('confirmed'::character varying)::text, ('completed'::character varying)::text, ('cancelled'::character varying)::text, ('no_show'::character varying)::text])))
 );
 
 
@@ -13210,8 +13212,8 @@ CREATE TABLE venues.escape_rooms (
     is_active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT escape_rooms_check CHECK ((max_players >= min_players)),
-    CONSTRAINT escape_rooms_difficulty_check CHECK (((difficulty)::text = ANY ((ARRAY['easy'::character varying, 'medium'::character varying, 'hard'::character varying, 'extreme'::character varying])::text[]))),
-    CONSTRAINT escape_rooms_pricing_type_check CHECK (((pricing_type)::text = ANY ((ARRAY['flat'::character varying, 'per_person'::character varying])::text[])))
+    CONSTRAINT escape_rooms_difficulty_check CHECK (((difficulty)::text = ANY (ARRAY[('easy'::character varying)::text, ('medium'::character varying)::text, ('hard'::character varying)::text, ('extreme'::character varying)::text]))),
+    CONSTRAINT escape_rooms_pricing_type_check CHECK (((pricing_type)::text = ANY (ARRAY[('flat'::character varying)::text, ('per_person'::character varying)::text])))
 );
 
 
@@ -13248,7 +13250,7 @@ CREATE TABLE venues.facility_zones (
     min_age integer DEFAULT 0 NOT NULL,
     sort_order integer DEFAULT 0 NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
-    CONSTRAINT facility_zones_zone_type_check CHECK (((zone_type)::text = ANY ((ARRAY['pool'::character varying, 'sauna'::character varying, 'slide'::character varying, 'hot_tub'::character varying, 'steam_room'::character varying, 'fitness'::character varying, 'restaurant'::character varying, 'vip'::character varying])::text[])))
+    CONSTRAINT facility_zones_zone_type_check CHECK (((zone_type)::text = ANY (ARRAY[('pool'::character varying)::text, ('sauna'::character varying)::text, ('slide'::character varying)::text, ('hot_tub'::character varying)::text, ('steam_room'::character varying)::text, ('fitness'::character varying)::text, ('restaurant'::character varying)::text, ('vip'::character varying)::text])))
 );
 
 
@@ -13311,7 +13313,7 @@ CREATE TABLE venues.lift_scans (
     scanned_at timestamp with time zone DEFAULT now() NOT NULL,
     scan_result character varying(30) NOT NULL,
     operator_id uuid,
-    CONSTRAINT lift_scans_scan_result_check CHECK (((scan_result)::text = ANY ((ARRAY['granted'::character varying, 'denied_expired'::character varying, 'denied_zone'::character varying, 'denied_no_rides'::character varying])::text[])))
+    CONSTRAINT lift_scans_scan_result_check CHECK (((scan_result)::text = ANY (ARRAY[('granted'::character varying)::text, ('denied_expired'::character varying)::text, ('denied_zone'::character varying)::text, ('denied_no_rides'::character varying)::text])))
 );
 
 
@@ -13327,7 +13329,7 @@ CREATE TABLE venues.locker_reservations (
     locker_number character varying(20) NOT NULL,
     locker_type character varying(10) DEFAULT 'standard'::character varying NOT NULL,
     assigned_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT locker_reservations_locker_type_check CHECK (((locker_type)::text = ANY ((ARRAY['standard'::character varying, 'large'::character varying, 'family'::character varying])::text[])))
+    CONSTRAINT locker_reservations_locker_type_check CHECK (((locker_type)::text = ANY (ARRAY[('standard'::character varying)::text, ('large'::character varying)::text, ('family'::character varying)::text])))
 );
 
 
@@ -13366,7 +13368,7 @@ CREATE TABLE venues.rfid_cards (
     issued_at timestamp with time zone,
     last_used_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT rfid_cards_status_check CHECK (((status)::text = ANY ((ARRAY['unissued'::character varying, 'active'::character varying, 'suspended'::character varying, 'lost'::character varying, 'expired'::character varying])::text[])))
+    CONSTRAINT rfid_cards_status_check CHECK (((status)::text = ANY (ARRAY[('unissued'::character varying)::text, ('active'::character varying)::text, ('suspended'::character varying)::text, ('lost'::character varying)::text, ('expired'::character varying)::text])))
 );
 
 
@@ -13386,8 +13388,8 @@ CREATE TABLE venues.ski_pass_activations (
     status character varying(20) DEFAULT 'active'::character varying NOT NULL,
     activated_at timestamp with time zone DEFAULT now() NOT NULL,
     age_category character varying(20) DEFAULT 'adult'::character varying NOT NULL,
-    CONSTRAINT ski_pass_activations_age_category_check CHECK (((age_category)::text = ANY ((ARRAY['adult'::character varying, 'child'::character varying, 'senior'::character varying])::text[]))),
-    CONSTRAINT ski_pass_activations_status_check CHECK (((status)::text = ANY ((ARRAY['active'::character varying, 'expired'::character varying, 'suspended'::character varying, 'refunded'::character varying])::text[])))
+    CONSTRAINT ski_pass_activations_age_category_check CHECK (((age_category)::text = ANY (ARRAY[('adult'::character varying)::text, ('child'::character varying)::text, ('senior'::character varying)::text]))),
+    CONSTRAINT ski_pass_activations_status_check CHECK (((status)::text = ANY (ARRAY[('active'::character varying)::text, ('expired'::character varying)::text, ('suspended'::character varying)::text, ('refunded'::character varying)::text])))
 );
 
 
@@ -13412,8 +13414,8 @@ CREATE TABLE venues.ski_pass_types (
     max_altitude_zone integer DEFAULT 999 NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT ski_pass_types_age_category_check CHECK (((age_category)::text = ANY ((ARRAY['adult'::character varying, 'child'::character varying, 'senior'::character varying, 'family'::character varying])::text[]))),
-    CONSTRAINT ski_pass_types_pass_category_check CHECK (((pass_category)::text = ANY ((ARRAY['day'::character varying, 'multi_day'::character varying, 'season'::character varying, 'single_ride'::character varying, 'ski_school'::character varying, 'equipment'::character varying])::text[])))
+    CONSTRAINT ski_pass_types_age_category_check CHECK (((age_category)::text = ANY (ARRAY[('adult'::character varying)::text, ('child'::character varying)::text, ('senior'::character varying)::text, ('family'::character varying)::text]))),
+    CONSTRAINT ski_pass_types_pass_category_check CHECK (((pass_category)::text = ANY (ARRAY[('day'::character varying)::text, ('multi_day'::character varying)::text, ('season'::character varying)::text, ('single_ride'::character varying)::text, ('ski_school'::character varying)::text, ('equipment'::character varying)::text])))
 );
 
 
@@ -13453,7 +13455,7 @@ CREATE TABLE venues.ski_school_sessions (
     price_hellers integer NOT NULL,
     is_private boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT ski_school_sessions_level_check CHECK (((level)::text = ANY ((ARRAY['beginner'::character varying, 'intermediate'::character varying, 'advanced'::character varying, 'expert'::character varying])::text[])))
+    CONSTRAINT ski_school_sessions_level_check CHECK (((level)::text = ANY (ARRAY[('beginner'::character varying)::text, ('intermediate'::character varying)::text, ('advanced'::character varying)::text, ('expert'::character varying)::text])))
 );
 
 
@@ -13538,7 +13540,7 @@ CREATE TABLE venues.wellness_bookings (
     qr_token uuid DEFAULT gen_random_uuid() NOT NULL,
     checked_in_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT wellness_bookings_status_check CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'confirmed'::character varying, 'cancelled'::character varying, 'used'::character varying, 'expired'::character varying])::text[])))
+    CONSTRAINT wellness_bookings_status_check CHECK (((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('confirmed'::character varying)::text, ('cancelled'::character varying)::text, ('used'::character varying)::text, ('expired'::character varying)::text])))
 );
 
 
@@ -13556,7 +13558,7 @@ CREATE TABLE venues.wellness_facilities (
     description text,
     is_active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT wellness_facilities_facility_type_check CHECK (((facility_type)::text = ANY ((ARRAY['waterpark'::character varying, 'pool'::character varying, 'spa'::character varying, 'wellness'::character varying, 'thermal_bath'::character varying, 'sauna_world'::character varying])::text[])))
+    CONSTRAINT wellness_facilities_facility_type_check CHECK (((facility_type)::text = ANY (ARRAY[('waterpark'::character varying)::text, ('pool'::character varying)::text, ('spa'::character varying)::text, ('wellness'::character varying)::text, ('thermal_bath'::character varying)::text, ('sauna_world'::character varying)::text])))
 );
 
 
@@ -15147,6 +15149,14 @@ ALTER TABLE ONLY conference.days
 
 ALTER TABLE ONLY conference.exhibitor_sessions
     ADD CONSTRAINT exhibitor_sessions_exhibitor_id_session_id_key UNIQUE (exhibitor_id, session_id);
+
+
+--
+-- Name: exhibitor_sessions exhibitor_sessions_pkey; Type: CONSTRAINT; Schema: conference; Owner: -
+--
+
+ALTER TABLE ONLY conference.exhibitor_sessions
+    ADD CONSTRAINT exhibitor_sessions_pkey PRIMARY KEY (exhibitor_id, session_id);
 
 
 --
@@ -19710,13 +19720,6 @@ CREATE INDEX idx_affiliate_links_affiliate_id ON affiliate.links USING btree (af
 
 
 --
--- Name: idx_affiliate_links_code; Type: INDEX; Schema: affiliate; Owner: -
---
-
-CREATE INDEX idx_affiliate_links_code ON affiliate.links USING btree (code);
-
-
---
 -- Name: idx_affiliate_payouts_affiliate_id; Type: INDEX; Schema: affiliate; Owner: -
 --
 
@@ -19878,6 +19881,34 @@ CREATE INDEX bot_detections_ip_idx ON audit.bot_detections USING btree (ip, crea
 
 
 --
+-- Name: idx_audit_anomaly_alerts_acknowledged_by_user_id; Type: INDEX; Schema: audit; Owner: -
+--
+
+CREATE INDEX idx_audit_anomaly_alerts_acknowledged_by_user_id ON audit.anomaly_alerts USING btree (acknowledged_by_user_id);
+
+
+--
+-- Name: idx_audit_anomaly_alerts_event_id; Type: INDEX; Schema: audit; Owner: -
+--
+
+CREATE INDEX idx_audit_anomaly_alerts_event_id ON audit.anomaly_alerts USING btree (event_id);
+
+
+--
+-- Name: idx_audit_bot_detections_event_id; Type: INDEX; Schema: audit; Owner: -
+--
+
+CREATE INDEX idx_audit_bot_detections_event_id ON audit.bot_detections USING btree (event_id);
+
+
+--
+-- Name: idx_audit_bot_detections_user_id; Type: INDEX; Schema: audit; Owner: -
+--
+
+CREATE INDEX idx_audit_bot_detections_user_id ON audit.bot_detections USING btree (user_id);
+
+
+--
 -- Name: idx_audit_log_action; Type: INDEX; Schema: audit; Owner: -
 --
 
@@ -19924,6 +19955,20 @@ CREATE INDEX idx_audit_log_schema_table ON audit.audit_log USING btree (schema_n
 --
 
 CREATE INDEX idx_audit_platform_log_promoter ON audit.platform_log USING btree (promoter_id);
+
+
+--
+-- Name: idx_audit_support_actions_actor_promoter_id; Type: INDEX; Schema: audit; Owner: -
+--
+
+CREATE INDEX idx_audit_support_actions_actor_promoter_id ON audit.support_actions USING btree (actor_promoter_id);
+
+
+--
+-- Name: idx_audit_support_actions_actor_user_id; Type: INDEX; Schema: audit; Owner: -
+--
+
+CREATE INDEX idx_audit_support_actions_actor_user_id ON audit.support_actions USING btree (actor_user_id);
 
 
 --
@@ -19990,10 +20035,115 @@ CREATE INDEX idx_b2b_api_keys_active ON b2b.api_keys USING btree (token_hash) WH
 
 
 --
+-- Name: idx_b2b_api_keys_created_by; Type: INDEX; Schema: b2b; Owner: -
+--
+
+CREATE INDEX idx_b2b_api_keys_created_by ON b2b.api_keys USING btree (created_by);
+
+
+--
 -- Name: idx_b2b_api_keys_promoter; Type: INDEX; Schema: b2b; Owner: -
 --
 
 CREATE INDEX idx_b2b_api_keys_promoter ON b2b.api_keys USING btree (promoter_id);
+
+
+--
+-- Name: idx_b2b_api_keys_revoked_by; Type: INDEX; Schema: b2b; Owner: -
+--
+
+CREATE INDEX idx_b2b_api_keys_revoked_by ON b2b.api_keys USING btree (revoked_by);
+
+
+--
+-- Name: idx_b2b_oauth_access_tokens_promoter_id; Type: INDEX; Schema: b2b; Owner: -
+--
+
+CREATE INDEX idx_b2b_oauth_access_tokens_promoter_id ON b2b.oauth_access_tokens USING btree (promoter_id);
+
+
+--
+-- Name: idx_b2b_oauth_access_tokens_user_id; Type: INDEX; Schema: b2b; Owner: -
+--
+
+CREATE INDEX idx_b2b_oauth_access_tokens_user_id ON b2b.oauth_access_tokens USING btree (user_id);
+
+
+--
+-- Name: idx_b2b_oauth_authorization_codes_client_id; Type: INDEX; Schema: b2b; Owner: -
+--
+
+CREATE INDEX idx_b2b_oauth_authorization_codes_client_id ON b2b.oauth_authorization_codes USING btree (client_id);
+
+
+--
+-- Name: idx_b2b_oauth_authorization_codes_promoter_id; Type: INDEX; Schema: b2b; Owner: -
+--
+
+CREATE INDEX idx_b2b_oauth_authorization_codes_promoter_id ON b2b.oauth_authorization_codes USING btree (promoter_id);
+
+
+--
+-- Name: idx_b2b_oauth_authorization_codes_user_id; Type: INDEX; Schema: b2b; Owner: -
+--
+
+CREATE INDEX idx_b2b_oauth_authorization_codes_user_id ON b2b.oauth_authorization_codes USING btree (user_id);
+
+
+--
+-- Name: idx_b2b_oauth_clients_owner_user_id; Type: INDEX; Schema: b2b; Owner: -
+--
+
+CREATE INDEX idx_b2b_oauth_clients_owner_user_id ON b2b.oauth_clients USING btree (owner_user_id);
+
+
+--
+-- Name: idx_b2b_oauth_refresh_tokens_access_token_id; Type: INDEX; Schema: b2b; Owner: -
+--
+
+CREATE INDEX idx_b2b_oauth_refresh_tokens_access_token_id ON b2b.oauth_refresh_tokens USING btree (access_token_id);
+
+
+--
+-- Name: idx_b2b_oauth_refresh_tokens_promoter_id; Type: INDEX; Schema: b2b; Owner: -
+--
+
+CREATE INDEX idx_b2b_oauth_refresh_tokens_promoter_id ON b2b.oauth_refresh_tokens USING btree (promoter_id);
+
+
+--
+-- Name: idx_b2b_oauth_refresh_tokens_rotated_to_id; Type: INDEX; Schema: b2b; Owner: -
+--
+
+CREATE INDEX idx_b2b_oauth_refresh_tokens_rotated_to_id ON b2b.oauth_refresh_tokens USING btree (rotated_to_id);
+
+
+--
+-- Name: idx_b2b_oauth_refresh_tokens_user_id; Type: INDEX; Schema: b2b; Owner: -
+--
+
+CREATE INDEX idx_b2b_oauth_refresh_tokens_user_id ON b2b.oauth_refresh_tokens USING btree (user_id);
+
+
+--
+-- Name: idx_b2b_webhook_deliveries_subscription_id; Type: INDEX; Schema: b2b; Owner: -
+--
+
+CREATE INDEX idx_b2b_webhook_deliveries_subscription_id ON b2b.webhook_deliveries USING btree (subscription_id);
+
+
+--
+-- Name: idx_b2b_webhook_subscriptions_api_key_id; Type: INDEX; Schema: b2b; Owner: -
+--
+
+CREATE INDEX idx_b2b_webhook_subscriptions_api_key_id ON b2b.webhook_subscriptions USING btree (api_key_id);
+
+
+--
+-- Name: idx_b2b_webhook_subscriptions_client_id; Type: INDEX; Schema: b2b; Owner: -
+--
+
+CREATE INDEX idx_b2b_webhook_subscriptions_client_id ON b2b.webhook_subscriptions USING btree (client_id);
 
 
 --
@@ -20071,6 +20221,13 @@ CREATE INDEX idx_webhook_subs_active ON b2b.webhook_subscriptions USING btree (s
 --
 
 CREATE INDEX idx_b2b_orders_due ON b2b_orders.invoice_orders USING btree (due_date) WHERE (status = ANY (ARRAY['confirmed'::text, 'proforma_sent'::text]));
+
+
+--
+-- Name: idx_b2b_orders_dunning_log_order_id; Type: INDEX; Schema: b2b_orders; Owner: -
+--
+
+CREATE INDEX idx_b2b_orders_dunning_log_order_id ON b2b_orders.dunning_log USING btree (order_id);
 
 
 --
@@ -20214,13 +20371,6 @@ CREATE INDEX idx_ab_price_tests_active ON catalog.ab_price_tests USING btree (ti
 
 
 --
--- Name: idx_access_codes_code; Type: INDEX; Schema: catalog; Owner: -
---
-
-CREATE INDEX idx_access_codes_code ON catalog.access_codes USING btree (event_id, code);
-
-
---
 -- Name: idx_access_codes_event; Type: INDEX; Schema: catalog; Owner: -
 --
 
@@ -20242,10 +20392,101 @@ CREATE INDEX idx_access_codes_promoter ON catalog.access_codes USING btree (prom
 
 
 --
+-- Name: idx_catalog_cross_pass_events_event_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_cross_pass_events_event_id ON catalog.cross_pass_events USING btree (event_id);
+
+
+--
+-- Name: idx_catalog_event_bundle_addons_addon_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_event_bundle_addons_addon_id ON catalog.event_bundle_addons USING btree (addon_id);
+
+
+--
+-- Name: idx_catalog_event_bundles_ticket_type_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_event_bundles_ticket_type_id ON catalog.event_bundles USING btree (ticket_type_id);
+
+
+--
+-- Name: idx_catalog_event_collections_created_by_user_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_event_collections_created_by_user_id ON catalog.event_collections USING btree (created_by_user_id);
+
+
+--
+-- Name: idx_catalog_event_fb_publishes_fb_page_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_event_fb_publishes_fb_page_id ON catalog.event_fb_publishes USING btree (fb_page_id);
+
+
+--
+-- Name: idx_catalog_event_programs_zone_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_event_programs_zone_id ON catalog.event_programs USING btree (zone_id);
+
+
+--
+-- Name: idx_catalog_event_seat_view_photos_captured_by_user_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_event_seat_view_photos_captured_by_user_id ON catalog.event_seat_view_photos USING btree (captured_by_user_id);
+
+
+--
+-- Name: idx_catalog_event_seats_event_day_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_event_seats_event_day_id ON catalog.event_seats USING btree (event_day_id);
+
+
+--
+-- Name: idx_catalog_event_seats_hold_user_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_event_seats_hold_user_id ON catalog.event_seats USING btree (hold_user_id);
+
+
+--
+-- Name: idx_catalog_event_seats_ticket_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_event_seats_ticket_id ON catalog.event_seats USING btree (ticket_id);
+
+
+--
+-- Name: idx_catalog_event_templates_created_by_user_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_event_templates_created_by_user_id ON catalog.event_templates USING btree (created_by_user_id);
+
+
+--
+-- Name: idx_catalog_event_transit_combo_partner_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_event_transit_combo_partner_id ON catalog.event_transit_combo USING btree (partner_id);
+
+
+--
 -- Name: idx_catalog_events_date_start; Type: INDEX; Schema: catalog; Owner: -
 --
 
 CREATE INDEX idx_catalog_events_date_start ON catalog.events USING btree (date_start DESC);
+
+
+--
+-- Name: idx_catalog_events_editorial_featured_by; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_events_editorial_featured_by ON catalog.events USING btree (editorial_featured_by);
 
 
 --
@@ -20312,6 +20553,41 @@ CREATE INDEX idx_catalog_events_venue_id ON catalog.events USING btree (venue_id
 
 
 --
+-- Name: idx_catalog_insurance_plans_promoter_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_insurance_plans_promoter_id ON catalog.insurance_plans USING btree (promoter_id);
+
+
+--
+-- Name: idx_catalog_lottery_entries_redeemed_order_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_lottery_entries_redeemed_order_id ON catalog.lottery_entries USING btree (redeemed_order_id);
+
+
+--
+-- Name: idx_catalog_lottery_entries_ticket_type_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_lottery_entries_ticket_type_id ON catalog.lottery_entries USING btree (ticket_type_id);
+
+
+--
+-- Name: idx_catalog_lottery_entries_user_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_lottery_entries_user_id ON catalog.lottery_entries USING btree (user_id);
+
+
+--
+-- Name: idx_catalog_member_pricing_rules_group_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_member_pricing_rules_group_id ON catalog.member_pricing_rules USING btree (group_id);
+
+
+--
 -- Name: idx_catalog_pricing_rules_active; Type: INDEX; Schema: catalog; Owner: -
 --
 
@@ -20354,6 +20630,13 @@ CREATE INDEX idx_catalog_seats_venue_id ON catalog.seats USING btree (venue_id);
 
 
 --
+-- Name: idx_catalog_ticket_type_price_history_changed_by_user_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_ticket_type_price_history_changed_by_user_id ON catalog.ticket_type_price_history USING btree (changed_by_user_id);
+
+
+--
 -- Name: idx_catalog_ticket_types_available; Type: INDEX; Schema: catalog; Owner: -
 --
 
@@ -20365,6 +20648,13 @@ CREATE INDEX idx_catalog_ticket_types_available ON catalog.ticket_types USING bt
 --
 
 CREATE INDEX idx_catalog_ticket_types_event_id ON catalog.ticket_types USING btree (event_id);
+
+
+--
+-- Name: idx_catalog_venue_seating_charts_created_by_user_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_venue_seating_charts_created_by_user_id ON catalog.venue_seating_charts USING btree (created_by_user_id);
 
 
 --
@@ -20382,10 +20672,24 @@ CREATE INDEX idx_catalog_venues_country ON catalog.venues USING btree (country);
 
 
 --
+-- Name: idx_catalog_venues_last_modified_by_user_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_venues_last_modified_by_user_id ON catalog.venues USING btree (last_modified_by_user_id);
+
+
+--
 -- Name: idx_catalog_venues_venue_type; Type: INDEX; Schema: catalog; Owner: -
 --
 
 CREATE INDEX idx_catalog_venues_venue_type ON catalog.venues USING btree (venue_type);
+
+
+--
+-- Name: idx_catalog_waitlist_entries_user_id; Type: INDEX; Schema: catalog; Owner: -
+--
+
+CREATE INDEX idx_catalog_waitlist_entries_user_id ON catalog.waitlist_entries USING btree (user_id);
 
 
 --
@@ -20452,13 +20756,6 @@ CREATE INDEX idx_event_custom_fields_event ON catalog.event_custom_fields USING 
 
 
 --
--- Name: idx_event_days_event; Type: INDEX; Schema: catalog; Owner: -
---
-
-CREATE INDEX idx_event_days_event ON catalog.event_days USING btree (event_id, day_index);
-
-
---
 -- Name: idx_event_programs_day_zone; Type: INDEX; Schema: catalog; Owner: -
 --
 
@@ -20470,13 +20767,6 @@ CREATE INDEX idx_event_programs_day_zone ON catalog.event_programs USING btree (
 --
 
 CREATE INDEX idx_event_programs_event ON catalog.event_programs USING btree (event_id, starts_at);
-
-
---
--- Name: idx_event_seat_view_photos_seat; Type: INDEX; Schema: catalog; Owner: -
---
-
-CREATE INDEX idx_event_seat_view_photos_seat ON catalog.event_seat_view_photos USING btree (event_seat_id);
 
 
 --
@@ -20648,13 +20938,6 @@ CREATE INDEX idx_tt_access_zone ON catalog.ticket_type_access USING btree (zone_
 
 
 --
--- Name: idx_ttcp_channel; Type: INDEX; Schema: catalog; Owner: -
---
-
-CREATE INDEX idx_ttcp_channel ON catalog.ticket_type_channel_prices USING btree (ticket_type_id, channel_key);
-
-
---
 -- Name: idx_venues_city_trgm; Type: INDEX; Schema: catalog; Owner: -
 --
 
@@ -20809,6 +21092,13 @@ CREATE INDEX idx_charity_allocations_charity ON charity.allocations USING btree 
 
 
 --
+-- Name: idx_charity_allocations_created_by_user_id; Type: INDEX; Schema: charity; Owner: -
+--
+
+CREATE INDEX idx_charity_allocations_created_by_user_id ON charity.allocations USING btree (created_by_user_id);
+
+
+--
 -- Name: idx_charity_allocations_event; Type: INDEX; Schema: charity; Owner: -
 --
 
@@ -20816,10 +21106,31 @@ CREATE INDEX idx_charity_allocations_event ON charity.allocations USING btree (e
 
 
 --
+-- Name: idx_charity_allocations_promoter_id; Type: INDEX; Schema: charity; Owner: -
+--
+
+CREATE INDEX idx_charity_allocations_promoter_id ON charity.allocations USING btree (promoter_id);
+
+
+--
+-- Name: idx_charity_allocations_ticket_type_id; Type: INDEX; Schema: charity; Owner: -
+--
+
+CREATE INDEX idx_charity_allocations_ticket_type_id ON charity.allocations USING btree (ticket_type_id);
+
+
+--
 -- Name: idx_charity_claim_slots_allocation; Type: INDEX; Schema: charity; Owner: -
 --
 
 CREATE INDEX idx_charity_claim_slots_allocation ON charity.claim_slots USING btree (allocation_id);
+
+
+--
+-- Name: idx_charity_claim_slots_order_id; Type: INDEX; Schema: charity; Owner: -
+--
+
+CREATE INDEX idx_charity_claim_slots_order_id ON charity.claim_slots USING btree (order_id);
 
 
 --
@@ -20879,6 +21190,13 @@ CREATE INDEX idx_change_requests_status ON collab.change_requests USING btree (s
 
 
 --
+-- Name: idx_collab_change_log_change_request_id; Type: INDEX; Schema: collab; Owner: -
+--
+
+CREATE INDEX idx_collab_change_log_change_request_id ON collab.change_log USING btree (change_request_id);
+
+
+--
 -- Name: idx_collaborators_event; Type: INDEX; Schema: collab; Owner: -
 --
 
@@ -20935,13 +21253,6 @@ CREATE INDEX idx_consent_log_user ON compliance.cookie_consent_log USING btree (
 
 
 --
--- Name: idx_badge_overrides_activation; Type: INDEX; Schema: conference; Owner: -
---
-
-CREATE INDEX idx_badge_overrides_activation ON conference.badge_overrides USING btree (activation_id);
-
-
---
 -- Name: idx_badge_print_jobs_conf_status; Type: INDEX; Schema: conference; Owner: -
 --
 
@@ -20970,6 +21281,27 @@ CREATE INDEX idx_booths_conference_status ON conference.booths USING btree (conf
 
 
 --
+-- Name: idx_conference_badge_print_jobs_template_id; Type: INDEX; Schema: conference; Owner: -
+--
+
+CREATE INDEX idx_conference_badge_print_jobs_template_id ON conference.badge_print_jobs USING btree (template_id);
+
+
+--
+-- Name: idx_conference_booths_category_id; Type: INDEX; Schema: conference; Owner: -
+--
+
+CREATE INDEX idx_conference_booths_category_id ON conference.booths USING btree (category_id);
+
+
+--
+-- Name: idx_conference_booths_floor_map_id; Type: INDEX; Schema: conference; Owner: -
+--
+
+CREATE INDEX idx_conference_booths_floor_map_id ON conference.booths USING btree (floor_map_id);
+
+
+--
 -- Name: idx_conference_conferences_event; Type: INDEX; Schema: conference; Owner: -
 --
 
@@ -20981,6 +21313,13 @@ CREATE INDEX idx_conference_conferences_event ON conference.conferences USING bt
 --
 
 CREATE INDEX idx_conference_days_conference ON conference.days USING btree (conference_id, sort_order);
+
+
+--
+-- Name: idx_conference_exhibitor_sessions_session_id; Type: INDEX; Schema: conference; Owner: -
+--
+
+CREATE INDEX idx_conference_exhibitor_sessions_session_id ON conference.exhibitor_sessions USING btree (session_id);
 
 
 --
@@ -21103,13 +21442,6 @@ CREATE INDEX idx_imported_tickets_list ON cross_scanner.imported_tickets USING b
 
 
 --
--- Name: idx_imported_tickets_qr; Type: INDEX; Schema: cross_scanner; Owner: -
---
-
-CREATE INDEX idx_imported_tickets_qr ON cross_scanner.imported_tickets USING btree (qr_code);
-
-
---
 -- Name: idx_cs_action_log_action_type; Type: INDEX; Schema: cs; Owner: -
 --
 
@@ -21180,10 +21512,31 @@ CREATE INDEX idx_event_group_members_event ON event_groups.members USING btree (
 
 
 --
+-- Name: idx_event_groups_bulk_edits_performed_by_user_id; Type: INDEX; Schema: event_groups; Owner: -
+--
+
+CREATE INDEX idx_event_groups_bulk_edits_performed_by_user_id ON event_groups.bulk_edits USING btree (performed_by_user_id);
+
+
+--
 -- Name: idx_event_groups_promoter; Type: INDEX; Schema: event_groups; Owner: -
 --
 
 CREATE INDEX idx_event_groups_promoter ON event_groups.groups USING btree (promoter_id, status);
+
+
+--
+-- Name: idx_event_groups_shares_created_by_user_id; Type: INDEX; Schema: event_groups; Owner: -
+--
+
+CREATE INDEX idx_event_groups_shares_created_by_user_id ON event_groups.shares USING btree (created_by_user_id);
+
+
+--
+-- Name: idx_event_groups_shares_owner_promoter_id; Type: INDEX; Schema: event_groups; Owner: -
+--
+
+CREATE INDEX idx_event_groups_shares_owner_promoter_id ON event_groups.shares USING btree (owner_promoter_id);
 
 
 --
@@ -21243,17 +21596,17 @@ CREATE INDEX idx_conversions_order ON fan_share.conversions USING btree (order_i
 
 
 --
+-- Name: idx_fan_share_share_links_event_id; Type: INDEX; Schema: fan_share; Owner: -
+--
+
+CREATE INDEX idx_fan_share_share_links_event_id ON fan_share.share_links USING btree (event_id);
+
+
+--
 -- Name: idx_share_links_campaign; Type: INDEX; Schema: fan_share; Owner: -
 --
 
 CREATE INDEX idx_share_links_campaign ON fan_share.share_links USING btree (campaign_id);
-
-
---
--- Name: idx_share_links_code; Type: INDEX; Schema: fan_share; Owner: -
---
-
-CREATE INDEX idx_share_links_code ON fan_share.share_links USING btree (share_code);
 
 
 --
@@ -21289,6 +21642,20 @@ CREATE INDEX idx_flex_plan_selections_plan ON flex_plans.flex_plan_selections US
 --
 
 CREATE INDEX idx_flex_plans_catalog ON flex_plans.flex_plans USING btree (catalog_id);
+
+
+--
+-- Name: idx_flex_plans_flex_catalog_events_event_id; Type: INDEX; Schema: flex_plans; Owner: -
+--
+
+CREATE INDEX idx_flex_plans_flex_catalog_events_event_id ON flex_plans.flex_catalog_events USING btree (event_id);
+
+
+--
+-- Name: idx_flex_plans_flex_plan_selections_catalog_event_id; Type: INDEX; Schema: flex_plans; Owner: -
+--
+
+CREATE INDEX idx_flex_plans_flex_plan_selections_catalog_event_id ON flex_plans.flex_plan_selections USING btree (catalog_event_id);
 
 
 --
@@ -21362,10 +21729,52 @@ CREATE INDEX idx_identity_clients_user_id ON identity.clients USING btree (user_
 
 
 --
+-- Name: idx_identity_discount_verifications_verified_by_user_id; Type: INDEX; Schema: identity; Owner: -
+--
+
+CREATE INDEX idx_identity_discount_verifications_verified_by_user_id ON identity.discount_verifications USING btree (verified_by_user_id);
+
+
+--
+-- Name: idx_identity_gdpr_requests_cancelled_by_user_id; Type: INDEX; Schema: identity; Owner: -
+--
+
+CREATE INDEX idx_identity_gdpr_requests_cancelled_by_user_id ON identity.gdpr_requests USING btree (cancelled_by_user_id);
+
+
+--
 -- Name: idx_identity_mfa_configs_user_id; Type: INDEX; Schema: identity; Owner: -
 --
 
 CREATE INDEX idx_identity_mfa_configs_user_id ON identity.mfa_configs USING btree (user_id);
+
+
+--
+-- Name: idx_identity_phone_change_requests_reviewed_by_user_id; Type: INDEX; Schema: identity; Owner: -
+--
+
+CREATE INDEX idx_identity_phone_change_requests_reviewed_by_user_id ON identity.phone_change_requests USING btree (reviewed_by_user_id);
+
+
+--
+-- Name: idx_identity_phone_change_requests_ticket_id; Type: INDEX; Schema: identity; Owner: -
+--
+
+CREATE INDEX idx_identity_phone_change_requests_ticket_id ON identity.phone_change_requests USING btree (ticket_id);
+
+
+--
+-- Name: idx_identity_phone_change_requests_user_id; Type: INDEX; Schema: identity; Owner: -
+--
+
+CREATE INDEX idx_identity_phone_change_requests_user_id ON identity.phone_change_requests USING btree (user_id);
+
+
+--
+-- Name: idx_identity_presence_sessions_client_id; Type: INDEX; Schema: identity; Owner: -
+--
+
+CREATE INDEX idx_identity_presence_sessions_client_id ON identity.presence_sessions USING btree (client_id);
 
 
 --
@@ -21404,6 +21813,13 @@ CREATE INDEX idx_identity_user_devices_user_id ON identity.user_devices USING bt
 
 
 --
+-- Name: idx_identity_user_verifications_verified_person_id; Type: INDEX; Schema: identity; Owner: -
+--
+
+CREATE INDEX idx_identity_user_verifications_verified_person_id ON identity.user_verifications USING btree (verified_person_id);
+
+
+--
 -- Name: idx_identity_users_created_at; Type: INDEX; Schema: identity; Owner: -
 --
 
@@ -21415,6 +21831,13 @@ CREATE INDEX idx_identity_users_created_at ON identity.users USING btree (create
 --
 
 CREATE INDEX idx_identity_users_deleted_at ON identity.users USING btree (deleted_at) WHERE (deleted_at IS NOT NULL);
+
+
+--
+-- Name: idx_identity_webauthn_challenges_user_id; Type: INDEX; Schema: identity; Owner: -
+--
+
+CREATE INDEX idx_identity_webauthn_challenges_user_id ON identity.webauthn_challenges USING btree (user_id);
 
 
 --
@@ -21464,13 +21887,6 @@ CREATE INDEX idx_tan_codes_phone ON identity.tan_codes USING btree (phone_e164, 
 --
 
 CREATE INDEX idx_tan_codes_user_purpose ON identity.tan_codes USING btree (user_id, purpose) WHERE (consumed_at IS NULL);
-
-
---
--- Name: idx_user_verifications_user_id; Type: INDEX; Schema: identity; Owner: -
---
-
-CREATE INDEX idx_user_verifications_user_id ON identity.user_verifications USING btree (user_id);
 
 
 --
@@ -21544,13 +21960,6 @@ CREATE UNIQUE INDEX uq_identity_users_email_active ON identity.users USING btree
 
 
 --
--- Name: idx_ticket_content_event; Type: INDEX; Schema: ignite; Owner: -
---
-
-CREATE INDEX idx_ticket_content_event ON ignite.ticket_content USING btree (event_id);
-
-
---
 -- Name: idx_ticket_content_promoter; Type: INDEX; Schema: ignite; Owner: -
 --
 
@@ -21569,13 +21978,6 @@ CREATE INDEX idx_friend_invites_buyer ON invites.friend_invites USING btree (buy
 --
 
 CREATE INDEX idx_friend_invites_event ON invites.friend_invites USING btree (event_id);
-
-
---
--- Name: idx_friend_invites_token; Type: INDEX; Schema: invites; Owner: -
---
-
-CREATE INDEX idx_friend_invites_token ON invites.friend_invites USING btree (invite_token);
 
 
 --
@@ -21625,6 +22027,20 @@ CREATE INDEX idx_artists_stage_order ON lineups.artists USING btree (event_id, s
 --
 
 CREATE INDEX idx_event_artists_artist ON lineups.event_artists USING btree (artist_id);
+
+
+--
+-- Name: idx_lineups_music_post_jobs_artist_id; Type: INDEX; Schema: lineups; Owner: -
+--
+
+CREATE INDEX idx_lineups_music_post_jobs_artist_id ON lineups.music_post_jobs USING btree (artist_id);
+
+
+--
+-- Name: idx_lineups_music_post_jobs_event_id; Type: INDEX; Schema: lineups; Owner: -
+--
+
+CREATE INDEX idx_lineups_music_post_jobs_event_id ON lineups.music_post_jobs USING btree (event_id);
 
 
 --
@@ -21873,13 +22289,6 @@ CREATE INDEX idx_gift_vouchers_source ON marketing.gift_vouchers USING btree (so
 
 
 --
--- Name: idx_loyalty_accounts_user; Type: INDEX; Schema: marketing; Owner: -
---
-
-CREATE INDEX idx_loyalty_accounts_user ON marketing.loyalty_accounts USING btree (user_id);
-
-
---
 -- Name: idx_loyalty_tx_account; Type: INDEX; Schema: marketing; Owner: -
 --
 
@@ -21898,6 +22307,76 @@ CREATE INDEX idx_loyalty_tx_expiring ON marketing.loyalty_transactions USING btr
 --
 
 CREATE INDEX idx_loyalty_tx_order ON marketing.loyalty_transactions USING btree (order_id) WHERE (order_id IS NOT NULL);
+
+
+--
+-- Name: idx_marketing_ad_auction_log_shown_on_promoter_id; Type: INDEX; Schema: marketing; Owner: -
+--
+
+CREATE INDEX idx_marketing_ad_auction_log_shown_on_promoter_id ON marketing.ad_auction_log USING btree (shown_on_promoter_id);
+
+
+--
+-- Name: idx_marketing_ad_placements_shown_on_event_id; Type: INDEX; Schema: marketing; Owner: -
+--
+
+CREATE INDEX idx_marketing_ad_placements_shown_on_event_id ON marketing.ad_placements USING btree (shown_on_event_id);
+
+
+--
+-- Name: idx_marketing_ad_placements_shown_on_promoter_id; Type: INDEX; Schema: marketing; Owner: -
+--
+
+CREATE INDEX idx_marketing_ad_placements_shown_on_promoter_id ON marketing.ad_placements USING btree (shown_on_promoter_id);
+
+
+--
+-- Name: idx_marketing_event_broadcasts_sent_by_user_id; Type: INDEX; Schema: marketing; Owner: -
+--
+
+CREATE INDEX idx_marketing_event_broadcasts_sent_by_user_id ON marketing.event_broadcasts USING btree (sent_by_user_id);
+
+
+--
+-- Name: idx_marketing_event_broadcasts_ticket_type_id; Type: INDEX; Schema: marketing; Owner: -
+--
+
+CREATE INDEX idx_marketing_event_broadcasts_ticket_type_id ON marketing.event_broadcasts USING btree (ticket_type_id);
+
+
+--
+-- Name: idx_marketing_facebook_pages_connected_by_user_id; Type: INDEX; Schema: marketing; Owner: -
+--
+
+CREATE INDEX idx_marketing_facebook_pages_connected_by_user_id ON marketing.facebook_pages USING btree (connected_by_user_id);
+
+
+--
+-- Name: idx_marketing_gift_vouchers_paid_order_id; Type: INDEX; Schema: marketing; Owner: -
+--
+
+CREATE INDEX idx_marketing_gift_vouchers_paid_order_id ON marketing.gift_vouchers USING btree (paid_order_id);
+
+
+--
+-- Name: idx_marketing_otp_codes_event_id; Type: INDEX; Schema: marketing; Owner: -
+--
+
+CREATE INDEX idx_marketing_otp_codes_event_id ON marketing.otp_codes USING btree (event_id);
+
+
+--
+-- Name: idx_marketing_qr_campaigns_created_by; Type: INDEX; Schema: marketing; Owner: -
+--
+
+CREATE INDEX idx_marketing_qr_campaigns_created_by ON marketing.qr_campaigns USING btree (created_by);
+
+
+--
+-- Name: idx_marketing_sms_campaigns_segment_event_id; Type: INDEX; Schema: marketing; Owner: -
+--
+
+CREATE INDEX idx_marketing_sms_campaigns_segment_event_id ON marketing.sms_campaigns USING btree (segment_event_id);
 
 
 --
@@ -21992,13 +22471,6 @@ CREATE INDEX idx_qr_campaigns_event ON marketing.qr_campaigns USING btree (event
 
 
 --
--- Name: idx_qr_campaigns_slug; Type: INDEX; Schema: marketing; Owner: -
---
-
-CREATE INDEX idx_qr_campaigns_slug ON marketing.qr_campaigns USING btree (slug);
-
-
---
 -- Name: idx_qr_scans_campaign; Type: INDEX; Schema: marketing; Owner: -
 --
 
@@ -22045,13 +22517,6 @@ CREATE INDEX idx_spotify_oauth_pending_expires ON marketing.spotify_oauth_pendin
 --
 
 CREATE INDEX idx_spotify_oauth_pending_user ON marketing.spotify_oauth_pending USING btree (user_id);
-
-
---
--- Name: idx_unsubscribes_user_id; Type: INDEX; Schema: marketing; Owner: -
---
-
-CREATE INDEX idx_unsubscribes_user_id ON marketing.re_engagement_unsubscribes USING btree (user_id);
 
 
 --
@@ -22405,6 +22870,13 @@ CREATE INDEX idx_orders_affiliate_id ON orders.orders USING btree (affiliate_id)
 
 
 --
+-- Name: idx_orders_bank_transfer_lines_import_id; Type: INDEX; Schema: orders; Owner: -
+--
+
+CREATE INDEX idx_orders_bank_transfer_lines_import_id ON orders.bank_transfer_lines USING btree (import_id);
+
+
+--
 -- Name: idx_orders_cancelled_by_buyer; Type: INDEX; Schema: orders; Owner: -
 --
 
@@ -22426,6 +22898,27 @@ CREATE INDEX idx_orders_group_invitation ON orders.orders USING btree (group_inv
 
 
 --
+-- Name: idx_orders_group_invitations_ticket_type_id; Type: INDEX; Schema: orders; Owner: -
+--
+
+CREATE INDEX idx_orders_group_invitations_ticket_type_id ON orders.group_invitations USING btree (ticket_type_id);
+
+
+--
+-- Name: idx_orders_hospitality_inquiries_confirmed_by_user_id; Type: INDEX; Schema: orders; Owner: -
+--
+
+CREATE INDEX idx_orders_hospitality_inquiries_confirmed_by_user_id ON orders.hospitality_inquiries USING btree (confirmed_by_user_id);
+
+
+--
+-- Name: idx_orders_order_custom_field_responses_ticket_id; Type: INDEX; Schema: orders; Owner: -
+--
+
+CREATE INDEX idx_orders_order_custom_field_responses_ticket_id ON orders.order_custom_field_responses USING btree (ticket_id);
+
+
+--
 -- Name: idx_orders_order_items_order_id; Type: INDEX; Schema: orders; Owner: -
 --
 
@@ -22440,10 +22933,24 @@ CREATE INDEX idx_orders_order_items_ticket_type_id ON orders.order_items USING b
 
 
 --
+-- Name: idx_orders_order_payment_plans_plan_id; Type: INDEX; Schema: orders; Owner: -
+--
+
+CREATE INDEX idx_orders_order_payment_plans_plan_id ON orders.order_payment_plans USING btree (plan_id);
+
+
+--
 -- Name: idx_orders_orders_created_at; Type: INDEX; Schema: orders; Owner: -
 --
 
 CREATE INDEX idx_orders_orders_created_at ON orders.orders USING btree (created_at DESC);
+
+
+--
+-- Name: idx_orders_orders_gift_redeemed_user_id; Type: INDEX; Schema: orders; Owner: -
+--
+
+CREATE INDEX idx_orders_orders_gift_redeemed_user_id ON orders.orders USING btree (gift_redeemed_user_id);
 
 
 --
@@ -22475,6 +22982,13 @@ CREATE INDEX idx_orders_orders_user_id ON orders.orders USING btree (user_id);
 
 
 --
+-- Name: idx_orders_orders_will_call_picked_up_by_user_id; Type: INDEX; Schema: orders; Owner: -
+--
+
+CREATE INDEX idx_orders_orders_will_call_picked_up_by_user_id ON orders.orders USING btree (will_call_picked_up_by_user_id);
+
+
+--
 -- Name: idx_orders_payment_events_created_at; Type: INDEX; Schema: orders; Owner: -
 --
 
@@ -22500,6 +23014,13 @@ CREATE INDEX idx_orders_payment_events_order_id ON orders.payment_events USING b
 --
 
 CREATE INDEX idx_orders_payment_provider ON orders.orders USING btree (payment_provider);
+
+
+--
+-- Name: idx_orders_phone_event_purchases_event_id; Type: INDEX; Schema: orders; Owner: -
+--
+
+CREATE INDEX idx_orders_phone_event_purchases_event_id ON orders.phone_event_purchases USING btree (event_id);
 
 
 --
@@ -22566,13 +23087,6 @@ CREATE INDEX idx_refund_requests_user ON orders.refund_requests USING btree (use
 
 
 --
--- Name: idx_transit_passes_order; Type: INDEX; Schema: orders; Owner: -
---
-
-CREATE INDEX idx_transit_passes_order ON orders.transit_passes USING btree (order_id);
-
-
---
 -- Name: idx_transit_passes_partner; Type: INDEX; Schema: orders; Owner: -
 --
 
@@ -22622,6 +23136,13 @@ CREATE INDEX payment_installments_due_idx ON orders.payment_installments USING b
 
 
 --
+-- Name: idx_partner_partner_sales_token_id; Type: INDEX; Schema: partner; Owner: -
+--
+
+CREATE INDEX idx_partner_partner_sales_token_id ON partner.partner_sales USING btree (token_id);
+
+
+--
 -- Name: idx_partner_sales_partner_date; Type: INDEX; Schema: partner; Owner: -
 --
 
@@ -22640,6 +23161,27 @@ CREATE INDEX idx_partner_tokens_hash ON partner.partner_tokens USING btree (toke
 --
 
 CREATE INDEX idx_partner_tokens_partner ON partner.partner_tokens USING btree (partner_id);
+
+
+--
+-- Name: idx_payments_reimbursement_holds_reimbursement_id; Type: INDEX; Schema: payments; Owner: -
+--
+
+CREATE INDEX idx_payments_reimbursement_holds_reimbursement_id ON payments.reimbursement_holds USING btree (reimbursement_id);
+
+
+--
+-- Name: idx_payments_reimbursement_holds_related_event_id; Type: INDEX; Schema: payments; Owner: -
+--
+
+CREATE INDEX idx_payments_reimbursement_holds_related_event_id ON payments.reimbursement_holds USING btree (related_event_id);
+
+
+--
+-- Name: idx_payments_reimbursement_holds_related_order_id; Type: INDEX; Schema: payments; Owner: -
+--
+
+CREATE INDEX idx_payments_reimbursement_holds_related_order_id ON payments.reimbursement_holds USING btree (related_order_id);
 
 
 --
@@ -22668,13 +23210,6 @@ CREATE INDEX idx_reimbursement_user ON payments.reimbursement_methods USING btre
 --
 
 CREATE INDEX idx_wero_payments_created_at ON payments.wero_payments USING btree (created_at);
-
-
---
--- Name: idx_wero_payments_external_id; Type: INDEX; Schema: payments; Owner: -
---
-
-CREATE INDEX idx_wero_payments_external_id ON payments.wero_payments USING btree (external_id);
 
 
 --
@@ -22811,6 +23346,20 @@ CREATE INDEX idx_incidents_status ON platform.incidents USING btree (status, sta
 
 
 --
+-- Name: idx_platform_advance_payout_schedules_promoter_id; Type: INDEX; Schema: platform; Owner: -
+--
+
+CREATE INDEX idx_platform_advance_payout_schedules_promoter_id ON platform.advance_payout_schedules USING btree (promoter_id);
+
+
+--
+-- Name: idx_platform_dashboard_layouts_promoter_id; Type: INDEX; Schema: platform; Owner: -
+--
+
+CREATE INDEX idx_platform_dashboard_layouts_promoter_id ON platform.dashboard_layouts USING btree (promoter_id);
+
+
+--
 -- Name: idx_platform_event_settlements_payout; Type: INDEX; Schema: platform; Owner: -
 --
 
@@ -22853,10 +23402,38 @@ CREATE INDEX idx_platform_payouts_status_pending ON platform.payouts USING btree
 
 
 --
+-- Name: idx_platform_promoter_documents_uploaded_by_user_id; Type: INDEX; Schema: platform; Owner: -
+--
+
+CREATE INDEX idx_platform_promoter_documents_uploaded_by_user_id ON platform.promoter_documents USING btree (uploaded_by_user_id);
+
+
+--
+-- Name: idx_platform_promoter_members_user_id; Type: INDEX; Schema: platform; Owner: -
+--
+
+CREATE INDEX idx_platform_promoter_members_user_id ON platform.promoter_members USING btree (user_id);
+
+
+--
 -- Name: idx_platform_promoters_email; Type: INDEX; Schema: platform; Owner: -
 --
 
 CREATE INDEX idx_platform_promoters_email ON platform.promoters USING btree (email);
+
+
+--
+-- Name: idx_platform_promoters_kyc_reviewed_by_user_id; Type: INDEX; Schema: platform; Owner: -
+--
+
+CREATE INDEX idx_platform_promoters_kyc_reviewed_by_user_id ON platform.promoters USING btree (kyc_reviewed_by_user_id);
+
+
+--
+-- Name: idx_platform_queue_tokens_user_id; Type: INDEX; Schema: platform; Owner: -
+--
+
+CREATE INDEX idx_platform_queue_tokens_user_id ON platform.queue_tokens USING btree (user_id);
 
 
 --
@@ -22871,6 +23448,20 @@ CREATE INDEX idx_platform_rolling_reserves_promoter ON platform.rolling_reserves
 --
 
 CREATE INDEX idx_platform_rolling_reserves_release_date ON platform.rolling_reserves USING btree (release_date) WHERE (NOT released);
+
+
+--
+-- Name: idx_platform_team_invites_accepted_by_user_id; Type: INDEX; Schema: platform; Owner: -
+--
+
+CREATE INDEX idx_platform_team_invites_accepted_by_user_id ON platform.team_invites USING btree (accepted_by_user_id);
+
+
+--
+-- Name: idx_platform_team_invites_invited_by_user_id; Type: INDEX; Schema: platform; Owner: -
+--
+
+CREATE INDEX idx_platform_team_invites_invited_by_user_id ON platform.team_invites USING btree (invited_by_user_id);
 
 
 --
@@ -23063,6 +23654,13 @@ CREATE INDEX idx_bogo_usages_order ON promo.bogo_usages USING btree (order_id);
 
 
 --
+-- Name: idx_promo_bogo_usages_rule_id; Type: INDEX; Schema: promo; Owner: -
+--
+
+CREATE INDEX idx_promo_bogo_usages_rule_id ON promo.bogo_usages USING btree (rule_id);
+
+
+--
 -- Name: idx_addons_event; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -23095,13 +23693,6 @@ CREATE INDEX idx_admin_audit_time ON public.admin_audit_log USING btree (created
 --
 
 CREATE INDEX idx_age_verifications_method ON public.age_verifications USING btree (method);
-
-
---
--- Name: idx_age_verifications_order_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_age_verifications_order_id ON public.age_verifications USING btree (order_id);
 
 
 --
@@ -23193,13 +23784,6 @@ CREATE INDEX idx_ff_audit_time ON public.feature_flags_audit USING btree (change
 --
 
 CREATE INDEX idx_fnb_menu_event ON public.fnb_menu_items USING btree (event_id, promoter_id) WHERE (available = true);
-
-
---
--- Name: idx_fnb_pickup_code; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_fnb_pickup_code ON public.fnb_preorders USING btree (pickup_code);
 
 
 --
@@ -23448,13 +24032,6 @@ CREATE INDEX idx_referral_conv_link_id ON referral.conversions USING btree (link
 
 
 --
--- Name: idx_referral_conv_order_id; Type: INDEX; Schema: referral; Owner: -
---
-
-CREATE INDEX idx_referral_conv_order_id ON referral.conversions USING btree (order_id);
-
-
---
 -- Name: idx_referral_conv_referred; Type: INDEX; Schema: referral; Owner: -
 --
 
@@ -23466,6 +24043,13 @@ CREATE INDEX idx_referral_conv_referred ON referral.conversions USING btree (ref
 --
 
 CREATE INDEX idx_referral_conv_status ON referral.conversions USING btree (status);
+
+
+--
+-- Name: idx_referral_conversions_click_id; Type: INDEX; Schema: referral; Owner: -
+--
+
+CREATE INDEX idx_referral_conversions_click_id ON referral.conversions USING btree (click_id);
 
 
 --
@@ -23518,13 +24102,6 @@ CREATE INDEX idx_referral_dr_new_cust ON referral.dual_rewards USING btree (new_
 
 
 --
--- Name: idx_referral_dr_order; Type: INDEX; Schema: referral; Owner: -
---
-
-CREATE INDEX idx_referral_dr_order ON referral.dual_rewards USING btree (order_id);
-
-
---
 -- Name: idx_referral_dr_referrer; Type: INDEX; Schema: referral; Owner: -
 --
 
@@ -23532,17 +24109,24 @@ CREATE INDEX idx_referral_dr_referrer ON referral.dual_rewards USING btree (refe
 
 
 --
+-- Name: idx_referral_dual_rewards_new_customer_credit_id; Type: INDEX; Schema: referral; Owner: -
+--
+
+CREATE INDEX idx_referral_dual_rewards_new_customer_credit_id ON referral.dual_rewards USING btree (new_customer_credit_id);
+
+
+--
+-- Name: idx_referral_dual_rewards_referrer_credit_id; Type: INDEX; Schema: referral; Owner: -
+--
+
+CREATE INDEX idx_referral_dual_rewards_referrer_credit_id ON referral.dual_rewards USING btree (referrer_credit_id);
+
+
+--
 -- Name: idx_referral_links_campaign; Type: INDEX; Schema: referral; Owner: -
 --
 
 CREATE INDEX idx_referral_links_campaign ON referral.links USING btree (campaign_id);
-
-
---
--- Name: idx_referral_links_code; Type: INDEX; Schema: referral; Owner: -
---
-
-CREATE INDEX idx_referral_links_code ON referral.links USING btree (code);
 
 
 --
@@ -23616,6 +24200,13 @@ CREATE INDEX idx_resale_payout_pending ON resale.resale_listings USING btree (so
 
 
 --
+-- Name: idx_resale_resale_listings_reissued_ticket_id; Type: INDEX; Schema: resale; Owner: -
+--
+
+CREATE INDEX idx_resale_resale_listings_reissued_ticket_id ON resale.resale_listings USING btree (reissued_ticket_id);
+
+
+--
 -- Name: idx_resale_reserved_timeout; Type: INDEX; Schema: resale; Owner: -
 --
 
@@ -23623,17 +24214,17 @@ CREATE INDEX idx_resale_reserved_timeout ON resale.resale_listings USING btree (
 
 
 --
--- Name: idx_resale_rules_event; Type: INDEX; Schema: resale; Owner: -
---
-
-CREATE INDEX idx_resale_rules_event ON resale.resale_rules USING btree (event_id);
-
-
---
 -- Name: idx_resale_rules_promoter; Type: INDEX; Schema: resale; Owner: -
 --
 
 CREATE INDEX idx_resale_rules_promoter ON resale.resale_rules USING btree (promoter_id);
+
+
+--
+-- Name: idx_resale_seller_payouts_listing_id; Type: INDEX; Schema: resale; Owner: -
+--
+
+CREATE INDEX idx_resale_seller_payouts_listing_id ON resale.seller_payouts USING btree (listing_id);
 
 
 --
@@ -23742,24 +24333,10 @@ CREATE INDEX idx_booking_receipts_promoter ON reservations.booking_receipts USIN
 
 
 --
--- Name: idx_booking_receipts_receipt_number; Type: INDEX; Schema: reservations; Owner: -
---
-
-CREATE INDEX idx_booking_receipts_receipt_number ON reservations.booking_receipts USING btree (receipt_number);
-
-
---
 -- Name: idx_booking_receipts_user_id; Type: INDEX; Schema: reservations; Owner: -
 --
 
 CREATE INDEX idx_booking_receipts_user_id ON reservations.booking_receipts USING btree (user_id);
-
-
---
--- Name: idx_branch_closures_branch_date; Type: INDEX; Schema: reservations; Owner: -
---
-
-CREATE INDEX idx_branch_closures_branch_date ON reservations.branch_closures USING btree (branch_id, closure_date);
 
 
 --
@@ -23875,10 +24452,66 @@ CREATE INDEX idx_packages_promoter_featured ON reservations.packages USING btree
 
 
 --
+-- Name: idx_reservations_approval_requests_booking_id; Type: INDEX; Schema: reservations; Owner: -
+--
+
+CREATE INDEX idx_reservations_approval_requests_booking_id ON reservations.approval_requests USING btree (booking_id);
+
+
+--
+-- Name: idx_reservations_approval_requests_rule_id; Type: INDEX; Schema: reservations; Owner: -
+--
+
+CREATE INDEX idx_reservations_approval_requests_rule_id ON reservations.approval_requests USING btree (rule_id);
+
+
+--
+-- Name: idx_reservations_approval_requests_slot_id; Type: INDEX; Schema: reservations; Owner: -
+--
+
+CREATE INDEX idx_reservations_approval_requests_slot_id ON reservations.approval_requests USING btree (slot_id);
+
+
+--
 -- Name: idx_reservations_bookings_order_id; Type: INDEX; Schema: reservations; Owner: -
 --
 
 CREATE INDEX idx_reservations_bookings_order_id ON reservations.bookings USING btree (order_id) WHERE (order_id IS NOT NULL);
+
+
+--
+-- Name: idx_reservations_package_items_service_id; Type: INDEX; Schema: reservations; Owner: -
+--
+
+CREATE INDEX idx_reservations_package_items_service_id ON reservations.package_items USING btree (service_id);
+
+
+--
+-- Name: idx_reservations_package_usage_booking_id; Type: INDEX; Schema: reservations; Owner: -
+--
+
+CREATE INDEX idx_reservations_package_usage_booking_id ON reservations.package_usage USING btree (booking_id);
+
+
+--
+-- Name: idx_reservations_service_reviews_booking_id; Type: INDEX; Schema: reservations; Owner: -
+--
+
+CREATE INDEX idx_reservations_service_reviews_booking_id ON reservations.service_reviews USING btree (booking_id);
+
+
+--
+-- Name: idx_reservations_slots_generated_from_rule_id; Type: INDEX; Schema: reservations; Owner: -
+--
+
+CREATE INDEX idx_reservations_slots_generated_from_rule_id ON reservations.slots USING btree (generated_from_rule_id);
+
+
+--
+-- Name: idx_reservations_slots_override_id; Type: INDEX; Schema: reservations; Owner: -
+--
+
+CREATE INDEX idx_reservations_slots_override_id ON reservations.slots USING btree (override_id);
 
 
 --
@@ -24092,6 +24725,13 @@ CREATE INDEX idx_retailer_allocations_retailer ON retailer.inventory_allocations
 
 
 --
+-- Name: idx_retailer_retailer_sales_allocation_id; Type: INDEX; Schema: retailer; Owner: -
+--
+
+CREATE INDEX idx_retailer_retailer_sales_allocation_id ON retailer.retailer_sales USING btree (allocation_id);
+
+
+--
 -- Name: idx_retailer_sales_retailer; Type: INDEX; Schema: retailer; Owner: -
 --
 
@@ -24103,13 +24743,6 @@ CREATE INDEX idx_retailer_sales_retailer ON retailer.retailer_sales USING btree 
 --
 
 CREATE INDEX idx_retailer_sales_ticket ON retailer.retailer_sales USING btree (ticket_id);
-
-
---
--- Name: idx_retailer_settlements_retailer; Type: INDEX; Schema: retailer; Owner: -
---
-
-CREATE INDEX idx_retailer_settlements_retailer ON retailer.settlements USING btree (retailer_id, settlement_date);
 
 
 --
@@ -24148,17 +24781,31 @@ CREATE INDEX idx_pricing_scenarios_promoter ON revenue.pricing_scenarios USING b
 
 
 --
--- Name: idx_projections_event; Type: INDEX; Schema: revenue; Owner: -
---
-
-CREATE INDEX idx_projections_event ON revenue.projections USING btree (event_id);
-
-
---
 -- Name: idx_projections_promoter; Type: INDEX; Schema: revenue; Owner: -
 --
 
 CREATE INDEX idx_projections_promoter ON revenue.projections USING btree (promoter_id, event_id);
+
+
+--
+-- Name: idx_revenue_price_scenarios_created_by_user_id; Type: INDEX; Schema: revenue; Owner: -
+--
+
+CREATE INDEX idx_revenue_price_scenarios_created_by_user_id ON revenue.price_scenarios USING btree (created_by_user_id);
+
+
+--
+-- Name: idx_revenue_price_scenarios_promoter_id; Type: INDEX; Schema: revenue; Owner: -
+--
+
+CREATE INDEX idx_revenue_price_scenarios_promoter_id ON revenue.price_scenarios USING btree (promoter_id);
+
+
+--
+-- Name: idx_revenue_sales_stream_event_id; Type: INDEX; Schema: revenue; Owner: -
+--
+
+CREATE INDEX idx_revenue_sales_stream_event_id ON revenue.sales_stream USING btree (event_id);
 
 
 --
@@ -24197,13 +24844,6 @@ CREATE INDEX idx_rfid_wristbands_event ON rfid.rfid_wristbands USING btree (even
 
 
 --
--- Name: idx_rfid_wristbands_uid; Type: INDEX; Schema: rfid; Owner: -
---
-
-CREATE INDEX idx_rfid_wristbands_uid ON rfid.rfid_wristbands USING btree (uid);
-
-
---
 -- Name: device_fingerprints_fingerprint_hash_created_at_idx; Type: INDEX; Schema: risk; Owner: -
 --
 
@@ -24222,13 +24862,6 @@ CREATE INDEX device_fingerprints_ip_hash_created_at_idx ON risk.device_fingerpri
 --
 
 CREATE INDEX device_fingerprints_user_id_created_at_idx ON risk.device_fingerprints USING btree (user_id, created_at);
-
-
---
--- Name: idx_fraud_cases_order; Type: INDEX; Schema: risk; Owner: -
---
-
-CREATE INDEX idx_fraud_cases_order ON risk.fraud_cases USING btree (order_id);
 
 
 --
@@ -24257,6 +24890,13 @@ CREATE INDEX idx_fraud_cases_user ON risk.fraud_cases USING btree (user_id, crea
 --
 
 CREATE INDEX idx_fraud_reviews_case ON risk.fraud_reviews USING btree (case_id, created_at);
+
+
+--
+-- Name: idx_scanner_sync_metadata_event_id; Type: INDEX; Schema: scanner; Owner: -
+--
+
+CREATE INDEX idx_scanner_sync_metadata_event_id ON scanner.sync_metadata USING btree (event_id);
 
 
 --
@@ -24624,6 +25264,48 @@ CREATE INDEX idx_subs_user ON subscriptions.subscriptions USING btree (user_id, 
 
 
 --
+-- Name: idx_subscriptions_holders_order_id; Type: INDEX; Schema: subscriptions; Owner: -
+--
+
+CREATE INDEX idx_subscriptions_holders_order_id ON subscriptions.holders USING btree (order_id);
+
+
+--
+-- Name: idx_subscriptions_holders_preferred_seat_id; Type: INDEX; Schema: subscriptions; Owner: -
+--
+
+CREATE INDEX idx_subscriptions_holders_preferred_seat_id ON subscriptions.holders USING btree (preferred_seat_id);
+
+
+--
+-- Name: idx_subscriptions_packages_venue_id; Type: INDEX; Schema: subscriptions; Owner: -
+--
+
+CREATE INDEX idx_subscriptions_packages_venue_id ON subscriptions.packages USING btree (venue_id);
+
+
+--
+-- Name: idx_subscriptions_redemptions_redeemed_by_user; Type: INDEX; Schema: subscriptions; Owner: -
+--
+
+CREATE INDEX idx_subscriptions_redemptions_redeemed_by_user ON subscriptions.redemptions USING btree (redeemed_by_user);
+
+
+--
+-- Name: idx_subscriptions_redemptions_ticket_id; Type: INDEX; Schema: subscriptions; Owner: -
+--
+
+CREATE INDEX idx_subscriptions_redemptions_ticket_id ON subscriptions.redemptions USING btree (ticket_id);
+
+
+--
+-- Name: idx_subscriptions_subscriptions_plan_id; Type: INDEX; Schema: subscriptions; Owner: -
+--
+
+CREATE INDEX idx_subscriptions_subscriptions_plan_id ON subscriptions.subscriptions USING btree (plan_id);
+
+
+--
 -- Name: idx_chat_messages_session; Type: INDEX; Schema: support_chat; Owner: -
 --
 
@@ -24670,13 +25352,6 @@ CREATE INDEX idx_surveys_event ON surveys.surveys USING btree (event_id);
 --
 
 CREATE INDEX idx_surveys_promoter ON surveys.surveys USING btree (promoter_id);
-
-
---
--- Name: idx_sustainability_event; Type: INDEX; Schema: sustainability; Owner: -
---
-
-CREATE INDEX idx_sustainability_event ON sustainability.event_metrics USING btree (event_id);
 
 
 --
@@ -24834,13 +25509,6 @@ CREATE INDEX idx_scans_created_at ON tickets.scans USING btree (created_at);
 
 
 --
--- Name: idx_scans_ticket_scanned_at; Type: INDEX; Schema: tickets; Owner: -
---
-
-CREATE INDEX idx_scans_ticket_scanned_at ON tickets.scans USING btree (ticket_id, scanned_at);
-
-
---
 -- Name: idx_stream_token_log_active_viewers; Type: INDEX; Schema: tickets; Owner: -
 --
 
@@ -24890,10 +25558,59 @@ CREATE INDEX idx_ticket_modular_access_ticket ON tickets.ticket_modular_access U
 
 
 --
+-- Name: idx_tickets_access_tokens_extended_by_user_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_access_tokens_extended_by_user_id ON tickets.access_tokens USING btree (extended_by_user_id);
+
+
+--
+-- Name: idx_tickets_access_tokens_replaced_by_token_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_access_tokens_replaced_by_token_id ON tickets.access_tokens USING btree (replaced_by_token_id);
+
+
+--
+-- Name: idx_tickets_attendee_info_log_changed_by_user_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_attendee_info_log_changed_by_user_id ON tickets.attendee_info_log USING btree (changed_by_user_id);
+
+
+--
+-- Name: idx_tickets_attendee_info_updated_by_user_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_attendee_info_updated_by_user_id ON tickets.attendee_info USING btree (updated_by_user_id);
+
+
+--
 -- Name: idx_tickets_bound_phone; Type: INDEX; Schema: tickets; Owner: -
 --
 
 CREATE INDEX idx_tickets_bound_phone ON tickets.tickets USING btree (bound_phone_e164) WHERE (bound_phone_e164 IS NOT NULL);
+
+
+--
+-- Name: idx_tickets_cross_pass_redemptions_event_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_cross_pass_redemptions_event_id ON tickets.cross_pass_redemptions USING btree (event_id);
+
+
+--
+-- Name: idx_tickets_device_binding_log_bound_by_user_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_device_binding_log_bound_by_user_id ON tickets.device_binding_log USING btree (bound_by_user_id);
+
+
+--
+-- Name: idx_tickets_gift_transfer_log_transfer_log_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_gift_transfer_log_transfer_log_id ON tickets.gift_transfer_log USING btree (transfer_log_id);
 
 
 --
@@ -24904,10 +25621,24 @@ CREATE INDEX idx_tickets_holder_name ON tickets.tickets USING btree (holder_name
 
 
 --
+-- Name: idx_tickets_nfc_taps_scanned_by_user_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_nfc_taps_scanned_by_user_id ON tickets.nfc_taps USING btree (scanned_by_user_id);
+
+
+--
 -- Name: idx_tickets_order_status; Type: INDEX; Schema: tickets; Owner: -
 --
 
 CREATE INDEX idx_tickets_order_status ON tickets.tickets USING btree (order_id, status) WHERE (status = 'valid'::text);
+
+
+--
+-- Name: idx_tickets_pass_updates_log_changed_by_user_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_pass_updates_log_changed_by_user_id ON tickets.pass_updates_log USING btree (changed_by_user_id);
 
 
 --
@@ -24946,6 +25677,90 @@ CREATE INDEX idx_tickets_scan_logs_ticket_id ON tickets.scan_logs USING btree (t
 
 
 --
+-- Name: idx_tickets_stream_token_log_user_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_stream_token_log_user_id ON tickets.stream_token_log USING btree (user_id);
+
+
+--
+-- Name: idx_tickets_ticket_changes_initiated_by_user_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_ticket_changes_initiated_by_user_id ON tickets.ticket_changes USING btree (initiated_by_user_id);
+
+
+--
+-- Name: idx_tickets_ticket_changes_new_event_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_ticket_changes_new_event_id ON tickets.ticket_changes USING btree (new_event_id);
+
+
+--
+-- Name: idx_tickets_ticket_changes_new_seat_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_ticket_changes_new_seat_id ON tickets.ticket_changes USING btree (new_seat_id);
+
+
+--
+-- Name: idx_tickets_ticket_changes_new_ticket_type_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_ticket_changes_new_ticket_type_id ON tickets.ticket_changes USING btree (new_ticket_type_id);
+
+
+--
+-- Name: idx_tickets_ticket_changes_old_event_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_ticket_changes_old_event_id ON tickets.ticket_changes USING btree (old_event_id);
+
+
+--
+-- Name: idx_tickets_ticket_changes_old_seat_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_ticket_changes_old_seat_id ON tickets.ticket_changes USING btree (old_seat_id);
+
+
+--
+-- Name: idx_tickets_ticket_changes_old_ticket_type_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_ticket_changes_old_ticket_type_id ON tickets.ticket_changes USING btree (old_ticket_type_id);
+
+
+--
+-- Name: idx_tickets_ticket_modular_access_zone_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_ticket_modular_access_zone_id ON tickets.ticket_modular_access USING btree (zone_id);
+
+
+--
+-- Name: idx_tickets_ticket_picks_event_day_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_ticket_picks_event_day_id ON tickets.ticket_picks USING btree (event_day_id);
+
+
+--
+-- Name: idx_tickets_ticket_redemptions_scanned_by_user_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_ticket_redemptions_scanned_by_user_id ON tickets.ticket_redemptions USING btree (scanned_by_user_id);
+
+
+--
+-- Name: idx_tickets_ticket_redemptions_zone_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_ticket_redemptions_zone_id ON tickets.ticket_redemptions USING btree (zone_id);
+
+
+--
 -- Name: idx_tickets_ticket_transfers_created_at; Type: INDEX; Schema: tickets; Owner: -
 --
 
@@ -24978,6 +25793,13 @@ CREATE INDEX idx_tickets_ticket_transfers_to_user_id ON tickets.ticket_transfers
 --
 
 CREATE INDEX idx_tickets_tickets_created_at ON tickets.tickets USING btree (created_at DESC);
+
+
+--
+-- Name: idx_tickets_tickets_event_seat_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_tickets_event_seat_id ON tickets.tickets USING btree (event_seat_id);
 
 
 --
@@ -25027,6 +25849,48 @@ CREATE INDEX idx_tickets_tickets_ticket_type_id ON tickets.tickets USING btree (
 --
 
 CREATE INDEX idx_tickets_tickets_valid ON tickets.tickets USING btree (owner_id) WHERE (status = 'valid'::text);
+
+
+--
+-- Name: idx_tickets_transfer_invitations_from_user_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_transfer_invitations_from_user_id ON tickets.transfer_invitations USING btree (from_user_id);
+
+
+--
+-- Name: idx_tickets_transfer_invitations_to_user_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_transfer_invitations_to_user_id ON tickets.transfer_invitations USING btree (to_user_id);
+
+
+--
+-- Name: idx_tickets_wallet_passes_user_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_wallet_passes_user_id ON tickets.wallet_passes USING btree (user_id);
+
+
+--
+-- Name: idx_tickets_wallet_push_jobs_ticket_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_wallet_push_jobs_ticket_id ON tickets.wallet_push_jobs USING btree (ticket_id);
+
+
+--
+-- Name: idx_tickets_wristband_transactions_performed_by_user_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_wristband_transactions_performed_by_user_id ON tickets.wristband_transactions USING btree (performed_by_user_id);
+
+
+--
+-- Name: idx_tickets_wristbands_bound_by_user_id; Type: INDEX; Schema: tickets; Owner: -
+--
+
+CREATE INDEX idx_tickets_wristbands_bound_by_user_id ON tickets.wristbands USING btree (bound_by_user_id);
 
 
 --
@@ -25149,17 +26013,17 @@ CREATE INDEX idx_series_events_series ON tours.series_events USING btree (series
 
 
 --
--- Name: idx_series_metrics_series; Type: INDEX; Schema: tours; Owner: -
---
-
-CREATE INDEX idx_series_metrics_series ON tours.series_metrics USING btree (series_id);
-
-
---
 -- Name: idx_series_promoter; Type: INDEX; Schema: tours; Owner: -
 --
 
 CREATE INDEX idx_series_promoter ON tours.series USING btree (promoter_id);
+
+
+--
+-- Name: idx_tours_shared_seat_maps_series_id; Type: INDEX; Schema: tours; Owner: -
+--
+
+CREATE INDEX idx_tours_shared_seat_maps_series_id ON tours.shared_seat_maps USING btree (series_id);
 
 
 --
@@ -25212,17 +26076,17 @@ CREATE INDEX idx_turnstile_passages_ticket ON turnstiles.turnstile_passages USIN
 
 
 --
+-- Name: idx_turnstiles_capacity_counters_event_id; Type: INDEX; Schema: turnstiles; Owner: -
+--
+
+CREATE INDEX idx_turnstiles_capacity_counters_event_id ON turnstiles.capacity_counters USING btree (event_id);
+
+
+--
 -- Name: idx_batch_checks_event; Type: INDEX; Schema: validation; Owner: -
 --
 
 CREATE INDEX idx_batch_checks_event ON validation.batch_checks USING btree (event_id);
-
-
---
--- Name: idx_event_entry_modes_event; Type: INDEX; Schema: validation; Owner: -
---
-
-CREATE INDEX idx_event_entry_modes_event ON validation.event_entry_modes USING btree (event_id);
 
 
 --
@@ -25317,13 +26181,6 @@ CREATE INDEX idx_entry_bookings_qr ON venues.entry_bookings USING btree (qr_toke
 
 
 --
--- Name: idx_entry_bookings_ref; Type: INDEX; Schema: venues; Owner: -
---
-
-CREATE INDEX idx_entry_bookings_ref ON venues.entry_bookings USING btree (booking_ref);
-
-
---
 -- Name: idx_entry_bookings_slot; Type: INDEX; Schema: venues; Owner: -
 --
 
@@ -25387,13 +26244,6 @@ CREATE INDEX idx_escape_rooms_venue_id ON venues.escape_rooms USING btree (venue
 
 
 --
--- Name: idx_game_results_escape_booking_id; Type: INDEX; Schema: venues; Owner: -
---
-
-CREATE INDEX idx_game_results_escape_booking_id ON venues.game_results USING btree (escape_booking_id);
-
-
---
 -- Name: idx_leaderboard_room_time; Type: INDEX; Schema: venues; Owner: -
 --
 
@@ -25443,13 +26293,6 @@ CREATE INDEX idx_rfid_cards_resort_status ON venues.rfid_cards USING btree (reso
 
 
 --
--- Name: idx_rfid_cards_uid; Type: INDEX; Schema: venues; Owner: -
---
-
-CREATE INDEX idx_rfid_cards_uid ON venues.rfid_cards USING btree (card_uid);
-
-
---
 -- Name: idx_spa_rfid_card_id; Type: INDEX; Schema: venues; Owner: -
 --
 
@@ -25485,10 +26328,59 @@ CREATE INDEX idx_venue_zones_venue ON venues.venue_zones USING btree (venue_id);
 
 
 --
+-- Name: idx_venues_daily_capacity_ticket_type_id; Type: INDEX; Schema: venues; Owner: -
+--
+
+CREATE INDEX idx_venues_daily_capacity_ticket_type_id ON venues.daily_capacity USING btree (ticket_type_id);
+
+
+--
 -- Name: idx_venues_entry_bookings_promoter; Type: INDEX; Schema: venues; Owner: -
 --
 
 CREATE INDEX idx_venues_entry_bookings_promoter ON venues.entry_bookings USING btree (promoter_id);
+
+
+--
+-- Name: idx_venues_guest_passes_club_id; Type: INDEX; Schema: venues; Owner: -
+--
+
+CREATE INDEX idx_venues_guest_passes_club_id ON venues.guest_passes USING btree (club_id);
+
+
+--
+-- Name: idx_venues_lift_scans_rfid_card_id; Type: INDEX; Schema: venues; Owner: -
+--
+
+CREATE INDEX idx_venues_lift_scans_rfid_card_id ON venues.lift_scans USING btree (rfid_card_id);
+
+
+--
+-- Name: idx_venues_ski_pass_activations_pass_type_id; Type: INDEX; Schema: venues; Owner: -
+--
+
+CREATE INDEX idx_venues_ski_pass_activations_pass_type_id ON venues.ski_pass_activations USING btree (pass_type_id);
+
+
+--
+-- Name: idx_venues_ski_school_sessions_resort_id; Type: INDEX; Schema: venues; Owner: -
+--
+
+CREATE INDEX idx_venues_ski_school_sessions_resort_id ON venues.ski_school_sessions USING btree (resort_id);
+
+
+--
+-- Name: idx_venues_wellness_bookings_ticket_type_id; Type: INDEX; Schema: venues; Owner: -
+--
+
+CREATE INDEX idx_venues_wellness_bookings_ticket_type_id ON venues.wellness_bookings USING btree (ticket_type_id);
+
+
+--
+-- Name: idx_venues_zone_access_zone_id; Type: INDEX; Schema: venues; Owner: -
+--
+
+CREATE INDEX idx_venues_zone_access_zone_id ON venues.zone_access USING btree (zone_id);
 
 
 --
@@ -25538,13 +26430,6 @@ CREATE INDEX idx_vf_registrations_fifo ON verified_fan.registrations USING btree
 --
 
 CREATE INDEX idx_vf_registrations_points ON verified_fan.registrations USING btree (event_id, points_at_registration DESC) WHERE (status = 'pending'::text);
-
-
---
--- Name: idx_vf_registrations_user_event; Type: INDEX; Schema: verified_fan; Owner: -
---
-
-CREATE INDEX idx_vf_registrations_user_event ON verified_fan.registrations USING btree (user_id, event_id);
 
 
 --
@@ -37774,5 +38659,5 @@ ALTER DEFAULT PRIVILEGES FOR ROLE tixly IN SCHEMA waiting_room GRANT SELECT,INSE
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 21wX0dw1H3JzTNREbBswR5be9dfiZINJU0gtwWjjPDYOU6JpK1XwaZRUz633bmJ
+\unrestrict w2cr9mgRbP81085wFoQHrakxtANTBYi5AVtLwh88CZiQsUH9V8DSo4kII4oPi0m
 
