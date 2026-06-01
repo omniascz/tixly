@@ -133,6 +133,20 @@ for (const d of [
 // Cílené file-listy (bespoke skupiny) → service config, jen vyjmenované soubory.
 // Bezpečnější než service fallback v doméně (neslužbí omylem user-scoped routes).
 const FILE_LISTS = {
+  // events-public: čistě veřejné GET routes (čtení published akcí). Žádný wrapper —
+  // běží v anon kontextu, RLS public-published policy vrátí správné řádky.
+  // Transformace = jen výměna lokálního `new Pool()` za sdílené `db()` z rls-pool.
+  'events-public': {
+    cfg: [{ noWrap: true }],
+    files: [
+      'events/[id]/addons', 'events/[id]/bundles', 'events/[id]/calendar',
+      'events/[id]/entry-slots', 'events/[id]/lotteries', 'events/[id]/modular-pass',
+      'events/[id]/payment-plans', 'events/[id]/recommendations', 'events/[id]/reviews',
+      'events/[id]/seat-view-photos', 'events/[id]/seats', 'events/[id]/seats/stream',
+      'events/[id]/ticket-types', 'events/[id]/top-picks',
+      'events/featured', 'events/nearby',
+    ],
+  },
   'buyer-service': {
     cfg: WRAP.internal,
     files: [
@@ -197,6 +211,7 @@ for (const file of walk(ROOT)) {
   for (let i = handlers.length - 1; i >= 0; i--) {
     const h = handlers[i];
     const cfg = handlerCfgs[i];
+    if (cfg.noWrap) continue; // jen pool swap, žádné obalení handleru (anon kontext)
     const reqName = h[2];
     const bodyStart = h.index + h[0].length - 1;
     const bodyEnd = matchBrace(src, bodyStart);
@@ -225,7 +240,7 @@ for (const file of walk(ROOT)) {
   const byModule = new Map();
   const addImp = (name, mod) => { if (!byModule.has(mod)) byModule.set(mod, new Set()); byModule.get(mod).add(name); };
   if (!usedCfgs.some((c) => c.ownDb)) addImp('db', '@/lib/db/rls-pool');
-  for (const c of usedCfgs) { const m = c.imp.match(/import \{ (.+) \} from '(.+)';/); if (m) m[1].split(',').forEach((n) => addImp(n.trim(), m[2])); }
+  for (const c of usedCfgs) { if (!c.imp) continue; const m = c.imp.match(/import \{ (.+) \} from '(.+)';/); if (m) m[1].split(',').forEach((n) => addImp(n.trim(), m[2])); }
   let importLine = '';
   for (const [mod, names] of byModule) importLine += `import { ${[...names].join(', ')} } from '${mod}';${nl}`;
   if (/\bPool\b/.test(src)) importLine += `import type { Pool } from 'pg';${nl}`;

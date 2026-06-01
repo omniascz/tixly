@@ -3,17 +3,14 @@
  * POST /api/events/[id]/hospitality — body { packageId, companyName, ... } → vytvoří inquiry
  *
  * Inquiry je first-touch — promotér ji manually potvrdí, vystaví fakturu mimo platformu.
+ *
+ * RLS: GET běží anon (public-published packages); POST v service kontextu —
+ * veřejný B2B inquiry zápis na cizí event (jako guest write).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 export async function GET(
   _req: NextRequest,
@@ -65,50 +62,52 @@ export async function POST(
     );
   }
 
-  const pkg = await db().query<{
-    id: string;
-    price_minor: number;
-    currency: string;
-    remaining_qty: number;
-  }>(
-    `SELECT id, price_minor, currency, remaining_qty
-     FROM catalog.hospitality_packages
-     WHERE id = $1 AND event_id = $2 AND active = true`,
-    [parsed.data.packageId, params.id],
-  );
-  if (pkg.rows.length === 0) {
-    return NextResponse.json({ error: 'PACKAGE_NOT_AVAILABLE' }, { status: 404 });
-  }
-  if (pkg.rows[0].remaining_qty < parsed.data.quantity) {
-    return NextResponse.json(
-      { error: 'INSUFFICIENT_REMAINING', available: pkg.rows[0].remaining_qty },
-      { status: 409 },
+  return runWithServiceContext(async () => {
+    const pkg = await db().query<{
+      id: string;
+      price_minor: number;
+      currency: string;
+      remaining_qty: number;
+    }>(
+      `SELECT id, price_minor, currency, remaining_qty
+       FROM catalog.hospitality_packages
+       WHERE id = $1 AND event_id = $2 AND active = true`,
+      [parsed.data.packageId, params.id],
     );
-  }
+    if (pkg.rows.length === 0) {
+      return NextResponse.json({ error: 'PACKAGE_NOT_AVAILABLE' }, { status: 404 });
+    }
+    if (pkg.rows[0].remaining_qty < parsed.data.quantity) {
+      return NextResponse.json(
+        { error: 'INSUFFICIENT_REMAINING', available: pkg.rows[0].remaining_qty },
+        { status: 409 },
+      );
+    }
 
-  const totalAmount = pkg.rows[0].price_minor * parsed.data.quantity;
+    const totalAmount = pkg.rows[0].price_minor * parsed.data.quantity;
 
-  const r = await db().query<{ id: string }>(
-    `INSERT INTO orders.hospitality_inquiries
-       (package_id, company_name, company_vat_id, contact_name, contact_email,
-        contact_phone, quantity, notes, total_amount_minor, currency)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-     RETURNING id`,
-    [
-      parsed.data.packageId,
-      parsed.data.companyName,
-      parsed.data.companyVatId ?? null,
-      parsed.data.contactName,
-      parsed.data.contactEmail.toLowerCase(),
-      parsed.data.contactPhone ?? null,
-      parsed.data.quantity,
-      parsed.data.notes ?? null,
-      totalAmount,
-      pkg.rows[0].currency,
-    ],
-  );
-  return NextResponse.json(
-    { id: r.rows[0].id, totalAmount, currency: pkg.rows[0].currency },
-    { status: 201 },
-  );
+    const r = await db().query<{ id: string }>(
+      `INSERT INTO orders.hospitality_inquiries
+         (package_id, company_name, company_vat_id, contact_name, contact_email,
+          contact_phone, quantity, notes, total_amount_minor, currency)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING id`,
+      [
+        parsed.data.packageId,
+        parsed.data.companyName,
+        parsed.data.companyVatId ?? null,
+        parsed.data.contactName,
+        parsed.data.contactEmail.toLowerCase(),
+        parsed.data.contactPhone ?? null,
+        parsed.data.quantity,
+        parsed.data.notes ?? null,
+        totalAmount,
+        pkg.rows[0].currency,
+      ],
+    );
+    return NextResponse.json(
+      { id: r.rows[0].id, totalAmount, currency: pkg.rows[0].currency },
+      { status: 201 },
+    );
+  });
 }
