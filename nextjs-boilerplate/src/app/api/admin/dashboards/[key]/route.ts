@@ -4,15 +4,10 @@
  * Custom dashboard layout per user. Layout = react-grid-layout format.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const layoutSchema = z.object({
   widgets: z.array(z.object({
@@ -29,9 +24,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { key: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const r = await db().query<{ layout_data: { widgets: unknown[] } }>(
     `SELECT layout_data FROM platform.dashboard_layouts
       WHERE user_id = $1 AND dashboard_key = $2`,
@@ -60,15 +53,15 @@ export async function GET(
     layout: defaults[params.key] ?? { widgets: [] },
     isCustom: false,
   });
+
+  });
 }
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: { key: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = layoutSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'INVALID_BODY' }, { status: 422 });
@@ -82,4 +75,6 @@ export async function PUT(
   );
 
   return NextResponse.json({ ok: true });
+
+  });
 }

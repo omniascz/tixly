@@ -6,14 +6,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface VenueRow {
   id: string;
@@ -24,9 +19,7 @@ interface VenueRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (_promoter) => {
   // Skrýt 'Online / TBD' placeholdery vytvořené dřívějšími sessions promoter UI —
   // promotér je nepotřebuje vidět v dropdownu, vznikly jen jako vedlejší produkt
   // tvorby online eventů. Master katalog reálných sálů je v /platform/venues.
@@ -40,4 +33,6 @@ export async function GET(req: NextRequest): Promise<Response> {
      LIMIT 500`,
   );
   return NextResponse.json({ venues: r.rows });
+
+  });
 }

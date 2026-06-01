@@ -5,19 +5,12 @@
  * cross-promo distribuce). Plnit Promoted Ads ML dashboard.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   // Promoter's campaigns participating in last 7 days
   const r = await db().query<{
     campaign_id: string;
@@ -82,5 +75,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       avg_participants: s.avg_participants ? Number(s.avg_participants) : null,
       avg_charged_halire: s.avg_charged_halire ? Math.round(Number(s.avg_charged_halire)) : null,
     })),
+  });
+
   });
 }

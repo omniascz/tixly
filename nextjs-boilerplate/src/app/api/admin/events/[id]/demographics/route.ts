@@ -9,21 +9,15 @@
  * Privacy: jen aggregated counts, žádné individual identifiers.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  return runAsPromoter(req, async (promoter) => {
   const { id: eventId } = await params;
 
   // Ownership
@@ -105,5 +99,7 @@ export async function GET(
       country: g.country_code, city: g.city, count: Number(g.count),
     })),
     privacy_note: 'Aggregated data only. Individual buyer info skryto. K-anonymity threshold: 5.',
+  });
+
   });
 }

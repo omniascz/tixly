@@ -6,15 +6,11 @@
  * je out-of-scope pro MVP, viz /api/admin/uploads/cover-image template).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
+import type { Pool } from 'pg';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const upsertSchema = z.object({
   photos: z
@@ -47,9 +43,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const client = await db().connect();
   try {
     await client.query('BEGIN');
@@ -106,15 +100,15 @@ export async function GET(
   } finally {
     client.release();
   }
+
+  });
 }
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = upsertSchema.safeParse(body);
   if (!parsed.success) {
@@ -184,4 +178,6 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }

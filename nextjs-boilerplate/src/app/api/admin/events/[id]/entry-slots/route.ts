@@ -14,15 +14,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const generateSchema = z.object({
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -50,8 +45,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return runAsPromoter(req, async (promoter) => {
   if (!(await ownsEvent(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
   }
@@ -64,14 +58,15 @@ export async function GET(
     [params.id],
   );
   return NextResponse.json({ eventId: params.id, slots: r.rows });
+
+  });
 }
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return runAsPromoter(req, async (promoter) => {
   if (!(await ownsEvent(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
   }
@@ -157,4 +152,6 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }

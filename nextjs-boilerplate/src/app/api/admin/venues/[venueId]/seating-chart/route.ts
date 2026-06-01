@@ -5,22 +5,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { venueId: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (_promoter) => {
   const r = await db().query<{
     id: string;
     name: string;
@@ -34,6 +27,8 @@ export async function GET(
   );
   if (r.rows.length === 0) return NextResponse.json({ chart: null });
   return NextResponse.json({ chart: r.rows[0] });
+
+  });
 }
 
 export async function POST(): Promise<Response> {

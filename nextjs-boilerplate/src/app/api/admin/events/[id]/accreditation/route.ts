@@ -7,14 +7,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 async function ownsEvent(eventId: string, promoterId: string): Promise<boolean> {
   if (!/^[0-9a-f-]{36}$/i.test(eventId)) return false;
@@ -30,8 +25,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return runAsPromoter(req, async (promoter) => {
   if (!(await ownsEvent(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
   }
@@ -68,5 +62,7 @@ export async function GET(
     eventId: params.id,
     requests: r.rows,
     counts: Object.fromEntries(counts.rows.map((c) => [c.status, Number(c.count)])),
+  });
+
   });
 }

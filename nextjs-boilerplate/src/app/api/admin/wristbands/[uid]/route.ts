@@ -7,14 +7,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface WristbandRow {
   uid: string;
@@ -45,9 +40,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { uid: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const r = await db().query<WristbandRow>(
     `SELECT w.uid, w.ticket_id, w.balance_halire, w.active, w.bound_at,
             w.blocked_at, w.block_reason,
@@ -105,5 +98,7 @@ export async function GET(
       description: t.description,
       performedAt: t.performed_at,
     })),
+  });
+
   });
 }

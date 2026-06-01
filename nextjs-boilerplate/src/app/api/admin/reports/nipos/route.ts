@@ -10,19 +10,14 @@
  * (volitelně ?promoterId=).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 import {
   summaryToCsv,
   type NiposReportRow,
   type NiposReportSummary,
 } from '@/lib/reporting/nipos';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 function parseDate(s: string | null, fallback: Date): Date {
   if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return fallback;
@@ -43,9 +38,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const now = new Date();
   const quarterStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
   const periodStart = parseDate(req.nextUrl.searchParams.get('from'), quarterStart);
@@ -164,4 +157,6 @@ export async function GET(req: NextRequest): Promise<Response> {
   } finally {
     client.release();
   }
+
+  });
 }

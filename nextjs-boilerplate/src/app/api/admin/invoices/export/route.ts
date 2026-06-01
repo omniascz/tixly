@@ -6,14 +6,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 function csvEscape(v: unknown): string {
   if (v === null || v === undefined) return '';
@@ -23,9 +18,7 @@ function csvEscape(v: unknown): string {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const url = req.nextUrl;
   const from = url.searchParams.get('from') ?? new Date().toISOString().slice(0, 8) + '01';
   const to = url.searchParams.get('to') ?? new Date().toISOString().slice(0, 10);
@@ -93,5 +86,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       'Content-Type': 'text/csv; charset=utf-8',
       'Content-Disposition': `attachment; filename="tixly-invoices-${from}-to-${to}.csv"`,
     },
+  });
+
   });
 }

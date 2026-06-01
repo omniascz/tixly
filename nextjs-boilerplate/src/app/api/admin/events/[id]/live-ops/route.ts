@@ -12,22 +12,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   // Ownership check
   const owns = await db().query<{ title: string; date_start: string; queue_enabled: boolean; currency: string }>(
     `SELECT title, date_start, queue_enabled, currency FROM catalog.events
@@ -156,5 +149,7 @@ export async function GET(
       soldQty: i.total_qty !== null && i.remaining_qty !== null ? i.total_qty - i.remaining_qty : null,
     })),
     timestamp: new Date().toISOString(),
+  });
+
   });
 }

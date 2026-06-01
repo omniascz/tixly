@@ -13,14 +13,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 function csvEscape(v: unknown): string {
   if (v === null || v === undefined) return '';
@@ -33,9 +28,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const owns = await db().query<{ title: string; currency: string }>(
     `SELECT title, currency FROM catalog.events
      WHERE id = $1 AND promoter_id = $2`,
@@ -229,5 +222,7 @@ export async function GET(
       count: Number(d.count),
       revenueHalire: Number(d.revenue),
     })),
+  });
+
   });
 }

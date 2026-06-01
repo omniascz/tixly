@@ -11,15 +11,10 @@
  * Body: { action: 'approve' | 'reject', notes? }
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   action: z.enum(['approve', 'reject']),
@@ -30,9 +25,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { changeId: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'INVALID_BODY' }, { status: 422 });
@@ -164,4 +157,6 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }

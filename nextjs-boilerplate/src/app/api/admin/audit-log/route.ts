@@ -10,14 +10,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface LogRow {
   id: string;
@@ -36,9 +31,7 @@ interface LogRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const url = req.nextUrl;
   const action = url.searchParams.get('action');
   const table = url.searchParams.get('table');
@@ -169,5 +162,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     filters: {
       tables: meta.rows.map((m) => ({ name: m.table_name, count: Number(m.cnt) })),
     },
+  });
+
   });
 }

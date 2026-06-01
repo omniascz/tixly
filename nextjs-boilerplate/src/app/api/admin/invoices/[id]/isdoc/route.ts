@@ -7,23 +7,16 @@
  * Auth: požaduje promoter session co vlastní fakturu.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 import { buildIsdocXml, IsdocInvoiceData } from '@/lib/accounting/isdoc';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
     return NextResponse.json({ error: 'INVALID_ID' }, { status: 400 });
@@ -148,5 +141,7 @@ export async function GET(
       'Content-Type': 'application/isdoc; charset=utf-8',
       'Content-Disposition': `attachment; filename="${inv.invoice_number}.isdoc"`,
     },
+  });
+
   });
 }

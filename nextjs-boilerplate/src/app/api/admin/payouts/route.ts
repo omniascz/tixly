@@ -7,16 +7,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 
 const PLATFORM_FEE_BPS = 500; // 5.00 %
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface PayoutRow {
   id: string;
@@ -38,9 +33,7 @@ interface BucketRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   // 1) Skutečné výplaty
   const real = await db().query<PayoutRow>(
     `SELECT id, period_from, period_to, gross_revenue, platform_fees,
@@ -171,5 +164,7 @@ export async function GET(req: NextRequest): Promise<Response> {
           paidAt: null,
         };
       }),
+  });
+
   });
 }

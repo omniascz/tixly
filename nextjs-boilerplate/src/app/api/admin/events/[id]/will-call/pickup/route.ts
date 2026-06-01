@@ -5,15 +5,10 @@
  * Body: { orderId, pickedUpById? }
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   orderId: z.string().uuid(),
@@ -24,8 +19,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  return runAsPromoter(req, async (promoter) => {
   const { id: eventId } = await params;
 
   const body: unknown = await req.json().catch(() => ({}));
@@ -59,4 +53,6 @@ export async function POST(
     }, { status: 404 });
   }
   return NextResponse.json({ ok: true, pickedUpAt: new Date().toISOString() });
+
+  });
 }
