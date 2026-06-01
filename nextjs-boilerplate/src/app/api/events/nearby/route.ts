@@ -44,16 +44,16 @@ export async function GET(req: NextRequest): Promise<Response> {
     // Haversine approximation in SQL (km)
     distanceSelect = `
       (6371 * acos(
-        cos(radians($1)) * cos(radians(v.latitude)) *
-        cos(radians(v.longitude) - radians($2)) +
-        sin(radians($1)) * sin(radians(v.latitude))
+        cos(radians($1)) * cos(radians(v.gps_lat)) *
+        cos(radians(v.gps_lng) - radians($2)) +
+        sin(radians($1)) * sin(radians(v.gps_lat))
       )) AS distance_km`;
     whereClause += `
-      AND v.latitude IS NOT NULL AND v.longitude IS NOT NULL
+      AND v.gps_lat IS NOT NULL AND v.gps_lng IS NOT NULL
       AND (6371 * acos(
-        cos(radians($1)) * cos(radians(v.latitude)) *
-        cos(radians(v.longitude) - radians($2)) +
-        sin(radians($1)) * sin(radians(v.latitude))
+        cos(radians($1)) * cos(radians(v.gps_lat)) *
+        cos(radians(v.gps_lng) - radians($2)) +
+        sin(radians($1)) * sin(radians(v.gps_lat))
       )) <= $3`;
     orderClause = `distance_km ASC, e.date_start ASC`;
   } else if (city) {
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const r = await db().query<Row>(
     `SELECT
        e.id, e.title, e.slug, e.date_start::text,
-       v.city, v.name AS venue_name, v.latitude AS lat, v.longitude AS lng,
+       v.city, v.name AS venue_name, v.gps_lat AS lat, v.gps_lng AS lng,
        e.event_type, e.cover_image_url AS cover_image,
        p.name AS promoter_name,
        (SELECT MIN(tt.base_price)

@@ -100,8 +100,10 @@ export async function GET(req: NextRequest): Promise<Response> {
          AND o.paid_at > NOW() - INTERVAL '90 days'
      ),
      follows AS (
-       SELECT promoter_id FROM marketing.newsletter_subscribers
-       WHERE user_id = $1 AND status = 'confirmed' AND promoter_id IS NOT NULL
+       -- newsletter_subscribers nemá user_id (jen email) → match přes email
+       SELECT ns.promoter_id FROM marketing.newsletter_subscribers ns
+       JOIN identity.users u ON LOWER(u.email) = LOWER(ns.email)
+       WHERE u.id = $1 AND ns.status = 'confirmed' AND ns.promoter_id IS NOT NULL
      )
      SELECT
        COALESCE(ARRAY_AGG(DISTINCT bought.event_type) FILTER (WHERE bought.event_type IS NOT NULL), '{}') AS bought_types,

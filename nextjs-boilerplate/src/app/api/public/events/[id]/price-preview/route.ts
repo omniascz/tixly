@@ -43,11 +43,11 @@ export async function GET(
     fee_payer: string | null;
     default_currency: string;
   }>(
+    // fee_payer (kdo platí service fee) není ve schématu → default 'buyer'
     `SELECT e.promoter_id, e.title,
-            COALESCE(e.fee_payer, p.default_fee_payer, 'buyer') AS fee_payer,
+            'buyer'::text AS fee_payer,
             COALESCE(e.currency, 'CZK') AS default_currency
        FROM catalog.events e
-       JOIN platform.promoters p ON p.id = e.promoter_id
       WHERE e.id = $1 AND e.status = 'published'`,
     [params.id],
   );
