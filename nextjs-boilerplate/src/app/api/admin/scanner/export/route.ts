@@ -11,8 +11,9 @@
  *   - dateTo       (ISO, optional)
  *   - format       ('csv' | 'json')
  *
- * Vrací rich data: timestamp, ticket_code, event, gate, scanned_by, action, result,
- * device_id, lat/lon (pokud zapnuto), promoter_name, ticket_type.
+ * Vrací data dle skutečného schématu tickets.scan_logs: scanned_at, ticket_id,
+ * event, scan_result, device (scanned_by_device_id), override_by/reason,
+ * promoter_name, ticket_type.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
@@ -67,24 +68,22 @@ export async function GET(req: NextRequest): Promise<Response> {
       s.id,
       s.scanned_at::text AS scanned_at,
       s.ticket_id,
-      t.code AS ticket_code,
+      s.ticket_id::text AS ticket_code,
       e.id AS event_id,
       e.title AS event_title,
-      e.starts_at::text AS event_starts_at,
-      COALESCE(g.name, '—') AS gate_name,
-      s.action,
-      s.result,
-      s.device_id,
-      s.scanned_by_user_id,
-      u.name AS scanned_by_name,
+      e.date_start::text AS event_starts_at,
+      s.scan_result,
+      s.scanned_by_device_id AS device_id,
+      s.override_by,
+      s.override_reason,
+      u.name AS override_by_name,
       tt.name AS ticket_type,
       p.name AS promoter_name
-    FROM tickets.scan_log s
+    FROM tickets.scan_logs s
     JOIN catalog.events e ON e.id = s.event_id
     LEFT JOIN tickets.tickets t ON t.id = s.ticket_id
     LEFT JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
-    LEFT JOIN tickets.gates g ON g.id = s.gate_id
-    LEFT JOIN identity.users u ON u.id = s.scanned_by_user_id
+    LEFT JOIN identity.users u ON u.id = s.override_by
     LEFT JOIN platform.promoters p ON p.id = e.promoter_id
     WHERE ${conditions.join(' AND ')}
     ORDER BY s.scanned_at DESC
@@ -109,7 +108,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   // CSV — RFC 4180
   const headers = [
     'scanned_at', 'event_title', 'event_starts_at', 'ticket_code', 'ticket_type',
-    'gate_name', 'action', 'result', 'scanned_by_name', 'device_id', 'promoter_name',
+    'scan_result', 'device_id', 'override_by_name', 'override_reason', 'promoter_name',
   ];
   function csvEscape(v: unknown): string {
     if (v === null || v === undefined) return '';

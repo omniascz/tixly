@@ -76,7 +76,7 @@ export async function GET(
        JOIN identity.users u ON u.id = o.user_id
        LEFT JOIN orders.order_items oi ON oi.order_id = o.id
        LEFT JOIN catalog.ticket_types tt ON tt.id = oi.ticket_type_id
-       LEFT JOIN catalog.promo_codes pc ON pc.id = o.promo_code_id
+       LEFT JOIN marketing.promo_codes pc ON pc.id = o.promo_code_id
        WHERE o.event_id = $1
        ORDER BY o.created_at DESC`,
       [params.id],
