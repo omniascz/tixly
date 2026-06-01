@@ -8,14 +8,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 
 const patchSchema = z.object({
   name: z.string().min(1).max(120).optional(),
@@ -23,9 +18,7 @@ const patchSchema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const userRes = await db().query<{
     id: string;
     email: string;
@@ -113,12 +106,11 @@ export async function GET(req: NextRequest): Promise<Response> {
         }
       : null,
   });
+  });
 }
 
 export async function PATCH(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
@@ -145,4 +137,5 @@ export async function PATCH(req: NextRequest): Promise<Response> {
     args,
   );
   return NextResponse.json({ success: true });
+  });
 }

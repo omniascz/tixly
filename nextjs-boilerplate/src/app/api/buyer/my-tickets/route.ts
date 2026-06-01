@@ -10,13 +10,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 
 interface TicketRow {
   id: string;
@@ -41,10 +36,8 @@ interface TicketRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-  const r = await db().query<TicketRow>(
+  return runAsUser(req, async (userId) => {
+    const r = await db().query<TicketRow>(
     `SELECT t.id, t.status, t.used_at, t.revoked_at, t.original_price,
             o.id AS order_id, o.status AS order_status, o.currency AS order_currency,
             e.id AS event_id, e.title AS event_title, e.date_start AS event_date,
@@ -65,8 +58,9 @@ export async function GET(req: NextRequest): Promise<Response> {
      WHERE t.owner_id = $1
      ORDER BY e.date_start DESC
      LIMIT 200`,
-    [userId],
-  );
+      [userId],
+    );
 
-  return NextResponse.json({ tickets: r.rows });
+    return NextResponse.json({ tickets: r.rows });
+  });
 }
