@@ -11,15 +11,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface MemberRow {
   user_id: string;
@@ -31,9 +26,7 @@ interface MemberRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const r = await db().query<MemberRow>(
     `SELECT m.user_id, u.email, u.name, m.role, m.status, m.created_at
      FROM platform.promoter_members m
@@ -59,6 +52,8 @@ export async function GET(req: NextRequest): Promise<Response> {
       createdAt: m.created_at,
     })),
   });
+
+  });
 }
 
 const inviteSchema = z.object({
@@ -67,10 +62,7 @@ const inviteSchema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  return runAsActivePromoter(req, async (promoter) => {
   if (promoter.role !== 'owner') {
     return NextResponse.json(
       { error: 'OWNER_ONLY', message: 'Jen owner může pozvat členy.' },
@@ -129,4 +121,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   );
 
   return NextResponse.json({ ok: true, userId: targetUserId, role: input.role }, { status: 201 });
+
+  });
 }

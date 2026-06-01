@@ -13,15 +13,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsActivePromoter, runAsPromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.discriminatedUnion('action', [
   z.object({
@@ -66,11 +61,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { orderId: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
@@ -291,15 +282,15 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { orderId: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   // Ownership check
   const owns = await db().query(
     `SELECT 1 FROM orders.orders o
@@ -329,4 +320,6 @@ export async function GET(
     [params.orderId],
   );
   return NextResponse.json({ actions: r.rows });
+
+  });
 }

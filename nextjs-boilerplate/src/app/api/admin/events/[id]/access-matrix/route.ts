@@ -10,15 +10,10 @@
  * to umí jen při vytvoření, tento endpoint dokrývá post-create úpravy.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const ACCESS_LEVELS = ['general', 'premium', 'vip', 'backstage', 'accessibility'] as const;
 
@@ -49,8 +44,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return runAsPromoter(req, async (promoter) => {
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }
@@ -119,16 +113,15 @@ export async function GET(
   } finally {
     client.release();
   }
+
+  });
 }
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  return runAsActivePromoter(req, async (promoter) => {
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }
@@ -191,4 +184,6 @@ export async function PUT(
   } finally {
     client.release();
   }
+
+  });
 }

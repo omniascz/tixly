@@ -9,16 +9,11 @@
  */
 
 import { randomBytes } from 'crypto';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 // No 0/O, 1/I/l, no curse-prone substrings
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -42,9 +37,7 @@ const createSchema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const r = await db().query(
     `SELECT id, code, event_id, amount_halire, balance_halire, currency,
             issued_to_email, expires_at, fully_used_at, created_at
@@ -56,14 +49,12 @@ export async function GET(req: NextRequest): Promise<Response> {
   );
 
   return NextResponse.json({ vouchers: r.rows });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
@@ -121,4 +112,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   return NextResponse.json({ ok: true, codes });
+
+  });
 }

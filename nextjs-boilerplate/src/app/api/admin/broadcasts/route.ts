@@ -11,15 +11,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const createSchema = z.object({
   eventId: z.string().uuid(),
@@ -30,9 +25,7 @@ const createSchema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const eventId = req.nextUrl.searchParams.get('eventId');
   const args: unknown[] = [promoter.promoterId];
   let where = `b.promoter_id = $1`;
@@ -80,14 +73,12 @@ export async function GET(req: NextRequest): Promise<Response> {
       completedAt: row.completed_at,
     })),
   });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
@@ -233,5 +224,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     success: true,
     broadcastId,
     recipientsCount: recipients.length,
+  });
+
   });
 }

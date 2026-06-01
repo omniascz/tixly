@@ -11,15 +11,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const TEMPLATE_TYPES = ['order_confirmation', 'refund', 'daily_stats'] as const;
 
@@ -48,9 +43,7 @@ interface TemplateRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const r = await db().query<TemplateRow>(
     `SELECT id, template_type, subject, body_html, active, updated_at
      FROM platform.email_templates
@@ -82,6 +75,8 @@ export async function GET(req: NextRequest): Promise<Response> {
     };
   });
   return NextResponse.json({ templates: result });
+
+  });
 }
 
 const upsertSchema = z.object({
@@ -92,10 +87,7 @@ const upsertSchema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  return runAsActivePromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = upsertSchema.safeParse(body);
   if (!parsed.success) {
@@ -118,4 +110,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     [promoter.promoterId, input.type, input.subject, input.bodyHtml, input.active],
   );
   return NextResponse.json({ id: r.rows[0].id, type: input.type });
+
+  });
 }

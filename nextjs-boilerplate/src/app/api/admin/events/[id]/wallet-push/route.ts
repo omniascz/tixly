@@ -10,15 +10,10 @@
  * Cron processor (samostatný skript) pak čte queue a posílá přes APNs.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsActivePromoter, runAsPromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   reason: z.enum(['seat_changed', 'gate_changed', 'cancelled', 'venue_changed', 'reminder']),
@@ -30,11 +25,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (promoter) => {
   const { id: eventId } = await params;
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
@@ -86,14 +77,15 @@ export async function POST(
     reason: parsed.data.reason,
     scheduledFor: scheduleAt,
   }, { status: 201 });
+
+  });
 }
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  return runAsPromoter(req, async (_promoter) => {
   const { id: eventId } = await params;
 
   const r = await db().query<{
@@ -116,4 +108,6 @@ export async function GET(
   );
 
   return NextResponse.json({ jobs: r.rows });
+
+  });
 }

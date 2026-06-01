@@ -7,9 +7,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 import {
   runAiGate,
   TRUST_THRESHOLD_PUBLISHED_EVENTS,
@@ -17,11 +17,6 @@ import {
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 import { copyLayoutToEventSeats } from '@/lib/seats/copy-layout-to-event-seats';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface EventRow {
   id: string;
@@ -32,11 +27,7 @@ interface EventRow {
 }
 
 export async function GET(request: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(request);
-  if (!promoter) {
-    return NextResponse.json({ error: 'Not a promoter member' }, { status: 403 });
-  }
-
+  return runAsPromoter(request, async (promoter) => {
   // Pro každou akci najdeme nejnovější moderation log entry s decision='rejected',
   // pokud je akce v stavu rejected — promotér potřebuje vědět DŮVOD.
   const query = `
@@ -65,6 +56,8 @@ export async function GET(request: NextRequest): Promise<Response> {
       rejectionReason: row.rejection_reason,
     })),
   );
+
+  });
 }
 
 // Access spec — který den (index) a která zóna (název) tato vstupenka pokrývá.
@@ -210,10 +203,7 @@ const createSchema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  return runAsPromoter(req, async (promoter) => {
   if (promoter.status !== 'active') {
     return NextResponse.json(
       {
@@ -550,4 +540,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   } finally {
     client.release();
   }
+
+  });
 }

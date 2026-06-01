@@ -6,14 +6,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface Row {
   id: string;
@@ -28,11 +23,7 @@ interface Row {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsPromoter(req, async (promoter) => {
   const url = req.nextUrl;
   const unread = url.searchParams.get('unread') === '1';
   const kind = url.searchParams.get('kind');
@@ -78,13 +69,12 @@ export async function GET(req: NextRequest): Promise<Response> {
     })),
     unreadCount: Number(unreadCount.rows[0]?.c ?? 0),
   });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  return runAsPromoter(req, async (promoter) => {
   const body = (await req.json().catch(() => ({}))) as { action?: string };
   if (body.action !== 'mark-all-read') {
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
@@ -100,4 +90,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     [promoter.promoterId],
   );
   return NextResponse.json({ marked: Number(r.rows[0]?.count ?? 0) });
+
+  });
 }

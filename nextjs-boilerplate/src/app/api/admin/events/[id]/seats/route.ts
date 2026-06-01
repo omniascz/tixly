@@ -15,15 +15,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const postSchema = z.object({
   eventDayId: z.string().uuid().nullable().optional(),
@@ -58,9 +53,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const owns = await db().query(
     `SELECT 1 FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
     [params.id, promoter.promoterId],
@@ -89,17 +82,15 @@ export async function GET(
         (summary.blocked ?? 0),
     },
   });
+
+  });
 }
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) {
@@ -246,16 +237,15 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  return runAsActivePromoter(req, async (promoter) => {
   const owns = await db().query(
     `SELECT 1 FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
     [params.id, promoter.promoterId],
@@ -278,4 +268,6 @@ export async function DELETE(
   }
   const r = await db().query(`DELETE FROM catalog.event_seats WHERE event_id = $1`, [params.id]);
   return NextResponse.json({ ok: true, deleted: r.rowCount });
+
+  });
 }

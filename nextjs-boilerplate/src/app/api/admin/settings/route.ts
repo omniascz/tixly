@@ -6,15 +6,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface SettingsRow {
   promoter_id: string;
@@ -37,9 +32,7 @@ interface SettingsRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const r = await db().query<SettingsRow>(
     `SELECT
        p.id AS promoter_id, p.name AS promoter_name, p.email AS promoter_email,
@@ -93,6 +86,8 @@ export async function GET(req: NextRequest): Promise<Response> {
       allowCustomerSelfRefund: s.allow_customer_self_refund,
     },
   });
+
+  });
 }
 
 const patchSchema = z.object({
@@ -121,11 +116,7 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
@@ -239,4 +230,6 @@ export async function PATCH(req: NextRequest): Promise<Response> {
   } finally {
     client.release();
   }
+
+  });
 }

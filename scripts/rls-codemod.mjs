@@ -37,10 +37,17 @@ const WRAP = {
   ],
   admin: [
     {
-      // jednoduchý: if (!promoter) return 401;
+      // jednoduchý single-line: if (!promoter) return 401;
       fn: 'runAsPromoter',
       imp: "import { runAsPromoter } from '@/lib/admin-auth';",
       preamble: (req) => new RegExp(`^\\s*const (\\w+) = await requirePromoter\\(${req}\\);\\s*\\r?\\n\\s*if \\(!\\w+\\) return [^\\n]*40[13][^\\n]*;\\s*\\r?\\n`),
+      removeImport: REQUIRE_PROMOTER_IMPORT,
+    },
+    {
+      // blok: if (!promoter) { return ...; }
+      fn: 'runAsPromoter',
+      imp: "import { runAsPromoter } from '@/lib/admin-auth';",
+      preamble: (req) => new RegExp(`^\\s*const (\\w+) = await requirePromoter\\(${req}\\);\\s*\\r?\\n\\s*if \\(!\\1\\) \\{\\s*\\r?\\n\\s*return [\\s\\S]*?;\\s*\\r?\\n\\s*\\}\\s*\\r?\\n`),
       removeImport: REQUIRE_PROMOTER_IMPORT,
     },
     {
@@ -126,20 +133,21 @@ for (const file of walk(ROOT)) {
   const handlers = [...src.matchAll(handlerRe)];
   if (handlers.length === 0) { skips.push(`${rel} — žádný handler`); skipped++; continue; }
 
-  // vyber variantu, jejíž preamble matchuje VŠECHNY handlery
+  // PER-HANDLER výběr varianty (soubor může mít GET-simple + POST-active apod.)
   const bodyOf = (h) => src.slice(h.index + h[0].length, matchBrace(src, h.index + h[0].length - 1));
-  const cfg = variants.find((v) => handlers.every((h) => (v.preamble ? v.preamble(h[2]).test(bodyOf(h)) : true)));
-  if (!cfg) { skips.push(`${rel} — handler bez známé preamble`); skipped++; continue; }
+  const handlerCfgs = handlers.map((h) => variants.find((v) => (v.preamble ? v.preamble(h[2]).test(bodyOf(h)) : true)));
+  if (handlerCfgs.some((c) => !c)) { skips.push(`${rel} — handler bez známé preamble`); skipped++; continue; }
 
-  // transformace od konce
-  for (const h of [...handlers].reverse()) {
+  // transformace od konce (ať indexy sedí)
+  for (let i = handlers.length - 1; i >= 0; i--) {
+    const h = handlers[i];
+    const cfg = handlerCfgs[i];
     const reqName = h[2];
     const bodyStart = h.index + h[0].length - 1;
     const bodyEnd = matchBrace(src, bodyStart);
     let body = src.slice(bodyStart + 1, bodyEnd);
     let head;
     if (!cfg.preamble) {
-      // wrap-whole-body (service): bez req argumentu, bez odstranění preamble
       head = `${cfg.fn}(async () => {`;
     } else {
       const uvar = body.match(cfg.preamble(reqName))[1];
@@ -147,20 +155,25 @@ for (const file of walk(ROOT)) {
       const param = new RegExp(`\\b${uvar}\\b`).test(body) ? uvar : `_${uvar}`;
       head = `${cfg.fn}(${reqName}, async (${param}) => {`;
     }
-    const wrapped = `\n  return ${head}\n${body}\n  });\n`;
-    src = src.slice(0, bodyStart + 1) + wrapped + src.slice(bodyEnd);
+    src = src.slice(0, bodyStart + 1) + `\n  return ${head}\n${body}\n  });\n` + src.slice(bodyEnd);
   }
 
   // importy + pool swap (CRLF-tolerantní)
-  if (cfg.removeImport) src = src.replace(cfg.removeImport, '');
+  const usedCfgs = [...new Set(handlerCfgs)];
+  for (const c of usedCfgs) if (c.removeImport) src = src.replace(c.removeImport, '');
   src = src.replace(/import \{ Pool \} from 'pg';\r?\n/, '');
   src = src.replace(/let pool: Pool \| null = null;[\s\S]*?return pool;[\s\S]*?\}\r?\n/, '');
   src = src.replace(/const pool = new Pool\(\{ connectionString: process\.env\.DATABASE_URL \}\);\r?\n/, '');
   src = src.replace(/\bpool\.query\b/g, 'db().query');
   const nl = src.includes('\r\n') ? '\r\n' : '\n';
-  const poolTypeImport = /\bPool\b/.test(src) ? `import type { Pool } from 'pg';${nl}` : '';
-  const dbImport = cfg.ownDb ? '' : `import { db } from '@/lib/db/rls-pool';${nl}`;
-  const importLine = `${dbImport}${cfg.imp}${nl}${poolTypeImport}`;
+  // sluč importy podle modulu (dedup názvů)
+  const byModule = new Map();
+  const addImp = (name, mod) => { if (!byModule.has(mod)) byModule.set(mod, new Set()); byModule.get(mod).add(name); };
+  if (!usedCfgs.some((c) => c.ownDb)) addImp('db', '@/lib/db/rls-pool');
+  for (const c of usedCfgs) { const m = c.imp.match(/import \{ (.+) \} from '(.+)';/); if (m) m[1].split(',').forEach((n) => addImp(n.trim(), m[2])); }
+  let importLine = '';
+  for (const [mod, names] of byModule) importLine += `import { ${[...names].join(', ')} } from '${mod}';${nl}`;
+  if (/\bPool\b/.test(src)) importLine += `import type { Pool } from 'pg';${nl}`;
   src = src.replace(/^(import [^\n]*\n)/m, `$1${importLine}`);
 
   if (src !== orig) {

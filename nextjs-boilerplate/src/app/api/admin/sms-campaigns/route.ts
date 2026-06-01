@@ -10,17 +10,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
+import type { Pool } from 'pg';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 import { sendSms } from '@/lib/sms/bulkgate-mock';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface CampaignRow {
   id: string;
@@ -37,9 +33,7 @@ interface CampaignRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const r = await db().query<CampaignRow>(
     `SELECT id, name, message_text, status, scheduled_at, sent_at,
             recipients_count, delivered_count, failed_count,
@@ -65,6 +59,8 @@ export async function GET(req: NextRequest): Promise<Response> {
       createdAt: row.created_at,
     })),
   });
+
+  });
 }
 
 const createSchema = z.object({
@@ -81,11 +77,7 @@ interface RecipientRow {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (promoter) => {
   const rl = checkRateLimit(`${promoter.promoterId}:sms-campaign`, {
     limit: 5,
     windowMs: 60_000,
@@ -154,7 +146,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         text: input.messageText,
         promoterId: promoter.promoterId,
       },
-      db(),
+      db() as unknown as Pool,
     );
     if (send.ok) delivered += 1;
     else failed += 1;
@@ -173,5 +165,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     recipientsCount: recipientsRes.rows.length,
     deliveredCount: delivered,
     failedCount: failed,
+  });
+
   });
 }

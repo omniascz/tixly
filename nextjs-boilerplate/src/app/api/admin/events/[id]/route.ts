@@ -11,17 +11,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 import { runAiGate, TRUST_THRESHOLD_PUBLISHED_EVENTS } from '@/lib/moderation/ai-gate';
 import { notifyFollowers } from '@/lib/push/notify-followers';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface EventDetailRow {
   id: string;
@@ -74,8 +69,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return runAsPromoter(req, async (promoter) => {
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }
@@ -122,16 +116,15 @@ export async function GET(
     qrPolicy: e.qr_policy,
     vatCategory: e.vat_category,
   });
+
+  });
 }
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  return runAsActivePromoter(req, async (promoter) => {
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }
@@ -279,4 +272,6 @@ export async function PATCH(
   } finally {
     client.release();
   }
+
+  });
 }

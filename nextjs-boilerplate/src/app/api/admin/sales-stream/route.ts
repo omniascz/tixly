@@ -15,16 +15,11 @@
  * Vercel Edge function timeout: 30 min. Klient by měl reconnect při disconnect.
  */
 import { NextRequest } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const POLL_INTERVAL_MS = 3000;
 const MAX_STREAM_DURATION_MS = 25 * 60 * 1000; // 25 min — pod Vercel limit
@@ -42,10 +37,7 @@ interface SaleEvent {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) {
-    return new Response('Unauthorized', { status: 401 });
-  }
+  return runAsPromoter(req, async (promoter) => {
   const promoterId = promoter.promoterId;
 
   // Cursor: largest sales_stream.id sent so far
@@ -179,5 +171,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       Connection: 'keep-alive',
       'X-Accel-Buffering': 'no',
     },
+  });
+
   });
 }

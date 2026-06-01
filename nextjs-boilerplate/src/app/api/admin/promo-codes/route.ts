@@ -7,16 +7,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface PromoCodeRow {
   id: string;
@@ -32,9 +27,7 @@ interface PromoCodeRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const r = await db().query<PromoCodeRow>(
     `SELECT id, code, type, discount_value, max_uses, uses_count,
             valid_from, valid_until, active, created_at
@@ -58,6 +51,8 @@ export async function GET(req: NextRequest): Promise<Response> {
       createdAt: row.created_at,
     })),
   });
+
+  });
 }
 
 const createSchema = z.object({
@@ -74,11 +69,7 @@ const createSchema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (promoter) => {
   const rl = checkRateLimit(`${promoter.promoterId}:promo-create`, {
     limit: 30,
     windowMs: 60_000,
@@ -134,4 +125,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     console.error('[POST /api/admin/promo-codes]', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+
+  });
 }
