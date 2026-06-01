@@ -28,8 +28,6 @@ type Entry = {
   level: 'general' | 'premium' | 'vip' | 'backstage' | 'accessibility';
 };
 
-const LEVELS = ['general', 'premium', 'vip', 'backstage', 'accessibility'] as const;
-
 export default function AccessMatrixPage(): JSX.Element {
   const params = useParams<{ id: string }>();
   const eventId = params?.id ?? '';

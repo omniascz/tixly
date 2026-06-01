@@ -10,7 +10,7 @@
  * na DPP server). Production by místo toho registroval pass přes DPP API.
  */
 
-import { createHmac, randomBytes } from 'crypto';
+import { createHmac } from 'crypto';
 
 export interface IssueTransitPassInput {
   orderId: string;
