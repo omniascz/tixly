@@ -51,6 +51,22 @@ const WRAP = {
       removeImport: REQUIRE_PROMOTER_IMPORT,
     },
   ],
+  platform: [
+    {
+      // blok: if (!admin) { return ...; }
+      fn: 'runAsPlatformAdmin',
+      imp: "import { runAsPlatformAdmin } from '@/lib/platform-auth';",
+      preamble: (req) => new RegExp(`^\\s*const (\\w+) = await requirePlatformAdmin\\(${req}\\);\\s*\\r?\\n\\s*if \\(!\\1\\) \\{\\s*\\r?\\n\\s*return [\\s\\S]*?;\\s*\\r?\\n\\s*\\}\\s*\\r?\\n`),
+      removeImport: /import \{ requirePlatformAdmin \} from '@\/lib\/platform-auth';\r?\n/,
+    },
+    {
+      // single-line: if (!admin) return ...;
+      fn: 'runAsPlatformAdmin',
+      imp: "import { runAsPlatformAdmin } from '@/lib/platform-auth';",
+      preamble: (req) => new RegExp(`^\\s*const (\\w+) = await requirePlatformAdmin\\(${req}\\);\\s*\\r?\\n\\s*if \\(!\\w+\\) return [^\\n]*40[13][^\\n]*;\\s*\\r?\\n`),
+      removeImport: /import \{ requirePlatformAdmin \} from '@\/lib\/platform-auth';\r?\n/,
+    },
+  ],
 };
 const variants = WRAP[DOMAIN];
 if (!variants) { console.error(`Nepodporovaná doména: ${DOMAIN}`); process.exit(1); }
@@ -105,7 +121,9 @@ for (const file of walk(ROOT)) {
     const m = body.match(cfg.preamble(reqName));
     const uvar = m[1];
     body = body.replace(cfg.preamble(reqName), '');
-    const wrapped = `\n  return ${cfg.fn}(${reqName}, async (${uvar}) => {\n${body}\n  });\n`;
+    // pokud tělo proměnnou nepoužívá (jen auth gate), prefixni _ ať tsc nepadá na TS6133
+    const param = new RegExp(`\\b${uvar}\\b`).test(body) ? uvar : `_${uvar}`;
+    const wrapped = `\n  return ${cfg.fn}(${reqName}, async (${param}) => {\n${body}\n  });\n`;
     src = src.slice(0, bodyStart + 1) + wrapped + src.slice(bodyEnd);
   }
 

@@ -10,14 +10,9 @@
  * Auth: master admin only.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPlatformAdmin } from '@/lib/platform-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface LayoutSeat {
   num: string;
@@ -90,9 +85,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (_admin) => {
   const chartRes = await db().query<{ id: string; name: string; layout: Layout }>(
     `SELECT id, name, layout FROM catalog.venue_seating_charts
      WHERE venue_id = $1 AND active = TRUE
@@ -189,4 +182,6 @@ export async function POST(
   };
 
   return NextResponse.json(result);
+
+  });
 }

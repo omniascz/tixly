@@ -11,21 +11,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPlatformAdmin } from '@/lib/platform-auth';
 import { z } from 'zod';
 import { logAction, extractRequestContext } from '@/lib/audit/log';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
 import {
   parseCsv, parseJson, parseSvg, detectFormat,
   type ParseResult,
 } from '@/lib/seating/import-parsers';
 import { parseSmsTicketSvg, applySectorRenames } from '@/lib/seating/smsticket-parser';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const bodySchema = z.object({
   format: z.enum(['csv', 'svg', 'json', 'smsticket', 'auto']).default('auto'),
@@ -84,9 +79,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (admin) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
@@ -227,4 +220,6 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }

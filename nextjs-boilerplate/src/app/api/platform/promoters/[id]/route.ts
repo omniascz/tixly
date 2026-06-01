@@ -7,23 +7,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPlatformAdmin } from '@/lib/platform-auth';
 import { z } from 'zod';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (_admin) => {
   const detailRes = await db().query<{
     id: string; name: string; slug: string | null;
     email: string; contact_email: string | null;
@@ -115,6 +108,8 @@ export async function GET(
     documents: documents.rows,
     feeSchedules: feeRes.rows,
   });
+
+  });
 }
 
 const patchSchema = z.object({
@@ -137,9 +132,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (admin) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
@@ -249,4 +242,6 @@ export async function PATCH(
   } finally {
     client.release();
   }
+
+  });
 }

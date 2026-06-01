@@ -11,21 +11,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPlatformAdmin } from '@/lib/platform-auth';
 import { z } from 'zod';
 import { logAction, extractRequestContext } from '@/lib/audit/log';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
 import {
   renumberRows, renameSector, splitSectorBySpatial, flattenSector, setStage,
   suggestSplit, analyzeForSuggestions,
   type Layout,
 } from '@/lib/seating/transforms';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const opSchema = z.discriminatedUnion('op', [
   z.object({
@@ -90,9 +85,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (_admin) => {
   const chart = await loadActive(params.id);
   if (!chart) return NextResponse.json({ chart: null, suggestions: [] });
 
@@ -130,15 +123,15 @@ export async function GET(
     suggestions,
     splitDetails,
   });
+
+  });
 }
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (admin) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
@@ -257,4 +250,6 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }

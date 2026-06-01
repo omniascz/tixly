@@ -6,15 +6,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPlatformAdmin } from '@/lib/platform-auth';
 import { z } from 'zod';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const CreateSchema = z.object({
   title: z.string().min(3).max(200),
@@ -26,9 +21,7 @@ const CreateSchema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (_admin) => {
   const r = await db().query(
     `SELECT id, title, description, status, severity, affected_services,
             is_public, started_at, resolved_at, created_at, updated_at
@@ -37,12 +30,12 @@ export async function GET(req: NextRequest): Promise<Response> {
      LIMIT 200`,
   );
   return NextResponse.json({ items: r.rows });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (admin) => {
   const body: unknown = await req.json().catch(() => null);
   const parsed = CreateSchema.safeParse(body);
   if (!parsed.success) {
@@ -70,4 +63,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     ],
   );
   return NextResponse.json({ id: r.rows[0].id }, { status: 201 });
+
+  });
 }

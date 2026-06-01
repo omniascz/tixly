@@ -6,14 +6,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPlatformAdmin } from '@/lib/platform-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface WebhookRow {
   id: string;
@@ -31,9 +26,7 @@ interface WebhookRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (_admin) => {
   const url = new URL(req.url);
   const orderId = url.searchParams.get('orderId');
   const eventType = url.searchParams.get('eventType');
@@ -92,5 +85,7 @@ export async function GET(req: NextRequest): Promise<Response> {
         eventTitle: row.event_title,
       },
     })),
+  });
+
   });
 }

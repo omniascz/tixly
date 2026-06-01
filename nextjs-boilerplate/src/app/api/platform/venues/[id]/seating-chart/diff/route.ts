@@ -5,15 +5,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPlatformAdmin } from '@/lib/platform-auth';
 import { diffLayouts } from '@/lib/seating/diff';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface ChartLayout {
   viewBox: string;
@@ -24,9 +19,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (_admin) => {
   const fromId = req.nextUrl.searchParams.get('from');
   const toId = req.nextUrl.searchParams.get('to');
   if (!fromId || !toId) {
@@ -52,5 +45,7 @@ export async function GET(
     from: { id: fromRow.id, name: fromRow.name, createdAt: fromRow.created_at },
     to: { id: toRow.id, name: toRow.name, createdAt: toRow.created_at },
     diff: result,
+  });
+
   });
 }

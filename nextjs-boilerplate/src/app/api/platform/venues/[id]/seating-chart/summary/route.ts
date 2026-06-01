@@ -9,14 +9,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPlatformAdmin } from '@/lib/platform-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface ChartLayout {
   viewBox: string;
@@ -27,9 +22,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (_admin) => {
   const r = await db().query<{ id: string; name: string; layout: ChartLayout; total_seats: number; created_at: string }>(
     `SELECT id, name, layout, total_seats, created_at FROM catalog.venue_seating_charts
       WHERE venue_id = $1 AND active = true
@@ -58,4 +51,6 @@ export async function GET(
     },
     { headers },
   );
+
+  });
 }

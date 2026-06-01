@@ -5,16 +5,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPlatformAdmin } from '@/lib/platform-auth';
 import { z } from 'zod';
 import { logAction, extractRequestContext } from '@/lib/audit/log';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const VENUE_TYPES = [
   'venue', 'stadium', 'arena', 'cinema_hall', 'theatre_hall', 'club',
@@ -55,9 +50,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (_admin) => {
   const r = await db().query<Record<string, unknown>>(
     `SELECT v.id, v.name, v.venue_type, v.city, v.country, v.address, v.capacity,
             v.gps_lat, v.gps_lng, v.photo_url, v.floor_plan_url, v.description,
@@ -79,15 +72,15 @@ export async function GET(
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
   return NextResponse.json({ venue: r.rows[0] });
+
+  });
 }
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (admin) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
@@ -134,15 +127,15 @@ export async function PATCH(
   });
 
   return NextResponse.json({ id: r.rows[0].id });
+
+  });
 }
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (admin) => {
   const usage = await db().query<{ upcoming: number }>(
     `SELECT COUNT(*)::int AS upcoming FROM catalog.events
       WHERE venue_id = $1 AND date_start > NOW() AND status <> 'archived'`,
@@ -181,4 +174,6 @@ export async function DELETE(
   });
 
   return NextResponse.json({ id: r.rows[0].id, archived: true });
+
+  });
 }

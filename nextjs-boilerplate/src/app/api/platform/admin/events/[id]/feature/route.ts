@@ -8,15 +8,10 @@
  * Body DELETE: žádné
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPlatformAdmin } from '@/lib/platform-auth';
 import { z } from 'zod';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const featureSchema = z.object({
   order: z.number().int().min(0).max(1000).optional(),
@@ -28,10 +23,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) {
-    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-  }
+  return runAsPlatformAdmin(req, async (admin) => {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
     return NextResponse.json({ error: 'INVALID_ID' }, { status: 400 });
@@ -61,16 +53,15 @@ export async function POST(
   }
 
   return NextResponse.json({ ok: true, id: r.rows[0].id });
+
+  });
 }
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) {
-    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-  }
+  return runAsPlatformAdmin(req, async (_admin) => {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
     return NextResponse.json({ error: 'INVALID_ID' }, { status: 400 });
@@ -89,4 +80,6 @@ export async function DELETE(
   );
 
   return NextResponse.json({ ok: true });
+
+  });
 }

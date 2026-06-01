@@ -4,16 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPlatformAdmin } from '@/lib/platform-auth';
 import { z } from 'zod';
 import { logAction, extractRequestContext } from '@/lib/audit/log';
-import { requirePlatformAdmin } from '@/lib/platform-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const VENUE_TYPES = [
   'venue', 'stadium', 'arena', 'cinema_hall', 'theatre_hall', 'club',
@@ -36,9 +31,7 @@ const createSchema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (_admin) => {
   const url = req.nextUrl;
   const status = url.searchParams.get('status');
   const search = url.searchParams.get('q');
@@ -102,12 +95,12 @@ export async function GET(req: NextRequest): Promise<Response> {
     args,
   );
   return NextResponse.json({ venues: r.rows });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const admin = await requirePlatformAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  return runAsPlatformAdmin(req, async (admin) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
@@ -153,4 +146,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   });
 
   return NextResponse.json({ id: r.rows[0].id }, { status: 201 });
+
+  });
 }
