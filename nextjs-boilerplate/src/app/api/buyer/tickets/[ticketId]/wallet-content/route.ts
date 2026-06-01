@@ -5,18 +5,15 @@
  * Filtruje podle publish_at/expires_at + TM "3 days before event" rule.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: { ticketId: string } },
 ): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const r = await db().query<{
     module_type: string;
     title: string;
@@ -38,4 +35,6 @@ export async function GET(
   );
 
   return NextResponse.json({ modules: r.rows });
+
+  });
 }

@@ -10,15 +10,10 @@
  * CZ priority #3 (FR/UK/IT audit, ROI 7/10).
  */
 import { createHash, randomBytes } from 'crypto';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   phone: z.string().regex(/^\+[1-9]\d{8,14}$/),
@@ -31,6 +26,8 @@ function hashCode(code: string): string {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
@@ -126,4 +123,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   } finally {
     client.release();
   }
+
+  });
 }

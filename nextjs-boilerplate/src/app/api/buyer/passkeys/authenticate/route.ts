@@ -8,15 +8,10 @@
  * verification proti uloženému public_key.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { z } from 'zod';
 import { createChallenge, consumeChallenge } from '@/lib/webauthn/challenges';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const verifySchema = z.object({
   challengeId: z.string().uuid(),
@@ -28,6 +23,8 @@ const verifySchema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   // Discoverable credential flow — user nemusí dát email, authenticator nabídne credentials.
   const emailParam = new URL(req.url).searchParams.get('email');
   let userId: string | null = null;
@@ -67,9 +64,13 @@ export async function GET(req: NextRequest): Promise<Response> {
       timeout: 60_000,
     },
   });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = verifySchema.safeParse(body);
   if (!parsed.success) {
@@ -101,5 +102,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     userId: cred.rows[0].user_id,
     counter: Number(cred.rows[0].counter),
     note: 'SKELETON — assertion signature není verifikována. Pro produkci přidej @simplewebauthn/server.',
+  });
+
   });
 }

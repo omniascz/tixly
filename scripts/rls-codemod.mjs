@@ -130,10 +130,26 @@ for (const d of [
 ]) {
   WRAP[d] = WRAP.internal;
 }
-const variants = WRAP[DOMAIN];
+// Cílené file-listy (bespoke skupiny) → service config, jen vyjmenované soubory.
+// Bezpečnější než service fallback v doméně (neslužbí omylem user-scoped routes).
+const FILE_LISTS = {
+  'buyer-service': {
+    cfg: WRAP.internal,
+    files: [
+      'buyer/vouchers/lookup', 'buyer/otp/request', 'buyer/otp/verify',
+      'buyer/passkeys/authenticate', 'buyer/tickets/[ticketId]/wallet-content',
+      'buyer/spotify/callback', 'buyer/modular-pass/checkout',
+    ],
+  },
+};
+const variants = FILE_LISTS[DOMAIN] ? FILE_LISTS[DOMAIN].cfg : WRAP[DOMAIN];
 if (!variants) { console.error(`Nepodporovaná doména: ${DOMAIN}`); process.exit(1); }
 
-const ROOT = join(process.cwd(), 'nextjs-boilerplate', 'src', 'app', 'api', DOMAIN);
+const API_ROOT = join(process.cwd(), 'nextjs-boilerplate', 'src', 'app', 'api');
+const ROOT = FILE_LISTS[DOMAIN] ? API_ROOT : join(API_ROOT, DOMAIN);
+const FILE_FILTER = FILE_LISTS[DOMAIN]
+  ? FILE_LISTS[DOMAIN].files.map((f) => join(API_ROOT, ...f.split('/'), 'route.ts'))
+  : null;
 
 function walk(dir, acc = []) {
   for (const e of readdirSync(dir)) {
@@ -157,6 +173,7 @@ let transformed = 0, skipped = 0;
 const skips = [];
 
 for (const file of walk(ROOT)) {
+  if (FILE_FILTER && !FILE_FILTER.includes(file)) continue;
   let src = readFileSync(file, 'utf8');
   const orig = src;
   const rel = file.split('api' + (process.platform === 'win32' ? '\\' : '/'))[1];

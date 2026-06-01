@@ -14,7 +14,7 @@
  *   9. Redirect /cs/discover?connected=1
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import {
   exchangeCodeForTokens,
   fetchMe,
@@ -22,11 +22,6 @@ import {
   getSpotifyConfig,
 } from '@/lib/spotify/oauth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 function appUrl(): string {
   return process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
@@ -39,6 +34,8 @@ function errorRedirect(reason: string): Response {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const code = req.nextUrl.searchParams.get('code');
   const state = req.nextUrl.searchParams.get('state');
   const oauthError = req.nextUrl.searchParams.get('error');
@@ -146,4 +143,6 @@ export async function GET(req: NextRequest): Promise<Response> {
   const url = new URL('/cs/discover', appUrl());
   url.searchParams.set('connected', '1');
   return NextResponse.redirect(url, 303);
+
+  });
 }
