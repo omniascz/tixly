@@ -16,6 +16,7 @@
  */
 import type { NextRequest } from 'next/server';
 import { createHash } from 'node:crypto';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 export interface B2bAuthContext {
   keyId: string;
@@ -43,23 +44,23 @@ export async function verifyB2bToken(req: NextRequest): Promise<B2bAuthContext |
   // Hash token pro DB lookup (nikdy neukládáme plaintext)
   const tokenHash = createHash('sha256').update(token).digest('hex');
 
-  // DB lookup — graceful fallback pokud tabulka ještě neexistuje (migrace 274)
+  // DB lookup — bootstrap (ověření API klíče PŘED kontextem) → service kontext.
+  // Graceful fallback pokud tabulka ještě neexistuje (migrace 274).
   try {
-    const { Pool } = await import('pg');
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    const res = await pool.query<{
-      id: string;
-      promoter_id: string;
-      scope: string[];
-      revoked_at: string | null;
-    }>(
-      `SELECT id, promoter_id, scope, revoked_at
-         FROM b2b.api_keys
-        WHERE token_hash = $1 AND revoked_at IS NULL
-        LIMIT 1`,
-      [tokenHash],
+    const res = await runWithServiceContext(() =>
+      db().query<{
+        id: string;
+        promoter_id: string;
+        scope: string[];
+        revoked_at: string | null;
+      }>(
+        `SELECT id, promoter_id, scope, revoked_at
+           FROM b2b.api_keys
+          WHERE token_hash = $1 AND revoked_at IS NULL
+          LIMIT 1`,
+        [tokenHash],
+      ),
     );
-    await pool.end();
 
     if (res.rows.length === 0) return null;
     const row = res.rows[0]!;

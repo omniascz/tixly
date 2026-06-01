@@ -1,6 +1,5 @@
 import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify, JWTPayload } from 'jose';
-import { Pool } from 'pg';
 import { NextResponse, type NextRequest } from 'next/server';
 import { db as rlsDb, runWithUserContext, runWithServiceContext } from './db/rls-pool';
 
@@ -26,12 +25,6 @@ export interface AuthUser {
   id: string;
   email: string;
   name: string;
-}
-
-let pool: Pool | null = null;
-export function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
 }
 
 /**

@@ -7,7 +7,7 @@
  * (verifikace attestation + assertion signatures). Tady jen ukládáme/získáváme challenge.
  */
 import crypto from 'node:crypto';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 
 export interface ChallengeRow {
@@ -22,11 +22,14 @@ export async function createChallenge(
   challengeType: 'registration' | 'authentication',
 ): Promise<{ id: string; challenge: string }> {
   const challenge = crypto.randomBytes(32);
-  const r = await db().query<{ id: string }>(
-    `INSERT INTO identity.webauthn_challenges (user_id, challenge, challenge_type)
-     VALUES ($1, $2, $3)
-     RETURNING id`,
-    [userId, challenge, challengeType],
+  // Pre-auth challenge storage (běží před vznikem user kontextu) → service.
+  const r = await runWithServiceContext(() =>
+    db().query<{ id: string }>(
+      `INSERT INTO identity.webauthn_challenges (user_id, challenge, challenge_type)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+      [userId, challenge, challengeType],
+    ),
   );
   return {
     id: r.rows[0].id,
@@ -37,19 +40,23 @@ export async function createChallenge(
 export async function consumeChallenge(
   challengeId: string,
 ): Promise<ChallengeRow | null> {
-  const r = await db().query<ChallengeRow>(
-    `UPDATE identity.webauthn_challenges
-        SET consumed_at = now()
-      WHERE id = $1 AND consumed_at IS NULL AND expires_at > now()
-      RETURNING id, challenge, challenge_type, expires_at::text`,
-    [challengeId],
+  const r = await runWithServiceContext(() =>
+    db().query<ChallengeRow>(
+      `UPDATE identity.webauthn_challenges
+          SET consumed_at = now()
+        WHERE id = $1 AND consumed_at IS NULL AND expires_at > now()
+        RETURNING id, challenge, challenge_type, expires_at::text`,
+      [challengeId],
+    ),
   );
   return r.rows[0] ?? null;
 }
 
 export async function cleanupExpiredChallenges(): Promise<number> {
-  const r = await db().query(
-    `DELETE FROM identity.webauthn_challenges WHERE expires_at < now() - INTERVAL '1 hour'`,
+  const r = await runWithServiceContext(() =>
+    db().query(
+      `DELETE FROM identity.webauthn_challenges WHERE expires_at < now() - INTERVAL '1 hour'`,
+    ),
   );
   return r.rowCount ?? 0;
 }

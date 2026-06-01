@@ -7,7 +7,7 @@
  */
 
 import { createHash, randomBytes } from 'crypto';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import type { NextRequest } from 'next/server';
 
 
@@ -39,27 +39,30 @@ export async function requirePartner(req: NextRequest): Promise<PartnerContext |
   const token = match[1];
   const hash = hashToken(token);
 
-  const r = await db().query<{
-    partner_id: string;
-    token_id: string;
-    partner_name: string;
-    commission_pct: number;
-    status: string;
-  }>(
-    `SELECT p.id AS partner_id, t.id AS token_id, p.name AS partner_name,
-            p.commission_pct, p.status
-     FROM partner.partner_tokens t
-     JOIN partner.partners p ON p.id = t.partner_id
-     WHERE t.token_hash = $1 AND t.revoked_at IS NULL`,
-    [hash],
+  // Bootstrap: validace partner tokenu PŘED kontextem → service kontext.
+  const r = await runWithServiceContext(() =>
+    db().query<{
+      partner_id: string;
+      token_id: string;
+      partner_name: string;
+      commission_pct: number;
+      status: string;
+    }>(
+      `SELECT p.id AS partner_id, t.id AS token_id, p.name AS partner_name,
+              p.commission_pct, p.status
+       FROM partner.partner_tokens t
+       JOIN partner.partners p ON p.id = t.partner_id
+       WHERE t.token_hash = $1 AND t.revoked_at IS NULL`,
+      [hash],
+    ),
   );
   if (r.rows.length === 0) return null;
   const row = r.rows[0];
 
-  // Update last_used_at fire-and-forget
-  void db()
-    .query(`UPDATE partner.partner_tokens SET last_used_at = NOW() WHERE id = $1`, [row.token_id])
-    .catch(() => undefined);
+  // Update last_used_at fire-and-forget (service kontext)
+  void runWithServiceContext(() =>
+    db().query(`UPDATE partner.partner_tokens SET last_used_at = NOW() WHERE id = $1`, [row.token_id]),
+  ).catch(() => undefined);
 
   return {
     partnerId: row.partner_id,

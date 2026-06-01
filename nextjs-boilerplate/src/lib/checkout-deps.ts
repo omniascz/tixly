@@ -1,13 +1,15 @@
 /**
  * checkout-deps.ts — sdílený DB adaptér pro checkout orchestrátor.
  *
- * Singleton Pool přežije restartování Next.js route handlerů (hot-reload).
- * Stejný vzor jako gopay-payments/src/lib/service-container.ts.
+ * RLS Fáze 2: používá sdílené context-aware db() z rls-pool. Checkout routes
+ * běží v runWithServiceContext, takže query/connect přes tento adaptér zdědí
+ * service kontext (SET LOCAL app.role) z AsyncLocalStorage.
  *
  * Všechny částky jsou INTEGER haléře. Nikdy float.
  */
 
-import { Pool, type PoolClient } from 'pg';
+import type { PoolClient } from 'pg';
+import { db as rlsDb } from '@/lib/db/rls-pool';
 
 // ---------------------------------------------------------------------------
 // DbAdapter interface (opakování definice, aby se nemuselo cross-importovat)
@@ -17,22 +19,6 @@ export interface DbAdapter {
   query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T[]>;
   execute(sql: string, params?: unknown[]): Promise<void>;
   transaction<T>(fn: (tx: DbAdapter) => Promise<T>): Promise<T>;
-}
-
-// ---------------------------------------------------------------------------
-// Singleton pool
-// ---------------------------------------------------------------------------
-
-declare global {
-  // eslint-disable-next-line no-var
-  var _checkoutPool: Pool | undefined;
-}
-
-function getPool(): Pool {
-  if (!global._checkoutPool) {
-    global._checkoutPool = new Pool({ connectionString: process.env.DATABASE_URL });
-  }
-  return global._checkoutPool;
 }
 
 // ---------------------------------------------------------------------------
@@ -54,8 +40,8 @@ class PgDbAdapter implements DbAdapter {
   }
 
   async transaction<T>(fn: (tx: DbAdapter) => Promise<T>): Promise<T> {
-    const pool = getPool();
-    const client: PoolClient = await pool.connect();
+    // rlsDb().connect() injektuje RLS kontext z ALS (SET LOCAL) na clienta.
+    const client: PoolClient = await rlsDb().connect();
     try {
       await client.query('BEGIN');
       const txAdapter = new PgDbAdapter(client);
@@ -76,5 +62,5 @@ class PgDbAdapter implements DbAdapter {
 // ---------------------------------------------------------------------------
 
 export function getCheckoutDb(): DbAdapter {
-  return new PgDbAdapter(getPool());
+  return new PgDbAdapter(rlsDb());
 }

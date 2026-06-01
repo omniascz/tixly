@@ -7,7 +7,7 @@
  * Rate limiting: sliding window 1h per client/key.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { verifyAccessToken, hasScope } from '@/lib/oauth/flow';
 import { verifyB2bToken } from '@/lib/b2b-auth';
 
@@ -103,20 +103,25 @@ export async function rateLimitCheck(ctx: ApiContext, endpoint: string, method: 
   const idValue = ctx.type === 'oauth' ? ctx.clientPkId : ctx.apiKeyId;
   if (!idValue) return { ok: true };
 
-  // Get rate limit per hour (default 1000)
-  const limitRes = await db().query<{ rate_limit_per_hour: number }>(
-    ctx.type === 'oauth'
-      ? `SELECT rate_limit_per_hour FROM b2b.oauth_clients WHERE id = $1`
-      : `SELECT 1000 AS rate_limit_per_hour`,
-    [idValue],
-  );
-  const limit = limitRes.rows[0]?.rate_limit_per_hour ?? 1000;
+  // Rate-limit lookup běží pre-context (API auth) → service kontext.
+  const limit = await runWithServiceContext(async () => {
+    // Get rate limit per hour (default 1000)
+    const limitRes = await db().query<{ rate_limit_per_hour: number }>(
+      ctx.type === 'oauth'
+        ? `SELECT rate_limit_per_hour FROM b2b.oauth_clients WHERE id = $1`
+        : `SELECT 1000 AS rate_limit_per_hour`,
+      [idValue],
+    );
+    return limitRes.rows[0]?.rate_limit_per_hour ?? 1000;
+  });
 
   // Count requests in last hour
-  const cnt = await db().query<{ count: string }>(
-    `SELECT COUNT(*)::text AS count FROM b2b.api_rate_limit_log
-      WHERE ${idColumn} = $1 AND created_at > now() - INTERVAL '1 hour'`,
-    [idValue],
+  const cnt = await runWithServiceContext(() =>
+    db().query<{ count: string }>(
+      `SELECT COUNT(*)::text AS count FROM b2b.api_rate_limit_log
+        WHERE ${idColumn} = $1 AND created_at > now() - INTERVAL '1 hour'`,
+      [idValue],
+    ),
   );
   const used = Number(cnt.rows[0]?.count ?? 0);
 
@@ -137,11 +142,13 @@ export async function rateLimitCheck(ctx: ApiContext, endpoint: string, method: 
     };
   }
 
-  // Log request (fire-and-forget)
-  void db().query(
-    `INSERT INTO b2b.api_rate_limit_log (${idColumn}, endpoint, method)
-     VALUES ($1, $2, $3)`,
-    [idValue, endpoint, method],
+  // Log request (fire-and-forget, service kontext)
+  void runWithServiceContext(() =>
+    db().query(
+      `INSERT INTO b2b.api_rate_limit_log (${idColumn}, endpoint, method)
+       VALUES ($1, $2, $3)`,
+      [idValue, endpoint, method],
+    ),
   ).catch(() => null);
 
   return { ok: true };

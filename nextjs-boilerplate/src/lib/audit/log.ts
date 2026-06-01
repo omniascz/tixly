@@ -5,7 +5,7 @@
  */
 
 import type { NextRequest } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 
 export interface AuditContext {
@@ -21,8 +21,10 @@ export interface AuditContext {
 }
 
 export async function logAction(ctx: AuditContext): Promise<void> {
+  // Audit zápis musí projít bez ohledu na kontext volajícího → service kontext.
   try {
-    await db().query(
+    await runWithServiceContext(() =>
+      db().query(
       `INSERT INTO audit.platform_log
          (actor_user_id, actor_role, promoter_id, action, target_type, target_id,
           metadata, ip, user_agent)
@@ -38,6 +40,7 @@ export async function logAction(ctx: AuditContext): Promise<void> {
         ctx.ip ?? null,
         ctx.userAgent ?? null,
       ],
+      ),
     );
   } catch (err) {
     console.error('[audit log]', ctx.action, err);
