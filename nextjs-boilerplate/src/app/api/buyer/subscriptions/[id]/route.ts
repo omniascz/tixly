@@ -9,21 +9,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const r = await db().query<{ status: string; cancel_at_period_end: boolean }>(
     `UPDATE subscriptions.subscriptions
        SET cancel_at_period_end = true, updated_at = now()
@@ -35,4 +29,6 @@ export async function DELETE(
     return NextResponse.json({ error: 'NOT_FOUND_OR_INACTIVE' }, { status: 404 });
   }
   return NextResponse.json({ ok: true, cancelAtPeriodEnd: true });
+
+  });
 }

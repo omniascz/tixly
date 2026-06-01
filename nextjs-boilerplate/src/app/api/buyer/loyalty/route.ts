@@ -6,19 +6,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import { TIER_THRESHOLDS } from '@/lib/loyalty/engine';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   // Optional ?orderId=X filter — vrátí TX jen pro konkrétní order (užitečné
   // pro post-purchase confirmation, bypass LIMIT 20).
   const orderIdFilter = req.nextUrl.searchParams.get('orderId');
@@ -82,5 +76,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     nextTier,
     pointsToNextTier: Math.max(0, pointsToNextTier),
     transactions: tx.rows,
+  });
+
   });
 }

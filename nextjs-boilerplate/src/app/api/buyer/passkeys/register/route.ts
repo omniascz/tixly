@@ -8,15 +8,11 @@
  * Tady jen ukládáme raw credential.id + publicKey (klient je posílá v base64url).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import { z } from 'zod';
 import { createChallenge, consumeChallenge } from '@/lib/webauthn/challenges';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const verifySchema = z.object({
   challengeId: z.string().uuid(),
@@ -28,9 +24,7 @@ const verifySchema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const user = await db().query<{ email: string; name: string | null }>(
     `SELECT email, name FROM identity.users WHERE id = $1`,
     [userId],
@@ -66,12 +60,12 @@ export async function GET(req: NextRequest): Promise<Response> {
       attestation: 'none',
     },
   });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = verifySchema.safeParse(body);
   if (!parsed.success) {
@@ -108,4 +102,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
     return NextResponse.json({ error: 'DB_ERROR', message: msg }, { status: 500 });
   }
+
+  });
 }

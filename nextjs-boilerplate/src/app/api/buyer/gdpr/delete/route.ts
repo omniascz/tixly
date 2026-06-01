@@ -8,19 +8,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const GRACE_DAYS = 30;
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return runAsUser(req, async (userId) => {
   const r = await db().query<{
     id: string;
     status: string;
@@ -35,12 +30,12 @@ export async function GET(req: NextRequest): Promise<Response> {
     [userId],
   );
   return NextResponse.json({ request: r.rows[0] ?? null });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const existing = await db().query<{ id: string; status: string }>(
     `SELECT id, status FROM identity.gdpr_requests
      WHERE user_id = $1 AND type = 'deletion' AND status IN ('pending', 'processing')`,
@@ -66,11 +61,12 @@ export async function POST(req: NextRequest): Promise<Response> {
     scheduledAt: scheduledAt.toISOString(),
     graceDays: GRACE_DAYS,
   });
+
+  });
 }
 
 export async function DELETE(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return runAsUser(req, async (userId) => {
   const r = await db().query(
     `UPDATE identity.gdpr_requests
      SET status = 'cancelled', cancelled_at = NOW(), cancelled_by_user_id = $1
@@ -82,4 +78,6 @@ export async function DELETE(req: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'NO_PENDING_REQUEST' }, { status: 404 });
   }
   return NextResponse.json({ ok: true });
+
+  });
 }

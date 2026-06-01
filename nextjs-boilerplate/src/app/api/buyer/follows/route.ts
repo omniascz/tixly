@@ -6,13 +6,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface FollowRow {
   subscription_id: string;
@@ -26,9 +22,7 @@ interface FollowRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const r = await db().query<FollowRow>(
     `SELECT ns.id AS subscription_id, p.id AS promoter_id,
             p.name AS promoter_name, p.slug AS promoter_slug,
@@ -57,12 +51,12 @@ export async function GET(req: NextRequest): Promise<Response> {
       upcomingCount: Number(f.upcoming_count),
     })),
   });
+
+  });
 }
 
 export async function DELETE(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const promoterId = req.nextUrl.searchParams.get('promoterId');
   if (!promoterId) {
     return NextResponse.json({ error: 'promoterId required' }, { status: 422 });
@@ -77,4 +71,6 @@ export async function DELETE(req: NextRequest): Promise<Response> {
     [promoterId, userId],
   );
   return NextResponse.json({ ok: true, unsubscribed: r.rowCount ?? 0 });
+
+  });
 }

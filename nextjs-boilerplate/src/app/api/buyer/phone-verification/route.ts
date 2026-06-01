@@ -9,16 +9,13 @@
  */
 
 import { randomInt } from 'crypto';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
+import type { Pool } from 'pg';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
 import { sendSms } from '@/lib/sms/bulkgate-mock';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const sendSchema = z.object({
   phone: z.string().min(6).max(30).regex(/^\+?[0-9 ]+$/),
@@ -33,15 +30,15 @@ const confirmSchema = z.object({
 const TOKEN_STORE = new Map<string, { code: string; phone: string; expSec: number; attempts: number }>();
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const body = (await req.json().catch(() => ({}))) as { code?: string; phone?: string };
   // Path matching — confirm má `code`, request má jen `phone`
   if (body.code) {
     return confirm(userId, body);
   }
   return sendCode(userId, body);
+
+  });
 }
 
 async function sendCode(userId: string, body: unknown) {
@@ -73,7 +70,7 @@ async function sendCode(userId: string, body: unknown) {
 
   const r = await sendSms(
     { to: parsed.data.phone, text: `Tixly ověřovací kód: ${code} (platí 10 min)` },
-    db(),
+    db() as unknown as Pool,
   );
 
   await db().query(

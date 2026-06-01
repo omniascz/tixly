@@ -11,15 +11,11 @@
  * Fingerprint je SHA256(userAgent + screen + tz + canvas hash) generovaný klientem.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import crypto from 'node:crypto';
 import { z } from 'zod';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   fingerprint: z.string().min(16).max(256),
@@ -34,9 +30,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { ticketId: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
@@ -89,6 +83,8 @@ export async function POST(
     action: 'different_device',
     message: 'Lístek je svázán s jiným zařízením. Pro převzetí kontaktuj podporu nebo vlož původní zařízení.',
   }, { status: 409 });
+
+  });
 }
 
 /**
@@ -98,9 +94,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { ticketId: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const r = await db().query(
     `UPDATE tickets.tickets
         SET device_binding_id = NULL
@@ -119,4 +113,6 @@ export async function DELETE(
   );
 
   return NextResponse.json({ unbound: true });
+
+  });
 }

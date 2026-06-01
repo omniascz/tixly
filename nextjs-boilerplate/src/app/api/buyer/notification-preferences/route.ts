@@ -4,14 +4,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import { z } from 'zod';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   emailEnabled: z.boolean().optional(),
@@ -25,9 +21,7 @@ const schema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const r = await db().query<Record<string, unknown>>(
     `SELECT * FROM identity.notification_preferences WHERE user_id = $1`,
     [userId],
@@ -49,12 +43,12 @@ export async function GET(req: NextRequest): Promise<Response> {
     });
   }
   return NextResponse.json({ preferences: r.rows[0], isDefault: false });
+
+  });
 }
 
 export async function PUT(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
@@ -89,4 +83,6 @@ export async function PUT(req: NextRequest): Promise<Response> {
     ],
   );
   return NextResponse.json({ ok: true });
+
+  });
 }

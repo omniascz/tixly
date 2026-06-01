@@ -9,22 +9,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import { buildGoogleWalletJwt } from '@/lib/wallet/google-wallet';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { ticketId: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const r = await db().query<{
     id: string;
     event_title: string;
@@ -83,5 +77,7 @@ export async function GET(
     note: out.signed
       ? null
       : 'Pro produkční fungování nastav GOOGLE_WALLET_PRIVATE_KEY_PEM (Service Account RS256).',
+  });
+
   });
 }

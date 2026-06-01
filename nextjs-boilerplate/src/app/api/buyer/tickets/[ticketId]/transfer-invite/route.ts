@@ -10,15 +10,11 @@
  * a "one-tap mobile" UX.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import crypto from 'node:crypto';
 import { z } from 'zod';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const postSchema = z.object({
   toEmail: z.string().email().max(320),
@@ -30,9 +26,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { ticketId: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) {
@@ -96,15 +90,15 @@ export async function POST(
     expiresAt: r.rows[0].expires_at,
     recipientHasAccount: toUserId !== null,
   }, { status: 201 });
+
+  });
 }
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { ticketId: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const r = await db().query(
     `UPDATE tickets.transfer_invitations
         SET status = 'cancelled', cancelled_at = now()
@@ -116,4 +110,6 @@ export async function DELETE(
     return NextResponse.json({ error: 'NO_PENDING_TRANSFER' }, { status: 404 });
   }
   return NextResponse.json({ cancelled: true, id: r.rows[0].id });
+
+  });
 }

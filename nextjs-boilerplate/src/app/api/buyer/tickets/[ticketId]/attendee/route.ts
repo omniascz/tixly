@@ -7,14 +7,10 @@
  * Audit log do tickets.attendee_info_log.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import { z } from 'zod';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const patchSchema = z.object({
   firstName: z.string().max(100).optional(),
@@ -38,9 +34,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { ticketId: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   if (!(await ensureOwnership(params.ticketId, userId))) {
     return NextResponse.json({ error: 'NOT_OWNER' }, { status: 403 });
   }
@@ -79,15 +73,15 @@ export async function GET(
   }
 
   return NextResponse.json({ attendee: r.rows[0], hasCustomInfo: true });
+
+  });
 }
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { ticketId: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   if (!(await ensureOwnership(params.ticketId, userId))) {
     return NextResponse.json({ error: 'NOT_OWNER' }, { status: 403 });
   }
@@ -162,4 +156,6 @@ export async function PATCH(
   } finally {
     client.release();
   }
+
+  });
 }

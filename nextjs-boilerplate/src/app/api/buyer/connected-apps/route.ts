@@ -5,18 +5,12 @@
  * DELETE ?clientId=... = revoke všech access + refresh tokens pro daný client.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const r = await db().query<{
     client_id: string;
     app_name: string;
@@ -40,12 +34,12 @@ export async function GET(req: NextRequest): Promise<Response> {
   );
 
   return NextResponse.json({ apps: r.rows });
+
+  });
 }
 
 export async function DELETE(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const clientPublicId = new URL(req.url).searchParams.get('clientId');
   if (!clientPublicId) return NextResponse.json({ error: 'CLIENT_ID_REQUIRED' }, { status: 422 });
 
@@ -67,4 +61,6 @@ export async function DELETE(req: NextRequest): Promise<Response> {
   );
 
   return NextResponse.json({ revoked: true });
+
+  });
 }

@@ -6,14 +6,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import { z } from 'zod';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface SubRow {
   id: string;
@@ -45,9 +41,7 @@ interface PlanRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const promoterSlug = req.nextUrl.searchParams.get('promoterSlug');
 
   const subsRes = await db().query<SubRow>(
@@ -108,6 +102,8 @@ export async function GET(req: NextRequest): Promise<Response> {
       promoter: { id: p.promoter_id, name: p.promoter_name, slug: p.promoter_slug },
     })),
   });
+
+  });
 }
 
 const createSchema = z.object({
@@ -115,9 +111,7 @@ const createSchema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
@@ -192,4 +186,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     },
     { status: 201 },
   );
+
+  });
 }

@@ -10,15 +10,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import { z } from 'zod';
 import { notifyPromoter } from '@/lib/notifications/promoter-notify';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const createSchema = z.object({
   orderId: z.string().uuid(),
@@ -37,9 +33,7 @@ const createSchema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
@@ -124,12 +118,12 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   return NextResponse.json({ ok: true, requestId: ins.rows[0].id }, { status: 201 });
+
+  });
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const r = await db().query<{
     id: string;
     order_id: string;
@@ -167,5 +161,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       refundedHalire: row.refunded_halire,
       eventTitle: row.event_title,
     })),
+  });
+
   });
 }

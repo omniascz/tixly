@@ -7,23 +7,17 @@
  *   → Verifikuje code.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import { issueTan } from '@/lib/sms/tan';
 import { getEventHotConfig } from '@/lib/hot-events/enforcement';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { orderId: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const r = await db().query<{
     id: string;
     user_id: string;
@@ -70,6 +64,8 @@ export async function POST(
     sentTo: maskPhone(order.phone_e164),
     devCode: result.devCode,
   }, { status: 201 });
+
+  });
 }
 
 function maskPhone(phone: string): string {
