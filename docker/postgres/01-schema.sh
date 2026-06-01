@@ -20,4 +20,8 @@ echo "==> Baseline schema (db/baseline.sql)..."
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
   -f /docker/db/baseline.sql
 
+echo "==> GRANTy pro runtime roli tixly_app (db/002_grants.sql)..."
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
+  -f /docker/db/002_grants.sql
+
 echo "==> DB inicializace ze baseline dokončena."

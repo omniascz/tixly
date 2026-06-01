@@ -39,23 +39,34 @@ Role `tixly_app` (non-superuser, RLS-enforced) existuje, ale v produkčním kód
 | `venues` / `tickets` / `payments` / `referral` | 3 každé | 🔴 payments.*, tickets.wallet_passes |
 | `subscriptions` / `auth` / `platform` / `orders` / `notifications` / … | 2 každé | 🔴 auth.passkey_*, subscriptions.* |
 
-## Doporučená náprava (větší projekt — na samostatné plánování)
+## ✅ FÁZE 1 — HOTOVO (2026-06-01): app už není DB superuser
 
-Pořadí podle hodnoty:
+App runtime přepnut z `tixly` (superuser) na **`tixly_app` = NOSUPERUSER**:
+- `migrations/329_app_role_deprivilege.sql` + `db/000_roles.sql` + `db/002_grants.sql`
+  (docker init je aplikuje automaticky na čistou DB).
+- `tixly_app`: NOSUPERUSER/NOCREATEDB/NOCREATEROLE/NOREPLICATION + GRANT ALL na app schémata.
+  Migrace/seedy/ops dál běží jako `tixly` (potřebují pg_read_file aj.).
+- `.env.example` → app `DATABASE_URL` ukazuje na `tixly_app`.
+- **Ověřeno:** golden-path 4/4 PASS jako `tixly_app`, 0 permission chyb; role NEmůže `CREATE`
+  v DB ani číst `pg_authid` (hashe hesel) → katastrofický blast radius pryč.
 
-1. **Rozhodnout strategii.** Buď (A) **zapnout enforce RLS** = produkční runtime přepnout
-   na roli `tixly_app` a všude používat `with-context`, nebo (B) **vědomě RLS nepoužívat**
-   a tenant izolaci řešit jen app-layer + zúžit DB roli (alespoň zrušit superuser/bypassrls
-   a dát granulární GRANTy). I varianta B výrazně sníží blast radius.
-2. **Pokud (A):** doplnit policy pro 79 tabulek (začít `identity.*` + `payments.*` + `auth.*`),
-   pak přepnout `DATABASE_URL` na `tixly_app`. **Pozor:** každý endpoint je nutné projít —
-   bez správného `SET LOCAL` kontextu vrátí RLS 0 řádků (tichý rozbití funkcí). Vyžaduje
-   důkladné E2E testování celé app pod `tixly_app`.
-3. **Minimum hned (i bez velkého projektu):** přestat se připojovat superuserem. Vytvořit
-   non-superuser app roli s GRANTy na potřebná schémata (bez `BYPASSRLS`), aby kompromitace
-   appky neznamenala plný přístup k clusteru.
+**BYPASSRLS na `tixly_app` je záměrně PONECHÁN** — drží chování identické s dneškem do Fáze 2.
+RLS tedy zatím stále nefiltruje; co se změnilo = odebrání cluster-admin práv aplikaci.
 
-## ✅ Hotovo v této session
+## ⏭️ FÁZE 2 — enforce RLS (velký refaktor, NEdělat naslepo)
+
+`ALTER ROLE tixly_app NOBYPASSRLS` je jednořádkový přepínač, ale **rozbil by 431 souborů**:
+tolik route handlerů dělá raw `new Pool` / `pool.query` BEZ tenant kontextu → bez
+`SET LOCAL app.current_promoter_id` vrátí RLS 0 řádků = tiché rozbití skoro všeho.
+`src/lib/db/rls-pool.ts` (context-aware `db()` přes AsyncLocalStorage) je postavený přesně
+na tohle, ale použitý jen ve ~3 souborech.
+
+Postup (samostatný projekt): 1) doplnit RLS policy pro 79 nepokrytých tabulek (priorita
+`identity.*`/`payments.*`/`auth.*`); 2) zmigrovat 431 raw-pool míst na context-aware `db()`;
+3) per-endpoint E2E test pod `tixly_app` s NOBYPASSRLS na staging; 4) teprve pak
+`ALTER ROLE tixly_app NOBYPASSRLS` v produkci.
+
+## ✅ Další hotovo v této session
 
 - **totp_secret_iv konzistence** (`migrations/327_totp_iv_consistency.sql`): CHECK constraint
   na `tickets.access_tokens` a `tickets.cross_pass_memberships` — IV existuje právě tehdy,
