@@ -33,8 +33,12 @@ export async function POST(request: NextRequest): Promise<Response> {
   }
   const { email, password, totpCode, backupCode } = parsed.data;
 
+  // password_hash žije v identity.user_secrets (RLS split) — login je service kontext.
   const result = await db().query<UserRow>(
-    'SELECT id, email, name, password_hash FROM identity.users WHERE email = $1 LIMIT 1',
+    `SELECT u.id, u.email, u.name, s.password_hash
+       FROM identity.users u
+       JOIN identity.user_secrets s ON s.user_id = u.id
+      WHERE u.email = $1 LIMIT 1`,
     [email.toLowerCase()],
   );
   if (result.rows.length === 0) {
