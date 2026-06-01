@@ -7,16 +7,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { verifyEmailToken } from '@/lib/email-verification/token';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const token = req.nextUrl.searchParams.get('token');
   if (!token) {
     return NextResponse.json({ status: 'invalid', message: 'Chybí token.' }, { status: 422 });
@@ -45,5 +42,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     status: 'verified',
     email: r.rows[0].email,
     verifiedAt: r.rows[0].email_verified_at,
+  });
+
   });
 }

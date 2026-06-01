@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import {
-  db,
   hashPassword,
   signAccessToken,
   signRefreshToken,
   setAuthCookies,
   getUserRoles,
 } from '@/lib/auth';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { checkAres, computeInitialRiskScore } from '@/lib/compliance/ares';
 
 const schema = z.object({
@@ -38,6 +38,8 @@ export async function POST(request: NextRequest): Promise<Response> {
     : { valid: false, active: false, error: 'NO_ICO_PROVIDED' };
   const riskScore = computeInitialRiskScore(aresResult);
 
+  // Pre-context (vytvoření usera+promotéra+membera v transakci) → service.
+  return runWithServiceContext(async () => {
   const client = await db().connect();
 
   try {
@@ -101,4 +103,5 @@ export async function POST(request: NextRequest): Promise<Response> {
   } finally {
     client.release();
   }
+  });
 }

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import {
-  db,
   verifyPassword,
   signAccessToken,
   signRefreshToken,
   setAuthCookies,
   getUserRoles,
 } from '@/lib/auth';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 const schema = z.object({
   email: z.string().email(),
@@ -24,6 +24,8 @@ interface UserRow {
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
+  // Login běží před vznikem user kontextu (čte identity.users/user_2fa) → service.
+  return runWithServiceContext(async () => {
   const body: unknown = await request.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
@@ -101,4 +103,5 @@ export async function POST(request: NextRequest): Promise<Response> {
   const res = NextResponse.json({ user, roles, accessToken });
   setAuthCookies(res, accessToken, refreshToken);
   return res;
+  });
 }

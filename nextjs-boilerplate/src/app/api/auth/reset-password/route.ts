@@ -10,16 +10,11 @@
  */
 
 import bcrypt from 'bcryptjs';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   token: z.string().min(32).max(256),
@@ -37,6 +32,8 @@ function getClientIp(req: NextRequest): string {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const ip = getClientIp(req);
   const rl = checkRateLimit(`reset-password:${ip}`, { limit: 10, windowMs: 15 * 60 * 1000 });
   const rlResp = rateLimitResponse(rl, 'reset-password');
@@ -146,4 +143,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   return NextResponse.json({ ok: true });
+
+  });
 }

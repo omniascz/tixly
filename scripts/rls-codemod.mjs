@@ -171,6 +171,16 @@ const FILE_LISTS = {
       'subscriptions/holders/[paymentId]/confirm',
     ],
   },
+  // auth user-scoped (login-history/sessions/send-verification — povinný x-user-id) → runAsUser
+  'auth-user': {
+    cfg: WRAP.buyer,
+    files: ['auth/login-history', 'auth/sessions', 'auth/send-verification-email'],
+  },
+  // auth bootstrap (forgot/reset/verify/unsubscribe — pre-auth, token/email) → service
+  'auth-service': {
+    cfg: WRAP.internal,
+    files: ['auth/forgot-password', 'auth/reset-password', 'auth/verify-email', 'auth/unsubscribe'],
+  },
   'buyer-service': {
     cfg: WRAP.internal,
     files: [

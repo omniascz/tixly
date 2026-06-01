@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import {
-  db,
   hashPassword,
   signAccessToken,
   signRefreshToken,
   setAuthCookies,
   getUserRoles,
 } from '@/lib/auth';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 const schema = z.object({
   email: z.string().email(),
@@ -28,11 +28,14 @@ export async function POST(request: NextRequest): Promise<Response> {
   const hash = await hashPassword(password);
 
   try {
-    const result = await db().query<{ id: string }>(
-      `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at, created_at, updated_at)
-       VALUES ($1, $2, $3, NOW(), NOW(), NOW())
-       RETURNING id`,
-      [email.toLowerCase(), name, hash],
+    // Pre-context (vytvoření usera) → service.
+    const result = await runWithServiceContext(() =>
+      db().query<{ id: string }>(
+        `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at, created_at, updated_at)
+         VALUES ($1, $2, $3, NOW(), NOW(), NOW())
+         RETURNING id`,
+        [email.toLowerCase(), name, hash],
+      ),
     );
     const userId = result.rows[0].id;
     const user = { id: userId, email, name };

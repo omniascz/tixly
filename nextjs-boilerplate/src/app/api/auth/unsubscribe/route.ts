@@ -9,14 +9,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { verifyUnsubscribeToken } from '@/lib/email-verification/unsubscribe-token';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 async function handleUnsubscribe(token: string) {
   const v = verifyUnsubscribeToken(token);
@@ -52,18 +47,26 @@ async function handleUnsubscribe(token: string) {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const token = req.nextUrl.searchParams.get('token');
   if (!token) {
     return NextResponse.json({ status: 'invalid', message: 'Chybí token.' }, { status: 422 });
   }
   const result = await handleUnsubscribe(token);
   return NextResponse.json(result, { status: result.statusCode });
+
+  });
 }
 
 // RFC 8058 list-unsubscribe header — Gmail klikne POST automaticky
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const token = req.nextUrl.searchParams.get('token');
   if (!token) return NextResponse.json({ error: 'no token' }, { status: 422 });
   const result = await handleUnsubscribe(token);
   return NextResponse.json(result, { status: result.statusCode });
+
+  });
 }

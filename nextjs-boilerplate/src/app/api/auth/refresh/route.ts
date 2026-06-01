@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  db,
   signAccessToken,
   verifyToken,
   getUserRoles,
   setAuthCookies,
   signRefreshToken,
 } from '@/lib/auth';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 interface UserRow {
   id: string;
@@ -31,9 +31,12 @@ export async function POST(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'Invalid token type' }, { status: 401 });
   }
 
-  const result = await db().query<UserRow>(
-    'SELECT id, email, name FROM identity.users WHERE id = $1 LIMIT 1',
-    [payload.sub],
+  // Pre-context (validace refresh tokenu) → service.
+  const result = await runWithServiceContext(() =>
+    db().query<UserRow>(
+      'SELECT id, email, name FROM identity.users WHERE id = $1 LIMIT 1',
+      [payload.sub],
+    ),
   );
   if (result.rows.length === 0) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });

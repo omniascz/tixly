@@ -8,18 +8,13 @@
  */
 
 import { randomBytes } from 'crypto';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
 import { sendMail } from '@/lib/email/mailer';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   email: z.string().email().max(320),
@@ -85,6 +80,8 @@ function emailHtml(resetUrl: string, locale: 'cs' | 'sk' | 'en'): string {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   // Rate limit per IP
   const ip = getClientIp(req);
   const rl = checkRateLimit(`forgot-password:${ip}`, { limit: 3, windowMs: 15 * 60 * 1000 });
@@ -149,4 +146,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   return NextResponse.json({ ok: true });
+
+  });
 }

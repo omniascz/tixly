@@ -9,20 +9,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import { issueEmailVerificationToken } from '@/lib/email-verification/token';
 import { escapeHtml } from '@/lib/html-escape/escape';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const r = await db().query<{
     id: string;
     email: string;
@@ -76,4 +70,6 @@ export async function POST(req: NextRequest): Promise<Response> {
       { status: 500 },
     );
   }
+
+  });
 }
