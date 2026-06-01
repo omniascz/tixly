@@ -77,7 +77,8 @@ export function runWithPlatformAdminContext<T>(callback: () => Promise<T>): Prom
  * od platebních bran. NEpoužívat pro user-facing routes.
  */
 export function runWithServiceContext<T>(callback: () => Promise<T>): Promise<T> {
-  return tenantStore.run({ role: 'service' }, callback);
+  // role 'system' = validní audit_log.actor_type (trigger čte app.role) + app_is_service()
+  return tenantStore.run({ role: 'system' }, callback);
 }
 
 /**
@@ -95,7 +96,8 @@ export function runWithUserContext<T>(
   if (role !== undefined && !ROLE_RE.test(role)) {
     return Promise.reject(new Error('runWithUserContext: invalid role'));
   }
-  return tenantStore.run({ currentUserId: userId, role }, callback);
+  // default role 'user' = validní audit_log.actor_type (trigger čte app.role)
+  return tenantStore.run({ currentUserId: userId, role: role ?? 'user' }, callback);
 }
 
 /**

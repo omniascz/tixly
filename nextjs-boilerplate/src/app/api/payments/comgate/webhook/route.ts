@@ -14,15 +14,10 @@
  */
 
 import { timingSafeEqual } from 'crypto';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { getComGatePaymentStatus, getComGateConfig } from '@/lib/payment/comgate';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +29,8 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const formData = await req.formData().catch(() => null);
   if (!formData) {
     return NextResponse.json({ error: 'INVALID_BODY' }, { status: 400 });
@@ -181,4 +178,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   } finally {
     client.release();
   }
+
+  });
 }

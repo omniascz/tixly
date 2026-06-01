@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import {
   Card,
   CardContent,
@@ -38,9 +38,9 @@ interface ItemRow {
 }
 
 async function fetchOrder(orderId: string) {
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
-  try {
-    const orderRes = await db.query<OrderRow>(
+  // orderId (UUID) = capability — guest po platbě nemá session; čteme v service kontextu.
+  return runWithServiceContext(async () => {
+    const orderRes = await db().query<OrderRow>(
       `SELECT
          o.id, o.status, o.total_amount, o.currency, o.paid_at,
          o.payment_provider, o.variable_symbol, o.expires_at,
@@ -58,7 +58,7 @@ async function fetchOrder(orderId: string) {
     );
     if (orderRes.rows.length === 0) return null;
 
-    const itemsRes = await db.query<ItemRow>(
+    const itemsRes = await db().query<ItemRow>(
       `SELECT tt.name AS ticket_type_name,
               oi.quantity, oi.unit_price, oi.total_price
        FROM orders.order_items oi
@@ -68,7 +68,7 @@ async function fetchOrder(orderId: string) {
       [orderId],
     );
 
-    const ticketsRes = await db.query<{
+    const ticketsRes = await db().query<{
       id: string;
       original_price: number;
       ticket_type_id: string;
@@ -89,7 +89,7 @@ async function fetchOrder(orderId: string) {
       [orderId],
     );
 
-    const addonsRes = await db.query<{
+    const addonsRes = await db().query<{
       addon_name: string;
       category: string;
       quantity: number;
@@ -108,9 +108,7 @@ async function fetchOrder(orderId: string) {
       tickets: ticketsRes.rows,
       addons: addonsRes.rows,
     };
-  } finally {
-    await db.end();
-  }
+  });
 }
 
 export const dynamic = 'force-dynamic';

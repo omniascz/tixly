@@ -79,6 +79,14 @@ const WRAP = {
     },
   ],
 };
+// service domény (trusted server operace: tvorba/aktualizace objednávek, mock platby) → service kontext
+for (const d of [
+  'checkout', 'payments',
+  'mock-gopay', 'mock-bnpl', 'mock-przelewy24', 'mock-wero',
+  'mock-subscription', 'mock-voucher', 'mock-benefit', 'mock-transit',
+]) {
+  WRAP[d] = WRAP.internal;
+}
 const variants = WRAP[DOMAIN];
 if (!variants) { console.error(`Nepodporovaná doména: ${DOMAIN}`); process.exit(1); }
 

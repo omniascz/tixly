@@ -20,14 +20,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { getGopayPaymentStatus } from '@/lib/payment/gopay-real';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export const dynamic = 'force-dynamic';
 
@@ -170,9 +165,17 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   return handleWebhook(req, 'GET');
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   return handleWebhook(req, 'POST');
+
+  });
 }

@@ -13,13 +13,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface OrderRow {
   id: string;
@@ -30,6 +25,8 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { paymentId: string } },
 ): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const { action } = (await request.json().catch(() => ({}))) as { action?: string };
   const client = await db().connect();
 
@@ -99,4 +96,6 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }

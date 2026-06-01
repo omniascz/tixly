@@ -19,14 +19,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { verifyStripeWebhookSignature } from '@/lib/payment/stripe';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +32,8 @@ interface StripeEvent {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const rawBody = await req.text();
   const sig = req.headers.get('stripe-signature');
 
@@ -273,4 +270,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   } finally {
     client.release();
   }
+
+  });
 }

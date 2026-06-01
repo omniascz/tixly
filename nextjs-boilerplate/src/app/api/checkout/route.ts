@@ -18,8 +18,8 @@
  */
 
 import { randomUUID } from 'crypto';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
 
 import { calculateAgeYears } from '@/lib/age/calculate';
@@ -29,11 +29,6 @@ import {
   PriceResolutionError,
 } from '@/lib/pricing/resolve-price';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   eventId: z.string().uuid(),
@@ -164,6 +159,8 @@ interface TicketTypeRow {
 
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const body: unknown = await req.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
@@ -1473,4 +1470,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   } finally {
     client.release();
   }
+
+  });
 }

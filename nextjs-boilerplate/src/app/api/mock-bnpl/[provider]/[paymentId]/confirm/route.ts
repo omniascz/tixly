@@ -10,14 +10,9 @@
  * CZ priority #2 (FR/UK/IT audit, ROI 8/10).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { z } from 'zod';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   action: z.enum(['approve', 'reject']),
@@ -28,6 +23,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ provider: string; paymentId: string }> },
 ): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const { provider, paymentId } = await params;
   if (provider !== 'twisto' && provider !== 'skippay') {
     return NextResponse.json({ error: 'UNKNOWN_PROVIDER' }, { status: 400 });
@@ -119,4 +116,6 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }

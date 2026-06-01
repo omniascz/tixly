@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify, JWTPayload } from 'jose';
 import { Pool } from 'pg';
 import { NextResponse, type NextRequest } from 'next/server';
-import { runWithUserContext } from './db/rls-pool';
+import { db as rlsDb, runWithUserContext, runWithServiceContext } from './db/rls-pool';
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-change-me-min-32-chars-please';
 const ACCESS_TTL = parseInt(process.env.JWT_ACCESS_TOKEN_TTL ?? '900', 10);
@@ -61,13 +61,16 @@ export async function runAsUser<T>(
 }
 
 export async function getUserRoles(userId: string): Promise<UserRoles> {
-  const adminRow = await db().query<{ is_platform_admin: boolean }>(
+  // Pre-auth identity resolution — čte promoter_members (RLS) dřív, než vznikne
+  // user kontext (bootstrap). Trusted operace → service kontext.
+  return runWithServiceContext(async () => {
+  const adminRow = await rlsDb().query<{ is_platform_admin: boolean }>(
     'SELECT is_platform_admin FROM identity.users WHERE id = $1',
     [userId],
   );
   const isPlatformAdmin = adminRow.rows[0]?.is_platform_admin ?? false;
 
-  const memberRows = await db().query<{
+  const memberRows = await rlsDb().query<{
     promoter_id: string;
     slug: string;
     name: string;
@@ -91,6 +94,7 @@ export async function getUserRoles(userId: string): Promise<UserRoles> {
       role: r.role,
     })),
   };
+  });
 }
 
 export async function signAccessToken(user: AuthUser, roles: UserRoles): Promise<string> {
