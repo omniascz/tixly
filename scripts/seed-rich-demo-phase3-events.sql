@@ -165,14 +165,17 @@ VALUES
   ('00000000-0000-4000-a000-000000000506', '00000000-0000-4000-a000-000000000402', 'GALERIE', 'seated', 18000, 33,  33,  4, 'GALERIE', true, 'physical')
 ON CONFLICT (id) DO NOTHING;
 
--- Symfonicky koncert (Velky sal): VIP / Parter / Balkon / Loze / Galerie
+-- Symfonicky koncert (Velky koncertni sal, chart 301 velky-sal).
+-- POZN. (oprava 2026-06-01): zóny srovnány se SKUTEČNÝMI sektory layoutu velky-sal
+-- (PARTER 606, BALKON I+II 785, lóže LL-* 48, LP-* 48) — jinak copy_layout_to_event_seats
+-- sedadla nenamapuje (dřív zóny LOZE/BALKON STREDNI nesedělé → 0 sedadel → nekoupitelné).
+-- total_qty/remaining_qty dosynchronizuje phase3-seats podle reálně vytvořených sedadel.
 INSERT INTO catalog.ticket_types (id, event_id, name, kind, base_price, total_qty, remaining_qty, max_per_user, zone, is_seated, attendance_type)
 VALUES
-  ('00000000-0000-4000-a000-000000000510', '00000000-0000-4000-a000-000000000403', 'VIP Loze',           'seated', 250000, 100, 100, 4, 'LOZE',           true, 'physical'),
-  ('00000000-0000-4000-a000-000000000511', '00000000-0000-4000-a000-000000000403', 'Parter A (1.-10. rada)', 'seated', 180000, 280, 280, 4, 'PARTER',         true, 'physical'),
-  ('00000000-0000-4000-a000-000000000512', '00000000-0000-4000-a000-000000000403', 'Parter B (11.-25. rada)','seated', 120000, 420, 420, 6, 'PARTER',         true, 'physical'),
-  ('00000000-0000-4000-a000-000000000513', '00000000-0000-4000-a000-000000000403', 'Balkon Stredni',     'seated', 80000,  300, 300, 6, 'BALKON STREDNI', true, 'physical'),
-  ('00000000-0000-4000-a000-000000000514', '00000000-0000-4000-a000-000000000403', 'Balkon Bocni',       'seated', 60000,  400, 400, 6, 'BALKON',         true, 'physical')
+  ('00000000-0000-4000-a000-000000000510', '00000000-0000-4000-a000-000000000403', 'Parter',     'seated', 180000, 606, 606, 6, 'PARTER', true, 'physical'),
+  ('00000000-0000-4000-a000-000000000511', '00000000-0000-4000-a000-000000000403', 'Balkon',     'seated', 90000,  785, 785, 6, 'BALKON', true, 'physical'),
+  ('00000000-0000-4000-a000-000000000512', '00000000-0000-4000-a000-000000000403', 'Lóže levá',  'seated', 250000, 48,  48,  4, 'LL',     true, 'physical'),
+  ('00000000-0000-4000-a000-000000000513', '00000000-0000-4000-a000-000000000403', 'Lóže pravá', 'seated', 250000, 48,  48,  4, 'LP',     true, 'physical')
 ON CONFLICT (id) DO NOTHING;
 
 -- Mainstream Arena: parter standing + lower bowl + upper bowl + VIP boxy
@@ -203,7 +206,7 @@ ON CONFLICT (id) DO NOTHING;
 -- Jazz pending review (zatim 1 typ)
 INSERT INTO catalog.ticket_types (id, event_id, name, kind, base_price, total_qty, remaining_qty, max_per_user, zone, is_seated, attendance_type)
 VALUES
-  ('00000000-0000-4000-a000-000000000550', '00000000-0000-4000-a000-000000000407', 'Jazz Standard', 'seated', 75000, 1500, 1500, 6, NULL, true, 'physical')
+  ('00000000-0000-4000-a000-000000000550', '00000000-0000-4000-a000-000000000407', 'Jazz Standard', 'standing', 75000, 1500, 1500, 6, NULL, false, 'physical')
 ON CONFLICT (id) DO NOTHING;
 
 -- Free workshop

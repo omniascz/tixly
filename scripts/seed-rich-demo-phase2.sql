@@ -1,7 +1,7 @@
 BEGIN;
 INSERT INTO catalog.venue_seating_charts (id, venue_id, name, layout, total_seats, active, source, notes)
 VALUES
-  ('00000000-0000-4000-a000-000000000301', '00000000-0000-4000-a000-000000000202', 'Velky koncertni sal — Rudolfinum-style amfiteátr',
+  ('00000000-0000-4000-a000-000000000301', '00000000-0000-4000-a000-000000000201', 'Velky koncertni sal — Rudolfinum-style amfiteátr',
     pg_read_file('/tmp/layouts/velky-sal.json')::jsonb,
     1487,
     true, 'seed', 'Generated 2026-04-30 — realistic redesign'),

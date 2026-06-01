@@ -14,11 +14,11 @@ ON CONFLICT (id) DO NOTHING;
 -- Tomas si listek koupil, pak ho dava na resale za niz puvodni cena (price cap test)
 INSERT INTO orders.orders (id, user_id, status, total_amount, currency, locale, expires_at, paid_at, event_id, payment_provider, idempotency_key)
 VALUES
-  ('00000000-0000-4000-a000-000000000760','00000000-0000-4000-a000-000000000603','paid', 180000,'CZK','cs','2026-04-19 16:30:00+02','2026-04-19 16:23:00+02','00000000-0000-4000-a000-000000000403','gopay', gen_random_uuid())
+  ('00000000-0000-4000-a000-000000000760','00000000-0000-4000-a000-000000000603','paid', 90000,'CZK','cs','2026-04-19 16:30:00+02','2026-04-19 16:23:00+02','00000000-0000-4000-a000-000000000403','gopay', gen_random_uuid())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO orders.order_items (order_id, ticket_type_id, quantity, unit_price, total_price)
 VALUES
-  ('00000000-0000-4000-a000-000000000760','00000000-0000-4000-a000-000000000511',1,180000,180000)
+  ('00000000-0000-4000-a000-000000000760','00000000-0000-4000-a000-000000000511',1,90000,90000)
 ON CONFLICT DO NOTHING;
 
 -- Vyrob ticket pro Tomase a oznac ho jako resale_listed
@@ -28,13 +28,13 @@ DECLARE
   v_ticket_id uuid := '00000000-0000-4000-a000-000000000770';
 BEGIN
   SELECT id INTO v_event_seat_id FROM catalog.event_seats
-  WHERE event_id = '00000000-0000-4000-a000-000000000403' AND sector = 'PARTER' AND row = '5' AND seat_number = '14'
+  WHERE event_id = '00000000-0000-4000-a000-000000000403' AND sector = 'BALKON I' AND row = 'B1-1' AND seat_number = '5'
   LIMIT 1;
 
   IF v_event_seat_id IS NOT NULL THEN
     UPDATE catalog.event_seats SET status = 'sold', order_id = '00000000-0000-4000-a000-000000000760', updated_at = NOW() WHERE id = v_event_seat_id;
     INSERT INTO tickets.tickets (id, order_id, ticket_type_id, owner_id, original_owner_id, event_seat_id, status, totp_secret_encrypted, totp_secret_iv, original_price, transfer_count)
-    VALUES (v_ticket_id, '00000000-0000-4000-a000-000000000760', '00000000-0000-4000-a000-000000000511', '00000000-0000-4000-a000-000000000603', '00000000-0000-4000-a000-000000000603', v_event_seat_id, 'resale_listed', '\x0000000000000000000000000000000000000000000000000000000000000000', '\x00000000000000000000000000000000', 180000, 0)
+    VALUES (v_ticket_id, '00000000-0000-4000-a000-000000000760', '00000000-0000-4000-a000-000000000511', '00000000-0000-4000-a000-000000000603', '00000000-0000-4000-a000-000000000603', v_event_seat_id, 'resale_listed', '\x0000000000000000000000000000000000000000000000000000000000000000', '\x00000000000000000000000000000000', 90000, 0)
     ON CONFLICT (id) DO NOTHING;
   END IF;
 END $$;

@@ -111,6 +111,24 @@ SELECT '403 Symfonicky koncert' as event, pg_temp.copy_layout_to_event_seats('00
 SELECT '404 Mainstream Arena' as event, pg_temp.copy_layout_to_event_seats('00000000-0000-4000-a000-000000000404') as seats_created;
 SELECT '405 Derby Stadion' as event, pg_temp.copy_layout_to_event_seats('00000000-0000-4000-a000-000000000405') as seats_created;
 
+-- ===== Inventory sync (oprava 2026-06-01) =====
+-- Sjednoť ticket_type.total_qty/remaining_qty se SKUTEČNĚ vytvořenými event_seats.
+-- Ručně psané kulaté počty (3000/6000/12500…) nesedělé s generovaným layoutem
+-- → oversell/undersell. Zdroj pravdy pro seated typy jsou event_seats.
+UPDATE catalog.ticket_types tt
+SET total_qty     = sub.cnt,
+    remaining_qty = sub.avail
+FROM (
+  SELECT ticket_type_id,
+         COUNT(*) AS cnt,
+         COUNT(*) FILTER (WHERE status = 'available') AS avail
+  FROM catalog.event_seats
+  WHERE event_id::text LIKE '00000000-0000-4000-a000-0000000004%'
+    AND ticket_type_id IS NOT NULL
+  GROUP BY ticket_type_id
+) sub
+WHERE tt.id = sub.ticket_type_id;
+
 COMMIT;
 
 -- Overeni
