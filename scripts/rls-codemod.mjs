@@ -181,6 +181,16 @@ const FILE_LISTS = {
     cfg: WRAP.internal,
     files: ['auth/forgot-password', 'auth/reset-password', 'auth/verify-email', 'auth/unsubscribe'],
   },
+  // v1 veřejné kalendářové/RSS feedy (published akce) → anon
+  'v1-feed-anon': {
+    cfg: [{ noWrap: true }],
+    files: ['v1/feed/events.ics', 'v1/feed/events.rss', 'v1/feed/events'],
+  },
+  // token-auth secure-entry barcode (token = auth) → service
+  'v3-service': {
+    cfg: WRAP.internal,
+    files: ['v3/secure-entry/barcode', 'v3/webhooks'],
+  },
   'buyer-service': {
     cfg: WRAP.internal,
     files: [

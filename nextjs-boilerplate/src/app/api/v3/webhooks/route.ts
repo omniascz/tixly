@@ -8,17 +8,12 @@
  * Vrací: { webhook_id, signing_secret (vygenerovaný pokud chybí) }
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { z } from 'zod';
 import crypto from 'node:crypto';
 import { requireApiAuth, rateLimitCheck } from '@/lib/oauth/guard';
 import { hashSecret } from '@/lib/oauth/flow';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const ALLOWED_EVENT_TYPES = [
   'order.created', 'order.paid', 'order.cancelled', 'order.refunded',
@@ -33,6 +28,8 @@ const postSchema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const auth = await requireApiAuth(req, 'manage_webhooks');
   if (!auth.ok) return auth.response;
 
@@ -53,9 +50,13 @@ export async function GET(req: NextRequest): Promise<Response> {
   );
 
   return NextResponse.json({ webhooks: r.rows });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const auth = await requireApiAuth(req, 'manage_webhooks');
   if (!auth.ok) return auth.response;
 
@@ -90,4 +91,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     signing_secret: signingSecret,
     warning: 'Signing secret se zobrazuje JEN teď. Ulož ho — později ho nelze získat zpět.',
   }, { status: 201 });
+
+  });
 }

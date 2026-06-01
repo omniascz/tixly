@@ -8,14 +8,8 @@
  * Scope: read_events
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { requireApiAuth, rateLimitCheck } from '@/lib/oauth/guard';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(req: NextRequest): Promise<Response> {
   const auth = await requireApiAuth(req, 'read_events');
@@ -24,6 +18,9 @@ export async function GET(req: NextRequest): Promise<Response> {
   const rl = await rateLimitCheck(auth.ctx, '/api/v3/inventory/status', 'GET');
   if (!rl.ok) return rl.response;
 
+  // Agregátní inventory MV (mv_event_inventory_status), filtruje v WHERE; ?promoterId=
+  // záměrně cross-promoter → service kontext (MV nemá tenant RLS).
+  return runWithServiceContext(async () => {
   const url = new URL(req.url);
   const eventId = url.searchParams.get('eventId');
   const promoterIdParam = url.searchParams.get('promoterId');
@@ -66,5 +63,6 @@ export async function GET(req: NextRequest): Promise<Response> {
     events: r.rows,
     snapshot_refreshed_at: r.rows[0]?.snapshot_at,
     pagination: { count: r.rows.length, has_more: false },
+  });
   });
 }

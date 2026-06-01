@@ -8,15 +8,9 @@
  * Headers: X-RateLimit-{Limit,Remaining,Reset} + CORS
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithPromoterContext } from '@/lib/db/rls-pool';
 import { b2bResponseHeaders, verifyB2bToken } from '@/lib/b2b-auth';
 import { checkRateLimit } from '@/lib/rate-limit/per-tenant';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(req: NextRequest): Promise<Response> {
   const ctx = await verifyB2bToken(req);
@@ -53,40 +47,43 @@ export async function GET(req: NextRequest): Promise<Response> {
     );
   }
 
-  const r = await db().query<{
-    id: string;
-    title: string;
-    slug: string | null;
-    date_start: string;
-    status: string;
-  }>(
-    `SELECT id, title, slug, date_start::text, status
-       FROM catalog.events
-      WHERE promoter_id = $1 AND status = 'published'
-      ORDER BY date_start DESC
-      LIMIT 100`,
-    [ctx.promoterId],
-  );
+  // Kontext z B2B API tokenu → promoter RLS scope.
+  return runWithPromoterContext(ctx.promoterId, async () => {
+    const r = await db().query<{
+      id: string;
+      title: string;
+      slug: string | null;
+      date_start: string;
+      status: string;
+    }>(
+      `SELECT id, title, slug, date_start::text, status
+         FROM catalog.events
+        WHERE promoter_id = $1 AND status = 'published'
+        ORDER BY date_start DESC
+        LIMIT 100`,
+      [ctx.promoterId],
+    );
 
-  return NextResponse.json(
-    {
-      events: r.rows.map((e) => ({
-        id: e.id,
-        title: e.title,
-        slug: e.slug,
-        dateStart: e.date_start,
-        status: e.status,
-      })),
-    },
-    {
-      status: 200,
-      headers: {
-        ...b2bResponseHeaders(ctx),
-        'X-RateLimit-Remaining': String(rl.remaining),
-        'X-RateLimit-Reset': String(Math.floor(rl.resetAt / 1000)),
+    return NextResponse.json(
+      {
+        events: r.rows.map((e) => ({
+          id: e.id,
+          title: e.title,
+          slug: e.slug,
+          dateStart: e.date_start,
+          status: e.status,
+        })),
       },
-    },
-  );
+      {
+        status: 200,
+        headers: {
+          ...b2bResponseHeaders(ctx),
+          'X-RateLimit-Remaining': String(rl.remaining),
+          'X-RateLimit-Reset': String(Math.floor(rl.resetAt / 1000)),
+        },
+      },
+    );
+  });
 }
 
 export async function OPTIONS(): Promise<Response> {

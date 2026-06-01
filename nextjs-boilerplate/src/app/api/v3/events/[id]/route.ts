@@ -8,14 +8,8 @@
  * Scope: read_events
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithPromoterContext } from '@/lib/db/rls-pool';
 import { requireApiAuth, rateLimitCheck } from '@/lib/oauth/guard';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(
   req: NextRequest,
@@ -28,6 +22,9 @@ export async function GET(
   const rl = await rateLimitCheck(ctx, `/api/v3/events/${params.id}`, 'GET');
   if (!rl.ok) return rl.response;
 
+  // Kontext z API tokenu → promoter RLS scope (queries vidí vlastní akce + published).
+  if (!ctx.promoterId) return NextResponse.json({ error: 'no_promoter_scope' }, { status: 403 });
+  return runWithPromoterContext(ctx.promoterId, async () => {
   const expand = (new URL(req.url).searchParams.get('expand') ?? '').split(',').filter(Boolean);
 
   // Load event — scoped to caller's promoter
@@ -119,4 +116,5 @@ export async function GET(
   }
 
   return NextResponse.json(result);
+  });
 }

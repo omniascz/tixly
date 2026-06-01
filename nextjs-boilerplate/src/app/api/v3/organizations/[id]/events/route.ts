@@ -6,14 +6,8 @@
  * Pagination: ?continuation=<cursor>&page_size=N
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithPromoterContext } from '@/lib/db/rls-pool';
 import { requireApiAuth, rateLimitCheck } from '@/lib/oauth/guard';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(
   req: NextRequest,
@@ -25,6 +19,8 @@ export async function GET(
   const rl = await rateLimitCheck(auth.ctx, `/api/v3/organizations/${params.id}/events`, 'GET');
   if (!rl.ok) return rl.response;
 
+  if (!auth.ctx.promoterId) return NextResponse.json({ error: 'no_promoter_scope' }, { status: 403 });
+  return runWithPromoterContext(auth.ctx.promoterId, async () => {
   const url = new URL(req.url);
   const pageSize = Math.min(100, Math.max(1, Number(url.searchParams.get('page_size') ?? '20')));
   const cursor = url.searchParams.get('continuation');
@@ -85,5 +81,6 @@ export async function GET(
       has_more_items: hasMore,
       continuation: hasMore ? r.rows[pageSize - 1].created_at : null,
     },
+  });
   });
 }

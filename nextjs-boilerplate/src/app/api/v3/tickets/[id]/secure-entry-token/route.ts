@@ -7,6 +7,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { runWithServiceContext } from '@/lib/db/rls-pool';
 import { requireApiAuth, rateLimitCheck } from '@/lib/oauth/guard';
 import { issueSecureEntryToken } from '@/lib/secure-entry/sdk';
 
@@ -27,6 +28,7 @@ export async function POST(
       message: 'Secure Entry vyžaduje OAuth Bearer token (ne API key).',
     }, { status: 403 });
   }
+  const clientPkId = auth.ctx.clientPkId;
 
   const rl = await rateLimitCheck(auth.ctx, `/api/v3/tickets/${params.id}/secure-entry-token`, 'POST');
   if (!rl.ok) return rl.response;
@@ -35,11 +37,15 @@ export async function POST(
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'invalid_request' }, { status: 400 });
 
-  const result = await issueSecureEntryToken({
-    clientPkId: auth.ctx.clientPkId,
-    ticketId: params.id,
-    partnerAccountId: parsed.data.partnerAccountId,
-  });
+  // Token issuance = server op (validuje ticket on-behalf partnera) → service.
+  // Token issuance = server op (validuje ticket on-behalf partnera) → service.
+  const result = await runWithServiceContext(() =>
+    issueSecureEntryToken({
+      clientPkId,
+      ticketId: params.id,
+      partnerAccountId: parsed.data.partnerAccountId,
+    }),
+  );
 
   if ('error' in result) {
     return NextResponse.json({ error: result.error }, { status: 404 });

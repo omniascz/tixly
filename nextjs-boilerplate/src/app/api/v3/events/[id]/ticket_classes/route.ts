@@ -5,14 +5,8 @@
  * Scope: read_events.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithPromoterContext } from '@/lib/db/rls-pool';
 import { requireApiAuth, rateLimitCheck } from '@/lib/oauth/guard';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(
   req: NextRequest,
@@ -24,6 +18,8 @@ export async function GET(
   const rl = await rateLimitCheck(auth.ctx, `/api/v3/events/${params.id}/ticket_classes`, 'GET');
   if (!rl.ok) return rl.response;
 
+  if (!auth.ctx.promoterId) return NextResponse.json({ error: 'no_promoter_scope' }, { status: 403 });
+  return runWithPromoterContext(auth.ctx.promoterId, async () => {
   // Verify event je accessible
   const e = await db().query<{ promoter_id: string; status: string }>(
     `SELECT promoter_id, status FROM catalog.events WHERE id = $1`,
@@ -51,5 +47,6 @@ export async function GET(
   return NextResponse.json({
     ticket_classes: r.rows,
     pagination: { object_count: r.rows.length, has_more_items: false },
+  });
   });
 }

@@ -10,13 +10,8 @@
  * Klient subscribuje URL ve svém Google Calendar / Outlook / Apple Calendar.
  */
 import { NextRequest } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // 1 h browser/CDN cache

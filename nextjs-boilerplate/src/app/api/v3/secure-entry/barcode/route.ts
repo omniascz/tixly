@@ -7,20 +7,17 @@
  * Žádný auth header — token v query je auth.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { decryptSecret } from '@/lib/crypto';
 import { generateTotpCode } from '@/lib/totp/verify';
 import { verifySecureEntryToken } from '@/lib/secure-entry/sdk';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const STEP_SECONDS = 30;
 
 export async function GET(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const token = new URL(req.url).searchParams.get('token');
   if (!token) return NextResponse.json({ error: 'token_required' }, { status: 400 });
 
@@ -54,5 +51,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       next_refresh_sec: expiresInSec + 1,
     },
     ticket_id: verified.ticketId,
+  });
+
   });
 }
