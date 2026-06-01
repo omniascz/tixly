@@ -29,9 +29,17 @@ const REQUIRE_PROMOTER_IMPORT = /import \{ requirePromoter \} from '@\/lib\/admi
 const WRAP = {
   buyer: [
     {
+      // single-line: const userId = req.headers.get('x-user-id'); if (!userId) return 401;
       fn: 'runAsUser',
       imp: "import { runAsUser } from '@/lib/auth';",
       preamble: (req) => new RegExp(`^\\s*const (\\w+) = ${req}\\.headers\\.get\\('x-user-id'\\);\\s*\\r?\\n\\s*if \\(!\\w+\\) return [^\\n]*40[13][^\\n]*;\\s*\\r?\\n`),
+      removeImport: null,
+    },
+    {
+      // block: const userId = ...; if (!userId) { return ...; }
+      fn: 'runAsUser',
+      imp: "import { runAsUser } from '@/lib/auth';",
+      preamble: (req) => new RegExp(`^\\s*const (\\w+) = ${req}\\.headers\\.get\\('x-user-id'\\);\\s*\\r?\\n\\s*if \\(!\\1\\) \\{\\s*\\r?\\n\\s*return [\\s\\S]*?;\\s*\\r?\\n\\s*\\}\\s*\\r?\\n`),
       removeImport: null,
     },
   ],

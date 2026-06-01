@@ -16,16 +16,13 @@
  * DACH parity #P0-2 (Reservix Wahl-Abo pattern).
  */
 import { randomBytes, randomUUID } from 'crypto';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
+import type { Pool } from 'pg';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
 import { encryptSecret } from '@/lib/crypto';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const postSchema = z.object({
   eventId: z.string().uuid(),
@@ -68,10 +65,8 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-
-  const holder = await loadHolder(db(), params.id, false);
+  return runAsUser(req, async (userId) => {
+  const holder = await loadHolder(db() as unknown as Pool, params.id, false);
   if (!holder) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
   if (holder.user_id !== userId) {
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
@@ -123,15 +118,15 @@ export async function GET(
       ticketId: r.ticket_id,
     })),
   });
+
+  });
 }
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) {
@@ -284,4 +279,6 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }

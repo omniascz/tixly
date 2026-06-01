@@ -10,17 +10,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import { decryptSecret } from '@/lib/crypto';
 import { generateTotpCode } from '@/lib/totp/verify';
 
 const STEP_SECONDS = 30;
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface TicketRow {
   id: string;
@@ -33,11 +29,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { ticketId: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsUser(req, async (userId) => {
   if (!/^[0-9a-f-]{36}$/i.test(params.ticketId)) {
     return NextResponse.json({ error: 'Invalid ticket id' }, { status: 422 });
   }
@@ -134,5 +126,7 @@ export async function GET(
     step: STEP_SECONDS,
     payload: `tixly:${t.id}:${code}`,
     status: t.status,
+  });
+
   });
 }

@@ -11,14 +11,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
+import type { Pool } from 'pg';
 import { z } from 'zod';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface OwnedTicketRow {
   id: string;
@@ -48,10 +45,8 @@ export async function GET(
   req: NextRequest,
   ctx: { params: { ticketId: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-  const ticket = await loadTicket(db(), ctx.params.ticketId, userId);
+  return runAsUser(req, async (userId) => {
+  const ticket = await loadTicket(db() as unknown as Pool, ctx.params.ticketId, userId);
   if (!ticket) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   if (!ticket.pass_kind) {
     return NextResponse.json({ error: 'NOT_A_PASS' }, { status: 422 });
@@ -88,6 +83,8 @@ export async function GET(
     usedDayIds: usedDayIds.rows.map((r) => r.event_day_id),
     locked: ticket.pass_kind !== 'flex',
   });
+
+  });
 }
 
 const postSchema = z.object({
@@ -98,9 +95,7 @@ export async function POST(
   req: NextRequest,
   ctx: { params: { ticketId: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) {
@@ -190,4 +185,6 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }

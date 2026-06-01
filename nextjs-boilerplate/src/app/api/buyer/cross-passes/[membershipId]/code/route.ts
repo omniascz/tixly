@@ -6,25 +6,17 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import { decryptSecret } from '@/lib/crypto';
 import { generateTotpCode } from '@/lib/totp/verify';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(
   req: NextRequest,
   ctx: { params: { membershipId: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsUser(req, async (userId) => {
   const r = await db().query<{
     id: string;
     status: string;
@@ -64,5 +56,7 @@ export async function GET(
     expiresInSec,
     startsAt: row.starts_at,
     endsAt: row.ends_at,
+  });
+
   });
 }
