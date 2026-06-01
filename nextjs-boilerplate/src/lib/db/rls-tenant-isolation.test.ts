@@ -2,24 +2,35 @@
  * RLS cross-tenant isolation test.
  *
  * Validuje že promotér A nevidí data promotéra B přes různé RLS-enabled tabulky.
- * Spouští SQL přímo přes pg connection jako `tixly_app` user (bez BYPASSRLS).
+ * Spouští SQL přes enforce roli `tixly_rls_test` (NOBYPASSRLS, dědí granty
+ * tixly_app) — viz scripts/rls-test-role.sql.
  *
- * Skipne se pokud DATABASE_URL je `tixly` user (RLS bypass v dev).
+ * POZN.: testuje se NOBYPASSRLS rolí, NE `tixly_app` přímo. tixly_app v dev/prod
+ * záměrně zůstává BYPASSRLS (RLS dormant) dokud neproběhne ostrý flip
+ * `ALTER ROLE tixly_app NOBYPASSRLS`. Tato role prokazuje, že policies + non-bypass
+ * role dohromady izolaci vynucují — to je co potřebujeme ověřit PŘED flipem.
  *
- * Pre-requisites:
- *   - Migrace 285 + 286 aplikované
- *   - tixly_app role existuje
+ * Pre-requisites (dev/staging):
+ *   - migrace RLS Fáze 2 (330-334) aplikované
+ *   - role tixly_rls_test existuje (scripts/rls-test-role.sql)
+ *   - super role tixly (BYPASSRLS) pro setup test dat
  *   - Alespoň 2 promotéři + 1 event per promoter v DB
  */
 import { describe, expect, it, beforeAll, afterAll } from 'vitest';
 import { Pool } from 'pg';
 
+// App pool = enforce role (NOBYPASSRLS). Default čte DATABASE_URL (na enforce
+// větvi = tixly_rls_test), fallback na explicitní test roli.
 const APP_DATABASE_URL =
   process.env.DATABASE_URL_APP ??
-  'postgresql://tixly_app:tixly_app_dev_pwd@localhost:5433/tixly';
+  process.env.DATABASE_URL ??
+  'postgresql://tixly_rls_test:rls_test@localhost:5433/tixly';
 
+// Super pool = BYPASSRLS role pro setup test dat (insert vouchers, najít promotéry).
 const SUPER_DATABASE_URL =
-  process.env.DATABASE_URL ?? 'postgresql://tixly:tixly_dev@localhost:5433/tixly';
+  process.env.DATABASE_URL_SUPER ??
+  process.env.DATABASE_URL_OPS ??
+  'postgresql://tixly:tixly_dev@localhost:5433/tixly';
 
 let superPool: Pool;
 let appPool: Pool;
@@ -61,11 +72,19 @@ describe('RLS cross-tenant isolation', () => {
     expect(promoterA).not.toBe(promoterB);
   });
 
-  it('tixly_app user NEMÁ BYPASSRLS', async () => {
-    const r = await superPool.query<{ rolbypassrls: boolean }>(
-      `SELECT rolbypassrls FROM pg_roles WHERE rolname = 'tixly_app'`,
-    );
-    expect(r.rows[0]?.rolbypassrls).toBe(false);
+  it('app-connection role NEMÁ BYPASSRLS (RLS se vynucuje)', async () => {
+    // Ověř roli, pod kterou appPool reálně běží (tixly_rls_test) — ne hardcoded
+    // jméno. Pokud by appPool omylem connectil jako BYPASSRLS role, izolační
+    // asserty níže by byly falešně zelené (RLS by se neaplikovalo).
+    const client = await appPool.connect();
+    try {
+      const r = await client.query<{ rolbypassrls: boolean }>(
+        `SELECT rolbypassrls FROM pg_roles WHERE rolname = current_user`,
+      );
+      expect(r.rows[0]?.rolbypassrls).toBe(false);
+    } finally {
+      client.release();
+    }
   });
 
   it('catalog.events: promotér A vidí SVÉ events', async () => {
