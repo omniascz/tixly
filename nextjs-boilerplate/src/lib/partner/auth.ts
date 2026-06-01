@@ -7,14 +7,9 @@
  */
 
 import { createHash, randomBytes } from 'crypto';
+import { db } from '@/lib/db/rls-pool';
 import type { NextRequest } from 'next/server';
-import { Pool } from 'pg';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const TOKEN_PREFIX = 'tixly_partner_';
 

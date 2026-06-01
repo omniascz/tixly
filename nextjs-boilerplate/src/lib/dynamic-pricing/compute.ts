@@ -9,14 +9,9 @@
  *
  * Vrací { final_price, signals }.
  */
+import { db } from "@/lib/db/rls-pool";
 
-import { Pool } from 'pg';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface PricingRule {
   ticket_type_id: string;

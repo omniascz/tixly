@@ -7,14 +7,9 @@
  *
  * Each feature → number in [0, 1], multiplied by weight, sigmoid → final probability.
  */
+import { db } from "@/lib/db/rls-pool";
 
-import { Pool } from 'pg';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const DISPOSABLE_DOMAINS = new Set([
   '10minutemail.com',

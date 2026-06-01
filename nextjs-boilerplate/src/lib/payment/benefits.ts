@@ -15,13 +15,8 @@
  */
 
 import { randomUUID } from 'crypto';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export type BenefitProvider = 'pluxee' | 'benefit_plus' | 'gallery_beta' | 'edenred';
 

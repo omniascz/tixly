@@ -7,13 +7,8 @@
  * Skeleton — production by routovala přes Spotify API, Bandsintown Partner API.
  * Without API credentials vrátí 'skipped'.
  */
-import { Pool } from 'pg';
+import { db } from "@/lib/db/rls-pool";
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export type MusicPlatform = 'spotify' | 'bandsintown' | 'songkick' | 'apple_music';
 

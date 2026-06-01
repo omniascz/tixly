@@ -11,14 +11,9 @@
  * Vrací { finalPrice, sources, signals }.
  * Caller potom INSERT do ticket_type_price_history s sources jako audit.
  */
-import { Pool } from 'pg';
 import { computeDynamicPrice } from '@/lib/dynamic-pricing/compute';
+import { db } from '@/lib/db/rls-pool';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export interface PriceSource {
   source: 'base' | 'pricing_window' | 'dynamic_pricing' | 'ab_test';

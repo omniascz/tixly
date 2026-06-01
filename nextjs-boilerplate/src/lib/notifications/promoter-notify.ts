@@ -5,14 +5,9 @@
  * payload.dedupe_key) se nedělá v DB — caller je odpovědný za to,
  * že nezavolá stejnou notifikaci 2× během cron run.
  */
+import { db } from "@/lib/db/rls-pool";
 
-import { Pool } from 'pg';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export type NotificationKind =
   | 'refund_request'

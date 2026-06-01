@@ -5,13 +5,8 @@
  * - max_amount_hellers = NULL = unlimited (jinak cap)
  * - returns chosen amount nebo error
  */
-import { Pool } from 'pg';
+import { db } from "@/lib/db/rls-pool";
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export interface DonationValidation {
   valid: boolean;

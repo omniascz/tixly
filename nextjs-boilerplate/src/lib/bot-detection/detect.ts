@@ -13,14 +13,9 @@
  *  - 31-70: rate_limit / soft challenge
  *  - 71-100: block
  */
+import { db } from "@/lib/db/rls-pool";
 
-import { Pool } from 'pg';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export interface BotSignals {
   honeypot?: string;

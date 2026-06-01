@@ -14,14 +14,9 @@
  *
  * Web Push spec: RFC 8030 (HTTP Push), RFC 8291 (Encrypted Payload), RFC 8292 (VAPID).
  */
+import { db } from "@/lib/db/rls-pool";
 
-import { Pool } from 'pg';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export interface PushSubscriptionRow {
   id: string;

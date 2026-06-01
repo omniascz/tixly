@@ -8,13 +8,8 @@
  *
  * Vrací { allowed, reason?, currentCount?, cap? }
  */
-import { Pool } from 'pg';
+import { db } from "@/lib/db/rls-pool";
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export interface HotEventConfig {
   hotEventMode: boolean;

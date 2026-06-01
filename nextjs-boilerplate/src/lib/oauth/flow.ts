@@ -12,13 +12,8 @@
  * Supports PKCE (S256) pro public clients (mobile/SPA).
  */
 import crypto from 'node:crypto';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const ACCESS_TOKEN_PREFIX = 'tk_';
 const REFRESH_TOKEN_PREFIX = 'rt_';

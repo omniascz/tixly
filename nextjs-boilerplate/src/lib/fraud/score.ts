@@ -13,14 +13,9 @@
  * Output:
  *   score 0-100, signals, decision: allow (0-40) / review (41-79) / block (80+)
  */
+import { db } from "@/lib/db/rls-pool";
 
-import { Pool } from 'pg';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export interface FraudInput {
   email: string;

@@ -4,13 +4,7 @@
  * - price_flat_halire: fixed amount
  * Pokud oba, použij vyšší.
  */
-import { Pool } from 'pg';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
+import { db } from '@/lib/db/rls-pool';
 
 export interface InsuranceComputation {
   planId: string;

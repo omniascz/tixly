@@ -8,14 +8,9 @@
  * Fire-and-forget. Volá `sendPushToUser` pro každého followera. Nemá UI return,
  * jen vrací summary pro logging.
  */
-import { Pool } from 'pg';
 import { sendPushToUser } from './web-push';
+import { db } from '@/lib/db/rls-pool';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface NotifyParams {
   promoterId: string;

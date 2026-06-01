@@ -8,13 +8,8 @@
  * SMSManager.cz). Bez SMS_PROVIDER env vrátí code v response (dev mode).
  */
 import crypto from 'node:crypto';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const TAN_TTL_MINUTES = 15;
 const MAX_ATTEMPTS = 5;

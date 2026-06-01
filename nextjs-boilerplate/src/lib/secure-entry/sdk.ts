@@ -13,14 +13,9 @@
  *   4. SDK auto-refresh á 30s
  */
 import crypto from 'node:crypto';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
 import { hashSecret } from '@/lib/oauth/flow';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const SECURE_ENTRY_TOKEN_PREFIX = 'se_';
 const SECURE_ENTRY_TTL_SECONDS = 300; // 5 min

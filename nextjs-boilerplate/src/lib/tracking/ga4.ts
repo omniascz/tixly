@@ -6,14 +6,9 @@
  * Required: client_id (UUID per browser; máme ho z fingerprint nebo session cookie)
  * Events: purchase, add_to_cart, view_item, begin_checkout
  */
+import { db } from "@/lib/db/rls-pool";
 
-import { Pool } from 'pg';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export interface GA4EventInput {
   measurementId: string;

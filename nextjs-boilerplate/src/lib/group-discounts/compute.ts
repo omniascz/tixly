@@ -6,13 +6,8 @@
  *   10+ = 20% off
  *   buyer kupuje 7 → 10% sleva (5+ tier, ne 10+ ještě)
  */
-import { Pool } from 'pg';
+import { db } from "@/lib/db/rls-pool";
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export interface DiscountResult {
   applied: boolean;
@@ -85,7 +80,10 @@ export async function listGroupDiscountTiers(ticketTypeId: string): Promise<Arra
   id: string; min_quantity: number; label: string;
   discount_pct: number | null; discount_flat_halire: number | null;
 }>> {
-  const r = await db().query(
+  const r = await db().query<{
+    id: string; min_quantity: number; label: string;
+    discount_pct: number | null; discount_flat_halire: number | null;
+  }>(
     `SELECT id, min_quantity, label, discount_pct, discount_flat_halire
        FROM catalog.group_discount_tiers
       WHERE ticket_type_id = $1
