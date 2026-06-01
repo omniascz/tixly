@@ -67,6 +67,17 @@ const WRAP = {
       removeImport: /import \{ requirePlatformAdmin \} from '@\/lib\/platform-auth';\r?\n/,
     },
   ],
+  internal: [
+    {
+      // service kontext: obalí CELÉ tělo (token-check zůstane uvnitř), bez req argumentu
+      fn: 'runWithServiceContext',
+      imp: "import { db, runWithServiceContext } from '@/lib/db/rls-pool';",
+      ownDb: true, // imp už obsahuje db → nepřidávat zvlášť
+      preamble: null, // žádná preamble — wrap-whole-body
+      reqArg: false,
+      removeImport: null,
+    },
+  ],
 };
 const variants = WRAP[DOMAIN];
 if (!variants) { console.error(`Nepodporovaná doména: ${DOMAIN}`); process.exit(1); }
@@ -109,7 +120,7 @@ for (const file of walk(ROOT)) {
 
   // vyber variantu, jejíž preamble matchuje VŠECHNY handlery
   const bodyOf = (h) => src.slice(h.index + h[0].length, matchBrace(src, h.index + h[0].length - 1));
-  const cfg = variants.find((v) => handlers.every((h) => v.preamble(h[2]).test(bodyOf(h))));
+  const cfg = variants.find((v) => handlers.every((h) => (v.preamble ? v.preamble(h[2]).test(bodyOf(h)) : true)));
   if (!cfg) { skips.push(`${rel} — handler bez známé preamble`); skipped++; continue; }
 
   // transformace od konce
@@ -118,12 +129,17 @@ for (const file of walk(ROOT)) {
     const bodyStart = h.index + h[0].length - 1;
     const bodyEnd = matchBrace(src, bodyStart);
     let body = src.slice(bodyStart + 1, bodyEnd);
-    const m = body.match(cfg.preamble(reqName));
-    const uvar = m[1];
-    body = body.replace(cfg.preamble(reqName), '');
-    // pokud tělo proměnnou nepoužívá (jen auth gate), prefixni _ ať tsc nepadá na TS6133
-    const param = new RegExp(`\\b${uvar}\\b`).test(body) ? uvar : `_${uvar}`;
-    const wrapped = `\n  return ${cfg.fn}(${reqName}, async (${param}) => {\n${body}\n  });\n`;
+    let head;
+    if (!cfg.preamble) {
+      // wrap-whole-body (service): bez req argumentu, bez odstranění preamble
+      head = `${cfg.fn}(async () => {`;
+    } else {
+      const uvar = body.match(cfg.preamble(reqName))[1];
+      body = body.replace(cfg.preamble(reqName), '');
+      const param = new RegExp(`\\b${uvar}\\b`).test(body) ? uvar : `_${uvar}`;
+      head = `${cfg.fn}(${reqName}, async (${param}) => {`;
+    }
+    const wrapped = `\n  return ${head}\n${body}\n  });\n`;
     src = src.slice(0, bodyStart + 1) + wrapped + src.slice(bodyEnd);
   }
 
@@ -135,7 +151,8 @@ for (const file of walk(ROOT)) {
   src = src.replace(/\bpool\.query\b/g, 'db().query');
   const nl = src.includes('\r\n') ? '\r\n' : '\n';
   const poolTypeImport = /\bPool\b/.test(src) ? `import type { Pool } from 'pg';${nl}` : '';
-  const importLine = `import { db } from '@/lib/db/rls-pool';${nl}${cfg.imp}${nl}${poolTypeImport}`;
+  const dbImport = cfg.ownDb ? '' : `import { db } from '@/lib/db/rls-pool';${nl}`;
+  const importLine = `${dbImport}${cfg.imp}${nl}${poolTypeImport}`;
   src = src.replace(/^(import [^\n]*\n)/m, `$1${importLine}`);
 
   if (src !== orig) {

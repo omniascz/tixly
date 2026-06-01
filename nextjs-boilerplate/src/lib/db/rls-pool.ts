@@ -72,6 +72,15 @@ export function runWithPlatformAdminContext<T>(callback: () => Promise<T>): Prom
 }
 
 /**
+ * Wrap async callback se SERVICE contextem (app.role='service' → app_is_service()
+ * = plný přístup přes RLS). Pro trusted backend: cron, interní endpointy, webhooky
+ * od platebních bran. NEpoužívat pro user-facing routes.
+ */
+export function runWithServiceContext<T>(callback: () => Promise<T>): Promise<T> {
+  return tenantStore.run({ role: 'service' }, callback);
+}
+
+/**
  * Wrap async callback s buyer (user) contextem — pro orders/tickets RLS,
  * které isolují přes app.current_user_id. Volitelný `role` ('service'/'gate').
  */

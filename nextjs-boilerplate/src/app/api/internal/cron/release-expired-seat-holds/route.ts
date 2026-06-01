@@ -15,14 +15,9 @@
  */
 
 import { timingSafeEqual } from 'crypto';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 function safeEqual(a: string, b: string): boolean {
   const ab = Buffer.from(a, 'utf8');
@@ -32,6 +27,8 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const token = req.headers.get('x-internal-token') ?? '';
   const expected = process.env.INTERNAL_SERVICE_TOKEN ?? '';
   if (!expected || !safeEqual(token, expected)) {
@@ -54,5 +51,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   return NextResponse.json({
     releasedCount: r.rows.length,
     ts: new Date().toISOString(),
+  });
+
   });
 }

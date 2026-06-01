@@ -11,8 +11,9 @@
  */
 
 import { timingSafeEqual } from 'crypto';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import type { Pool } from 'pg';
 
 import { escapeHtml } from '@/lib/html-escape/escape';
 import { sendSms } from '@/lib/sms/bulkgate-mock';
@@ -21,11 +22,6 @@ import { awardPointsForOrder } from '@/lib/loyalty/engine';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 import { renderTicketsPdf } from '@/lib/tickets/pdf-renderer';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 function safeEqual(a: string, b: string): boolean {
   const ab = Buffer.from(a, 'utf8');
@@ -241,6 +237,8 @@ function buildEmailHtml(order: OrderRow, items: ItemRow[]): string {
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const token = request.headers.get('x-internal-token') ?? '';
   const expected = process.env.INTERNAL_SERVICE_TOKEN ?? '';
   if (!expected || !safeEqual(token, expected)) {
@@ -322,7 +320,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   let pdfAttachment: { filename: string; content: Buffer } | undefined;
   let issued: Awaited<ReturnType<typeof issueTicketsForOrder>> = [];
   try {
-    issued = await issueTicketsForOrder(orderId, db());
+    issued = await issueTicketsForOrder(orderId, db() as unknown as Pool);
     ticketsIssued = issued.length;
 
     // Loyalty award (CZ priority #6) — fire-and-forget, idempotent na order_id.
@@ -568,7 +566,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         : `Tixly ${eventShort}: ${issued.length} vstupenek (${formatCzk(order.total_amount)}). První: ${url}. Vše v emailu.`;
     const r = await sendSms(
       { to: order.buyer_phone, text: smsText, orderId: order.id },
-      db(),
+      db() as unknown as Pool,
     );
     smsSent = r.ok;
     if (!r.ok) {
@@ -584,6 +582,8 @@ export async function POST(request: NextRequest): Promise<Response> {
     items: itemsRes.rows.length,
     ticketsIssued,
     pdfAttached: pdfAttachment !== undefined,
+  });
+
   });
 }
 
