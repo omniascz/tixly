@@ -1,0 +1,70 @@
+# RLS Fáze 2 — enforce tenant izolace (větev `feature/rls-phase2-enforcement`)
+
+Navazuje na Fázi 1 (app už běží jako non-superuser `tixly_app`, viz `security-rls-report.md`).
+Cíl Fáze 2: zapnout vynucení RLS (`ALTER ROLE tixly_app NOBYPASSRLS`), aby tenant izolace
+měla DB-level záchrannou síť, ne jen app-layer `WHERE`.
+
+## ✅ Ověřeno na této větvi: enforce RLS funguje (PoC)
+
+Test role `tixly_rls_test` (NOBYPASSRLS, dědí granty tixly_app) proti seedovaným datům.
+Ground truth: 10 events (8 published), promotér 111 má 3 (vše published), promotér 112 má
+pending event 407; buyer 600 a 601 mají po 4 objednávkách.
+
+| Kontext (SET app.*) | catalog.events | orders.orders | Závěr |
+|---|---|---|---|
+| žádný (anon) | 8 (jen published) | 0 | ✓ veřejné jen published, cizí orders skryté |
+| `current_promoter_id=112` | 9 (8 + vlastní pending 407) | — | ✓ vidí svůj pending |
+| `current_promoter_id=111` | 8 (407 **nevidí**) | — | ✓ NEvidí cizí pending |
+| `current_user_id=600` | — | 4 (jen 600) | ✓ buyer izolace |
+| `current_user_id=601` | — | 4 (jen 601) | ✓ navzájem se nevidí |
+| `is_platform_admin=true` | 10 (vše) | — | ✓ admin plný přístup |
+
+→ **Policy vrstva i NOBYPASSRLS role fungují.** Co chybí k produkčnímu zapnutí, je níže.
+
+## 🚧 Blokery zapnutí (musí být hotové PŘED `NOBYPASSRLS`)
+
+### 1. Nekonzistentní context kontrakt (NUTNO sjednotit)
+Existujících 160 policy používá **tři různé konvence** session proměnných:
+
+| Vzor | Tabulky | Proměnné |
+|---|---|---|
+| promoter-scope | catalog.events, ticket_types | `app.current_promoter_id` + `app.is_platform_admin` (přes `app_current_promoter_id()` / `app_is_platform_admin()`) |
+| user-scope | orders.orders, tickets.tickets | `app.current_user_id` + `app.role IN (service,admin,gate)` |
+| tenant-scope | platform.promoters | `app.tenant_id` + `app.role` |
+
+`src/lib/db/rls-pool.ts` historicky nastavoval jen `current_promoter_id` + `is_platform_admin`
+→ orders/tickets/promoters policy by pod enforce vrátily 0 řádků.
+**Na této větvi doplněno:** rls-pool.ts umí i `current_user_id` a `role` (+ `runWithUserContext`).
+Zbývá: sjednotit `tenant_id` vs `current_promoter_id` a `role` vs `is_platform_admin` na JEDEN
+kanonický kontrakt a přepsat odchylné policy (promoters používá tenant_id — buď doplnit setter,
+nebo policy přepsat na current_promoter_id).
+
+### 2. 431 raw-pool route handlerů bez kontextu
+Tolik souborů dělá `new Pool(...)` / `pool.query` a NEnastavuje kontext (jen ~3 používají
+context-aware `db()`). Pod enforce vrátí buyer/promoter dotazy 0 řádků = tiché rozbití.
+Nutný codemod: `new Pool(...)` → `import { db } from '@/lib/db/rls-pool'` + obalení handleru
+`runWithUserContext` / `runWithPromoterContext` podle typu auth (buyer vs promoter vs admin).
+
+### 3. 79 tabulek bez RLS policy
+Nemají žádnou policy (viz security-rls-report.md). Pod enforce jsou bez RLS = plně přístupné
+(ne leak, ale chybí izolace). Doplnit policy, priorita `identity.*`, `payments.*`, `auth.*`.
+Mezery i v golden-path: `catalog.event_seats`, `orders.order_items`, `identity.users` (RLS off).
+
+## Doporučený rollout (po vlnách, ne big-bang)
+
+1. **Sjednotit kontrakt** — rozhodnout kanonické proměnné, přepsat odchylné policy, dotáhnout
+   rls-pool.ts (hotovo: user_id+role). Migrace pro standardizaci.
+2. **Per-request kontext** — Next.js middleware / wrapper, který z auth session naplní
+   AsyncLocalStorage (promoterId pro /admin, userId pro buyer, admin flag pro /platform).
+3. **Codemod 431 souborů** na `db()` — po doménách (nejdřív orders/tickets/checkout, pak admin).
+4. **Doplnit policy** pro 79+ tabulek + golden-path mezery (event_seats, order_items, users).
+5. **Staging validace** přes `tixly_rls_test` (NOBYPASSRLS) — projet celou app + E2E, dokud
+   nejsou žádné „0 řádků" regrese.
+6. **Produkční přepnutí**: `ALTER ROLE tixly_app NOBYPASSRLS`. Rollback = zpět `BYPASSRLS`.
+
+## Test harness (na této větvi)
+Role `tixly_rls_test` (LOGIN, NOBYPASSRLS, member of tixly_app). Spuštění dotazu pod enforce:
+`docker exec tixly-postgres psql "postgresql://tixly_rls_test:rls_test@localhost:5432/tixly" -c "SET app.current_user_id='…'; SELECT …"`
+
+Pozn.: tixly_app v produkci zůstává BYPASSRLS, dokud nejsou kroky 1–5 hotové. Tato větev je
+vývojová — NEslučovat do master, dokud neprojde staging validace celé app pod enforce.

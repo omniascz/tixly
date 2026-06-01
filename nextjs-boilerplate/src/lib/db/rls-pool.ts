@@ -30,10 +30,16 @@ import { Pool, PoolClient, QueryConfig, QueryResult, QueryResultRow } from 'pg';
 interface RlsContext {
   promoterId?: string;
   isPlatformAdmin?: boolean;
+  // Fáze 2 (2026-06-01): existující policies používají i tyto konvence —
+  // orders/tickets isolují přes app.current_user_id + app.role, proto je
+  // context-setter musí umět nastavit taky (jinak buyer-facing RLS = 0 řádků).
+  currentUserId?: string;
+  role?: string; // 'service' | 'admin' | 'gate' | 'buyer' | 'promoter'
 }
 
 const tenantStore = new AsyncLocalStorage<RlsContext>();
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ROLE_RE = /^[a-z_]+$/; // allowlist tvar — SET LOCAL interpoluje string, nutná validace
 
 let pool: Pool | null = null;
 
@@ -62,7 +68,25 @@ export function runWithPromoterContext<T>(
  * Wrap async callback s platform admin context (RLS bypass via policy).
  */
 export function runWithPlatformAdminContext<T>(callback: () => Promise<T>): Promise<T> {
-  return tenantStore.run({ isPlatformAdmin: true }, callback);
+  return tenantStore.run({ isPlatformAdmin: true, role: 'admin' }, callback);
+}
+
+/**
+ * Wrap async callback s buyer (user) contextem — pro orders/tickets RLS,
+ * které isolují přes app.current_user_id. Volitelný `role` ('service'/'gate').
+ */
+export function runWithUserContext<T>(
+  userId: string,
+  callback: () => Promise<T>,
+  role?: string,
+): Promise<T> {
+  if (!UUID_RE.test(userId)) {
+    return Promise.reject(new Error('runWithUserContext: invalid userId UUID'));
+  }
+  if (role !== undefined && !ROLE_RE.test(role)) {
+    return Promise.reject(new Error('runWithUserContext: invalid role'));
+  }
+  return tenantStore.run({ currentUserId: userId, role }, callback);
 }
 
 /**
@@ -85,7 +109,7 @@ class RlsAwarePool {
     const ctx = tenantStore.getStore();
     const rawPool = getRawPool();
 
-    if (!ctx || (!ctx.promoterId && !ctx.isPlatformAdmin)) {
+    if (!ctx || (!ctx.promoterId && !ctx.isPlatformAdmin && !ctx.currentUserId && !ctx.role)) {
       // Bez context — direct query (RLS vrátí jen public rows)
       return rawPool.query<R>(text as string, params);
     }
@@ -98,6 +122,12 @@ class RlsAwarePool {
       }
       if (ctx.isPlatformAdmin) {
         await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+      }
+      if (ctx.currentUserId) {
+        await client.query(`SET LOCAL app.current_user_id = '${ctx.currentUserId}'`);
+      }
+      if (ctx.role) {
+        await client.query(`SET LOCAL app.role = '${ctx.role}'`);
       }
       const result = await client.query<R>(text as string, params);
       await client.query('COMMIT');
@@ -121,13 +151,19 @@ class RlsAwarePool {
     const ctx = tenantStore.getStore();
     const client = await getRawPool().connect();
 
-    if (ctx?.promoterId || ctx?.isPlatformAdmin) {
+    if (ctx?.promoterId || ctx?.isPlatformAdmin || ctx?.currentUserId || ctx?.role) {
       // Set session-level (ne LOCAL) — bude reset-nuté při release
       if (ctx.promoterId) {
         await client.query(`SET app.current_promoter_id = '${ctx.promoterId}'`);
       }
       if (ctx.isPlatformAdmin) {
         await client.query(`SET app.is_platform_admin = 'true'`);
+      }
+      if (ctx.currentUserId) {
+        await client.query(`SET app.current_user_id = '${ctx.currentUserId}'`);
+      }
+      if (ctx.role) {
+        await client.query(`SET app.role = '${ctx.role}'`);
       }
       // Wrap release aby vyresetoval session vars
       const originalRelease = client.release.bind(client);
@@ -136,7 +172,9 @@ class RlsAwarePool {
       ): void => {
         // Best-effort reset — connection se vrátí čistá do poolu
         void client
-          .query('RESET app.current_promoter_id; RESET app.is_platform_admin;')
+          .query(
+            'RESET app.current_promoter_id; RESET app.is_platform_admin; RESET app.current_user_id; RESET app.role;',
+          )
           .catch(() => undefined)
           .finally(() => originalRelease(err));
       }) as typeof originalRelease;
