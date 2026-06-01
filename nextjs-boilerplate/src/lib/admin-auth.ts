@@ -67,6 +67,22 @@ export async function runAsPromoter<T>(
 }
 
 /**
+ * Jako runAsPromoter, ale navíc vyžaduje AKTIVNÍ promotér (status === 'active').
+ * Pokrývá běžný admin vzor `if (!promoter || promoter.status !== 'active')`.
+ * Pending/suspended promotér dostane 401 (nepustí dál).
+ */
+export async function runAsActivePromoter<T>(
+  req: NextRequest,
+  callback: (ctx: PromoterContext) => Promise<T>,
+): Promise<T | Response> {
+  const ctx = await requirePromoter(req);
+  if (!ctx || ctx.status !== 'active') {
+    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  }
+  return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
+}
+
+/**
  * Resolve the active promoter context for the authenticated user.
  * Returns null if there's no active membership (or no user header).
  *

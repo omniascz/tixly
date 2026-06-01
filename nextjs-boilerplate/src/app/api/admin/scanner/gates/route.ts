@@ -6,14 +6,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
+import { runAsActivePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface EventRow {
   id: string;
@@ -35,11 +30,7 @@ interface ZoneRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (promoter) => {
   const events = await db().query<EventRow>(
     `SELECT id, title, date_start
      FROM catalog.events
@@ -91,4 +82,6 @@ export async function GET(req: NextRequest): Promise<Response> {
   }));
 
   return NextResponse.json({ events: out });
+
+  });
 }

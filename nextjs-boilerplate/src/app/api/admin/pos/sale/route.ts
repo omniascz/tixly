@@ -17,17 +17,12 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import { db } from '@/lib/db/rls-pool';
+import { runAsActivePromoter } from '@/lib/admin-auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const inputSchema = z.object({
   eventId: z.string().uuid(),
@@ -38,11 +33,7 @@ const inputSchema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = inputSchema.safeParse(body);
   if (!parsed.success) {
@@ -221,4 +212,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   } finally {
     client.release();
   }
+
+  });
 }

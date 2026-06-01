@@ -12,17 +12,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 import { escapeHtml } from '@/lib/html-escape/escape';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const REASONS = [
   'event_cancelled',
@@ -92,11 +87,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { orderId: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (promoter) => {
   // Refunds: max 60/min per tenant.
   const rl = checkRateLimit(`${promoter.promoterId}:refund`, {
     limit: 60,
@@ -267,4 +258,6 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }

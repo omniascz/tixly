@@ -6,15 +6,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const patchSchema = z.object({
   partnerSlug: z.string().min(2).max(40),
@@ -29,11 +24,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (_promoter) => {
   const [comboRes, partnersRes] = await Promise.all([
     db().query<{
       event_id: string;
@@ -89,17 +80,15 @@ export async function GET(
       availableZones: p.available_zones,
     })),
   });
+
+  });
 }
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (promoter) => {
   // Verify event ownership
   const evRes = await db().query<{ promoter_id: string }>(
     `SELECT promoter_id FROM catalog.events WHERE id = $1`,
@@ -173,4 +162,6 @@ export async function PATCH(
   );
 
   return NextResponse.json({ ok: true });
+
+  });
 }

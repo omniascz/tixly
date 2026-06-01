@@ -23,22 +23,37 @@ if (!DOMAIN) { console.error('Usage: rls-codemod.mjs <domain> [--apply]'); proce
 
 // preamble: vrací RegExp matchující auth-preamble na začátku těla handleru;
 // capture group 2 = jméno proměnné (→ param callbacku). removeImport: import k odstranění.
+// Každá doména = pole variant. Per soubor se vybere první varianta, jejíž preamble
+// matchuje VŠECHNY handlery. preamble capture group 1 = jméno proměnné (param callbacku).
+const REQUIRE_PROMOTER_IMPORT = /import \{ requirePromoter \} from '@\/lib\/admin-auth';\r?\n/;
 const WRAP = {
-  buyer: {
-    fn: 'runAsUser',
-    imp: "import { runAsUser } from '@/lib/auth';",
-    preamble: (req) => new RegExp(`^\\s*const (\\w+) = ${req}\\.headers\\.get\\('x-user-id'\\);\\s*\\r?\\n\\s*if \\(!\\w+\\) return [^\\n]*40[13][^\\n]*;\\s*\\r?\\n`),
-    removeImport: null,
-  },
-  admin: {
-    fn: 'runAsPromoter',
-    imp: "import { runAsPromoter } from '@/lib/admin-auth';",
-    preamble: (req) => new RegExp(`^\\s*const (\\w+) = await requirePromoter\\(${req}\\);\\s*\\r?\\n\\s*if \\(!\\w+\\) return [^\\n]*40[13][^\\n]*;\\s*\\r?\\n`),
-    removeImport: /import \{ requirePromoter \} from '@\/lib\/admin-auth';\r?\n/,
-  },
+  buyer: [
+    {
+      fn: 'runAsUser',
+      imp: "import { runAsUser } from '@/lib/auth';",
+      preamble: (req) => new RegExp(`^\\s*const (\\w+) = ${req}\\.headers\\.get\\('x-user-id'\\);\\s*\\r?\\n\\s*if \\(!\\w+\\) return [^\\n]*40[13][^\\n]*;\\s*\\r?\\n`),
+      removeImport: null,
+    },
+  ],
+  admin: [
+    {
+      // jednoduchý: if (!promoter) return 401;
+      fn: 'runAsPromoter',
+      imp: "import { runAsPromoter } from '@/lib/admin-auth';",
+      preamble: (req) => new RegExp(`^\\s*const (\\w+) = await requirePromoter\\(${req}\\);\\s*\\r?\\n\\s*if \\(!\\w+\\) return [^\\n]*40[13][^\\n]*;\\s*\\r?\\n`),
+      removeImport: REQUIRE_PROMOTER_IMPORT,
+    },
+    {
+      // active: if (!promoter || promoter.status !== 'active') { return ...; }
+      fn: 'runAsActivePromoter',
+      imp: "import { runAsActivePromoter } from '@/lib/admin-auth';",
+      preamble: (req) => new RegExp(`^\\s*const (\\w+) = await requirePromoter\\(${req}\\);\\s*\\r?\\n\\s*if \\(!\\1 \\|\\| \\1\\.status !== 'active'\\) \\{\\s*\\r?\\n\\s*return [\\s\\S]*?;\\s*\\r?\\n\\s*\\}\\s*\\r?\\n`),
+      removeImport: REQUIRE_PROMOTER_IMPORT,
+    },
+  ],
 };
-const cfg = WRAP[DOMAIN];
-if (!cfg) { console.error(`Nepodporovaná doména: ${DOMAIN}`); process.exit(1); }
+const variants = WRAP[DOMAIN];
+if (!variants) { console.error(`Nepodporovaná doména: ${DOMAIN}`); process.exit(1); }
 
 const ROOT = join(process.cwd(), 'nextjs-boilerplate', 'src', 'app', 'api', DOMAIN);
 
@@ -76,13 +91,10 @@ for (const file of walk(ROOT)) {
   const handlers = [...src.matchAll(handlerRe)];
   if (handlers.length === 0) { skips.push(`${rel} — žádný handler`); skipped++; continue; }
 
-  // každý handler musí mít preamble; jinak SKIP
-  let allOk = true;
-  for (const h of handlers) {
-    const body = src.slice(h.index + h[0].length - 1 + 1, matchBrace(src, h.index + h[0].length - 1));
-    if (!cfg.preamble(h[2]).test(body)) { allOk = false; break; }
-  }
-  if (!allOk) { skips.push(`${rel} — handler bez ${DOMAIN} preamble`); skipped++; continue; }
+  // vyber variantu, jejíž preamble matchuje VŠECHNY handlery
+  const bodyOf = (h) => src.slice(h.index + h[0].length, matchBrace(src, h.index + h[0].length - 1));
+  const cfg = variants.find((v) => handlers.every((h) => v.preamble(h[2]).test(bodyOf(h))));
+  if (!cfg) { skips.push(`${rel} — handler bez známé preamble`); skipped++; continue; }
 
   // transformace od konce
   for (const h of [...handlers].reverse()) {

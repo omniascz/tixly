@@ -11,15 +11,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const HOLD_KINDS = ['artist', 'promoter', 'comp', 'production'] as const;
 
@@ -51,10 +46,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  return runAsActivePromoter(req, async (promoter) => {
   if (!(await ownsEvent(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
   }
@@ -93,16 +85,15 @@ export async function GET(
       releaseAt: s.hold_until,
     })),
   });
+
+  });
 }
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  return runAsActivePromoter(req, async (promoter) => {
   if (!(await ownsEvent(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
   }
@@ -173,16 +164,15 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  return runAsActivePromoter(req, async (promoter) => {
   if (!(await ownsEvent(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
   }
@@ -222,4 +212,6 @@ export async function DELETE(
   );
 
   return NextResponse.json({ ok: true, released: r.rows.length });
+
+  });
 }

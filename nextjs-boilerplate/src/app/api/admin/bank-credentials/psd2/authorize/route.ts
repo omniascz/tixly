@@ -6,25 +6,16 @@
  */
 
 import { randomBytes } from 'crypto';
+import { db } from '@/lib/db/rls-pool';
+import { runAsActivePromoter } from '@/lib/admin-auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
 import { buildAuthorizeUrl, type PSD2Provider } from '@/lib/bank/psd2';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const VALID_PROVIDERS: PSD2Provider[] = ['kb_psd2', 'cs_psd2', 'csob_psd2'];
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (promoter) => {
   const provider = req.nextUrl.searchParams.get('provider') as PSD2Provider | null;
   if (!provider || !VALID_PROVIDERS.includes(provider)) {
     return NextResponse.json({ error: 'INVALID_PROVIDER' }, { status: 422 });
@@ -55,4 +46,6 @@ export async function GET(req: NextRequest): Promise<Response> {
   }
 
   return NextResponse.redirect(authUrl, 302);
+
+  });
 }

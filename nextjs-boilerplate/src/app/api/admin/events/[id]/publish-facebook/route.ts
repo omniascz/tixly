@@ -11,17 +11,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 import { decryptSecret } from '@/lib/crypto';
 import { createPageEvent, isMockMode } from '@/lib/facebook/graph';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   pageId: z.string().uuid(),
@@ -31,11 +26,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
@@ -166,6 +157,8 @@ export async function POST(
       { status: 500 },
     );
   }
+
+  });
 }
 
 // GET — list existing publishes pro tento event (status indikátor v UI)
@@ -173,11 +166,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  return runAsActivePromoter(req, async (_promoter) => {
   const r = await db().query<{
     id: string;
     fb_event_id: string;
@@ -205,5 +194,7 @@ export async function GET(
       permalinkUrl: `https://facebook.com/events/${p.fb_event_id}`,
       isMock: p.is_mock,
     })),
+  });
+
   });
 }

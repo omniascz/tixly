@@ -4,15 +4,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const patchSchema = z.object({
   label: z.string().max(200).nullable().optional(),
@@ -33,10 +28,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string; dayId: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  return runAsActivePromoter(req, async (promoter) => {
   if (!(await ensureOwnership(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
@@ -74,16 +66,15 @@ export async function PATCH(
     return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
   }
   return NextResponse.json({ ok: true });
+
+  });
 }
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string; dayId: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  return runAsActivePromoter(req, async (promoter) => {
   if (!(await ensureOwnership(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
@@ -113,4 +104,6 @@ export async function DELETE(
     return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
   }
   return NextResponse.json({ ok: true });
+
+  });
 }
