@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify, JWTPayload } from 'jose';
 import { Pool } from 'pg';
+import { NextResponse, type NextRequest } from 'next/server';
+import { runWithUserContext } from './db/rls-pool';
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-change-me-min-32-chars-please';
 const ACCESS_TTL = parseInt(process.env.JWT_ACCESS_TOKEN_TTL ?? '900', 10);
@@ -30,6 +32,32 @@ let pool: Pool | null = null;
 export function db(): Pool {
   if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
   return pool;
+}
+
+/**
+ * Buyer / user RLS wrapper (RLS Fáze 2). Doplňuje trojici k runAsPromoter
+ * (admin-auth.ts) a runAsPlatformAdmin (platform-auth.ts). Použití v buyer
+ * route handlerech (orders, tickets, my-tickets), které isolují přes
+ * app.current_user_id:
+ *
+ *   export async function GET(req: NextRequest) {
+ *     return runAsUser(req, async (userId) => {
+ *       const r = await db().query('SELECT * FROM orders.orders'); // db() z rls-pool
+ *       return NextResponse.json(r.rows);
+ *     });
+ *   }
+ *
+ * Identitu bere z hlavičky x-user-id (nastaví ji JWT middleware). Bez ní → 401.
+ */
+export async function runAsUser<T>(
+  req: NextRequest,
+  callback: (userId: string) => Promise<T>,
+): Promise<T | Response> {
+  const userId = req.headers.get('x-user-id');
+  if (!userId) {
+    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  }
+  return runWithUserContext(userId, async () => callback(userId));
 }
 
 export async function getUserRoles(userId: string): Promise<UserRoles> {

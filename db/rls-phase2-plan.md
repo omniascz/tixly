@@ -34,10 +34,20 @@ Existujících 160 policy používá **tři různé konvence** session proměnn�
 
 `src/lib/db/rls-pool.ts` historicky nastavoval jen `current_promoter_id` + `is_platform_admin`
 → orders/tickets/promoters policy by pod enforce vrátily 0 řádků.
-**Na této větvi doplněno:** rls-pool.ts umí i `current_user_id` a `role` (+ `runWithUserContext`).
-Zbývá: sjednotit `tenant_id` vs `current_promoter_id` a `role` vs `is_platform_admin` na JEDEN
-kanonický kontrakt a přepsat odchylné policy (promoters používá tenant_id — buď doplnit setter,
-nebo policy přepsat na current_promoter_id).
+
+**✅ HOTOVO (krok 1 — kanonický kontrakt):** `migrations/330_rls_canonical_contract.sql` zavádí
+4 helpery (`app_current_user_id`, `app_current_promoter_id`, `app_is_platform_admin`, `app_is_service`)
+a sjednocuje golden-path policy (events, ticket_types, event_seats, orders, order_items, tickets)
+na model `admin || service || vlastník || promotér-akce || public-published`. Ověřeno přes
+`tixly_rls_test`: anon→jen published/0; buyer 600→4 orders/4 items/6 tickets; buyer 601→4 (≠600);
+promotér 111→11 orders (akce promotéra); service/admin→21 (vše). Izolace sedí napříč tabulkami.
+
+**✅ HOTOVO (krok 2 — wrapper trojice):** `runAsPromoter` (admin-auth) + `runAsPlatformAdmin`
+(platform-auth) + nově `runAsUser` (auth.ts → app.current_user_id). JWT middleware už nastavuje
+`x-user-id`; wrappery to překládají na RLS kontext. Route handler stačí obalit `runAs*`.
+
+**Zbývá:** sjednotit zbývajících ~190 tabulek (platform.promoters má ještě `app.tenant_id`
+→ přepsat na current_promoter_id) + 79 tabulek bez policy + codemod 431 route handlerů na `db()`.
 
 ### 2. 431 raw-pool route handlerů bez kontextu
 Tolik souborů dělá `new Pool(...)` / `pool.query` a NEnastavuje kontext (jen ~3 používají
