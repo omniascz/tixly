@@ -46,8 +46,24 @@ promotér 111→11 orders (akce promotéra); service/admin→21 (vše). Izolace 
 (platform-auth) + nově `runAsUser` (auth.ts → app.current_user_id). JWT middleware už nastavuje
 `x-user-id`; wrappery to překládají na RLS kontext. Route handler stačí obalit `runAs*`.
 
-**Zbývá:** sjednotit zbývajících ~190 tabulek (platform.promoters má ještě `app.tenant_id`
-→ přepsat na current_promoter_id) + 79 tabulek bez policy + codemod 431 route handlerů na `db()`.
+**✅ HOTOVO (Vlna A — first-pass policy):** `migrations/331_rls_wave_a_policies.sql` generuje
+policy podle vzoru tenant sloupce (user_id / promoter_id / event_id / order_id), deny-by-default.
+Pokrytí stouplo na **288 tabulek s RLS / 294 policy**. platform.promoters sjednocen z `tenant_id`
+na `current_promoter_id`. Ověřeno přes `tixly_rls_test`: loyalty_accounts (user_only) — vlastník
+vidí jen svůj 1/5, anon 0, service 5; payment_events (order_scoped) — anon 0, service 5.
+
+**⚠️ Na review před flipem (Vlna A nepokryla):**
+- **18 dvojznačných tabulek** (mají user_id i promoter_id / user+event — nutné produktové
+  rozhodnutí kdo izoluje): analytics.funnel_events, attribution.touch_points,
+  marketing.event_reviews / event_rsvps / verified_fan_requests, notifications.push_notifications,
+  orders.abandoned_carts / buyer_event_purchases, platform.queue_tokens, resale.resale_watchlist,
+  risk.device_fingerprints, seat_upgrades.upgrade_requests, social_graph.activities,
+  sport.package_game_selections, support_chat.chat_sessions, tickets.stream_token_log,
+  venue_features.friend_locations, waiting_room.queue_entries.
+- **~159 tabulek bez tenant sloupce** — buď referenční (public-read, nech RLS off), nebo vázané
+  přes jiný FK (vyřešit per-tabulka). NEzapínat RLS bez policy = deny-all lockout.
+- Generovaný vzor předpokládá user_id/promoter_id = VLASTNÍK; pokud je to created_by, policy je
+  moc přísná → projeví se ve staging jako „0 řádků" a doladí se.
 
 ### 2. 431 raw-pool route handlerů bez kontextu
 Tolik souborů dělá `new Pool(...)` / `pool.query` a NEnastavuje kontext (jen ~3 používají
