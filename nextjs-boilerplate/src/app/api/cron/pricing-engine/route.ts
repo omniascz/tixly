@@ -8,19 +8,16 @@
  * testování přidat header `x-cron-secret: $CRON_SECRET`.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { evaluatePricing, applyPricing } from '@/lib/pricing/rules-engine';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
 
 export async function GET(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   // Vercel cron sends x-vercel-cron header
   const isVercelCron = req.headers.get('x-vercel-cron') !== null;
   const secret = req.headers.get('x-cron-secret');
@@ -72,5 +69,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     ok: true,
     runAt: new Date().toISOString(),
     ...results,
+  });
+
   });
 }

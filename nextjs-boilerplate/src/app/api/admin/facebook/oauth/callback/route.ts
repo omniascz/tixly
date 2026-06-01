@@ -8,8 +8,8 @@
  */
 
 import { createHmac } from 'crypto';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { requirePromoter } from '@/lib/admin-auth';
 import { encryptSecret } from '@/lib/crypto';
 import {
@@ -20,11 +20,6 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 function verifyState(state: string): string | null {
   const parts = state.split('.');
@@ -40,6 +35,8 @@ function verifyState(state: string): string | null {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const url = new URL(req.url);
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
@@ -136,4 +133,6 @@ export async function GET(req: NextRequest): Promise<Response> {
       302,
     );
   }
+
+  });
 }

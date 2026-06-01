@@ -3,18 +3,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }
@@ -60,5 +57,7 @@ export async function GET(
   return NextResponse.json({
     bundle: r.rows[0],
     events: events.rows,
+  });
+
   });
 }

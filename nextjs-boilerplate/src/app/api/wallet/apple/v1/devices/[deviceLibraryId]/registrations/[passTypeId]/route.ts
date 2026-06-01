@@ -7,13 +7,8 @@
  *   /api/wallet/apple/v1/passes/[passTypeId]/[serialNumber].
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface RouteParams {
   params: {
@@ -26,6 +21,8 @@ export async function GET(
   req: NextRequest,
   { params }: RouteParams,
 ): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const sinceTag = new URL(req.url).searchParams.get('passesUpdatedSince') ?? '0';
   const sinceMs = Number(sinceTag) || 0;
 
@@ -55,5 +52,7 @@ export async function GET(
   return NextResponse.json({
     lastUpdated: String(lastUpdated),
     serialNumbers: r.rows.map((row) => row.serial_number),
+  });
+
   });
 }

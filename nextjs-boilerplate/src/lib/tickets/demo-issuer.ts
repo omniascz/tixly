@@ -12,8 +12,17 @@
  */
 
 import { randomBytes, randomUUID } from 'crypto';
-import { Pool, PoolClient } from 'pg';
+import type { QueryResult, QueryResultRow } from 'pg';
 import { encryptSecret } from '@/lib/crypto';
+
+// Strukturální typ — splňují ho pg.Pool, pg.PoolClient i rls-pool RlsAwarePool
+// (db()). Umožní volat issuer jak s transakčním clientem, tak se sdíleným db().
+type Queryable = {
+  query<R extends QueryResultRow = QueryResultRow>(
+    text: string,
+    params?: unknown[],
+  ): Promise<QueryResult<R>>;
+};
 
 export interface IssuedTicket {
   ticketId: string;
@@ -48,7 +57,7 @@ interface OrderRow {
  */
 export async function issueTicketsForOrder(
   orderId: string,
-  db: Pool | PoolClient,
+  db: Queryable,
 ): Promise<IssuedTicket[]> {
   // Idempotent check
   const existing = await db.query<ExistingTicketRow>(

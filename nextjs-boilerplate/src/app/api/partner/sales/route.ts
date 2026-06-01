@@ -15,16 +15,11 @@
  */
 
 import { randomUUID } from 'crypto';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
 import { requirePartner } from '@/lib/partner/auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   eventId: z.string().uuid(),
@@ -37,6 +32,8 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const partner = await requirePartner(req);
   if (!partner) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   if (partner.status !== 'active') {
@@ -172,4 +169,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   } finally {
     client.release();
   }
+
+  });
 }

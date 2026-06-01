@@ -7,7 +7,7 @@
  * IP je hashována SHA-256 (data minimisation). Audit log retention 90 dní.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { createHash } from 'crypto';
 import { z } from 'zod';
 
@@ -19,11 +19,6 @@ const bodySchema = z.object({
   sessionId: z.string().max(64).optional(),
 });
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 function hashIp(ip: string): string {
   const salt = process.env.IP_HASH_SALT ?? 'tixly-default-salt-rotate-quarterly';
@@ -31,6 +26,8 @@ function hashIp(ip: string): string {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   let body: z.infer<typeof bodySchema>;
   try {
     const json: unknown = await req.json();
@@ -57,9 +54,13 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   return NextResponse.json({ ok: true });
+
+  });
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   // Vrátí historie consent pro přihlášeného uživatele (data subject access right)
   const userId = req.headers.get('x-user-id')?.trim();
   if (!userId) {
@@ -78,4 +79,6 @@ export async function GET(req: NextRequest): Promise<Response> {
   } catch {
     return NextResponse.json({ history: [] });
   }
+
+  });
 }

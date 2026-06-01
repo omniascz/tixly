@@ -5,15 +5,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const token = req.nextUrl.searchParams.get('token');
   if (!token) {
     return NextResponse.redirect(new URL('/cs/newsletter/confirmed?error=missing-token', req.url));
@@ -29,4 +26,6 @@ export async function GET(req: NextRequest): Promise<Response> {
     return NextResponse.redirect(new URL('/cs/newsletter/confirmed?error=invalid-token', req.url));
   }
   return NextResponse.redirect(new URL('/cs/newsletter/confirmed?status=ok', req.url));
+
+  });
 }

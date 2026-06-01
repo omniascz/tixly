@@ -9,14 +9,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import QRCode from 'qrcode';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +19,8 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string; campaignId: string } },
 ): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const userId = req.headers.get('x-user-id');
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -63,4 +60,6 @@ export async function GET(
     console.error('[QR PNG generation]', err);
     return NextResponse.json({ error: 'QR generation failed' }, { status: 500 });
   }
+
+  });
 }

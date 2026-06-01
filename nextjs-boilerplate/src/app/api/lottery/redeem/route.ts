@@ -7,14 +7,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { z } from 'zod';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface EntryRow {
   id: string;
@@ -49,6 +44,8 @@ async function loadEntry(token: string): Promise<EntryRow | null> {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const token = req.nextUrl.searchParams.get('token');
   if (!token) return NextResponse.json({ error: 'Missing token' }, { status: 422 });
 
@@ -86,6 +83,8 @@ export async function GET(req: NextRequest): Promise<Response> {
       redeemDeadline: entry.redeem_deadline,
     },
   });
+
+  });
 }
 
 const postSchema = z.object({
@@ -93,6 +92,8 @@ const postSchema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'Validation failed' }, { status: 422 });
@@ -120,5 +121,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       buyerName: entry.name ?? entry.email,
       lotteryEntryId: entry.id,
     },
+  });
+
   });
 }

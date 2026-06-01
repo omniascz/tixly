@@ -8,16 +8,11 @@
  */
 
 import { randomBytes } from 'crypto';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
 import { escapeHtml } from '@/lib/html-escape/escape';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   email: z.string().email().max(200),
@@ -27,6 +22,8 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
@@ -82,4 +79,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   }).catch((err) => console.error('[newsletter confirm email]', err));
 
   return NextResponse.json({ ok: true, id: r.rows[0].id, status: 'pending' }, { status: 201 });
+
+  });
 }

@@ -10,14 +10,8 @@
 
 import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
+import { db, runWithPlatformAdminContext } from '@/lib/db/rls-pool';
 
 function safeEqual(a: string, b: string): boolean {
   const ab = Buffer.from(a, 'utf8');
@@ -47,14 +41,16 @@ const upsertSchema = z.object({
 export async function GET(req: NextRequest): Promise<Response> {
   if (!isAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const r = await db().query(
-    `SELECT id, slug, title, excerpt, category, status, view_count,
-            published_at, created_at, updated_at
-     FROM marketing.editorial_articles
-     ORDER BY updated_at DESC
-     LIMIT 200`,
-  );
-  return NextResponse.json({ articles: r.rows });
+  return runWithPlatformAdminContext(async () => {
+    const r = await db().query(
+      `SELECT id, slug, title, excerpt, category, status, view_count,
+              published_at, created_at, updated_at
+       FROM marketing.editorial_articles
+       ORDER BY updated_at DESC
+       LIMIT 200`,
+    );
+    return NextResponse.json({ articles: r.rows });
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
@@ -65,6 +61,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'BAD_INPUT', issues: parsed.error.issues }, { status: 422 });
   }
 
+  return runWithPlatformAdminContext(async () => {
   const client = await db().connect();
   try {
     await client.query('BEGIN');
@@ -112,4 +109,5 @@ export async function POST(req: NextRequest): Promise<Response> {
   } finally {
     client.release();
   }
+  });
 }

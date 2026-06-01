@@ -13,16 +13,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { z } from 'zod';
 import { detectBot, logDetection } from '@/lib/bot-detection/detect';
 import { redisAvailable, joinQueueRedis } from '@/lib/queue/redis-queue';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   fingerprint: z.string().min(8).max(128).optional(),
@@ -42,6 +37,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { eventId: string } },
 ): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   if (!/^[0-9a-f-]{36}$/i.test(params.eventId)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }
@@ -159,5 +156,7 @@ export async function POST(
     queueEnabled: true,
     token: tokenId,
     existing: false,
+  });
+
   });
 }

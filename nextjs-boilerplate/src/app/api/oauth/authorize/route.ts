@@ -5,17 +5,12 @@
  * Issues auth code, který se vrátí v redirect_uri jako query param.
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { cookies } from 'next/headers';
-import { Pool } from 'pg';
 import { z } from 'zod';
 import { verifyToken } from '@/lib/auth';
 import { issueAuthCode } from '@/lib/oauth/flow';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   clientPkId: z.string().uuid(),
@@ -26,6 +21,8 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const cookieStore = await cookies();
   const token = cookieStore.get('session_jwt')?.value;
   if (!token) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
@@ -73,4 +70,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   });
 
   return NextResponse.json({ code });
+
+  });
 }

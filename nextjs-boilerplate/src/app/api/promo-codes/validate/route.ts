@@ -20,7 +20,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
 
 // ---------------------------------------------------------------------------
 // DB row type — mirrors marketing.promo_codes table
@@ -146,11 +146,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-
+  
   try {
     // Look up the promo code
-    const rows = await pool.query<PromoCodeRow>(
+    const rows = await db().query<PromoCodeRow>(
       `SELECT
          id, code, type, discount_value,
          max_uses, uses_count, max_uses_per_user,
@@ -284,7 +283,5 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { valid: false, reason: 'CODE_NOT_FOUND', message: 'Interní chyba serveru' },
       { status: 500 },
     );
-  } finally {
-    await pool.end();
   }
 }

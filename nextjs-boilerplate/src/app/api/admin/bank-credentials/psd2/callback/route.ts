@@ -6,17 +6,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { exchangeCodeForToken, type PSD2Provider } from '@/lib/bank/psd2';
 import { encryptSecret } from '@/lib/crypto';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const code = req.nextUrl.searchParams.get('code');
   const state = req.nextUrl.searchParams.get('state');
   if (!code || !state) {
@@ -98,4 +95,6 @@ export async function GET(req: NextRequest): Promise<Response> {
       { status: 500 },
     );
   }
+
+  });
 }

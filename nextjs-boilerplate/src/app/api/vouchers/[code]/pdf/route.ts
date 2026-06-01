@@ -10,19 +10,16 @@
  * Cache: 5 minut (balance se může změnit po redemption).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { renderVoucherPdf } from '@/lib/vouchers/voucher-pdf';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ code: string }> },
 ): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const { code } = await params;
   if (!/^[A-Z0-9-]{8,40}$/i.test(code)) {
     return NextResponse.json({ error: 'INVALID_CODE' }, { status: 400 });
@@ -81,5 +78,7 @@ export async function GET(
       'Content-Disposition': `attachment; filename="voucher-${v.code}.pdf"`,
       'Cache-Control': 'private, max-age=300',
     },
+  });
+
   });
 }

@@ -191,6 +191,49 @@ const FILE_LISTS = {
     cfg: WRAP.internal,
     files: ['v3/secure-entry/barcode', 'v3/webhooks'],
   },
+  // veřejné read-only (blog/marketplace/promo validace/QR redirect/health/feed) → anon
+  'misc-anon': {
+    cfg: [{ noWrap: true }],
+    files: [
+      'blog', 'resale/marketplace', 'promo-codes/validate', 'qr/[slug]',
+      'health/db', 'health/ready', 'health/redis', 'distribution/google-feed',
+    ],
+  },
+  // user-scoped (2fa mgmt + social friend ops, povinný x-user-id) → runAsUser
+  'misc-user': {
+    cfg: WRAP.buyer,
+    files: [
+      'admin/2fa/disable', 'admin/2fa/setup', 'admin/2fa/verify',
+      'social/friend-requests/[id]', 'social/friend-requests', 'social/friends',
+    ],
+  },
+  // token/cron/callback/guest writes → service
+  'misc-service': {
+    cfg: WRAP.internal,
+    files: [
+      'charity/claim/[token]', 'gift/redeem', 'group-invitations/[token]',
+      'lottery/redeem', 'newsletter/confirm', 'newsletter/subscribe',
+      'transfer/accept/[token]', 'team/accept',
+      'cron/inventory-refresh', 'cron/pricing-engine', 'cron/resale-payouts',
+      'internal/cron/recompute-dynamic-pricing', 'internal/cron/refresh-spotify',
+      'admin/bank-credentials/psd2/callback', 'oauth/authorize',
+      'p/[slug]/vouchers/checkout', 'vouchers/[code]/pdf',
+      'vouchers/holders/[paymentId]/confirm', 'cart/validate',
+      'cross-passes/[id]', 'consent', 'queue/[eventId]/join',
+      'queue/[eventId]/status/[token]', 'partner/sales',
+      'wallet/apple/v1/devices/[deviceLibraryId]/registrations/[passTypeId]/[serialNumber]',
+      'wallet/apple/v1/devices/[deviceLibraryId]/registrations/[passTypeId]',
+    ],
+  },
+  // admin marketing-qr (x-user-id authz, čte promoter qr_campaigns) + facebook oauth
+  // callback → service (zachovává stávající chování; promoter scope přes WHERE event_id)
+  'misc-service-2': {
+    cfg: WRAP.internal,
+    files: [
+      'admin/events/[id]/marketing-qr', 'admin/events/[id]/marketing-qr/[campaignId]/png',
+      'admin/facebook/oauth/callback',
+    ],
+  },
   'buyer-service': {
     cfg: WRAP.internal,
     files: [

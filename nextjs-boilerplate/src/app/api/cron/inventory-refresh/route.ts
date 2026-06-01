@@ -5,15 +5,12 @@
  * Spouští se á 1 minuta přes Vercel cron.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(req: NextRequest): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const isVercelCron = req.headers.get('x-vercel-cron') !== null;
   const secret = req.headers.get('x-cron-secret');
   if (!isVercelCron && secret !== process.env.CRON_SECRET) {
@@ -29,4 +26,6 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   const durationMs = Date.now() - start;
   return NextResponse.json({ refreshed: true, durationMs, at: new Date().toISOString() });
+
+  });
 }

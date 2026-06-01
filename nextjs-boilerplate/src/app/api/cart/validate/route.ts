@@ -30,6 +30,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getCheckoutDb } from '@lib/checkout-deps.js';
+import { runWithServiceContext } from '@/lib/db/rls-pool';
 
 // ---------------------------------------------------------------------------
 // Zod schema
@@ -91,6 +92,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   const { eventId, items } = parsed.data;
+
+  // Cart validace (buyer/guest) → service kontext; getCheckoutDb adaptér zdědí.
+  return runWithServiceContext(async () => {
   const db = getCheckoutDb();
 
   try {
@@ -191,4 +195,5 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { status: 500 },
     );
   }
+  });
 }

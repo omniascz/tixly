@@ -14,23 +14,18 @@
  * Cap: 500 rules per run (chrání proti runaway).
  */
 import { NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithPlatformAdminContext } from '@/lib/db/rls-pool';
 import { computeDynamicPrice } from '@/lib/dynamic-pricing/compute';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
-
 async function runRecompute(): Promise<Response> {
+  // Cron = system op → platform admin kontext (connect() injektuje is_platform_admin).
+  return runWithPlatformAdminContext(async () => {
   const client = await db().connect();
   let processed = 0;
   let updated = 0;
   let failed = 0;
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
 
     const r = await client.query<{ ticket_type_id: string }>(
       `SELECT ticket_type_id
@@ -73,6 +68,7 @@ async function runRecompute(): Promise<Response> {
   }
 
   return NextResponse.json({ ok: true, processed, updated, failed });
+  });
 }
 
 // Vercel dispatcher POSTuje; manual test může GET.

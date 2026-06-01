@@ -9,7 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import {
   redisAvailable,
   getQueueStatusRedis,
@@ -17,11 +17,6 @@ import {
   getActiveCountRedis,
 } from '@/lib/queue/redis-queue';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const ADMISSION_TTL_MIN = 10;
 
@@ -39,6 +34,8 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: { eventId: string; token: string } },
 ): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   if (!/^[0-9a-f-]{36}$/i.test(params.token) || !/^[0-9a-f-]{36}$/i.test(params.eventId)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }
@@ -195,5 +192,7 @@ export async function GET(
     activeBuyers: active,
     maxConcurrent: token.queue_max_concurrent,
     etaSeconds,
+  });
+
   });
 }

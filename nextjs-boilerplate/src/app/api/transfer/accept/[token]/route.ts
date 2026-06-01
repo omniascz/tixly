@@ -8,18 +8,15 @@
  *   - transfer_invitations.status = 'accepted'
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: { token: string } },
 ): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const r = await db().query<{
     id: string;
     ticket_id: string;
@@ -70,12 +67,16 @@ export async function GET(
       venueName: inv.venue_name,
     },
   });
+
+  });
 }
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { token: string } },
 ): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   const recipientUserId = req.headers.get('x-user-id');
   if (!recipientUserId) {
     return NextResponse.json({ error: 'MUST_BE_LOGGED_IN' }, { status: 401 });
@@ -161,4 +162,6 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }

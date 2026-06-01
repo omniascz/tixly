@@ -5,14 +5,10 @@
  * DACH P2-4 Social FOMO (DICE pattern).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import { z } from 'zod';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const requestSchema = z
   .object({
@@ -25,9 +21,7 @@ const requestSchema = z
   });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   // friendships table: user_a < user_b. My friends = other side of any row I'm in.
   const r = await db().query<{
     friend_id: string;
@@ -56,12 +50,12 @@ export async function GET(req: NextRequest): Promise<Response> {
       friendsSince: row.created_at,
     })),
   });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) {
@@ -131,4 +125,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
     throw err;
   }
+
+  });
 }

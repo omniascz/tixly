@@ -4,15 +4,11 @@
  */
 
 import { randomBytes } from 'crypto';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { encryptSecret } from '@/lib/crypto';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 function base32Encode(buf: Buffer): string {
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -32,8 +28,7 @@ function base32Encode(buf: Buffer): string {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return runAsUser(req, async (userId) => {
   const r = await db().query<{ enabled: boolean; enrolled_at: string | null }>(
     `SELECT enabled, enrolled_at FROM identity.user_2fa WHERE user_id = $1`,
     [userId],
@@ -46,12 +41,12 @@ export async function GET(req: NextRequest): Promise<Response> {
     enabled: r.rows[0].enabled,
     enrolledAt: r.rows[0].enrolled_at,
   });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   // Get user email for issuer
   const userRes = await db().query<{ email: string }>(
     `SELECT email FROM identity.users WHERE id = $1`,
@@ -83,5 +78,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     otpauth,
     secretBase32,
     qrAlt: `Tixly: ${email}`,
+  });
+
   });
 }

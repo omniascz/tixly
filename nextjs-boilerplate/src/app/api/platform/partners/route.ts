@@ -10,15 +10,9 @@
 
 import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
+import { db, runWithPlatformAdminContext } from '@/lib/db/rls-pool';
 import { generatePartnerToken } from '@/lib/partner/auth';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 function safeEqual(a: string, b: string): boolean {
   const ab = Buffer.from(a, 'utf8');
@@ -50,15 +44,17 @@ export async function GET(req: NextRequest): Promise<Response> {
   if (!isPlatformAdmin(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const r = await db().query(
-    `SELECT p.id, p.name, p.legal_name, p.ico, p.dic, p.contact_email,
-            p.commission_pct, p.status, p.created_at,
-            (SELECT COUNT(*) FROM partner.partner_tokens t WHERE t.partner_id = p.id AND t.revoked_at IS NULL) AS active_tokens,
-            (SELECT COUNT(*) FROM partner.partner_sales s WHERE s.partner_id = p.id) AS total_sales
-     FROM partner.partners p
-     ORDER BY p.created_at DESC`,
-  );
-  return NextResponse.json({ partners: r.rows });
+  return runWithPlatformAdminContext(async () => {
+    const r = await db().query(
+      `SELECT p.id, p.name, p.legal_name, p.ico, p.dic, p.contact_email,
+              p.commission_pct, p.status, p.created_at,
+              (SELECT COUNT(*) FROM partner.partner_tokens t WHERE t.partner_id = p.id AND t.revoked_at IS NULL) AS active_tokens,
+              (SELECT COUNT(*) FROM partner.partner_sales s WHERE s.partner_id = p.id) AS total_sales
+       FROM partner.partners p
+       ORDER BY p.created_at DESC`,
+    );
+    return NextResponse.json({ partners: r.rows });
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
@@ -75,6 +71,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
+  return runWithPlatformAdminContext(async () => {
   const client = await db().connect();
   try {
     await client.query('BEGIN');
@@ -121,4 +118,5 @@ export async function POST(req: NextRequest): Promise<Response> {
   } finally {
     client.release();
   }
+  });
 }

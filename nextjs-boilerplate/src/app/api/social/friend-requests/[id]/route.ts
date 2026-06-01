@@ -6,14 +6,10 @@
  * Decline → status='declined'.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
 import { z } from 'zod';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const actionSchema = z.object({
   action: z.enum(['accept', 'decline']),
@@ -23,9 +19,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = actionSchema.safeParse(body);
   if (!parsed.success) {
@@ -105,15 +99,15 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-
+  return runAsUser(req, async (userId) => {
   const r = await db().query<{ from_user_id: string; status: string }>(
     `UPDATE social_graph.friend_requests
         SET status = 'cancelled', responded_at = NOW()
@@ -125,4 +119,6 @@ export async function DELETE(
     return NextResponse.json({ error: 'NOT_FOUND_OR_NOT_OWNED' }, { status: 404 });
   }
   return NextResponse.json({ ok: true, status: 'cancelled' });
+
+  });
 }

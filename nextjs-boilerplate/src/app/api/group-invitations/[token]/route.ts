@@ -7,18 +7,15 @@
  * CZ priority #5 (FR/UK/IT audit). Public, no auth.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: { token: string } },
 ): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   if (!/^[A-Za-z0-9_-]{20,80}$/.test(params.token)) {
     return NextResponse.json({ error: 'INVALID_TOKEN' }, { status: 400 });
   }
@@ -105,4 +102,6 @@ export async function GET(
   } finally {
     client.release();
   }
+
+  });
 }

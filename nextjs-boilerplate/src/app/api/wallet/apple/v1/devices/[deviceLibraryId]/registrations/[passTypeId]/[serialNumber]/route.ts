@@ -11,13 +11,8 @@
  * Authorization header: `ApplePass <auth_token>` — token je v pass.json authentication_token.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface RouteParams {
   params: {
@@ -38,6 +33,8 @@ export async function POST(
   req: NextRequest,
   { params }: RouteParams,
 ): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   if (!checkAuth(req, params.serialNumber)) {
     return new NextResponse(null, { status: 401 });
   }
@@ -63,12 +60,16 @@ export async function POST(
   );
 
   return new NextResponse(null, { status: 201 });
+
+  });
 }
 
 export async function DELETE(
   req: NextRequest,
   { params }: RouteParams,
 ): Promise<Response> {
+  return runWithServiceContext(async () => {
+
   if (!checkAuth(req, params.serialNumber)) {
     return new NextResponse(null, { status: 401 });
   }
@@ -81,4 +82,6 @@ export async function DELETE(
   );
 
   return new NextResponse(null, { status: 200 });
+
+  });
 }

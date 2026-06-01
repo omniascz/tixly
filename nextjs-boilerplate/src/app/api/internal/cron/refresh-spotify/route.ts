@@ -10,14 +10,8 @@
  * a is_mock=false zachovat (user může reconnect).
  */
 import { NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithPlatformAdminContext } from '@/lib/db/rls-pool';
 import { getSpotifyConfig, refreshAccessToken } from '@/lib/spotify/oauth';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 async function runRefresh(): Promise<Response> {
   const cfg = getSpotifyConfig();
@@ -25,12 +19,13 @@ async function runRefresh(): Promise<Response> {
     return NextResponse.json({ ok: true, skipped: true, reason: 'CONFIG_MISSING' });
   }
 
+  // Cron = system op → platform admin kontext (connect() injektuje is_platform_admin).
+  return runWithPlatformAdminContext(async () => {
   const client = await db().connect();
   let refreshed = 0;
   let failed = 0;
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
 
     const stale = await client.query<{
       user_id: string;
@@ -80,6 +75,7 @@ async function runRefresh(): Promise<Response> {
   }
 
   return NextResponse.json({ ok: true, refreshed, failed });
+  });
 }
 
 // Vercel dispatcher POSTuje, manual test / curl může GET.
