@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext, runWithPromoterContext } from '@/lib/db/rls-pool';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,20 +33,16 @@ interface TotalRow {
   total_revenue: string | number;
 }
 
-function getDb() {
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL not set');
-  }
-  return new Pool({ connectionString: process.env.DATABASE_URL });
-}
-
 /**
- * Helper: check if user is promoter member and return promoter_id
+ * Helper: check if user is promoter member and return promoter_id.
+ * Bootstrap — čte promoter_members PŘED vznikem promoter kontextu → service.
  */
-async function getPromoterIdForUser(db: Pool, userId: string): Promise<string | null> {
-  const result = await db.query<{ promoter_id: string }>(
-    'SELECT promoter_id FROM platform.promoter_members WHERE user_id = $1 AND status = $2 LIMIT 1',
-    [userId, 'active']
+async function getPromoterIdForUser(userId: string): Promise<string | null> {
+  const result = await runWithServiceContext(() =>
+    db().query<{ promoter_id: string }>(
+      'SELECT promoter_id FROM platform.promoter_members WHERE user_id = $1 AND status = $2 LIMIT 1',
+      [userId, 'active'],
+    ),
   );
   if (result.rows.length === 0) {
     return null;
@@ -66,20 +62,20 @@ function buildSearchPattern(search: string | null): string | null {
 
 
 export async function GET(request: NextRequest): Promise<Response> {
-  const db = getDb();
-
   try {
     const userId = request.headers.get('x-user-id');
     if (!userId) {
       return NextResponse.json({ error: 'Missing x-user-id header' }, { status: 401 });
     }
 
-    // Check promoter membership
-    const promoterId = await getPromoterIdForUser(db, userId);
+    // Check promoter membership (bootstrap → service kontext)
+    const promoterId = await getPromoterIdForUser(userId);
     if (!promoterId) {
       return NextResponse.json({ error: 'Not a promoter member' }, { status: 403 });
     }
 
+    // Order queries v promoter RLS kontextu (DB-level izolace cizích objednávek).
+    return await runWithPromoterContext(promoterId, async () => {
     // Parse query parameters
     const { searchParams } = new URL(request.url);
     const eventId = searchParams.get('eventId') || null;
@@ -141,7 +137,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       WHERE ${whereClause}
     `;
 
-    const countResult = await db.query<TotalRow>(countQuery, params);
+    const countResult = await db().query<TotalRow>(countQuery, params);
     const totalCount = Number(countResult.rows[0]?.total_count ?? 0);
     const totalRevenue = Number(countResult.rows[0]?.total_revenue ?? 0);
 
@@ -173,7 +169,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     params.push(limit, offset);
 
-    const result = await db.query<OrderRow>(mainQuery, params);
+    const result = await db().query<OrderRow>(mainQuery, params);
 
     // Format response with order numbers
     const items = result.rows.map((row, index) => {
@@ -195,8 +191,6 @@ export async function GET(request: NextRequest): Promise<Response> {
       };
     });
 
-    await db.end();
-
     return NextResponse.json({
       items,
       total: totalCount,
@@ -205,10 +199,10 @@ export async function GET(request: NextRequest): Promise<Response> {
       limit,
       totalPages: Math.ceil(totalCount / limit),
     });
+    });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('[GET /api/admin/orders]', error);
-    await db.end();
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db, runWithServiceContext, runWithPromoterContext } from '@/lib/db/rls-pool';
 import { formatCzk, formatCzechDateShort } from '@/lib/format.js';
 
 export const dynamic = 'force-dynamic';
@@ -24,17 +24,13 @@ interface OrderRow {
   status: string;
 }
 
-function getDb() {
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL not set');
-  }
-  return new Pool({ connectionString: process.env.DATABASE_URL });
-}
-
-async function getPromoterIdForUser(db: Pool, userId: string): Promise<string | null> {
-  const result = await db.query<{ promoter_id: string }>(
-    'SELECT promoter_id FROM platform.promoter_members WHERE user_id = $1 AND status = $2 LIMIT 1',
-    [userId, 'active']
+async function getPromoterIdForUser(userId: string): Promise<string | null> {
+  // Bootstrap — čte promoter_members PŘED promoter kontextem → service.
+  const result = await runWithServiceContext(() =>
+    db().query<{ promoter_id: string }>(
+      'SELECT promoter_id FROM platform.promoter_members WHERE user_id = $1 AND status = $2 LIMIT 1',
+      [userId, 'active'],
+    ),
   );
   if (result.rows.length === 0) {
     return null;
@@ -71,19 +67,19 @@ function escapeCsv(value: string | null | undefined): string {
 }
 
 export async function GET(request: NextRequest): Promise<Response> {
-  const db = getDb();
-
   try {
     const userId = request.headers.get('x-user-id');
     if (!userId) {
       return NextResponse.json({ error: 'Missing x-user-id header' }, { status: 401 });
     }
 
-    const promoterId = await getPromoterIdForUser(db, userId);
+    const promoterId = await getPromoterIdForUser(userId);
     if (!promoterId) {
       return NextResponse.json({ error: 'Not a promoter member' }, { status: 403 });
     }
 
+    // Order export v promoter RLS kontextu (DB-level izolace cizích objednávek).
+    return await runWithPromoterContext(promoterId, async () => {
     const { searchParams } = new URL(request.url);
     const eventId = searchParams.get('eventId') || null;
     const status = searchParams.get('status') || null;
@@ -153,7 +149,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       ORDER BY o.created_at DESC
     `;
 
-    const result = await db.query<OrderRow>(query, params);
+    const result = await db().query<OrderRow>(query, params);
 
     // Build CSV
     const headers = ['Číslo', 'Datum', 'Jméno', 'Email', 'Telefon', 'Akce', 'Vstupenky', 'Částka', 'Stav'];
@@ -174,8 +170,6 @@ export async function GET(request: NextRequest): Promise<Response> {
     const now = new Date();
     const dateStr = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`;
 
-    await db.end();
-
     return new NextResponse(csv, {
       status: 200,
       headers: {
@@ -183,10 +177,10 @@ export async function GET(request: NextRequest): Promise<Response> {
         'Content-Disposition': `attachment; filename="objednavky-${dateStr}.csv"`,
       },
     });
+    });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('[GET /api/admin/orders/export]', error);
-    await db.end();
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
