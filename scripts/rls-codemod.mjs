@@ -139,6 +139,8 @@ const FILE_LISTS = {
       'buyer/vouchers/lookup', 'buyer/otp/request', 'buyer/otp/verify',
       'buyer/passkeys/authenticate', 'buyer/tickets/[ticketId]/wallet-content',
       'buyer/spotify/callback', 'buyer/modular-pass/checkout',
+      // guest-or-user purchase/transfer operace (jako checkout — route enforce buyer identitu)
+      'buyer/resale/buy', 'buyer/tickets/[ticketId]/upgrade', 'buyer/cross-passes/purchase',
     ],
   },
 };
