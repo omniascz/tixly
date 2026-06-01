@@ -11,15 +11,10 @@
  */
 
 import { randomBytes } from 'crypto';
+import { db } from '@/lib/db/rls-pool';
+import { runAsActivePromoterOwner } from '@/lib/admin-auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface EntryRow {
   id: string;
@@ -33,11 +28,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string; lotteryId: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active' || promoter.role !== 'owner') {
-    return NextResponse.json({ error: 'OWNER_ONLY' }, { status: 403 });
-  }
-
+  return runAsActivePromoterOwner(req, async (promoter) => {
   const client = await db().connect();
   try {
     await client.query('BEGIN');
@@ -189,4 +180,6 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }

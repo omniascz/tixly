@@ -57,6 +57,34 @@ const WRAP = {
       preamble: (req) => new RegExp(`^\\s*const (\\w+) = await requirePromoter\\(${req}\\);\\s*\\r?\\n\\s*if \\(!\\1 \\|\\| \\1\\.status !== 'active'\\) \\{\\s*\\r?\\n\\s*return [\\s\\S]*?;\\s*\\r?\\n\\s*\\}\\s*\\r?\\n`),
       removeImport: REQUIRE_PROMOTER_IMPORT,
     },
+    {
+      // active + owner: if (!p || p.status !== 'active' || p.role !== 'owner') { return; }
+      fn: 'runAsActivePromoterOwner',
+      imp: "import { runAsActivePromoterOwner } from '@/lib/admin-auth';",
+      preamble: (req) => new RegExp(`^\\s*const (\\w+) = await requirePromoter\\(${req}\\);\\s*\\r?\\n\\s*if \\(!\\1 \\|\\| \\1\\.status !== 'active' \\|\\| \\1\\.role !== 'owner'\\) \\{\\s*\\r?\\n\\s*return [\\s\\S]*?;\\s*\\r?\\n\\s*\\}\\s*\\r?\\n`),
+      removeImport: REQUIRE_PROMOTER_IMPORT,
+    },
+    {
+      // active + non-staff: if (!p || p.status !== 'active' || p.role === 'staff') { return; }
+      fn: 'runAsActivePromoterNonStaff',
+      imp: "import { runAsActivePromoterNonStaff } from '@/lib/admin-auth';",
+      preamble: (req) => new RegExp(`^\\s*const (\\w+) = await requirePromoter\\(${req}\\);\\s*\\r?\\n\\s*if \\(!\\1 \\|\\| \\1\\.status !== 'active' \\|\\| \\1\\.role === 'staff'\\) \\{\\s*\\r?\\n\\s*return [\\s\\S]*?;\\s*\\r?\\n\\s*\\}\\s*\\r?\\n`),
+      removeImport: REQUIRE_PROMOTER_IMPORT,
+    },
+    {
+      // owner: if (!promoter || promoter.role !== 'owner') { return; }
+      fn: 'runAsPromoterOwner',
+      imp: "import { runAsPromoterOwner } from '@/lib/admin-auth';",
+      preamble: (req) => new RegExp(`^\\s*const (\\w+) = await requirePromoter\\(${req}\\);\\s*\\r?\\n\\s*if \\(!\\1 \\|\\| \\1\\.role !== 'owner'\\) \\{\\s*\\r?\\n\\s*return [\\s\\S]*?;\\s*\\r?\\n\\s*\\}\\s*\\r?\\n`),
+      removeImport: REQUIRE_PROMOTER_IMPORT,
+    },
+    {
+      // non-staff: if (!promoter || promoter.role === 'staff') { return; }
+      fn: 'runAsPromoterNonStaff',
+      imp: "import { runAsPromoterNonStaff } from '@/lib/admin-auth';",
+      preamble: (req) => new RegExp(`^\\s*const (\\w+) = await requirePromoter\\(${req}\\);\\s*\\r?\\n\\s*if \\(!\\1 \\|\\| \\1\\.role === 'staff'\\) \\{\\s*\\r?\\n\\s*return [\\s\\S]*?;\\s*\\r?\\n\\s*\\}\\s*\\r?\\n`),
+      removeImport: REQUIRE_PROMOTER_IMPORT,
+    },
   ],
   platform: [
     {

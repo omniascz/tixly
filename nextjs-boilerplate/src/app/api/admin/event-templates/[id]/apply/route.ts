@@ -5,15 +5,10 @@
  * Podle template_type kopíruje různé entity (ticket_types, group_discounts, ...).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   eventId: z.string().uuid(),
@@ -52,11 +47,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role === 'staff') {
-    return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
-  }
-
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'INVALID_BODY' }, { status: 422 });
@@ -142,4 +133,6 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }

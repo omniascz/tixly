@@ -6,25 +6,16 @@
  */
 
 import { resolveTxt } from 'dns/promises';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoterOwner } from '@/lib/admin-auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role !== 'owner') {
-    return NextResponse.json({ error: 'OWNER_ONLY' }, { status: 403 });
-  }
-
+  return runAsPromoterOwner(req, async (promoter) => {
   const force = req.nextUrl.searchParams.get('force') === 'true';
 
   const r = await db().query<{
@@ -93,4 +84,6 @@ export async function POST(
     [row.id, isFirst],
   );
   return NextResponse.json({ ok: true, primary: isFirst });
+
+  });
 }

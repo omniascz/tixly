@@ -9,16 +9,11 @@
  */
 
 import { randomBytes } from 'crypto';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsActivePromoterOwner } from '@/lib/admin-auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const INVITE_TTL_HOURS = 168; // 7 days
 
@@ -41,9 +36,7 @@ interface InviteRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const [members, invites] = await Promise.all([
     db().query<MemberRow>(
       `SELECT pm.user_id, u.email, u.name, pm.role::text AS role, pm.status, pm.created_at
@@ -70,6 +63,8 @@ export async function GET(req: NextRequest): Promise<Response> {
     members: members.rows,
     invites: invites.rows,
   });
+
+  });
 }
 
 const inviteSchema = z.object({
@@ -87,14 +82,7 @@ const inviteSchema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active' || promoter.role !== 'owner') {
-    return NextResponse.json(
-      { error: 'OWNER_ONLY', message: 'Pouze owner může pozvat členy.' },
-      { status: 403 },
-    );
-  }
-
+  return runAsActivePromoterOwner(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = inviteSchema.safeParse(body);
   if (!parsed.success) {
@@ -173,4 +161,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     { id: r.rows[0].id, inviteUrl, expiresAt: expiresAt.toISOString() },
     { status: 201 },
   );
+
+  });
 }

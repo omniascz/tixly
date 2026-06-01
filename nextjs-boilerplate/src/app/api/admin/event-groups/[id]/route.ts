@@ -11,15 +11,10 @@
  *   POST /api/admin/event-groups/[id]/shares           — share s jiným promotérem
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsPromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 async function ownsGroup(groupId: string, promoterId: string): Promise<boolean> {
   const r = await db().query(
@@ -33,8 +28,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  return runAsPromoter(req, async (promoter) => {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
     return NextResponse.json({ error: 'INVALID_ID' }, { status: 400 });
@@ -113,6 +107,8 @@ export async function GET(
     members: membersRes.rows,
     shares: sharesRes.rows,
   });
+
+  });
 }
 
 const patchSchema = z.object({
@@ -131,10 +127,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role === 'staff') {
-    return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const { id } = await params;
   if (!(await ownsGroup(id, promoter.promoterId))) {
     return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
@@ -170,4 +163,6 @@ export async function PATCH(
   );
 
   return NextResponse.json({ ok: true });
+
+  });
 }

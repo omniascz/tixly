@@ -7,15 +7,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoterOwner } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const postSchema = z.object({
   type: z.enum(['contract', 'bank_statement', 'id_proof', 'business_license', 'other']),
@@ -25,10 +20,7 @@ const postSchema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role !== 'owner') {
-    return NextResponse.json({ error: 'OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterOwner(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) {
@@ -52,13 +44,12 @@ export async function POST(req: NextRequest): Promise<Response> {
     ],
   );
   return NextResponse.json({ id: r.rows[0].id }, { status: 201 });
+
+  });
 }
 
 export async function DELETE(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role !== 'owner') {
-    return NextResponse.json({ error: 'OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterOwner(req, async (promoter) => {
   const id = req.nextUrl.searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 422 });
   await db().query(
@@ -66,4 +57,6 @@ export async function DELETE(req: NextRequest): Promise<Response> {
     [id, promoter.promoterId],
   );
   return NextResponse.json({ ok: true });
+
+  });
 }

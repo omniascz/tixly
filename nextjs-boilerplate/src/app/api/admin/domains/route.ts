@@ -10,16 +10,11 @@
  */
 
 import { randomBytes } from 'crypto';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsPromoterOwner } from '@/lib/admin-auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const postSchema = z.object({
   domain: z
@@ -30,9 +25,7 @@ const postSchema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const r = await db().query<{
     id: string;
     domain: string;
@@ -48,13 +41,12 @@ export async function GET(req: NextRequest): Promise<Response> {
     [promoter.promoterId],
   );
   return NextResponse.json({ domains: r.rows });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role !== 'owner') {
-    return NextResponse.json({ error: 'OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterOwner(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) {
@@ -87,4 +79,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
     throw err;
   }
+
+  });
 }

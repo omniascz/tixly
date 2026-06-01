@@ -5,15 +5,10 @@
  * (Eventim "doplňkové otázky" v shopu).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsPromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const postSchema = z.object({
   fieldKey: z.string().regex(/^[a-z][a-z0-9_]{1,40}$/, 'snake_case key'),
@@ -34,8 +29,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  return runAsPromoter(req, async (promoter) => {
   const { id: eventId } = await params;
 
   const r = await db().query(
@@ -47,16 +41,15 @@ export async function GET(
     [eventId, promoter.promoterId],
   );
   return NextResponse.json({ fields: r.rows });
+
+  });
 }
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role === 'staff') {
-    return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const { id: eventId } = await params;
 
   const body: unknown = await req.json().catch(() => ({}));
@@ -107,4 +100,6 @@ export async function POST(
     }
     return NextResponse.json({ error: 'DB_ERROR' }, { status: 500 });
   }
+
+  });
 }

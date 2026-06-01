@@ -10,15 +10,10 @@
  * Pokud jen `expectedDecisionAt` → still TBD, original date stays.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   reason: z.string().min(2).max(1000),
@@ -30,10 +25,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role === 'staff') {
-    return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const { id: eventId } = await params;
 
   const body: unknown = await req.json().catch(() => ({}));
@@ -86,6 +78,8 @@ export async function POST(
     originalDate: r.rows[0].original,
     newDate: r.rows[0].new_date,
   });
+
+  });
 }
 
 /**
@@ -96,10 +90,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role === 'staff') {
-    return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const { id: eventId } = await params;
 
   const r = await db().query(
@@ -118,4 +109,6 @@ export async function DELETE(
 
   if (r.rows.length === 0) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
   return NextResponse.json({ ok: true });
+
+  });
 }

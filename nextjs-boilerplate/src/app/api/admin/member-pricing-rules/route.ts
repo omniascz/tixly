@@ -5,15 +5,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsActivePromoterNonStaff, runAsPromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const postSchema = z
   .object({
@@ -27,9 +22,7 @@ const postSchema = z
   });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const ticketTypeId = req.nextUrl.searchParams.get('ticketTypeId');
   const args: unknown[] = [promoter.promoterId];
   let where = `mg.promoter_id = $1`;
@@ -59,13 +52,12 @@ export async function GET(req: NextRequest): Promise<Response> {
     args,
   );
   return NextResponse.json({ rules: r.rows });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active' || promoter.role === 'staff') {
-    return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsActivePromoterNonStaff(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) {
@@ -109,13 +101,12 @@ export async function POST(req: NextRequest): Promise<Response> {
     console.error('[member pricing rule]', err);
     throw err;
   }
+
+  });
 }
 
 export async function DELETE(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role === 'staff') {
-    return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const id = req.nextUrl.searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 422 });
   await db().query(
@@ -126,4 +117,6 @@ export async function DELETE(req: NextRequest): Promise<Response> {
     [id, promoter.promoterId],
   );
   return NextResponse.json({ ok: true });
+
+  });
 }

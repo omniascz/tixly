@@ -75,6 +75,55 @@ export async function runAsActivePromoter<T>(
   return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
 }
 
+// ── Role-guarded varianty (zachovávají kontrolu role/status z původního preamble) ──
+function rejectPromoter(): Response {
+  return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
+}
+
+/** requirePromoter + role === 'owner' (vzor `!promoter || role !== 'owner'`). */
+export async function runAsPromoterOwner<T>(
+  req: NextRequest,
+  callback: (ctx: PromoterContext) => Promise<T>,
+): Promise<T | Response> {
+  const ctx = await requirePromoter(req);
+  if (!ctx) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  if (ctx.role !== 'owner') return rejectPromoter();
+  return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
+}
+
+/** requirePromoter + role !== 'staff' (vzor `!promoter || role === 'staff'`). */
+export async function runAsPromoterNonStaff<T>(
+  req: NextRequest,
+  callback: (ctx: PromoterContext) => Promise<T>,
+): Promise<T | Response> {
+  const ctx = await requirePromoter(req);
+  if (!ctx) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  if (ctx.role === 'staff') return rejectPromoter();
+  return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
+}
+
+/** active + role === 'owner'. */
+export async function runAsActivePromoterOwner<T>(
+  req: NextRequest,
+  callback: (ctx: PromoterContext) => Promise<T>,
+): Promise<T | Response> {
+  const ctx = await requirePromoter(req);
+  if (!ctx || ctx.status !== 'active') return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  if (ctx.role !== 'owner') return rejectPromoter();
+  return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
+}
+
+/** active + role !== 'staff'. */
+export async function runAsActivePromoterNonStaff<T>(
+  req: NextRequest,
+  callback: (ctx: PromoterContext) => Promise<T>,
+): Promise<T | Response> {
+  const ctx = await requirePromoter(req);
+  if (!ctx || ctx.status !== 'active') return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  if (ctx.role === 'staff') return rejectPromoter();
+  return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
+}
+
 /**
  * Resolve the active promoter context for the authenticated user.
  * Returns null if there's no active membership (or no user header).

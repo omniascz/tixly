@@ -4,15 +4,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsActivePromoterOwner } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 interface PlanRow {
   id: string;
@@ -26,9 +21,7 @@ interface PlanRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const r = await db().query<PlanRow>(
     `SELECT p.id, p.name, p.description, p.price_halire, p.billing_cycle,
             p.allowance_per_period, p.active,
@@ -51,6 +44,8 @@ export async function GET(req: NextRequest): Promise<Response> {
       activeSubscriptions: p.active_subs,
     })),
   });
+
+  });
 }
 
 const createSchema = z.object({
@@ -62,10 +57,7 @@ const createSchema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active' || promoter.role !== 'owner') {
-    return NextResponse.json({ error: 'OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsActivePromoterOwner(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
@@ -90,4 +82,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     ],
   );
   return NextResponse.json({ id: r.rows[0].id }, { status: 201 });
+
+  });
 }

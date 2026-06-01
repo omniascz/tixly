@@ -4,15 +4,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsActivePromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const createSchema = z.object({
   code: z.string().min(2).max(40).regex(/^[A-Z0-9_-]+$/),
@@ -23,9 +18,7 @@ const createSchema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const r = await db().query<{
     id: string;
     code: string;
@@ -47,13 +40,12 @@ export async function GET(req: NextRequest): Promise<Response> {
     [promoter.promoterId],
   );
   return NextResponse.json({ affiliates: r.rows });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.status !== 'active' || promoter.role === 'staff') {
-    return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsActivePromoterNonStaff(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
@@ -84,4 +76,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
     throw err;
   }
+
+  });
 }

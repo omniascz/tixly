@@ -5,15 +5,10 @@
  * pro per-event nebo promoter-wide tracking.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsPromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const postSchema = z.object({
   eventId: z.string().uuid().nullable().optional(),
@@ -24,8 +19,7 @@ const postSchema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  return runAsPromoter(req, async (promoter) => {
   const eventId = new URL(req.url).searchParams.get('eventId');
 
   const args: unknown[] = [promoter.promoterId];
@@ -44,14 +38,12 @@ export async function GET(req: NextRequest): Promise<Response> {
   );
 
   return NextResponse.json({ pixels: r.rows });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role === 'staff') {
-    return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
-  }
-
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'INVALID_BODY' }, { status: 422 });
@@ -79,4 +71,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   );
 
   return NextResponse.json({ id: r.rows[0].id }, { status: 201 });
+
+  });
 }

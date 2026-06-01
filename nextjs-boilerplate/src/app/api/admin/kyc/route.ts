@@ -5,16 +5,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsPromoterOwner } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 import { verifyIco } from '@/lib/ares/verify';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const submitSchema = z.object({
   ico: z.string().regex(/^\d{8}$/, 'IČO musí být 8 čísel'),
@@ -27,9 +22,7 @@ const submitSchema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const r = await db().query<{
     id: string;
     name: string;
@@ -72,14 +65,12 @@ export async function GET(req: NextRequest): Promise<Response> {
     promoter: r.rows[0],
     documents: documents.rows,
   });
+
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role !== 'owner') {
-    return NextResponse.json({ error: 'OWNER_ONLY' }, { status: 403 });
-  }
-
+  return runAsPromoterOwner(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = submitSchema.safeParse(body);
   if (!parsed.success) {
@@ -127,5 +118,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       active: ares.active,
     },
     status: 'submitted',
+  });
+
   });
 }

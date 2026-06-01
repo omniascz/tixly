@@ -9,15 +9,10 @@
  * Audit do event_groups.bulk_edits.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   saleStartAt: z.string().datetime(),
@@ -28,10 +23,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role === 'staff') {
-    return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const { id: groupId } = await params;
 
   const body: unknown = await req.json().catch(() => ({}));
@@ -108,4 +100,6 @@ export async function POST(
   } finally {
     client.release();
   }
+
+  });
 }

@@ -4,15 +4,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoterOwner } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const patchSchema = z.object({
   name: z.string().min(1).max(200).optional(),
@@ -26,10 +21,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role !== 'owner') {
-    return NextResponse.json({ error: 'OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterOwner(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
@@ -68,17 +60,15 @@ export async function PATCH(
     args,
   );
   return NextResponse.json({ ok: true });
+
+  });
 }
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role !== 'owner') {
-    return NextResponse.json({ error: 'OWNER_ONLY' }, { status: 403 });
-  }
-
+  return runAsPromoterOwner(req, async (promoter) => {
   // Pokud existují aktivní subscriptions → soft delete (active=false)
   const subs = await db().query<{ cnt: string }>(
     `SELECT COUNT(*)::text AS cnt FROM subscriptions.subscriptions
@@ -104,4 +94,6 @@ export async function DELETE(
     }
     return NextResponse.json({ ok: true, deleted: true });
   }
+
+  });
 }

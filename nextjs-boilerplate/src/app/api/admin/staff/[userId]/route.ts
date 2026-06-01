@@ -6,15 +6,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoterOwner } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const patchSchema = z.object({
   role: z.enum(['admin', 'staff']),
@@ -24,10 +19,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { userId: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role !== 'owner') {
-    return NextResponse.json({ error: 'OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterOwner(req, async (promoter) => {
   if (!/^[0-9a-f-]{36}$/i.test(params.userId)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }
@@ -55,16 +47,15 @@ export async function PATCH(
     return NextResponse.json({ error: 'NOT_FOUND_OR_OWNER' }, { status: 404 });
   }
   return NextResponse.json({ ok: true });
+
+  });
 }
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { userId: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role !== 'owner') {
-    return NextResponse.json({ error: 'OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterOwner(req, async (promoter) => {
   if (!/^[0-9a-f-]{36}$/i.test(params.userId)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }
@@ -85,4 +76,6 @@ export async function DELETE(
     return NextResponse.json({ error: 'NOT_FOUND_OR_OWNER' }, { status: 404 });
   }
   return NextResponse.json({ ok: true });
+
+  });
 }

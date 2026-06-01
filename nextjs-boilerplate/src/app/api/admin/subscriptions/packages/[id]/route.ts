@@ -9,15 +9,10 @@
  * Auth: requirePromoter (owner-only).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsPromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const patchSchema = z.object({
   status: z
@@ -57,9 +52,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-
+  return runAsPromoter(req, async (promoter) => {
   const own = await assertOwnership(params.id, promoter.promoterId);
   if (!own.ok) return NextResponse.json({ error: own.error }, { status: own.status });
 
@@ -83,17 +76,15 @@ export async function GET(
     package: pkg.rows[0],
     events: events.rows,
   });
+
+  });
 }
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role === 'staff') {
-    return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
-  }
-
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const own = await assertOwnership(params.id, promoter.promoterId);
   if (!own.ok) return NextResponse.json({ error: own.error }, { status: own.status });
 
@@ -170,4 +161,6 @@ export async function PATCH(
   } finally {
     client.release();
   }
+
+  });
 }

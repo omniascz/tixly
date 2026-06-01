@@ -12,15 +12,10 @@
  * Vrátí share record. Shared partner musí accept POST /accept (separate endpoint).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoterOwner } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const schema = z.object({
   sharedWithPromoterId: z.string().uuid(),
@@ -37,10 +32,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role !== 'owner') {
-    return NextResponse.json({ error: 'OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterOwner(req, async (promoter) => {
   const { id: groupId } = await params;
 
   const body: unknown = await req.json().catch(() => ({}));
@@ -97,16 +89,15 @@ export async function POST(
     console.error('[shares POST]', err);
     return NextResponse.json({ error: 'INTERNAL' }, { status: 500 });
   }
+
+  });
 }
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role !== 'owner') {
-    return NextResponse.json({ error: 'OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterOwner(req, async (promoter) => {
   const { id: groupId } = await params;
   const shareId = req.nextUrl.searchParams.get('shareId');
   if (!shareId || !/^[0-9a-f-]{36}$/i.test(shareId)) {
@@ -121,4 +112,6 @@ export async function DELETE(
   );
 
   return NextResponse.json({ ok: true });
+
+  });
 }

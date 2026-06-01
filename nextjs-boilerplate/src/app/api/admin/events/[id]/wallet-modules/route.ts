@@ -5,15 +5,10 @@
  * parking info, počasí, merch links etc. zobrazované na lock-screen pass.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter, runAsPromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const postSchema = z.object({
   moduleType: z.enum([
@@ -34,8 +29,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  return runAsPromoter(req, async (promoter) => {
   const { id: eventId } = await params;
 
   const r = await db().query(
@@ -48,16 +42,15 @@ export async function GET(
   );
 
   return NextResponse.json({ modules: r.rows });
+
+  });
 }
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role === 'staff') {
-    return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const { id: eventId } = await params;
 
   const body: unknown = await req.json().catch(() => ({}));
@@ -86,16 +79,15 @@ export async function POST(
   );
 
   return NextResponse.json({ id: r.rows[0].id }, { status: 201 });
+
+  });
 }
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role === 'staff') {
-    return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
-  }
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const { id: eventId } = await params;
   const moduleId = new URL(req.url).searchParams.get('moduleId');
   if (!moduleId) return NextResponse.json({ error: 'MODULE_ID_REQUIRED' }, { status: 422 });
@@ -110,4 +102,6 @@ export async function DELETE(
   );
   if (r.rows.length === 0) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
   return NextResponse.json({ deleted: true });
+
+  });
 }

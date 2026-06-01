@@ -5,15 +5,10 @@
  * Body: { eventId, displayOrder? }
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
-import { requirePromoter } from '@/lib/admin-auth';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 const postSchema = z.object({
   eventId: z.string().uuid(),
@@ -33,11 +28,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role === 'staff') {
-    return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
-  }
-
+  return runAsPromoterNonStaff(req, async (promoter) => {
   if (!(await ensureCollectionOwner(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'NOT_OWNER' }, { status: 403 });
   }
@@ -69,17 +60,15 @@ export async function POST(
   );
 
   return NextResponse.json({ ok: true });
+
+  });
 }
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  const promoter = await requirePromoter(req);
-  if (!promoter || promoter.role === 'staff') {
-    return NextResponse.json({ error: 'ADMIN_OR_OWNER_ONLY' }, { status: 403 });
-  }
-
+  return runAsPromoterNonStaff(req, async (promoter) => {
   if (!(await ensureCollectionOwner(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'NOT_OWNER' }, { status: 403 });
   }
@@ -93,4 +82,6 @@ export async function DELETE(
   );
 
   return NextResponse.json({ ok: true });
+
+  });
 }
