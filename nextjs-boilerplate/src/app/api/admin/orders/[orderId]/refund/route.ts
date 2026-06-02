@@ -116,15 +116,19 @@ export async function POST(
     await client.query('BEGIN');
 
     const orderRes = await client.query<OrderRow>(
+      // LEFT JOIN na identity.users: pod enforced RLS promotér NEVIDÍ řádek
+      // kupujícího (jiný user). INNER JOIN by celý dotaz vyprázdnil → falešné
+      // 404 i pro vlastní objednávku. LEFT JOIN vrátí order vždy; buyer_email
+      // může být null (e-mail je fire-and-forget, degraduje se gracefully).
       `SELECT o.id, o.status, o.total_amount, o.user_id,
               e.promoter_id AS event_promoter_id,
               e.title AS event_title,
               u.email AS buyer_email, u.name AS buyer_name
        FROM orders.orders o
        JOIN catalog.events e ON e.id = o.event_id
-       JOIN identity.users u ON u.id = o.user_id
+       LEFT JOIN identity.users u ON u.id = o.user_id
        WHERE o.id = $1
-       FOR UPDATE`,
+       FOR UPDATE OF o`,
       [orderId],
     );
     if (orderRes.rows.length === 0) {
@@ -188,14 +192,14 @@ export async function POST(
     );
 
     // 3b) Uvolnit sedadla — refundované sedadlo se vrátí do prodeje.
-    // Vazba: event_seats.order_id (POS / SeatPicker) NEBO order_items.event_seat_id.
+    // Vazba: event_seats.order_id (POS / SeatPicker) NEBO order_items.seat_id.
     await client.query(
       `UPDATE catalog.event_seats
          SET status = 'available', order_id = NULL, ticket_id = NULL,
              hold_user_id = NULL, hold_until = NULL, updated_at = NOW()
        WHERE order_id = $1
-          OR id IN (SELECT event_seat_id FROM orders.order_items
-                    WHERE order_id = $1 AND event_seat_id IS NOT NULL)`,
+          OR id IN (SELECT seat_id FROM orders.order_items
+                    WHERE order_id = $1 AND seat_id IS NOT NULL)`,
       [orderId],
     );
 

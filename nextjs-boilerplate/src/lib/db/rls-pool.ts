@@ -61,7 +61,10 @@ export function runWithPromoterContext<T>(
   if (!UUID_RE.test(promoterId)) {
     return Promise.reject(new Error('runWithPromoterContext: invalid promoterId UUID'));
   }
-  return tenantStore.run({ promoterId }, callback);
+  // role 'promoter' = validní audit_log.actor_type (trigger čte app.role). Bez něj
+  // by app.role zůstal prázdný a audit trigger na UPDATE orders/tickets by zapsal
+  // actor_type='' → porušení audit_log_actor_type_check → 500 (např. refund).
+  return tenantStore.run({ promoterId, role: 'promoter' }, callback);
 }
 
 /**

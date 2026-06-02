@@ -277,8 +277,8 @@ export async function POST(
            SET status = 'available', order_id = NULL, ticket_id = NULL,
                hold_user_id = NULL, hold_until = NULL, updated_at = NOW()
          WHERE order_id = $1
-            OR id IN (SELECT event_seat_id FROM orders.order_items
-                      WHERE order_id = $1 AND event_seat_id IS NOT NULL)`,
+            OR id IN (SELECT seat_id FROM orders.order_items
+                      WHERE order_id = $1 AND seat_id IS NOT NULL)`,
         [params.orderId],
       );
     }
