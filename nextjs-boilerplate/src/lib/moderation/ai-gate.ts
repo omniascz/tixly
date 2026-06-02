@@ -22,6 +22,12 @@ export interface ModerationInput {
   title: string;
   description?: string;
   ticketTypeNames: string[];
+  /**
+   * Veřejná URL plakátu/cover image (Vercel Blob). Pokud je vyplněná a provider
+   * umí vision (`moderateImage`), posoudí se i samotný obrázek — text může být
+   * čistý, ale plakát obsahovat hákový kříž / extremistické symboly.
+   */
+  coverImageUrl?: string | null;
 }
 
 export interface ModerationResult {
@@ -34,6 +40,11 @@ export interface ModerationResult {
 
 export interface ModerationProvider {
   moderate(input: ModerationInput): Promise<ModerationResult>;
+  /**
+   * Posoudí obrázek plakátu na veřejné URL. Volitelné — provideři bez vision
+   * (mock) tuto metodu nemají a obrázková vrstva se přeskočí (fail-open na text).
+   */
+  moderateImage?(imageUrl: string): Promise<ModerationResult>;
 }
 
 /**
@@ -179,6 +190,101 @@ Ticket types: ${input.ticketTypeNames.join(', ')}`;
       };
     }
   }
+
+  /**
+   * Vision moderace plakátu. Claude dostane obrázek z veřejné URL a posoudí,
+   * zda neobsahuje extremistické symboly, násilí, explicitní obsah apod.
+   * Fail-safe: jakákoli chyba → 'flag' (nikdy auto-reject při selhání), aby
+   * závadný obsah neprošel tiše, ale ani legální akce nebyla shozena kvůli výpadku.
+   */
+  async moderateImage(imageUrl: string): Promise<ModerationResult> {
+    // Vision umíme jen nad veřejnou http(s) URL (Vercel Blob). Data/relativní
+    // URL přeskočíme jako 'allow' — text vrstva pořád platí.
+    if (!/^https?:\/\//i.test(imageUrl)) {
+      return {
+        decision: 'allow',
+        categories: ['image_skipped_non_http'],
+        confidence: 0.3,
+        reasoning: 'Obrázek není na veřejné http(s) URL — vision přeskočen.',
+      };
+    }
+
+    const systemPrompt = `Jsi moderátor plakátů ticketing platformy. Posuď, zda plakát akce obsahuje NEVHODNÝ vizuál.
+
+Pravidla:
+- reject (confidence ≥ 0.8): extremistické/nenávistné symboly (hákový kříž/svastika, SS runy, keltský kříž v nenávistném kontextu, číselné kódy 88 / 1488 / 14 words zobrazené jako symbol), nacistická gesta, glorifikace násilí, krev/gore explicitně, dětské zneužívání, explicitní pornografie, prodej drog/zbraní.
+- flag (confidence 0.5-0.8): umělecká nahota, zbraně v uměleckém/historickém kontextu, alkohol/párty bez 18+ gating, šokující ale legální obraz, dvojznačné symboly.
+- allow (confidence ≥ 0.8): běžné plakáty — koncert, divadlo, festival, konference, sport, rodinná akce.
+
+Vrať POUZE JSON, nic jiného:
+{"decision":"allow|flag|reject","categories":[...],"confidence":0-1,"reasoning":"česky max 200 znaků"}`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': this.apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: this.model,
+          max_tokens: 400,
+          system: systemPrompt,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'image', source: { type: 'url', url: imageUrl } },
+                { type: 'text', text: 'Posuď tento plakát akce podle pravidel.' },
+              ],
+            },
+          ],
+        }),
+      });
+      if (!res.ok) {
+        console.error('[claude-moderation-image] HTTP', res.status, await res.text().catch(() => ''));
+        return {
+          decision: 'flag',
+          categories: ['image_provider_error'],
+          confidence: 0.5,
+          reasoning: `Vision API selhalo (HTTP ${res.status}) — k lidské revizi.`,
+        };
+      }
+      const data = (await res.json()) as { content?: Array<{ type: string; text?: string }> };
+      const textBlock = data.content?.find((b) => b.type === 'text')?.text ?? '';
+      const jsonMatch = textBlock.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        return {
+          decision: 'flag',
+          categories: ['image_parse_error'],
+          confidence: 0.5,
+          reasoning: 'Vision nevrátil parsovatelný JSON — k lidské revizi.',
+        };
+      }
+      const parsed = JSON.parse(jsonMatch[0]) as Partial<ModerationResult>;
+      return {
+        decision:
+          parsed.decision === 'allow' || parsed.decision === 'reject'
+            ? parsed.decision
+            : 'flag',
+        categories: Array.isArray(parsed.categories) ? parsed.categories : [],
+        confidence:
+          typeof parsed.confidence === 'number'
+            ? Math.max(0, Math.min(1, parsed.confidence))
+            : 0.5,
+        reasoning: typeof parsed.reasoning === 'string' ? parsed.reasoning.slice(0, 200) : '',
+      };
+    } catch (e) {
+      console.error('[claude-moderation-image] exception', e);
+      return {
+        decision: 'flag',
+        categories: ['image_exception'],
+        confidence: 0.5,
+        reasoning: e instanceof Error ? e.message.slice(0, 200) : 'unknown error',
+      };
+    }
+  }
 }
 
 export function aiProviderFromEnv(): ModerationProvider {
@@ -196,7 +302,10 @@ export interface GateDecision {
   /** Co dělat se statusem akce. */
   action: 'publish' | 'queue' | 'reject';
   status: 'published' | 'pending_review' | 'rejected';
+  /** Výsledek textové moderace (title/description/ticket types). */
   ai: ModerationResult;
+  /** Výsledek vision moderace plakátu (null pokud nebyl obrázek nebo provider neumí vision). */
+  image: ModerationResult | null;
   trustedPromoter: boolean;
 }
 
@@ -213,18 +322,28 @@ export async function runAiGate(
 ): Promise<GateDecision> {
   const ai = await provider.moderate(input);
 
-  if (ai.decision === 'reject' && ai.confidence >= 0.8) {
-    return { action: 'reject', status: 'rejected', ai, trustedPromoter };
+  // Vision vrstva: posoudíme plakát, pokud je URL a provider umí vision.
+  let image: ModerationResult | null = null;
+  if (input.coverImageUrl && typeof provider.moderateImage === 'function') {
+    image = await provider.moderateImage(input.coverImageUrl);
   }
+
+  // Reject, pokud text NEBO obrázek jistě zamítá.
+  const textRejects = ai.decision === 'reject' && ai.confidence >= 0.8;
+  const imageRejects = image?.decision === 'reject' && image.confidence >= 0.8;
+  if (textRejects || imageRejects) {
+    return { action: 'reject', status: 'rejected', ai, image, trustedPromoter };
+  }
+
+  // Auto-publish jen když OBĚ vrstvy říkají allow s vysokou jistotou
+  // (a obrázek buď chybí, nebo je čistý) — a promotér je trusted.
   const autoPublishDisabled = process.env.MODERATION_AUTO_PUBLISH_DISABLED === '1';
-  if (
-    !autoPublishDisabled &&
-    ai.decision === 'allow' &&
-    ai.confidence >= 0.8 &&
-    trustedPromoter
-  ) {
-    return { action: 'publish', status: 'published', ai, trustedPromoter };
+  const textClean = ai.decision === 'allow' && ai.confidence >= 0.8;
+  const imageClean = !image || (image.decision === 'allow' && image.confidence >= 0.8);
+  if (!autoPublishDisabled && textClean && imageClean && trustedPromoter) {
+    return { action: 'publish', status: 'published', ai, image, trustedPromoter };
   }
-  // Anything else (flag, low confidence, untrusted promoter, auto-publish off) → human review
-  return { action: 'queue', status: 'pending_review', ai, trustedPromoter };
+
+  // Cokoli jiného (flag, nízká jistota, untrusted, auto-publish off, podezřelý plakát) → lidská revize
+  return { action: 'queue', status: 'pending_review', ai, image, trustedPromoter };
 }

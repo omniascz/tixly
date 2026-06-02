@@ -106,3 +106,68 @@ describe('runAiGate', () => {
     expect(r.action).toBe('queue');
   });
 });
+
+describe('runAiGate — vision (plakát)', () => {
+  function providerWithImage(
+    text: { decision: 'allow' | 'flag' | 'reject'; confidence: number },
+    image: { decision: 'allow' | 'flag' | 'reject'; confidence: number },
+  ): ModerationProvider {
+    return {
+      moderate: async () => ({ ...text, categories: [], reasoning: 'text' }),
+      moderateImage: async () => ({ ...image, categories: [], reasoning: 'image' }),
+    };
+  }
+
+  it('rejects when poster image rejects even if text is clean', async () => {
+    const r = await runAiGate(
+      { title: 'Nevinný název', ticketTypeNames: [], coverImageUrl: 'https://x/poster.jpg' },
+      true,
+      providerWithImage({ decision: 'allow', confidence: 0.95 }, { decision: 'reject', confidence: 0.9 }),
+    );
+    expect(r.action).toBe('reject');
+    expect(r.image?.decision).toBe('reject');
+  });
+
+  it('queues when poster image is flagged (clean text)', async () => {
+    const r = await runAiGate(
+      { title: 'Koncert', ticketTypeNames: [], coverImageUrl: 'https://x/poster.jpg' },
+      true,
+      providerWithImage({ decision: 'allow', confidence: 0.95 }, { decision: 'flag', confidence: 0.6 }),
+    );
+    expect(r.action).toBe('queue');
+    expect(r.status).toBe('pending_review');
+  });
+
+  it('publishes when both text and image are clean for trusted promoter', async () => {
+    const r = await runAiGate(
+      { title: 'Koncert', ticketTypeNames: [], coverImageUrl: 'https://x/poster.jpg' },
+      true,
+      providerWithImage({ decision: 'allow', confidence: 0.95 }, { decision: 'allow', confidence: 0.9 }),
+    );
+    expect(r.action).toBe('publish');
+  });
+
+  it('skips image gate when no coverImageUrl (image stays null)', async () => {
+    const r = await runAiGate(
+      { title: 'Koncert', ticketTypeNames: [] },
+      true,
+      providerWithImage({ decision: 'allow', confidence: 0.95 }, { decision: 'reject', confidence: 0.99 }),
+    );
+    // Bez URL se moderateImage nevolá → image null → publikuje podle textu
+    expect(r.image).toBeNull();
+    expect(r.action).toBe('publish');
+  });
+
+  it('skips image gate when provider has no vision capability', async () => {
+    const textOnly: ModerationProvider = {
+      moderate: async () => ({ decision: 'allow', confidence: 0.95, categories: [], reasoning: 't' }),
+    };
+    const r = await runAiGate(
+      { title: 'Koncert', ticketTypeNames: [], coverImageUrl: 'https://x/poster.jpg' },
+      true,
+      textOnly,
+    );
+    expect(r.image).toBeNull();
+    expect(r.action).toBe('publish');
+  });
+});

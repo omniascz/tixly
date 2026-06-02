@@ -306,11 +306,14 @@ export async function POST(req: NextRequest): Promise<Response> {
           title: input.title,
           description: input.description,
           ticketTypeNames: input.ticketTypes.map((t) => t.name),
+          coverImageUrl: input.coverImageUrl ?? null,
         },
         trusted,
       );
       initialStatus = gate.status;
-      aiReasoning = gate.ai.reasoning;
+      aiReasoning = [gate.ai.reasoning, gate.image ? `[plakát] ${gate.image.reasoning}` : null]
+        .filter(Boolean)
+        .join(' · ');
     }
 
     // Pokud nebylo zvoleno místo, vytvoříme placeholder venue (events.venue_id je NOT NULL)

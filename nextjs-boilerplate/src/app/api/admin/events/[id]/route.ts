@@ -32,6 +32,7 @@ interface EventDetailRow {
   queue_max_concurrent: number;
   insurance_enabled: boolean;
   insurance_pct: number;
+  cover_image_url: string | null;
 }
 
 interface PartialMatch {
@@ -144,7 +145,7 @@ export async function PATCH(
     await client.query('BEGIN');
 
     const cur = await client.query<EventDetailRow>(
-      `SELECT id, title, description, date_start, status, min_age, promoter_id, venue_id
+      `SELECT id, title, description, date_start, status, min_age, promoter_id, venue_id, cover_image_url
        FROM catalog.events WHERE id = $1 AND promoter_id = $2 FOR UPDATE`,
       [params.id, promoter.promoterId],
     );
@@ -193,11 +194,18 @@ export async function PATCH(
         const trusted =
           Number(trustRes.rows[0]?.count ?? 0) >= TRUST_THRESHOLD_PUBLISHED_EVENTS;
         const gate = await runAiGate(
-          { title: newTitle, description: newDescription ?? undefined, ticketTypeNames: [] },
+          {
+            title: newTitle,
+            description: newDescription ?? undefined,
+            ticketTypeNames: [],
+            coverImageUrl: event.cover_image_url,
+          },
           trusted,
         );
         newStatus = gate.status;
-        aiReasoning = gate.ai.reasoning;
+        aiReasoning = [gate.ai.reasoning, gate.image ? `[plakát] ${gate.image.reasoning}` : null]
+          .filter(Boolean)
+          .join(' · ');
       }
     }
 
