@@ -1,8 +1,15 @@
 import { ReactNode } from 'react';
+import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/admin/Sidebar';
 import { Topbar } from '@/components/admin/Topbar';
+import { getServerRoles } from '@/lib/server-session';
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+  // Defense in depth vedle middleware: /admin je JEN pro promotéra se členstvím.
+  const roles = await getServerRoles();
+  if (!roles) redirect('/cs/login?from=/admin');
+  if (!roles.hasPromoter) redirect(roles.isPlatformAdmin ? '/platform' : '/cs/events');
+
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />

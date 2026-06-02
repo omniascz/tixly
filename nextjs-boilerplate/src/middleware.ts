@@ -193,18 +193,27 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
       loginUrl.searchParams.set('from', pathname);
       return NextResponse.redirect(loginUrl);
     }
+    // Čisté oddělení rolí:
+    //   /platform = JEN super admin (provozovatel systému)
+    //   /admin    = JEN promotér se členstvím (správa svých akcí)
+    // Kdo se splete, je přesměrován do SVÉ oblasti (ne do prázdné/rozbité).
     const isPlatform = FRONTEND_PLATFORM.some(
       (r) => pathname === r || pathname.startsWith(r + '/'),
     );
-    if (isPlatform && !payload.roles.isPlatformAdmin) {
-      return NextResponse.redirect(new URL('/cs/events', request.url));
-    }
-    if (
-      !isPlatform &&
-      !payload.roles.isPlatformAdmin &&
-      !(payload.roles.promoterMemberships?.length)
-    ) {
-      return NextResponse.redirect(new URL('/cs/events', request.url));
+    const isPlatformAdmin = payload.roles.isPlatformAdmin === true;
+    const hasPromoter = (payload.roles.promoterMemberships?.length ?? 0) > 0;
+
+    if (isPlatform) {
+      if (!isPlatformAdmin) {
+        // promotér (bez super admin) → jeho /admin; kupující → veřejné akce
+        return NextResponse.redirect(new URL(hasPromoter ? '/admin' : '/cs/events', request.url));
+      }
+    } else {
+      // /admin
+      if (!hasPromoter) {
+        // čistý super admin → jeho /platform; kupující → veřejné akce
+        return NextResponse.redirect(new URL(isPlatformAdmin ? '/platform' : '/cs/events', request.url));
+      }
     }
     return NextResponse.next();
   }
