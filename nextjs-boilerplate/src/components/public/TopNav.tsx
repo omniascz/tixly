@@ -15,36 +15,44 @@ export function TopNav({ locale }: { locale: string }) {
   const [auth, setAuth] = useState<AuthState | null>(null);
 
   useEffect(() => {
-    // Načti auth stav z localStorage (login page tam ukládá user + roles).
-    // Pokud nic, považuj za nepřihlášený. JWT cookie validation běží v middleware na chráněných cestách.
-    try {
-      const userRaw = localStorage.getItem('user');
-      const rolesRaw = localStorage.getItem('roles');
-      if (!userRaw) {
-        setAuth({ user: null, isPlatformAdmin: false, hasPromoterMembership: false });
-        return;
-      }
-      const user = JSON.parse(userRaw) as AuthState['user'];
-      const roles = rolesRaw ? JSON.parse(rolesRaw) : null;
-      setAuth({
-        user,
-        isPlatformAdmin: !!roles?.isPlatformAdmin,
-        hasPromoterMembership: Array.isArray(roles?.promoterMemberships) && roles.promoterMemberships.length > 0,
+    // Načti REÁLNÝ stav session z /api/auth/me (ověří accessToken cookie),
+    // ne ze stale localStorage. Tím je hlavička vždy v souladu s realitou.
+    let cancelled = false;
+    const loggedOut = { user: null, isPlatformAdmin: false, hasPromoterMembership: false };
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((data: { user: AuthState['user']; roles?: { isPlatformAdmin?: boolean; promoterMemberships?: unknown[] } }) => {
+        if (cancelled) return;
+        if (!data?.user) {
+          setAuth(loggedOut);
+          return;
+        }
+        setAuth({
+          user: data.user,
+          isPlatformAdmin: !!data.roles?.isPlatformAdmin,
+          hasPromoterMembership:
+            Array.isArray(data.roles?.promoterMemberships) && data.roles.promoterMemberships.length > 0,
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setAuth(loggedOut);
       });
-    } catch {
-      setAuth({ user: null, isPlatformAdmin: false, hasPromoterMembership: false });
-    }
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function logout() {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch {
-      // Pokračujeme i když API selhalo — vyčistíme localStorage každopádně.
+      // Pokračujeme i když API selhalo — vyčistíme stav každopádně.
     }
+    // Vyčisti i případné staré localStorage (zpětná kompatibilita) + aktualizuj hlavičku.
     localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
     localStorage.removeItem('roles');
+    setAuth({ user: null, isPlatformAdmin: false, hasPromoterMembership: false });
     router.push(`/${locale}/events`);
     router.refresh();
   }

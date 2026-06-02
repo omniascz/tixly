@@ -1,5 +1,5 @@
 'use client';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,24 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
   const [requires2fa, setRequires2fa] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Už přihlášený? Nezůstávej na login stránce — přesměruj na správný dashboard.
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((data: { user?: unknown; roles?: { isPlatformAdmin?: boolean; promoterMemberships?: unknown[] } }) => {
+        if (!data?.user) return;
+        let target = `/${params.locale}/events`;
+        if (data.roles?.isPlatformAdmin) target = '/platform';
+        else if ((data.roles?.promoterMemberships?.length ?? 0) > 0) target = '/admin';
+        if (fromParam && (fromParam.startsWith('/admin') || fromParam.startsWith('/platform'))) {
+          target = fromParam;
+        }
+        router.replace(target);
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
