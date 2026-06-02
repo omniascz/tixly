@@ -14,6 +14,8 @@
 - [x] **Klíče/secrets na Vercelu** — JWT, ENCRYPTION_KEY, CRON, INTERNAL, VAPID (🤖)
 - [x] **RLS Fáze 2** (tenant izolace) — mergnuto do master, na prod dormant (🤖)
 - [x] **Produkce běží** — `health/ready {database:ok, redis:ok}`, login funguje (🤖)
+- [x] **Re-ověřeno 2026-06-02** — prod `health/ready` 200 `{database:ok, redis:ok}` (🤖)
+- [x] **Moderace obsahu — vision** — Claude posuzuje text I plakát; finální schválení master admin (🤖, viz FÁZE 1 → Bezpečnost)
 
 > **Stav: tech stack je nasazený a běžící.** Zbývají externí účty + ověření.
 
@@ -39,10 +41,12 @@
   - **Proč kritické:** bez emailu kupec nedostane lístek ani potvrzení
 
 ### Doména
-- [ ] **`app.tixly.cz` přes Cloudflare DNS** 🧑+🤖 ⏱ 10 min + propagace
-  - Cloudflare → Add Site `tixly.cz` → CNAME `app.tixly.cz` → `cname.vercel-dns.com`
-  - [ ] 🤖 přidám doménu ve Vercel project settings + SSL se vystaví automaticky
-- [ ] **Vypnout Vercel Deployment Protection** na produkční doméně 🤖 — aby ji zákazníci viděli (teď je na projektových URL 401)
+- [x] **`app.tixly.cz` přidaná ve Vercel projektu** 🤖 (2026-06-02) — `tixly.cz` už je v účtu, vlastnictví ověřené
+- [x] **Deployment Protection vyřešena** 🤖 — projekt má `all_except_custom_domains`: custom doména (`app.tixly.cz`) je veřejná automaticky, interní Vercel URL zůstávají zamčené. Žádná akce navíc.
+- [ ] **JEDEN DNS záznam u tvého DNS providera** 🧑 ⏱ 5 min + propagace
+  - Typ: **CNAME** · Název: **`app`** · Hodnota: **`cname.vercel-dns.com`** (TTL auto)
+  - Po propagaci se SSL vystaví sám a `app.tixly.cz` naběhne (teď `misconfigured: true` = čeká jen na tenhle záznam)
+  - [ ] 🤖 po naběhnutí ověřím HTTPS + nastavím `NEXT_PUBLIC_APP_URL=https://app.tixly.cz`
 
 ### Právní (CZ + SK)
 - [ ] **Ověřit: Tixly s.r.o. + IČO + DIČ** 🧑 (dle poznámek hotové — potvrď)
@@ -52,6 +56,14 @@
 - [ ] **GDPR / zpracování osobních údajů** 🧑 (CZ zák. 110/2019 + SK 18/2018)
 - [ ] **DPH nastavení** — CZ 21 %/10 % kultura, SK 23 %/5 % kultura 🧑 (promotér si nastaví v profilu, ale ověř že to sedí)
 
+### Bezpečnost a moderace obsahu (DSA + ochrana značky)
+- [x] **3-vrstvá moderace + vision** 🤖 — keyword blocklist → AI gate (text **i plakát**) → lidská fronta `/platform/event-moderation`. Audit log pro DSA. (hotovo 2026-06-02)
+- [x] **Blocklist naseedovaný** 🤖 — extremistické/hate/scam termíny v `catalog.moderation_blocklist` (heil, sieg heil, judenfrei, white power, …)
+- [ ] **`ANTHROPIC_API_KEY` na produkci** 🧑 (zakládáš separátní klíč) → 🤖 nastavím. **BEZ NĚJ vision plakátu nejede** (jen text + blocklist + člověk)
+- [ ] **`MODERATION_PROVIDER` ≠ `mock` na produkci** 🤖 — past: s klíčem ale `=mock` zůstane mock. Nastavím na `claude` (nebo nechám prázdné)
+- [x] **`MODERATION_AUTO_PUBLISH_DISABLED=1`** 🤖 — finální „publikovat" vždy klikne master admin (doporučeno pro start; default v `.env.example`)
+- [ ] **Smoke test naživo** 🤖 — založit akci s problematickým plakátem → ověřit, že spadne do fronty, ne do prodeje (až bude klíč)
+
 ---
 
 ## 🟡 FÁZE 2 — Silně doporučeno před spuštěním (provoz a důvěra)
@@ -60,7 +72,7 @@
 - [ ] **Better Uptime** (alert na výpadek) 🧑 ⏱ 5 min — monitor na `/api/health/ready`
 - [ ] **Apple Wallet PassType cert** 🧑 ⏱ ~7 dní — Apple Developer Program (99 USD/rok) → `.p12` cert → 🤖 nastavím (teď passy nepodepsané)
 - [ ] **Google Wallet issuer** 🧑 ⏱ ~3 dny — service account JSON → 🤖 nastavím
-- [ ] **Backup / DR ověření** 🤖 — Neon má automatický PITR, ověřit že je zapnutý
+- [ ] **Backup / DR ověření** 🧑 (Neon console) — PITR je default zapnutý; ověř **retention window** (free ~1 den, Launch ~7 dní). Pro ostrý provoz doporučeno ≥7 dní → případně upgrade plánu
 
 ---
 
@@ -114,7 +126,8 @@
 | Velký festival | ✅ umíme |
 | **Platby naostro** | ❌ GoPay (~14 dní) |
 | **Email** | ❌ Resend (1-2 dny) |
-| **Doména** | ❌ 10 min |
+| **Doména** | ⏳ 1 DNS záznam (CNAME `app`→`cname.vercel-dns.com`) — vše ostatní 🤖 hotovo |
+| Moderace/bezpečnost | ✅ postaveno (čeká jen `ANTHROPIC_API_KEY` na vision) |
 | Právní | ⚠️ ověřit |
 | Ověření „naživo" | ⏳ proklikat |
 
@@ -122,8 +135,9 @@
 
 ---
 
-### 🎯 Co udělat HNED (tento týden)
-1. 🧑 **Začni GoPay smlouvu** (nejdelší, čeká se na ně)
-2. 🧑 **Resend doména** (rozjede se DNS propagace na pozadí)
-3. 🧑 **Cloudflare doména** `app.tixly.cz`
-4. 🤖 řekni a já: nastavím doménu ve Vercelu, vypnu deployment protection, napojím klíče jak přijdou
+### 🎯 Co udělat HNED (tento týden) — vše je na TOBĚ (🧑), tech je připravený
+1. 🧑 **Začni GoPay smlouvu** (nejdelší tyč, ~2-3 týdny KYC — čeká se na ně)
+2. 🧑 **Resend** — registrace + přidat doménu `tixly.cz` (rozjede se DNS propagace na pozadí)
+3. 🧑 **DNS: CNAME `app` → `cname.vercel-dns.com`** (doména je už přidaná ve Vercelu, čeká jen na tenhle záznam)
+4. 🧑 **Claude klíč** (`ANTHROPIC_API_KEY`) — separátní pro Tixly
+5. 🤖 jakmile pošleš klíče (GoPay / Resend / Claude): nastavím env, vypnu `GOPAY_MOCK`, `MODERATION_PROVIDER=claude`, ověřím doménu + HTTPS, spustím smoke testy
