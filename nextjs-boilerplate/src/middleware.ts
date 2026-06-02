@@ -178,13 +178,17 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     FRONTEND_PLATFORM.some((r) => pathname === r || pathname.startsWith(r + '/'))
   ) {
     const accessToken = request.cookies.get('accessToken')?.value;
-    if (!accessToken) {
-      const loginUrl = new URL('/cs/login', request.url);
-      loginUrl.searchParams.set('from', pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-    const payload = await verifyTokenEdge(accessToken);
+    const payload = accessToken ? await verifyTokenEdge(accessToken) : null;
     if (!payload) {
+      // accessToken chybí nebo vypršel (15 min TTL). Než vyhodíme na login,
+      // zkus tichý refresh přes dlouhodobý refreshToken (7 dní) — promotér tak
+      // zůstane přihlášený a nezažije matoucí "jsem přihlášený, ale /admin mě vyhazuje".
+      const refreshToken = request.cookies.get('refreshToken')?.value;
+      if (refreshToken && (await verifyTokenEdge(refreshToken))) {
+        const refreshUrl = new URL('/api/auth/refresh', request.url);
+        refreshUrl.searchParams.set('redirect', pathname);
+        return NextResponse.redirect(refreshUrl);
+      }
       const loginUrl = new URL('/cs/login', request.url);
       loginUrl.searchParams.set('from', pathname);
       return NextResponse.redirect(loginUrl);
