@@ -24,6 +24,7 @@ import {
   Webhook,
   Gift,
   Layers,
+  Plus,
   type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -43,9 +44,28 @@ interface NavSection {
 
 const sections: NavSection[] = [
   {
-    label: 'Přehled',
+    label: 'Akce',
     items: [
+      { href: '/admin/events/new', label: 'Nová akce', icon: Plus },
+      { href: '/admin/events', label: 'Akce', icon: CalendarDays },
       { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: 'Prodej',
+    items: [
+      { href: '/admin/orders', label: 'Objednávky', icon: ShoppingCart },
+      { href: '/admin/customers', label: 'Zákazníci', icon: Users },
+      { href: '/admin/pos', label: 'Pokladna (POS)', icon: Banknote },
+      { href: '/admin/scanner', label: 'Scanner', icon: ScanLine },
+      { href: '/admin/event-groups', label: 'Event Groups', icon: Layers },
+      { href: '/admin/subscriptions', label: 'Abonentky', icon: TrendingUp },
+      { href: '/admin/season', label: 'Sezónní přehled', icon: TrendingUp },
+    ],
+  },
+  {
+    label: 'Přehled & analytika',
+    items: [
       { href: '/admin/dashboard/live', label: 'Live prodej', icon: TrendingUp },
       { href: '/admin/pricemaster', label: 'Pricemaster', icon: TrendingUp },
     ],
@@ -55,19 +75,6 @@ const sections: NavSection[] = [
     items: [
       { href: '/admin/staff', label: 'Personál', icon: UserCog },
       { href: '/admin/settings', label: 'Nastavení', icon: Settings },
-    ],
-  },
-  {
-    label: 'Prodej',
-    items: [
-      { href: '/admin/events', label: 'Akce', icon: CalendarDays },
-      { href: '/admin/event-groups', label: 'Event Groups', icon: Layers },
-      { href: '/admin/subscriptions', label: 'Abonentky', icon: TrendingUp },
-      { href: '/admin/season', label: 'Sezónní přehled', icon: TrendingUp },
-      { href: '/admin/orders', label: 'Objednávky', icon: ShoppingCart },
-      { href: '/admin/customers', label: 'Zákazníci', icon: Users },
-      { href: '/admin/pos', label: 'Pokladna (POS)', icon: Banknote },
-      { href: '/admin/scanner', label: 'Scanner', icon: ScanLine },
     ],
   },
   {
