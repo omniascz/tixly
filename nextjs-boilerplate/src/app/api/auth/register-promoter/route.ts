@@ -56,7 +56,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     const promoterRes = await client.query<{ id: string }>(
       `INSERT INTO platform.promoters
          (name, email, contact_email, slug, status, locale,
-          ico, ares_checked_at, ares_ico_valid, ares_company_active, ares_raw_response,
+          company_ico, ares_checked_at, ares_ico_valid, ares_company_active, ares_raw_response,
           risk_score, pre_review_volume_cap_halire,
           created_at, updated_at)
        VALUES ($1, $2, $2, $3, 'pending', 'cs',

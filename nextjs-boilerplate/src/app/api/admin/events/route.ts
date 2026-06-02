@@ -320,12 +320,15 @@ export async function POST(req: NextRequest): Promise<Response> {
     let venueId = input.venueId ?? null;
     if (!venueId) {
       const totalCapacity = input.ticketTypes.reduce((s, t) => s + t.capacity, 0);
+      // promoter_id MUSÍ být nastaven — RLS policy p_venues_tenant povolí zápis
+      // jen pro promoter_id = app_current_promoter_id(). Placeholder venue patří
+      // promotérovi, který akci zakládá (online/TBD throwaway, ne master-data sál).
       const venueRes = await client.query<{ id: string }>(
         `INSERT INTO catalog.venues
-           (name, address, city, country, capacity, venue_type, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW())
+           (name, address, city, country, capacity, venue_type, promoter_id, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
          RETURNING id`,
-        ['Online / TBD', '—', '—', 'CZ', Math.max(totalCapacity, 1), 'online'],
+        ['Online / TBD', '—', '—', 'CZ', Math.max(totalCapacity, 1), 'online', promoter.promoterId],
       );
       venueId = venueRes.rows[0].id;
     }
