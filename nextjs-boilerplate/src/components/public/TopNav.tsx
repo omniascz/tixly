@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+
+// Přihlašovací / registrační stránky: žádná veřejná navigace. Login je
+// soustředěný úkol — „Přihlásit" by vedl sám na sebe a „Pro promotéry" je
+// duplicita odkazů, které jsou už uvnitř formuláře. Zůstane jen logo (cesta zpět).
+const AUTH_PATHS = ['/login', '/register', '/register-promoter', '/forgot-password', '/reset-password'];
 
 interface AuthState {
   user: { id: string; email: string; name: string } | null;
@@ -12,6 +17,7 @@ interface AuthState {
 
 export function TopNav({ locale }: { locale: string }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [auth, setAuth] = useState<AuthState | null>(null);
 
   useEffect(() => {
@@ -56,6 +62,13 @@ export function TopNav({ locale }: { locale: string }) {
     router.push(`/${locale}/events`);
     router.refresh();
   }
+
+  // Auth stránky (login/registrace/reset hesla) → žádná navigace. Hooky výše
+  // už proběhly, takže early-return je bezpečný vůči pravidlu hooks.
+  const isAuthPage = AUTH_PATHS.some(
+    (p) => pathname === `/${locale}${p}` || pathname.startsWith(`/${locale}${p}/`),
+  );
+  if (isAuthPage) return null;
 
   // Před hydratací (auth=null) renderujeme neutrální stav, ať nebliká SSR vs client.
   if (auth === null) {
