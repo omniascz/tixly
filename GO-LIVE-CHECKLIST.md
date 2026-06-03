@@ -124,12 +124,11 @@
   transakci; inventář se rezervuje atomicky až před commitem. **Eliminován katastrofální hang**
   (před: 600 souběžných = server tuhl 30s + zombie transakce; po: fast-fail 9s, 0 oversell).
   Pool dostal `statement_timeout`. Naměřeno: 1 instance jede čistě ~30-50 souběžných (51 req/s).
-- [ ] **Zapnout virtuální frontu pro horké akce** 🧑+🤖 — `/api/queue` existuje; promotér zapne
-  `queue_enabled` na akci → kupci se pouští ve vlnách (`queue_max_concurrent`), checkout nikdy
-  nevidí celý nápor naráz. **Tohle je hlavní páka pro „tisíce za vteřiny".**
-- [ ] **Neon connection pooler (PgBouncer endpoint)** 🧑+🤖 — v prod `DATABASE_URL` použít
-  **pooled** endpoint Neonu (`-pooler`), ne direct. Serverless (Vercel) jinak vyčerpá connection
-  limit Neonu. + nastavit `PG_POOL_MAX` (malý per-instance, např. 5–10).
+- [x] **Virtuální fronta — OVĚŘENA** 🤖 (2026-06-03) — `scripts/e2e-queue.mjs` 10/10: fronta reálně
+  gatuje checkout (bez admitted tokenu odmítnut, pouští ve vlnách, token jednorázový). Promotér ji
+  zapne na hot akci přepínačem `queue_enabled` + `queue_max_concurrent`. **Hlavní páka pro „tisíce/s".**
+- [x] **Neon pooler** 🤖 ✅ — prod `DATABASE_URL` (z Neon integrace) UŽ JE pooled endpoint
+  (`ep-…-pooler`). Default `PG_POOL_MAX=10` per-instance je pro serverless OK.
 - [ ] **Zátěžový test na NASAZENÉ produkci** 🤖 — `scripts/load-test.mjs` proti app.tixly.cz
   (s frontou + poolerem) → definitivní strop. Lokální test = jen 1 proces, Vercel škáluje horizontálně.
 - [ ] **Vercel: spending limit + concurrency alert** 🧑 — ať on-sale špička nepřekvapí fakturou/limitem.
