@@ -161,7 +161,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       for (const seatId of seatIds) {
         await client.query(
           `INSERT INTO orders.order_items
-             (order_id, ticket_type_id, quantity, unit_price, total_price, event_seat_id)
+             (order_id, ticket_type_id, quantity, unit_price, total_price, seat_id)
            VALUES ($1, $2, 1, $3, $3, $4)`,
           [orderId, tt.id, tt.base_price, seatId],
         );

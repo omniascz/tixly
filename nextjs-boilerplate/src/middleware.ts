@@ -59,7 +59,9 @@ const API_PUBLIC_GET_ROUTES = ['/api/events/', '/api/search', '/api/cross-passes
 const API_PROMOTER_PREFIXES = ['/api/admin/', '/api/orders/'];
 const API_PLATFORM_PREFIXES = ['/api/platform/'];
 // Optional auth: token if present propagates as x-user-id, otherwise pass through
-const API_OPTIONAL_AUTH_PREFIXES = ['/api/buyer/', '/api/checkout', '/api/subscriptions/', '/api/queue/'];
+// /api/transfer/accept/ je tu (ne v PUBLIC): GET preview funguje bez tokenu,
+// ale POST accept potřebuje x-user-id → optional auth ho injektuje, je-li token.
+const API_OPTIONAL_AUTH_PREFIXES = ['/api/buyer/', '/api/checkout', '/api/subscriptions/', '/api/queue/', '/api/transfer/accept/'];
 
 // Frontend routes (matched WITHOUT locale prefix)
 const FRONTEND_PROMOTER = ['/admin'];
@@ -70,7 +72,7 @@ const FRONTEND_AUTH_ONLY = ['/login', '/register', '/register-promoter'];
 // GET /api/transfer/accept/[token] je public (recipient ještě nepřihlášený);
 // POST /api/transfer/accept/[token] vyžaduje x-user-id ale endpoint si to ověří
 // sám — middleware ho pustí.
-const PUBLIC_API_PREFIXES = ['/api/health', '/api/internal/', '/api/mock-gopay', '/api/mock-bnpl/', '/api/team/accept', '/api/lottery/', '/api/gift/', '/api/newsletter/', '/api/support/chat', '/api/transfer/accept/', '/api/group-invitations/', '/api/charity/claim/', '/api/payments/benefit/'];
+const PUBLIC_API_PREFIXES = ['/api/health', '/api/internal/', '/api/mock-gopay', '/api/mock-bnpl/', '/api/team/accept', '/api/lottery/', '/api/gift/', '/api/newsletter/', '/api/support/chat', '/api/group-invitations/', '/api/charity/claim/', '/api/payments/benefit/'];
 
 // ── Middleware ──────────────────────────────────────────────────────────────
 
