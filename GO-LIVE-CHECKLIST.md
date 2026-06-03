@@ -115,6 +115,30 @@
 
 ---
 
+## 🟧 FÁZE 2B — ŠKÁLOVÁNÍ na hot onsale (tisíce prodejů za vteřiny)
+
+> ⚠️ **Zjištěno zátěžovým testem 2026-06-03.** Pro divadlo / stálý prodej (stovky/hodiny) NENÍ potřeba.
+> **Kritické JEN pro velký onsale** (festival headliner, Karel Gott reissue). Bez tohoto by hot onsale
+> selhal. Detail viz commit `perf(checkout)` + `scripts/load-test.mjs`.
+
+- [x] **Checkout — zkráceno držení zámku** 🤖 (2026-06-03) — `FOR UPDATE` se nedrží přes celou
+  transakci; inventář se rezervuje atomicky až před commitem. **Eliminován katastrofální hang**
+  (před: 600 souběžných = server tuhl 30s + zombie transakce; po: fast-fail 9s, 0 oversell).
+  Pool dostal `statement_timeout`. Naměřeno: 1 instance jede čistě ~30-50 souběžných (51 req/s).
+- [ ] **Zapnout virtuální frontu pro horké akce** 🧑+🤖 — `/api/queue` existuje; promotér zapne
+  `queue_enabled` na akci → kupci se pouští ve vlnách (`queue_max_concurrent`), checkout nikdy
+  nevidí celý nápor naráz. **Tohle je hlavní páka pro „tisíce za vteřiny".**
+- [ ] **Neon connection pooler (PgBouncer endpoint)** 🧑+🤖 — v prod `DATABASE_URL` použít
+  **pooled** endpoint Neonu (`-pooler`), ne direct. Serverless (Vercel) jinak vyčerpá connection
+  limit Neonu. + nastavit `PG_POOL_MAX` (malý per-instance, např. 5–10).
+- [ ] **Zátěžový test na NASAZENÉ produkci** 🤖 — `scripts/load-test.mjs` proti app.tixly.cz
+  (s frontou + poolerem) → definitivní strop. Lokální test = jen 1 proces, Vercel škáluje horizontálně.
+- [ ] **Vercel: spending limit + concurrency alert** 🧑 — ať on-sale špička nepřekvapí fakturou/limitem.
+- [ ] *(volitelné, větší)* **Odlehčit fraud ML scoring v checkoutu** 🤖 — největší CPU žrout v checkoutu;
+  async / lehčí model zvedne propustnost per-instance.
+
+---
+
 ## 🟢 FÁZE 3 — Mock integrace → ostré (klidně až PO spuštění)
 
 > Tyto features fungují v demu (mock), kód je real-ready, čekají jen na vendor onboarding. **Nejsou launch blocker.**
@@ -175,6 +199,7 @@
 | **Doména** | ⏳ 1 DNS záznam (CNAME `app`→`cname.vercel-dns.com`) |
 | Moderace/bezpečnost | ✅ postaveno (čeká `ANTHROPIC_API_KEY` na vision) |
 | ENCRYPTION_KEY stabilita | ⚠️ ověřit (kritické — viz FÁZE 1A) |
+| **Hot onsale (tisíce/s)** | ⚠️ checkout opraven; zbývá fronta + Neon pooler (FÁZE 2B) — jen pro velké onsale |
 | Právní | ⚠️ ověřit |
 
 **Dva paralelní blockery:** (1) **GoPay KYC** (~2-3 týdny, čeká se na ně — začni hned),
