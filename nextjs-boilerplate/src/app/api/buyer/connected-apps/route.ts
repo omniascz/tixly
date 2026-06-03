@@ -20,7 +20,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     last_used_at: string | null;
     granted_at: string;
   }>(
-    `SELECT DISTINCT
+    `SELECT
        c.client_id, c.app_name, c.app_description, c.app_logo_url,
        at.scopes,
        MAX(at.last_used_at)::text AS last_used_at,

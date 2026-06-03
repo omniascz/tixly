@@ -50,10 +50,10 @@ export async function GET(
             i.subtotal_minor, i.vat_rate_pct, i.vat_amount_minor, i.total_minor, i.currency,
             i.customer_name, i.customer_email, i.customer_address, i.customer_ico, i.customer_dic,
             p.name AS promoter_name,
-            p.ico AS promoter_ico, p.dic AS promoter_dic,
-            p.legal_address AS promoter_address,
+            p.company_ico AS promoter_ico, p.company_dic AS promoter_dic,
+            p.company_address AS promoter_address,
             p.bank_account AS promoter_bank_account,
-            p.iban AS promoter_iban,
+            NULL::text AS promoter_iban,
             p.contact_email AS promoter_email
      FROM orders.invoices i
      JOIN platform.promoters p ON p.id = i.promoter_id

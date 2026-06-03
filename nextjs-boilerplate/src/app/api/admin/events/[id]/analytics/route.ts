@@ -51,12 +51,12 @@ export async function GET(
 
   // 2) Hour-of-day distribution
   const hourDist = await db().query<{ hour: string; count: string }>(
-    `SELECT EXTRACT(HOUR FROM paid_at AT TIME ZONE 'Europe/Prague')::text AS hour,
+    `SELECT EXTRACT(HOUR FROM paid_at AT TIME ZONE 'Europe/Prague')::int AS hour,
             COUNT(*)::text AS count
      FROM orders.orders
      WHERE event_id = $1 AND status = 'paid'
      GROUP BY hour
-     ORDER BY hour::int ASC`,
+     ORDER BY hour ASC`,
     [params.id],
   );
 

@@ -68,7 +68,7 @@ export async function POST(
        FROM orders.orders o
        LEFT JOIN catalog.events e ON e.id = o.event_id
        WHERE o.id = $1 AND o.user_id = $2
-       FOR UPDATE`,
+       FOR UPDATE OF o`,
       [params.orderId, userId],
     );
     if (orderRes.rows.length === 0) {

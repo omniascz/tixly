@@ -64,7 +64,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   const r = await db().query<OrderRow>(
     `SELECT
-       o.id, o.paid_at, o.total_amount, o.currency,
+       o.id, o.paid_at::text AS paid_at, o.total_amount, o.currency,
        u.email AS buyer_email, u.name AS buyer_name,
        o.variable_symbol,
        e.title AS event_title,

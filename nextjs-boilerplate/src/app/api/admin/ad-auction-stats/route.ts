@@ -34,7 +34,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   LEFT JOIN marketing.ad_auction_log al ON al.created_at > now() - INTERVAL '7 days'
       WHERE ac.promoter_id = $1
    GROUP BY ac.id, e.title, ac.slot
-   ORDER BY auctions_won::int DESC
+   ORDER BY COUNT(*) FILTER (WHERE al.winning_campaign_id = ac.id) DESC
       LIMIT 100`,
     [promoter.promoterId, JSON.stringify([{ campaign_id: '' }])],
   );
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest): Promise<Response> {
        FROM marketing.ad_auction_log
       WHERE created_at > now() - INTERVAL '7 days'
    GROUP BY slot
-   ORDER BY auctions::int DESC`,
+   ORDER BY COUNT(*) DESC`,
   );
 
   return NextResponse.json({

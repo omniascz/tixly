@@ -84,7 +84,9 @@ export async function GET(
       'Content-Type': 'application/vnd.apple.pkpass',
       'Content-Disposition': `attachment; filename="ticket-${row.id.slice(0, 8)}.pkpass"`,
       'X-Wallet-Signed': out.signed ? 'true' : 'false',
-      ...(out.note ? { 'X-Wallet-Note': out.note } : {}),
+      // HTTP hlavičky musí být Latin1/ASCII — out.note je česky (em-pomlčka,
+      // diakritika) → encode, jinak Response konstruktor padne na ByteString.
+      ...(out.note ? { 'X-Wallet-Note': encodeURIComponent(out.note) } : {}),
     },
   });
 
