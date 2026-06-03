@@ -63,8 +63,10 @@ describe('db().query() v promoter context', () => {
       2,
       `SET LOCAL app.current_promoter_id = '${promoterId}'`,
     );
-    expect(mockClient.query).toHaveBeenNthCalledWith(3, 'SELECT * FROM catalog.events', undefined);
-    expect(mockClient.query).toHaveBeenNthCalledWith(4, 'COMMIT');
+    // role 'promoter' MUSÍ být nastavena — RLS (app_is_service) + audit_log trigger ji čtou
+    expect(mockClient.query).toHaveBeenNthCalledWith(3, `SET LOCAL app.role = 'promoter'`);
+    expect(mockClient.query).toHaveBeenNthCalledWith(4, 'SELECT * FROM catalog.events', undefined);
+    expect(mockClient.query).toHaveBeenNthCalledWith(5, 'COMMIT');
     expect(mockClient.release).toHaveBeenCalled();
   });
 
