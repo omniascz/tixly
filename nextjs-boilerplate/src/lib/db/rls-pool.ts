@@ -45,7 +45,17 @@ let pool: Pool | null = null;
 
 function getRawPool(): Pool {
   if (!pool) {
-    pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      // Concurrency safety net (po load testu): omezený pool + timeouty, aby se
+      // pod onsale náporem nehromadily zaseknuté transakce (viděno: 27 zombie lock-waiterů).
+      max: Number(process.env.PG_POOL_MAX ?? 10),
+      // Jakákoli query (vč. čekání na zámek) spadne po 15s → transakce rollbackne,
+      // spojení se uvolní. Bez tohohle se pool zasekl donekonečna.
+      statement_timeout: Number(process.env.PG_STATEMENT_TIMEOUT_MS ?? 15000),
+      connectionTimeoutMillis: 8000,
+      idleTimeoutMillis: 30000,
+    });
   }
   return pool;
 }

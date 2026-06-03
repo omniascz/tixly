@@ -231,8 +231,11 @@ export async function POST(req: NextRequest): Promise<Response> {
               e.verified_fan_presale_ends_at::text AS vf_ends_at
        FROM catalog.ticket_types tt
        JOIN catalog.events e ON e.id = tt.event_id
-       WHERE tt.id = $1 AND tt.event_id = $2 AND e.status = 'published'
-       FOR UPDATE`,
+       WHERE tt.id = $1 AND tt.event_id = $2 AND e.status = 'published'`,
+      // POZN. (concurrency): ŽÁDNÝ FOR UPDATE zde. Dřív se řádek ticket_type
+      // zamykal na CELOU těžkou checkout transakci (fraud ML, slevy, inserty) →
+      // pod onsale náporem se kupci serializovali na tomhle zámku a server tuhl.
+      // Inventář se teď rezervuje atomicky až těsně před commitem (viz níže).
       [input.ticketTypeId, input.eventId],
     );
     if (ttRes.rows.length === 0) {
@@ -323,8 +326,10 @@ export async function POST(req: NextRequest): Promise<Response> {
               pre_review_volume_used_halire AS used,
               pre_review_passed_at::text AS passed_at
          FROM platform.promoters
-        WHERE id = $1
-        FOR UPDATE`,
+        WHERE id = $1`,
+      // POZN. (concurrency): bez FOR UPDATE — tohle je jen orientační READ capu.
+      // Dřív zamykal řádek promotéra na celou transakci → VŠECHNY checkouty jednoho
+      // promotéra se serializovaly. Increment volume_used se děje až při platbě.
       [tt.promoter_id],
     );
     if (capRes.rows.length > 0 && capRes.rows[0].passed_at === null && capRes.rows[0].cap !== null) {
@@ -675,13 +680,11 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
     const userId = userRes.rows[0].id;
 
-    // 3) Decrement inventory
-    await client.query(
-      `UPDATE catalog.ticket_types
-         SET remaining_qty = remaining_qty - $1
-       WHERE id = $2`,
-      [input.quantity, tt.id],
-    );
+    // 3) Inventář se rezervuje AŽ TĚSNĚ PŘED COMMITEM (atomicky, podmíněně) —
+    //    viz blok "ATOMICKÁ REZERVACE INVENTÁŘE" níže. Tím se drží řádkový zámek
+    //    na ticket_type jen po dobu pár inserts, ne přes fraud scoring + slevy.
+    //    Měkká kontrola remaining_qty proběhla výš (fail-fast); finální správnost
+    //    zajistí podmíněný UPDATE (WHERE remaining_qty >= qty).
 
     // 3b) Promo code / subscription — pokud poslán, validuj a aplikuj slevu na subtotal
     let subtotalAmount = unitPriceHalire * input.quantity;
@@ -1284,6 +1287,26 @@ export async function POST(req: NextRequest): Promise<Response> {
           tt.currency,
           `MOCK-${orderId.slice(0, 8).toUpperCase()}`,
         ],
+      );
+    }
+
+    // ── ATOMICKÁ REZERVACE INVENTÁŘE (těsně před commitem) ──────────────────
+    // Podmíněný UPDATE: sníží remaining_qty JEN pokud je dost. Drží řádkový zámek
+    // na ticket_type jen do COMMITu (pár inserts), ne přes celou transakci →
+    // checkouty jednoho typu se serializují jen na tomhle krátkém okně.
+    // Pokud mezi měkkou kontrolou výš a tímhle někdo vykoupil zbytek → 409 (žádný oversell).
+    const reserve = await client.query(
+      `UPDATE catalog.ticket_types
+          SET remaining_qty = remaining_qty - $1
+        WHERE id = $2 AND remaining_qty >= $1
+        RETURNING remaining_qty`,
+      [input.quantity, tt.id],
+    );
+    if (reserve.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return NextResponse.json(
+        { error: 'Insufficient inventory', message: 'Vstupenky se mezitím vyprodaly.' },
+        { status: 409 },
       );
     }
 
