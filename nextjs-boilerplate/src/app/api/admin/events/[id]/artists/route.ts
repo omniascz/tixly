@@ -84,13 +84,17 @@ export async function DELETE(
     return NextResponse.json({ error: 'INVALID_ARTIST_ID' }, { status: 400 });
   }
 
-  await db().query(
+  const r = await db().query(
     `DELETE FROM lineups.event_artists
       WHERE event_id = $1 AND artist_id = $2
         AND EXISTS (SELECT 1 FROM catalog.events
-                     WHERE id = $1 AND promoter_id = $3)`,
+                     WHERE id = $1 AND promoter_id = $3)
+      RETURNING artist_id`,
     [eventId, artistId, promoter.promoterId],
   );
+  if (r.rowCount === 0) {
+    return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+  }
 
   return NextResponse.json({ ok: true });
 

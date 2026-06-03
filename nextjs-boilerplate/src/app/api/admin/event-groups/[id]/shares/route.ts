@@ -104,12 +104,16 @@ export async function DELETE(
     return NextResponse.json({ error: 'INVALID_SHARE_ID' }, { status: 400 });
   }
 
-  await db().query(
+  const r = await db().query(
     `UPDATE event_groups.shares
         SET status = 'revoked', revoked_at = NOW()
-      WHERE id = $1 AND group_id = $2 AND owner_promoter_id = $3`,
+      WHERE id = $1 AND group_id = $2 AND owner_promoter_id = $3
+      RETURNING id`,
     [shareId, groupId, promoter.promoterId],
   );
+  if (r.rowCount === 0) {
+    return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+  }
 
   return NextResponse.json({ ok: true });
 
