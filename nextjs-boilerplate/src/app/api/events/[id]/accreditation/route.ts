@@ -54,7 +54,7 @@ export async function POST(
       promoter_email: string | null;
       promoter_name: string | null;
     }>(
-      `SELECT e.id, e.title, e.promoter_id, p.support_email AS promoter_email,
+      `SELECT e.id, e.title, e.promoter_id, p.contact_email AS promoter_email,
               p.name AS promoter_name
        FROM catalog.events e
        JOIN platform.promoters p ON p.id = e.promoter_id
