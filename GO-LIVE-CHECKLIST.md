@@ -38,18 +38,17 @@
 > Produkce běží starý master. Pořadí JE DŮLEŽITÉ: **nejdřív migrace, pak deploy kódu** (kód počítá
 > se schématem po migracích).
 
-- [ ] **1) Migrace 340–348 na produkční Neon** 🧑→🤖 — připraveno: `migrations/BUNDLE_340-348_prod.sql`
-  (transakční, idempotentní) + `scripts/apply-prod-migrations.mjs`.
-  - **Blocker:** prod connection string neumím z Vercelu vytáhnout (`env pull` vrací `DATABASE_URL` prázdnou).
-  - Dej mi ho (Vercel → Settings → Env Vars → `DATABASE_URL` Production → Reveal) → 🤖 spustím applier.
-  - Nebo sám: `! cd nextjs-boilerplate && PROD_DATABASE_URL="<url>" node scripts/apply-prod-migrations.mjs`
-  - Co opravují: promotér registrace (`promoters.id` default), refund/scanner (`FOR UPDATE OF`),
-    127 RLS service policies, vouchers/subscriptions/payment-plans viditelnost, audit actor_type.
-- [ ] **2) Merge `feature/rls-phase2-enforcement` → `master`** 🧑+🤖 — obsahuje VŠECHNY opravy + UX +
-  moderaci. Doporučuju PR review (nebo `/code-review ultra`) před mergem — je to velký diff.
-- [ ] **3) Deploy** 🤖 — Vercel auto-deploy z masteru po mergi; ověřím build + `health/ready`.
-- [ ] **4) Smoke na produkci** 🤖 — po deployi proklikat registraci promotéra naostro (ten flow byl
-  rozbitý) + golden-path (bez platby zatím, GoPay přijde později).
+- [x] **1) Migrace 340–348 na produkční Neon** 🤖 ✅ **HOTOVO 2026-06-03** — aplikováno přes Neon
+  connection string (neondb_owner). Ověřeno: `promoters.id`=gen_random_uuid(), 127 svc policies,
+  audit constraint má 'promoter'. Bundle transakční (vše naráz).
+- [x] **2) Merge `feature/rls-phase2-enforcement` → `master`** 🤖 ✅ **HOTOVO** — čistý fast-forward
+  (53 commitů, origin/master byl obsažen ve feature, žádné konflikty). Push na origin/master = `99ca26c`.
+- [x] **3) Deploy** 🤖 ✅ **HOTOVO** — Vercel auto-deploy z masteru proběhl (READY), `health/ready` 200.
+- [x] **4) Smoke na produkci** 🤖 ✅ **HOTOVO** — registrace promotéra NA PRODUKCI vrací **HTTP 200**
+  (předtím 500). Testovací promotér uklizen z prod DB.
+
+> ✅ **NASAZENÍ DOKONČENO.** Produkce teď běží opravený kód (24 bugfixů) + migrace 340–348.
+> Golden-path bug (promotér se nemohl zaregistrovat) je v produkci OPRAVENÝ.
 
 ### ⚠️ Kritická operační poznámka — ENCRYPTION_KEY
 - [ ] **Ověřit, že prod `ENCRYPTION_KEY` je STABILNÍ a nikdy se nezmění** 🧑 — šifruje TOTP secrety
@@ -193,7 +192,7 @@
 | Tech infra (hosting, DB, Redis, build) | ✅ hotovo |
 | **Funkce otestované deep E2E (30)** | ✅ ~24 bugů opraveno, vše zelené s DB ověřením |
 | Feature parity (vs Eventim/DACH) | ✅ ~99 % |
-| **🟥 Nasazení oprav na prod (FÁZE 1A)** | ❌ kód na větvi + migrace 340–348 NEna prod |
+| **✅ Nasazení oprav na prod (FÁZE 1A)** | ✅ HOTOVO — migrace 340–348 + merge + deploy (registrace promotéra na prod 200) |
 | **Platby naostro** | ❌ GoPay (~2-3 týdny KYC) |
 | **Email** | ❌ Resend (1-2 dny) |
 | **Doména** | ⏳ 1 DNS záznam (CNAME `app`→`cname.vercel-dns.com`) |
