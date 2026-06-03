@@ -25,6 +25,12 @@ export async function GET(
   if (!fromId || !toId) {
     return NextResponse.json({ error: 'Missing ?from=&to=' }, { status: 422 });
   }
+  // from/to MUSÍ být UUID chartu — bez validace by neplatný vstup spadl na
+  // `::uuid[]` cast (invalid input syntax → 500) místo čistého 422.
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!UUID.test(fromId) || !UUID.test(toId)) {
+    return NextResponse.json({ error: 'Invalid ?from=/?to= — must be chart UUIDs' }, { status: 422 });
+  }
 
   const r = await db().query<{ id: string; layout: ChartLayout; created_at: string; name: string }>(
     `SELECT id, layout, created_at, name FROM catalog.venue_seating_charts
