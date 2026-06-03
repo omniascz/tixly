@@ -186,6 +186,12 @@ export default async function LandingPage({ params }: { params: { locale: string
             🔎 {locale === 'en' ? 'Search' : locale === 'sk' ? 'Hľadať' : 'Hledat'}
           </Link>
         </div>
+        <p className="mt-5 text-sm text-muted-foreground">
+          {locale === 'sk' ? 'Organizuješ akcie? ' : locale === 'en' ? 'Run events? ' : 'Pořádáš akce? '}
+          <Link href={`/${locale}/register-promoter`} className="font-medium text-primary underline-offset-4 hover:underline">
+            {locale === 'sk' ? 'Predávaj s Tixly →' : locale === 'en' ? 'Sell with Tixly →' : 'Prodávej s Tixly →'}
+          </Link>
+        </p>
       </section>
 
       {/* Category quick-links */}

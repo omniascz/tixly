@@ -79,10 +79,11 @@ const PUBLIC_API_PREFIXES = ['/api/health', '/api/internal/', '/api/mock-gopay',
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
-  // Root → vždy /cs/events. Admin/promotér si otevře svůj workspace přes nav link "Admin".
-  // Důvod: root je veřejná tvář produktu, neměla by se měnit podle role visitora.
-  if (pathname === '/' || pathname === '/cs') {
-    return NextResponse.redirect(new URL('/cs/events', request.url));
+  // Root „/" → /cs (lokalizovaná landing page). `/cs` samotná se RENDERUJE
+  // (marketingová landing: hero + kategorie + feed + tipy redakce). Plný výpis
+  // akcí má vlastní route /cs/events. Admin/promotér si workspace otevře přes nav.
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL('/cs', request.url));
   }
 
   // ── 1. API routes ────────────────────────────────────────────────────────
