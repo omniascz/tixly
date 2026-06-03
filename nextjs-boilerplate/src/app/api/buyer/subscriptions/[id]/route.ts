@@ -20,7 +20,7 @@ export async function DELETE(
   return runAsUser(req, async (userId) => {
   const r = await db().query<{ status: string; cancel_at_period_end: boolean }>(
     `UPDATE subscriptions.subscriptions
-       SET cancel_at_period_end = true, updated_at = now()
+       SET cancel_at_period_end = true
      WHERE id = $1 AND user_id = $2 AND status = 'active'
      RETURNING status, cancel_at_period_end`,
     [params.id, userId],
