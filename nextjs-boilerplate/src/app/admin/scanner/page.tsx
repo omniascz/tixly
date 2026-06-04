@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { QrScannerCamera } from '@/components/admin/QrScannerCamera';
+import { GroupScanPanel } from '@/components/admin/GroupScanPanel';
 import {
   enqueueScan,
   flushQueue,
@@ -73,6 +74,7 @@ export default function ScannerPage() {
   const [ticketId, setTicketId] = useState('');
   const [totpCode, setTotpCode] = useState('');
   const [scanMode, setScanMode] = useState<'auto' | 'reentry_entry' | 'reentry_exit'>('auto');
+  const [entryMode, setEntryMode] = useState<'single' | 'group'>('single');
 
   // QR payload parser: `tixly:<uuid>:<6-digit code>` → fillne oba inputy.
   // Pokud uživatel jen pastenul UUID, ponecháme totpCode prázdný (manual mode).
@@ -428,6 +430,29 @@ export default function ScannerPage() {
         </CardContent>
       </Card>
 
+      {/* Přepínač: jednotlivý lístek vs. skupinové odbavení (1 QR = celá objednávka) */}
+      <div className="grid grid-cols-2 gap-1 rounded-md border p-1 text-sm">
+        <button
+          type="button"
+          className={`rounded px-3 py-2 font-medium ${entryMode === 'single' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+          onClick={() => setEntryMode('single')}
+          data-testid="mode-single"
+        >
+          Jednotlivě
+        </button>
+        <button
+          type="button"
+          className={`rounded px-3 py-2 font-medium ${entryMode === 'group' ? 'bg-indigo-600 text-white' : 'hover:bg-muted'}`}
+          onClick={() => setEntryMode('group')}
+          data-testid="mode-group"
+        >
+          👥 Skupina
+        </button>
+      </div>
+
+      {entryMode === 'group' ? (
+        <GroupScanPanel />
+      ) : (
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -529,6 +554,7 @@ export default function ScannerPage() {
           <CardContent>{renderResult(result)}</CardContent>
         </Card>
       </div>
+      )}
 
       <QrScannerCamera
         open={cameraOpen}
