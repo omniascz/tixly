@@ -92,11 +92,14 @@ async function fetchDetail(id: string) {
       FROM catalog.events e
       LEFT JOIN catalog.venues v ON v.id = e.venue_id
       LEFT JOIN platform.promoters p ON p.id = e.promoter_id
-      WHERE e.id = $1
+      WHERE (e.id::text = $1 OR e.slug = $1)
     `,
       [id],
     );
     if (eventResult.rows.length === 0) return null;
+    // [id] param může být UUID nebo slug (karty odkazují přes slug). Po resolvnutí
+    // přepneme na reálné UUID, aby navazující dotazy (tickets/days/zones) seděly.
+    id = eventResult.rows[0].id;
 
     // 'hidden' = úplně skrytý (nikdy nezobrazit)
     // 'access_code' = veřejně nezobrazit, ale klient může odemknout kódem
