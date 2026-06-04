@@ -338,7 +338,7 @@ export default async function LandingPage({ params }: { params: { locale: string
             {thisWeek.map((ev, i) => (
               <Link
                 key={ev.id}
-                href={`/${locale}/${ev.slug ? `p/${ev.slug}` : `events/${ev.id}`}`}
+                href={`/${locale}/events/${ev.slug ?? ev.id}`}
                 className="group"
               >
                 <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
@@ -407,7 +407,7 @@ export default async function LandingPage({ params }: { params: { locale: string
             {events.map((ev, i) => (
               <Link
                 key={ev.id}
-                href={`/${locale}/${ev.slug ? `p/${ev.slug}` : `events/${ev.id}`}`}
+                href={`/${locale}/events/${ev.slug ?? ev.id}`}
                 className="group"
               >
                 <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
