@@ -59,7 +59,7 @@ export function TopNav({ locale }: { locale: string }) {
     localStorage.removeItem('user');
     localStorage.removeItem('roles');
     setAuth({ user: null, isPlatformAdmin: false, hasPromoterMembership: false });
-    router.push(`/${locale}/events`);
+    router.push(`/${locale}`);
     router.refresh();
   }
 
