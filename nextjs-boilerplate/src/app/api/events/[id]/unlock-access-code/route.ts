@@ -19,7 +19,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 const schema = z.object({
   code: z.string().min(1).max(40),
@@ -47,6 +47,10 @@ export async function POST(
   const code = parsed.data.code.trim().toUpperCase();
   const eventId = params.id;
 
+  // access_codes jsou TAJNÉ kódy (žádná public-read RLS policy záměrně). Validace
+  // kódu = kontrola "hesla" → běží v service kontextu (trusted lookup), ne jako
+  // anonym (ten by řádek pod RLS neviděl → vždy INVALID_CODE).
+  return runWithServiceContext(async () => {
   const r = await db().query<{
     id: string;
     max_uses: number | null;
@@ -103,5 +107,6 @@ export async function POST(
     accessCodeId: ac.id,
     ticketTypeIds: ac.ticket_type_ids ?? [],
     ticketTypeNames: ac.ticket_type_names ?? [],
+  });
   });
 }
