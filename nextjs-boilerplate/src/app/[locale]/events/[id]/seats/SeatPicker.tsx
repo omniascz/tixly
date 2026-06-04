@@ -548,41 +548,51 @@ function avgSeatPitch(layout: Layout): number {
   return count > 0 ? sum / count : 20;
 }
 
-function StageMarker({ layout }: { layout: Layout }) {
-  if (!layout.stage) return null;
-  const [vx, vy, vw, vh] = layout.viewBox.split(/\s+/).map(Number);
+function StageMarker({
+  viewBox,
+  stage,
+  field,
+}: {
+  viewBox: string;
+  stage?: Layout['stage'];
+  field?: Layout['field'];
+}) {
+  if (!stage && !field) return null;
+  const [vx, vy, vw, vh] = viewBox.split(/\s+/).map(Number);
+  if (![vx, vy, vw, vh].every(Number.isFinite)) return null;
   let x = vx + vw / 2;
-  let y = vy + 30;
-  let width = vw * 0.4;
-  let height = 40;
-  const pos = layout.stage.position ?? 'top';
-  if (pos === 'bottom') y = vy + vh - 60;
-  if (pos === 'left') { x = vx + 20; y = vy + vh / 2 - 20; width = 40; height = vh * 0.3; }
-  if (pos === 'right') { x = vx + vw - 60; y = vy + vh / 2 - 20; width = 40; height = vh * 0.3; }
+  let y = vy + 24;
+  let width = Math.min(vw * 0.5, 420);
+  let height = 34;
+  const pos = stage?.position ?? 'top';
+  if (pos === 'bottom') y = vy + vh - height - 24;
+  if (pos === 'left') { x = vx + 20; y = vy + vh / 2 - 20; width = 34; height = vh * 0.3; }
+  if (pos === 'right') { x = vx + vw - 54; y = vy + vh / 2 - 20; width = 34; height = vh * 0.3; }
+  const label = stage?.label ?? 'JEVIŠTĚ';
   // Field má vlastní render, stage label se umístí dovnitř fieldu
-  if (layout.field) {
+  if (field) {
     return (
       <g>
         <rect
-          x={layout.field.x}
-          y={layout.field.y}
-          width={layout.field.width}
-          height={layout.field.height}
+          x={field.x}
+          y={field.y}
+          width={field.width}
+          height={field.height}
           fill="#86efac"
           stroke="#16a34a"
           strokeWidth={2}
           rx={8}
         />
         <text
-          x={layout.field.x + layout.field.width / 2}
-          y={layout.field.y + layout.field.height / 2}
+          x={field.x + field.width / 2}
+          y={field.y + field.height / 2}
           textAnchor="middle"
           dominantBaseline="middle"
-          fontSize={Math.min(layout.field.width, layout.field.height) * 0.08}
+          fontSize={Math.min(field.width, field.height) * 0.08}
           fontWeight="bold"
           fill="#14532d"
         >
-          {layout.stage.label}
+          {label}
         </text>
       </g>
     );
@@ -595,18 +605,19 @@ function StageMarker({ layout }: { layout: Layout }) {
         width={width}
         height={height}
         fill="#1e293b"
-        rx={4}
+        rx={6}
       />
       <text
         x={x}
         y={y + height / 2}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={height * 0.5}
+        fontSize={height * 0.45}
         fontWeight="bold"
         fill="#fff"
+        letterSpacing={2}
       >
-        {layout.stage.label}
+        {label}
       </text>
     </g>
   );
@@ -641,14 +652,41 @@ function SvgChart({
   const isLarge = data.seats.length > OVERVIEW_THRESHOLD;
   const [zoomedSector, setZoomedSector] = useState<string | null>(null);
 
+  // Jeviště: použij uložené, jinak default nahoře (orientace pro sezení).
+  const stage = data.layout.stage ?? { label: 'JEVIŠTĚ', position: 'top' as const };
+
+  // Base viewBox: uložený, pokud je platný; jinak DOPOČÍTAT z reálných souřadnic
+  // sedadel + padding + prostor na jeviště. Bez tohohle (viewBox=undefined nebo
+  // ořezaný) buyer „neviděl celý sál" — spodní sektory se ořezávaly.
+  const baseViewBox = useMemo(() => {
+    const stored = (data.layout.viewBox ?? '').trim().split(/\s+/).map(Number);
+    if (stored.length === 4 && stored.every(Number.isFinite) && stored[2] > 0 && stored[3] > 0) {
+      return data.layout.viewBox;
+    }
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const b of bboxes) {
+      minX = Math.min(minX, b.minX); minY = Math.min(minY, b.minY);
+      maxX = Math.max(maxX, b.maxX); maxY = Math.max(maxY, b.maxY);
+    }
+    if (!Number.isFinite(minX)) return '0 0 800 600';
+    const pad = Math.max(24, pitch * 1.5);
+    const headTop = stage.position === 'top' || !stage.position ? 100 : 0;
+    const headBottom = stage.position === 'bottom' ? 100 : 0;
+    const x = minX - pad;
+    const y = minY - pad - headTop;
+    const w = (maxX - minX) + pad * 2;
+    const h = (maxY - minY) + pad * 2 + headTop + headBottom;
+    return `${x} ${y} ${w} ${h}`;
+  }, [data.layout.viewBox, bboxes, pitch, stage.position]);
+
   // Effective viewBox: pokud zoomed, použij bbox sektoru s paddingem
   const effectiveViewBox = useMemo(() => {
-    if (!zoomedSector) return data.layout.viewBox;
+    if (!zoomedSector) return baseViewBox;
     const b = bboxes.find((x) => x.name === zoomedSector);
-    if (!b) return data.layout.viewBox;
+    if (!b) return baseViewBox;
     const pad = pitch * 4;
     return `${b.minX - pad} ${b.minY - pad} ${b.maxX - b.minX + 2 * pad} ${b.maxY - b.minY + 2 * pad}`;
-  }, [zoomedSector, bboxes, pitch, data.layout.viewBox]);
+  }, [zoomedSector, bboxes, pitch, baseViewBox]);
 
   const showSeats = !isLarge || zoomedSector !== null;
   const visibleSectorNames = zoomedSector ? new Set([zoomedSector]) : new Set(data.layout.sectors.map((s) => s.name));
@@ -682,7 +720,7 @@ function SvgChart({
           role="img"
           aria-label="Plán sálu"
         >
-          <StageMarker layout={data.layout} />
+          <StageMarker viewBox={baseViewBox} stage={stage} field={data.layout.field} />
 
           {/* Overview mód: sektor jako polygon s labelem */}
           {!showSeats &&
