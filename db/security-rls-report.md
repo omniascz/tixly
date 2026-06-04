@@ -72,7 +72,30 @@ Postup (samostatný projekt): 1) doplnit RLS policy pro 79 nepokrytých tabulek 
   na `tickets.access_tokens` a `tickets.cross_pass_memberships` — IV existuje právě tehdy,
   když existuje secret (prevence nedešifrovatelného TOTP tokenu). Aplikováno + v baseline.
 
+## ✅ FÁZE 2 — krok 1 částečně HOTOVO (2026-06-04): veřejné read cesty
+
+Systematicky podchycena **veřejná čtecí vrstva** (to, co se reálně láme při lokálním
+testu pod `tixly_rls_test` NOBYPASSRLS). Dřív se to opravovalo reaktivně kus po kuse
+(„Online" u venues, prázdné multi-day sekce); teď proběhl plošný audit:
+
+- **`scripts/audit-public-rls.mjs`** — opakovatelný empirický audit. Vytáhne tabulky
+  čtené veřejnými server-komponentami + public API a porovná `service` vs `anonym`
+  viditelnost. Spustitelné kdykoli: `node scripts/audit-public-rls.mjs`.
+- **migrace 349 + 350** — **25 public-read SELECT policy** pro veřejně-zobrazovaná
+  data (venues, event_days/zones, collections, cross-pass, entry_slots, lotteries,
+  resale_listings, subscriptions plans/packages, bundles, hospitality, reviews,
+  editorial, incidents…). Každá gated: `EXISTS published akce` / `active` / `is_public`
+  / `status`. Zápis dál řídí tenant/service policy.
+- **access_codes** záměrně BEZ public policy (tajné kódy) → `unlock-access-code` route
+  obalen `runWithServiceContext` (validace kódu = trusted lookup, ne anonym).
+- **Stav po:** 0 reálných veřejných děr (ověřeno auditem), 18 tabulek OK.
+
+**Pořád zbývá pro plný enforce** (krok 2–4 níže): ~431 raw-pool míst v *authed* admin/
+buyer routes (ne veřejné čtení) + 79 nepokrytých tabulek (identity/payments/auth).
+Veřejná read vrstva je ale teď čistá — to byla ta část, co se lámala viditelně.
+
 ## Pozn. k metodice
 
 RLS coverage findings vychází z `scripts/audit-db.sql` (sekce 1b/1c/4a/4b). Spustitelné kdykoli:
 `docker exec -i tixly-postgres psql -U tixly -d tixly < scripts/audit-db.sql`
+Veřejné read cesty: `node nextjs-boilerplate/scripts/audit-public-rls.mjs` (NOBYPASSRLS role).
