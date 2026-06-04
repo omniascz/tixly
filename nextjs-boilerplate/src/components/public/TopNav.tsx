@@ -111,15 +111,14 @@ export function TopNav({ locale }: { locale: string }) {
         </>
       ) : (
         <>
-          <Link href={`/${locale}/pricing`} className="text-muted-foreground">
-            Ceník
-          </Link>
           <Link href={`/${locale}/login`}>Přihlásit</Link>
+          {/* B2B onboarding (vč. ceníku) žije na stránce pro pořadatele — ne
+              v hlavní liště, kam chodí kupující vstupenek. */}
           <Link
             href={`/${locale}/register-promoter`}
             className="text-muted-foreground"
           >
-            Pro promotéry
+            Pro pořadatele
           </Link>
         </>
       )}
