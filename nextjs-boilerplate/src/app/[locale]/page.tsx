@@ -62,7 +62,7 @@ async function fetchLanding(): Promise<{
        LEFT JOIN platform.promoters p ON p.id = e.promoter_id
        WHERE e.status = 'published' AND e.date_start > now()
        ORDER BY e.date_start ASC
-       LIMIT 12`,
+       LIMIT 6`,
     );
 
     const thisWeekPromise = db.query<EventRow>(
