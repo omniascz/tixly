@@ -115,7 +115,7 @@ export function TopNav({ locale }: { locale: string }) {
           {/* B2B onboarding (vč. ceníku) žije na stránce pro pořadatele — ne
               v hlavní liště, kam chodí kupující vstupenek. */}
           <Link
-            href={`/${locale}/register-promoter`}
+            href={`/${locale}/pro-poradatele`}
             className="text-muted-foreground"
           >
             Pro pořadatele

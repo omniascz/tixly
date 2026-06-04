@@ -206,7 +206,7 @@ export default async function LandingPage({ params }: { params: { locale: string
         </div>
         <p className="mt-6 text-xs text-muted-foreground">
           {locale === 'sk' ? 'Organizuješ akcie? ' : locale === 'en' ? 'Run events? ' : 'Pořádáš akce? '}
-          <Link href={`/${locale}/register-promoter`} className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link href={`/${locale}/pro-poradatele`} className="font-medium text-primary underline-offset-4 hover:underline">
             {locale === 'sk' ? 'Predávaj s Tixly →' : locale === 'en' ? 'Sell with Tixly →' : 'Prodávej přes Tixly →'}
           </Link>
         </p>
