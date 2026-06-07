@@ -20,7 +20,10 @@ const DB_VERSION = 1;
 const STORE_NAME = 'pending-scans';
 
 export interface ScanPayload {
-  ticketId: string;
+  /** Holý ticket UUID (mobilní/manuální sken). Vzájemně výlučné s printToken. */
+  ticketId?: string;
+  /** Podepsaný token z tištěné vstupenky (104mm label). */
+  printToken?: string;
   totpCode?: string;
   eventDayId?: string;
   zoneId?: string;
@@ -168,7 +171,10 @@ export async function flushQueue(authToken: string | null): Promise<FlushResult>
       out.synced += 1;
       // Pokud lístek byl already_used / not_found / wrong_promoter → byl falešný
       if (result !== 'admitted') {
-        out.conflicts.push({ ticketId: scan.payload.ticketId, result });
+        out.conflicts.push({
+          ticketId: scan.payload.ticketId ?? scan.payload.printToken ?? '?',
+          result,
+        });
       }
     } catch {
       // síťová chyba — necháme v queue

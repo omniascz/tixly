@@ -139,12 +139,44 @@ export function SupportActions({
     }
   }
 
+  async function printLabels() {
+    setBusy(true);
+    setError(null);
+    setFeedback(null);
+    try {
+      const res = await authFetch(`/api/admin/orders/${orderId}/print-labels`);
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(j.error ?? `Tisk selhal (HTTP ${res.status})`);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank', 'noopener');
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      setError('Tisk selhal (síť).');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Customer support</CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="mb-4 flex items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2">
+          <div className="text-sm">
+            <span className="font-medium">Tištěné vstupenky</span>{' '}
+            <span className="text-muted-foreground">— formát 152×51 mm pro termotiskárnu (Zebra/TSC)</span>
+          </div>
+          <Button variant="outline" size="sm" onClick={printLabels} disabled={busy}>
+            {busy ? 'Generuji…' : '🖨 Tisk vstupenek'}
+          </Button>
+        </div>
+
         <div className="mb-4 flex flex-wrap gap-2">
           <TabButton active={tab === 'resend'} onClick={() => setTab('resend')} label="Resend e-mail" />
           <TabButton active={tab === 'message'} onClick={() => setTab('message')} label="Napsat zprávu" />

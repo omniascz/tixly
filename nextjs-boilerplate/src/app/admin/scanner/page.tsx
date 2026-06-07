@@ -22,6 +22,7 @@ type ScanResult = {
     | 'already_redeemed_today'
     | 'revoked'
     | 'not_found'
+    | 'invalid_token'
     | 'wrong_promoter'
     | 'totp_mismatch'
     | 'invalid_status'
@@ -76,14 +77,22 @@ export default function ScannerPage() {
   const [scanMode, setScanMode] = useState<'auto' | 'reentry_entry' | 'reentry_exit'>('auto');
   const [entryMode, setEntryMode] = useState<'single' | 'group'>('single');
 
-  // QR payload parser: `tixly:<uuid>:<6-digit code>` → fillne oba inputy.
-  // Pokud uživatel jen pastenul UUID, ponecháme totpCode prázdný (manual mode).
+  // QR payload parser:
+  //   `tixly:<uuid>:<6-digit>`  → ticketId + TOTP (mobilní rotující QR)
+  //   `TXP1.<...>`              → print token z TIŠTĚNÉ vstupenky (104mm label)
+  //   `<uuid>`                  → holý ticketId (manual mode)
   function setTicketIdSmart(raw: string) {
     const trimmed = raw.trim();
     const m = trimmed.match(/^tixly:([0-9a-f-]{36}):(\d{6})$/i);
     if (m) {
       setTicketId(m[1]);
       setTotpCode(m[2]);
+      return;
+    }
+    // Print token: necháme v inputu jako celek, TOTP nemá smysl.
+    if (trimmed.startsWith('TXP1.')) {
+      setTicketId(trimmed);
+      setTotpCode('');
       return;
     }
     setTicketId(trimmed);
@@ -187,12 +196,13 @@ export default function ScannerPage() {
     e.preventDefault();
     setLoading(true);
     setResult(null);
-    const tid = ticketId.trim();
+    const raw = ticketId.trim();
+    const isPrintToken = raw.startsWith('TXP1.');
     const code = totpCode.trim();
 
     const payload = {
-      ticketId: tid,
-      ...(code ? { totpCode: code } : {}),
+      ...(isPrintToken ? { printToken: raw } : { ticketId: raw }),
+      ...(code && !isPrintToken ? { totpCode: code } : {}),
       ...(gate.eventDayId ? { eventDayId: gate.eventDayId } : {}),
       ...(gate.zoneId ? { zoneId: gate.zoneId } : {}),
     };
@@ -473,9 +483,9 @@ export default function ScannerPage() {
                   <Input
                     value={ticketId}
                     onChange={(e) => setTicketIdSmart(e.target.value)}
-                    placeholder="8a4f7b2e-... nebo tixly:8a4f...:123456"
+                    placeholder="8a4f7b2e-… / tixly:…:123456 / TXP1.…"
                     required
-                    pattern="[0-9a-fA-F-]{36}"
+                    pattern="([0-9a-fA-F-]{36}|TXP1\..+)"
                     autoFocus
                     data-testid="scanner-ticket-input"
                     className="flex-1"
@@ -675,6 +685,8 @@ function labelFor(r: ScanResult['result']): string {
       return 'Lístek zrušen';
     case 'not_found':
       return 'Lístek nenalezen';
+    case 'invalid_token':
+      return 'Neplatný kód vstupenky';
     case 'wrong_promoter':
       return 'Lístek jiného promotéra';
     case 'totp_mismatch':
