@@ -115,35 +115,40 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     // Optional auth: if token present propagate user, else pass through unauthenticated
     if (isOptionalAuthApi) {
       const authHeader = request.headers.get('Authorization');
-      const cookieToken = request.cookies.get('accessToken')?.value;
-      const token =
-        authHeader && authHeader.startsWith('Bearer ')
-          ? authHeader.split(' ')[1]
-          : cookieToken;
-      if (!token) return NextResponse.next();
-      const payload = await verifyTokenEdge(token);
+      const bearer =
+        authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+      const cookieToken = request.cookies.get('accessToken')?.value ?? null;
+      if (!bearer && !cookieToken) return NextResponse.next();
+      let payload = bearer ? await verifyTokenEdge(bearer) : null;
+      if (!payload && cookieToken && cookieToken !== bearer) {
+        payload = await verifyTokenEdge(cookieToken);
+      }
       if (!payload) return NextResponse.next();
       const requestHeaders = new Headers(request.headers);
       requestHeaders.set('x-user-id', payload.sub);
       return NextResponse.next({ request: { headers: requestHeaders } });
     }
 
-    // Extract token from Bearer header OR accessToken cookie
+    // Token z Bearer headeru NEBO accessToken cookie. Bearer z localStorage může
+    // vypršet dřív, než se obnoví; když je neplatný, spadneme zpět na cookie (kterou
+    // prohlížeč posílá sám a obnovuje se při loginu) — jinak by authed fetch hodil 401
+    // přestože je relace přes cookie platná.
     const authHeader = request.headers.get('Authorization');
-    const cookieToken = request.cookies.get('accessToken')?.value;
-    const token =
-      authHeader && authHeader.startsWith('Bearer ')
-        ? authHeader.split(' ')[1]
-        : cookieToken;
+    const bearer =
+      authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+    const cookieToken = request.cookies.get('accessToken')?.value ?? null;
 
-    if (!token) {
+    if (!bearer && !cookieToken) {
       return jsonResponse(
         { error: { code: 'TOKEN_MISSING', message: 'Authorization required' } },
         401,
       );
     }
 
-    const payload = await verifyTokenEdge(token);
+    let payload = bearer ? await verifyTokenEdge(bearer) : null;
+    if (!payload && cookieToken && cookieToken !== bearer) {
+      payload = await verifyTokenEdge(cookieToken);
+    }
     if (!payload) {
       return jsonResponse(
         { error: { code: 'TOKEN_INVALID', message: 'Token invalid or expired' } },

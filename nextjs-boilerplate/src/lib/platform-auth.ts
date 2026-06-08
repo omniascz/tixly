@@ -6,13 +6,7 @@ const secretKey = new TextEncoder().encode(
   process.env.JWT_SECRET ?? 'dev-secret-change-me-min-32-chars-please',
 );
 
-export async function requirePlatformAdmin(
-  req: NextRequest,
-): Promise<{ userId: string } | null> {
-  const auth = req.headers.get('authorization');
-  const token = auth?.toLowerCase().startsWith('bearer ')
-    ? auth.slice(7)
-    : req.cookies.get('accessToken')?.value;
+async function verifyAdminToken(token: string | null | undefined): Promise<{ userId: string } | null> {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secretKey);
@@ -24,6 +18,18 @@ export async function requirePlatformAdmin(
   } catch {
     return null;
   }
+}
+
+export async function requirePlatformAdmin(
+  req: NextRequest,
+): Promise<{ userId: string } | null> {
+  const auth = req.headers.get('authorization');
+  const bearer = auth?.toLowerCase().startsWith('bearer ') ? auth.slice(7) : null;
+  const cookie = req.cookies.get('accessToken')?.value ?? null;
+  // Zkus Bearer; když je neplatný/vypršelý, spadni zpět na accessToken cookie
+  // (prohlížeč ji posílá sám a obnovuje při loginu) — jinak vypršelý localStorage
+  // token v authFetch hodí 401, i když je relace přes cookie platná.
+  return (await verifyAdminToken(bearer)) ?? (await verifyAdminToken(cookie));
 }
 
 /**
