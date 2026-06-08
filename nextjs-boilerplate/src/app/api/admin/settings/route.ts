@@ -14,6 +14,7 @@ import { z } from 'zod';
 interface SettingsRow {
   promoter_id: string;
   promoter_name: string;
+  promoter_slug: string | null;
   promoter_email: string;
   contact_email: string | null;
   locale: string;
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   return runAsPromoter(req, async (promoter) => {
   const r = await db().query<SettingsRow>(
     `SELECT
-       p.id AS promoter_id, p.name AS promoter_name, p.email AS promoter_email,
+       p.id AS promoter_id, p.name AS promoter_name, p.slug AS promoter_slug, p.email AS promoter_email,
        p.contact_email, p.locale, p.bank_account,
        p.brand_logo_url, p.brand_color_hex, p.brand_tagline,
        COALESCE(s.payout_cycle, 'weekly') AS payout_cycle,
@@ -61,6 +62,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     promoter: {
       id: s.promoter_id,
       name: s.promoter_name,
+      slug: s.promoter_slug,
       email: s.promoter_email,
       contactEmail: s.contact_email,
       locale: s.locale,

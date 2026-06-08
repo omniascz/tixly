@@ -23,6 +23,9 @@ const DISMISS_DAYS = 30;
 function shouldShow(): boolean {
   if (typeof window === 'undefined') return false;
 
+  // V iframe (embed widget na cizím webu) nemá PWA install prompt co dělat.
+  try { if (window.self !== window.top) return false; } catch { return false; }
+
   // Už spuštěno jako PWA?
   if (window.matchMedia('(display-mode: standalone)').matches) return false;
   // iOS Safari standalone check

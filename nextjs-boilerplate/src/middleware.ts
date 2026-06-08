@@ -238,7 +238,12 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     pathname.startsWith('/mock-subscription/') ||
     pathname.startsWith('/mock-voucher/') ||
     pathname.startsWith('/mock-bnpl/') ||
-    pathname.startsWith('/r/')
+    pathname.startsWith('/r/') ||
+    // Embed widgety (src/app/embed/) a mobilní lístek (src/app/m/) žijí MIMO [locale]
+    // segment a mají vlastní layout. Locale prefix by je přesměroval na /cs/embed/…
+    // resp. /cs/m/… které neexistují → 404 (rozbitý iframe na cizím webu / mobilní lístek).
+    pathname.startsWith('/embed/') ||
+    pathname.startsWith('/m/')
   ) {
     return NextResponse.next();
   }

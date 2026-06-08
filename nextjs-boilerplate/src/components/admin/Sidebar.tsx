@@ -25,6 +25,7 @@ import {
   Gift,
   Layers,
   Plus,
+  Code2,
   type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -59,6 +60,7 @@ const sections: NavSection[] = [
       { href: '/admin/pos', label: 'Pokladna (POS)', icon: Banknote },
       { href: '/admin/scanner', label: 'Scanner', icon: ScanLine },
       { href: '/admin/event-groups', label: 'Event Groups', icon: Layers },
+      { href: '/admin/embed', label: 'Embed na web', icon: Code2 },
       { href: '/admin/subscriptions', label: 'Abonentky', icon: TrendingUp },
       { href: '/admin/season', label: 'Sezónní přehled', icon: TrendingUp },
     ],

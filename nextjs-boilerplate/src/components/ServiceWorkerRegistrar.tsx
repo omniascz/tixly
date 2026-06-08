@@ -9,6 +9,8 @@ import { useEffect } from 'react';
 export function ServiceWorkerRegistrar() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    // V iframe (embed widget) SW neregistrujeme — je to zbytečné a hází chybu.
+    try { if (window.self !== window.top) return; } catch { return; }
     if (!('serviceWorker' in navigator)) return;
     // Only register on https or localhost
     if (
