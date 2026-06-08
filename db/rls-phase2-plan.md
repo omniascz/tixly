@@ -168,13 +168,16 @@ Bounded task, ~5 stránek. **Bonus:** opraví i ten IDOR na order-detail.
       `runAsServerPromoter/User/PlatformAdmin` v server-session.ts; 4/5 ověřeno živě end-to-end
       vč. IDOR fixu na order-detail, m/ticket DB-context; opraven i pre-existing bug receipt
       p.ico→company_ico + nefunkční stub history). Commity 52ea7a0 + b2bea9a.
-- [ ] `audit.audit_log` polymorfní scope (izolace; funkčnost OK díky DEFINER triggeru)
-- [ ] `tickets.wristband_transactions` codemod 3 routes + RLS
+- [x] `audit.audit_log` RLS ✅ (migr. 354 — INSERT-all append-only + dvojí promoter read scope; service/admin=1518/promoter=108/anon=0; INSERT OK, UPDATE→immutable)
+- [x] `tickets.wristband_transactions` RLS ✅ (migr. 353 — routes už v promoter kontextu; event-scoped; owner INSERT OK, cizí→violation)
+- [x] **Tier C KOMPLETNÍ: 0 RLS-off + 0 lockoutů přes 147 tabulek** (re-audit 2026-06-08)
 - [ ] Plný E2E sweep (e2e-full-suite) pod enforce na STAGING (ne jen lokál)
 - [ ] Flip na STAGING DB, smoke, teprve pak produkce
 - [ ] Rollback ready: `ALTER ROLE tixly_app BYPASSRLS;` (jednořádkový návrat)
 
-**Závěr (aktualizace 2026-06-08 v2):** API-route vrstva flip-safe (0 lockoutů, 3 leaky zavřené)
-+ **5 authed RSC stránek vyřešeno** (kontext, 4/5 živě ověřeno, IDOR fix). Zbývá k flipu už jen:
-(1) `audit.audit_log` polymorfní scope + `wristband` codemod (izolace, ne funkčnost — funkčně OK),
-(2) plný E2E sweep na staging, (3) flip na staging, (4) produkce. Hlavní funkční blockery padly.
+**Závěr (aktualizace 2026-06-08 v3):** API-route vrstva flip-safe (0 lockoutů), **všech 7
+RLS-off tabulek izolováno (Tier C KOMPLETNÍ)**, 5 authed RSC stránek vyřešeno (IDOR fix).
+Veřejná vrstva čistá, buyer golden-path + admin tail ověřené. Zbývá k produkčnímu flipu už
+jen: (1) plný E2E sweep (e2e-full-suite) pod enforce na STAGING prostředí, (2) `ALTER ROLE
+tixly_app NOBYPASSRLS` na staging + smoke, (3) produkce. Rollback = zpět BYPASSRLS (1 řádek).
+Veškerá izolace + funkční blockery hotové a empiricky ověřené na lokále pod enforced rolí.
