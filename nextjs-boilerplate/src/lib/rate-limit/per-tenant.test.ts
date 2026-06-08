@@ -6,52 +6,54 @@ import {
 } from './per-tenant';
 
 beforeEach(() => {
+  // Vynuť in-memory fallback (deterministicky) — bez závislosti na Redis.
+  process.env.REDIS_URL = 'NONE';
   _resetRateLimitStoresForTests();
 });
 
-describe('checkRateLimit', () => {
-  it('allows requests under the limit', () => {
+describe('checkRateLimit (in-memory fallback)', () => {
+  it('allows requests under the limit', async () => {
     const cfg = { limit: 3, windowMs: 60_000 };
-    expect(checkRateLimit('p-1', cfg).ok).toBe(true);
-    expect(checkRateLimit('p-1', cfg).ok).toBe(true);
-    expect(checkRateLimit('p-1', cfg).ok).toBe(true);
+    expect((await checkRateLimit('p-1', cfg)).ok).toBe(true);
+    expect((await checkRateLimit('p-1', cfg)).ok).toBe(true);
+    expect((await checkRateLimit('p-1', cfg)).ok).toBe(true);
   });
 
-  it('blocks request that would exceed the limit', () => {
+  it('blocks request that would exceed the limit', async () => {
     const cfg = { limit: 3, windowMs: 60_000 };
-    checkRateLimit('p-1', cfg);
-    checkRateLimit('p-1', cfg);
-    checkRateLimit('p-1', cfg);
-    const fourth = checkRateLimit('p-1', cfg);
+    await checkRateLimit('p-1', cfg);
+    await checkRateLimit('p-1', cfg);
+    await checkRateLimit('p-1', cfg);
+    const fourth = await checkRateLimit('p-1', cfg);
     expect(fourth.ok).toBe(false);
     expect(fourth.remaining).toBe(0);
     expect(fourth.retryAfterMs).toBeGreaterThan(0);
   });
 
-  it('decrements remaining count', () => {
+  it('decrements remaining count', async () => {
     const cfg = { limit: 5, windowMs: 60_000 };
-    expect(checkRateLimit('p-1', cfg).remaining).toBe(4);
-    expect(checkRateLimit('p-1', cfg).remaining).toBe(3);
-    expect(checkRateLimit('p-1', cfg).remaining).toBe(2);
+    expect((await checkRateLimit('p-1', cfg)).remaining).toBe(4);
+    expect((await checkRateLimit('p-1', cfg)).remaining).toBe(3);
+    expect((await checkRateLimit('p-1', cfg)).remaining).toBe(2);
   });
 
-  it('isolates limits per tenant key', () => {
+  it('isolates limits per tenant key', async () => {
     const cfg = { limit: 1, windowMs: 60_000 };
-    expect(checkRateLimit('p-1', cfg).ok).toBe(true);
-    expect(checkRateLimit('p-2', cfg).ok).toBe(true);
+    expect((await checkRateLimit('p-1', cfg)).ok).toBe(true);
+    expect((await checkRateLimit('p-2', cfg)).ok).toBe(true);
     // p-1 a p-2 jsou nezávislé
-    expect(checkRateLimit('p-1', cfg).ok).toBe(false);
-    expect(checkRateLimit('p-2', cfg).ok).toBe(false);
+    expect((await checkRateLimit('p-1', cfg)).ok).toBe(false);
+    expect((await checkRateLimit('p-2', cfg)).ok).toBe(false);
   });
 
-  it('resets after window expires', () => {
+  it('resets after window expires', async () => {
     vi.useFakeTimers();
     const cfg = { limit: 2, windowMs: 1000 };
-    checkRateLimit('p-1', cfg);
-    checkRateLimit('p-1', cfg);
-    expect(checkRateLimit('p-1', cfg).ok).toBe(false);
+    await checkRateLimit('p-1', cfg);
+    await checkRateLimit('p-1', cfg);
+    expect((await checkRateLimit('p-1', cfg)).ok).toBe(false);
     vi.advanceTimersByTime(1001);
-    expect(checkRateLimit('p-1', cfg).ok).toBe(true);
+    expect((await checkRateLimit('p-1', cfg)).ok).toBe(true);
     vi.useRealTimers();
   });
 });

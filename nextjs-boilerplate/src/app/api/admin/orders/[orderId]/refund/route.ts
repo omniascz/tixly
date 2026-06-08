@@ -89,7 +89,7 @@ export async function POST(
 ): Promise<Response> {
   return runAsActivePromoter(req, async (promoter) => {
   // Refunds: max 60/min per tenant.
-  const rl = checkRateLimit(`${promoter.promoterId}:refund`, {
+  const rl = await checkRateLimit(`${promoter.promoterId}:refund`, {
     limit: 60,
     windowMs: 60_000,
   });

@@ -35,7 +35,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
 
   const ip = getClientIp(req);
-  const rl = checkRateLimit(`reset-password:${ip}`, { limit: 10, windowMs: 15 * 60 * 1000 });
+  const rl = await checkRateLimit(`reset-password:${ip}`, { limit: 10, windowMs: 15 * 60 * 1000 });
   const rlResp = rateLimitResponse(rl, 'reset-password');
   if (rlResp) return rlResp;
 

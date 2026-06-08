@@ -34,11 +34,10 @@ export async function POST(request: NextRequest): Promise<Response> {
   }
   const { email, password, totpCode, backupCode } = parsed.data;
 
-  // Brute-force ochrana: limit pokusů per IP (20 / 5 min → 429). Pozn.: store je
-  // in-memory (per-instance) — na serverless doporučeno přepojit na Redis/Upstash
-  // pro globální limit. I tak slows brute-force a je to správný pattern.
+  // Brute-force ochrana: limit pokusů per IP (20 / 5 min → 429). Globální přes Redis
+  // (Upstash), s in-memory fallbackem když Redis nedostupný.
   const ip = (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
-  const rl = checkRateLimit(`login:${ip}`, { limit: 20, windowMs: 5 * 60_000 });
+  const rl = await checkRateLimit(`login:${ip}`, { limit: 20, windowMs: 5 * 60_000 });
   const limited = rateLimitResponse(rl, 'login');
   if (limited) return limited;
 

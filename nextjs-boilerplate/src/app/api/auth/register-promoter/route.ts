@@ -36,7 +36,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   // Anti-spam: max 5 registrací promotéra / hod per IP.
   const ip = (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
   const limited = rateLimitResponse(
-    checkRateLimit(`register-promoter:${ip}`, { limit: 5, windowMs: 3_600_000 }),
+    await checkRateLimit(`register-promoter:${ip}`, { limit: 5, windowMs: 3_600_000 }),
     'register-promoter',
   );
   if (limited) return limited;

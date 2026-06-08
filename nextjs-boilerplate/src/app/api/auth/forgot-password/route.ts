@@ -84,7 +84,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   // Rate limit per IP
   const ip = getClientIp(req);
-  const rl = checkRateLimit(`forgot-password:${ip}`, { limit: 3, windowMs: 15 * 60 * 1000 });
+  const rl = await checkRateLimit(`forgot-password:${ip}`, { limit: 3, windowMs: 15 * 60 * 1000 });
   const rlResp = rateLimitResponse(rl, 'forgot-password');
   if (rlResp) return rlResp;
 

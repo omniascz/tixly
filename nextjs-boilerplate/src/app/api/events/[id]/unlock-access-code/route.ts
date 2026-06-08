@@ -35,7 +35,7 @@ export async function POST(
     req.headers.get('x-real-ip') ??
     'unknown';
   const rlKey = `unlock:${params.id}:${ip}`;
-  const rl = checkRateLimit(rlKey, { limit: 20, windowMs: 5 * 60 * 1000 });
+  const rl = await checkRateLimit(rlKey, { limit: 20, windowMs: 5 * 60 * 1000 });
   const rlResp = rateLimitResponse(rl, 'unlock-access-code');
   if (rlResp) return rlResp;
 

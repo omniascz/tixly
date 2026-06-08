@@ -20,7 +20,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   // Anti-spam: max 10 registrací kupujícího / hod per IP.
   const ip = (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
   const limited = rateLimitResponse(
-    checkRateLimit(`register:${ip}`, { limit: 10, windowMs: 3_600_000 }),
+    await checkRateLimit(`register:${ip}`, { limit: 10, windowMs: 3_600_000 }),
     'register',
   );
   if (limited) return limited;

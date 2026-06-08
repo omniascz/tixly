@@ -48,7 +48,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   const ip = getClientIp(req);
 
   // Rate limit per IP
-  const rl = checkRateLimit(`dsa-report:${ip}`, { limit: 5, windowMs: 24 * 60 * 60 * 1000 });
+  const rl = await checkRateLimit(`dsa-report:${ip}`, { limit: 5, windowMs: 24 * 60 * 60 * 1000 });
   const rlResp = rateLimitResponse(rl, 'dsa-report');
   if (rlResp) return rlResp;
 

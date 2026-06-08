@@ -215,7 +215,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   // Rate limit: max 20 events/min per tenant. Brání spam-blokům přes scammer
   // accounty, ale pohodlně umožňuje legit hromadné importy z UI nebo API.
-  const rl = checkRateLimit(`${promoter.promoterId}:event-create`, {
+  const rl = await checkRateLimit(`${promoter.promoterId}:event-create`, {
     limit: 20,
     windowMs: 60_000,
   });

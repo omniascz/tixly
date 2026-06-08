@@ -28,7 +28,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   }
 
   // Per-tenant rate limit: 1000 req/min per API key
-  const rl = checkRateLimit(`b2b:${ctx.keyId}:events-read`, {
+  const rl = await checkRateLimit(`b2b:${ctx.keyId}:events-read`, {
     limit: 1000,
     windowMs: 60_000,
   });
