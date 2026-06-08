@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsServerPromoter } from '@/lib/server-session';
 import { StatusBadge } from '@/components/admin/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCzechDate, formatMoney, isCurrency } from '@/lib/format';
@@ -60,9 +61,12 @@ interface OrderDetail {
 }
 
 async function fetchOrder(orderId: string): Promise<OrderDetail | null> {
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
-  try {
-    const orderRes = await db.query(
+  // Server-component fetch pod ENFORCED RLS: promoter kontext z accessToken cookie.
+  // RLS policy na orders sama omezí na objednávky AKCÍ TOHOTO promotéra → cizí orderId
+  // vrátí 0 řádků = notFound (opravuje dřívější IDOR: query nemá promoter filtr).
+  // runAs* vrátí null i když uživatel není přihlášený/nemá promotéra.
+  return runAsServerPromoter(async () => {
+    const orderRes = await db().query(
       `SELECT
          o.id, o.status, o.payment_provider, o.gopay_payment_id,
          o.total_amount, o.currency, o.discount_halire, o.promo_code_id,
@@ -81,7 +85,7 @@ async function fetchOrder(orderId: string): Promise<OrderDetail | null> {
     if (orderRes.rows.length === 0) return null;
     const o = orderRes.rows[0];
 
-    const itemsRes = await db.query(
+    const itemsRes = await db().query(
       `SELECT tt.name AS ticket_type_name, oi.quantity, oi.unit_price, oi.total_price
        FROM orders.order_items oi
        JOIN catalog.ticket_types tt ON tt.id = oi.ticket_type_id
@@ -90,7 +94,7 @@ async function fetchOrder(orderId: string): Promise<OrderDetail | null> {
       [orderId],
     );
 
-    const ticketsRes = await db.query(
+    const ticketsRes = await db().query(
       `SELECT t.id, t.status, t.transfer_count, t.used_at, t.revoked_at,
               tt.name AS ticket_type_name
        FROM tickets.tickets t
@@ -100,7 +104,7 @@ async function fetchOrder(orderId: string): Promise<OrderDetail | null> {
       [orderId],
     );
 
-    const auditRes = await db.query(
+    const auditRes = await db().query(
       `SELECT al.id, al.created_at, al.action,
               al.old_values, al.new_values,
               u.email AS actor_email
@@ -160,9 +164,7 @@ async function fetchOrder(orderId: string): Promise<OrderDetail | null> {
         newValues: a.new_values,
       })),
     };
-  } finally {
-    await db.end();
-  }
+  });
 }
 
 export default async function AdminOrderDetailPage({
