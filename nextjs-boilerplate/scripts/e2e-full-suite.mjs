@@ -16,6 +16,10 @@ import pg from 'pg';
 const BASE = 'http://localhost:3000';
 const ts = Date.now();
 const PW = 'Demo2026!';
+// Per-VOLÁNÍ unikátní IP → global rate-limity (register 5/h) netriggerují uvnitř
+// běhu (full-suite dělá >5 registrací vč. validačních). Funkční test ≠ throttle test.
+let __ipCounter = 0;
+const nextIp = () => `198.51.${((ts >> 8) + (__ipCounter++)) % 256}.${(ts + __ipCounter) % 256}`;
 
 const env = readFileSync(new URL('../.env.local', import.meta.url), 'utf8');
 const dbUrl = (env.match(/^DATABASE_URL="?([^"\n]+)"?/m) || [])[1];
@@ -27,7 +31,7 @@ async function q(sql, params = []) {
   finally { c.release(); }
 }
 async function api(method, path, { token, body, headers: extra } = {}) {
-  const headers = { 'Content-Type': 'application/json', ...(extra || {}) };
+  const headers = { 'Content-Type': 'application/json', 'X-Forwarded-For': nextIp(), ...(extra || {}) };
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(`${BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
   let json = null; try { json = await res.json(); } catch {}

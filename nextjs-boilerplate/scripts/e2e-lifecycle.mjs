@@ -18,6 +18,9 @@ import pg from 'pg';
 const BASE = 'http://localhost:3000';
 const ts = Date.now();
 const PW = 'Demo2026!';
+// Per-běh unikátní IP → global rate-limity (register-promoter 5/h, login 20/5min)
+// nekolidují mezi opakovanými běhy testu. Bez tohohle 2.+ běh padá na 429.
+const TEST_IP = `198.51.${(ts >> 8) % 256}.${ts % 256}`;
 
 // ── DB connection (service kontext kvůli RLS) ────────────────────────────────
 const env = readFileSync(new URL('../.env.local', import.meta.url), 'utf8');
@@ -37,7 +40,7 @@ async function q(sql, params = []) {
 
 // ── HTTP helper ──────────────────────────────────────────────────────────────
 async function api(method, path, { token, body } = {}) {
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = { 'Content-Type': 'application/json', 'X-Forwarded-For': TEST_IP };
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(`${BASE}${path}`, {
     method,
