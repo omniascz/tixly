@@ -125,25 +125,53 @@ Plus oprava skryté regrese: **`/api/promo-codes/validate` obalena `runWithServi
 CODE_NOT_FOUND. **Živý HTTP test pod enforced RLS:** DIVADLO20 → valid, 20 %, 500→400 Kč ✓;
 bogus → CODE_NOT_FOUND ✓. Re-audit po migraci: 0 lockoutů drží, RLS-off 7→3.
 
-### ⏭️ Tier C — 3 tabulky vědomě odložené (zapnout zvlášť, NE před flipem naslepo)
-- `audit.audit_log` — zapisuje se ze VŠECH kontextů vč. DB triggeru na UPDATE
-  orders/tickets. Špatná INSERT policy rozbije refundy/transfery platform-wide. Append-only,
-  nízká citlivost. Potřebuje INSERT-allow-all + SELECT-restrict, otestovat zvlášť.
-- `catalog.ticket_type_access` — čteno i public buyer page + scanner BEZ kontextu;
-  nejdřív public-read policy + scanner service wrap.
-- `tickets.wristband_transactions` — 3 ze 4 RFID routes nemají context wrapper
-  (bind/charge/topup) → nejdřív codemod těch 3, pak RLS.
+### Tier C — postup (2026-06-08)
+- ✅ **`catalog.ticket_type_access` HOTOVO (migrace 352).** Scanner běží v `runAsActivePromoter`
+  (ne bez kontextu — dřívější audit minul `runAsActivePromoter`). Public buyer page čte raw
+  Poolem → public-read policy gated na published (vzor migr. 350). Ověřeno: service=177,
+  owner=19, anon=19 (jen published); žádný promotér nevidí cizí draft access řádky.
+- ⏳ **`audit.audit_log` — složitější, než vypadalo.** Dobrá zpráva: trigger `audit_trigger_func`
+  je **SECURITY DEFINER vlastněný `tixly` (BYPASSRLS)** → zápisy z triggeru RLS OBCHÁZEJÍ,
+  takže zapnutí RLS refundy/transfery NEROZBIJE (původní strach padá). Zbývá ale **dvojí čtecí
+  scope**: `/api/admin/audit-log` route scopuje podle `actor_id ∈ promoter_members` (KDO), ale
+  `admin/orders/[orderId]/page.tsx` čte podle `record_id` (CO se změnilo) — a actor bývá buyer/
+  system, ne člen promotéra. Jedna actor-based policy by promotérovi skryla audit jeho vlastní
+  objednávky. Správné řešení = polymorfní record-ownership policy (record_id → orders/tickets/
+  resale → promoter) NEBO restrikce na service/admin + ponechat app-layer scope. Samostatný
+  bounded task. INSERT policy = `WITH CHECK(true)` (append-only, immutability triggery hlídají).
+- ⏳ `tickets.wristband_transactions` — 3 ze 4 RFID routes (bind/charge/topup) nemají context
+  wrapper → nejdřív codemod, pak event-scoped policy. Niche (TIER 3 RFID).
+
+### 🔴 NOVÝ NÁLEZ 2026-06-08 — flip blocker MIMO 7 tabulek: raw-Pool RSC stránky
+Codemod transformoval `/api` **routes**, ale **server-component stránky** (`src/app/**/page.tsx`)
+ne. **23 page.tsx používá raw `new Pool(...)` z 'pg'** (bez kontextu). Většina jsou veřejné
+`[locale]/*` stránky → pod enforce čtou public-policy řádky (migr. 349/350 pokryly), OK. ALE
+**~5 authed stránek čte tenant data raw Poolem bez kontextu** → pod enforce vrátí 0 řádků = ROZBITÉ:
+- `admin/orders/[orderId]/page.tsx` (orders/tickets/audit — navíc BEZ promoter filtru = latentní IDOR pod BYPASSRLS!)
+- `admin/events/[id]/tickets/[ticketId]/history/page.tsx`
+- `admin/pos/receipt/[orderId]/page.tsx`
+- `platform/page.tsx` (master admin dashboard)
+- `m/ticket/[ticketId]/page.tsx` (buyer mobilní lístek)
+
+Fix: obalit jejich server-side fetch do RLS kontextu. **Chybí ale server-side auth helper pro RSC**
+(fungující admin LIST stránky jsou client + `fetch('/api/admin/…')`). Buď (a) převést těchto 5 na
+client+API vzor, nebo (b) vytvořit `getServerPromoterContext()` helper (cookies/JWT → runWith*).
+Bounded task, ~5 stránek. **Bonus:** opraví i ten IDOR na order-detail.
 
 ### GO / NO-GO checklist pro `ALTER ROLE tixly_app NOBYPASSRLS`
 - [x] Veřejná read vrstva čistá (audit-public-rls.mjs: 0 reálných děr)
 - [x] Buyer golden-path 4/4 pod enforce (předchozí session)
-- [x] Admin tail: 0 lockoutů přes 147 tabulek (audit-admin-rls.mjs)
-- [x] 2 reálné cross-tenant leaky zavřené (promo_codes, shares)
+- [x] Admin tail (API routes): 0 lockoutů přes 147 tabulek (audit-admin-rls.mjs)
+- [x] 3 reálné cross-tenant leaky zavřené (promo_codes, shares, ticket_type_access)
 - [x] promo redemption ověřena živě pod enforce
-- [ ] **Tier C** 3 tabulky dořešit (NE blocker flipu — jsou RLS-off=přístupné, jen bez izolace)
+- [ ] **5 authed RSC stránek** s raw Pool → kontext (NOVÝ blocker, viz výše)
+- [ ] `audit.audit_log` polymorfní scope (izolace; funkčnost OK díky DEFINER triggeru)
+- [ ] `tickets.wristband_transactions` codemod 3 routes + RLS
 - [ ] Plný E2E sweep (e2e-full-suite) pod enforce na STAGING (ne jen lokál)
 - [ ] Flip na STAGING DB, smoke, teprve pak produkce
 - [ ] Rollback ready: `ALTER ROLE tixly_app BYPASSRLS;` (jednořádkový návrat)
 
-**Závěr:** flip je technicky bezpečný už teď (0 lockoutů), leaky uzavřené. Před produkcí
-chybí jen: dořešit 3 Tier C tabulky (izolace, ne funkčnost) + plný E2E na staging prostředí.
+**Závěr (korekce):** API-route vrstva je flip-safe (0 lockoutů, 3 leaky zavřené). Ale **flip ještě
+NENÍ bezpečný kvůli 5 authed RSC stránkám** (raw Pool bez kontextu → 0 řádků). To je konkrétní,
+ohraničený zbytek — ne „velký neznámý". Pořadí před produkcí: (1) 5 RSC stránek, (2) audit_log +
+wristband izolace, (3) plný E2E na staging, (4) flip na staging, (5) produkce.
