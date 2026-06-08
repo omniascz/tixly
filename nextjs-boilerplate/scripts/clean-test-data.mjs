@@ -42,22 +42,23 @@ async function main() {
     console.log('Ukázka akcí:', evs.rows.slice(0, 6).map((r) => r.title).join(' | '));
 
     if (!APPLY) {
-      console.log('\n(DRY-RUN — nic nesmazáno. Pro reálné smazání: --apply)');
+      console.log('\n(DRY-RUN — nic nezměněno. Pro skrytí z katalogu: --apply)');
       return;
     }
 
+    // Bezpečné: UNPUBLISH test akcí (status→draft) → zmizí z veřejného katalogu,
+    // žádné FK problémy (orders/tickets odkazují events). Data zůstanou v DB.
+    // Hard-delete by vyžadoval cascade-ordering napříč mnoha tabulkami (riziko).
     await c.query('BEGIN');
-    // Smaž test akce (cascade na ticket_types/orders/tickets přes FK)
-    const delEv = await c.query(
-      `DELETE FROM catalog.events
-        WHERE title ~* '(sweep|e2e|cdp|test)' OR title ~ '178[0-9]{10}'
-           OR promoter_id IN (SELECT id FROM platform.promoters WHERE ${TEST_RE})
+    const hidden = await c.query(
+      `UPDATE catalog.events SET status='draft'
+        WHERE status='published'
+          AND (title ~* '(sweep|e2e|cdp|test)' OR title ~ '178[0-9]{10}'
+               OR promoter_id IN (SELECT id FROM platform.promoters WHERE ${TEST_RE}))
         RETURNING id`,
     );
-    // Smaž test promotéry (po jejich akcích)
-    const delProm = await c.query(`DELETE FROM platform.promoters WHERE ${TEST_RE} RETURNING id`);
     await c.query('COMMIT');
-    console.log(`\n✅ Smazáno: ${delEv.rows.length} akcí, ${delProm.rows.length} promotérů.`);
+    console.log(`\n✅ Skryto (unpublish) ${hidden.rows.length} test akcí z veřejného katalogu.`);
   } catch (e) {
     await c.query('ROLLBACK').catch(() => {});
     console.error('💥', e.message);
