@@ -6,59 +6,49 @@
  */
 
 import { ImageResponse } from 'next/og';
-import { Pool } from 'pg';
 
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
-
-export const runtime = 'nodejs';
+// EDGE runtime — next/og je pro edge stavěné (v nodejs runtime hází „Invalid URL").
+// Edge nemůže `pg`, takže data tahá fetchem z /api/public/events/[id]/og-data.
+export const runtime = 'edge';
 export const revalidate = 3600;
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: { id: string } },
 ): Promise<Response> {
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
     return new Response('Invalid id', { status: 422 });
   }
 
-  const r = await db().query<{
-    title: string;
-    date_start: string;
-    venue_name: string | null;
-    promoter_name: string | null;
-    brand_color_hex: string | null;
-  }>(
-    `SELECT e.title, e.date_start, v.name AS venue_name,
-            p.name AS promoter_name, p.brand_color_hex
-     FROM catalog.events e
-     LEFT JOIN catalog.venues v ON v.id = e.venue_id
-     LEFT JOIN platform.promoters p ON p.id = e.promoter_id
-     WHERE e.id = $1 AND e.status = 'published'`,
-    [params.id],
-  );
-  if (r.rows.length === 0) {
+  const origin = new URL(req.url).origin;
+  const res = await fetch(`${origin}/api/public/events/${params.id}/og-data`, {
+    next: { revalidate: 3600 },
+  });
+  if (!res.ok) {
     return new Response('Not found', { status: 404 });
   }
-  const ev = r.rows[0];
+  const ev = (await res.json()) as {
+    title: string;
+    dateStart: string;
+    venueName: string | null;
+    promoterName: string | null;
+    brandColorHex: string | null;
+  };
 
   // Brand color promotéra > fallback hash hue
   let bgGradient: string;
-  if (ev.brand_color_hex && /^#[0-9a-f]{6}$/i.test(ev.brand_color_hex)) {
-    const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(ev.brand_color_hex)!;
+  if (ev.brandColorHex && /^#[0-9a-f]{6}$/i.test(ev.brandColorHex)) {
+    const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(ev.brandColorHex)!;
     const r0 = parseInt(m[1], 16);
     const g0 = parseInt(m[2], 16);
     const b0 = parseInt(m[3], 16);
     const darker = `rgb(${Math.round(r0 * 0.7)}, ${Math.round(g0 * 0.7)}, ${Math.round(b0 * 0.7)})`;
-    bgGradient = `linear-gradient(135deg, ${ev.brand_color_hex} 0%, ${darker} 100%)`;
+    bgGradient = `linear-gradient(135deg, ${ev.brandColorHex} 0%, ${darker} 100%)`;
   } else {
     const hue = [...params.id].reduce((s, c) => s + c.charCodeAt(0), 0) % 360;
     bgGradient = `linear-gradient(135deg, hsl(${hue}, 70%, 45%) 0%, hsl(${(hue + 60) % 360}, 75%, 35%) 100%)`;
   }
-  const dateStr = new Date(ev.date_start).toLocaleDateString('cs-CZ', {
+  const dateStr = new Date(ev.dateStart).toLocaleDateString('cs-CZ', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -80,7 +70,7 @@ export async function GET(
         }}
       >
         <div style={{ fontSize: 32, fontWeight: 700, opacity: 0.9 }}>
-          {ev.promoter_name ?? 'Tixly'}
+          {ev.promoterName ?? 'Tixly'}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div
@@ -94,8 +84,7 @@ export async function GET(
             {ev.title}
           </div>
           <div style={{ fontSize: 28, opacity: 0.95 }}>
-            {dateStr}
-            {ev.venue_name ? ` · ${ev.venue_name}` : ''}
+            {`${dateStr}${ev.venueName ? ` · ${ev.venueName}` : ''}`}
           </div>
         </div>
         <div style={{ fontSize: 20, opacity: 0.8 }}>tixly.cz</div>

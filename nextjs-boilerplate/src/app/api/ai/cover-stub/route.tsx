@@ -7,12 +7,12 @@
 
 import { ImageResponse } from 'next/og';
 
-export const runtime = 'nodejs';
+// EDGE — next/og funguje v edge; v nodejs runtime hází „Invalid URL".
+export const runtime = 'edge';
 export const revalidate = 86400;
 
 export async function GET(req: Request): Promise<Response> {
   const url = new URL(req.url);
-  const hue = Number(url.searchParams.get('hue') ?? '270');
   const paletteHex = url.searchParams.get('palette') ?? '6C47FF';
   const title = url.searchParams.get('title') ?? 'Event';
   const seed = url.searchParams.get('seed') ?? 'abc12345';
@@ -27,7 +27,8 @@ export async function GET(req: Request): Promise<Response> {
           flexDirection: 'column',
           justifyContent: 'space-between',
           padding: '80px',
-          background: `linear-gradient(135deg, hsl(${hue}, 70%, 35%) 0%, #${paletteHex} 50%, hsl(${(hue + 90) % 360}, 80%, 25%) 100%)`,
+          // Satori nepodporuje hsl() v gradientu → hex + rgba (Satori-safe).
+          background: `linear-gradient(135deg, #${paletteHex} 0%, rgba(0,0,0,0.5) 100%)`,
           color: '#fff',
           fontFamily: 'sans-serif',
           position: 'relative',
@@ -60,7 +61,7 @@ export async function GET(req: Request): Promise<Response> {
         <div style={{ fontSize: 28, fontWeight: 700, opacity: 0.9, zIndex: 1 }}>
           AI cover · stub
         </div>
-        <div style={{ zIndex: 1 }}>
+        <div style={{ display: 'flex', zIndex: 1 }}>
           <div
             style={{
               fontSize: title.length > 30 ? 80 : 110,
@@ -73,7 +74,7 @@ export async function GET(req: Request): Promise<Response> {
             {title}
           </div>
         </div>
-        <div style={{ fontSize: 18, opacity: 0.6, zIndex: 1 }}>seed:{seed}</div>
+        <div style={{ fontSize: 18, opacity: 0.6, zIndex: 1 }}>{`seed:${seed}`}</div>
       </div>
     ),
     {
