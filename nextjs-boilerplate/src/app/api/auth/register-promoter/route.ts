@@ -9,6 +9,7 @@ import {
 } from '@/lib/auth';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { checkAres, computeInitialRiskScore } from '@/lib/compliance/ares';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 
 const schema = z.object({
   email: z.string().email(),
@@ -32,6 +33,14 @@ function slugFromEmail(email: string): string {
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
+  // Anti-spam: max 5 registrací promotéra / hod per IP.
+  const ip = (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
+  const limited = rateLimitResponse(
+    checkRateLimit(`register-promoter:${ip}`, { limit: 5, windowMs: 3_600_000 }),
+    'register-promoter',
+  );
+  if (limited) return limited;
+
   const body: unknown = await request.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {

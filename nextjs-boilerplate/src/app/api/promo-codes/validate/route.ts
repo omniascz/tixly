@@ -21,6 +21,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { checkRateLimit } from '@/lib/rate-limit/per-tenant';
 
 // ---------------------------------------------------------------------------
 // DB row type — mirrors marketing.promo_codes table
@@ -109,6 +110,15 @@ type ValidationReason =
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  // Anti-enumerace promo kódů: max 30 validací / 5 min per IP.
+  const ip = (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
+  if (!checkRateLimit(`promo-validate:${ip}`, { limit: 30, windowMs: 300_000 }).ok) {
+    return NextResponse.json(
+      { valid: false, reason: 'RATE_LIMITED', message: 'Příliš mnoho pokusů, zkuste to za chvíli.' },
+      { status: 429 },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
