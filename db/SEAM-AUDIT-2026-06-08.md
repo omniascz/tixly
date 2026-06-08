@@ -45,18 +45,22 @@ draft akce. Koupit nešlo (checkout má `e.status='published'` guard), ale konzi
   servíruje jeho barvu/logo/hidePoweredBy.
 - **Rate-limiting:** register-promoter 5/h, login 20/5min — globálně přes Redis (429 ověřeno živě).
 
-## ⚠️ Známá nepřesnost — NEopraveno (záměrně, vyžaduje rozhodnutí)
+## ✅ Service fee kupujícímu — DOŘEŠENO (commit, migrace 356)
 
-### buyer_fee_halire (service fee kupujícímu) je no-op
-Master admin může nastavit „service fee X Kč/obj." (`fee_schedules.buyer_fee_halire`,
-UI to zobrazuje), ale **checkout ho nikdy nepřičte** k tomu, co buyer platí.
-- **Proč neopraveno hned:** korektní aplikace mění outward-facing cenu pro kupujícího
-  A musí jít do platform revenue (ne do promotérova gross v payoutu) → potřebuje
-  finanční model + nejspíš sloupec na objednávce (migrace), ne slepé přičtení do
-  `total_amount` (to by chybně nafouklo promotérův payout).
-- **Doporučení:** rozhodnout, zda Tixly bere buyer-facing service fee. Pokud ano →
-  přičíst v checkoutu + ukládat odděleně + odečíst z promoter gross v payoutu. Pokud
-  ne → skrýt to pole z master UI, ať operátora nemate.
+Audit našel `buyer_fee_halire` jako no-op (admin ho nastaví + UI zobrazí, checkout
+ho neúčtoval) + druhý nepropojený pojem service fee v price-preview (hardcoded % per
+kanál). Po rozhodnutí uživatele („budeme brát service fee, konfigurovatelné") sjednoceno:
+- **Jeden zdroj pravdy:** `fee_schedules.buyer_fee_halire` (fixní Kč) + `buyer_fee_basis`
+  (`per_ticket` default | `per_order`). Master UI má přepínač „za vstupenku / za objednávku".
+- **Checkout** fee přičte k `total_amount` a uloží zvlášť do `orders.service_fee_minor`.
+- **price-preview** ukazuje stejný fee předem (buyer ví, co zaplatí).
+- **Payout** promotérův gross = `total_amount − service_fee_minor` → fee je **platform
+  revenue** (`serviceFeesHalire`), nepromítá se do promotérova výdělku.
+- E2E (ŠEV 8): 20 Kč × 3 = 60 → buyer platí 1560, `service_fee_minor=6000`, payout
+  serviceFees=6000 + gross čisté vstupné. Unit test resolveServiceFee 5/5.
+
+(Pozn.: provize `percentage_fee` = % z prodeje strhávané promotérovi; service fee =
+fixní přirážka navíc placená kupujícím. Dvě různé věci, obě teď fungují.)
 
 ## Test-hygiena (opraveno)
 E2E skripty po zapojení global rate-limitu padaly na 429 při opakovaných bězích.
