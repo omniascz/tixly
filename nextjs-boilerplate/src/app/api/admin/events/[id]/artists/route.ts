@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsPromoter } from '@/lib/admin-auth';
+import { enqueueMusicPosts } from '@/lib/music/post-jobs';
 import { z } from 'zod';
 
 
@@ -67,6 +68,20 @@ export async function POST(
       parsed.data.orderIndex,
     ],
   );
+
+  // Distribuce koncertu na hudební agregátory (Bandsintown/Songkick → Spotify/Apple).
+  // Jen pro publikované akce; není kritická cesta → chyba nerozbije přidání umělce.
+  try {
+    const pub = await db().query(
+      `SELECT 1 FROM catalog.events WHERE id = $1 AND status = 'published'`,
+      [eventId],
+    );
+    if (pub.rows.length > 0) {
+      await enqueueMusicPosts({ artistId: parsed.data.artistId, eventId });
+    }
+  } catch {
+    /* distribuce není kritická cesta */
+  }
 
   return NextResponse.json({ ok: true });
 

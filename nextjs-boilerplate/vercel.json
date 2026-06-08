@@ -50,6 +50,7 @@
     { "path": "/api/cron/dispatch?job=newsletter-digest", "schedule": "0 9 * * 1" },
     { "path": "/api/cron/dispatch?job=verify-event-completion", "schedule": "0 8 * * *" },
     { "path": "/api/cron/dispatch?job=recompute-dynamic-pricing", "schedule": "*/5 * * * *" },
-    { "path": "/api/cron/dispatch?job=refresh-spotify", "schedule": "*/50 * * * *" }
+    { "path": "/api/cron/dispatch?job=refresh-spotify", "schedule": "*/50 * * * *" },
+    { "path": "/api/cron/dispatch?job=music-distribute", "schedule": "*/20 * * * *" }
   ]
 }
