@@ -25,3 +25,4 @@ out/
 
 .vercel
 .env*.local
+scripts/e2e-smoke-results.txt
