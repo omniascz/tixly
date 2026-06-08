@@ -8,6 +8,7 @@ import {
   getUserRoles,
 } from '@/lib/auth';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 
 const schema = z.object({
   email: z.string().email(),
@@ -32,6 +33,14 @@ export async function POST(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'Validation failed' }, { status: 422 });
   }
   const { email, password, totpCode, backupCode } = parsed.data;
+
+  // Brute-force ochrana: limit pokusů per IP (20 / 5 min → 429). Pozn.: store je
+  // in-memory (per-instance) — na serverless doporučeno přepojit na Redis/Upstash
+  // pro globální limit. I tak slows brute-force a je to správný pattern.
+  const ip = (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
+  const rl = checkRateLimit(`login:${ip}`, { limit: 20, windowMs: 5 * 60_000 });
+  const limited = rateLimitResponse(rl, 'login');
+  if (limited) return limited;
 
   // password_hash žije v identity.user_secrets (RLS split) — login je service kontext.
   const result = await db().query<UserRow>(
