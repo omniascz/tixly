@@ -164,14 +164,17 @@ Bounded task, ~5 stránek. **Bonus:** opraví i ten IDOR na order-detail.
 - [x] Admin tail (API routes): 0 lockoutů přes 147 tabulek (audit-admin-rls.mjs)
 - [x] 3 reálné cross-tenant leaky zavřené (promo_codes, shares, ticket_type_access)
 - [x] promo redemption ověřena živě pod enforce
-- [ ] **5 authed RSC stránek** s raw Pool → kontext (NOVÝ blocker, viz výše)
+- [x] **5 authed RSC stránek** s raw Pool → kontext ✅ HOTOVO 2026-06-08 (helper
+      `runAsServerPromoter/User/PlatformAdmin` v server-session.ts; 4/5 ověřeno živě end-to-end
+      vč. IDOR fixu na order-detail, m/ticket DB-context; opraven i pre-existing bug receipt
+      p.ico→company_ico + nefunkční stub history). Commity 52ea7a0 + b2bea9a.
 - [ ] `audit.audit_log` polymorfní scope (izolace; funkčnost OK díky DEFINER triggeru)
 - [ ] `tickets.wristband_transactions` codemod 3 routes + RLS
 - [ ] Plný E2E sweep (e2e-full-suite) pod enforce na STAGING (ne jen lokál)
 - [ ] Flip na STAGING DB, smoke, teprve pak produkce
 - [ ] Rollback ready: `ALTER ROLE tixly_app BYPASSRLS;` (jednořádkový návrat)
 
-**Závěr (korekce):** API-route vrstva je flip-safe (0 lockoutů, 3 leaky zavřené). Ale **flip ještě
-NENÍ bezpečný kvůli 5 authed RSC stránkám** (raw Pool bez kontextu → 0 řádků). To je konkrétní,
-ohraničený zbytek — ne „velký neznámý". Pořadí před produkcí: (1) 5 RSC stránek, (2) audit_log +
-wristband izolace, (3) plný E2E na staging, (4) flip na staging, (5) produkce.
+**Závěr (aktualizace 2026-06-08 v2):** API-route vrstva flip-safe (0 lockoutů, 3 leaky zavřené)
++ **5 authed RSC stránek vyřešeno** (kontext, 4/5 živě ověřeno, IDOR fix). Zbývá k flipu už jen:
+(1) `audit.audit_log` polymorfní scope + `wristband` codemod (izolace, ne funkčnost — funkčně OK),
+(2) plný E2E sweep na staging, (3) flip na staging, (4) produkce. Hlavní funkční blockery padly.
