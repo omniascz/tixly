@@ -14,6 +14,22 @@ Cíl: zapnout vynucení Row-Level Security v produkci jediným příkazem
 > `feature/rls-phase2-enforcement` (97 commitů nad `master`). Produkce zatím běží starý
 > `master` + BYPASSRLS (dormant).
 
+## ✅ Pre-flip validace 2026-06-09 (lokální rehearsal přesné prod role)
+
+Provedena **přímá zkouška flipu na roli `tixly_app`** (ne jen na `tixly_rls_test`):
+- `tixly_app` vlastní **0 tabulek** → žádná owner-bypass díra po NOBYPASSRLS.
+- `tixly_app` má SELECT/INSERT/UPDATE/DELETE grant na **všech 214** tabulkách
+  (identické pokrytí s `tixly_rls_test`); navíc `tixly_rls_test` **je členem** `tixly_app`
+  → celé dosavadní E2E reálně jelo na grantech `tixly_app`. Jediný rozdíl rolí = `bypassrls`.
+- **0** RLS-off tabulek s `user_id`/`promoter_id`.
+- Lokálně provedeno `ALTER ROLE tixly_app NOBYPASSRLS`, připojeno jako `tixly_app`:
+  service kontext čte `fee_schedules`, promotér **vidí jen své objednávky** (25 svých / 0 cizích
+  na privátní `orders.orders`), zápis povolen. Poté revert na BYPASSRLS (dormant).
+- **Pre-flip E2E gate (dev, enforce):** `e2e-full-suite` 42/42 + `e2e-seams` 63/63 zelené.
+
+→ Závěr: přesný příkaz `ALTER ROLE tixly_app NOBYPASSRLS` je ověřený jako bezpečný.
+  Zbývající kroky (staging Neon branch → prod) vyžadují přístup k Neon/Vercel = tvoje strana.
+
 ---
 
 ## ⚠️ PREREKVIZITY (GO gate — VŠE musí platit, jinak flip NEdělat)
@@ -21,8 +37,9 @@ Cíl: zapnout vynucení Row-Level Security v produkci jediným příkazem
 - [ ] **Větev `feature/rls-phase2-enforcement` reviewnutá + mergnutá do `master`.**
       Obsahuje `runAs*`/`db()` kontext, bez kterého policy vrátí 0 řádků = tiché rozbití.
 - [ ] **Vercel deploy z `master` je READY** a prod běží NOVÝ kód (ověř `health/ready` 200).
-- [ ] **Migrace 330–354 aplikované na prod Neon DB** (kanonický kontrakt + policy vlny +
-      Tier C). Ověření v Kroku 0.
+- [ ] **Migrace 330–356 aplikované na prod Neon DB** (kanonický kontrakt + policy vlny +
+      Tier C + 355 verified_persons + **356 service fee schema**). Ověření v Kroku 0.
+      Pozn.: 356 je SCHEMA-kritická i pro běžný deploy (viz `db/DEPLOY-RUNBOOK.md`).
 - [ ] **Prod `DATABASE_URL` (Vercel env) ukazuje na roli `tixly_app`**, NE na superuser
       `tixly`/Neon-owner. (Flip dává smysl jen pokud app běží jako `tixly_app`.)
 - [ ] **Záloha hotová:** Neon PITR retention ≥ 7 dní, nebo vytvoř Neon branch jako
