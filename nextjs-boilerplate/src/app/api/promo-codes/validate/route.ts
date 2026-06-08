@@ -20,7 +20,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 // ---------------------------------------------------------------------------
 // DB row type — mirrors marketing.promo_codes table
@@ -148,9 +148,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   
   try {
-    // Look up the promo code
-    const rows = await db().query<PromoCodeRow>(
-      `SELECT
+    // Look up the promo code.
+    // Service kontext = trusted lookup (jako access_codes/unlock-access-code): promo
+    // kód se hledá podle hodnoty bez ohledu na vlastníka. Pod ENFORCED RLS (migr. 351
+    // zapnula RLS na marketing.promo_codes) by bez kontextu vrátil 0 řádků → každý
+    // kód by hlásil CODE_NOT_FOUND. Buyer ho zadává anonymně, nemá promoter/user scope.
+    const rows = await runWithServiceContext(() =>
+      db().query<PromoCodeRow>(
+        `SELECT
          id, code, type, discount_value,
          max_uses, uses_count, max_uses_per_user,
          valid_from, valid_until,
@@ -159,7 +164,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
          active
        FROM marketing.promo_codes
        WHERE code = $1`,
-      [code],
+        [code],
+      ),
     );
 
     if (rows.rowCount === 0) {

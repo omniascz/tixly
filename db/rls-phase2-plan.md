@@ -89,8 +89,61 @@ Mezery i v golden-path: `catalog.event_seats`, `orders.order_items`, `identity.u
 6. **Produkční přepnutí**: `ALTER ROLE tixly_app NOBYPASSRLS`. Rollback = zpět `BYPASSRLS`.
 
 ## Test harness (na této větvi)
-Role `tixly_rls_test` (LOGIN, NOBYPASSRLS, member of tixly_app). Spuštění dotazu pod enforce:
-`docker exec tixly-postgres psql "postgresql://tixly_rls_test:rls_test@localhost:5432/tixly" -c "SET app.current_user_id='…'; SELECT …"`
+Role `tixly_rls_test` (LOGIN, NOBYPASSRLS, member of tixly_app). Spuštění dotazu pod enforce
+(z vnitřku kontejneru je port **5432**, ne hostový 5433):
+`docker exec tixly-postgres psql "postgresql://tixly_rls_test:rls_test@localhost:5432/tixly" -c "SET app.role='system'; SELECT …"`
 
 Pozn.: tixly_app v produkci zůstává BYPASSRLS, dokud nejsou kroky 1–5 hotové. Tato větev je
 vývojová — NEslučovat do master, dokud neprojde staging validace celé app pod enforce.
+
+---
+
+## ✅ STAV 2026-06-08 — "admin tail" empiricky ověřen (krok 3+4 z velké části hotové)
+
+Codemod (krok 3) je v podstatě HOTOVÝ: 375 routes používá `runAs*`/`db()` wrappery,
+jen **1 soubor** zůstal na raw poolu (`api/og/events/[id]/route.tsx`, OG image). Plánem
+zmiňovaných „431 raw-pool routes" už neplatí.
+
+### Empirický audit admin plochy — `scripts/audit-admin-rls.mjs` (NOVÝ, opakovatelný)
+Projel **147 tabulek** čtených `/api/admin` + `/api/platform` + `/api/organizer` pod
+`tixly_rls_test` (NOBYPASSRLS), 3 kontexty (service / platform-admin / promoter):
+
+- **🟢 0 LOCKOUTŮ** — žádná tabulka, kde RLS=on a admin i promotér vidí 0 řádků.
+  → **Flip `NOBYPASSRLS` admin UI NEROZBIJE.** To byl hlavní strach z reportu.
+- Našlo 7 tabulek s RLS ÚPLNĚ VYPNUTÝM (bez izolace = leak, ne lockout).
+
+### Migrace 351 — zapnula RLS na 4 ze 7 (ověřená izolace pod test rolí)
+| Tabulka | Typ | Po migraci (service / owner / cizí / anon) |
+|---|---|---|
+| `marketing.promo_codes` | cross-tenant leak | 16 / 3 / **0** / 0 ✓ |
+| `event_groups.shares` | cross-tenant leak | 4 / 1 / **0** / — ✓ |
+| `catalog.venue_seating_charts` | sdílená reference | anon **8** (read-all, write admin) ✓ |
+| `catalog.moderation_blocklist` | globální config | anon **10** (read-all, write admin) ✓ |
+
+Plus oprava skryté regrese: **`/api/promo-codes/validate` obalena `runWithServiceContext`**
+(promo lookup = trusted, jako access_codes). Bez toho by pod enforce každý kód hlásil
+CODE_NOT_FOUND. **Živý HTTP test pod enforced RLS:** DIVADLO20 → valid, 20 %, 500→400 Kč ✓;
+bogus → CODE_NOT_FOUND ✓. Re-audit po migraci: 0 lockoutů drží, RLS-off 7→3.
+
+### ⏭️ Tier C — 3 tabulky vědomě odložené (zapnout zvlášť, NE před flipem naslepo)
+- `audit.audit_log` — zapisuje se ze VŠECH kontextů vč. DB triggeru na UPDATE
+  orders/tickets. Špatná INSERT policy rozbije refundy/transfery platform-wide. Append-only,
+  nízká citlivost. Potřebuje INSERT-allow-all + SELECT-restrict, otestovat zvlášť.
+- `catalog.ticket_type_access` — čteno i public buyer page + scanner BEZ kontextu;
+  nejdřív public-read policy + scanner service wrap.
+- `tickets.wristband_transactions` — 3 ze 4 RFID routes nemají context wrapper
+  (bind/charge/topup) → nejdřív codemod těch 3, pak RLS.
+
+### GO / NO-GO checklist pro `ALTER ROLE tixly_app NOBYPASSRLS`
+- [x] Veřejná read vrstva čistá (audit-public-rls.mjs: 0 reálných děr)
+- [x] Buyer golden-path 4/4 pod enforce (předchozí session)
+- [x] Admin tail: 0 lockoutů přes 147 tabulek (audit-admin-rls.mjs)
+- [x] 2 reálné cross-tenant leaky zavřené (promo_codes, shares)
+- [x] promo redemption ověřena živě pod enforce
+- [ ] **Tier C** 3 tabulky dořešit (NE blocker flipu — jsou RLS-off=přístupné, jen bez izolace)
+- [ ] Plný E2E sweep (e2e-full-suite) pod enforce na STAGING (ne jen lokál)
+- [ ] Flip na STAGING DB, smoke, teprve pak produkce
+- [ ] Rollback ready: `ALTER ROLE tixly_app BYPASSRLS;` (jednořádkový návrat)
+
+**Závěr:** flip je technicky bezpečný už teď (0 lockoutů), leaky uzavřené. Před produkcí
+chybí jen: dořešit 3 Tier C tabulky (izolace, ne funkčnost) + plný E2E na staging prostředí.
