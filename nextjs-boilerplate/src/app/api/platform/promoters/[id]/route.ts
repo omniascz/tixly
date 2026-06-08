@@ -87,10 +87,11 @@ export async function GET(
     .query<{
       percentage_fee: number;
       buyer_fee_halire: number;
+      buyer_fee_basis: string;
       currency: string;
       override_reason: string | null;
     }>(
-      `SELECT percentage_fee, buyer_fee_halire, currency, override_reason
+      `SELECT percentage_fee, buyer_fee_halire, buyer_fee_basis, currency, override_reason
          FROM platform.fee_schedules
         WHERE promoter_id = $1
           AND is_active = TRUE
@@ -99,7 +100,7 @@ export async function GET(
         ORDER BY valid_from DESC`,
       [params.id],
     )
-    .catch(() => ({ rows: [] as Array<{ percentage_fee: number; buyer_fee_halire: number; currency: string; override_reason: string | null }> }));
+    .catch(() => ({ rows: [] as Array<{ percentage_fee: number; buyer_fee_halire: number; buyer_fee_basis: string; currency: string; override_reason: string | null }> }));
 
   return NextResponse.json({
     promoter: detail,
@@ -124,6 +125,7 @@ const patchSchema = z.object({
   // Fee override (vytvoří nový aktivní fee_schedule)
   feePctBps: z.number().int().min(0).max(10000).optional(),
   buyerFeeHalire: z.number().int().min(0).max(100_000).optional(),
+  buyerFeeBasis: z.enum(['per_ticket', 'per_order']).optional(),
   feeCurrency: z.enum(['CZK', 'EUR']).optional(),
   feeOverrideReason: z.string().max(500).optional(),
 });
@@ -212,14 +214,15 @@ export async function PATCH(
       );
       await client.query(
         `INSERT INTO platform.fee_schedules
-           (promoter_id, name, percentage_fee, fixed_fee, buyer_fee_halire,
+           (promoter_id, name, percentage_fee, fixed_fee, buyer_fee_halire, buyer_fee_basis,
             currency, override_reason, valid_from, is_active)
-         VALUES ($1, $2, $3, 0, $4, $5, $6, NOW(), TRUE)`,
+         VALUES ($1, $2, $3, 0, $4, $5, $6, $7, NOW(), TRUE)`,
         [
           params.id,
           `Custom override ${new Date().toISOString().slice(0, 10)}`,
           input.feePctBps,
           input.buyerFeeHalire,
+          input.buyerFeeBasis ?? 'per_ticket',
           currency,
           input.feeOverrideReason ?? null,
         ],

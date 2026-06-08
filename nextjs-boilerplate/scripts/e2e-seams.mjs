@@ -272,6 +272,39 @@ async function main() {
     check('buyer vidí neprázdnou mapu sedadel', JSON.stringify(seatMap.json).length > 50 && (Array.isArray(seats) ? seats.length > 0 : true), `payload ${JSON.stringify(seatMap.json).length}B`);
   }
 
+  // ════ ŠEV 8: service fee koncovému zákazníkovi (buyer) ════
+  console.log('\n— ŠEV 8: Master nastaví service fee → buyer ho zaplatí, payout ho oddělí —');
+  // per_ticket: 20 Kč/vstupenku
+  const sfPatch = await api('PATCH', `/api/platform/promoters/${A.promoterId}`, {
+    token: maToken,
+    body: { feePctBps: 800, buyerFeeHalire: 2000, buyerFeeBasis: 'per_ticket', feeCurrency: 'CZK', feeOverrideReason: 'seam service fee' },
+  });
+  check('master nastavil service fee 20 Kč/vstupenku (200)', sfPatch.status === 200, `status=${sfPatch.status}`);
+  const sfEvent = await createPublishedEvent(A.token, maToken, `Seam servicefee ${ts}`);
+  const sfTt = await q(`SELECT id FROM catalog.ticket_types WHERE event_id=$1`, [sfEvent]);
+  // price-preview ukazuje fee PŘEDEM (qty=3)
+  const preview = await api('GET', `/api/public/events/${sfEvent}/price-preview?ticketTypeId=${sfTt.rows[0].id}&qty=3`);
+  check('price-preview 200', preview.status === 200, `status=${preview.status}`);
+  const pvTicket = preview.json?.tickets?.[0];
+  check('price-preview ukazuje service fee 60 Kč (3×20)', pvTicket?.fees?.[0]?.amount === 6000, `fee=${pvTicket?.fees?.[0]?.amount} total=${pvTicket?.total}`);
+  check('price-preview total = 1500 + 60 = 1560 Kč', pvTicket?.total === 156000, `total=${pvTicket?.total}`);
+  // checkout qty=3 → fee se reálně naúčtuje
+  const sfCo = await api('POST', '/api/checkout', {
+    body: { eventId: sfEvent, ticketTypeId: sfTt.rows[0].id, quantity: 3, buyerEmail: `seam-sf-${ts}@test.cz`, buyerName: 'SF Buyer' },
+  });
+  check('checkout qty=3 200', sfCo.status === 200, `status=${sfCo.status} ${JSON.stringify(sfCo.json?.error||'')}`);
+  check('total = 1560 Kč (1500 vstupné + 60 service fee)', sfCo.json.totalAmount === 156000, `total=${sfCo.json.totalAmount}`);
+  const sfOrder = await q(`SELECT total_amount, service_fee_minor FROM orders.orders WHERE id=$1`, [sfCo.json.orderId]);
+  check('order.service_fee_minor = 6000 (uloženo zvlášť)', sfOrder.rows[0]?.service_fee_minor === 6000, `service_fee_minor=${sfOrder.rows[0]?.service_fee_minor}`);
+  const sfPay = await api('POST', `/api/mock-gopay/${sfCo.json.paymentId}`, { body: {} });
+  check('mock platba 200', sfPay.status === 200 && sfPay.json.status === 'paid', `${sfPay.status} ${sfPay.json?.status}`);
+  // payout: service fee NESMÍ být v promotérově gross
+  const sfPayout = await api('GET', '/api/admin/payouts', { token: A.token });
+  const sfBucket = (sfPayout.json.payouts || []).find((p) => Number(p.serviceFeesHalire) >= 6000);
+  check('payout vykazuje service fee jako platform revenue (≥6000)', !!sfBucket, sfBucket ? `serviceFees=${sfBucket.serviceFeesHalire} gross=${sfBucket.grossHalire}` : 'chybí');
+  // promotérův gross musí být násobek 50000 (čisté vstupné), service fee 6000 tam NENÍ
+  check('promotérův gross neobsahuje service fee (dělitelný 50000)', sfBucket && sfBucket.grossHalire % 50000 === 0, `gross=${sfBucket?.grossHalire}`);
+
   // ════ CLEANUP ════
   console.log('\n— CLEANUP: unpublish testovacích akcí —');
   const cl = await q(`UPDATE catalog.events SET status='draft' WHERE id = ANY($1::uuid[]) AND status='published' RETURNING id`, [created.events]);

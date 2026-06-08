@@ -30,6 +30,7 @@ interface BucketRow {
   period_end: string;
   gross: string;
   refunds: string;
+  service_fees: string;
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
@@ -121,8 +122,11 @@ export async function GET(req: NextRequest): Promise<Response> {
        w.week_start AS period_start,
        (w.week_start + INTERVAL '7 days') AS period_end,
        c.currency,
-       COALESCE(SUM(o.total_amount) FILTER (WHERE o.status = 'paid' AND o.currency = c.currency), 0)::text AS gross,
-       COALESCE(SUM(o.total_amount) FILTER (WHERE o.status = 'refunded' AND o.currency = c.currency), 0)::text AS refunds,
+       -- Promotérův gross = jen tržba za vstupenky. Service fee (platform revenue)
+       -- se z total_amount odečte, aby promotér nedostal kredit za poplatek Tixly.
+       COALESCE(SUM(o.total_amount - COALESCE(o.service_fee_minor, 0)) FILTER (WHERE o.status = 'paid' AND o.currency = c.currency), 0)::text AS gross,
+       COALESCE(SUM(o.total_amount - COALESCE(o.service_fee_minor, 0)) FILTER (WHERE o.status = 'refunded' AND o.currency = c.currency), 0)::text AS refunds,
+       COALESCE(SUM(o.service_fee_minor) FILTER (WHERE o.status = 'paid' AND o.currency = c.currency), 0)::text AS service_fees,
        COALESCE(
          (SELECT SUM(cb.amount_halire) FROM orders.chargebacks cb
           JOIN orders.orders co ON co.id = cb.order_id
@@ -156,11 +160,12 @@ export async function GET(req: NextRequest): Promise<Response> {
       tier,
     },
     payouts: buckets.rows
-      .filter((b) => Number(b.gross) > 0 || Number(b.refunds) > 0 || Number(b.chargebacks) > 0)
+      .filter((b) => Number(b.gross) > 0 || Number(b.refunds) > 0 || Number(b.chargebacks) > 0 || Number(b.service_fees) > 0)
       .map((b) => {
         const gross = Number(b.gross);
         const refunds = Number(b.refunds);
         const chargebacks = Number(b.chargebacks);
+        const serviceFees = Number(b.service_fees);
         const fees = Math.floor((gross * feeBpsFor(b.currency)) / 10000);
         const grossNetOfRefunds = Math.max(0, gross - refunds);
         const holdbackHalire = computeHoldbackAmount(grossNetOfRefunds, holdbackPolicy);
@@ -174,6 +179,7 @@ export async function GET(req: NextRequest): Promise<Response> {
           feeBps: feeBpsFor(b.currency),
           grossHalire: gross,
           feesHalire: fees,
+          serviceFeesHalire: serviceFees,
           refundsHalire: refunds,
           chargebacksHalire: chargebacks,
           holdbackHalire,

@@ -1065,6 +1065,19 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
     }
 
+    // Service fee pro koncového zákazníka (buyer) — fixní částka dle nastavení
+    // promotéra (per vstupenku / per objednávku). Přičítá se NAVRCH, po všech
+    // slevách (poplatek se neslevňuje). Ukládá se zvlášť (service_fee_minor),
+    // aby ho payout vyloučil z promotérova gross (je to platform revenue).
+    const { resolveServiceFee } = await import('@/lib/fees/service-fee');
+    const svcFee = await resolveServiceFee(client, {
+      promoterId: tt.promoter_id,
+      currency: tt.currency,
+      quantity: input.quantity,
+    });
+    const serviceFeeMinor = svcFee.totalFeeMinor;
+    totalAmount += serviceFeeMinor;
+
     // Předgenerujeme placeholder paymentId; pokud poběží Stripe (real provider),
     // přepíšeme ho session.id po commitu transakce.
     const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
@@ -1089,13 +1102,13 @@ export async function POST(req: NextRequest): Promise<Response> {
           gopay_payment_id, payment_provider, idempotency_key,
           discount_halire, promo_code_id, requires_age_verification,
           is_gift, gift_recipient_email, gift_recipient_name, gift_message, gift_redeem_token,
-          holder_names, variable_symbol, entry_slot_id,
+          holder_names, variable_symbol, entry_slot_id, service_fee_minor,
           expires_at, created_at, updated_at)
        VALUES ($1, $2, 'pending', $3, $4, 'cs',
                $5, $6, $7,
                $8, $9, $10,
                $11, $12, $13, $14, $15,
-               $16, $17, $19,
+               $16, $17, $19, $20,
                NOW() + ($18 || '')::interval, NOW(), NOW())
        RETURNING id`,
       [
@@ -1118,6 +1131,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         variableSymbol,
         expiresInterval,
         input.entrySlotId ?? null,
+        serviceFeeMinor,
       ],
     );
     const orderId = orderRes.rows[0].id;
