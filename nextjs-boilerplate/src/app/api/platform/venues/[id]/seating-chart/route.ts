@@ -38,10 +38,30 @@ const stageSchema = z.object({
   label: z.string().min(1).max(50),
 });
 
+// Volitelná "builder" specifikace (skupiny řad) — uloží se s layoutem, aby šel
+// jednoduchý builder znovu otevřít a editovat bez ztráty zadání.
+const builderGroupSchema = z.object({
+  from: z.number().int().min(1).max(500),
+  to: z.number().int().min(1).max(500),
+  seats: z.number().int().min(1).max(200),
+  aisleAfter: z.number().int().min(0).max(200).optional(),
+});
+const builderSchema = z.object({
+  stage: z.enum(['top', 'bottom', 'none']),
+  sectors: z.array(
+    z.object({
+      name: z.string().min(1).max(100),
+      color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+      groups: z.array(builderGroupSchema).min(1).max(100),
+    }),
+  ).min(1).max(50),
+});
+
 const layoutSchema = z.object({
   viewBox: z.string().regex(/^[\d\s.-]+$/).default('0 0 1000 800'),
   sectors: z.array(sectorSchema).min(1).max(200),
   stage: stageSchema.optional(),
+  builder: builderSchema.optional(),
 });
 
 const postSchema = z.object({
