@@ -25,10 +25,21 @@ V produkci tedy:
 Role `tixly_app` (non-superuser, RLS-enforced) existuje, ale v produkčním kódu se
 **nepoužívá** — odkazuje na ni jen `rls-tenant-isolation.test.ts`.
 
-## Pokrytí RLS (i kdyby se enforce zapnul)
+## ✅ AKTUALIZACE 2026-06-08 — datová vrstva kompletně pokrytá
 
-- **160 policy** existuje (z migrací 285 / 303 / 310) — kritické tabulky pokryté.
-- **79 tabulek s `user_id`/`promoter_id` nemá RLS vůbec.** Rozložení:
+Po policy vlnách (336–339), Tier C (351–354) a posledním auditu (mig 355):
+- **0 tabulek s `user_id` bez RLS** (napříč VŠEMI schématy).
+- **0 citlivých tabulek (identity/auth/payments) bez RLS** — poslední `identity.verified_persons`
+  (šifrovaná BankID KYC) uzavřena migrací 355 (service/admin-only).
+- **0 tabulek vlastněných `tixly_app`** → po flipu `NOBYPASSRLS` se RLS reálně aplikuje
+  (vlastník by jinak RLS obcházel).
+- **0 lockoutů** přes 147 admin/platform tabulek (audit-admin-rls.mjs).
+Dolní původní inventář je tím pádem HISTORICKÝ (před vlnami) — ponechán pro kontext.
+
+## Pokrytí RLS (HISTORICKÝ stav před vlnami 336–355)
+
+- **160 policy** existovalo (z migrací 285 / 303 / 310) — kritické tabulky pokryté.
+- **79 tabulek s `user_id`/`promoter_id` nemělo RLS vůbec.** Rozložení (vše už vyřešeno):
 
 | Schéma | Tabulek bez RLS | Citlivost |
 |---|---|---|
