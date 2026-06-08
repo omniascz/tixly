@@ -22,6 +22,18 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // BEZPEČNOST (fail-closed): tato generická route NEověřuje podpis providera, takže
+  // by jinak kdokoli se znalostí externalId mohl POSTnout success:true → lístky zdarma.
+  // V produkci proto odmítáme. Reálná benefit integrace MUSÍ jít přes per-provider
+  // route s HMAC verifikací (viz verify{Pluxee,Edenred,BenefitPlus,GalleryBeta}Callback
+  // v src/lib/payment/benefit-providers/*). Dev mock povolen jen s BENEFIT_MOCK=1.
+  if (process.env.BENEFIT_MOCK !== '1') {
+    return NextResponse.json(
+      { error: 'BENEFIT_CALLBACK_VERIFICATION_REQUIRED', message: 'Generic benefit callback je v produkci zakázán — použij per-provider route s ověřením podpisu.' },
+      { status: 403 },
+    );
+  }
+
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
