@@ -1,6 +1,6 @@
 # 🚀 Tixly — GO-LIVE Checklist (cesta k 100 % ostrému provozu)
 
-> Odškrtávej `[ ]` → `[x]`, jak postupuješ. Aktualizováno: **2026-06-03** (po 8 dávkách deep E2E).
+> Odškrtávej `[ ]` → `[x]`, jak postupuješ. Aktualizováno: **2026-06-08** (RLS Fáze 2 dokončena + ověřena, CZ/SK kód hotový).
 > **Legenda:** 🧑 = ty (tvůj účet/billing/podpis) · 🤖 = udělám/pomůžu já · ⏱ = doba · 🔗 = na čem to závisí
 
 > ⚠️ **NEJDŮLEŽITĚJŠÍ ZMĚNA OPROTI MINULE:** Tuhle session jsem deep E2E otestoval **30 funkcí**
@@ -18,7 +18,12 @@
 - [x] **Neon Postgres (produkce)** — domigrováno na 339, ověřeno zdravé (🤖)
 - [x] **Upstash Redis** — provisionováno, ověřeno (DB+Redis ok) (🤖)
 - [x] **Klíče/secrets na Vercelu** — JWT, ENCRYPTION_KEY, CRON, INTERNAL, VAPID (🤖)
-- [x] **RLS Fáze 2** (tenant izolace) — mergnuto do master, na prod dormant (🤖)
+- [x] **RLS Fáze 2 DOKONČENA** (tenant izolace) — všech 7 nechráněných tabulek izolováno (migr. 351–354),
+  5 admin server-stránek napojeno na kontext (+IDOR fix). Ověřeno pod ENFORCED RLS: **e2e-full-suite 42/42**
+  (vč. tenant izolace A↔B) + smoke 166 endpointů. Na větvi `feature/rls-phase2-enforcement` (pushnuto).
+  Produkce dál BYPASSRLS dormant; flip = po deploy + staging (sekce 7, NE blocker). (🤖, 2026-06-08)
+- [x] **CZ/SK kód ověřen HOTOVÝ** — DPH country-aware (SK 5 %/CZ 10 %, 15 testů), variabilní symbol,
+  EUR payouts per-currency, SK právní texty (draft). Tax+accounting 25/25. Zbývá jen právník. (🤖, 2026-06-08)
 - [x] **Produkce běží** — `health/ready {database:ok, redis:ok}`, login funguje (🤖)
 - [x] **Re-ověřeno 2026-06-03** — prod `health/ready` 200 `{database:ok, redis:ok}` (🤖)
 - [x] **Moderace obsahu — vision** — Claude posuzuje text I plakát; finální schválení master admin (🤖, viz FÁZE 1 → Bezpečnost)
