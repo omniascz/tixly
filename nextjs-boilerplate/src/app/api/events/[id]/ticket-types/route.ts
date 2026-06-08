@@ -24,11 +24,15 @@ export async function GET(
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
     return NextResponse.json({ ticketTypes: [] });
   }
+  // Jen typy PUBLIKOVANÉ akce — public endpoint nesmí prozradit/nabízet typy
+  // draft/pending akce. Pod ENFORCED RLS to už hlídá public-read policy, ale
+  // explicitní guard drží konzistenci i v dormantním BYPASSRLS režimu.
   const r = await db().query<TtRow>(
     `SELECT tt.id, tt.name, tt.base_price, tt.remaining_qty,
             COALESCE(tt.is_seated, false) AS is_seated,
             f.picks_required, f.pass_kind
      FROM catalog.ticket_types tt
+     JOIN catalog.events e ON e.id = tt.event_id AND e.status = 'published'
      LEFT JOIN catalog.flex_pass_settings f ON f.ticket_type_id = tt.id
      WHERE tt.event_id = $1
      ORDER BY tt.base_price`,
