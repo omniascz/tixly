@@ -219,6 +219,59 @@ async function main() {
   const bSeesAInList = Array.isArray(bItems) && bItems.some((e) => e.id === evA);
   check('akce A NENÍ v seznamu promotéra B', !bSeesAInList, `B má ${Array.isArray(bItems)?bItems.length:'?'} akcí`);
 
+  // ════ ŠEV 6: branding → white-label ════
+  console.log('\n— ŠEV 6: Promotér nastaví branding → white-label doména ho servíruje —');
+  const brandPut = await api('PUT', '/api/admin/branding', {
+    token: A.token,
+    body: { logoUrl: 'https://example.com/seam-logo.png', primaryColor: '#ff6600', hidePoweredBy: true },
+  });
+  check('promotér uložil branding (PUT 200)', brandPut.status === 200, `status=${brandPut.status} ${JSON.stringify(brandPut.json?.error||'')}`);
+  const brandGet = await api('GET', '/api/admin/branding', { token: A.token });
+  check('branding round-trip (GET vrací uloženou barvu)', brandGet.json?.branding?.primary_color === '#ff6600', brandGet.json?.branding?.primary_color);
+  // verified doména (verifikace = DNS, externí krok → vložíme rovnou jako verified)
+  const testDomain = `seam-${ts}.example.com`;
+  await q(`INSERT INTO platform.promoter_domains (promoter_id, domain, verified_at, verification_token, primary_domain)
+           VALUES ($1, $2, NOW(), 'seamtok', true)`, [A.promoterId, testDomain]);
+  const pubBrand = await api('GET', `/api/public/branding?host=${testDomain}`);
+  check('public branding rozpozná white-label doménu', pubBrand.json?.whitelabel === true, JSON.stringify(pubBrand.json).slice(0,120));
+  check('public branding vrací promotérovu barvu (#ff6600)', pubBrand.json?.primaryColor === '#ff6600', pubBrand.json?.primaryColor);
+  check('public branding vrací promotérovo logo', pubBrand.json?.logoUrl === 'https://example.com/seam-logo.png', pubBrand.json?.logoUrl);
+  check('hidePoweredBy se propsalo', pubBrand.json?.hidePoweredBy === true, String(pubBrand.json?.hidePoweredBy));
+  await q(`DELETE FROM platform.promoter_domains WHERE domain=$1`, [testDomain]);
+
+  // ════ ŠEV 7: seated event (master maluje chart → promotér → buyer vidí sedadla) ════
+  console.log('\n— ŠEV 7: Master sál + chart → promotér seated akce → buyer vidí mapu sedadel —');
+  const DVD_VENUE = 'a4198135-b842-4f53-b1e3-a95462944a4a'; // Docela velké divadlo Litvínov (chart: PŘÍZEMÍ/BALKON)
+  const venueChk = await q(`SELECT 1 FROM catalog.venue_seating_charts WHERE venue_id=$1`, [DVD_VENUE]);
+  if (venueChk.rows.length === 0) {
+    soft('venue DVD Litvínov chart existuje (jinak ŠEV 7 přeskočen)', false, 'chart chybí — skip');
+  } else {
+    const seatedCreate = await api('POST', '/api/admin/events', {
+      token: A.token,
+      body: {
+        title: `Seam seated ${ts}`,
+        description: 'Běžné divadelní představení, sedadlový sál. Nic závadného.',
+        category: 'theatre', eventType: 'physical', dateStart: '2026-12-22T19:00:00Z', currency: 'CZK',
+        venueId: DVD_VENUE,
+        ticketTypes: [{ name: 'Přízemí', priceHalire: 35000, capacity: 200, isSeated: true, zone: 'PŘÍZEMÍ' }],
+        publishImmediately: true,
+      },
+    });
+    check('seated akce vytvořena (201)', seatedCreate.status === 201, `status=${seatedCreate.status} ${JSON.stringify(seatedCreate.json?.error||seatedCreate.json?.issues||'')}`);
+    const seatedId = seatedCreate.json.eventId || seatedCreate.json.id;
+    created.events.push(seatedId);
+    check('event_seats naplněny z venue chartu (seatsCreated > 0)', (seatedCreate.json.seatsCreated ?? 0) > 0, `seatsCreated=${seatedCreate.json.seatsCreated} sektory=${seatedCreate.json.sectorsMapped}`);
+    const dbSeats = await q(`SELECT COUNT(*)::int n FROM catalog.event_seats WHERE event_id=$1`, [seatedId]);
+    check('event_seats v DB odpovídají', dbSeats.rows[0].n > 0 && dbSeats.rows[0].n === (seatedCreate.json.seatsCreated ?? -1), `DB=${dbSeats.rows[0].n}`);
+    await api('POST', `/api/platform/moderation/${seatedId}/approve`, { token: maToken });
+    // buyer čte mapu sedadel
+    const seatMap = await api('GET', `/api/events/${seatedId}/seats`);
+    check('buyer GET seats 200', seatMap.status === 200, `status=${seatMap.status}`);
+    const seats = seatMap.json?.seats || seatMap.json?.sectors || seatMap.json;
+    const seatCount = Array.isArray(seats) ? seats.length : (seats?.seats?.length ?? JSON.stringify(seatMap.json).length);
+    check('buyer vidí neprázdnou mapu sedadel', JSON.stringify(seatMap.json).length > 50 && (Array.isArray(seats) ? seats.length > 0 : true), `payload ${JSON.stringify(seatMap.json).length}B`);
+  }
+
   // ════ CLEANUP ════
   console.log('\n— CLEANUP: unpublish testovacích akcí —');
   const cl = await q(`UPDATE catalog.events SET status='draft' WHERE id = ANY($1::uuid[]) AND status='published' RETURNING id`, [created.events]);
