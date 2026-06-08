@@ -15,8 +15,11 @@ ostrý RLS flip je samostatný krok (`db/RLS-FLIP-RUNBOOK.md`).
 Nový login JOINuje `identity.user_secrets` (RLS split hesel). **Pokud prod tu tabulku
 nemá, login po deploy SPADNE.** Proto pořadí: **migrace PŘED deployem kódu.**
 
-Klasifikace branch migrací (330–355):
+Klasifikace branch migrací (330–356):
 - **335** `identity_user_secrets_split` — **SCHEMA + data + trigger** → MUSÍ být na prod.
+- **356** `buyer_service_fee` — **SCHEMA** (přidá `fee_schedules.buyer_fee_basis` +
+  `orders.service_fee_minor`). Nový checkout INSERTuje `service_fee_minor` → **bez téhle
+  migrace checkout po deployi SPADNE.** MUSÍ být na prod před deployem kódu.
 - **330–334, 336–355** — **čistě RLS policy** (dormantní pod BYPASSRLS, idempotentní
   `DROP POLICY IF EXISTS`). Nutné až pro RLS flip, ale aplikuj je rovnou (bezpečné).
 
