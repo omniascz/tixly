@@ -182,6 +182,49 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
     );
   }
 
+  const [importing, setImporting] = useState(false);
+  async function importFromImage(file: File) {
+    setError(null);
+    setFeedback(null);
+    setImporting(true);
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = () => resolve(String(fr.result));
+        fr.onerror = () => reject(new Error('Nepodařilo se načíst soubor.'));
+        fr.readAsDataURL(file);
+      });
+      const m = dataUrl.match(/^data:(image\/(png|jpeg|webp|gif));base64,(.+)$/);
+      if (!m) {
+        setError('Podporované jsou PNG, JPEG, WEBP nebo GIF.');
+        return;
+      }
+      const res = await authFetch(`/api/platform/venues/${venueId}/seating-chart/from-image`, {
+        method: 'POST',
+        body: JSON.stringify({ imageBase64: m[3], mediaType: m[1] }),
+      });
+      const j = (await res.json().catch(() => ({}))) as {
+        builder?: { stage: StagePos; sectors: { name: string; groups: RowGroup[] }[] };
+        totalSeats?: number;
+        message?: string;
+        error?: string;
+      };
+      if (!res.ok || !j.builder) {
+        setError(j.message ?? j.error ?? `Načtení z obrázku selhalo (HTTP ${res.status}).`);
+        return;
+      }
+      setStage(j.builder.stage);
+      setSectors(
+        j.builder.sectors.map((s, i) => ({ name: s.name, color: PALETTE[i % PALETTE.length], groups: s.groups })),
+      );
+      setFeedback(`Načteno z obrázku: ${j.totalSeats} sedadel. Zkontroluj náhled a případně dolaď, pak ulož.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Načtení z obrázku selhalo.');
+    } finally {
+      setImporting(false);
+    }
+  }
+
   async function save(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -270,6 +313,20 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
           <Card>
             <CardHeader><CardTitle className="text-base">2 · Sektory a řady</CardTitle></CardHeader>
             <CardContent className="space-y-4">
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 p-3 text-sm font-medium text-primary hover:bg-primary/10">
+                📷 {importing ? 'Čtu obrázek mapy…' : 'Načíst z obrázku mapy (rychlé) — nebo zadej ručně níže'}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="hidden"
+                  disabled={importing}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void importFromImage(f);
+                    e.target.value = '';
+                  }}
+                />
+              </label>
               {sectors.map((s, si) => (
                 <div key={si} className="rounded-lg border p-3">
                   <div className="mb-2 flex items-center gap-2">
