@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
-import { Pool } from 'pg';
+import { db } from '@/lib/db/rls-pool';
+import { runAsServerPromoter } from '@/lib/server-session';
 import { ThermalReceipt } from './ThermalReceipt';
 
 interface OrderData {
@@ -27,14 +28,15 @@ interface Item {
 
 async function fetchOrder(orderId: string): Promise<{ order: OrderData; items: Item[] } | null> {
   if (!/^[0-9a-f-]{36}$/i.test(orderId)) return null;
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  try {
-    const o = await pool.query<OrderData>(
+  // Server-component fetch pod ENFORCED RLS: promoter kontext z cookie. RLS na orders
+  // omezí účtenku na objednávky akcí daného promotéra (cizí orderId → 0 = notFound).
+  return runAsServerPromoter(async () => {
+    const o = await db().query<OrderData>(
       `SELECT o.id, o.total_amount, o.currency, o.paid_at, o.payment_provider,
               u.email AS buyer_email, u.name AS buyer_name,
               e.title AS event_title, e.date_start AS event_date_start,
               v.name AS venue_name,
-              p.name AS promoter_name, p.ico AS promoter_ico, p.dic AS promoter_dic
+              p.name AS promoter_name, p.company_ico AS promoter_ico, p.company_dic AS promoter_dic
        FROM orders.orders o
        JOIN identity.users u ON u.id = o.user_id
        LEFT JOIN catalog.events e ON e.id = o.event_id
@@ -45,7 +47,7 @@ async function fetchOrder(orderId: string): Promise<{ order: OrderData; items: I
     );
     if (o.rows.length === 0) return null;
 
-    const items = await pool.query<Item>(
+    const items = await db().query<Item>(
       `SELECT tt.name AS ticket_type_name, oi.quantity, oi.unit_price, oi.total_price
        FROM orders.order_items oi
        JOIN catalog.ticket_types tt ON tt.id = oi.ticket_type_id
@@ -54,9 +56,7 @@ async function fetchOrder(orderId: string): Promise<{ order: OrderData; items: I
       [orderId],
     );
     return { order: o.rows[0], items: items.rows };
-  } finally {
-    await pool.end();
-  }
+  });
 }
 
 export default async function ReceiptPage({

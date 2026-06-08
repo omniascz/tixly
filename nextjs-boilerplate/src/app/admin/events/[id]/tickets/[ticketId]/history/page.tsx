@@ -1,4 +1,5 @@
-import { Pool } from 'pg';
+import { db as rlsDb } from '@/lib/db/rls-pool';
+import { runAsServerPromoter } from '@/lib/server-session';
 import Link from 'next/link';
 import { ArrowRight, User, RefreshCw, ShoppingBag, ScanLine, Send } from 'lucide-react';
 
@@ -24,10 +25,10 @@ async function fetchTicketChain(
   promoterId: string,
 ): Promise<{ ticket: TicketInfo; chain: ChainEvent[] } | null> {
   if (!/^[0-9a-f-]{36}$/i.test(ticketId)) return null;
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  // Volá se uvnitř runAsServerPromoter (kontext už nastaven) → db() je promoter-scoped.
   try {
     // Verify ownership
-    const ticketRes = await db.query<TicketInfo>(
+    const ticketRes = await rlsDb().query<TicketInfo>(
       `SELECT t.id AS ticket_id, e.title AS event_title,
               u.email AS current_holder_email,
               u.name AS current_holder_name,
@@ -46,7 +47,7 @@ async function fetchTicketChain(
     const chain: ChainEvent[] = [];
 
     // 1. Original purchase
-    const orderRes = await db.query<{ created_at: string; buyer_email: string }>(
+    const orderRes = await rlsDb().query<{ created_at: string; buyer_email: string }>(
       `SELECT o.created_at::text, u.email AS buyer_email
          FROM orders.orders o
          JOIN tickets.tickets t ON t.order_id = o.id
@@ -66,7 +67,7 @@ async function fetchTicketChain(
 
     // 2. Transfers
     try {
-      const transferRes = await db.query<{
+      const transferRes = await rlsDb().query<{
         from_email: string;
         to_email: string;
         created_at: string;
@@ -94,7 +95,7 @@ async function fetchTicketChain(
 
     // 3. Resale (if listed)
     try {
-      const resaleRes = await db.query<{ status: string; listed_at: string }>(
+      const resaleRes = await rlsDb().query<{ status: string; listed_at: string }>(
         `SELECT status, listed_at::text
            FROM resale.resale_listings
           WHERE ticket_id = $1
@@ -128,7 +129,7 @@ async function fetchTicketChain(
 
     return { ticket, chain };
   } finally {
-    await db.end();
+    // RLS pool je sdílený (rls-pool), neukončuje se per-request
   }
 }
 
@@ -153,10 +154,11 @@ export default async function TicketChainPage({
 }: {
   params: { id: string; ticketId: string };
 }) {
-  // TODO: Get promoter from session (would need server-side auth check)
-  // Simplified: just use the ID for demo
-  const promoterId = '00000000-0000-0000-0000-000000000000'; // placeholder, real auth check needed
-  const data = await fetchTicketChain(params.ticketId, promoterId);
+  // Promoter kontext z accessToken cookie (server-side). RLS + explicitní
+  // e.promoter_id = $2 filtr → lístek se zobrazí jen vlastníkovi akce.
+  const data = await runAsServerPromoter(({ promoterId }) =>
+    fetchTicketChain(params.ticketId, promoterId),
+  );
 
   if (!data) {
     return (

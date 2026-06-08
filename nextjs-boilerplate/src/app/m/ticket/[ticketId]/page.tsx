@@ -4,17 +4,11 @@
  * TM-style: minimální chrome, velký QR, Apple/Google Wallet buttons,
  * lock-screen optimized brightness, transfer button.
  */
-import { Pool } from 'pg';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { verifyToken } from '@/lib/auth';
+import { db as rlsDb, runWithUserContext } from '@/lib/db/rls-pool';
 import { MobileTicketView } from './MobileTicketView';
-
-let pool: Pool | null = null;
-function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
 
 export const dynamic = 'force-dynamic';
 
@@ -36,22 +30,25 @@ export default async function MobileTicketPage({ params }: PageProps): Promise<J
     redirect(`/cs/login?next=/m/ticket/${ticketId}`);
   }
 
-  const r = await db().query<{
-    id: string;
-    event_title: string;
-    event_date: string;
-    venue_name: string | null;
-    ticket_type_name: string;
-    holder_name: string | null;
-    holder_email: string;
-    brand_color_hex: string | null;
-    promoter_name: string | null;
-    sector: string | null;
-    row_label: string | null;
-    seat_number: string | null;
-    status: string;
-  }>(
-    `SELECT t.id, e.title AS event_title, e.date_start::text AS event_date,
+  // Pod ENFORCED RLS musí být user kontext nastaven, jinak tickets RLS vrátí 0.
+  // userId odvozen z session/buyer JWT výše; WHERE t.owner_id = $2 je belt-and-suspenders.
+  const r = await runWithUserContext(userId, () =>
+    rlsDb().query<{
+      id: string;
+      event_title: string;
+      event_date: string;
+      venue_name: string | null;
+      ticket_type_name: string;
+      holder_name: string | null;
+      holder_email: string;
+      brand_color_hex: string | null;
+      promoter_name: string | null;
+      sector: string | null;
+      row_label: string | null;
+      seat_number: string | null;
+      status: string;
+    }>(
+      `SELECT t.id, e.title AS event_title, e.date_start::text AS event_date,
             v.name AS venue_name, tt.name AS ticket_type_name,
             u.name AS holder_name, u.email AS holder_email,
             p.brand_color_hex, p.name AS promoter_name,
@@ -66,7 +63,8 @@ export default async function MobileTicketPage({ params }: PageProps): Promise<J
        JOIN identity.users u ON u.id = t.owner_id
   LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
       WHERE t.id = $1 AND t.owner_id = $2`,
-    [ticketId, userId],
+      [ticketId, userId],
+    ),
   );
 
   if (r.rows.length === 0) {

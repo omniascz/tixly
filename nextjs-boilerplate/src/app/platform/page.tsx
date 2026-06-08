@@ -1,5 +1,7 @@
 import Link from 'next/link';
-import { Pool } from 'pg';
+import { redirect } from 'next/navigation';
+import { db as rlsDb } from '@/lib/db/rls-pool';
+import { runAsServerPlatformAdmin } from '@/lib/server-session';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Counts {
@@ -47,10 +49,11 @@ interface ProviderStatus {
 }
 
 async function fetchOverview() {
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
-  try {
+  // Platform-admin kontext z accessToken cookie. Pod ENFORCED RLS musí být nastaven,
+  // jinak agregace přes promotéry/orders vrátí 0. Null = nepřihlášený admin.
+  return runAsServerPlatformAdmin(async () => {
     const [counts, revenue, topPromoters, reserves, webhooks] = await Promise.all([
-      db.query<Counts>(`
+      rlsDb().query<Counts>(`
         SELECT
           COUNT(*) FILTER (WHERE p.status='pending')::int AS pending,
           COUNT(*) FILTER (WHERE p.status='active')::int AS active,
@@ -59,7 +62,7 @@ async function fetchOverview() {
           (SELECT COUNT(*)::int FROM catalog.events WHERE status IN ('pending_review','flagged')) AS pending_review
         FROM platform.promoters p
       `),
-      db.query<RevenueRow>(`
+      rlsDb().query<RevenueRow>(`
         SELECT
           COALESCE(currency, 'CZK') AS currency,
           COALESCE(SUM(total_amount) FILTER (WHERE status = 'paid'), 0)::text AS gross_30d,
@@ -75,7 +78,7 @@ async function fetchOverview() {
         GROUP BY COALESCE(currency, 'CZK')
         ORDER BY currency
       `).catch(() => ({ rows: [] as RevenueRow[] })),
-      db.query<TopPromoterRow>(`
+      rlsDb().query<TopPromoterRow>(`
         SELECT p.id, p.name, p.slug, p.country, p.primary_currency,
                COALESCE(SUM(o.total_amount) FILTER (WHERE o.status = 'paid'), 0)::text AS gross_30d,
                COUNT(DISTINCT e.id) FILTER (
@@ -89,7 +92,7 @@ async function fetchOverview() {
         ORDER BY SUM(o.total_amount) FILTER (WHERE o.status = 'paid') DESC NULLS LAST
         LIMIT 5
       `).catch(() => ({ rows: [] as TopPromoterRow[] })),
-      db.query<ReserveRow>(`
+      rlsDb().query<ReserveRow>(`
         SELECT
           COALESCE(SUM(amount), 0)::text AS total_held,
           COALESCE(SUM(amount) FILTER (
@@ -100,7 +103,7 @@ async function fetchOverview() {
       `).catch(() => ({
         rows: [{ total_held: '0', upcoming_release_7d: '0' }] as ReserveRow[],
       })),
-      db.query<RecentWebhookRow>(`
+      rlsDb().query<RecentWebhookRow>(`
         SELECT
           COALESCE(payment_provider, 'unknown') AS provider,
           event_type,
@@ -121,9 +124,7 @@ async function fetchOverview() {
       reserves: reserves.rows[0] ?? { total_held: '0', upcoming_release_7d: '0' },
       webhooks: webhooks.rows,
     };
-  } finally {
-    await db.end();
-  }
+  });
 }
 
 async function fetchProviders(): Promise<{ launchReady: boolean; providers: ProviderStatus[] }> {
@@ -147,6 +148,9 @@ export const dynamic = 'force-dynamic';
 
 export default async function PlatformDashboard() {
   const [overview, providers] = await Promise.all([fetchOverview(), fetchProviders()]);
+  // overview === null → není přihlášený platform admin (middleware by to mělo zachytit dřív;
+  // defense in depth pod ENFORCED RLS, kdy by jinak agregace vrátila prázdno).
+  if (!overview) redirect('/cs/login?from=/platform');
   const c = overview.counts;
 
   return (
