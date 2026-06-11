@@ -23,6 +23,11 @@ const schema = z.object({
   seatIds: z.array(z.string().uuid()).min(1).max(MAX_SEATS),
 });
 
+// CORS preflight pro cross-origin embed seat-picker (hold). Hlavičky doplní next.config.
+export function OPTIONS(): Response {
+  return new Response(null, { status: 204 });
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },

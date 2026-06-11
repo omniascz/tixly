@@ -141,6 +141,25 @@ const nextConfig = {
           { key: 'Vary', value: 'Origin' },
         ],
       },
+      {
+        // Seat-picker ve widgetu — mapa sedadel + hold (číslovaná místa).
+        source: '/api/events/:id/seats',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: process.env.EMBED_ALLOWED_ORIGINS ?? '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET, OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type' },
+          { key: 'Vary', value: 'Origin' },
+        ],
+      },
+      {
+        source: '/api/events/:id/seats/hold',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: process.env.EMBED_ALLOWED_ORIGINS ?? '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'POST, DELETE, OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type' },
+          { key: 'Vary', value: 'Origin' },
+        ],
+      },
     ];
   },
   webpack: (config, { isServer }) => {
