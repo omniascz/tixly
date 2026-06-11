@@ -1,23 +1,39 @@
+import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { getToken, biometricGate } from '@/lib/session';
+import { colors } from '@/lib/theme';
 
-export default function HomeScreen() {
+/** Boot screen: ověř session (+ biometrie) a přesměruj na vstupenky nebo login. */
+export default function BootScreen() {
   const router = useRouter();
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const token = await getToken();
+      if (!token) {
+        if (active) router.replace('/login');
+        return;
+      }
+      const ok = await biometricGate('Odemkni své vstupenky');
+      if (!active) return;
+      router.replace(ok ? '/tickets' : '/login');
+    })();
+    return () => {
+      active = false;
+    };
+  }, [router]);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tixly</Text>
-      <Text style={styles.subtitle}>Tvoje vstupenky na dosah ruky.</Text>
-      <Pressable style={styles.button} onPress={() => router.push('/tickets')}>
-        <Text style={styles.buttonText}>Moje vstupenky</Text>
-      </Pressable>
+      <ActivityIndicator color={colors.white} style={{ marginTop: 24 }} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: '#fff' },
-  title: { fontSize: 48, fontWeight: '900', color: '#6C47FF' },
-  subtitle: { fontSize: 16, color: '#666', marginTop: 8 },
-  button: { backgroundColor: '#6C47FF', paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12, marginTop: 32 },
-  buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.brand },
+  title: { fontSize: 52, fontWeight: '900', color: colors.white, letterSpacing: -1 },
 });

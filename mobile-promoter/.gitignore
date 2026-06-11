@@ -1,0 +1,15 @@
+# Expo / RN
+node_modules/
+.expo/
+dist/
+web-build/
+*.log
+.DS_Store
+
+# Native build outputs (prebuild)
+/ios
+/android
+
+# Local env + store keys
+.env*.local
+pc-api-key.json
