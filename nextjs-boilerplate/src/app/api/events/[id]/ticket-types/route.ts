@@ -17,6 +17,11 @@ interface TtRow {
   pass_kind: string | null;
 }
 
+// CORS preflight pro cross-origin embed widget. Hlavičky doplní next.config.
+export function OPTIONS(): Response {
+  return new Response(null, { status: 204 });
+}
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } },

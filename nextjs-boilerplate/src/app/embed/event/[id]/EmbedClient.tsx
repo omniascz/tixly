@@ -30,6 +30,26 @@ interface Event {
 const MAX_SEATS = 10;
 
 /**
+ * Stabilní per-prohlížeč tag pro guest hold. Posílá se jako x-fingerprint, aby
+ * server uměl při retry uvolnit POUZE předchozí hold tohoto prohlížeče (ne cizí).
+ * localStorage drží hodnotu napříč pokusy; v private/blokovaném režimu vrací '' →
+ * server pak úklid přeskočí (bezpečný no-op místo uvolnění sdíleného tagu).
+ */
+function guestFingerprint(): string {
+  try {
+    const KEY = 'tixly_guest_fp';
+    let v = localStorage.getItem(KEY);
+    if (!v) {
+      v = crypto.randomUUID();
+      localStorage.setItem(KEY, v);
+    }
+    return v;
+  } catch {
+    return '';
+  }
+}
+
+/**
  * Inline prodejní widget — celý nákup UVNITŘ iframu (žádný odskok). Dva režimy:
  *  - SEATED: číslovaná místa (mapa sektor→řada→místo z /api/events/:id/seats,
  *    hold + seated checkout) — pro divadlo (seat plan ze superadminu).
@@ -162,7 +182,8 @@ export function EmbedClient({ event }: { event: Event; variant?: string }) {
 
       if (mode === 'seated') {
         const hres = await fetch(`/api/events/${event.id}/seats/hold`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-fingerprint': guestFingerprint() },
           body: JSON.stringify({ seatIds: picked }),
         });
         const hj = (await hres.json()) as { holdToken?: string; error?: string };

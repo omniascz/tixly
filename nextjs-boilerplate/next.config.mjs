@@ -156,7 +156,9 @@ const nextConfig = {
         headers: [
           { key: 'Access-Control-Allow-Origin', value: process.env.EMBED_ALLOWED_ORIGINS ?? '*' },
           { key: 'Access-Control-Allow-Methods', value: 'POST, DELETE, OPTIONS' },
-          { key: 'Access-Control-Allow-Headers', value: 'Content-Type' },
+          // x-fingerprint = stabilní per-prohlížeč tag, aby cross-origin guest mohl
+          // uvolnit SVŮJ předchozí hold při retry (scope "release my prior hold").
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, x-fingerprint' },
           { key: 'Vary', value: 'Origin' },
         ],
       },

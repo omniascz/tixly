@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ActivityIndicator,
   Alert,
@@ -40,6 +40,7 @@ export default function EventDetailScreen() {
   const [selected, setSelected] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [buying, setBuying] = useState(false);
+  const router = useRouter();
 
   const load = useCallback(async () => {
     try {
@@ -61,17 +62,23 @@ export default function EventDetailScreen() {
 
   async function buy() {
     if (!selected) return;
+    const user = await getUser();
+    if (!user?.email) {
+      Alert.alert('Přihlášení vypršelo', 'Pro dokončení nákupu se prosím znovu přihlas.', [
+        { text: 'Přihlásit se', onPress: () => router.replace('/login') },
+      ]);
+      return;
+    }
     setBuying(true);
     try {
-      const user = await getUser();
       const r = await apiFetch<{ gatewayUrl: string; orderId: string }>('/api/checkout', {
         method: 'POST',
         body: {
           eventId: params.id,
           ticketTypeId: selected,
           quantity: qty,
-          buyerEmail: user?.email,
-          buyerName: user?.name,
+          buyerEmail: user.email,
+          buyerName: user.name,
         },
       });
       const url = r.gatewayUrl.startsWith('http') ? r.gatewayUrl : `${API_BASE_URL}${r.gatewayUrl}`;

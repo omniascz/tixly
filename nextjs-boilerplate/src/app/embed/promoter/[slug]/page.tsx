@@ -81,7 +81,7 @@ export default async function EmbedPromoterPage({
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <meta name="robots" content="noindex" />
-        <title>{data.promoter.name} — vstupenky</title>
+        <title>{`${data.promoter.name} — vstupenky`}</title>
         <style>{`
           html, body { margin: 0; padding: 0; background: transparent; font-family: system-ui, -apple-system, sans-serif; }
           * { box-sizing: border-box; }

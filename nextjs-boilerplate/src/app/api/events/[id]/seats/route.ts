@@ -11,6 +11,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 
 
+// CORS preflight pro cross-origin embed seat-picker. Hlavičky doplní next.config.
+export function OPTIONS(): Response {
+  return new Response(null, { status: 204 });
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },

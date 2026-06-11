@@ -47,6 +47,9 @@ const LABEL: Record<string, string> = {
   totp_mismatch: 'QR NESEDÍ',
   totp_required: 'VYŽADUJE MOBILNÍ QR',
   wrong_zone_or_day: 'ŠPATNÁ ZÓNA / DEN',
+  day_not_picked: 'DEN NEVYBRÁN',
+  flex_limit_exhausted: 'VYČERPÁN LIMIT DNŮ',
+  invalid_status: 'NEPLATNÝ STAV LÍSTKU',
 };
 
 function parsePayload(raw: string): { ticketId?: string; printToken?: string; totpCode?: string } | null {
