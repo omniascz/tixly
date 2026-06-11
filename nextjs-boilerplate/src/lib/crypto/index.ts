@@ -4,17 +4,20 @@ const ALGO = 'aes-256-gcm';
 const IV_LEN = 12;
 const TAG_LEN = 16;
 
+let _encKeyWarned = false;
 function getKey(): Buffer {
   const hex = process.env.ENCRYPTION_KEY;
   if (!hex) throw new Error('ENCRYPTION_KEY not set');
   if (/^[0-9a-fA-F]{64}$/.test(hex)) return Buffer.from(hex, 'hex');
-  // V produkci NEakceptujeme libovolný řetězec stretchovaný přes sha256 —
-  // tichý sha256(„changeme") = slabý klíč bez entropického dna. Vyžaduj
-  // 32bytový klíč jako 64 hex znaků (openssl rand -hex 32).
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error(
-      'ENCRYPTION_KEY must be 64 hex chars (32 bytes) in production — generate with `openssl rand -hex 32`.',
+  // Zpětná kompatibilita: klíč, který NENÍ 64 hex, se odvodí přes sha256 — NESMÍME
+  // hodit chybu, jinak by se rozbilo dešifrování dat už zašifrovaných tímto klíčem
+  // (a změna klíče by ta data znehodnotila). Slabý klíč jen NAHLÁSÍME (jednou) —
+  // doporučení: nastav 64-hex klíč přes `openssl rand -hex 32`.
+  if (!_encKeyWarned) {
+    console.warn(
+      '[crypto] ENCRYPTION_KEY není 32B/64 hex — používá se sha256 odvození. Doporučeno nastavit 64-hex klíč (openssl rand -hex 32).',
     );
+    _encKeyWarned = true;
   }
   return createHash('sha256').update(hex).digest();
 }
