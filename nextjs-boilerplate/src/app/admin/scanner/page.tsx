@@ -12,7 +12,13 @@ import {
   enqueueScan,
   flushQueue,
   getPendingCount,
+  saveManifest,
+  getManifestMeta,
+  validateOffline,
+  decodePrintTokenUuid,
   type FlushResult,
+  type ManifestMeta,
+  type OfflineCheck,
 } from '@/lib/scanner/offline-queue';
 
 type ScanResult = {
@@ -107,6 +113,8 @@ export default function ScannerPage() {
   const [online, setOnline] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
   const [flushReport, setFlushReport] = useState<FlushResult | null>(null);
+  const [manifestMeta, setManifestMeta] = useState<ManifestMeta | null>(null);
+  const [manifestLoading, setManifestLoading] = useState(false);
 
   const refreshPending = useCallback(async () => {
     try {
@@ -176,6 +184,47 @@ export default function ScannerPage() {
     }
   }
 
+  // Stav staženého offline whitelistu pro zvolenou akci.
+  const refreshManifestMeta = useCallback(async (eventId: string | null) => {
+    if (!eventId) {
+      setManifestMeta(null);
+      return;
+    }
+    try {
+      setManifestMeta(await getManifestMeta(eventId));
+    } catch {
+      setManifestMeta(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshManifestMeta(gate.eventId);
+  }, [gate.eventId, refreshManifestMeta]);
+
+  // Stáhne seznam platných lístků pro akci a uloží do IndexedDB (nutno udělat
+  // ONLINE, ideálně před začátkem představení). Offline pak skener ověřuje proti němu.
+  async function downloadManifest() {
+    if (!gate.eventId) return;
+    setManifestLoading(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/admin/scanner/manifest?eventId=${gate.eventId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      if (!res.ok) {
+        setResult({ result: 'error', message: `Stažení seznamu selhalo (HTTP ${res.status}).` });
+        return;
+      }
+      const json = (await res.json()) as { ticketIds: string[]; generatedAt: string };
+      await saveManifest(gate.eventId, json.ticketIds, json.generatedAt);
+      await refreshManifestMeta(gate.eventId);
+    } catch {
+      setResult({ result: 'error', message: 'Stažení seznamu selhalo (síť).' });
+    } finally {
+      setManifestLoading(false);
+    }
+  }
+
   function persistGate(next: GateState) {
     setGate(next);
     try {
@@ -207,17 +256,48 @@ export default function ScannerPage() {
       ...(gate.zoneId ? { zoneId: gate.zoneId } : {}),
     };
 
-    // Offline: rovnou do queue, optimistic accept (provoz nestojí).
+    // Offline: zapiš do queue (kvůli serverové rekonciliaci) a pokud máme stažený
+    // whitelist pro akci, ověř proti němu — padělaný/cizí lístek odmítni, dvojí
+    // vstup zachyť lokálně. Bez whitelistu padáme na optimistic accept (provoz nestojí).
     if (!online) {
       try {
         await enqueueScan(payload, gateLabel);
         await refreshPending();
-        setResult({
-          result: 'admitted',
-          message: 'Přijato offline — synchronizace proběhne po obnovení připojení.',
-        });
-        setTicketId('');
-        setTotpCode('');
+
+        const offlineTicketId = isPrintToken
+          ? decodePrintTokenUuid(raw) ?? undefined
+          : raw;
+        let check: OfflineCheck = 'no_manifest';
+        if (gate.eventId && offlineTicketId) {
+          check = await validateOffline(gate.eventId, offlineTicketId);
+        }
+
+        if (check === 'not_found') {
+          setResult({
+            result: 'not_found',
+            message: 'OFFLINE: lístek NENÍ ve staženém seznamu platných — NEVPOUŠTĚT.',
+          });
+        } else if (check === 'already_used') {
+          setResult({
+            result: 'already_used',
+            message: 'OFFLINE: tento lístek už byl tímto zařízením odbaven.',
+          });
+        } else if (check === 'admitted') {
+          setResult({
+            result: 'admitted',
+            message: 'Přijato offline (ověřeno proti staženému seznamu). Sync po obnovení.',
+          });
+          setTicketId('');
+          setTotpCode('');
+        } else {
+          // no_manifest → optimistic accept, ale jasně upozorni, že NEbylo ověřeno
+          setResult({
+            result: 'admitted',
+            message: '⚠ Přijato offline BEZ ověření (není stažený seznam). Sync po obnovení.',
+          });
+          setTicketId('');
+          setTotpCode('');
+        }
       } catch {
         setResult({ result: 'error', message: 'Offline queue selhala (IndexedDB nedostupný).' });
       } finally {
@@ -319,6 +399,32 @@ export default function ScannerPage() {
           >
             zavřít
           </button>
+        </div>
+      ) : null}
+
+      {/* Offline připravenost: stažený whitelist platných lístků pro zvolenou akci. */}
+      {gate.eventId ? (
+        <div className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm">
+          <span className="text-muted-foreground">
+            {manifestMeta ? (
+              <>
+                Offline seznam: <strong className="text-foreground">{manifestMeta.count.toLocaleString('cs-CZ')}</strong>{' '}
+                lístků · staženo {new Date(manifestMeta.savedAt).toLocaleString('cs-CZ')}
+              </>
+            ) : (
+              <>⚠ Offline seznam není stažený — offline sken nepůjde ověřit. Stáhni před akcí (online).</>
+            )}
+          </span>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => void downloadManifest()}
+            disabled={manifestLoading || !online}
+            title={!online ? 'Stažení vyžaduje připojení' : undefined}
+          >
+            {manifestLoading ? 'Stahuji…' : manifestMeta ? 'Aktualizovat' : 'Stáhnout offline seznam'}
+          </Button>
         </div>
       ) : null}
 

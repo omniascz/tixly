@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter, runAsActivePromoterNonStaff } from '@/lib/admin-auth';
+import { runAsPromoterNonStaff, runAsActivePromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
 
 
@@ -29,7 +29,7 @@ const postSchema = z
   });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  return runAsPromoter(req, async (promoter) => {
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const r = await db().query<{
     id: string;
     invoice_number: string;

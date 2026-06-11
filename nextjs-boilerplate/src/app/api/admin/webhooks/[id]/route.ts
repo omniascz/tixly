@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter } from '@/lib/admin-auth';
+import { runAsPromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
 import { WEBHOOK_EVENT_TYPES } from '@/lib/webhooks/event-types';
 
@@ -21,7 +21,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  return runAsPromoter(req, async (promoter) => {
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
     return NextResponse.json({ error: 'Bad id' }, { status: 400 });
@@ -74,7 +74,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  return runAsPromoter(req, async (promoter) => {
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
     return NextResponse.json({ error: 'Bad id' }, { status: 400 });

@@ -238,9 +238,15 @@ export default function PosPage() {
                       onChange={() => setPaymentMethod('card_terminal')}
                     />
                     <CreditCard className="h-4 w-4" aria-hidden />
-                    <span className="font-medium">Terminál</span>
+                    <span className="font-medium">Karta (externí terminál)</span>
                   </label>
                 </div>
+                {paymentMethod === 'card_terminal' ? (
+                  <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-[11px] text-amber-900">
+                    ⚠ Tixly kartu <strong>neúčtuje</strong>. Platbu zpracuj na svém
+                    platebním terminálu zvlášť; tady ji jen zaeviduješ a vystavíš lístek.
+                  </p>
+                ) : null}
               </fieldset>
 
               {error ? (

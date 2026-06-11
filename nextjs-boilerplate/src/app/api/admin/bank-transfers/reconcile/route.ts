@@ -21,7 +21,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
-import { runAsActivePromoter } from '@/lib/admin-auth';
+import { runAsActivePromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
 
 
@@ -41,7 +41,7 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
-  return runAsActivePromoter(req, async (promoter) => {
+  return runAsActivePromoterNonStaff(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) {

@@ -8,7 +8,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter } from '@/lib/admin-auth';
+import { runAsPromoterNonStaff } from '@/lib/admin-auth';
 import { buildIsdocXml, IsdocInvoiceData } from '@/lib/accounting/isdoc';
 
 
@@ -16,7 +16,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  return runAsPromoter(req, async (promoter) => {
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
     return NextResponse.json({ error: 'INVALID_ID' }, { status: 400 });

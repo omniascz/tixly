@@ -5,11 +5,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
-import { runAsActivePromoter } from '@/lib/admin-auth';
+import { runAsActivePromoterNonStaff } from '@/lib/admin-auth';
 
 
 export async function GET(req: NextRequest): Promise<Response> {
-  return runAsActivePromoter(req, async (promoter) => {
+  return runAsActivePromoterNonStaff(req, async (promoter) => {
   const statusFilter = req.nextUrl.searchParams.get('status');
   const args: unknown[] = [promoter.promoterId];
   let statusClause = '';

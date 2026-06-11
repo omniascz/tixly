@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
+import { runAsPromoterNonStaff, runAsActivePromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
 
 
@@ -33,7 +33,7 @@ interface SettingsRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  return runAsPromoter(req, async (promoter) => {
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const r = await db().query<SettingsRow>(
     `SELECT
        p.id AS promoter_id, p.name AS promoter_name, p.slug AS promoter_slug, p.email AS promoter_email,
@@ -118,7 +118,7 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(req: NextRequest): Promise<Response> {
-  return runAsActivePromoter(req, async (promoter) => {
+  return runAsActivePromoterNonStaff(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {

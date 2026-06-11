@@ -36,6 +36,8 @@ interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
+  /** Viditelné i pro roli 'staff' (produkce/personál). Bez flagu = jen owner/manager. */
+  staffAllowed?: boolean;
 }
 
 interface NavSection {
@@ -48,17 +50,17 @@ const sections: NavSection[] = [
     label: 'Akce',
     items: [
       { href: '/admin/events/new', label: 'Nová akce', icon: Plus },
-      { href: '/admin/events', label: 'Akce', icon: CalendarDays },
-      { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/admin/events', label: 'Akce', icon: CalendarDays, staffAllowed: true },
+      { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, staffAllowed: true },
     ],
   },
   {
     label: 'Prodej',
     items: [
-      { href: '/admin/orders', label: 'Objednávky', icon: ShoppingCart },
+      { href: '/admin/orders', label: 'Objednávky', icon: ShoppingCart, staffAllowed: true },
       { href: '/admin/customers', label: 'Zákazníci', icon: Users },
-      { href: '/admin/pos', label: 'Pokladna (POS)', icon: Banknote },
-      { href: '/admin/scanner', label: 'Scanner', icon: ScanLine },
+      { href: '/admin/pos', label: 'Pokladna (POS)', icon: Banknote, staffAllowed: true },
+      { href: '/admin/scanner', label: 'Scanner', icon: ScanLine, staffAllowed: true },
       { href: '/admin/event-groups', label: 'Event Groups', icon: Layers },
       { href: '/admin/embed', label: 'Embed na web', icon: Code2 },
       { href: '/admin/subscriptions', label: 'Abonentky', icon: TrendingUp },
@@ -68,7 +70,7 @@ const sections: NavSection[] = [
   {
     label: 'Přehled & analytika',
     items: [
-      { href: '/admin/dashboard/live', label: 'Live prodej', icon: TrendingUp },
+      { href: '/admin/dashboard/live', label: 'Live prodej', icon: TrendingUp, staffAllowed: true },
       { href: '/admin/pricemaster', label: 'Pricemaster', icon: TrendingUp },
     ],
   },
@@ -125,8 +127,17 @@ const sections: NavSection[] = [
   },
 ];
 
-export function Sidebar() {
+export function Sidebar({ promoterRole }: { promoterRole?: string | null }) {
   const pathname = usePathname();
+  const isStaff = promoterRole === 'staff';
+
+  // Role 'staff' (produkce/personál u dveří/pokladny) vidí JEN operativní položky —
+  // ne finance, marketing, integrace ani audit. Owner/manager vidí vše.
+  const visibleSections = isStaff
+    ? sections
+        .map((s) => ({ ...s, items: s.items.filter((i) => i.staffAllowed) }))
+        .filter((s) => s.items.length > 0)
+    : sections;
 
   return (
     <aside className="flex h-screen w-60 flex-col border-r bg-card">
@@ -139,8 +150,14 @@ export function Sidebar() {
         </Link>
       </div>
 
+      {isStaff ? (
+        <div className="mx-3 mt-3 rounded-md bg-indigo-50 px-3 py-1.5 text-[11px] font-medium text-indigo-900">
+          Produkční přístup — finanční a nastavovací sekce skryté
+        </div>
+      ) : null}
+
       <nav className="flex-1 overflow-y-auto p-3">
-        {sections.map((section, idx) => (
+        {visibleSections.map((section, idx) => (
           <div key={section.label} className={idx > 0 ? 'mt-4' : ''}>
             {idx > 0 ? (
               <div className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">

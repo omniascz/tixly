@@ -15,6 +15,8 @@ import {
 export async function getServerRoles(): Promise<{
   isPlatformAdmin: boolean;
   hasPromoter: boolean;
+  /** Role aktivního členství (owner/manager/staff…) — pro role-scoped navigaci. */
+  promoterRole: string | null;
 } | null> {
   const token = cookies().get('accessToken')?.value;
   if (!token) return null;
@@ -25,12 +27,20 @@ export async function getServerRoles(): Promise<{
       algorithms: ['HS256'],
     });
     const roles = (payload as {
-      roles?: { isPlatformAdmin?: boolean; promoterMemberships?: unknown[] };
+      roles?: {
+        isPlatformAdmin?: boolean;
+        promoterMemberships?: { status?: string; role?: string }[];
+      };
     }).roles;
+    const memberships = Array.isArray(roles?.promoterMemberships)
+      ? roles!.promoterMemberships!
+      : [];
+    // Stejné pořadí jako requirePromoter: aktivní členství má přednost.
+    const active = memberships.find((m) => m?.status === 'active') ?? memberships[0];
     return {
       isPlatformAdmin: roles?.isPlatformAdmin === true,
-      hasPromoter:
-        Array.isArray(roles?.promoterMemberships) && roles!.promoterMemberships!.length > 0,
+      hasPromoter: memberships.length > 0,
+      promoterRole: active?.role ?? null,
     };
   } catch {
     return null;

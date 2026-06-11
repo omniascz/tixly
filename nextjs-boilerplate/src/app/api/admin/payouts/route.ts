@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter } from '@/lib/admin-auth';
+import { runAsPromoterNonStaff } from '@/lib/admin-auth';
 
 const PLATFORM_FEE_BPS = 500; // 5.00 %
 
@@ -34,7 +34,7 @@ interface BucketRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  return runAsPromoter(req, async (promoter) => {
+  return runAsPromoterNonStaff(req, async (promoter) => {
   // 1) Skutečné výplaty
   const real = await db().query<PayoutRow>(
     `SELECT id, period_from, period_to, gross_revenue, platform_fees,
