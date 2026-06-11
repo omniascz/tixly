@@ -12,6 +12,7 @@
 import { randomBytes } from 'crypto';
 import { db } from '@/lib/db/rls-pool';
 import { runAsPromoter } from '@/lib/admin-auth';
+import { assertPublicHttpUrl, SsrfError } from '@/lib/security/ssrf';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { WEBHOOK_EVENT_TYPES } from '@/lib/webhooks/event-types';
@@ -53,6 +54,19 @@ export async function POST(req: NextRequest): Promise<Response> {
       { error: 'Invalid input', issues: parsed.error.issues },
       { status: 422 },
     );
+  }
+
+  // SSRF guard už při ukládání — interní/privátní URL se nesmí ani zaregistrovat.
+  try {
+    await assertPublicHttpUrl(parsed.data.url);
+  } catch (err) {
+    if (err instanceof SsrfError) {
+      return NextResponse.json(
+        { error: 'URL musí ukazovat na veřejný http(s) endpoint (ne localhost/interní IP).' },
+        { status: 422 },
+      );
+    }
+    throw err;
   }
 
   const secret = randomBytes(16).toString('hex');

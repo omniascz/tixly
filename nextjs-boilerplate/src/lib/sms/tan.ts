@@ -9,6 +9,7 @@
  */
 import crypto from 'node:crypto';
 import { db } from '@/lib/db/rls-pool';
+import { safeEqualStr } from '@/lib/security/compare';
 
 
 const TAN_TTL_MINUTES = 15;
@@ -96,7 +97,7 @@ export async function verifyTan(input: {
   if (new Date(row.expires_at) < new Date()) return { valid: false, reason: 'expired' };
   if (row.attempts >= MAX_ATTEMPTS) return { valid: false, reason: 'too_many_attempts' };
 
-  if (row.code !== input.code) {
+  if (!safeEqualStr(row.code, input.code)) {
     await db().query(
       `UPDATE identity.tan_codes SET attempts = attempts + 1 WHERE id = $1`,
       [input.tanId],

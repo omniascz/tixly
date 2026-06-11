@@ -167,10 +167,7 @@ export async function POST(
   } catch (e) {
     await client.query('ROLLBACK');
     console.error('[event clone]', e);
-    return NextResponse.json({
-      error: 'CLONE_FAILED',
-      message: e instanceof Error ? e.message : 'unknown',
-    }, { status: 500 });
+    return NextResponse.json({ error: 'CLONE_FAILED' }, { status: 500 });
   } finally {
     client.release();
   }

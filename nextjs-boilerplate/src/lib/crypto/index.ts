@@ -7,8 +7,16 @@ const TAG_LEN = 16;
 function getKey(): Buffer {
   const hex = process.env.ENCRYPTION_KEY;
   if (!hex) throw new Error('ENCRYPTION_KEY not set');
-  if (hex.length !== 64) return createHash('sha256').update(hex).digest();
-  return Buffer.from(hex, 'hex');
+  if (/^[0-9a-fA-F]{64}$/.test(hex)) return Buffer.from(hex, 'hex');
+  // V produkci NEakceptujeme libovolný řetězec stretchovaný přes sha256 —
+  // tichý sha256(„changeme") = slabý klíč bez entropického dna. Vyžaduj
+  // 32bytový klíč jako 64 hex znaků (openssl rand -hex 32).
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'ENCRYPTION_KEY must be 64 hex chars (32 bytes) in production — generate with `openssl rand -hex 32`.',
+    );
+  }
+  return createHash('sha256').update(hex).digest();
 }
 
 export function encryptSecret(plaintext: string): string {

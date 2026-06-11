@@ -12,6 +12,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
+import { clientIp } from '@/lib/security/client-ip';
 import { z } from 'zod';
 
 
@@ -21,6 +23,15 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // Rate limit: veřejný endpoint vracející zůstatek poukazu → bez limitu by šlo
+  // enumerovat kódy/zůstatky. Stejný vzor jako unlock-access-code / promo validate.
+  const rl = await checkRateLimit(`voucher-lookup:${clientIp(req)}`, {
+    limit: 20,
+    windowMs: 300_000,
+  });
+  const limited = rateLimitResponse(rl, 'voucher-lookup');
+  if (limited) return limited;
+
   return runWithServiceContext(async () => {
 
   const body: unknown = await req.json().catch(() => ({}));

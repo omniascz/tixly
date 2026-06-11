@@ -2,14 +2,23 @@ import { jwtVerify } from 'jose';
 import { NextRequest, NextResponse } from 'next/server';
 import { runWithPlatformAdminContext } from './db/rls-pool';
 
-const secretKey = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? 'dev-secret-change-me-min-32-chars-please',
-);
+// Lazy JWT secret — v produkci povinný (žádný forge-able literal fallback),
+// v dev/test fallback kvůli lokálnímu běhu. Viz auth.ts getSecretKey().
+function getSecretKey(): Uint8Array {
+  let secret = process.env.JWT_SECRET;
+  if (!secret || secret.length < 32) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET missing or too short in production (min 32 chars)');
+    }
+    secret = 'dev-secret-change-me-min-32-chars-please';
+  }
+  return new TextEncoder().encode(secret);
+}
 
 async function verifyAdminToken(token: string | null | undefined): Promise<{ userId: string } | null> {
   if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, secretKey);
+    const { payload } = await jwtVerify(token, getSecretKey());
     const roles = (payload as { roles?: { isPlatformAdmin?: boolean } }).roles;
     if (!roles?.isPlatformAdmin) return null;
     const sub = payload.sub;

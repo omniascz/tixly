@@ -11,6 +11,7 @@
  */
 
 import { createHmac } from 'crypto';
+import { safeEqualStr } from '@/lib/security/compare';
 
 const STEP_SECONDS = 30;
 const DIGITS = 6;
@@ -53,7 +54,7 @@ export function verifyTotpCode(
   for (let offset = -window; offset <= window; offset++) {
     const counter = baseCounter + BigInt(offset);
     if (counter < 0n) continue;
-    if (generateCode(secretRaw, counter) === candidate) return true;
+    if (safeEqualStr(generateCode(secretRaw, counter), candidate)) return true;
   }
   return false;
 }

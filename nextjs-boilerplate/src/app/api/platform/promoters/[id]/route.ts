@@ -241,7 +241,7 @@ export async function PATCH(
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('[PATCH /api/platform/promoters/[id]]', err);
-    return NextResponse.json({ error: 'INTERNAL', message: String(err) }, { status: 500 });
+    return NextResponse.json({ error: 'INTERNAL' }, { status: 500 });
   } finally {
     client.release();
   }

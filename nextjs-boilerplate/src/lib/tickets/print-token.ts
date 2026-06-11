@@ -18,13 +18,18 @@
  * Sdílí klíč i b64url helpery se [[safetix/group-token]] (stejný NFC_SIGNING_KEY).
  */
 import crypto from 'node:crypto';
+import { resolveSecret } from '@/lib/security/secrets';
 
 const SCHEME = 'TXP1';
 const HMAC_BYTES = 10;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function getKey(): Buffer {
-  const k = process.env.NFC_SIGNING_KEY ?? process.env.JWT_SECRET ?? 'dev-nfc-secret-fallback';
+  const k = resolveSecret(
+    process.env.NFC_SIGNING_KEY ?? process.env.JWT_SECRET,
+    'NFC_SIGNING_KEY (or JWT_SECRET)',
+    'dev-nfc-secret-fallback',
+  );
   return Buffer.from(k, 'utf8');
 }
 

@@ -10,6 +10,7 @@
  * Algoritmus: HMAC-SHA256 s NFC_SIGNING_KEY (stejný secret jako SafeTix NFC).
  */
 import crypto from 'node:crypto';
+import { resolveSecret } from '@/lib/security/secrets';
 
 const TTL_SECONDS = 60;
 
@@ -20,7 +21,11 @@ export interface GroupPayload {
 }
 
 function getKey(): Buffer {
-  const k = process.env.NFC_SIGNING_KEY ?? process.env.JWT_SECRET ?? 'dev-nfc-secret-fallback';
+  const k = resolveSecret(
+    process.env.NFC_SIGNING_KEY ?? process.env.JWT_SECRET,
+    'NFC_SIGNING_KEY (or JWT_SECRET)',
+    'dev-nfc-secret-fallback',
+  );
   return Buffer.from(k, 'utf8');
 }
 function b64url(buf: Buffer): string {

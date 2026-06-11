@@ -14,6 +14,7 @@ import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
+import { clientIp as getClientIp } from '@/lib/security/client-ip';
 
 
 const schema = z.object({
@@ -22,14 +23,6 @@ const schema = z.object({
 });
 
 const BCRYPT_COST = 12; // pro password hash, vyšší než token hash
-
-function getClientIp(req: NextRequest): string {
-  return (
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    req.headers.get('x-real-ip') ??
-    'unknown'
-  );
-}
 
 export async function POST(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {

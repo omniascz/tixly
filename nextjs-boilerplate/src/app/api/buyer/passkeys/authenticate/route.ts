@@ -69,6 +69,13 @@ export async function GET(req: NextRequest): Promise<Response> {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // SECURITY: tento handler je SKELETON — NEověřuje assertion signature, takže
+  // by kdokoli se znalostí credential_id dostal `authenticated:true` pro cizí
+  // user_id. Dokud není integrovaný @simplewebauthn/server, v produkci ho NEsmíme
+  // vystavit (fail-closed) — vrátíme 404, jako by neexistoval.
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+  }
   return runWithServiceContext(async () => {
 
   const body: unknown = await req.json().catch(() => ({}));

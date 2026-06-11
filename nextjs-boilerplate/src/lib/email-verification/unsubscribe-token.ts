@@ -12,11 +12,16 @@
 
 import { createHmac, timingSafeEqual } from 'crypto';
 import { Buffer } from 'node:buffer';
+import { resolveSecret } from '@/lib/security/secrets';
 
 export type UnsubScope = 'marketing' | 'promoter_news' | 'all';
 
 function getSecret(): string {
-  return process.env.EMAIL_VERIFY_SECRET ?? process.env.JWT_SECRET ?? 'demo';
+  return resolveSecret(
+    process.env.EMAIL_VERIFY_SECRET ?? process.env.JWT_SECRET,
+    'EMAIL_VERIFY_SECRET (or JWT_SECRET)',
+    'demo',
+  );
 }
 
 function base64url(buf: Buffer): string {

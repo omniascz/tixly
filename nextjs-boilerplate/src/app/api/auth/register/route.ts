@@ -9,6 +9,7 @@ import {
 } from '@/lib/auth';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
+import { clientIp } from '@/lib/security/client-ip';
 
 const schema = z.object({
   email: z.string().email(),
@@ -18,7 +19,7 @@ const schema = z.object({
 
 export async function POST(request: NextRequest): Promise<Response> {
   // Anti-spam: max 10 registrací kupujícího / hod per IP.
-  const ip = (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
+  const ip = clientIp(request);
   const limited = rateLimitResponse(
     await checkRateLimit(`register:${ip}`, { limit: 10, windowMs: 3_600_000 }),
     'register',

@@ -185,10 +185,9 @@ export async function POST(req: NextRequest): Promise<Response> {
     });
   } catch (err) {
     await client.query('ROLLBACK');
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error('[POST /api/buyer/resale/buy]', msg, err);
+    console.error('[POST /api/buyer/resale/buy]', err);
     return NextResponse.json(
-      { error: 'Internal server error', detail: msg },
+      { error: 'Internal server error' },
       { status: 500 },
     );
   } finally {

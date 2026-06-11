@@ -9,7 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 import QRCode from 'qrcode';
 
 
@@ -19,10 +20,16 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string; campaignId: string } },
 ): Promise<Response> {
-  return runWithServiceContext(async () => {
+  return runAsPromoter(req, async (promoter) => {
 
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // Cross-tenant ochrana: akce (a tím i kampaň) musí patřit promotérovi.
+  const owns = await db().query(
+    `SELECT 1 FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
+    [params.id, promoter.promoterId],
+  );
+  if (owns.rowCount === 0) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
 
   const r = await db().query<{ slug: string; name: string }>(
     `SELECT slug, name FROM marketing.qr_campaigns

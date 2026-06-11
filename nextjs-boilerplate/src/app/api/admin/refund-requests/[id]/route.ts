@@ -204,10 +204,7 @@ export async function PATCH(
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('[PATCH /api/admin/refund-requests/[id]]', err);
-    return NextResponse.json(
-      { error: 'INTERNAL', message: err instanceof Error ? err.message : String(err) },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'INTERNAL' }, { status: 500 });
   } finally {
     client.release();
   }

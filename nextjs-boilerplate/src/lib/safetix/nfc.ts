@@ -11,6 +11,7 @@
  * Replay protection: tickets.nfc_taps má UNIQUE jti.
  */
 import crypto from 'node:crypto';
+import { resolveSecret } from '@/lib/security/secrets';
 
 const NFC_TTL_SECONDS = 10;
 
@@ -22,7 +23,11 @@ export interface NfcPayload {
 }
 
 function getKey(): Buffer {
-  const k = process.env.NFC_SIGNING_KEY ?? process.env.JWT_SECRET ?? 'dev-nfc-secret-fallback';
+  const k = resolveSecret(
+    process.env.NFC_SIGNING_KEY ?? process.env.JWT_SECRET,
+    'NFC_SIGNING_KEY (or JWT_SECRET)',
+    'dev-nfc-secret-fallback',
+  );
   return Buffer.from(k, 'utf8');
 }
 

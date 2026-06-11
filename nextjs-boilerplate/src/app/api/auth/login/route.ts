@@ -9,6 +9,7 @@ import {
 } from '@/lib/auth';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
+import { clientIp } from '@/lib/security/client-ip';
 
 const schema = z.object({
   email: z.string().email(),
@@ -34,12 +35,21 @@ export async function POST(request: NextRequest): Promise<Response> {
   }
   const { email, password, totpCode, backupCode } = parsed.data;
 
-  // Brute-force ochrana: limit pokusů per IP (20 / 5 min → 429). Globální přes Redis
-  // (Upstash), s in-memory fallbackem když Redis nedostupný.
-  const ip = (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
-  const rl = await checkRateLimit(`login:${ip}`, { limit: 20, windowMs: 5 * 60_000 });
-  const limited = rateLimitResponse(rl, 'login');
-  if (limited) return limited;
+  // Brute-force ochrana ve DVOU rovinách (globální přes Redis/Upstash, in-memory
+  // fallback): per IP (10 / 5 min) proti plošnému hádání a per ÚČET (10 / 15 min)
+  // proti cílenému hádání hesla z mnoha IP. IP se bere z důvěryhodného req.ip
+  // (Vercel), ne z klientem ovladatelného x-forwarded-for levého prvku.
+  const ip = clientIp(request);
+  const rlIp = await checkRateLimit(`login:${ip}`, { limit: 10, windowMs: 5 * 60_000 });
+  const limitedIp = rateLimitResponse(rlIp, 'login');
+  if (limitedIp) return limitedIp;
+
+  const rlAcct = await checkRateLimit(`login-acct:${email.toLowerCase()}`, {
+    limit: 10,
+    windowMs: 15 * 60_000,
+  });
+  const limitedAcct = rateLimitResponse(rlAcct, 'login');
+  if (limitedAcct) return limitedAcct;
 
   // password_hash žije v identity.user_secrets (RLS split) — login je service kontext.
   const result = await db().query<UserRow>(

@@ -9,6 +9,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { createHash } from 'crypto';
+import { resolveSecret } from '@/lib/security/secrets';
+import { clientIp } from '@/lib/security/client-ip';
 import { z } from 'zod';
 
 const bodySchema = z.object({
@@ -21,7 +23,13 @@ const bodySchema = z.object({
 
 
 function hashIp(ip: string): string {
-  const salt = process.env.IP_HASH_SALT ?? 'tixly-default-salt-rotate-quarterly';
+  // Salt nesmí být v produkci veřejně známý literal — jinak je IPv4 hash
+  // triviálně reverzibilní (brute-force celého prostoru) a pseudonymizace padá.
+  const salt = resolveSecret(
+    process.env.IP_HASH_SALT,
+    'IP_HASH_SALT',
+    'tixly-default-salt-rotate-quarterly',
+  );
   return createHash('sha256').update(`${salt}:${ip}`).digest('hex').slice(0, 32);
 }
 
@@ -37,8 +45,8 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   const userId = req.headers.get('x-user-id')?.trim() || null;
-  const forwardedFor = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '';
-  const ipHash = forwardedFor ? hashIp(forwardedFor) : null;
+  const ip = clientIp(req);
+  const ipHash = ip && ip !== 'unknown' ? hashIp(ip) : null;
   const ua = req.headers.get('user-agent')?.slice(0, 500) ?? null;
 
   try {

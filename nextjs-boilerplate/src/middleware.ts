@@ -88,18 +88,32 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   // ── 1. API routes ────────────────────────────────────────────────────────
   if (pathname.startsWith('/api/')) {
+    // SECURITY (CRITICAL): identita smí pocházet VÝHRADNĚ z JWT, který níže sami
+    // ověříme a injektujeme jako x-user-id / x-is-admin. Jakýkoli stejnojmenný
+    // header v PŘÍCHOZÍM requestu je klientem podvržený pokus o impersonaci —
+    // proto ho zahodíme na VŠECH cestách (i pass-through / public / optional-auth
+    // bez tokenu), DŘÍV než se dostane k handlerům (runAsUser, requirePromoter…),
+    // které těmto hlavičkám slepě věří. Bez tohohle stripu stačí poslat
+    // `x-user-id: <uuid-oběti>` a číst/měnit cizí data bez jakéhokoli tokenu.
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.delete('x-user-id');
+    requestHeaders.delete('x-is-admin');
+    requestHeaders.delete('x-is-platform-admin');
+    const passThrough = (): NextResponse =>
+      NextResponse.next({ request: { headers: requestHeaders } });
+
     if (pathname.startsWith(API_AUTH_PREFIX)) {
-      return NextResponse.next();
+      return passThrough();
     }
     if (PUBLIC_API_PREFIXES.some((r) => pathname.startsWith(r))) {
-      return NextResponse.next();
+      return passThrough();
     }
 
     const isPublicGet =
       API_PUBLIC_GET_ROUTES.some((r) => pathname.startsWith(r)) &&
       request.method === 'GET';
     if (isPublicGet) {
-      return NextResponse.next();
+      return passThrough();
     }
 
     const isPlatformApi = API_PLATFORM_PREFIXES.some((r) => pathname.startsWith(r));
@@ -109,7 +123,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     );
 
     if (!isPlatformApi && !isPromoterApi && !isOptionalAuthApi) {
-      return NextResponse.next();
+      return passThrough();
     }
 
     // Optional auth: if token present propagate user, else pass through unauthenticated
@@ -118,13 +132,12 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
       const bearer =
         authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
       const cookieToken = request.cookies.get('accessToken')?.value ?? null;
-      if (!bearer && !cookieToken) return NextResponse.next();
+      if (!bearer && !cookieToken) return passThrough();
       let payload = bearer ? await verifyTokenEdge(bearer) : null;
       if (!payload && cookieToken && cookieToken !== bearer) {
         payload = await verifyTokenEdge(cookieToken);
       }
-      if (!payload) return NextResponse.next();
-      const requestHeaders = new Headers(request.headers);
+      if (!payload) return passThrough();
       requestHeaders.set('x-user-id', payload.sub);
       return NextResponse.next({ request: { headers: requestHeaders } });
     }
@@ -173,7 +186,6 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const requestHeaders = new Headers(request.headers);
     requestHeaders.set('x-user-id', payload.sub);
     requestHeaders.set('x-is-admin', payload.isAdmin ? 'true' : 'false');
     return NextResponse.next({ request: { headers: requestHeaders } });

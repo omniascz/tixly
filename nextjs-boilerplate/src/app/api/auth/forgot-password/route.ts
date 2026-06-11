@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { sendMail } from '@/lib/email/mailer';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
+import { clientIp as getClientIp } from '@/lib/security/client-ip';
 
 
 const schema = z.object({
@@ -22,14 +23,6 @@ const schema = z.object({
 
 const RESET_TTL_HOURS = 1;
 const BCRYPT_COST = 10;
-
-function getClientIp(req: NextRequest): string {
-  return (
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    req.headers.get('x-real-ip') ??
-    'unknown'
-  );
-}
 
 function buildResetUrl(token: string, locale: string = 'cs'): string {
   const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
