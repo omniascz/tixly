@@ -126,10 +126,8 @@ export async function POST(
     return NextResponse.json({ ok: true, applied });
   } catch (e) {
     await client.query('ROLLBACK');
-    return NextResponse.json({
-      error: 'APPLY_FAILED',
-      message: e instanceof Error ? e.message : 'unknown',
-    }, { status: 500 });
+    console.error('[POST /api/admin/event-templates/[id]/apply]', e);
+    return NextResponse.json({ error: 'APPLY_FAILED' }, { status: 500 });
   } finally {
     client.release();
   }

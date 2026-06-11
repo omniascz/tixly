@@ -11,16 +11,25 @@
  *  zjistit, že byl naskenován neplatný/použitý lístek — v takovém případě
  *  záznam zůstává v queue s `serverResult: 'already_used'` apod. pro audit.
  *
- *  Pro provozně tvrdší řešení by se měla pre-loadovat whitelist platných
- *  ticket IDs před začátkem představení a validovat proti ní (TODO).
+ *  TVRDŠÍ OFFLINE (v2): scanner si přes `saveManifest()` předstáhne whitelist
+ *  platných ticket UUID pro akci a offline ověřuje sken proti němu
+ *  (`validateOffline()`) + drží lokální evidenci už použitých (anti dvojí-vstup).
+ *  Padělaný/cizí lístek se tak offline odmítne, ne slepě pustí.
  */
 
 const DB_NAME = 'tixly-scanner';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'pending-scans';
+/** Whitelist platných ticket UUID per akce: keyPath 'eventId'. */
+const MANIFEST_STORE = 'manifest';
+/** Offline použité ticket UUID (anti dvojí-vstup bez sítě): keyPath 'key' = `${eventId}:${ticketId}`. */
+const REDEEMED_STORE = 'offline-redeemed';
 
 export interface ScanPayload {
-  ticketId: string;
+  /** Holý ticket UUID (mobilní/manuální sken). Vzájemně výlučné s printToken. */
+  ticketId?: string;
+  /** Podepsaný token z tištěné vstupenky (104mm label). */
+  printToken?: string;
   totpCode?: string;
   eventDayId?: string;
   zoneId?: string;
@@ -50,6 +59,12 @@ function openDb(): Promise<IDBDatabase> {
         const db = req.result;
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+        }
+        if (!db.objectStoreNames.contains(MANIFEST_STORE)) {
+          db.createObjectStore(MANIFEST_STORE, { keyPath: 'eventId' });
+        }
+        if (!db.objectStoreNames.contains(REDEEMED_STORE)) {
+          db.createObjectStore(REDEEMED_STORE, { keyPath: 'key' });
         }
       };
     });
@@ -168,7 +183,10 @@ export async function flushQueue(authToken: string | null): Promise<FlushResult>
       out.synced += 1;
       // Pokud lístek byl already_used / not_found / wrong_promoter → byl falešný
       if (result !== 'admitted') {
-        out.conflicts.push({ ticketId: scan.payload.ticketId, result });
+        out.conflicts.push({
+          ticketId: scan.payload.ticketId ?? scan.payload.printToken ?? '?',
+          result,
+        });
       }
     } catch {
       // síťová chyba — necháme v queue
@@ -194,4 +212,118 @@ export async function clearSynced(): Promise<void> {
     };
     req.onerror = () => reject(req.error);
   });
+}
+
+// ── Offline whitelist (v2) ───────────────────────────────────────────────────
+
+interface ManifestRecord {
+  eventId: string;
+  ticketIds: string[];
+  generatedAt: string;
+  savedAt: number;
+}
+
+export interface ManifestMeta {
+  count: number;
+  generatedAt: string;
+  savedAt: number;
+}
+
+/** Uloží whitelist platných ticket UUID pro akci (stáhnuto z /scanner/manifest). */
+export async function saveManifest(
+  eventId: string,
+  ticketIds: string[],
+  generatedAt: string,
+): Promise<void> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(MANIFEST_STORE, 'readwrite');
+    const rec: ManifestRecord = {
+      eventId,
+      ticketIds: ticketIds.map((t) => t.toLowerCase()),
+      generatedAt,
+      savedAt: Date.now(),
+    };
+    const req = tx.objectStore(MANIFEST_STORE).put(rec);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function getManifest(eventId: string): Promise<ManifestRecord | null> {
+  try {
+    const db = await openDb();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(MANIFEST_STORE, 'readonly');
+      const req = tx.objectStore(MANIFEST_STORE).get(eventId);
+      req.onsuccess = () => resolve((req.result as ManifestRecord) ?? null);
+      req.onerror = () => reject(req.error);
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function getManifestMeta(eventId: string): Promise<ManifestMeta | null> {
+  const m = await getManifest(eventId);
+  if (!m) return null;
+  return { count: m.ticketIds.length, generatedAt: m.generatedAt, savedAt: m.savedAt };
+}
+
+export type OfflineCheck =
+  | 'admitted'
+  | 'not_found'
+  | 'already_used'
+  | 'no_manifest'; // žádný stažený whitelist → caller padá na optimistic
+
+/**
+ * Offline ověření skenu proti staženému whitelistu + lokální evidenci použití.
+ * Při 'admitted' rovnou označí lístek jako lokálně použitý (anti dvojí-vstup).
+ * Vrací 'no_manifest', pokud pro akci není whitelist (caller pak může optimistic).
+ */
+export async function validateOffline(eventId: string, ticketId: string): Promise<OfflineCheck> {
+  const id = ticketId.toLowerCase();
+  const manifest = await getManifest(eventId);
+  if (!manifest) return 'no_manifest';
+  if (!manifest.ticketIds.includes(id)) return 'not_found';
+
+  const db = await openDb();
+  const key = `${eventId}:${id}`;
+  // Atomicky: pokud už lokálně použit → already_used, jinak označit a admit.
+  return await new Promise((resolve, reject) => {
+    const tx = db.transaction(REDEEMED_STORE, 'readwrite');
+    const store = tx.objectStore(REDEEMED_STORE);
+    const getReq = store.get(key);
+    getReq.onsuccess = () => {
+      if (getReq.result) {
+        resolve('already_used');
+        return;
+      }
+      store.put({ key, redeemedAt: Date.now() });
+      tx.oncomplete = () => resolve('admitted');
+    };
+    getReq.onerror = () => reject(getReq.error);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+/**
+ * Klientský (bez secretu) dekodér ticket UUID z tištěného print tokenu
+ * `TXP1.<b64url(uuid16+hmac10)>`. HMAC se offline neověřuje — anti-forgery
+ * zajišťuje členství ve whitelistu. Vrací UUID nebo null, když to není print token.
+ */
+export function decodePrintTokenUuid(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith('TXP1.')) return null;
+  try {
+    const body = trimmed.slice('TXP1.'.length);
+    const b64 = body.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (body.length % 4)) % 4);
+    const bin = atob(b64);
+    if (bin.length < 16) return null;
+    let hex = '';
+    for (let i = 0; i < 16; i++) hex += bin.charCodeAt(i).toString(16).padStart(2, '0');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+  } catch {
+    return null;
+  }
 }

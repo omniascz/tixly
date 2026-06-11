@@ -1,12 +1,6 @@
 import Link from 'next/link';
 import { Pool } from 'pg';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { formatCzechDate } from '@/lib/format';
 import {
   TOP_CATEGORIES,
@@ -20,9 +14,29 @@ interface EventRow {
   title: string;
   slug: string | null;
   date_start: string;
-  venue_name: string;
+  cover_image: string | null;
+  event_type: string | null;
+  venue_name: string | null;
+  city: string | null;
+  promoter_name: string | null;
+  min_price: number | null;
+  currency: string | null;
   category: string | null;
   subcategory: string | null;
+}
+
+function eventLocation(e: EventRow): string {
+  // Skutečné místo, ne paušální "Online". Online jen pro vyloženě online akce.
+  if (e.event_type === 'online' || e.event_type === 'virtual_stream') return 'Online';
+  if (e.venue_name && e.city) return `${e.venue_name}, ${e.city}`;
+  if (e.venue_name) return e.venue_name;
+  if (e.city) return e.city;
+  return e.promoter_name ?? '';
+}
+
+function fmtPrice(halire: number, currency: string | null): string {
+  const amount = (halire / 100).toLocaleString('cs-CZ');
+  return `${amount} ${currency === 'EUR' ? '€' : 'Kč'}`;
 }
 
 async function fetchEvents(filter: {
@@ -53,7 +67,11 @@ async function fetchEvents(filter: {
 
     const result = await db.query<EventRow>(
       `SELECT e.id, e.title, e.slug, e.date_start::text,
-              COALESCE(v.name, 'Online') AS venue_name,
+              e.cover_image_url AS cover_image, e.event_type,
+              v.name AS venue_name, v.city,
+              p.name AS promoter_name, e.currency,
+              (SELECT MIN(tt.base_price) FROM catalog.ticket_types tt
+                 WHERE tt.event_id = e.id AND tt.visibility <> 'hidden') AS min_price,
               e.category, e.subcategory
          FROM catalog.events e
          LEFT JOIN catalog.venues v ON v.id = e.venue_id
@@ -104,7 +122,7 @@ export default async function EventsPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Nadcházející akce</h1>
+        <h1 className="text-3xl font-bold">Všechny akce</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {events.length} akcí v prodeji
           {activeTopObj ? ` v kategorii ${activeTopObj.label}` : ''}
@@ -228,21 +246,29 @@ export default async function EventsPage({
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {events.map((e) => (
-            <Link key={e.id} href={`/${params.locale}/events/${e.slug ?? e.id}`}>
-              <Card className="h-full transition-shadow hover:shadow-md">
-                <CardHeader>
-                  <CardTitle className="text-base">{e.title}</CardTitle>
-                  <CardDescription>{e.venue_name}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-sm text-muted-foreground">
+          {events.map((e, i) => (
+            <Link key={e.id} href={`/${params.locale}/events/${e.slug ?? e.id}`} className="group">
+              <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
+                <div
+                  aria-hidden
+                  className="h-36 bg-cover bg-center"
+                  style={{
+                    background: e.cover_image
+                      ? `url(${e.cover_image}) center/cover`
+                      : `linear-gradient(135deg, hsl(${(i * 47) % 360},55%,52%), hsl(${(i * 47 + 50) % 360},60%,42%))`,
+                  }}
+                />
+                <CardContent className="space-y-1 pt-3">
+                  <p className="text-xs text-muted-foreground">{e.promoter_name ?? ''}</p>
+                  <h3 className="font-semibold leading-tight group-hover:text-primary">
+                    {e.title}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
                     {formatCzechDate(e.date_start)}
-                  </div>
-                  {e.subcategory ? (
-                    <div className="mt-2 text-xs text-muted-foreground">
-                      {getSubLabel(e.subcategory)}
-                    </div>
+                    {eventLocation(e) ? ` · ${eventLocation(e)}` : ''}
+                  </p>
+                  {e.min_price !== null ? (
+                    <p className="pt-1 text-sm font-medium">od {fmtPrice(e.min_price, e.currency)}</p>
                   ) : null}
                 </CardContent>
               </Card>

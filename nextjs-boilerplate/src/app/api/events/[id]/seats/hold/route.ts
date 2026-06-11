@@ -23,6 +23,11 @@ const schema = z.object({
   seatIds: z.array(z.string().uuid()).min(1).max(MAX_SEATS),
 });
 
+// CORS preflight pro cross-origin embed seat-picker (hold). Hlavičky doplní next.config.
+export function OPTIONS(): Response {
+  return new Response(null, { status: 204 });
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
@@ -36,30 +41,38 @@ export async function POST(
     );
   }
 
-  // Distinguish buyer: prefer x-user-id, fallback na hold token cookie
+  // Identita pro "uvolni MŮJ předchozí hold":
+  //  - authed buyer → x-user-id (uložené v hold_user_id),
+  //  - guest        → stabilní x-fingerprint z prohlížeče (uložené v hold_label).
+  // Bez fingerprintu sessionTag = null → úklid přeskočíme. Jinak by sdílený tag
+  // ('guest:guest') uvolnil holdy CIZÍCH guestů během souběžného onsale.
   const userId = req.headers.get('x-user-id');
-  // Pro guest checkout: vygenerujeme deterministic hold-pseudo-id z fingerprint
-  // Tady jen pseudo-userId fallback — server tag, no auth claim
-  const fingerprint = req.headers.get('x-fingerprint') ?? 'guest';
-  const sessionTag = userId ?? `guest:${fingerprint}`;
+  const fingerprint = req.headers.get('x-fingerprint');
+  const sessionTag = userId ?? (fingerprint ? `guest:${fingerprint}` : null);
 
   return runWithServiceContext(async () => {
     const client = await db().connect();
     try {
       await client.query('BEGIN');
 
-      // Release any prior holds by this buyer for this event (clean state)
-      await client.query(
-        `UPDATE catalog.event_seats
-         SET status = 'available', hold_user_id = NULL, hold_until = NULL
-         WHERE event_id = $1
-           AND status = 'held'
-           AND (
-             hold_user_id::text = $2
-             OR (hold_user_id IS NULL AND notes = $2)
-           )`,
-        [params.id, sessionTag],
-      );
+      // Release any prior holds by THIS buyer for this event (clean state).
+      // notes = holdToken (checkout proof) zůstává nedotčené; identitu nese
+      // hold_user_id (authed) / hold_label (guest).
+      if (sessionTag) {
+        await client.query(
+          `UPDATE catalog.event_seats
+           SET status = 'available', hold_user_id = NULL, hold_until = NULL,
+               notes = NULL, hold_label = NULL
+           WHERE event_id = $1
+             AND status = 'held'
+             AND hold_kind IS NULL  -- jen dočasné buyer/guest holdy, nikdy admin holdy
+             AND (
+               hold_user_id::text = $2
+               OR (hold_user_id IS NULL AND hold_label = $2)
+             )`,
+          [params.id, sessionTag],
+        );
+      }
 
       // Lock + verify all requested seats are available (or already this buyer's hold)
       const seats = await client.query<{ id: string; status: string; hold_until: string | null }>(
@@ -106,12 +119,15 @@ export async function POST(
           [parsed.data.seatIds, userId, expiresAt.toISOString(), holdToken],
         );
       } else {
+        // Guest: hold_user_id zůstává NULL, identitu drží hold_label = sessionTag
+        // (null, pokud guest neposlal fingerprint — pak ho retry-úklid nenajde,
+        // sedadla se uvolní až po TTL, ale nikdy neuvolníme cizí guesty).
         await client.query(
           `UPDATE catalog.event_seats
            SET status = 'held', hold_user_id = NULL, hold_until = $2, updated_at = NOW(),
-               notes = $3
+               notes = $3, hold_label = $4
            WHERE id = ANY($1::uuid[])`,
-          [parsed.data.seatIds, expiresAt.toISOString(), holdToken],
+          [parsed.data.seatIds, expiresAt.toISOString(), holdToken, sessionTag],
         );
       }
 
@@ -143,7 +159,7 @@ export async function DELETE(
   return runWithServiceContext(async () => {
     await db().query(
       `UPDATE catalog.event_seats
-       SET status = 'available', hold_user_id = NULL, hold_until = NULL, notes = NULL
+       SET status = 'available', hold_user_id = NULL, hold_until = NULL, notes = NULL, hold_label = NULL
        WHERE event_id = $1 AND notes = $2 AND status = 'held'`,
       [params.id, holdToken],
     );

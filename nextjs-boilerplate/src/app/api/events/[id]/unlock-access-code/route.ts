@@ -19,7 +19,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 const schema = z.object({
   code: z.string().min(1).max(40),
@@ -35,7 +35,7 @@ export async function POST(
     req.headers.get('x-real-ip') ??
     'unknown';
   const rlKey = `unlock:${params.id}:${ip}`;
-  const rl = checkRateLimit(rlKey, { limit: 20, windowMs: 5 * 60 * 1000 });
+  const rl = await checkRateLimit(rlKey, { limit: 20, windowMs: 5 * 60 * 1000 });
   const rlResp = rateLimitResponse(rl, 'unlock-access-code');
   if (rlResp) return rlResp;
 
@@ -47,16 +47,22 @@ export async function POST(
   const code = parsed.data.code.trim().toUpperCase();
   const eventId = params.id;
 
+  // access_codes jsou TAJNÉ kódy (žádná public-read RLS policy záměrně). Validace
+  // kódu = kontrola "hesla" → běží v service kontextu (trusted lookup), ne jako
+  // anonym (ten by řádek pod RLS neviděl → vždy INVALID_CODE).
+  return runWithServiceContext(async () => {
   const r = await db().query<{
     id: string;
     max_uses: number | null;
     uses_count: number;
-    valid_from: string | null;
-    valid_until: string | null;
+    not_yet_valid: boolean;
+    expired: boolean;
     ticket_type_ids: string[] | null;
     ticket_type_names: string[] | null;
   }>(
-    `SELECT ac.id, ac.max_uses, ac.uses_count, ac.valid_from, ac.valid_until,
+    `SELECT ac.id, ac.max_uses, ac.uses_count,
+            (ac.valid_from IS NOT NULL AND ac.valid_from > now())   AS not_yet_valid,
+            (ac.valid_until IS NOT NULL AND ac.valid_until < now()) AS expired,
             (SELECT array_agg(actt.ticket_type_id)
                FROM catalog.access_code_ticket_types actt
                WHERE actt.access_code_id = ac.id) AS ticket_type_ids,
@@ -75,14 +81,15 @@ export async function POST(
     );
   }
   const ac = r.rows[0];
-  const now = new Date();
-  if (ac.valid_from && new Date(ac.valid_from) > now) {
+  // Platnost vyhodnocuje DB svým now() — neporovnávat DB-timestamp proti JS new Date()
+  // (DB a app server jsou jiné stroje, clock skew by čerstvý kód chybně odmítl).
+  if (ac.not_yet_valid) {
     return NextResponse.json(
       { error: 'NOT_YET_VALID', message: 'Kód zatím není platný.' },
       { status: 409 },
     );
   }
-  if (ac.valid_until && new Date(ac.valid_until) < now) {
+  if (ac.expired) {
     return NextResponse.json(
       { error: 'EXPIRED', message: 'Kód vypršel.' },
       { status: 409 },
@@ -100,5 +107,6 @@ export async function POST(
     accessCodeId: ac.id,
     ticketTypeIds: ac.ticket_type_ids ?? [],
     ticketTypeNames: ac.ticket_type_names ?? [],
+  });
   });
 }

@@ -7,11 +7,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { QrScannerCamera } from '@/components/admin/QrScannerCamera';
+import { GroupScanPanel } from '@/components/admin/GroupScanPanel';
 import {
   enqueueScan,
   flushQueue,
   getPendingCount,
+  saveManifest,
+  getManifestMeta,
+  validateOffline,
+  decodePrintTokenUuid,
   type FlushResult,
+  type ManifestMeta,
+  type OfflineCheck,
 } from '@/lib/scanner/offline-queue';
 
 type ScanResult = {
@@ -21,6 +28,7 @@ type ScanResult = {
     | 'already_redeemed_today'
     | 'revoked'
     | 'not_found'
+    | 'invalid_token'
     | 'wrong_promoter'
     | 'totp_mismatch'
     | 'invalid_status'
@@ -73,15 +81,24 @@ export default function ScannerPage() {
   const [ticketId, setTicketId] = useState('');
   const [totpCode, setTotpCode] = useState('');
   const [scanMode, setScanMode] = useState<'auto' | 'reentry_entry' | 'reentry_exit'>('auto');
+  const [entryMode, setEntryMode] = useState<'single' | 'group'>('single');
 
-  // QR payload parser: `tixly:<uuid>:<6-digit code>` → fillne oba inputy.
-  // Pokud uživatel jen pastenul UUID, ponecháme totpCode prázdný (manual mode).
+  // QR payload parser:
+  //   `tixly:<uuid>:<6-digit>`  → ticketId + TOTP (mobilní rotující QR)
+  //   `TXP1.<...>`              → print token z TIŠTĚNÉ vstupenky (104mm label)
+  //   `<uuid>`                  → holý ticketId (manual mode)
   function setTicketIdSmart(raw: string) {
     const trimmed = raw.trim();
     const m = trimmed.match(/^tixly:([0-9a-f-]{36}):(\d{6})$/i);
     if (m) {
       setTicketId(m[1]);
       setTotpCode(m[2]);
+      return;
+    }
+    // Print token: necháme v inputu jako celek, TOTP nemá smysl.
+    if (trimmed.startsWith('TXP1.')) {
+      setTicketId(trimmed);
+      setTotpCode('');
       return;
     }
     setTicketId(trimmed);
@@ -96,6 +113,8 @@ export default function ScannerPage() {
   const [online, setOnline] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
   const [flushReport, setFlushReport] = useState<FlushResult | null>(null);
+  const [manifestMeta, setManifestMeta] = useState<ManifestMeta | null>(null);
+  const [manifestLoading, setManifestLoading] = useState(false);
 
   const refreshPending = useCallback(async () => {
     try {
@@ -165,6 +184,47 @@ export default function ScannerPage() {
     }
   }
 
+  // Stav staženého offline whitelistu pro zvolenou akci.
+  const refreshManifestMeta = useCallback(async (eventId: string | null) => {
+    if (!eventId) {
+      setManifestMeta(null);
+      return;
+    }
+    try {
+      setManifestMeta(await getManifestMeta(eventId));
+    } catch {
+      setManifestMeta(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshManifestMeta(gate.eventId);
+  }, [gate.eventId, refreshManifestMeta]);
+
+  // Stáhne seznam platných lístků pro akci a uloží do IndexedDB (nutno udělat
+  // ONLINE, ideálně před začátkem představení). Offline pak skener ověřuje proti němu.
+  async function downloadManifest() {
+    if (!gate.eventId) return;
+    setManifestLoading(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/admin/scanner/manifest?eventId=${gate.eventId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      if (!res.ok) {
+        setResult({ result: 'error', message: `Stažení seznamu selhalo (HTTP ${res.status}).` });
+        return;
+      }
+      const json = (await res.json()) as { ticketIds: string[]; generatedAt: string };
+      await saveManifest(gate.eventId, json.ticketIds, json.generatedAt);
+      await refreshManifestMeta(gate.eventId);
+    } catch {
+      setResult({ result: 'error', message: 'Stažení seznamu selhalo (síť).' });
+    } finally {
+      setManifestLoading(false);
+    }
+  }
+
   function persistGate(next: GateState) {
     setGate(next);
     try {
@@ -185,27 +245,59 @@ export default function ScannerPage() {
     e.preventDefault();
     setLoading(true);
     setResult(null);
-    const tid = ticketId.trim();
+    const raw = ticketId.trim();
+    const isPrintToken = raw.startsWith('TXP1.');
     const code = totpCode.trim();
 
     const payload = {
-      ticketId: tid,
-      ...(code ? { totpCode: code } : {}),
+      ...(isPrintToken ? { printToken: raw } : { ticketId: raw }),
+      ...(code && !isPrintToken ? { totpCode: code } : {}),
       ...(gate.eventDayId ? { eventDayId: gate.eventDayId } : {}),
       ...(gate.zoneId ? { zoneId: gate.zoneId } : {}),
     };
 
-    // Offline: rovnou do queue, optimistic accept (provoz nestojí).
+    // Offline: zapiš do queue (kvůli serverové rekonciliaci) a pokud máme stažený
+    // whitelist pro akci, ověř proti němu — padělaný/cizí lístek odmítni, dvojí
+    // vstup zachyť lokálně. Bez whitelistu padáme na optimistic accept (provoz nestojí).
     if (!online) {
       try {
         await enqueueScan(payload, gateLabel);
         await refreshPending();
-        setResult({
-          result: 'admitted',
-          message: 'Přijato offline — synchronizace proběhne po obnovení připojení.',
-        });
-        setTicketId('');
-        setTotpCode('');
+
+        const offlineTicketId = isPrintToken
+          ? decodePrintTokenUuid(raw) ?? undefined
+          : raw;
+        let check: OfflineCheck = 'no_manifest';
+        if (gate.eventId && offlineTicketId) {
+          check = await validateOffline(gate.eventId, offlineTicketId);
+        }
+
+        if (check === 'not_found') {
+          setResult({
+            result: 'not_found',
+            message: 'OFFLINE: lístek NENÍ ve staženém seznamu platných — NEVPOUŠTĚT.',
+          });
+        } else if (check === 'already_used') {
+          setResult({
+            result: 'already_used',
+            message: 'OFFLINE: tento lístek už byl tímto zařízením odbaven.',
+          });
+        } else if (check === 'admitted') {
+          setResult({
+            result: 'admitted',
+            message: 'Přijato offline (ověřeno proti staženému seznamu). Sync po obnovení.',
+          });
+          setTicketId('');
+          setTotpCode('');
+        } else {
+          // no_manifest → optimistic accept, ale jasně upozorni, že NEbylo ověřeno
+          setResult({
+            result: 'admitted',
+            message: '⚠ Přijato offline BEZ ověření (není stažený seznam). Sync po obnovení.',
+          });
+          setTicketId('');
+          setTotpCode('');
+        }
       } catch {
         setResult({ result: 'error', message: 'Offline queue selhala (IndexedDB nedostupný).' });
       } finally {
@@ -307,6 +399,32 @@ export default function ScannerPage() {
           >
             zavřít
           </button>
+        </div>
+      ) : null}
+
+      {/* Offline připravenost: stažený whitelist platných lístků pro zvolenou akci. */}
+      {gate.eventId ? (
+        <div className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm">
+          <span className="text-muted-foreground">
+            {manifestMeta ? (
+              <>
+                Offline seznam: <strong className="text-foreground">{manifestMeta.count.toLocaleString('cs-CZ')}</strong>{' '}
+                lístků · staženo {new Date(manifestMeta.savedAt).toLocaleString('cs-CZ')}
+              </>
+            ) : (
+              <>⚠ Offline seznam není stažený — offline sken nepůjde ověřit. Stáhni před akcí (online).</>
+            )}
+          </span>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => void downloadManifest()}
+            disabled={manifestLoading || !online}
+            title={!online ? 'Stažení vyžaduje připojení' : undefined}
+          >
+            {manifestLoading ? 'Stahuji…' : manifestMeta ? 'Aktualizovat' : 'Stáhnout offline seznam'}
+          </Button>
         </div>
       ) : null}
 
@@ -428,6 +546,29 @@ export default function ScannerPage() {
         </CardContent>
       </Card>
 
+      {/* Přepínač: jednotlivý lístek vs. skupinové odbavení (1 QR = celá objednávka) */}
+      <div className="grid grid-cols-2 gap-1 rounded-md border p-1 text-sm">
+        <button
+          type="button"
+          className={`rounded px-3 py-2 font-medium ${entryMode === 'single' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+          onClick={() => setEntryMode('single')}
+          data-testid="mode-single"
+        >
+          Jednotlivě
+        </button>
+        <button
+          type="button"
+          className={`rounded px-3 py-2 font-medium ${entryMode === 'group' ? 'bg-indigo-600 text-white' : 'hover:bg-muted'}`}
+          onClick={() => setEntryMode('group')}
+          data-testid="mode-group"
+        >
+          👥 Skupina
+        </button>
+      </div>
+
+      {entryMode === 'group' ? (
+        <GroupScanPanel />
+      ) : (
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -448,9 +589,9 @@ export default function ScannerPage() {
                   <Input
                     value={ticketId}
                     onChange={(e) => setTicketIdSmart(e.target.value)}
-                    placeholder="8a4f7b2e-... nebo tixly:8a4f...:123456"
+                    placeholder="8a4f7b2e-… / tixly:…:123456 / TXP1.…"
                     required
-                    pattern="[0-9a-fA-F-]{36}"
+                    pattern="([0-9a-fA-F-]{36}|TXP1\..+)"
                     autoFocus
                     data-testid="scanner-ticket-input"
                     className="flex-1"
@@ -529,6 +670,7 @@ export default function ScannerPage() {
           <CardContent>{renderResult(result)}</CardContent>
         </Card>
       </div>
+      )}
 
       <QrScannerCamera
         open={cameraOpen}
@@ -649,6 +791,8 @@ function labelFor(r: ScanResult['result']): string {
       return 'Lístek zrušen';
     case 'not_found':
       return 'Lístek nenalezen';
+    case 'invalid_token':
+      return 'Neplatný kód vstupenky';
     case 'wrong_promoter':
       return 'Lístek jiného promotéra';
     case 'totp_mismatch':

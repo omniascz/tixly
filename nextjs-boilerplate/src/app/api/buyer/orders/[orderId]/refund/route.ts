@@ -333,10 +333,8 @@ export async function POST(
     });
   } catch (e) {
     await client.query('ROLLBACK');
-    return NextResponse.json(
-      { error: 'INTERNAL_ERROR', message: e instanceof Error ? e.message : String(e) },
-      { status: 500 },
-    );
+    console.error('[POST /api/buyer/orders/[orderId]/refund]', e);
+    return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
   } finally {
     client.release();
   }

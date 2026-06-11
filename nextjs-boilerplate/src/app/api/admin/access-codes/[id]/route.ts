@@ -57,10 +57,8 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (e) {
     await client.query('ROLLBACK');
-    return NextResponse.json(
-      { error: 'INTERNAL_ERROR', message: e instanceof Error ? e.message : String(e) },
-      { status: 500 },
-    );
+    console.error('[/api/admin/access-codes/[id]]', e);
+    return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
   } finally {
     client.release();
   }

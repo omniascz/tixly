@@ -8,7 +8,8 @@
 
 import { createHmac } from 'crypto';
 import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter } from '@/lib/admin-auth';
+import { runAsPromoterNonStaff } from '@/lib/admin-auth';
+import { assertPublicHttpUrl, SsrfError } from '@/lib/security/ssrf';
 import { NextRequest, NextResponse } from 'next/server';
 
 
@@ -16,7 +17,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  return runAsPromoter(req, async (promoter) => {
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
     return NextResponse.json({ error: 'Bad id' }, { status: 400 });
@@ -48,6 +49,10 @@ export async function POST(
   let errorMsg: string | null = null;
 
   try {
+    // SSRF guard: cíl musí být veřejný http(s) — blokuje 169.254.169.254
+    // (cloud metadata), localhost a privátní rozsahy. redirect:'manual' brání
+    // obejití přes 30x na interní adresu.
+    await assertPublicHttpUrl(url);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
     const r = await fetch(url, {
@@ -59,11 +64,18 @@ export async function POST(
       },
       body: bodyStr,
       signal: controller.signal,
+      redirect: 'manual',
     });
     clearTimeout(timeoutId);
     status = r.status;
     responseBody = (await r.text()).slice(0, 1000);
   } catch (err) {
+    if (err instanceof SsrfError) {
+      return NextResponse.json(
+        { ok: false, error: 'URL ukazuje na neveřejný/interní cíl a byla zablokována.' },
+        { status: 422 },
+      );
+    }
     errorMsg = err instanceof Error ? err.message : String(err);
   }
   const durationMs = Date.now() - start;

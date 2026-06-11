@@ -62,7 +62,7 @@ async function fetchLanding(): Promise<{
        LEFT JOIN platform.promoters p ON p.id = e.promoter_id
        WHERE e.status = 'published' AND e.date_start > now()
        ORDER BY e.date_start ASC
-       LIMIT 12`,
+       LIMIT 6`,
     );
 
     const thisWeekPromise = db.query<EventRow>(
@@ -172,20 +172,44 @@ export default async function LandingPage({ params }: { params: { locale: string
               ? 'Find theatre, concert or festival. Pay safely, save the ticket on your phone — just show the QR.'
               : 'Najdi divadlo, koncert nebo festival. Plať bezpečně, ulož si lístek do mobilu — ukážeš jen QR a jsi uvnitř.'}
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link
-            href={`/${locale}/events`}
-            className="inline-flex h-10 items-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            {locale === 'sk' ? 'Prechádzať akcie' : locale === 'en' ? 'Browse events' : 'Procházet akce'}
-          </Link>
-          <Link
-            href={`/${locale}/search`}
-            className="inline-flex h-10 items-center rounded-md border px-6 text-sm font-medium hover:bg-muted/40"
+        {/* Hlavní akce kupujícího = najít konkrétní akci. Server-side GET form
+            → /search?q=... (SearchClient přebere initialQuery). Žádný extra JS. */}
+        <form action={`/${locale}/search`} method="get" className="mx-auto mt-6 flex max-w-xl gap-2">
+          <input
+            type="search"
+            name="q"
+            autoComplete="off"
+            placeholder={
+              locale === 'sk'
+                ? 'Hľadaj akciu, interpreta alebo miesto…'
+                : locale === 'en'
+                  ? 'Search events, artists or venues…'
+                  : 'Hledej akci, interpreta nebo místo…'
+            }
+            className="h-12 flex-1 rounded-md border bg-background px-4 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+          <button
+            type="submit"
+            className="inline-flex h-12 items-center rounded-md bg-primary px-7 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             🔎 {locale === 'en' ? 'Search' : locale === 'sk' ? 'Hľadať' : 'Hledat'}
+          </button>
+        </form>
+        <div className="mt-3 text-sm">
+          <Link href={`/${locale}/events`} className="text-muted-foreground underline-offset-4 hover:underline">
+            {locale === 'sk'
+              ? 'alebo prechádzaj všetky akcie →'
+              : locale === 'en'
+                ? 'or browse all events →'
+                : 'nebo procházej všechny akce →'}
           </Link>
         </div>
+        <p className="mt-6 text-xs text-muted-foreground">
+          {locale === 'sk' ? 'Organizuješ akcie? ' : locale === 'en' ? 'Run events? ' : 'Pořádáš akce? '}
+          <Link href={`/${locale}/pro-poradatele`} className="font-medium text-primary underline-offset-4 hover:underline">
+            {locale === 'sk' ? 'Predávaj s Tixly →' : locale === 'en' ? 'Sell with Tixly →' : 'Prodávej přes Tixly →'}
+          </Link>
+        </p>
       </section>
 
       {/* Category quick-links */}
@@ -314,7 +338,7 @@ export default async function LandingPage({ params }: { params: { locale: string
             {thisWeek.map((ev, i) => (
               <Link
                 key={ev.id}
-                href={`/${locale}/${ev.slug ? `p/${ev.slug}` : `events/${ev.id}`}`}
+                href={`/${locale}/events/${ev.slug ?? ev.id}`}
                 className="group"
               >
                 <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
@@ -383,7 +407,7 @@ export default async function LandingPage({ params }: { params: { locale: string
             {events.map((ev, i) => (
               <Link
                 key={ev.id}
-                href={`/${locale}/${ev.slug ? `p/${ev.slug}` : `events/${ev.id}`}`}
+                href={`/${locale}/events/${ev.slug ?? ev.id}`}
                 className="group"
               >
                 <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">

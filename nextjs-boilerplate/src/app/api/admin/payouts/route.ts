@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter } from '@/lib/admin-auth';
+import { runAsPromoterNonStaff } from '@/lib/admin-auth';
 
 const PLATFORM_FEE_BPS = 500; // 5.00 %
 
@@ -30,10 +30,11 @@ interface BucketRow {
   period_end: string;
   gross: string;
   refunds: string;
+  service_fees: string;
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  return runAsPromoter(req, async (promoter) => {
+  return runAsPromoterNonStaff(req, async (promoter) => {
   // 1) Skutečné výplaty
   const real = await db().query<PayoutRow>(
     `SELECT id, period_from, period_to, gross_revenue, platform_fees,
@@ -83,6 +84,23 @@ export async function GET(req: NextRequest): Promise<Response> {
     promoterRes.rows[0]?.chargeback_holdback_days ?? null,
   );
 
+  // Provize promotéra: aktivní fee_schedule per měna (master admin override),
+  // fallback na platformní default. Bez tohohle by se override z /platform ignoroval.
+  const feeRows = await db().query<{ currency: string; percentage_fee: number }>(
+    `SELECT DISTINCT ON (currency) currency, percentage_fee
+       FROM platform.fee_schedules
+      WHERE promoter_id = $1 AND is_active = true
+        AND (valid_until IS NULL OR valid_until > NOW())
+        AND (valid_from IS NULL OR valid_from <= NOW())
+      ORDER BY currency, created_at DESC`,
+    [promoter.promoterId],
+  );
+  const feeBpsByCurrency = new Map<string, number>(
+    feeRows.rows.map((r) => [r.currency, r.percentage_fee]),
+  );
+  const feeBpsFor = (currency: string): number =>
+    feeBpsByCurrency.get(currency) ?? PLATFORM_FEE_BPS;
+
   // Per-currency buckets — CZ promotér může mít CZK akce, SK promotér EUR,
   // hybrid promotér oboje. Settlement musí být oddělený per měna.
   const buckets = await db().query<BucketRow & { chargebacks: string; currency: string }>(
@@ -104,8 +122,11 @@ export async function GET(req: NextRequest): Promise<Response> {
        w.week_start AS period_start,
        (w.week_start + INTERVAL '7 days') AS period_end,
        c.currency,
-       COALESCE(SUM(o.total_amount) FILTER (WHERE o.status = 'paid' AND o.currency = c.currency), 0)::text AS gross,
-       COALESCE(SUM(o.total_amount) FILTER (WHERE o.status = 'refunded' AND o.currency = c.currency), 0)::text AS refunds,
+       -- Promotérův gross = jen tržba za vstupenky. Service fee (platform revenue)
+       -- se z total_amount odečte, aby promotér nedostal kredit za poplatek Tixly.
+       COALESCE(SUM(o.total_amount - COALESCE(o.service_fee_minor, 0)) FILTER (WHERE o.status = 'paid' AND o.currency = c.currency), 0)::text AS gross,
+       COALESCE(SUM(o.total_amount - COALESCE(o.service_fee_minor, 0)) FILTER (WHERE o.status = 'refunded' AND o.currency = c.currency), 0)::text AS refunds,
+       COALESCE(SUM(o.service_fee_minor) FILTER (WHERE o.status = 'paid' AND o.currency = c.currency), 0)::text AS service_fees,
        COALESCE(
          (SELECT SUM(cb.amount_halire) FROM orders.chargebacks cb
           JOIN orders.orders co ON co.id = cb.order_id
@@ -132,19 +153,20 @@ export async function GET(req: NextRequest): Promise<Response> {
   const now = new Date();
   return NextResponse.json({
     source: 'computed',
-    feePercent: PLATFORM_FEE_BPS / 100,
+    feePercent: (feeBpsByCurrency.get('CZK') ?? PLATFORM_FEE_BPS) / 100,
     holdback: {
       pctBps: holdbackPolicy.pctBps,
       retentionDays: holdbackPolicy.retentionDays,
       tier,
     },
     payouts: buckets.rows
-      .filter((b) => Number(b.gross) > 0 || Number(b.refunds) > 0 || Number(b.chargebacks) > 0)
+      .filter((b) => Number(b.gross) > 0 || Number(b.refunds) > 0 || Number(b.chargebacks) > 0 || Number(b.service_fees) > 0)
       .map((b) => {
         const gross = Number(b.gross);
         const refunds = Number(b.refunds);
         const chargebacks = Number(b.chargebacks);
-        const fees = Math.floor((gross * PLATFORM_FEE_BPS) / 10000);
+        const serviceFees = Number(b.service_fees);
+        const fees = Math.floor((gross * feeBpsFor(b.currency)) / 10000);
         const grossNetOfRefunds = Math.max(0, gross - refunds);
         const holdbackHalire = computeHoldbackAmount(grossNetOfRefunds, holdbackPolicy);
         const net = Math.max(0, gross - refunds - chargebacks - fees - holdbackHalire);
@@ -154,8 +176,10 @@ export async function GET(req: NextRequest): Promise<Response> {
           periodStart: b.period_start,
           periodEnd: b.period_end,
           currency: b.currency,
+          feeBps: feeBpsFor(b.currency),
           grossHalire: gross,
           feesHalire: fees,
+          serviceFeesHalire: serviceFees,
           refundsHalire: refunds,
           chargebacksHalire: chargebacks,
           holdbackHalire,

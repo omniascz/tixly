@@ -15,7 +15,7 @@ export default function LocaleLayout({
     <div className="min-h-screen flex flex-col">
       <header className="border-b bg-card">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          <Link href={`/${params.locale}/events`} className="text-lg font-semibold">
+          <Link href={`/${params.locale}`} className="text-lg font-semibold">
             Tixly
           </Link>
           <TopNav locale={params.locale} />

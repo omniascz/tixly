@@ -89,9 +89,13 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
+  // Po zjednodušené registraci (e-mail+heslo) je promoters.name placeholder
+  // odvozený z e-mailu. KYC je první autoritativní ověření firmy → přepiš name
+  // ověřeným právním názvem z ARES. (slug zatím zůstává — viz onboarding TODO.)
   await db().query(
     `UPDATE platform.promoters
-     SET company_ico = $2, company_dic = $3, company_address = $4,
+     SET name = COALESCE(NULLIF($9, ''), name),
+         company_ico = $2, company_dic = $3, company_address = $4,
          bank_account = $5, vat_rate_pct = $6, vat_payer = $7,
          kyc_status = 'submitted', kyc_submitted_at = NOW(),
          ares_verified_at = NOW(), ares_data = $8::jsonb,
@@ -106,6 +110,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       parsed.data.vatRatePct,
       parsed.data.vatPayer,
       JSON.stringify(ares),
+      ares.companyName ?? '',
     ],
   );
 

@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsPromoter } from '@/lib/admin-auth';
+import { enqueueMusicPosts } from '@/lib/music/post-jobs';
 import { z } from 'zod';
 
 
@@ -68,6 +69,20 @@ export async function POST(
     ],
   );
 
+  // Distribuce koncertu na hudební agregátory (Bandsintown/Songkick → Spotify/Apple).
+  // Jen pro publikované akce; není kritická cesta → chyba nerozbije přidání umělce.
+  try {
+    const pub = await db().query(
+      `SELECT 1 FROM catalog.events WHERE id = $1 AND status = 'published'`,
+      [eventId],
+    );
+    if (pub.rows.length > 0) {
+      await enqueueMusicPosts({ artistId: parsed.data.artistId, eventId });
+    }
+  } catch {
+    /* distribuce není kritická cesta */
+  }
+
   return NextResponse.json({ ok: true });
 
   });
@@ -84,13 +99,17 @@ export async function DELETE(
     return NextResponse.json({ error: 'INVALID_ARTIST_ID' }, { status: 400 });
   }
 
-  await db().query(
+  const r = await db().query(
     `DELETE FROM lineups.event_artists
       WHERE event_id = $1 AND artist_id = $2
         AND EXISTS (SELECT 1 FROM catalog.events
-                     WHERE id = $1 AND promoter_id = $3)`,
+                     WHERE id = $1 AND promoter_id = $3)
+      RETURNING artist_id`,
     [eventId, artistId, promoter.promoterId],
   );
+  if (r.rowCount === 0) {
+    return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+  }
 
   return NextResponse.json({ ok: true });
 

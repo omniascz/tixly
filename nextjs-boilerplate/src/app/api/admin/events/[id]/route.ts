@@ -56,6 +56,10 @@ const editSchema = z.object({
   refundFeePct: z.number().int().min(0).max(10000).nullable().optional(),
   refundFeeMinHalire: z.number().int().min(0).max(100_000).nullable().optional(),
   qrPolicy: z.enum(['static_allowed', 'rotating_24h', 'rotating_only', 'photo_required']).optional(),
+  // Re-entry (festival/open-air): povolí opakovaný vstup/výstup u brány.
+  // reentryMaxCount = max počet entry scanů (1 = single, >1 = re-entry).
+  reentryAllowed: z.boolean().optional(),
+  reentryMaxCount: z.number().int().min(1).max(100).optional(),
   // Eventim Pass-style — kolik minut před eventem se QR kód odhalí buyerovi.
   // 0 = až při startu eventu, 999999 = okamžitě (vhodné pro standard kulturní akce).
   qrRevealMinutesBefore: z.number().int().min(0).max(999999).optional(),
@@ -89,7 +93,9 @@ export async function GET(
             refund_deadline_days, refund_fee_pct, refund_fee_min_halire,
             qr_policy, vat_category,
             COALESCE(verified_fan_enabled, FALSE) AS verified_fan_enabled,
-            COALESCE(requires_otp_validation, FALSE) AS requires_otp_validation
+            COALESCE(requires_otp_validation, FALSE) AS requires_otp_validation,
+            COALESCE(reentry_allowed, FALSE) AS reentry_allowed,
+            COALESCE(reentry_max_count, 3) AS reentry_max_count
      FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
     [params.id, promoter.promoterId],
   );
@@ -116,6 +122,8 @@ export async function GET(
     refundFeeMinHalire: e.refund_fee_min_halire,
     qrPolicy: e.qr_policy,
     vatCategory: e.vat_category,
+    reentryAllowed: (e as { reentry_allowed?: boolean }).reentry_allowed ?? false,
+    reentryMaxCount: (e as { reentry_max_count?: number }).reentry_max_count ?? 3,
   });
 
   });
@@ -225,6 +233,8 @@ export async function PATCH(
            qr_reveal_minutes_before = COALESCE($16, qr_reveal_minutes_before),
            verified_fan_enabled = COALESCE($17, verified_fan_enabled),
            requires_otp_validation = COALESCE($18, requires_otp_validation),
+           reentry_allowed = COALESCE($19, reentry_allowed),
+           reentry_max_count = COALESCE($20, reentry_max_count),
            updated_at = NOW()
        WHERE id = $6`,
       [
@@ -241,6 +251,8 @@ export async function PATCH(
         input.qrRevealMinutesBefore ?? null,
         input.verifiedFanEnabled ?? null,
         input.requiresOtpValidation ?? null,
+        input.reentryAllowed ?? null,
+        input.reentryMaxCount ?? null,
       ],
     );
 

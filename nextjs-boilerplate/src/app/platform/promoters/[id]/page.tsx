@@ -54,6 +54,7 @@ interface PromoterDetail {
 interface FeeSchedule {
   percentage_fee: number;
   buyer_fee_halire: number;
+  buyer_fee_basis?: 'per_ticket' | 'per_order';
   currency: string;
   override_reason: string | null;
 }
@@ -439,6 +440,9 @@ function CzSkSettingsCard({
   const [buyerFee, setBuyerFee] = useState<string>(
     activeFee ? (activeFee.buyer_fee_halire / 100).toString() : '',
   );
+  const [buyerFeeBasis, setBuyerFeeBasis] = useState<'per_ticket' | 'per_order'>(
+    activeFee?.buyer_fee_basis ?? 'per_ticket',
+  );
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -457,6 +461,7 @@ function CzSkSettingsCard({
       if (feePct !== '' && buyerFee !== '') {
         body.feePctBps = Math.round(Number(feePct) * 100);
         body.buyerFeeHalire = Math.round(Number(buyerFee) * 100);
+        body.buyerFeeBasis = buyerFeeBasis;
         body.feeCurrency = currency;
         body.feeOverrideReason = reason || undefined;
       }
@@ -585,7 +590,7 @@ function CzSkSettingsCard({
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
-                Buyer fee ({currency === 'EUR' ? '€' : 'Kč'} per objednávka)
+                Service fee ({currency === 'EUR' ? '€' : 'Kč'})
               </label>
               <Input
                 type="number"
@@ -595,6 +600,19 @@ function CzSkSettingsCard({
                 placeholder="např. 10"
                 onChange={(e) => setBuyerFee(e.target.value)}
               />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+                Účtovat
+              </label>
+              <select
+                className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                value={buyerFeeBasis}
+                onChange={(e) => setBuyerFeeBasis(e.target.value as 'per_ticket' | 'per_order')}
+              >
+                <option value="per_ticket">za vstupenku</option>
+                <option value="per_order">za objednávku</option>
+              </select>
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
@@ -611,8 +629,9 @@ function CzSkSettingsCard({
 
         {activeFee ? (
           <p className="text-xs text-muted-foreground">
-            Aktuální aktivní fee: {(activeFee.percentage_fee / 100).toFixed(1)} % +{' '}
-            {(activeFee.buyer_fee_halire / 100).toFixed(2)} {activeFee.currency}/obj.
+            Aktuální aktivní fee: {(activeFee.percentage_fee / 100).toFixed(1)} % provize +{' '}
+            {(activeFee.buyer_fee_halire / 100).toFixed(2)} {activeFee.currency} service fee{' '}
+            {activeFee.buyer_fee_basis === 'per_order' ? '/objednávku' : '/vstupenku'}.
             {activeFee.override_reason ? ` · ${activeFee.override_reason}` : ''}
           </p>
         ) : (

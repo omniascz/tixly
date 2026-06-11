@@ -59,7 +59,7 @@ export function TopNav({ locale }: { locale: string }) {
     localStorage.removeItem('user');
     localStorage.removeItem('roles');
     setAuth({ user: null, isPlatformAdmin: false, hasPromoterMembership: false });
-    router.push(`/${locale}/events`);
+    router.push(`/${locale}`);
     router.refresh();
   }
 
@@ -111,15 +111,14 @@ export function TopNav({ locale }: { locale: string }) {
         </>
       ) : (
         <>
-          <Link href={`/${locale}/pricing`} className="text-muted-foreground">
-            Ceník
-          </Link>
           <Link href={`/${locale}/login`}>Přihlásit</Link>
+          {/* B2B onboarding (vč. ceníku) žije na stránce pro pořadatele — ne
+              v hlavní liště, kam chodí kupující vstupenek. */}
           <Link
-            href={`/${locale}/register-promoter`}
+            href={`/${locale}/pro-poradatele`}
             className="text-muted-foreground"
           >
-            Pro promotéry
+            Pro pořadatele
           </Link>
         </>
       )}

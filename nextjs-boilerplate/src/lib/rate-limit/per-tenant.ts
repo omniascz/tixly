@@ -33,35 +33,56 @@ export interface RateLimitResult {
 const stores = new Map<string, number[]>();
 
 /**
- * Vyhodnotí rate limit pro daný klíč. Increment se zaznamená pouze pokud
- * `ok === true`. Volat na začátku requestu.
+ * Vyhodnotí rate limit pro daný klíč.
+ *
+ * Primárně přes Redis (fixed-window INCR+EXPIRE) → GLOBÁLNÍ limit napříč všemi
+ * serverless instancemi. Když Redis není k dispozici (REDIS_URL=NONE / výpadek),
+ * spadne na in-memory sliding-window (per-instance) — degradace, ne výpadek ochrany.
  */
-export function checkRateLimit(key: string, config: RateLimitConfig): RateLimitResult {
-  const now = Date.now();
-  const windowStart = now - config.windowMs;
-
-  const existing = stores.get(key) ?? [];
-  // Vyhoď starší timestampy
-  const fresh = existing.filter((t) => t > windowStart);
-
-  if (fresh.length >= config.limit) {
-    const oldest = fresh[0];
-    const retryAfterMs = oldest + config.windowMs - now;
-    return {
-      ok: false,
-      remaining: 0,
-      resetAt: oldest + config.windowMs,
-      retryAfterMs,
-    };
+export async function checkRateLimit(
+  key: string,
+  config: RateLimitConfig,
+): Promise<RateLimitResult> {
+  // Lazy import, ať se Redis klient neváže do edge/bundle, kde není potřeba.
+  let redis: Awaited<ReturnType<typeof import('@/lib/queue/redis-queue').getClient>> = null;
+  try {
+    const { getClient } = await import('@/lib/queue/redis-queue');
+    redis = await getClient();
+  } catch {
+    redis = null;
   }
 
+  if (redis) {
+    try {
+      const bucket = Math.floor(Date.now() / config.windowMs);
+      const rkey = `rl:${key}:${bucket}`;
+      const count = await redis.incr(rkey);
+      if (count === 1) await redis.pExpire(rkey, config.windowMs);
+      const resetAt = (bucket + 1) * config.windowMs;
+      if (count > config.limit) {
+        return { ok: false, remaining: 0, resetAt, retryAfterMs: resetAt - Date.now() };
+      }
+      return { ok: true, remaining: config.limit - count, resetAt };
+    } catch {
+      // Redis chyba uprostřed → fallback na in-memory
+    }
+  }
+  return checkRateLimitInMemory(key, config);
+}
+
+/** In-memory sliding-window log (fallback / dev bez Redis). */
+function checkRateLimitInMemory(key: string, config: RateLimitConfig): RateLimitResult {
+  const now = Date.now();
+  const windowStart = now - config.windowMs;
+  const existing = stores.get(key) ?? [];
+  const fresh = existing.filter((t) => t > windowStart);
+  if (fresh.length >= config.limit) {
+    const oldest = fresh[0];
+    return { ok: false, remaining: 0, resetAt: oldest + config.windowMs, retryAfterMs: oldest + config.windowMs - now };
+  }
   fresh.push(now);
   stores.set(key, fresh);
-  return {
-    ok: true,
-    remaining: config.limit - fresh.length,
-    resetAt: now + config.windowMs,
-  };
+  return { ok: true, remaining: config.limit - fresh.length, resetAt: now + config.windowMs };
 }
 
 /** Pro testy — vyčistí stav. */

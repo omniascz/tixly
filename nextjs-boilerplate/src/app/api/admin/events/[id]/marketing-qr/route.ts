@@ -9,7 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
 
 
@@ -35,10 +36,17 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  return runWithServiceContext(async () => {
+  return runAsPromoter(req, async (promoter) => {
 
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // Cross-tenant ochrana: akce musí patřit promotérovi (RLS je v prod dormantní,
+  // ownership hlídá app vrstva). Jinak by promotér A četl QR-kampaně + tržby B.
+  const owns = await db().query(
+    `SELECT 1 FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
+    [params.id, promoter.promoterId],
+  );
+  if (owns.rowCount === 0) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
 
   const r = await db().query<{
     id: string;
@@ -86,10 +94,18 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  return runWithServiceContext(async () => {
+  return runAsPromoter(req, async (promoter) => {
 
-  const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const userId = promoter.userId;
+
+  // Cross-tenant ochrana: nelze zakládat kampaně na cizí akci.
+  const owns = await db().query(
+    `SELECT 1 FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
+    [params.id, promoter.promoterId],
+  );
+  if (owns.rowCount === 0) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
 
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);
@@ -136,7 +152,7 @@ export async function POST(
     }
     console.error('[POST /api/admin/events/[id]/marketing-qr]', err);
     return NextResponse.json(
-      { error: 'Internal server error', detail: msg },
+      { error: 'Internal server error' },
       { status: 500 },
     );
   }

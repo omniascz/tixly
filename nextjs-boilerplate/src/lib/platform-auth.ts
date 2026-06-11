@@ -2,20 +2,23 @@ import { jwtVerify } from 'jose';
 import { NextRequest, NextResponse } from 'next/server';
 import { runWithPlatformAdminContext } from './db/rls-pool';
 
-const secretKey = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? 'dev-secret-change-me-min-32-chars-please',
-);
+// Lazy JWT secret — v produkci povinný (žádný forge-able literal fallback),
+// v dev/test fallback kvůli lokálnímu běhu. Viz auth.ts getSecretKey().
+function getSecretKey(): Uint8Array {
+  let secret = process.env.JWT_SECRET;
+  if (!secret || secret.length < 32) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET missing or too short in production (min 32 chars)');
+    }
+    secret = 'dev-secret-change-me-min-32-chars-please';
+  }
+  return new TextEncoder().encode(secret);
+}
 
-export async function requirePlatformAdmin(
-  req: NextRequest,
-): Promise<{ userId: string } | null> {
-  const auth = req.headers.get('authorization');
-  const token = auth?.toLowerCase().startsWith('bearer ')
-    ? auth.slice(7)
-    : req.cookies.get('accessToken')?.value;
+async function verifyAdminToken(token: string | null | undefined): Promise<{ userId: string } | null> {
   if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, secretKey);
+    const { payload } = await jwtVerify(token, getSecretKey());
     const roles = (payload as { roles?: { isPlatformAdmin?: boolean } }).roles;
     if (!roles?.isPlatformAdmin) return null;
     const sub = payload.sub;
@@ -24,6 +27,18 @@ export async function requirePlatformAdmin(
   } catch {
     return null;
   }
+}
+
+export async function requirePlatformAdmin(
+  req: NextRequest,
+): Promise<{ userId: string } | null> {
+  const auth = req.headers.get('authorization');
+  const bearer = auth?.toLowerCase().startsWith('bearer ') ? auth.slice(7) : null;
+  const cookie = req.cookies.get('accessToken')?.value ?? null;
+  // Zkus Bearer; když je neplatný/vypršelý, spadni zpět na accessToken cookie
+  // (prohlížeč ji posílá sám a obnovuje při loginu) — jinak vypršelý localStorage
+  // token v authFetch hodí 401, i když je relace přes cookie platná.
+  return (await verifyAdminToken(bearer)) ?? (await verifyAdminToken(cookie));
 }
 
 /**

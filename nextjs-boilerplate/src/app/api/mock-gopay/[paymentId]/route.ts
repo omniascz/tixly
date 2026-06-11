@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { mockPaymentBlockedResponse } from '@/lib/payment/mock-guard';
 
 
 interface OrderRow {
@@ -12,6 +13,8 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { paymentId: string } },
 ): Promise<Response> {
+  const blocked = mockPaymentBlockedResponse();
+  if (blocked) return blocked;
   return runWithServiceContext(async () => {
 
   const { action } = (await request.json().catch(() => ({}))) as { action?: string };

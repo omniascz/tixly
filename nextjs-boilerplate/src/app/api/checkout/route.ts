@@ -158,6 +158,12 @@ interface TicketTypeRow {
 }
 
 
+// CORS preflight pro cross-origin embed/native prodejní integraci (guest checkout).
+// CORS hlavičky doplní next.config (source '/api/checkout').
+export function OPTIONS(): Response {
+  return new Response(null, { status: 204 });
+}
+
 export async function POST(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
 
@@ -771,16 +777,22 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     if (input.promoCode && !consumedSubscriptionId) {
+      // Validitu (valid_from/valid_until) vyhodnocuje DB svým vlastním now() —
+      // NIKDY neporovnávat DB-timestamp proti JS `new Date()`: DB (Neon) a app
+      // (Vercel) jsou jiné stroje s nezávislými hodinami, takže čerstvě vytvořený
+      // kód by byl chybně odmítnut jako NOT_YET_VALID kvůli clock skew.
       const pcRes = await client.query<{
         id: string;
         type: string;
         discount_value: number;
         max_uses: number | null;
         uses_count: number;
-        valid_from: string;
-        valid_until: string | null;
+        not_yet_valid: boolean;
+        expired: boolean;
       }>(
-        `SELECT id, type, discount_value, max_uses, uses_count, valid_from, valid_until
+        `SELECT id, type, discount_value, max_uses, uses_count,
+                (valid_from > now())                                  AS not_yet_valid,
+                (valid_until IS NOT NULL AND valid_until < now())     AS expired
          FROM marketing.promo_codes
          WHERE UPPER(code) = UPPER($1) AND active = TRUE
          FOR UPDATE`,
@@ -794,15 +806,14 @@ export async function POST(req: NextRequest): Promise<Response> {
         );
       }
       const pc = pcRes.rows[0];
-      const now = new Date();
-      if (new Date(pc.valid_from) > now) {
+      if (pc.not_yet_valid) {
         await client.query('ROLLBACK');
         return NextResponse.json(
           { error: 'PROMO_CODE_NOT_YET_VALID' },
           { status: 422 },
         );
       }
-      if (pc.valid_until && new Date(pc.valid_until) < now) {
+      if (pc.expired) {
         await client.query('ROLLBACK');
         return NextResponse.json(
           { error: 'PROMO_CODE_EXPIRED' },
@@ -1060,6 +1071,19 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
     }
 
+    // Service fee pro koncového zákazníka (buyer) — fixní částka dle nastavení
+    // promotéra (per vstupenku / per objednávku). Přičítá se NAVRCH, po všech
+    // slevách (poplatek se neslevňuje). Ukládá se zvlášť (service_fee_minor),
+    // aby ho payout vyloučil z promotérova gross (je to platform revenue).
+    const { resolveServiceFee } = await import('@/lib/fees/service-fee');
+    const svcFee = await resolveServiceFee(client, {
+      promoterId: tt.promoter_id,
+      currency: tt.currency,
+      quantity: input.quantity,
+    });
+    const serviceFeeMinor = svcFee.totalFeeMinor;
+    totalAmount += serviceFeeMinor;
+
     // Předgenerujeme placeholder paymentId; pokud poběží Stripe (real provider),
     // přepíšeme ho session.id po commitu transakce.
     const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
@@ -1084,13 +1108,13 @@ export async function POST(req: NextRequest): Promise<Response> {
           gopay_payment_id, payment_provider, idempotency_key,
           discount_halire, promo_code_id, requires_age_verification,
           is_gift, gift_recipient_email, gift_recipient_name, gift_message, gift_redeem_token,
-          holder_names, variable_symbol, entry_slot_id,
+          holder_names, variable_symbol, entry_slot_id, service_fee_minor,
           expires_at, created_at, updated_at)
        VALUES ($1, $2, 'pending', $3, $4, 'cs',
                $5, $6, $7,
                $8, $9, $10,
                $11, $12, $13, $14, $15,
-               $16, $17, $19,
+               $16, $17, $19, $20,
                NOW() + ($18 || '')::interval, NOW(), NOW())
        RETURNING id`,
       [
@@ -1113,6 +1137,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         variableSymbol,
         expiresInterval,
         input.entrySlotId ?? null,
+        serviceFeeMinor,
       ],
     );
     const orderId = orderRes.rows[0].id;

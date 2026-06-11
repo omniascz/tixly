@@ -87,13 +87,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     return NextResponse.redirect(`${appUrl}/admin/bank-transfers?psd2=ok&provider=${cred.provider}`, 302);
   } catch (err) {
     console.error('[psd2 callback]', err);
-    return NextResponse.json(
-      {
-        error: 'TOKEN_EXCHANGE_FAILED',
-        message: err instanceof Error ? err.message : 'unknown',
-      },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'TOKEN_EXCHANGE_FAILED' }, { status: 500 });
   }
 
   });

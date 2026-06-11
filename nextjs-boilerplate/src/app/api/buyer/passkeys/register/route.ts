@@ -100,7 +100,8 @@ export async function POST(req: NextRequest): Promise<Response> {
     if (msg.includes('duplicate')) {
       return NextResponse.json({ error: 'ALREADY_REGISTERED' }, { status: 409 });
     }
-    return NextResponse.json({ error: 'DB_ERROR', message: msg }, { status: 500 });
+    console.error('[POST /api/buyer/passkeys/register]', e);
+    return NextResponse.json({ error: 'DB_ERROR' }, { status: 500 });
   }
 
   });

@@ -81,7 +81,7 @@ export async function POST(req: NextRequest): Promise<Response> {
        JOIN catalog.events e ON e.id = o.event_id
        JOIN identity.users u ON u.id = t.owner_id
        WHERE t.id = $1
-       FOR UPDATE`,
+       FOR UPDATE OF t`,
       [parsed.data.ticketId],
     );
 

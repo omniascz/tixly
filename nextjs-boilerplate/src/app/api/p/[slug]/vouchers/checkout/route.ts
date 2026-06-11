@@ -158,8 +158,7 @@ export async function POST(
   } catch (err) {
     await client.query('ROLLBACK').catch(() => undefined);
     console.error('[POST /api/p/[slug]/vouchers/checkout]', err);
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: 'INTERNAL', detail: msg }, { status: 500 });
+    return NextResponse.json({ error: 'INTERNAL' }, { status: 500 });
   } finally {
     client.release();
   }

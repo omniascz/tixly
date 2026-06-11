@@ -79,13 +79,24 @@ Z předchozích commit logů + Tier-1 batch:
 
 ### Co chybí v kódu pro **CZ/SK** specifické
 
-1. ❌ **VAT rate per market (SK má 5 % kulturní, ne 10 %)** — `promoters.vat_rate_pct` je flat, neumí per-event currency mapping
-2. ❌ **Variabilní symbol pro SK bank transfers** — VS koncept existuje i v SR, ale formát se může lišit. Ověřit.
-3. ❌ **EUR primární měna pro SK promotéry** — `promoters.primary_currency` flag chybí
-4. ❌ **Slovak ToS / GDPR / Cookie text** — máme jen CS + EN právní texty
-5. ❌ **Settlement v EUR** — payouts UI je CZK-only (`/admin/payouts`), neumí filter per currency
+> **AKTUALIZACE 2026-06-08:** všech 5 položek bylo mezitím DOKONČENO (doc byl psán
+> 2026-05-15 před implementací). Empiricky ověřeno proti kódu + testům.
 
-To je 5 položek code work, ~5-8 dní.
+1. ✅ **VAT rate per market** — `src/lib/tax/vat-rates.ts`: `resolveVatRate({country, vatCategory})`
+   — CZ cultural=10 %, SK cultural=5 %, standard 21/23 %. Per-event `catalog.events.vat_category`.
+   Napojeno v `api/internal/order-completed/route.ts` (faktura/VAT split bere `promoter_country`).
+   15 testů zelených.
+2. ✅ **Variabilní symbol** — `orders.orders.variable_symbol` + `orders.bank_transfer_lines`;
+   generuje se v checkoutu, párování přes `cron/bank-sync-fio` + `bank-transfers/reconcile`.
+3. ✅ **EUR primární měna** — `platform.promoters.country` + `primary_currency` existují.
+4. ✅ **Slovak ToS / GDPR** — `[locale]/legal/{terms,privacy}` mají plné SK znění
+   (`Obchodné podmienky`, zákon č. 40/1964 Z. z.). ⚠️ Označeno jako draft — **před produkcí
+   revize právníkem** (to je úkol z Tier D, ne kód).
+5. ✅ **Settlement v EUR** — `api/admin/payouts/route.ts` počítá per-currency buckets
+   (CZK + EUR), group by currency, vč. chargebacks per měna.
+
+**Zbývá u CZ/SK už jen NE-code:** právní revize SK/CZ konceptů (Tier D #4/#8). Tax+accounting
+test suite 25/25 zelené.
 
 ---
 

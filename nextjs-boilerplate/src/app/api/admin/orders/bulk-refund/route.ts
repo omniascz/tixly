@@ -40,7 +40,7 @@ interface RefundOutcome {
 
 export async function POST(req: NextRequest): Promise<Response> {
   return runAsActivePromoter(req, async (promoter) => {
-  const rl = checkRateLimit(`${promoter.promoterId}:bulk-refund`, {
+  const rl = await checkRateLimit(`${promoter.promoterId}:bulk-refund`, {
     limit: 5,
     windowMs: 60_000,
   });

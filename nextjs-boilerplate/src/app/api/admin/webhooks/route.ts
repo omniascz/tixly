@@ -11,7 +11,8 @@
 
 import { randomBytes } from 'crypto';
 import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter } from '@/lib/admin-auth';
+import { runAsPromoterNonStaff } from '@/lib/admin-auth';
+import { assertPublicHttpUrl, SsrfError } from '@/lib/security/ssrf';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { WEBHOOK_EVENT_TYPES } from '@/lib/webhooks/event-types';
@@ -26,7 +27,7 @@ const CreateSchema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  return runAsPromoter(req, async (promoter) => {
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const r = await db().query(
     `SELECT id, url, description, events, is_active,
             timeout_ms, max_retries, created_at, last_triggered_at,
@@ -45,7 +46,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  return runAsPromoter(req, async (promoter) => {
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => null);
   const parsed = CreateSchema.safeParse(body);
   if (!parsed.success) {
@@ -53,6 +54,19 @@ export async function POST(req: NextRequest): Promise<Response> {
       { error: 'Invalid input', issues: parsed.error.issues },
       { status: 422 },
     );
+  }
+
+  // SSRF guard už při ukládání — interní/privátní URL se nesmí ani zaregistrovat.
+  try {
+    await assertPublicHttpUrl(parsed.data.url);
+  } catch (err) {
+    if (err instanceof SsrfError) {
+      return NextResponse.json(
+        { error: 'URL musí ukazovat na veřejný http(s) endpoint (ne localhost/interní IP).' },
+        { status: 422 },
+      );
+    }
+    throw err;
   }
 
   const secret = randomBytes(16).toString('hex');

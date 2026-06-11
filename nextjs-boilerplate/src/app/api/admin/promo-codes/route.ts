@@ -70,7 +70,7 @@ const createSchema = z.object({
 
 export async function POST(req: NextRequest): Promise<Response> {
   return runAsActivePromoter(req, async (promoter) => {
-  const rl = checkRateLimit(`${promoter.promoterId}:promo-create`, {
+  const rl = await checkRateLimit(`${promoter.promoterId}:promo-create`, {
     limit: 30,
     windowMs: 60_000,
   });

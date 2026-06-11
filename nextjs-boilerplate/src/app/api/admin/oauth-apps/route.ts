@@ -6,7 +6,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter, runAsPromoterNonStaff } from '@/lib/admin-auth';
+import { runAsPromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
 import { generateClientId, generateClientSecret, hashSecret } from '@/lib/oauth/flow';
 
@@ -22,7 +22,7 @@ const postSchema = z.object({
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
-  return runAsPromoter(req, async (promoter) => {
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const r = await db().query(
     `SELECT id, client_id, app_name, app_description, app_logo_url,
             redirect_uris, allowed_scopes, status, rate_limit_per_hour, created_at::text

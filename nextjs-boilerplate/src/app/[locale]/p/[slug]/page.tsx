@@ -8,7 +8,7 @@
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { Pool } from 'pg';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatDate } from '@/lib/format';
@@ -206,7 +206,23 @@ export default async function PromoterPage({
   params: { locale: string; slug: string };
 }) {
   const data = await fetchPromoter(params.slug);
-  if (!data) notFound();
+  if (!data) {
+    // /p/ je route pořadatele. Pokud slug odpovídá AKCI (starý/špatný odkaz,
+    // záložka), přesměruj na detail akce místo tvrdého 404.
+    const db = new Pool({ connectionString: process.env.DATABASE_URL });
+    let eventSlug: string | null = null;
+    try {
+      const r = await db.query<{ slug: string }>(
+        `SELECT slug FROM catalog.events WHERE slug = $1 AND status = 'published' LIMIT 1`,
+        [params.slug],
+      );
+      eventSlug = r.rows[0]?.slug ?? null;
+    } finally {
+      await db.end();
+    }
+    if (eventSlug) redirect(`/${params.locale}/events/${eventSlug}`);
+    notFound();
+  }
   const { promoter, events, stats } = data;
   const locale = isValidLocale(params.locale) ? params.locale : DEFAULT_LOCALE;
   const s = STRINGS[locale as keyof typeof STRINGS] ?? STRINGS.cs;
@@ -289,7 +305,7 @@ export default async function PromoterPage({
             {events.map((ev) => (
               <Link
                 key={ev.id}
-                href={`/${locale}/${ev.slug ? `p/${ev.slug}` : `events/${ev.id}`}`}
+                href={`/${locale}/events/${ev.slug ?? ev.id}`}
                 className="group"
               >
                 <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">

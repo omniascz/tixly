@@ -10,11 +10,13 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   if (!roles) redirect('/cs/login?from=/admin');
   if (!roles.hasPromoter) redirect(roles.isPlatformAdmin ? '/platform' : '/cs/events');
 
+  const isStaff = roles.promoterRole === 'staff';
+
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar />
+      <Sidebar promoterRole={roles.promoterRole} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar title="Tixly Admin" subtitle="Promotér" />
+        <Topbar title="Tixly Admin" subtitle={isStaff ? 'Produkce / personál' : 'Promotér'} />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>

@@ -9,17 +9,39 @@ import {
 } from '@/lib/auth';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { checkAres, computeInitialRiskScore } from '@/lib/compliance/ares';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
+import { clientIp } from '@/lib/security/client-ip';
 
 const schema = z.object({
   email: z.string().email(),
   password: z.string().min(8).max(128),
-  name: z.string().min(1).max(120),
-  companyName: z.string().min(2).max(200),
-  slug: z.string().regex(/^[a-z0-9-]+$/, 'Pouze a-z, 0-9 a pomlčky'),
+  // Volitelné — registrace stačí e-mail + heslo, zbytek se doplní z adminu.
+  name: z.string().min(1).max(120).optional(),
+  companyName: z.string().min(2).max(200).optional(),
+  slug: z
+    .string()
+    .regex(/^[a-z0-9-]+$/, 'Pouze a-z, 0-9 a pomlčky')
+    .optional(),
   ico: z.string().regex(/^\d{8}$/, 'IČO musí mít 8 číslic').optional(),
 });
 
+/** Odvodí slug z e-mailu — celý e-mail je unikátní, takže i slug bude. */
+function slugFromEmail(email: string): string {
+  return email
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 export async function POST(request: NextRequest): Promise<Response> {
+  // Anti-spam: max 5 registrací promotéra / hod per IP.
+  const ip = clientIp(request);
+  const limited = rateLimitResponse(
+    await checkRateLimit(`register-promoter:${ip}`, { limit: 5, windowMs: 3_600_000 }),
+    'register-promoter',
+  );
+  if (limited) return limited;
+
   const body: unknown = await request.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
@@ -28,7 +50,12 @@ export async function POST(request: NextRequest): Promise<Response> {
       { status: 422 },
     );
   }
-  const { email, password, name, companyName, slug, ico } = parsed.data;
+  const { email, password, ico } = parsed.data;
+  // Defaulty z e-mailu — jméno/organizace/slug se doplní později z adminu.
+  const emailLocal = email.toLowerCase().split('@')[0];
+  const name = parsed.data.name ?? emailLocal;
+  const companyName = parsed.data.companyName ?? emailLocal;
+  const slug = parsed.data.slug ?? slugFromEmail(email);
   const hash = await hashPassword(password);
 
   // ARES check (best-effort, non-blocking) — P0 risk mitigace

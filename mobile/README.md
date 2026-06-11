@@ -1,65 +1,62 @@
-# Tixly Mobile (React Native + Expo)
+# Tixly — zákaznická appka (React Native + Expo)
 
-Native mobile app skeleton — TM parity Fáze 4.
+Nativní appka pro **kupující** (iOS + Android z jedné kódové základny).
+Bundle ID: `cz.tixly.app`. Mířeno na App Store + Google Play.
 
-Aktuální stav: **skeleton**. Web PWA (`/m/ticket/[id]`) je již produkční;
-tato složka slouží jako startovní bod pro skutečnou native distribuci přes
-Expo EAS Build + App Store / Google Play až bude rozpočet a App Store
-účty schválené.
+## Stav (Fáze 1 — funkční jádro)
 
-## Co to dělá v plné verzi
+Hotovo a typově ověřeno (`tsc` exit 0):
 
-- Login (passkey + email magic link)
-- Seznam vstupenek (offline cache)
-- Fullscreen QR view s rotujícím barcode
-- Push notifikace (APNs + FCM přes `identity.native_push_tokens`)
-- Apple Wallet / Google Wallet add buttons
-- NFC tap-to-scan (pro Promoter app v budoucnu)
+- **Přihlášení** (`app/login.tsx`) — e-mail/heslo proti `/api/auth/login`, token v SecureStore (Keychain/Keystore).
+- **Biometrický gate** — Face ID / otisk při otevření (`lib/session.ts`).
+- **Moje vstupenky** (`app/tickets/index.tsx`) — `GET /api/buyer/my-tickets`, pull-to-refresh.
+- **Detail s rotujícím QR** (`app/tickets/[id].tsx`) — polluje `GET /api/buyer/tickets/:id/totp`, renderuje QR `tixly:<id>:<code>` + countdown 30 s, řeší „QR se zobrazí X min před akcí".
 
-## Setup (až přijde čas)
+## Fáze 2 (hotovo, tsc 0)
+
+- **Procházení akcí** (`app/events/index.tsx`) — `GET /api/events/featured`, cover/cena/místo.
+- **Detail akce + koupit** (`app/events/[id].tsx`) — `GET /api/events/:id/ticket-types`, výběr typu+počtu, `POST /api/checkout` → otevře platební bránu v prohlížeči.
+
+## Roadmap (další fáze — plná parita)
+
+- Apple Wallet / Google Wallet tlačítka
+- Push notifikace (APNs + FCM)
+- Resale / marketplace, přenos vstupenky, sociální FOMO
+- Offline cache vstupenek, passkey login
+- Refresh-token-in-body z backendu (teď: access token 15 min → po vypršení re-login)
+
+## Spuštění (dev)
 
 ```bash
 cd mobile
-npx create-expo-app . --template default
-npm install
-npx expo prebuild
-npm run ios       # nebo android
+npm install --legacy-peer-deps
+# API na LAN (telefon musí dosáhnout na dev server):
+EXPO_PUBLIC_API_BASE_URL=http://<tvoje-LAN-IP>:3000 npm run ios   # nebo android
 ```
 
-## EAS Build (production)
+`apiBaseUrl` default je `https://app.tixly.cz` (app.json → extra).
+
+## Build / submit (EAS) — potřebuje Apple/Google účty
 
 ```bash
-npm install -g eas-cli
-eas login
-eas build:configure
-eas build --platform all
-eas submit
+npm i -g eas-cli && eas login
+eas build --platform all        # produkční build
+eas submit                      # po doplnění ascAppId/appleTeamId v eas.json
 ```
 
-## Endpoints (existují v hlavní app)
-
-- `GET /api/buyer/my-tickets` — seznam vstupenek
-- `GET /api/buyer/tickets/:id/qr-image` — rotující QR
-- `GET /api/buyer/tickets/:id/wallet/apple` — .pkpass download
-- `GET /api/buyer/tickets/:id/wallet/google` — Google Wallet save URL
-- `POST /api/buyer/tickets/:id/transfer-invite` — P2P transfer pozvánka
-- `POST /api/buyer/passkeys/register` — passkey enrollment
-- `POST /api/buyer/passkeys/authenticate` — passkey login
+> **Před store submission:** vyměň placeholder ikony v `assets/` za skutečné 1024×1024
+> brandové (icon.png, adaptive-icon.png, splash.png) a doplň `eas.json` submit údaje.
 
 ## Architektura
 
 ```
 mobile/
-├── App.tsx              # Root, NavigationContainer
-├── app.json             # Expo config (bundle ID, icon, splash)
-├── eas.json             # EAS Build profiles (dev/preview/production)
-├── src/
-│   ├── api/             # fetch wrappers proti backendu
-│   ├── screens/         # Login, TicketList, TicketDetail
-│   ├── components/      # QrCard, WalletButtons, TransferSheet
-│   └── lib/             # passkey native bindings, push tokens
-└── assets/              # icons, splash images
+├── app/                 # expo-router routes
+│   ├── _layout.tsx      # Stack + theming
+│   ├── index.tsx        # boot: session + biometrie → redirect
+│   ├── login.tsx
+│   └── tickets/{index,[id]}.tsx
+├── lib/                 # api (Bearer fetch), session (SecureStore+Face ID), config, theme
+├── app.json · eas.json · tsconfig.json
+└── assets/              # placeholder ikony (vyměnit před storem)
 ```
-
-Web `/m/ticket/[id]` route je production-ready alternativa pro 95 % use cases
-bez nutnosti App Store schválení.

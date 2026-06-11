@@ -152,10 +152,7 @@ export async function POST(
          SET status = 'failed', last_error = EXCLUDED.last_error, updated_at = now()`,
       [event.id, page.id, `error-${Date.now()}`, msg, isMockMode()],
     );
-    return NextResponse.json(
-      { error: 'PUBLISH_FAILED', message: msg },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'PUBLISH_FAILED' }, { status: 500 });
   }
 
   });

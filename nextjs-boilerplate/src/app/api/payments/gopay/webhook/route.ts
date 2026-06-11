@@ -69,6 +69,18 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
 
     const order = orderRes.rows[0];
 
+    // Integrita částky: GoPay-reportovaná zaplacená částka (halíře) musí pokrýt
+    // order.total_amount (taky halíře) a měna sedět. Jinak NEoznačíme paid —
+    // underpayment / manipulace by jinak vystavila vstupenky pod cenou.
+    const paidAmount = Number(status.amountHalire);
+    const amountCovers =
+      !Number.isFinite(paidAmount) || paidAmount <= 0
+        ? true // 0/stub se řeší jinde (provider config gating), tady neblokujeme
+        : paidAmount >= order.total_amount;
+    const currencyMatches = !status.currency || status.currency === order.currency;
+    const amountOk = amountCovers && currencyMatches;
+    const effectivePaid = status.paid && amountOk;
+
     // Zápis do orders.payment_events (canonical webhook log + EET audit trail)
     await client.query(
       `INSERT INTO orders.payment_events
@@ -76,7 +88,7 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
        VALUES ($1, $2, $3, $4, $5::jsonb, 'gopay')`,
       [
         order.id,
-        status.paid ? 'payment_paid' : status.refunded ? 'payment_refunded' : 'webhook_received',
+        effectivePaid ? 'payment_paid' : status.refunded ? 'payment_refunded' : 'webhook_received',
         status.state,
         status.amountHalire,
         JSON.stringify({
@@ -94,7 +106,19 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
 
     let triggerOrderCompleted = false;
 
-    if (status.paid && order.status === 'pending') {
+    if (status.paid && !amountOk && order.status === 'pending') {
+      // Zaplaceno, ale částka/měna nesedí → necháme pending, zalogováno výše.
+      await client.query('COMMIT');
+      console.warn(
+        `[gopay webhook] amount/currency mismatch order=${order.id} expected=${order.total_amount}${order.currency} paid=${status.amountHalire}${status.currency ?? ''}`,
+      );
+      return NextResponse.json(
+        { ok: false, reason: 'AMOUNT_MISMATCH', orderId: order.id },
+        { status: 409 },
+      );
+    }
+
+    if (effectivePaid && order.status === 'pending') {
       const upd = await client.query<{ id: string }>(
         `UPDATE orders.orders
          SET status = 'paid', paid_at = NOW(), updated_at = NOW(),

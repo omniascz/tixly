@@ -99,19 +99,23 @@ export function MyTicketsClient({ locale }: { locale: string }) {
   const upcoming = tickets.filter((t) => new Date(t.event_date).getTime() >= now);
   const past = tickets.filter((t) => new Date(t.event_date).getTime() < now);
 
+  // Kolik lístků má každá objednávka — pro skupinový QR (1 QR za celou objednávku).
+  const orderSize: Record<string, number> = {};
+  for (const t of tickets) orderSize[t.order_id] = (orderSize[t.order_id] ?? 0) + 1;
+
   return (
     <div className="space-y-6">
       {upcoming.length > 0 ? (
         <Section title="Nadcházející">
           {upcoming.map((t) => (
-            <TicketCard key={t.id} ticket={t} locale={locale} onChanged={load} />
+            <TicketCard key={t.id} ticket={t} locale={locale} onChanged={load} groupSize={orderSize[t.order_id] ?? 1} />
           ))}
         </Section>
       ) : null}
       {past.length > 0 ? (
         <Section title="Proběhlé">
           {past.map((t) => (
-            <TicketCard key={t.id} ticket={t} locale={locale} onChanged={load} />
+            <TicketCard key={t.id} ticket={t} locale={locale} onChanged={load} groupSize={orderSize[t.order_id] ?? 1} />
           ))}
         </Section>
       ) : null}
@@ -132,10 +136,12 @@ function TicketCard({
   ticket,
   locale,
   onChanged,
+  groupSize = 1,
 }: {
   ticket: Ticket;
   locale: string;
   onChanged?: () => void | Promise<void>;
+  groupSize?: number;
 }) {
   const ccy = isCurrency(ticket.order_currency) ? ticket.order_currency : 'CZK';
   const [walletBusy, setWalletBusy] = useState<string | null>(null);
@@ -543,6 +549,15 @@ function TicketCard({
           >
             📲 Zobrazit QR
           </Link>
+          {groupSize > 1 ? (
+            <Link
+              href={`/${locale}/orders/${ticket.order_id}/group-qr`}
+              className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+              data-testid="group-qr-link"
+            >
+              👥 QR pro skupinu ({groupSize})
+            </Link>
+          ) : null}
           <Button size="sm" variant="outline" onClick={downloadApple} disabled={walletBusy === 'apple'}>
             {walletBusy === 'apple' ? '…' : '📱 Apple Wallet'}
           </Button>

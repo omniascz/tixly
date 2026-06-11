@@ -16,7 +16,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter } from '@/lib/admin-auth';
+import { runAsPromoterNonStaff } from '@/lib/admin-auth';
 
 
 function csvEscape(v: unknown): string {
@@ -31,7 +31,7 @@ function formatHalireToCzk(halire: number): string {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  return runAsPromoter(req, async (promoter) => {
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const url = req.nextUrl;
   const month = url.searchParams.get('month'); // YYYY-MM
   let from: string;

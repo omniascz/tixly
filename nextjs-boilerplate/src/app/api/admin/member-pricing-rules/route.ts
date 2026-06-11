@@ -109,13 +109,17 @@ export async function DELETE(req: NextRequest): Promise<Response> {
   return runAsPromoterNonStaff(req, async (promoter) => {
   const id = req.nextUrl.searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 422 });
-  await db().query(
+  const r = await db().query(
     `DELETE FROM catalog.member_pricing_rules
      WHERE id = $1 AND group_id IN (
        SELECT id FROM platform.member_groups WHERE promoter_id = $2
-     )`,
+     )
+     RETURNING id`,
     [id, promoter.promoterId],
   );
+  if (r.rowCount === 0) {
+    return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+  }
   return NextResponse.json({ ok: true });
 
   });

@@ -10,13 +10,14 @@
 import { createHmac, randomBytes } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { buildOauthUrl, isMockMode } from '@/lib/facebook/graph';
+import { fbStateSecret } from '../state-secret';
 
 export const dynamic = 'force-dynamic';
 
 function signState(userId: string, nonce: string): string {
   const payload = `${userId}.${nonce}`;
-  const secret = process.env.INTERNAL_SERVICE_TOKEN ?? 'tixly-fb-default-secret';
-  const sig = createHmac('sha256', secret).update(payload).digest('hex').slice(0, 16);
+  // Plný HMAC-SHA256 (ne 64bit oříznutý) — 16 hex znaků = jen 64 bitů, forge-able.
+  const sig = createHmac('sha256', fbStateSecret()).update(payload).digest('hex');
   return `${payload}.${sig}`;
 }
 

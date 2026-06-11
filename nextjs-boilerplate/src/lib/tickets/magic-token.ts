@@ -12,9 +12,14 @@
 
 import { createHmac, timingSafeEqual } from 'crypto';
 import { Buffer } from 'node:buffer';
+import { resolveSecret } from '@/lib/security/secrets';
 
 function getSecret(): string {
-  return process.env.TICKET_MAGIC_SECRET ?? process.env.JWT_SECRET ?? 'demo-ticket-secret';
+  return resolveSecret(
+    process.env.TICKET_MAGIC_SECRET ?? process.env.JWT_SECRET,
+    'TICKET_MAGIC_SECRET (or JWT_SECRET)',
+    'demo-ticket-secret',
+  );
 }
 
 function base64url(buf: Buffer): string {

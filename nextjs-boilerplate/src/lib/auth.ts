@@ -3,10 +3,25 @@ import { SignJWT, jwtVerify, JWTPayload } from 'jose';
 import { NextResponse, type NextRequest } from 'next/server';
 import { db as rlsDb, runWithUserContext, runWithServiceContext } from './db/rls-pool';
 
-const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-change-me-min-32-chars-please';
 const ACCESS_TTL = parseInt(process.env.JWT_ACCESS_TOKEN_TTL ?? '900', 10);
 const REFRESH_TTL = parseInt(process.env.JWT_REFRESH_TOKEN_TTL ?? '604800', 10);
-const secretKey = new TextEncoder().encode(JWT_SECRET);
+
+/**
+ * JWT secret se vyhodnocuje LAZY (ne při module-load), aby build nepadal, když
+ * env není v build fázi. V PRODUKCI je povinný a min. 32 znaků (shodně s
+ * middleware) — žádný hardcoded fallback (jinak by šel forgnout admin token).
+ * V dev/test fallback zůstává kvůli lokálnímu běhu a testům.
+ */
+function getSecretKey(): Uint8Array {
+  let secret = process.env.JWT_SECRET;
+  if (!secret || secret.length < 32) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET missing or too short in production (min 32 chars)');
+    }
+    secret = 'dev-secret-change-me-min-32-chars-please';
+  }
+  return new TextEncoder().encode(secret);
+}
 
 export interface PromoterMembership {
   promoterId: string;
@@ -108,7 +123,7 @@ export async function signAccessToken(user: AuthUser, roles: UserRoles): Promise
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(`${ACCESS_TTL}s`)
-    .sign(secretKey);
+    .sign(getSecretKey());
 }
 
 export async function signRefreshToken(user: AuthUser): Promise<string> {
@@ -116,11 +131,11 @@ export async function signRefreshToken(user: AuthUser): Promise<string> {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(`${REFRESH_TTL}s`)
-    .sign(secretKey);
+    .sign(getSecretKey());
 }
 
 export async function verifyToken(token: string): Promise<JWTPayload> {
-  const { payload } = await jwtVerify(token, secretKey);
+  const { payload } = await jwtVerify(token, getSecretKey());
   return payload;
 }
 
@@ -139,7 +154,10 @@ export function setAuthCookies(
 ): void {
   const isProd = process.env.NODE_ENV === 'production';
   res.cookies.set('accessToken', accessToken, {
-    httpOnly: false,
+    // httpOnly: true — JWT nesmí být čitelný z JS (XSS by ho jinak ukradl).
+    // Klient posílá Bearer z localStorage (z těla login response), cookie čte
+    // jen middleware server-side; logout maže cookie serverově (/api/auth/logout).
+    httpOnly: true,
     sameSite: 'lax',
     secure: isProd,
     maxAge: ACCESS_TTL,

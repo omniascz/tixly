@@ -23,7 +23,7 @@ let connectPromise: Promise<RedisClientType | null> | null = null;
 let lastConnectAttempt = 0;
 const CONNECT_RETRY_MS = 30_000;
 
-async function getClient(): Promise<RedisClientType | null> {
+export async function getClient(): Promise<RedisClientType | null> {
   if (process.env.REDIS_URL === 'NONE' || !process.env.REDIS_URL) {
     return null;
   }

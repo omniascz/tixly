@@ -185,7 +185,13 @@ export interface GopayStatusResult {
 export async function getGopayPaymentStatus(paymentId: string): Promise<GopayStatusResult> {
   const config = getGopayConfig();
   if (!config.isConfigured) {
-    // Dev: v mock režimu předpokládáme paid (mock-gopay flow označí status v DB)
+    // SECURITY: v PRODUKCI nesmí nenakonfigurované GoPay vrátit paid:true —
+    // jinak by útočník přes webhook označil objednávku zaplacenou bez platby.
+    // Fail-closed → throw (webhook to chytí a vrátí 502, objednávka zůstane pending).
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('GoPay not configured in production — refusing DEV_STUB paid status');
+    }
+    // Dev only: v mock režimu předpokládáme paid (mock-gopay flow označí status v DB)
     return { state: 'DEV_STUB', paid: true, refunded: false, amountHalire: 0, currency: 'CZK' };
   }
 

@@ -88,10 +88,8 @@ export async function GET(req: NextRequest): Promise<Response> {
     const r = await db().query<Record<string, unknown>>(sql, args);
     rows = r.rows;
   } catch (e) {
-    return NextResponse.json(
-      { error: 'DB_ERROR', message: e instanceof Error ? e.message : 'unknown' },
-      { status: 500 },
-    );
+    console.error('[GET /api/admin/scanner/export]', e);
+    return NextResponse.json({ error: 'DB_ERROR' }, { status: 500 });
   }
 
   if (format === 'json') {

@@ -71,8 +71,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     const orderRes = await client.query<{
       id: string;
       status: string;
+      total_amount: number;
+      currency: string;
     }>(
-      `SELECT id, status
+      `SELECT id, status, total_amount, currency
        FROM orders.orders
        WHERE id = $1::uuid OR gopay_payment_id = $2
        FOR UPDATE
@@ -87,13 +89,24 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     const order = orderRes.rows[0];
 
+    // Integrita částky (halíře) + měna — viz gopay webhook. Underpayment se
+    // nesmí proměnit ve vystavené vstupenky.
+    const paidAmount = Number(status.amountHalire);
+    const amountCovers =
+      !Number.isFinite(paidAmount) || paidAmount <= 0
+        ? true
+        : paidAmount >= order.total_amount;
+    const currencyMatches = !status.currency || status.currency === order.currency;
+    const amountOk = amountCovers && currencyMatches;
+    const effectivePaid = status.paid && amountOk;
+
     await client.query(
       `INSERT INTO orders.payment_events
          (order_id, event_type, gopay_status, amount, raw_payload, payment_provider)
        VALUES ($1, $2, $3, $4, $5::jsonb, 'comgate')`,
       [
         order.id,
-        status.paid ? 'payment_paid' : status.refunded ? 'payment_refunded' : 'webhook_received',
+        effectivePaid ? 'payment_paid' : status.refunded ? 'payment_refunded' : 'webhook_received',
         status.state,
         status.amountHalire,
         JSON.stringify({
@@ -111,7 +124,18 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     let triggerOrderCompleted = false;
 
-    if (status.paid && order.status === 'pending') {
+    if (status.paid && !amountOk && order.status === 'pending') {
+      await client.query('COMMIT');
+      console.warn(
+        `[comgate webhook] amount/currency mismatch order=${order.id} expected=${order.total_amount}${order.currency} paid=${status.amountHalire}${status.currency ?? ''}`,
+      );
+      return new Response('code=0&message=OK', {
+        status: 200,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+    }
+
+    if (effectivePaid && order.status === 'pending') {
       const upd = await client.query<{ id: string }>(
         `UPDATE orders.orders
          SET status = 'paid', paid_at = NOW(), updated_at = NOW(),

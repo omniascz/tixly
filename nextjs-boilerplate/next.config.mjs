@@ -65,9 +65,26 @@ const nextConfig = {
       'xr-spatial-tracking=()',
     ].join(', ');
 
+    // Embed widgety (/embed/*) MUSÍ být frame-ovatelné na cizím webu (prodejní
+    // widget). Proto je vyjímáme z globálního X-Frame-Options:DENY + frame-ancestors:none
+    // a dáváme jim vlastní hlavičky, které framing povolí. Allowlist domén promotérů
+    // přes EMBED_FRAME_ANCESTORS (mezerami oddělené), default '*' (prototyp).
+    const embedFrameAncestors = process.env.EMBED_FRAME_ANCESTORS ?? '*';
+    const embedCsp = [
+      "default-src 'self'",
+      // dev: Next HMR/runtime potřebuje 'unsafe-eval'; prod bez něj.
+      isProd ? "script-src 'self' 'unsafe-inline'" : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "img-src 'self' https: data: blob:",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "connect-src 'self'",
+      `frame-ancestors ${embedFrameAncestors}`,
+    ].join('; ');
+
     return [
       {
-        source: '/:path*',
+        // Globální bezpečnostní hlavičky — KROMĚ /embed (ten se musí dát iframe-ovat).
+        source: '/((?!embed).*)',
         headers: [
           // Force HTTPS for 1 year, allow subdomain inclusion + preload list eligibility
           {
@@ -86,11 +103,63 @@ const nextConfig = {
         ],
       },
       {
+        // Embed prodejní widget — frame-ovatelný (bez X-Frame-Options DENY).
+        source: '/embed/:path*',
+        headers: [
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Content-Security-Policy', value: embedCsp },
+        ],
+      },
+      {
         // API routes — žádný cache, no-store
         source: '/api/:path*',
         headers: [
           { key: 'Cache-Control', value: 'no-store, max-age=0' },
           { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+        ],
+      },
+      {
+        // CORS pro embed/native prodejní integraci — veřejné buyer endpointy
+        // (guest checkout bez cookies → '*' je bezpečné; produkce může omezit
+        // přes EMBED_ALLOWED_ORIGINS na route úrovni). Pokrývá ticket-types + checkout.
+        source: '/api/events/:id/ticket-types',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: process.env.EMBED_ALLOWED_ORIGINS ?? '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET, OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type' },
+          { key: 'Vary', value: 'Origin' },
+        ],
+      },
+      {
+        source: '/api/checkout',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: process.env.EMBED_ALLOWED_ORIGINS ?? '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'POST, OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type' },
+          { key: 'Vary', value: 'Origin' },
+        ],
+      },
+      {
+        // Seat-picker ve widgetu — mapa sedadel + hold (číslovaná místa).
+        source: '/api/events/:id/seats',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: process.env.EMBED_ALLOWED_ORIGINS ?? '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET, OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type' },
+          { key: 'Vary', value: 'Origin' },
+        ],
+      },
+      {
+        source: '/api/events/:id/seats/hold',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: process.env.EMBED_ALLOWED_ORIGINS ?? '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'POST, DELETE, OPTIONS' },
+          // x-fingerprint = stabilní per-prohlížeč tag, aby cross-origin guest mohl
+          // uvolnit SVŮJ předchozí hold při retry (scope "release my prior hold").
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, x-fingerprint' },
+          { key: 'Vary', value: 'Origin' },
         ],
       },
     ];

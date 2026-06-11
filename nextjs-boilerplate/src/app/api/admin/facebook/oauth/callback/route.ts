@@ -12,6 +12,8 @@ import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
 import { requirePromoter } from '@/lib/admin-auth';
 import { encryptSecret } from '@/lib/crypto';
+import { safeEqualStr } from '@/lib/security/compare';
+import { fbStateSecret } from '../state-secret';
 import {
   exchangeCodeForToken,
   isMockMode,
@@ -25,12 +27,10 @@ function verifyState(state: string): string | null {
   const parts = state.split('.');
   if (parts.length !== 3) return null;
   const [userId, nonce, sig] = parts;
-  const secret = process.env.INTERNAL_SERVICE_TOKEN ?? 'tixly-fb-default-secret';
-  const expected = createHmac('sha256', secret)
+  const expected = createHmac('sha256', fbStateSecret())
     .update(`${userId}.${nonce}`)
-    .digest('hex')
-    .slice(0, 16);
-  if (sig !== expected) return null;
+    .digest('hex');
+  if (!safeEqualStr(sig, expected)) return null;
   return userId;
 }
 
@@ -126,10 +126,11 @@ export async function GET(req: NextRequest): Promise<Response> {
       302,
     );
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error('[FB OAuth callback]', msg);
+    // Detail jen do server logu — do redirect URL (klient) jen generický kód,
+    // ať neuniká interní chyba / token-exchange detail.
+    console.error('[FB OAuth callback]', err);
     return NextResponse.redirect(
-      `${appUrl}/admin/facebook?error=${encodeURIComponent(msg)}`,
+      `${appUrl}/admin/facebook?error=connect_failed`,
       302,
     );
   }

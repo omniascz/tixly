@@ -14,14 +14,10 @@
  * No auth required — purely public utility.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 
 const ALLOWED_CHANNELS = new Set(['online', 'box_office', 'partner', 'kiosk', 'embed', 'phone']);
-const DEFAULT_ONLINE_FEE_PCT = 4.0;
-const DEFAULT_BOX_OFFICE_FEE_PCT = 0;
-const DEFAULT_PARTNER_FEE_PCT = 6.0;
-const DEFAULT_KIOSK_FEE_PCT = 1.5;
 
 export async function GET(
   req: NextRequest,
@@ -85,18 +81,28 @@ export async function GET(
     [...args, channel],
   );
 
-  const defaultFeePct =
-    channel === 'box_office' ? DEFAULT_BOX_OFFICE_FEE_PCT :
-    channel === 'partner' ? DEFAULT_PARTNER_FEE_PCT :
-    channel === 'kiosk' ? DEFAULT_KIOSK_FEE_PCT :
-    DEFAULT_ONLINE_FEE_PCT;
+  // Service fee = JEDEN zdroj pravdy (platform.fee_schedules), stejný jako checkout.
+  // Fixní částka per vstupenku / per objednávku dle nastavení promotéra. Buyer tak
+  // předem vidí přesně to, co u pokladny zaplatí.
+  // fee_schedules je access-controlled (RLS) — tenhle veřejný endpoint nemá kontext,
+  // proto fee config (= co buyer zaplatí, veřejná info) načteme v service kontextu.
+  const { resolveServiceFee } = await import('@/lib/fees/service-fee');
+  const svc = await runWithServiceContext(() =>
+    resolveServiceFee(db(), {
+      promoterId: event.promoter_id,
+      currency: event.default_currency,
+      quantity: qty,
+    }),
+  );
+  const feeLabel =
+    svc.basis === 'per_ticket'
+      ? `Servisní poplatek (${(svc.unitFeeMinor / 100).toFixed(2)} ${event.default_currency}/vstupenku)`
+      : `Servisní poplatek (${(svc.unitFeeMinor / 100).toFixed(2)} ${event.default_currency}/objednávku)`;
 
   const tickets = ttRes.rows.map((tt) => {
     const unitPrice = tt.channel_override ?? tt.base_price;
     const subtotal = unitPrice * qty;
-    const serviceFee = event.fee_payer === 'buyer'
-      ? Math.round(subtotal * (defaultFeePct / 100))
-      : 0;
+    const serviceFee = svc.totalFeeMinor;
     const total = subtotal + serviceFee;
 
     return {
@@ -105,9 +111,7 @@ export async function GET(
       unitPrice,
       qty,
       subtotal,
-      fees: event.fee_payer === 'buyer' ? [
-        { label: `Servisní poplatek (${defaultFeePct}%)`, amount: serviceFee },
-      ] : [],
+      fees: serviceFee > 0 ? [{ label: feeLabel, amount: serviceFee }] : [],
       total,
       allInPrice: total,
       availability: tt.remaining_qty ?? null,
@@ -121,10 +125,12 @@ export async function GET(
     channel,
     currency: event.default_currency,
     feePayer: event.fee_payer,
+    serviceFeeBasis: svc.basis,
     qty,
     tickets,
-    disclaimer: event.fee_payer === 'buyer'
-      ? `Ceny zahrnují všechny poplatky (All-In). Servisní poplatek ${defaultFeePct}% na kanále "${channel}".`
-      : 'Cena beze servisních poplatků — kryje pořadatel.',
+    disclaimer:
+      svc.totalFeeMinor > 0
+        ? `Ceny jsou All-In. ${feeLabel}.`
+        : 'Bez servisního poplatku.',
   });
 }

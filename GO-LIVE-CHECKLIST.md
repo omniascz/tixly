@@ -1,6 +1,6 @@
 # 🚀 Tixly — GO-LIVE Checklist (cesta k 100 % ostrému provozu)
 
-> Odškrtávej `[ ]` → `[x]`, jak postupuješ. Aktualizováno: **2026-06-03** (po 8 dávkách deep E2E).
+> Odškrtávej `[ ]` → `[x]`, jak postupuješ. Aktualizováno: **2026-06-08** (RLS Fáze 2 dokončena + ověřena, CZ/SK kód hotový).
 > **Legenda:** 🧑 = ty (tvůj účet/billing/podpis) · 🤖 = udělám/pomůžu já · ⏱ = doba · 🔗 = na čem to závisí
 
 > ⚠️ **NEJDŮLEŽITĚJŠÍ ZMĚNA OPROTI MINULE:** Tuhle session jsem deep E2E otestoval **30 funkcí**
@@ -18,7 +18,12 @@
 - [x] **Neon Postgres (produkce)** — domigrováno na 339, ověřeno zdravé (🤖)
 - [x] **Upstash Redis** — provisionováno, ověřeno (DB+Redis ok) (🤖)
 - [x] **Klíče/secrets na Vercelu** — JWT, ENCRYPTION_KEY, CRON, INTERNAL, VAPID (🤖)
-- [x] **RLS Fáze 2** (tenant izolace) — mergnuto do master, na prod dormant (🤖)
+- [x] **RLS Fáze 2 DOKONČENA** (tenant izolace) — všech 7 nechráněných tabulek izolováno (migr. 351–354),
+  5 admin server-stránek napojeno na kontext (+IDOR fix). Ověřeno pod ENFORCED RLS: **e2e-full-suite 42/42**
+  (vč. tenant izolace A↔B) + smoke 166 endpointů. Na větvi `feature/rls-phase2-enforcement` (pushnuto).
+  Produkce dál BYPASSRLS dormant; flip = po deploy + staging (sekce 7, NE blocker). (🤖, 2026-06-08)
+- [x] **CZ/SK kód ověřen HOTOVÝ** — DPH country-aware (SK 5 %/CZ 10 %, 15 testů), variabilní symbol,
+  EUR payouts per-currency, SK právní texty (draft). Tax+accounting 25/25. Zbývá jen právník. (🤖, 2026-06-08)
 - [x] **Produkce běží** — `health/ready {database:ok, redis:ok}`, login funguje (🤖)
 - [x] **Re-ověřeno 2026-06-03** — prod `health/ready` 200 `{database:ok, redis:ok}` (🤖)
 - [x] **Moderace obsahu — vision** — Claude posuzuje text I plakát; finální schválení master admin (🤖, viz FÁZE 1 → Bezpečnost)
@@ -38,18 +43,17 @@
 > Produkce běží starý master. Pořadí JE DŮLEŽITÉ: **nejdřív migrace, pak deploy kódu** (kód počítá
 > se schématem po migracích).
 
-- [ ] **1) Migrace 340–348 na produkční Neon** 🧑→🤖 — připraveno: `migrations/BUNDLE_340-348_prod.sql`
-  (transakční, idempotentní) + `scripts/apply-prod-migrations.mjs`.
-  - **Blocker:** prod connection string neumím z Vercelu vytáhnout (`env pull` vrací `DATABASE_URL` prázdnou).
-  - Dej mi ho (Vercel → Settings → Env Vars → `DATABASE_URL` Production → Reveal) → 🤖 spustím applier.
-  - Nebo sám: `! cd nextjs-boilerplate && PROD_DATABASE_URL="<url>" node scripts/apply-prod-migrations.mjs`
-  - Co opravují: promotér registrace (`promoters.id` default), refund/scanner (`FOR UPDATE OF`),
-    127 RLS service policies, vouchers/subscriptions/payment-plans viditelnost, audit actor_type.
-- [ ] **2) Merge `feature/rls-phase2-enforcement` → `master`** 🧑+🤖 — obsahuje VŠECHNY opravy + UX +
-  moderaci. Doporučuju PR review (nebo `/code-review ultra`) před mergem — je to velký diff.
-- [ ] **3) Deploy** 🤖 — Vercel auto-deploy z masteru po mergi; ověřím build + `health/ready`.
-- [ ] **4) Smoke na produkci** 🤖 — po deployi proklikat registraci promotéra naostro (ten flow byl
-  rozbitý) + golden-path (bez platby zatím, GoPay přijde později).
+- [x] **1) Migrace 340–348 na produkční Neon** 🤖 ✅ **HOTOVO 2026-06-03** — aplikováno přes Neon
+  connection string (neondb_owner). Ověřeno: `promoters.id`=gen_random_uuid(), 127 svc policies,
+  audit constraint má 'promoter'. Bundle transakční (vše naráz).
+- [x] **2) Merge `feature/rls-phase2-enforcement` → `master`** 🤖 ✅ **HOTOVO** — čistý fast-forward
+  (53 commitů, origin/master byl obsažen ve feature, žádné konflikty). Push na origin/master = `99ca26c`.
+- [x] **3) Deploy** 🤖 ✅ **HOTOVO** — Vercel auto-deploy z masteru proběhl (READY), `health/ready` 200.
+- [x] **4) Smoke na produkci** 🤖 ✅ **HOTOVO** — registrace promotéra NA PRODUKCI vrací **HTTP 200**
+  (předtím 500). Testovací promotér uklizen z prod DB.
+
+> ✅ **NASAZENÍ DOKONČENO.** Produkce teď běží opravený kód (24 bugfixů) + migrace 340–348.
+> Golden-path bug (promotér se nemohl zaregistrovat) je v produkci OPRAVENÝ.
 
 ### ⚠️ Kritická operační poznámka — ENCRYPTION_KEY
 - [ ] **Ověřit, že prod `ENCRYPTION_KEY` je STABILNÍ a nikdy se nezmění** 🧑 — šifruje TOTP secrety
@@ -125,12 +129,11 @@
   transakci; inventář se rezervuje atomicky až před commitem. **Eliminován katastrofální hang**
   (před: 600 souběžných = server tuhl 30s + zombie transakce; po: fast-fail 9s, 0 oversell).
   Pool dostal `statement_timeout`. Naměřeno: 1 instance jede čistě ~30-50 souběžných (51 req/s).
-- [ ] **Zapnout virtuální frontu pro horké akce** 🧑+🤖 — `/api/queue` existuje; promotér zapne
-  `queue_enabled` na akci → kupci se pouští ve vlnách (`queue_max_concurrent`), checkout nikdy
-  nevidí celý nápor naráz. **Tohle je hlavní páka pro „tisíce za vteřiny".**
-- [ ] **Neon connection pooler (PgBouncer endpoint)** 🧑+🤖 — v prod `DATABASE_URL` použít
-  **pooled** endpoint Neonu (`-pooler`), ne direct. Serverless (Vercel) jinak vyčerpá connection
-  limit Neonu. + nastavit `PG_POOL_MAX` (malý per-instance, např. 5–10).
+- [x] **Virtuální fronta — OVĚŘENA** 🤖 (2026-06-03) — `scripts/e2e-queue.mjs` 10/10: fronta reálně
+  gatuje checkout (bez admitted tokenu odmítnut, pouští ve vlnách, token jednorázový). Promotér ji
+  zapne na hot akci přepínačem `queue_enabled` + `queue_max_concurrent`. **Hlavní páka pro „tisíce/s".**
+- [x] **Neon pooler** 🤖 ✅ — prod `DATABASE_URL` (z Neon integrace) UŽ JE pooled endpoint
+  (`ep-…-pooler`). Default `PG_POOL_MAX=10` per-instance je pro serverless OK.
 - [ ] **Zátěžový test na NASAZENÉ produkci** 🤖 — `scripts/load-test.mjs` proti app.tixly.cz
   (s frontou + poolerem) → definitivní strop. Lokální test = jen 1 proces, Vercel škáluje horizontálně.
 - [ ] **Vercel: spending limit + concurrency alert** 🧑 — ať on-sale špička nepřekvapí fakturou/limitem.
@@ -193,7 +196,7 @@
 | Tech infra (hosting, DB, Redis, build) | ✅ hotovo |
 | **Funkce otestované deep E2E (30)** | ✅ ~24 bugů opraveno, vše zelené s DB ověřením |
 | Feature parity (vs Eventim/DACH) | ✅ ~99 % |
-| **🟥 Nasazení oprav na prod (FÁZE 1A)** | ❌ kód na větvi + migrace 340–348 NEna prod |
+| **✅ Nasazení oprav na prod (FÁZE 1A)** | ✅ HOTOVO — migrace 340–348 + merge + deploy (registrace promotéra na prod 200) |
 | **Platby naostro** | ❌ GoPay (~2-3 týdny KYC) |
 | **Email** | ❌ Resend (1-2 dny) |
 | **Doména** | ⏳ 1 DNS záznam (CNAME `app`→`cname.vercel-dns.com`) |

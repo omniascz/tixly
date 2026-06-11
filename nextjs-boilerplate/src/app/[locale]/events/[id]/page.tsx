@@ -92,11 +92,14 @@ async function fetchDetail(id: string) {
       FROM catalog.events e
       LEFT JOIN catalog.venues v ON v.id = e.venue_id
       LEFT JOIN platform.promoters p ON p.id = e.promoter_id
-      WHERE e.id = $1
+      WHERE (e.id::text = $1 OR e.slug = $1)
     `,
       [id],
     );
     if (eventResult.rows.length === 0) return null;
+    // [id] param může být UUID nebo slug (karty odkazují přes slug). Po resolvnutí
+    // přepneme na reálné UUID, aby navazující dotazy (tickets/days/zones) seděly.
+    id = eventResult.rows[0].id;
 
     // 'hidden' = úplně skrytý (nikdy nezobrazit)
     // 'access_code' = veřejně nezobrazit, ale klient může odemknout kódem
@@ -259,7 +262,16 @@ export default async function EventDetailPage({
     <div className="space-y-6">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        // SECURITY: JSON.stringify NEescapuje `</script>` ani `<`, takže promotér
+        // s názvem/popisem akce obsahujícím `</script><script>…` by se vylomil z
+        // LD+JSON bloku → stored XSS proti všem návštěvníkům. Escapujeme `<` na
+        // `<` (a `>`/`&` pro jistotu) — JSON tím zůstane validní.
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd)
+            .replace(/</g, '\\u003c')
+            .replace(/>/g, '\\u003e')
+            .replace(/&/g, '\\u0026'),
+        }}
       />
       <div
         className="relative flex h-48 items-end overflow-hidden rounded-lg p-6 lg:h-64"

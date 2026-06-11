@@ -12,15 +12,6 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
-function slugify(s: string): string {
-  return s
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
 export default function RegisterPromoterPage({
   params,
 }: {
@@ -28,23 +19,24 @@ export default function RegisterPromoterPage({
 }) {
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [slugTouched, setSlugTouched] = useState(false);
+  const [passwordConfirm, setPasswordConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    if (password !== passwordConfirm) {
+      setError('Hesla se neshodují');
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch('/api/auth/register-promoter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name, password, companyName, slug }),
+        body: JSON.stringify({ email, password }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -67,26 +59,12 @@ export default function RegisterPromoterPage({
         <CardHeader>
           <CardTitle>Registrace promotéra</CardTitle>
           <CardDescription>
-            Po registraci čeká účet na schválení master adminem.
+            Stačí e-mail a heslo — údaje o organizaci doplníš později
+            v administraci.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-3">
-            <div>
-              <label
-                htmlFor="promoter-name"
-                className="mb-1 block text-xs font-medium"
-              >
-                Tvoje jméno
-              </label>
-              <Input
-                id="promoter-name"
-                autoComplete="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
             <div>
               <label
                 htmlFor="promoter-email"
@@ -122,37 +100,18 @@ export default function RegisterPromoterPage({
             </div>
             <div>
               <label
-                htmlFor="promoter-company"
+                htmlFor="promoter-password-confirm"
                 className="mb-1 block text-xs font-medium"
               >
-                Název organizace
+                Heslo znovu
               </label>
               <Input
-                id="promoter-company"
-                autoComplete="organization"
-                value={companyName}
-                onChange={(e) => {
-                  setCompanyName(e.target.value);
-                  if (!slugTouched) setSlug(slugify(e.target.value));
-                }}
-                required
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="promoter-slug"
-                className="mb-1 block text-xs font-medium"
-              >
-                URL slug (a-z, 0-9, pomlčky)
-              </label>
-              <Input
-                id="promoter-slug"
-                value={slug}
-                onChange={(e) => {
-                  setSlug(e.target.value);
-                  setSlugTouched(true);
-                }}
-                pattern="[a-z0-9-]+"
+                id="promoter-password-confirm"
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
                 required
               />
             </div>

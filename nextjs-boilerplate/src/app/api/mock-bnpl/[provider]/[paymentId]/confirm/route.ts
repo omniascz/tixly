@@ -11,6 +11,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { mockPaymentBlockedResponse } from '@/lib/payment/mock-guard';
 import { z } from 'zod';
 
 
@@ -23,6 +24,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ provider: string; paymentId: string }> },
 ): Promise<Response> {
+  const blocked = mockPaymentBlockedResponse();
+  if (blocked) return blocked;
   return runWithServiceContext(async () => {
 
   const { provider, paymentId } = await params;

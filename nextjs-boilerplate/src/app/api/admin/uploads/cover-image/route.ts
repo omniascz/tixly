@@ -113,12 +113,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       contentType: result.contentType,
     });
   } catch (err) {
-    return NextResponse.json(
-      {
-        error: 'Upload failed',
-        detail: err instanceof Error ? err.message : 'unknown',
-      },
-      { status: 500 },
-    );
+    console.error('[POST /api/admin/uploads/cover-image]', err);
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }

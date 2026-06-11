@@ -7,13 +7,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
+import { runAsPromoterNonStaff, runAsActivePromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
 
 
 interface SettingsRow {
   promoter_id: string;
   promoter_name: string;
+  promoter_slug: string | null;
   promoter_email: string;
   contact_email: string | null;
   locale: string;
@@ -32,10 +33,10 @@ interface SettingsRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  return runAsPromoter(req, async (promoter) => {
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const r = await db().query<SettingsRow>(
     `SELECT
-       p.id AS promoter_id, p.name AS promoter_name, p.email AS promoter_email,
+       p.id AS promoter_id, p.name AS promoter_name, p.slug AS promoter_slug, p.email AS promoter_email,
        p.contact_email, p.locale, p.bank_account,
        p.brand_logo_url, p.brand_color_hex, p.brand_tagline,
        COALESCE(s.payout_cycle, 'weekly') AS payout_cycle,
@@ -61,6 +62,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     promoter: {
       id: s.promoter_id,
       name: s.promoter_name,
+      slug: s.promoter_slug,
       email: s.promoter_email,
       contactEmail: s.contact_email,
       locale: s.locale,
@@ -116,7 +118,7 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(req: NextRequest): Promise<Response> {
-  return runAsActivePromoter(req, async (promoter) => {
+  return runAsActivePromoterNonStaff(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {

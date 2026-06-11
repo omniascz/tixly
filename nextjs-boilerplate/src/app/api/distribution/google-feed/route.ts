@@ -19,9 +19,12 @@ interface FeedRow {
   title: string;
   description: string | null;
   date_start: string;
+  currency: string | null;
+  cover_image_url: string | null;
   venue_name: string | null;
   venue_address: string | null;
   venue_city: string | null;
+  venue_country: string | null;
   min_price: number | null;
   promoter_name: string | null;
 }
@@ -29,8 +32,9 @@ interface FeedRow {
 export async function GET(): Promise<Response> {
   const r = await db().query<FeedRow>(
     `SELECT
-       e.id, e.title, e.description, e.date_start,
+       e.id, e.title, e.description, e.date_start, e.currency, e.cover_image_url,
        v.name AS venue_name, v.address AS venue_address, v.city AS venue_city,
+       v.country AS venue_country,
        (SELECT MIN(base_price) FROM catalog.ticket_types WHERE event_id = e.id) AS min_price,
        p.name AS promoter_name
      FROM catalog.events e
@@ -48,9 +52,11 @@ export async function GET(): Promise<Response> {
     '@context': 'https://schema.org',
     '@type': 'Event',
     '@id': `${baseUrl}/cs/events/${row.id}`,
+    url: `${baseUrl}/cs/events/${row.id}`,
     name: row.title,
     description: row.description ?? undefined,
     startDate: row.date_start,
+    image: row.cover_image_url ?? undefined,
     eventStatus: 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     location: row.venue_name
@@ -61,7 +67,7 @@ export async function GET(): Promise<Response> {
             '@type': 'PostalAddress',
             streetAddress: row.venue_address ?? undefined,
             addressLocality: row.venue_city ?? undefined,
-            addressCountry: 'CZ',
+            addressCountry: row.venue_country ?? 'CZ',
           },
         }
       : {
@@ -80,7 +86,7 @@ export async function GET(): Promise<Response> {
             '@type': 'Offer',
             url: `${baseUrl}/cs/events/${row.id}`,
             price: (row.min_price / 100).toFixed(2),
-            priceCurrency: 'CZK',
+            priceCurrency: row.currency ?? 'CZK',
             availability: 'https://schema.org/InStock',
             validFrom: new Date().toISOString(),
           }

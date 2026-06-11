@@ -16,6 +16,14 @@ interface Member {
   createdAt: string;
 }
 
+interface PendingInvite {
+  id: string;
+  email: string;
+  role: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
 const ROLE_LABELS: Record<string, { label: string; tone: string; description: string }> = {
   owner: {
     label: 'Owner',
@@ -36,6 +44,7 @@ const ROLE_LABELS: Record<string, { label: string; tone: string; description: st
 
 export default function StaffPage() {
   const [members, setMembers] = useState<Member[]>([]);
+  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [currentRole, setCurrentRole] = useState<string>('');
   const [email, setEmail] = useState('');
@@ -50,8 +59,14 @@ export default function StaffPage() {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     if (r.ok) {
-      const d = (await r.json()) as { members: Member[]; currentUserId: string; currentRole: string };
+      const d = (await r.json()) as {
+        members: Member[];
+        pendingInvites?: PendingInvite[];
+        currentUserId: string;
+        currentRole: string;
+      };
       setMembers(d.members);
+      setPendingInvites(d.pendingInvites ?? []);
       setCurrentUserId(d.currentUserId);
       setCurrentRole(d.currentRole);
     }
@@ -81,7 +96,7 @@ export default function StaffPage() {
         setError(d.message ?? d.error ?? `HTTP ${r.status}`);
         return;
       }
-      setFeedback(`Uživatel ${email} přidán jako ${ROLE_LABELS[role].label}.`);
+      setFeedback(`Pozvánka odeslána na ${email} (role ${ROLE_LABELS[role].label}). Odkaz vyprší za 7 dní.`);
       setEmail('');
       await reload();
     } catch {
@@ -133,7 +148,7 @@ export default function StaffPage() {
     <div className="space-y-6">
       <PageHeader
         title="Personál"
-        description="Členové tvého týmu — owner, admin, scanner staff. Pro pozvánku potřebuješ email už registrovaného uživatele."
+        description="Členové tvého týmu — owner, admin, scanner staff. Pozvi kohokoli e-mailem; účet si vytvoří při přijetí pozvánky."
       />
 
       {feedback ? (
@@ -147,7 +162,7 @@ export default function StaffPage() {
           <CardHeader>
             <CardTitle>Pozvat člena</CardTitle>
             <CardDescription>
-              Uživatel se musí nejdříve zaregistrovat na <code>/register</code>. Pak ho přidáš podle e-mailu.
+              Zadej e-mail — pošleme pozvánku s odkazem. Adresát se přihlásí nebo si vytvoří účet a tím se přidá do týmu. Nemusí být předem registrovaný.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -181,6 +196,45 @@ export default function StaffPage() {
                 <p className="basis-full text-sm text-destructive">{error}</p>
               ) : null}
             </form>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {isOwner && pendingInvites.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Čekající pozvánky ({pendingInvites.length})</CardTitle>
+            <CardDescription>
+              Pozvánky odeslané e-mailem, které zatím nebyly přijaty.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left text-xs uppercase text-muted-foreground">
+                  <th className="py-2">E-mail</th>
+                  <th>Role</th>
+                  <th>Vyprší</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingInvites.map((inv) => (
+                  <tr key={inv.id} className="border-b">
+                    <td className="py-2 font-medium">{inv.email}</td>
+                    <td>
+                      <span
+                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_LABELS[inv.role]?.tone ?? 'bg-slate-100 text-slate-700'}`}
+                      >
+                        {ROLE_LABELS[inv.role]?.label ?? inv.role}
+                      </span>
+                    </td>
+                    <td className="text-xs text-muted-foreground">
+                      {new Date(inv.expiresAt).toLocaleDateString('cs-CZ')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </CardContent>
         </Card>
       ) : null}

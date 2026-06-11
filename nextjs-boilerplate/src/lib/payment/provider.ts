@@ -19,6 +19,7 @@ import { randomUUID } from 'crypto';
 import { createComGateSession, getComGateConfig } from './comgate';
 import { createGopaySession, getGopayConfig } from './gopay-real';
 import { createStripeCheckoutSession } from './stripe';
+import { assertMockPaymentsAllowed } from './mock-guard';
 
 export interface CreatePaymentInput {
   orderId: string;
@@ -75,8 +76,9 @@ export async function createPayment(input: CreatePaymentInput): Promise<CreatePa
     };
   }
 
-  // Wero/Przelewy24 zatím mock (vlastní integrace plánovaná)
+  // Wero/Przelewy24 zatím mock (vlastní integrace plánovaná) — v produkci fail-closed.
   if (input.paymentMethod === 'wero') {
+    assertMockPaymentsAllowed();
     const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
     return {
       paymentId,
@@ -85,6 +87,7 @@ export async function createPayment(input: CreatePaymentInput): Promise<CreatePa
     };
   }
   if (input.paymentMethod === 'przelewy24') {
+    assertMockPaymentsAllowed();
     const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
     return {
       paymentId,
@@ -163,7 +166,9 @@ export async function createPayment(input: CreatePaymentInput): Promise<CreatePa
     };
   }
 
-  // Mock fallback — žádný provider nakonfigurovaný, použij lokální mock-gopay UI
+  // Mock fallback — žádný provider nakonfigurovaný. V produkci fail-closed (jinak
+  // by checkout mintoval vstupenky zdarma přes mock-gopay).
+  assertMockPaymentsAllowed();
   const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
   return {
     paymentId,

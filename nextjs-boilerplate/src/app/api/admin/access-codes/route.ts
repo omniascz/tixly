@@ -181,10 +181,8 @@ export async function POST(req: NextRequest): Promise<Response> {
         { status: 409 },
       );
     }
-    return NextResponse.json(
-      { error: 'INTERNAL_ERROR', message: e instanceof Error ? e.message : String(e) },
-      { status: 500 },
-    );
+    console.error('[POST /api/admin/access-codes]', e);
+    return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
   } finally {
     client.release();
   }

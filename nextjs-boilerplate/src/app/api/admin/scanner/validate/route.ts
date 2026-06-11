@@ -17,15 +17,23 @@ import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
 import { decryptSecret } from '@/lib/crypto';
 import { verifyTotpCode } from '@/lib/totp/verify';
+import { verifyPrintToken } from '@/lib/tickets/print-token';
 
 
-const schema = z.object({
-  ticketId: z.string().regex(/^[0-9a-f-]{36}$/i, 'Neplatný ticket ID'),
-  totpCode: z.string().regex(/^\d{6}$/, 'TOTP musí být 6 číslic').optional(),
-  // Day-aware + zone-aware (volitelné pro single events)
-  eventDayId: z.string().uuid().nullable().optional(),
-  zoneId: z.string().uuid().nullable().optional(),
-});
+const schema = z
+  .object({
+    ticketId: z.string().regex(/^[0-9a-f-]{36}$/i, 'Neplatný ticket ID').optional(),
+    // Podepsaný token z TIŠTĚNÉ vstupenky (104mm label). Scanner ho ověří a
+    // převede na ticketId — viz [[tickets/print-token]].
+    printToken: z.string().min(8).max(80).optional(),
+    totpCode: z.string().regex(/^\d{6}$/, 'TOTP musí být 6 číslic').optional(),
+    // Day-aware + zone-aware (volitelné pro single events)
+    eventDayId: z.string().uuid().nullable().optional(),
+    zoneId: z.string().uuid().nullable().optional(),
+  })
+  .refine((d) => d.ticketId || d.printToken, {
+    message: 'ticketId nebo printToken je vyžadován',
+  });
 
 interface TicketRow {
   id: string;
@@ -61,6 +69,19 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
+  // Tištěná vstupenka: ověř podpis tokenu a získej ticketId.
+  let ticketId = parsed.data.ticketId;
+  if (!ticketId && parsed.data.printToken) {
+    const pv = verifyPrintToken(parsed.data.printToken);
+    if (!pv.ok || !pv.ticketId) {
+      return NextResponse.json(
+        { result: 'invalid_token', message: 'Neplatný kód vstupenky (podpis nesedí).' },
+        { status: 401 },
+      );
+    }
+    ticketId = pv.ticketId;
+  }
+
   const client = await db().connect();
   try {
     await client.query('BEGIN');
@@ -83,7 +104,7 @@ export async function POST(req: NextRequest): Promise<Response> {
        JOIN identity.users u ON u.id = t.owner_id
        WHERE t.id = $1
        FOR UPDATE OF t`,
-      [parsed.data.ticketId],
+      [ticketId],
     );
 
     if (r.rows.length === 0) {

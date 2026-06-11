@@ -72,11 +72,16 @@ export async function copyLayoutToEventSeats(
   );
   const ticketTypes = ttRes.rows;
 
+  // Normalizace pro robustní matching: trim + lowercase + NFC (sjednotí diakritiku).
+  // Bez tohohle stačila drobná odchylka case (sektor "Přízemí" vs zone "PŘÍZEMÍ")
+  // a seats se TIŠE nevytvořily → buyer prázdná mapa, žádná chyba (křehký šev).
+  const norm = (s: string): string => s.trim().toLocaleLowerCase('cs').normalize('NFC');
   function findTicketTypeId(sectorName: string): string | null {
-    const exact = ticketTypes.find((t) => t.zone === sectorName);
+    const target = norm(sectorName);
+    const exact = ticketTypes.find((t) => t.zone && norm(t.zone) === target);
     if (exact) return exact.id;
     const prefixCandidates = ticketTypes
-      .filter((t) => t.zone && sectorName.startsWith(t.zone))
+      .filter((t) => t.zone && target.startsWith(norm(t.zone)))
       .sort((a, b) => (b.zone ?? '').length - (a.zone ?? '').length);
     return prefixCandidates[0]?.id ?? null;
   }

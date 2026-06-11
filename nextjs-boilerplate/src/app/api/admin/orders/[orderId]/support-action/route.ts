@@ -245,10 +245,7 @@ export async function POST(
       } catch (e) {
         console.error('[support send_message]', e);
         await client.query('ROLLBACK');
-        return NextResponse.json(
-          { error: 'EMAIL_SEND_FAILED', message: e instanceof Error ? e.message : String(e) },
-          { status: 500 },
-        );
+        return NextResponse.json({ error: 'EMAIL_SEND_FAILED' }, { status: 500 });
       }
       metadata = { subject: input.subject, bodyLength: input.body.length };
     }

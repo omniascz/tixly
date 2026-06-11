@@ -78,7 +78,7 @@ interface RecipientRow {
 
 export async function POST(req: NextRequest): Promise<Response> {
   return runAsActivePromoter(req, async (promoter) => {
-  const rl = checkRateLimit(`${promoter.promoterId}:sms-campaign`, {
+  const rl = await checkRateLimit(`${promoter.promoterId}:sms-campaign`, {
     limit: 5,
     windowMs: 60_000,
   });

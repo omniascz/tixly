@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter } from '@/lib/admin-auth';
+import { runAsPromoterNonStaff } from '@/lib/admin-auth';
 
 
 function csvEscape(v: unknown): string {
@@ -18,7 +18,7 @@ function csvEscape(v: unknown): string {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  return runAsPromoter(req, async (promoter) => {
+  return runAsPromoterNonStaff(req, async (promoter) => {
   const url = req.nextUrl;
   const from = url.searchParams.get('from') ?? new Date().toISOString().slice(0, 8) + '01';
   const to = url.searchParams.get('to') ?? new Date().toISOString().slice(0, 10);
