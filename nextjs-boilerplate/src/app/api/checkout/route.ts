@@ -158,6 +158,12 @@ interface TicketTypeRow {
 }
 
 
+// CORS preflight pro cross-origin embed/native prodejní integraci (guest checkout).
+// CORS hlavičky doplní next.config (source '/api/checkout').
+export function OPTIONS(): Response {
+  return new Response(null, { status: 204 });
+}
+
 export async function POST(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
 
