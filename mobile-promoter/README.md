@@ -15,12 +15,16 @@ Hotovo a typově ověřeno (`tsc` exit 0):
   barevný výsledek (zelená = vstup povolen, oranžová = už použito, červená = zamítnuto)
   s detailem držitele + tlačítkem „Skenovat další".
 
+## Fáze 2 (hotovo, tsc 0)
+
+- **Výběr brány** (akce + den + zóna) v skeneru — `GET /api/admin/scanner/gates`, posílá `eventDayId`/`zoneId` do validace (festivalové odbavení).
+- **Re-entry režim** — Standard / ↪ Vstup / ↩ Výstup; entry/exit jde na `/api/admin/scanner/reentry`.
+- **Live-ops dashboard** (`app/live-ops.tsx`) — výběr akce + poll `GET /api/admin/events/:id/live-ops` à 5 s (prodáno, tržby, obsazenost, tempo skenů, inventář).
+
 ## Roadmap (další fáze — plná parita)
 
-- Výběr brány (akce + den + zóna) pro festivaly, re-entry režim (vstup/výstup)
 - Skupinové odbavení (1 QR = celá objednávka)
 - POS / pokladna na místě (prodej + vystavení lístku)
-- Live-ops dashboard (tržby, scan rate, obsazenost, fronta)
 - Offline whitelist (sken proti staženému seznamu při výpadku sítě)
 - NFC tap-to-scan, push notifikace
 

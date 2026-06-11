@@ -12,9 +12,13 @@ Hotovo a typově ověřeno (`tsc` exit 0):
 - **Moje vstupenky** (`app/tickets/index.tsx`) — `GET /api/buyer/my-tickets`, pull-to-refresh.
 - **Detail s rotujícím QR** (`app/tickets/[id].tsx`) — polluje `GET /api/buyer/tickets/:id/totp`, renderuje QR `tixly:<id>:<code>` + countdown 30 s, řeší „QR se zobrazí X min před akcí".
 
+## Fáze 2 (hotovo, tsc 0)
+
+- **Procházení akcí** (`app/events/index.tsx`) — `GET /api/events/featured`, cover/cena/místo.
+- **Detail akce + koupit** (`app/events/[id].tsx`) — `GET /api/events/:id/ticket-types`, výběr typu+počtu, `POST /api/checkout` → otevře platební bránu v prohlížeči.
+
 ## Roadmap (další fáze — plná parita)
 
-- Procházení akcí + detail + checkout (browse → koupit v appce)
 - Apple Wallet / Google Wallet tlačítka
 - Push notifikace (APNs + FCM)
 - Resale / marketplace, přenos vstupenky, sociální FOMO
