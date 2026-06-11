@@ -93,7 +93,9 @@ export async function GET(
             refund_deadline_days, refund_fee_pct, refund_fee_min_halire,
             qr_policy, vat_category,
             COALESCE(verified_fan_enabled, FALSE) AS verified_fan_enabled,
-            COALESCE(requires_otp_validation, FALSE) AS requires_otp_validation
+            COALESCE(requires_otp_validation, FALSE) AS requires_otp_validation,
+            COALESCE(reentry_allowed, FALSE) AS reentry_allowed,
+            COALESCE(reentry_max_count, 3) AS reentry_max_count
      FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
     [params.id, promoter.promoterId],
   );
@@ -120,6 +122,8 @@ export async function GET(
     refundFeeMinHalire: e.refund_fee_min_halire,
     qrPolicy: e.qr_policy,
     vatCategory: e.vat_category,
+    reentryAllowed: (e as { reentry_allowed?: boolean }).reentry_allowed ?? false,
+    reentryMaxCount: (e as { reentry_max_count?: number }).reentry_max_count ?? 3,
   });
 
   });

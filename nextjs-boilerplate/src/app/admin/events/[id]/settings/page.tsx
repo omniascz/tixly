@@ -25,6 +25,9 @@ interface EventSettings {
   // P1.5 + P1.8 toggles (anti-bot / verified fan gates)
   verifiedFanEnabled?: boolean;
   requiresOtpValidation?: boolean;
+  // Festival / open-air — opakovaný vstup (re-entry)
+  reentryAllowed?: boolean;
+  reentryMaxCount?: number;
 }
 
 const QR_POLICY_LABELS: Record<EventSettings['qrPolicy'], { title: string; desc: string }> = {
@@ -407,6 +410,47 @@ export default function EventSettingsPage() {
               </div>
             </label>
           ))}
+        </CardContent>
+      </Card>
+
+      {/* Festival / open-air — re-entry (opakovaný vstup) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Re-entry — opakovaný vstup</CardTitle>
+          <CardDescription>
+            Pro festivaly a open-air: návštěvník může bránou opakovaně ven a zpět.
+            Scanner pak má režim „↪ Vstup / ↩ Výstup". Bez zapnutí funguje jen
+            jednorázové odbavení.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={data.reentryAllowed ?? false}
+              onChange={(e) => saveSettings({ reentryAllowed: e.target.checked })}
+              disabled={saving}
+            />
+            Povolit opakovaný vstup pro tuto akci
+          </label>
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+              Max počet vstupů na lístek
+            </label>
+            <Input
+              type="number"
+              min={1}
+              max={100}
+              value={data.reentryMaxCount ?? 3}
+              onChange={(e) => setData({ ...data, reentryMaxCount: Number(e.target.value) })}
+              onBlur={() => saveSettings({ reentryMaxCount: data.reentryMaxCount ?? 3 })}
+              disabled={saving || !(data.reentryAllowed ?? false)}
+              className="max-w-24"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Kolikrát smí lístek projít vstupem (1 = jednorázový, 3 = vstup + 2 návraty). Limit 1–100.
+            </p>
+          </div>
         </CardContent>
       </Card>
 
