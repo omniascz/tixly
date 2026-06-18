@@ -361,7 +361,7 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
             <span key={tt.id} className="flex items-center gap-1">
               <span
                 className="inline-block h-3 w-3 rounded"
-                style={{ background: colorForType(tt.id, data) }}
+                style={{ background: sectorColorForType(tt.id, data) }}
                 aria-hidden
               />
               {formatMoney(tt.price, 'CZK')} ({tt.count} sedadel)
@@ -371,6 +371,12 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
             <span className="inline-block h-3 w-3 rounded bg-slate-200" aria-hidden />
             Prodáno
           </span>
+          {data.seats.some((s) => s.acc) ? (
+            <span className="ml-2 flex items-center gap-1 text-muted-foreground">
+              <span className="inline-block h-3 w-3 rounded border-2 border-green-600 bg-transparent" aria-hidden />
+              ♿ Bezbariérové
+            </span>
+          ) : null}
         </div>
       </div>
 
@@ -727,9 +733,7 @@ function SvgChart({
             bboxes.map((b) => {
               const sector = data.layout.sectors.find((s) => s.name === b.name)!;
               const ttId = [...b.ttIds][0];
-              const baseColor = ttId
-                ? colorForType(ttId, data)
-                : sector.color ?? '#64748b';
+              const baseColor = sector.color ?? (ttId ? sectorColorForType(ttId, data) : '#64748b');
               const soldOut = b.availableSeats === 0;
               const dim = soldOut ? '#cbd5e1' : baseColor;
               const w = b.maxX - b.minX;
@@ -815,9 +819,7 @@ function SvgChart({
                             ? '#cbd5e1'
                             : seat.status === 'blocked'
                               ? '#94a3b8'
-                              : (data.ticketTypes.find((t) => t.id === seat.ttId)
-                                  ? colorForType(seat.ttId, data)
-                                  : sector.color ?? '#64748b');
+                              : (sector.color ?? colorForType(seat.ttId, data));
                         const interactive = seat.status === 'available';
                         const hasViewPhoto = !!viewPhotos[seat.id];
                         return (
@@ -830,16 +832,20 @@ function SvgChart({
                             stroke={
                               isSelected
                                 ? '#047857'
-                                : hasViewPhoto
-                                  ? '#f59e0b'
-                                  : '#fff'
+                                : seat.acc && seat.status === 'available'
+                                  ? '#16a34a'
+                                  : hasViewPhoto
+                                    ? '#f59e0b'
+                                    : '#fff'
                             }
                             strokeWidth={
                               isSelected
                                 ? Math.max(1, seatRadius * 0.25)
-                                : hasViewPhoto
-                                  ? Math.max(0.8, seatRadius * 0.2)
-                                  : 0.5
+                                : seat.acc && seat.status === 'available'
+                                  ? Math.max(1, seatRadius * 0.3)
+                                  : hasViewPhoto
+                                    ? Math.max(0.8, seatRadius * 0.2)
+                                    : 0.5
                             }
                             style={{ cursor: interactive ? 'pointer' : 'not-allowed' }}
                             onClick={(e) => {
@@ -893,6 +899,17 @@ function colorForType(ttId: string, data: Data): string {
   const palette = ['#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#84cc16'];
   const idx = data.ticketTypes.findIndex((t) => t.id === ttId);
   return palette[idx % palette.length] ?? '#64748b';
+}
+
+// Preferuje barvu sektoru z layoutu (nastavená adminem v builderu).
+// Fallback na palette-by-index pro zpětnou kompatibilitu s layouts bez color.
+function sectorColorForType(ttId: string, data: Data): string {
+  const seat = data.seats.find((s) => s.ttId === ttId);
+  if (seat) {
+    const sector = data.layout.sectors.find((s) => s.name === seat.sector);
+    if (sector?.color) return sector.color;
+  }
+  return colorForType(ttId, data);
 }
 
 function fingerprint(): string {

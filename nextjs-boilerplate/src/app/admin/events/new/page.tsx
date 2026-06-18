@@ -209,6 +209,7 @@ export default function NewEventWizardPage() {
   const router = useRouter();
   const [stepIdx, setStepIdx] = useState(0);
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [venueSectors, setVenueSectors] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -264,6 +265,19 @@ export default function NewEventWizardPage() {
       .then((d: { venues: Venue[] }) => setVenues(d.venues ?? []))
       .catch(() => setVenues([]));
   }, []);
+
+  useEffect(() => {
+    if (!form.venueId) { setVenueSectors([]); return; }
+    const token = localStorage.getItem('accessToken');
+    fetch(`/api/admin/venues/${form.venueId}/seating-chart`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { chart?: { layout?: { sectors?: { name: string }[] } } } | null) => {
+        setVenueSectors(d?.chart?.layout?.sectors?.map((s) => s.name) ?? []);
+      })
+      .catch(() => setVenueSectors([]));
+  }, [form.venueId]);
 
   function selectTemplate(id: TemplateId) {
     const tpl = EVENT_TEMPLATES[id];
@@ -1036,18 +1050,32 @@ export default function NewEventWizardPage() {
                           type="checkbox"
                           checked={Boolean(t.isSeated)}
                           onChange={(e) =>
-                            updateTicket(idx, { isSeated: e.target.checked })
+                            updateTicket(idx, { isSeated: e.target.checked, zone: e.target.checked ? t.zone : undefined })
                           }
                         />
                         <span>Sedadlo</span>
                       </label>
-                      <Input
-                        className="h-7 flex-1 text-xs"
-                        placeholder="Sektor v sále (např. PŘÍZEMÍ, BALKON STŘED)"
-                        value={t.zone ?? ''}
-                        onChange={(e) => updateTicket(idx, { zone: e.target.value })}
-                        disabled={!t.isSeated}
-                      />
+                      {venueSectors.length > 0 ? (
+                        <select
+                          className="h-7 flex-1 rounded-md border bg-background px-2 text-xs disabled:opacity-50"
+                          value={t.zone ?? ''}
+                          onChange={(e) => updateTicket(idx, { zone: e.target.value || undefined })}
+                          disabled={!t.isSeated}
+                        >
+                          <option value="">— vyber sektor —</option>
+                          {venueSectors.map((sec) => (
+                            <option key={sec} value={sec}>{sec}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <Input
+                          className="h-7 flex-1 text-xs"
+                          placeholder="Sektor v sále (např. PŘÍZEMÍ, BALKON STŘED)"
+                          value={t.zone ?? ''}
+                          onChange={(e) => updateTicket(idx, { zone: e.target.value })}
+                          disabled={!t.isSeated}
+                        />
+                      )}
                     </div>
 
                     {showAccessMatrix ? (

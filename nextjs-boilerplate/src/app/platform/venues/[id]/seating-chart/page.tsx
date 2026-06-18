@@ -24,11 +24,13 @@ interface RowGroup {
   to: number;
   seats: number;
   aisleAfter?: number; // ulička po N-tém sedadle (volitelné)
+  accCount?: number;   // první N sedadel v každé řadě = bezbariérové (♿)
 }
 interface BuilderSector {
   name: string;
   color: string;
   groups: RowGroup[];
+  rowLabelFormat?: 'number' | 'letter'; // číslování řad: 1,2,3 nebo A,B,C (default = number)
 }
 type StagePos = 'top' | 'bottom' | 'none';
 
@@ -43,7 +45,7 @@ function sectorSeatCount(s: BuilderSector): number {
   return s.groups.reduce((a, g) => a + Math.max(0, g.to - g.from + 1) * g.seats, 0);
 }
 
-interface GenSeat { num: string; x: number; y: number }
+interface GenSeat { num: string; x: number; y: number; acc?: boolean }
 interface GenRow { label: string; seats: GenSeat[] }
 interface GenSector { name: string; color: string; rows: GenRow[] }
 interface GenLayout {
@@ -53,8 +55,25 @@ interface GenLayout {
   builder: { stage: StagePos; sectors: BuilderSector[] };
 }
 
-function rowSeats(count: number, x0: number, y: number, start = 1): GenSeat[] {
-  return Array.from({ length: count }, (_, i) => ({ x: x0 + i * SEAT_DX, y, num: String(start + i) }));
+function rowNumToLabel(n: number, format?: 'number' | 'letter'): string {
+  if (format !== 'letter') return String(n);
+  // Excel-style: 1=A, 26=Z, 27=AA, ...
+  let result = '';
+  let remaining = n;
+  while (remaining > 0) {
+    const rem = (remaining - 1) % 26;
+    result = String.fromCharCode(65 + rem) + result;
+    remaining = Math.floor((remaining - 1) / 26);
+  }
+  return result;
+}
+
+function rowSeats(count: number, x0: number, y: number, start = 1, accLimit = 0): GenSeat[] {
+  return Array.from({ length: count }, (_, i) => {
+    const s: GenSeat = { x: x0 + i * SEAT_DX, y, num: String(start + i) };
+    if (accLimit > 0 && i < accLimit) s.acc = true;
+    return s;
+  });
 }
 
 function generateLayout(stage: StagePos, sectors: BuilderSector[], stageLabel: string): GenLayout {
@@ -70,18 +89,22 @@ function generateLayout(stage: StagePos, sectors: BuilderSector[], stageLabel: s
       for (let rn = g.from; rn <= g.to; rn++) {
         const n = g.seats;
         const aisle = g.aisleAfter && g.aisleAfter > 0 && g.aisleAfter < n ? g.aisleAfter : 0;
+        const accLimit = g.accCount && g.accCount > 0 ? Math.min(g.accCount, n) : 0;
         let seats: GenSeat[];
         if (aisle) {
           const right = n - aisle;
           const totalW = (n - 2) * SEAT_DX + AISLE;
           const x0 = CENTER - totalW / 2;
           const rightX0 = x0 + (aisle - 1) * SEAT_DX + AISLE;
-          seats = [...rowSeats(aisle, x0, y, 1), ...rowSeats(right, rightX0, y, aisle + 1)];
+          const leftAcc = Math.min(accLimit, aisle);
+          const rightAcc = Math.max(0, accLimit - aisle);
+          seats = [...rowSeats(aisle, x0, y, 1, leftAcc), ...rowSeats(right, rightX0, y, aisle + 1, rightAcc)];
         } else {
           const x0 = CENTER - ((n - 1) * SEAT_DX) / 2;
-          seats = rowSeats(n, x0, y);
+          seats = rowSeats(n, x0, y, 1, accLimit);
         }
-        rows.push({ label: String(rn), seats });
+        const rowLabel = rowNumToLabel(rn, sec.rowLabelFormat);
+        rows.push({ label: rowLabel, seats });
         y += SEAT_DY;
       }
     }
@@ -180,6 +203,20 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
     setSectors((prev) =>
       prev.map((s, idx) => (idx === si ? { ...s, groups: s.groups.filter((_, j) => j !== gi) } : s)),
     );
+  }
+  function duplicateSector(i: number) {
+    setSectors((prev) => {
+      const src = prev[i];
+      const copy: BuilderSector = {
+        ...src,
+        name: src.name + ' (kopie)',
+        color: PALETTE[prev.length % PALETTE.length],
+        groups: src.groups.map((g) => ({ ...g })),
+      };
+      const next = [...prev];
+      next.splice(i + 1, 0, copy);
+      return next;
+    });
   }
 
   const [importing, setImporting] = useState(false);
@@ -329,12 +366,24 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
               </label>
               {sectors.map((s, si) => (
                 <div key={si} className="rounded-lg border p-3">
-                  <div className="mb-2 flex items-center gap-2">
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
                     <input type="color" value={s.color} onChange={(e) => setSector(si, { color: e.target.value })} className="h-7 w-9 rounded border" aria-label="Barva sektoru" />
-                    <Input value={s.name} onChange={(e) => setSector(si, { name: e.target.value })} className="max-w-[200px]" placeholder="Název sektoru" />
+                    <Input value={s.name} onChange={(e) => setSector(si, { name: e.target.value })} className="max-w-[160px]" placeholder="Název sektoru" />
+                    <div className="flex gap-1" title="Formát číslování řad">
+                      {(['number', 'letter'] as const).map((fmt) => (
+                        <button key={fmt} type="button"
+                          onClick={() => setSector(si, { rowLabelFormat: fmt })}
+                          className={(s.rowLabelFormat ?? 'number') === fmt
+                            ? 'rounded bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground'
+                            : 'rounded border bg-background px-2 py-0.5 text-xs hover:bg-muted'}
+                          title={fmt === 'number' ? 'Číslovat řady: 1, 2, 3…' : 'Označovat řady: A, B, C…'}
+                        >{fmt === 'number' ? '1,2,3' : 'A,B,C'}</button>
+                      ))}
+                    </div>
                     <span className="ml-auto text-xs text-muted-foreground">{sectorSeatCount(s)} sedadel</span>
+                    <button type="button" onClick={() => duplicateSector(si)} className="text-xs text-primary hover:underline">duplikovat</button>
                     {sectors.length > 1 ? (
-                      <button type="button" onClick={() => removeSector(si)} className="text-xs text-rose-700 hover:underline">smazat sektor</button>
+                      <button type="button" onClick={() => removeSector(si)} className="text-xs text-rose-700 hover:underline">smazat</button>
                     ) : null}
                   </div>
 
@@ -345,11 +394,18 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
                         <Input type="number" min={1} value={g.from} onChange={(e) => setGroup(si, gi, { from: Number(e.target.value) })} className="w-16" />
                         <span>–</span>
                         <Input type="number" min={1} value={g.to} onChange={(e) => setGroup(si, gi, { to: Number(e.target.value) })} className="w-16" />
+                        {s.rowLabelFormat === 'letter' ? (
+                          <span className="text-xs text-primary" title="Ekvivalent v písmenech">
+                            ({rowNumToLabel(g.from, 'letter')}–{rowNumToLabel(g.to, 'letter')})
+                          </span>
+                        ) : null}
                         <span>mají</span>
                         <Input type="number" min={1} value={g.seats} onChange={(e) => setGroup(si, gi, { seats: Number(e.target.value) })} className="w-16" />
                         <span>sedadel</span>
-                        <span className="ml-1 text-muted-foreground">· ulička po</span>
+                        <span className="ml-1 text-muted-foreground" title="Ulička: sedadla se rozdělí na dva bloky">· ulička po</span>
                         <Input type="number" min={0} value={g.aisleAfter ?? 0} onChange={(e) => setGroup(si, gi, { aisleAfter: Number(e.target.value) || undefined })} className="w-14" title="0 = bez uličky" />
+                        <span className="ml-1 text-muted-foreground" title="Počet bezbariérových sedadel od začátku každé řady">· ♿</span>
+                        <Input type="number" min={0} value={g.accCount ?? 0} onChange={(e) => setGroup(si, gi, { accCount: Number(e.target.value) || undefined })} className="w-12" title="Bezbariérová sedadla od začátku řady (0 = žádné)" />
                         {s.groups.length > 1 ? (
                           <button type="button" onClick={() => removeGroup(si, gi)} className="ml-auto text-xs text-rose-700 hover:underline">×</button>
                         ) : null}
@@ -384,15 +440,39 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
                   ) : null}
                   {preview.sectors.map((sector) => (
                     <g key={sector.name}>
-                      {sector.rows.map((row) =>
-                        row.seats.map((seat) => (
-                          <circle key={`${sector.name}-${row.label}-${seat.num}`} cx={seat.x} cy={seat.y} r={9}
-                            fill="none" stroke={sector.color} strokeWidth={2} />
-                        )),
-                      )}
+                      {sector.rows.map((row) => {
+                        const firstSeat = row.seats[0];
+                        return (
+                          <g key={row.label}>
+                            {firstSeat ? (
+                              <text
+                                x={firstSeat.x - 18}
+                                y={firstSeat.y}
+                                fontSize={8}
+                                fill="#94a3b8"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                              >
+                                {row.label}
+                              </text>
+                            ) : null}
+                            {row.seats.map((seat) => (
+                              <circle
+                                key={`${sector.name}-${row.label}-${seat.num}`}
+                                cx={seat.x}
+                                cy={seat.y}
+                                r={9}
+                                fill={seat.acc ? '#bbf7d0' : 'none'}
+                                stroke={seat.acc ? '#16a34a' : sector.color}
+                                strokeWidth={seat.acc ? 2.5 : 2}
+                              />
+                            ))}
+                          </g>
+                        );
+                      })}
                       {sector.rows[0] ? (
-                        <text x={sector.rows[0].seats[0]?.x ?? CENTER} y={sector.rows[0].seats[0]?.y - 16}
-                          fontSize={15} fontWeight={600} fill={sector.color}>{sector.name}</text>
+                        <text x={sector.rows[0].seats[0]?.x ?? CENTER} y={(sector.rows[0].seats[0]?.y ?? 0) - 18}
+                          fontSize={14} fontWeight={600} fill={sector.color}>{sector.name}</text>
                       ) : null}
                     </g>
                   ))}
