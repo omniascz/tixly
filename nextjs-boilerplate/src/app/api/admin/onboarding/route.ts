@@ -1,141 +1,121 @@
-/**
- * GET /api/admin/onboarding
- *
- * Vrátí checklist progress promotéra:
- *   - kyc_submitted: KYC formulář vyplněn
- *   - kyc_approved: master admin schválil
- *   - branding_set: alespoň logo nebo primary color
- *   - first_event: existuje >= 1 published event
- *   - first_payout_setup: bank_account vyplněn
- *   - first_team_member: alespoň jeden další člen týmu
- *   - first_payment: existuje paid order
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter } from '@/lib/admin-auth';
+import { runAsActivePromoter } from '@/lib/admin-auth';
 
-
-interface ChecklistItem {
+interface OnboardingRow {
   id: string;
-  label: string;
-  description: string;
-  completed: boolean;
-  href: string;
-  required: boolean;
+  promoter_id: string;
+  current_step: number;
+  completed_steps: number[];
+  step_data: Record<string, unknown>;
+  completed_at: string | null;
+  skipped_at: string | null;
+  name: string;
+  phone: string | null;
+  website: string | null;
+  description: string | null;
+  logo_url: string | null;
+  press_email: string | null;
+  iban: string | null;
+  bank_name: string | null;
+  onboarding_done: boolean;
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  return runAsPromoter(req, async (promoter) => {
-  const r = await db().query<{
-    kyc_status: string;
-    bank_account: string | null;
-    country: string;
-    primary_currency: string;
-    has_branding: boolean;
-    has_fee_schedule: boolean;
-    published_events: string;
-    team_size: string;
-    paid_orders: string;
-  }>(
-    `SELECT
-       p.kyc_status,
-       p.bank_account,
-       p.country,
-       p.primary_currency,
-       (EXISTS (SELECT 1 FROM platform.promoter_branding WHERE promoter_id = p.id
-         AND (logo_url IS NOT NULL OR primary_color IS NOT NULL))) AS has_branding,
-       (EXISTS (SELECT 1 FROM platform.fee_schedules WHERE promoter_id = p.id
-         AND is_active = TRUE)) AS has_fee_schedule,
-       (SELECT COUNT(*)::text FROM catalog.events WHERE promoter_id = p.id AND status = 'published') AS published_events,
-       (SELECT COUNT(*)::text FROM platform.promoter_members WHERE promoter_id = p.id) AS team_size,
-       (SELECT COUNT(*)::text FROM orders.orders o
-        JOIN catalog.events e ON e.id = o.event_id
-        WHERE e.promoter_id = p.id AND o.status IN ('paid','paid_partial')) AS paid_orders
-     FROM platform.promoters p
-     WHERE p.id = $1`,
-    [promoter.promoterId],
-  );
-  if (r.rows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  const d = r.rows[0];
+  return runAsActivePromoter(req, async (promoter) => {
+    const existing = await db().query<OnboardingRow>(
+      `SELECT po.*, p.name, p.phone, p.website, p.description, p.logo_url,
+              p.press_email, p.iban, p.bank_name, p.onboarding_done
+       FROM platform.promoter_onboarding po
+       JOIN platform.promoters p ON p.id = po.promoter_id
+       WHERE po.promoter_id = $1`,
+      [promoter.promoterId],
+    );
 
-  const items: ChecklistItem[] = [
-    {
-      id: 'kyc_submitted',
-      label: 'Vyplň KYC údaje',
-      description: 'IČO, adresa, bankovní účet, DPH nastavení',
-      completed: ['submitted', 'approved'].includes(d.kyc_status),
-      href: '/admin/settings/kyc',
-      required: true,
-    },
-    {
-      id: 'market_setup',
-      label: 'Nastav trh a měnu',
-      description: `Země: ${d.country === 'SR' ? '🇸🇰 Slovensko' : '🇨🇿 Česko'}, měna: ${d.primary_currency}`,
-      completed: !!d.country && !!d.primary_currency,
-      href: '/admin/settings/kyc',
-      required: true,
-    },
-    {
-      id: 'kyc_approved',
-      label: 'Čekej na schválení účtu',
-      description: 'Master admin ověří údaje (typicky do 24h) a nastaví provize',
-      completed: d.kyc_status === 'approved' && d.has_fee_schedule,
-      href: '/admin/settings/kyc',
-      required: true,
-    },
-    {
-      id: 'branding_set',
-      label: 'Nastav branding',
-      description: 'Logo, barvy, social linky pro buyer-facing stránky',
-      completed: d.has_branding,
-      href: '/admin/settings/branding',
-      required: false,
-    },
-    {
-      id: 'first_event',
-      label: 'Vytvoř první akci',
-      description: 'Použij wizard, vyber template, publikuj',
-      completed: Number(d.published_events) >= 1,
-      href: '/admin/events/new',
-      required: true,
-    },
-    {
-      id: 'first_team_member',
-      label: 'Pozvi člena týmu',
-      description: 'Owner / admin / staff pro spolupráci',
-      completed: Number(d.team_size) >= 2,
-      href: '/admin/team',
-      required: false,
-    },
-    {
-      id: 'first_payment',
-      label: 'První zaplacená objednávka',
-      description: 'Test prodeje (lze i seed test účtem)',
-      completed: Number(d.paid_orders) >= 1,
-      href: '/admin/events',
-      required: false,
-    },
-  ];
+    if (existing.rows.length > 0) {
+      return NextResponse.json(existing.rows[0]);
+    }
 
-  const completed = items.filter((i) => i.completed).length;
-  const total = items.length;
-  const requiredCompleted = items.filter((i) => i.required && i.completed).length;
-  const requiredTotal = items.filter((i) => i.required).length;
+    await db().query(
+      `INSERT INTO platform.promoter_onboarding (promoter_id) VALUES ($1) ON CONFLICT (promoter_id) DO NOTHING`,
+      [promoter.promoterId],
+    );
 
-  return NextResponse.json({
-    items,
-    progress: {
-      completed,
-      total,
-      pct: Math.round((completed / total) * 100),
-    },
-    required: {
-      completed: requiredCompleted,
-      total: requiredTotal,
-      ready: requiredCompleted === requiredTotal,
-    },
+    const fresh = await db().query<OnboardingRow>(
+      `SELECT po.*, p.name, p.phone, p.website, p.description, p.logo_url,
+              p.press_email, p.iban, p.bank_name, p.onboarding_done
+       FROM platform.promoter_onboarding po
+       JOIN platform.promoters p ON p.id = po.promoter_id
+       WHERE po.promoter_id = $1`,
+      [promoter.promoterId],
+    );
+
+    return NextResponse.json(fresh.rows[0]);
   });
+}
 
+export async function PATCH(req: NextRequest): Promise<Response> {
+  return runAsActivePromoter(req, async (promoter) => {
+    const body = (await req.json().catch(() => ({}))) as {
+      currentStep?: number;
+      completedSteps?: number[];
+      stepData?: Record<string, unknown>;
+    };
+
+    const sets: string[] = ['updated_at = NOW()'];
+    const args: unknown[] = [];
+    let pi = 1;
+
+    if (body.currentStep !== undefined) {
+      sets.push(`current_step = $${pi++}`);
+      args.push(body.currentStep);
+    }
+    if (body.completedSteps !== undefined) {
+      sets.push(`completed_steps = $${pi++}`);
+      args.push(body.completedSteps);
+    }
+    if (body.stepData !== undefined) {
+      sets.push(`step_data = step_data || $${pi++}`);
+      args.push(JSON.stringify(body.stepData));
+    }
+
+    args.push(promoter.promoterId);
+
+    await db().query(
+      `UPDATE platform.promoter_onboarding SET ${sets.join(', ')} WHERE promoter_id = $${pi}`,
+      args,
+    );
+
+    return NextResponse.json({ ok: true });
+  });
+}
+
+export async function POST(req: NextRequest): Promise<Response> {
+  return runAsActivePromoter(req, async (promoter) => {
+    const body = (await req.json().catch(() => ({}))) as { action?: string };
+
+    if (body.action === 'complete') {
+      await db().query(
+        `UPDATE platform.promoter_onboarding SET completed_at = NOW(), updated_at = NOW() WHERE promoter_id = $1`,
+        [promoter.promoterId],
+      );
+      await db().query(
+        `UPDATE platform.promoters SET onboarding_done = TRUE WHERE id = $1`,
+        [promoter.promoterId],
+      );
+    } else if (body.action === 'skip') {
+      await db().query(
+        `UPDATE platform.promoter_onboarding SET skipped_at = NOW(), updated_at = NOW() WHERE promoter_id = $1`,
+        [promoter.promoterId],
+      );
+      await db().query(
+        `UPDATE platform.promoters SET onboarding_done = TRUE WHERE id = $1`,
+        [promoter.promoterId],
+      );
+    } else {
+      return NextResponse.json({ error: 'INVALID_ACTION' }, { status: 422 });
+    }
+
+    return NextResponse.json({ ok: true });
   });
 }

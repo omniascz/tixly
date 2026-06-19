@@ -12,6 +12,7 @@ import {
   Calculator,
 } from 'lucide-react';
 import { DataTable, Column } from '@/components/admin/DataTable';
+import { OnboardingChecklist } from '@/components/admin/OnboardingChecklist';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { SalesSparkline } from '@/components/admin/SalesSparkline';
 import { StatCard } from '@/components/admin/StatCard';
@@ -198,6 +199,8 @@ export default function AdminDashboardPage() {
         title="Přehled"
         description="Souhrn vašich prodejů, objednávek a nadcházejících akcí."
       />
+
+      <OnboardingChecklist />
 
       <div>
         <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">

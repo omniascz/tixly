@@ -110,6 +110,11 @@ export async function POST(request: NextRequest): Promise<Response> {
       [promoterId, userId],
     );
 
+    await client.query(
+      `INSERT INTO platform.promoter_onboarding (promoter_id) VALUES ($1) ON CONFLICT (promoter_id) DO NOTHING`,
+      [promoterId],
+    );
+
     await client.query('COMMIT');
 
     const user = { id: userId, email, name };
@@ -117,7 +122,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     const accessToken = await signAccessToken(user, roles);
     const refreshToken = await signRefreshToken(user);
 
-    const res = NextResponse.json({ user, roles, promoterId, accessToken });
+    const res = NextResponse.json({ user, roles, promoterId, accessToken, redirectTo: '/admin/onboarding' });
     setAuthCookies(res, accessToken, refreshToken);
     return res;
   } catch (err) {

@@ -43,8 +43,11 @@ export default function RegisterPromoterPage({
         setError(data.error ?? 'Registrace selhala');
         return;
       }
-      // Nový promotér → onboarding wizard, ne přímo dashboard
-      router.push('/admin/onboarding');
+      const json = (await res.json().catch(() => ({}))) as { accessToken?: string; redirectTo?: string };
+      if (json.accessToken) {
+        localStorage.setItem('accessToken', json.accessToken);
+      }
+      router.push(json.redirectTo ?? '/admin/onboarding');
       router.refresh();
     } catch {
       setError('Síťová chyba');
