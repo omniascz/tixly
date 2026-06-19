@@ -52,6 +52,7 @@
     { "path": "/api/cron/dispatch?job=recompute-dynamic-pricing", "schedule": "*/5 * * * *" },
     { "path": "/api/cron/dispatch?job=refresh-spotify", "schedule": "*/50 * * * *" },
     { "path": "/api/cron/dispatch?job=music-distribute", "schedule": "*/20 * * * *" },
+    { "path": "/api/cron/dispatch?job=send-commemorative", "schedule": "0 10 * * *" },
     { "path": "/api/admin/lastminute/check", "schedule": "*/15 * * * *" }
   ]
 }

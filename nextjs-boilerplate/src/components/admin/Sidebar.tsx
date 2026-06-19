@@ -108,6 +108,12 @@ const sections: NavSection[] = [
     ],
   },
   {
+    label: 'Partneři',
+    items: [
+      { href: '/admin/resellers', label: 'Partnerská síť', icon: Banknote },
+    ],
+  },
+  {
     label: 'Provoz',
     items: [
       { href: '/admin/chargebacks', label: 'Chargebacks', icon: AlertOctagon },

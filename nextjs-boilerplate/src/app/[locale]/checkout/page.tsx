@@ -17,14 +17,22 @@ function CheckoutForm() {
   const eventId = searchParams.get('eventId');
   const ticketTypeId = searchParams.get('ticketTypeId');
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [name, setName] = useState(
+    () => searchParams.get('buyerName') ?? '',
+  );
+  const [email, setEmail] = useState(
+    () => searchParams.get('buyerEmail') ?? '',
+  );
   // Quantity přichází z SeatPickeru po hold (?quantity=N). Bez tohohle initu
   // by buyer vybral 2 sedadla, ale form by poslal qty=1 a server by vrátil
   // SEAT_COUNT_MISMATCH.
   const [quantity, setQuantity] = useState(
     () => searchParams.get('quantity') ?? '1',
   );
+  const [lotteryEntryId, setLotteryEntryId] = useState<string | null>(
+    () => searchParams.get('lotteryEntryId') ?? null,
+  );
+  const [lotteryDeadline, setLotteryDeadline] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [ageGate, setAgeGate] = useState<{ minAge: number } | null>(null);
@@ -43,7 +51,11 @@ function CheckoutForm() {
     | 'multisport'
     | 'twisto'
     | 'skippay'
+    | 'b2b_credit'
   >('gopay');
+  const [b2bAccountCode, setB2bAccountCode] = useState('');
+  const [b2bVerify, setB2bVerify] = useState<{ companyName: string; balanceHalire: number } | null>(null);
+  const [b2bVerifyError, setB2bVerifyError] = useState<string | null>(null);
   const [showBenefitCards, setShowBenefitCards] = useState(false);
   const [isGift, setIsGift] = useState(false);
   const [giftEmail, setGiftEmail] = useState('');
@@ -111,6 +123,25 @@ function CheckoutForm() {
 
   // Verified Fan presale code
   const [presaleCode, setPresaleCode] = useState('');
+
+  useEffect(() => {
+    const lotteryToken = searchParams.get('lotteryToken');
+    if (!lotteryToken) return;
+    void (async () => {
+      try {
+        const res = await fetch(`/api/lottery/entry/${encodeURIComponent(lotteryToken)}`);
+        if (!res.ok) return;
+        const d = (await res.json()) as {
+          entry?: { id: string; status: string; paymentDeadline: string | null };
+        };
+        if (d.entry) {
+          if (!lotteryEntryId) setLotteryEntryId(d.entry.id);
+          if (d.entry.paymentDeadline) setLotteryDeadline(d.entry.paymentDeadline);
+        }
+      } catch {
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (!eventId) return;
@@ -182,6 +213,28 @@ function CheckoutForm() {
       setOtpError((e as Error).message);
     } finally {
       setOtpSending(false);
+    }
+  }
+
+  async function verifyB2bCode(): Promise<void> {
+    const code = b2bAccountCode.trim().toUpperCase();
+    if (code.length < 4) return;
+    setB2bVerifyError(null);
+    setB2bVerify(null);
+    try {
+      const r = await fetch('/api/b2b/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountCode: code, email: email || undefined }),
+      });
+      const d = (await r.json()) as { valid: boolean; companyName?: string; balanceHalire?: number; error?: string };
+      if (d.valid && d.companyName !== undefined && d.balanceHalire !== undefined) {
+        setB2bVerify({ companyName: d.companyName, balanceHalire: d.balanceHalire });
+      } else {
+        setB2bVerifyError(d.error === 'EMAIL_NOT_AUTHORIZED' ? 'Váš email není oprávněn k tomuto účtu.' : 'Neplatný kód firemního účtu.');
+      }
+    } catch {
+      setB2bVerifyError('Nepodařilo se ověřit kód.');
     }
   }
 
@@ -276,14 +329,14 @@ function CheckoutForm() {
         body.promoCode = promoCode.trim().toUpperCase();
       }
       // Pass-through z URL: lottery, queue, seat hold, affiliate
-      const lotteryEntryId = searchParams.get('lotteryEntryId');
+      const resolvedLotteryEntryId = lotteryEntryId ?? searchParams.get('lotteryEntryId');
       const queueToken = searchParams.get('queueToken');
       const seatHoldToken = searchParams.get('seatHoldToken');
       const seatIdsCsv = searchParams.get('seatIds');
       const ref =
         searchParams.get('ref') ??
         (typeof window !== 'undefined' ? localStorage.getItem('tixly.ref') : null);
-      if (lotteryEntryId) body.lotteryEntryId = lotteryEntryId;
+      if (resolvedLotteryEntryId) body.lotteryEntryId = resolvedLotteryEntryId;
       if (queueToken) body.queueToken = queueToken;
       if (seatHoldToken) body.seatHoldToken = seatHoldToken;
       if (seatIdsCsv) body.seatIds = seatIdsCsv.split(',');
@@ -308,6 +361,9 @@ function CheckoutForm() {
       // PSL-xxxx code, fan ho zadá tady aby projel gate v checkout/route.ts.
       if (eventFlags.verifiedFanEnabled && presaleCode.trim())
         body.presaleCode = presaleCode.trim().toUpperCase();
+      if (paymentMethod === 'b2b_credit' && b2bAccountCode.trim()) {
+        body.b2bAccountCode = b2bAccountCode.trim().toUpperCase();
+      }
       // QR attribution: cookie qr_ref nastavená v /api/qr/[slug] redirect
       // (90 days TTL). Server validuje že kampaň patří k tomuto eventu.
       const qrRefMatch =
@@ -353,6 +409,22 @@ function CheckoutForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {lotteryEntryId ? (
+            <div className="mb-4 rounded-md border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-900">
+              <p className="font-semibold">Uplatňujete výherní los</p>
+              {lotteryDeadline ? (
+                <p className="mt-0.5 text-xs">
+                  Platnost do:{' '}
+                  {new Date(lotteryDeadline).toLocaleString('cs-CZ', {
+                    day: 'numeric',
+                    month: 'long',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <label htmlFor="checkout-name" className="mb-1 block text-xs font-medium">
@@ -791,6 +863,58 @@ function CheckoutForm() {
               >
                 {showBenefitCards ? '−' : '+'} Benefit karty (Pluxee, Sodexo, Benefit+, Edenred, Gallery Beta)
               </button>
+
+              {/* B2B firemní kredit */}
+              <div className="mt-2">
+                <label
+                  className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'b2b_credit' ? 'border-primary bg-primary/5' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="b2b_credit"
+                    checked={paymentMethod === 'b2b_credit'}
+                    onChange={() => {
+                      setPaymentMethod('b2b_credit');
+                      setB2bVerify(null);
+                      setB2bVerifyError(null);
+                    }}
+                  />
+                  <span className="font-medium">
+                    Firemní kredit <span className="text-xs text-muted-foreground">— B2B účet</span>
+                  </span>
+                </label>
+              </div>
+
+              {paymentMethod === 'b2b_credit' ? (
+                <div className="mt-2 rounded-md border border-blue-200 bg-blue-50 p-3 space-y-2">
+                  <label className="block text-xs font-medium text-blue-900">
+                    Kód firemního účtu
+                    <Input
+                      className="mt-1 uppercase font-mono"
+                      value={b2bAccountCode}
+                      onChange={(e) => {
+                        setB2bAccountCode(e.target.value.toUpperCase());
+                        setB2bVerify(null);
+                        setB2bVerifyError(null);
+                      }}
+                      onBlur={() => { void verifyB2bCode(); }}
+                      placeholder="XXXXXXXX"
+                      minLength={4}
+                      maxLength={20}
+                      spellCheck={false}
+                    />
+                  </label>
+                  {b2bVerify ? (
+                    <p className="text-xs text-emerald-700">
+                      {b2bVerify.companyName} — kredit: {(b2bVerify.balanceHalire / 100).toLocaleString('cs-CZ')} Kč
+                    </p>
+                  ) : null}
+                  {b2bVerifyError ? (
+                    <p className="text-xs text-rose-600">{b2bVerifyError}</p>
+                  ) : null}
+                </div>
+              ) : null}
 
               {showBenefitCards ? (
                 <div className="mt-2 grid grid-cols-2 gap-2 rounded-md border bg-muted/30 p-2 sm:grid-cols-3">

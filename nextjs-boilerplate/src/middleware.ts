@@ -72,7 +72,7 @@ const FRONTEND_AUTH_ONLY = ['/login', '/register', '/register-promoter'];
 // GET /api/transfer/accept/[token] je public (recipient ještě nepřihlášený);
 // POST /api/transfer/accept/[token] vyžaduje x-user-id ale endpoint si to ověří
 // sám — middleware ho pustí.
-const PUBLIC_API_PREFIXES = ['/api/health', '/api/internal/', '/api/mock-gopay', '/api/mock-bnpl/', '/api/team/accept', '/api/lottery/', '/api/gift/', '/api/newsletter/', '/api/support/chat', '/api/group-invitations/', '/api/charity/claim/', '/api/payments/benefit/'];
+const PUBLIC_API_PREFIXES = ['/api/health', '/api/internal/', '/api/mock-gopay', '/api/mock-bnpl/', '/api/team/accept', '/api/lottery/', '/api/gift/', '/api/newsletter/', '/api/support/chat', '/api/group-invitations/', '/api/charity/claim/', '/api/payments/benefit/', '/api/reseller/'];
 
 // ── Middleware ──────────────────────────────────────────────────────────────
 
@@ -255,7 +255,8 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     // segment a mají vlastní layout. Locale prefix by je přesměroval na /cs/embed/…
     // resp. /cs/m/… které neexistují → 404 (rozbitý iframe na cizím webu / mobilní lístek).
     pathname.startsWith('/embed/') ||
-    pathname.startsWith('/m/')
+    pathname.startsWith('/m/') ||
+    pathname.startsWith('/reseller/')
   ) {
     return NextResponse.next();
   }

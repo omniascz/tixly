@@ -78,6 +78,9 @@ const schema = z.object({
       // gateway URL podobně jak benefit pay.
       'twisto',
       'skippay',
+      // B2B kreditní účet — firma deposituje kredit, zaměstnanci nakupují
+      // bez individuální platby. Žádná platební brána, jen debit z balance.
+      'b2b_credit',
     ])
     .default('gopay'),
   // Add-ons (parking, camping, F&B credit, merch…) — Fáze C
@@ -117,6 +120,8 @@ const schema = z.object({
   // Timed entry slot (Fáze T) — pokud event.timed_entry_enabled, buyer vybere
   // konkrétní slot z /events/[id]/slots. Capacity dekrementuje atomicky.
   entrySlotId: z.string().uuid().optional(),
+  // B2B kreditní účet — kód firemního účtu (povinný pokud paymentMethod='b2b_credit').
+  b2bAccountCode: z.string().min(4).max(20).optional(),
   // Gift voucher kód — aplikuje se PO promo kódu jako přímá sleva z balance.
   voucherCode: z.string().min(8).max(40).optional(),
   // Restwert kredit (DACH P0-2 Q4 polish) — buyer uplatní zbytkový kredit ze
@@ -945,6 +950,21 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
     }
 
+    // 3f) B2B credit pre-check — pokud paymentMethod='b2b_credit', ověříme balance
+    // a rezervujeme PŘED insertem objednávky. Pokud balance nestačí → 402.
+    // Finální debit + transakce proběhnou těsně před COMMIT (po order INSERT,
+    // aby order_id bylo k dispozici pro b2b_transaction.order_id).
+    let b2bAccountId: string | null = null;
+    if (input.paymentMethod === 'b2b_credit') {
+      if (!input.b2bAccountCode) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { error: 'B2B_ACCOUNT_CODE_REQUIRED' },
+          { status: 422 },
+        );
+      }
+    }
+
     // 4) Insert order + order_items
     let totalAmount = subtotalAmount - discountAmount + addonsSubtotal;
     let bundleDiscountAmount = 0;
@@ -1273,9 +1293,23 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     if (input.lotteryEntryId) {
-      const lr = await client.query<{ status: string; redeem_deadline: string }>(
-        `SELECT status, redeem_deadline FROM catalog.lottery_entries
-         WHERE id = $1 AND ticket_type_id = $2 FOR UPDATE`,
+      const lr = await client.query<{
+        source: string;
+        status: string;
+        deadline: string | null;
+      }>(
+        `SELECT 'campaigns' AS source, le.status, le.payment_deadline AS deadline
+         FROM orders.lottery_entries le
+         JOIN orders.lottery_campaigns lc ON lc.id = le.campaign_id
+         WHERE le.id = $1
+           AND (lc.ticket_type_id = $2 OR lc.ticket_type_id IS NULL)
+         FOR UPDATE OF le
+         UNION ALL
+         SELECT 'catalog' AS source, le2.status, le2.redeem_deadline AS deadline
+         FROM catalog.lottery_entries le2
+         WHERE le2.id = $1 AND le2.ticket_type_id = $2
+         FOR UPDATE OF le2
+         LIMIT 1`,
         [input.lotteryEntryId, tt.id],
       );
       if (lr.rows.length === 0) {
@@ -1285,23 +1319,55 @@ export async function POST(req: NextRequest): Promise<Response> {
           { status: 422 },
         );
       }
-      if (lr.rows[0].status !== 'winner') {
+      const lrRow = lr.rows[0];
+      const isWon = lrRow.status === 'won' || lrRow.status === 'winner';
+      if (!isWon) {
         await client.query('ROLLBACK');
         return NextResponse.json(
-          { error: 'LOTTERY_NOT_WINNER', status: lr.rows[0].status },
+          { error: 'LOTTERY_NOT_WINNER', status: lrRow.status },
           { status: 409 },
         );
       }
-      if (new Date(lr.rows[0].redeem_deadline).getTime() < Date.now()) {
+      if (lrRow.deadline && new Date(lrRow.deadline).getTime() < Date.now()) {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'LOTTERY_DEADLINE_PASSED' }, { status: 409 });
       }
-      await client.query(
-        `UPDATE catalog.lottery_entries
-         SET status = 'redeemed', redeemed_at = NOW(), redeemed_order_id = $2
-         WHERE id = $1`,
-        [input.lotteryEntryId, orderId],
+      if (lrRow.source === 'campaigns') {
+        await client.query(
+          `UPDATE orders.lottery_entries
+           SET status = 'converted', order_id = $2, updated_at = NOW()
+           WHERE id = $1`,
+          [input.lotteryEntryId, orderId],
+        );
+      } else {
+        await client.query(
+          `UPDATE catalog.lottery_entries
+           SET status = 'redeemed', redeemed_at = NOW(), redeemed_order_id = $2
+           WHERE id = $1`,
+          [input.lotteryEntryId, orderId],
+        );
+      }
+    }
+
+    {
+      const activeCampaign = await client.query<{ id: string }>(
+        `SELECT lc.id FROM orders.lottery_campaigns lc
+         WHERE lc.event_id = $1
+           AND (lc.ticket_type_id = $2 OR lc.ticket_type_id IS NULL)
+           AND lc.status IN ('open', 'drawn')
+         LIMIT 1`,
+        [input.eventId, input.ticketTypeId],
       );
+      if (activeCampaign.rows.length > 0 && !input.lotteryEntryId) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'LOTTERY_ENTRY_REQUIRED',
+            message: 'Tato vstupenka je přidělována losováním. Pro nákup potřebujete platný výherní token.',
+          },
+          { status: 403 },
+        );
+      }
     }
 
     if (tt.is_seated && input.seatIds && input.seatHoldToken) {
@@ -1418,6 +1484,57 @@ export async function POST(req: NextRequest): Promise<Response> {
       });
     }
 
+    // B2B credit debit (uvnitř transakce, těsně před COMMIT)
+    if (input.paymentMethod === 'b2b_credit' && input.b2bAccountCode) {
+      const b2bRes = await client.query<{
+        id: string;
+        credit_balance_halire: string;
+      }>(
+        `SELECT id, credit_balance_halire
+         FROM platform.b2b_accounts
+         WHERE account_code = upper($1) AND status = 'active'
+         FOR UPDATE`,
+        [input.b2bAccountCode],
+      );
+      if (b2bRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'B2B_ACCOUNT_INVALID' }, { status: 402 });
+      }
+      const b2bBalance = parseInt(b2bRes.rows[0].credit_balance_halire, 10);
+      if (b2bBalance < totalAmount) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { error: 'INSUFFICIENT_B2B_CREDIT', balanceHalire: b2bBalance, requiredHalire: totalAmount },
+          { status: 402 },
+        );
+      }
+      b2bAccountId = b2bRes.rows[0].id;
+      await client.query(
+        `UPDATE platform.b2b_accounts
+         SET credit_balance_halire = credit_balance_halire - $2, updated_at = NOW()
+         WHERE id = $1`,
+        [b2bAccountId, totalAmount],
+      );
+      const newBalRes = await client.query<{ credit_balance_halire: string }>(
+        `SELECT credit_balance_halire FROM platform.b2b_accounts WHERE id = $1`,
+        [b2bAccountId],
+      );
+      const newBalance = parseInt(newBalRes.rows[0].credit_balance_halire, 10);
+      await client.query(
+        `INSERT INTO platform.b2b_transactions
+           (account_id, order_id, type, amount_halire, balance_after)
+         VALUES ($1, $2, 'purchase', $3, $4)`,
+        [b2bAccountId, orderId, -totalAmount, newBalance],
+      );
+      // Označit objednávku jako ihned zaplacenu (žádná gateway)
+      await client.query(
+        `UPDATE orders.orders
+         SET status = 'paid', payment_provider = 'b2b_credit', updated_at = NOW()
+         WHERE id = $1`,
+        [orderId],
+      );
+    }
+
     // Gift claim INSERT (uvnitř transakce, před COMMIT)
     let giftClaimToken: string | undefined;
     if (input.giftRecipientEmail) {
@@ -1521,6 +1638,36 @@ export async function POST(req: NextRequest): Promise<Response> {
         );
         programAccessToken = ppRow.rows[0].access_token;
       }
+    }
+
+    // B2B credit — žádná platební brána. Objednávka je ihned 'paid', přesměruj na potvrzení.
+    if (input.paymentMethod === 'b2b_credit') {
+      return NextResponse.json({
+        orderId,
+        paymentId: null,
+        gatewayUrl: `${process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/cs/order/${orderId}/confirmation`,
+        provider: 'b2b_credit',
+        variableSymbol: null,
+        subtotalAmount,
+        discountAmount,
+        volumeDiscountAmount,
+        volumeDiscountPct,
+        addonsSubtotal,
+        bundleDiscountAmount,
+        bundleId,
+        voucherRedeemedHalire,
+        restwertAppliedHalire,
+        restwertHolders,
+        loyaltyDiscountHalire,
+        loyaltyRedeemed,
+        loyaltyMaxPointsAvailable,
+        totalAmount,
+        promoCodeApplied: promoCodeId !== null,
+        b2bAccountId,
+        ...(foyerOrderToken ? { foyerOrderToken } : {}),
+        ...(programAccessToken ? { programAccessToken } : {}),
+        ...(giftClaimToken ? { giftClaimToken } : {}),
+      });
     }
 
     // Po commitu: vytvoř payment session přes provider switcher.
