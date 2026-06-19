@@ -39,6 +39,7 @@ const ALLOWED_JOBS = new Set([
   'recompute-dynamic-pricing', // P1.6 — every 5 min recompute prices
   'refresh-spotify',           // P4 — refresh Spotify tokens expiring soon
   'music-distribute',          // distribuce koncertů na Bandsintown/Songkick
+  'send-commemorative',        // vzpomínkové vstupenky — den po představení
 ]);
 
 export async function GET(req: NextRequest): Promise<Response> {

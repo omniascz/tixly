@@ -360,6 +360,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
 
       await client.query('COMMIT');
+      void triggerCommemorativeSend(t.event_id);
       return NextResponse.json({
         result: 'admitted',
         kind: 'multi_day_redemption',
@@ -374,6 +375,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       [t.id],
     );
     await client.query('COMMIT');
+    void triggerCommemorativeSend(t.event_id);
 
     return NextResponse.json({
       result: 'admitted',
@@ -400,5 +402,18 @@ function shortTicketInfo(t: TicketRow) {
     holderEmail: t.buyer_email,
     holderName: t.buyer_name,
   };
+}
+
+function triggerCommemorativeSend(eventId: string): void {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+  const internalToken = process.env.INTERNAL_SERVICE_TOKEN ?? '';
+  fetch(`${baseUrl}/api/admin/commemorative/send`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-internal-token': internalToken,
+    },
+    body: JSON.stringify({ eventId }),
+  }).catch(() => {});
 }
 

@@ -63,6 +63,7 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     // Lifecycle / Operations
     { href: `/admin/events/${eventId}/emergency`, label: 'Nouzové oznámení', group: 'Operations' },
     { href: `/admin/events/${eventId}/postpone`, label: 'Odložit', group: 'Operations' },
+    { href: `/admin/events/${eventId}/reschedule`, label: 'Přesun termínu', group: 'Operations' },
     { href: `/admin/events/${eventId}/waitlist`, label: 'Čekací listina', group: 'Operations' },
     { href: `/admin/events/${eventId}/will-call`, label: 'Will Call', group: 'Operations' },
     { href: `/admin/events/${eventId}/live-ops`, label: 'Live ops', group: 'Operations' },
@@ -72,6 +73,7 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
 
     // After-event
     { href: `/admin/events/${eventId}/reviews`, label: 'Hodnocení', group: 'After-event' },
+    { href: `/admin/events/${eventId}/commemorative`, label: 'Vzpomínková vstupenka', group: 'After-event' },
 
     // Finance
     { href: `/admin/events/${eventId}/resale-policy`, label: 'Resale policy', group: 'Finance' },
