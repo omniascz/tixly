@@ -19,6 +19,7 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/settings`, label: 'Nastavení', group: 'Základ' },
     { href: `/admin/events/${eventId}/ai-description`, label: 'AI popis', group: 'Základ' },
     { href: `/admin/events/${eventId}/embed`, label: 'Embed', group: 'Základ' },
+    { href: `/admin/events/${eventId}/cast`, label: 'Obsazení', group: 'Základ' },
 
     // Tickety + Sedadla
     { href: `/admin/events/${eventId}/tickets`, label: 'Lístky', group: 'Lístky' },
@@ -26,6 +27,8 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/view-photos`, label: 'Pohled ze sedadla', group: 'Lístky' },
     { href: `/admin/events/${eventId}/custom-fields`, label: 'Doplňkové otázky', group: 'Lístky' },
     { href: `/admin/events/${eventId}/accreditation`, label: 'Akreditace', group: 'Lístky' },
+    { href: `/admin/events/${eventId}/press`, label: 'Press akreditace', group: 'Lístky' },
+    { href: `/admin/events/${eventId}/guestlist`, label: 'Guestlist', group: 'Lístky' },
     { href: `/admin/events/${eventId}/wristbands`, label: 'Náramky', group: 'Lístky' },
     { href: `/admin/events/${eventId}/access-matrix`, label: 'Access matrix', group: 'Lístky' },
 
@@ -43,11 +46,14 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/broadcast`, label: 'Broadcast', group: 'Marketing' },
     { href: `/admin/events/${eventId}/verified-fan`, label: 'Verified Fan', group: 'Marketing' },
     { href: `/admin/events/${eventId}/addons`, label: 'Add-ons', group: 'Marketing' },
+    { href: `/admin/events/${eventId}/program`, label: 'Digitální program', group: 'Marketing' },
     { href: `/admin/events/${eventId}/donation`, label: 'Donation', group: 'Marketing' },
     { href: `/admin/events/${eventId}/lotteries`, label: 'Lotterie', group: 'Marketing' },
     { href: `/admin/events/${eventId}/marketing-qr`, label: 'Print QR', group: 'Marketing' },
     { href: `/admin/events/${eventId}/publish-facebook`, label: 'Publikovat na FB', group: 'Marketing' },
     { href: `/admin/events/${eventId}/transit-combo`, label: 'MHD Kombi', group: 'Marketing' },
+    { href: `/admin/events/${eventId}/backstage`, label: 'Backstage moment', group: 'Marketing' },
+    { href: `/admin/events/${eventId}/gifts`, label: 'Dárky', group: 'Marketing' },
 
     // Mobile / Pass
     { href: `/admin/events/${eventId}/hot-mode`, label: 'Hot mode', group: 'Mobile/Pass' },
@@ -55,10 +61,17 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/wallet-modules`, label: 'Wallet content', group: 'Mobile/Pass' },
 
     // Lifecycle / Operations
+    { href: `/admin/events/${eventId}/emergency`, label: 'Nouzové oznámení', group: 'Operations' },
     { href: `/admin/events/${eventId}/postpone`, label: 'Odložit', group: 'Operations' },
+    { href: `/admin/events/${eventId}/waitlist`, label: 'Čekací listina', group: 'Operations' },
     { href: `/admin/events/${eventId}/will-call`, label: 'Will Call', group: 'Operations' },
     { href: `/admin/events/${eventId}/live-ops`, label: 'Live ops', group: 'Operations' },
     { href: `/admin/events/${eventId}/hospitality`, label: 'Hospitality', group: 'Operations' },
+    { href: `/admin/events/${eventId}/foyer-menu`, label: 'Foyer menu', group: 'Operations' },
+    { href: `/admin/events/${eventId}/foyer-orders`, label: 'Foyer objednávky', group: 'Operations' },
+
+    // After-event
+    { href: `/admin/events/${eventId}/reviews`, label: 'Hodnocení', group: 'After-event' },
 
     // Finance
     { href: `/admin/events/${eventId}/resale-policy`, label: 'Resale policy', group: 'Finance' },

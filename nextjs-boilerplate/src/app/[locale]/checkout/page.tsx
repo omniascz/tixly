@@ -40,6 +40,7 @@ function CheckoutForm() {
     | 'gallery_beta'
     | 'edenred'
     | 'sodexo'
+    | 'multisport'
     | 'twisto'
     | 'skippay'
   >('gopay');
@@ -74,6 +75,25 @@ function CheckoutForm() {
   const [insurance, setInsurance] = useState<InsuranceInfo | null>(null);
   const [insuranceOptIn, setInsuranceOptIn] = useState(false);
   const [unitPriceHalire, setUnitPriceHalire] = useState<number | null>(null);
+
+  interface FoyerMenuItem {
+    id: string;
+    name: string;
+    description: string | null;
+    priceHalire: number;
+    category: string;
+    availableCount: number | null;
+  }
+  interface ProgramInfo {
+    id: string;
+    title: string | null;
+    coverImageUrl: string | null;
+    programPriceHalire: number;
+  }
+  const [foyerMenu, setFoyerMenu] = useState<FoyerMenuItem[]>([]);
+  const [foyerItems, setFoyerItems] = useState<Record<string, number>>({});
+  const [programInfo, setProgramInfo] = useState<ProgramInfo | null>(null);
+  const [addProgram, setAddProgram] = useState(false);
 
   // Event-level gates (P1.5+P1.8 fixes) — VF presale + OTP SMS.
   const [eventFlags, setEventFlags] = useState<{
@@ -165,6 +185,28 @@ function CheckoutForm() {
     }
   }
 
+  useEffect(() => {
+    if (!eventId) return;
+    fetch(`/api/events/${eventId}/foyer-menu`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { items?: FoyerMenuItem[] } | null) => {
+        setFoyerMenu(d?.items ?? []);
+      })
+      .catch(() => {});
+  }, [eventId]);
+
+  useEffect(() => {
+    if (!eventId) return;
+    fetch(`/api/programs/${eventId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { locked?: boolean; program?: ProgramInfo | null } | null) => {
+        if (d?.program && d.locked && (d.program.programPriceHalire ?? 0) > 0) {
+          setProgramInfo(d.program);
+        }
+      })
+      .catch(() => {});
+  }, [eventId]);
+
   // Po načtení zkusit zjistit, zda má buyer aktivní subscription u promotéra
   // tohoto eventu (vrátí availableSub pro UI checkbox „použít permanentku").
   useEffect(() => {
@@ -247,6 +289,11 @@ function CheckoutForm() {
       if (seatIdsCsv) body.seatIds = seatIdsCsv.split(',');
       if (ref) body.affiliateCode = ref;
       if (insurance && insuranceOptIn) body.insuranceOptIn = true;
+      const foyerItemsArr = Object.entries(foyerItems)
+        .filter(([, q]) => q > 0)
+        .map(([menuItemId, quantity]) => ({ menuItemId, quantity }));
+      if (foyerItemsArr.length > 0) body.foyerItems = foyerItemsArr;
+      if (addProgram && programInfo) body.addProgram = true;
       // Group bookings — friend přišel přes /cs/group/[token] share link
       // (checkoutUrl returned z /api/group-invitations/[token]). Token se
       // propaguje sem přes ?groupInvitation= a backend linkne order na
@@ -540,6 +587,127 @@ function CheckoutForm() {
               </div>
             ) : null}
 
+            {foyerMenu.length > 0 ? (
+              <fieldset className="border-0 p-0">
+                <legend className="mb-2 block text-sm font-semibold">
+                  🍹 Foyer bar — objednejte si nápoje na přestávku
+                </legend>
+                <div className="space-y-2">
+                  {foyerMenu.map((item) => {
+                    const categoryEmoji: Record<string, string> = {
+                      napoje: '🥤',
+                      jidlo: '🍽️',
+                      dezerty: '🍰',
+                      ostatni: '🛍️',
+                    };
+                    const emoji = categoryEmoji[item.category] ?? '🛍️';
+                    const qty = foyerItems[item.id] ?? 0;
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex items-start justify-between gap-3 rounded-md border p-2"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium">
+                            {emoji} {item.name}
+                          </div>
+                          {item.description ? (
+                            <div className="text-xs text-muted-foreground">
+                              {item.description}
+                            </div>
+                          ) : null}
+                          <div className="text-xs font-medium text-emerald-700">
+                            {(item.priceHalire / 100).toLocaleString('cs-CZ')} Kč / ks
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={qty === 0}
+                            aria-label={`Snížit počet ${item.name}`}
+                            onClick={() =>
+                              setFoyerItems((s) => ({
+                                ...s,
+                                [item.id]: Math.max(0, qty - 1),
+                              }))
+                            }
+                          >
+                            <span aria-hidden>−</span>
+                          </Button>
+                          <span className="w-6 text-center text-sm">{qty}</span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={
+                              item.availableCount !== null
+                                ? qty >= item.availableCount
+                                : qty >= 10
+                            }
+                            aria-label={`Zvýšit počet ${item.name}`}
+                            onClick={() =>
+                              setFoyerItems((s) => ({
+                                ...s,
+                                [item.id]: qty + 1,
+                              }))
+                            }
+                          >
+                            <span aria-hidden>+</span>
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {(() => {
+                  const foyerTotal = foyerMenu.reduce(
+                    (sum, item) => sum + (foyerItems[item.id] ?? 0) * item.priceHalire,
+                    0,
+                  );
+                  return foyerTotal > 0 ? (
+                    <p className="mt-1 text-right text-xs font-medium text-emerald-700">
+                      Foyer celkem: {(foyerTotal / 100).toLocaleString('cs-CZ')} Kč
+                    </p>
+                  ) : null;
+                })()}
+              </fieldset>
+            ) : null}
+
+            {programInfo ? (
+              <div className="rounded-md border border-violet-200 bg-violet-50 p-3">
+                <label className="flex cursor-pointer items-start gap-3 text-sm font-medium text-violet-900">
+                  <input
+                    type="checkbox"
+                    checked={addProgram}
+                    onChange={(e) => setAddProgram(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  <span className="flex-1">
+                    <span className="block">
+                      📖 Digitální program
+                      {programInfo.title ? ` — ${programInfo.title}` : ''}
+                      {' '}
+                      <span className="font-semibold">
+                        (+{(programInfo.programPriceHalire / 100).toLocaleString('cs-CZ')} Kč)
+                      </span>
+                    </span>
+                    {programInfo.coverImageUrl ? (
+                      <img
+                        src={programInfo.coverImageUrl}
+                        alt="Cover programu"
+                        className="mt-2 h-16 w-auto rounded object-cover"
+                      />
+                    ) : null}
+                    <span className="mt-1 block text-xs font-normal text-violet-800">
+                      Obsazení, režijní poznámka a galerka — přístup přes QR/odkaz v potvrzovacím emailu.
+                    </span>
+                  </span>
+                </label>
+              </div>
+            ) : null}
+
             <fieldset className="border-0 p-0">
               <legend className="mb-1 block text-xs font-medium">
                 Platební metoda
@@ -686,6 +854,18 @@ function CheckoutForm() {
                     />
                     <span className="font-medium">Gallery Beta</span>
                   </label>
+                  <label
+                    className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-xs ${paymentMethod === 'multisport' ? 'border-primary bg-primary/5' : 'bg-background'}`}
+                  >
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="multisport"
+                      checked={paymentMethod === 'multisport'}
+                      onChange={() => setPaymentMethod('multisport')}
+                    />
+                    <span className="font-medium">Multisport</span>
+                  </label>
                 </div>
               ) : null}
             </fieldset>
@@ -812,6 +992,41 @@ function CheckoutForm() {
                 </div>
               ) : null}
             </div>
+            {(() => {
+              const qty = Math.max(1, parseInt(quantity, 10) || 1);
+              const ticketTotal = (unitPriceHalire ?? 0) * qty;
+              const foyerTotal = foyerMenu.reduce(
+                (sum, item) => sum + (foyerItems[item.id] ?? 0) * item.priceHalire,
+                0,
+              );
+              const programTotal = addProgram && programInfo ? programInfo.programPriceHalire : 0;
+              const grandTotal = ticketTotal + foyerTotal + programTotal;
+              if (grandTotal <= 0 || unitPriceHalire === null) return null;
+              return (
+                <div className="rounded-md bg-muted/40 px-3 py-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Vstupenky ({qty} ks)</span>
+                    <span>{(ticketTotal / 100).toLocaleString('cs-CZ')} Kč</span>
+                  </div>
+                  {foyerTotal > 0 ? (
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Foyer bar</span>
+                      <span>{(foyerTotal / 100).toLocaleString('cs-CZ')} Kč</span>
+                    </div>
+                  ) : null}
+                  {programTotal > 0 ? (
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Digitální program</span>
+                      <span>{(programTotal / 100).toLocaleString('cs-CZ')} Kč</span>
+                    </div>
+                  ) : null}
+                  <div className="mt-1 flex justify-between border-t pt-1 font-semibold">
+                    <span>Celkem (bez poplatků)</span>
+                    <span>{(grandTotal / 100).toLocaleString('cs-CZ')} Kč</span>
+                  </div>
+                </div>
+              );
+            })()}
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button
               type="submit"

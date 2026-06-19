@@ -19,3 +19,4 @@ export {
   createGalleryBetaPayment,
   verifyGalleryBetaCallback,
 } from './gallery-beta';
+export { createMultisportPayment, verifyMultisportCallback } from './multisport';

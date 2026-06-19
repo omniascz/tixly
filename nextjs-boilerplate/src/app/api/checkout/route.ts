@@ -72,6 +72,7 @@ const schema = z.object({
       'benefit_plus',
       'edenred',
       'gallery_beta',
+      'multisport',
       // BNPL providers (CZ priority #2): Twisto (Mastercard owned, 1M+ CZ
       // users), Skip Pay (ČSOB). Mock mode → /mock-bnpl/[provider]/[paymentId]
       // gateway URL podobně jak benefit pay.
@@ -140,6 +141,18 @@ const schema = z.object({
   // Marketing QR kampaň ID — buyer přišel přes QR z plakátu/letáku.
   // Cookie qr_ref se zapíše po /api/qr/[slug] redirectu, client ho posílá.
   qrRef: z.string().uuid().optional(),
+  // Foyer pre-order (mig 359) — nápoje/jídlo z foyer baru na přestávku.
+  // Vloží se do orders.foyer_orders linked na orderId po COMMITU tiketů.
+  foyerItems: z
+    .array(
+      z.object({
+        menuItemId: z.string().uuid(),
+        quantity: z.number().int().min(1).max(10),
+      }),
+    )
+    .optional(),
+  // Digitální program (mig 359) — buyer přikoupí přístup k programu events.
+  addProgram: z.boolean().optional(),
 });
 
 interface TicketTypeRow {
@@ -1405,7 +1418,110 @@ export async function POST(req: NextRequest): Promise<Response> {
       });
     }
 
+    // Gift claim INSERT (uvnitř transakce, před COMMIT)
+    let giftClaimToken: string | undefined;
+    if (input.giftRecipientEmail) {
+      const productionRes = await client.query<{ production_id: string | null }>(
+        `SELECT production_id FROM catalog.events WHERE id = $1`,
+        [input.eventId],
+      );
+      const productionId = productionRes.rows[0]?.production_id ?? null;
+
+      const gcRes = await client.query<{ claim_token: string }>(
+        `INSERT INTO orders.gift_claims
+           (order_id, recipient_email, recipient_name, gift_message,
+            event_id, ticket_type_id, production_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING claim_token`,
+        [
+          orderId,
+          input.giftRecipientEmail.toLowerCase(),
+          input.giftRecipientName ?? null,
+          input.giftMessage ?? null,
+          input.eventId,
+          input.ticketTypeId,
+          productionId,
+        ],
+      );
+      giftClaimToken = gcRes.rows[0].claim_token;
+    }
+
     await client.query('COMMIT');
+
+    // Po commitu: foyer pre-order (mig 359) — nápoje/jídlo na přestávku.
+    let foyerOrderToken: string | undefined;
+    if (input.foyerItems && input.foyerItems.length > 0) {
+      const menuItemIds = input.foyerItems.map((i) => i.menuItemId);
+      const menuRows = await db().query<{
+        id: string;
+        name: string;
+        price_halire: number;
+        available_count: number | null;
+        is_active: boolean;
+      }>(
+        `SELECT id, name, price_halire, available_count, is_active
+         FROM catalog.foyer_menu_items
+         WHERE id = ANY($1::uuid[]) AND event_id = $2`,
+        [menuItemIds, input.eventId],
+      );
+      if (menuRows.rows.length === menuItemIds.length) {
+        const menuMap = new Map(menuRows.rows.map((r) => [r.id, r]));
+        const allActive = input.foyerItems.every((i) => menuMap.get(i.menuItemId)?.is_active);
+        if (allActive) {
+          const foyerTotal = input.foyerItems.reduce((sum, i) => {
+            return sum + (menuMap.get(i.menuItemId)?.price_halire ?? 0) * i.quantity;
+          }, 0);
+          const foRow = await db().query<{ id: string; pickup_qr_token: string }>(
+            `INSERT INTO orders.foyer_orders
+               (event_id, user_id, buyer_email, total_halire, order_id)
+             VALUES ($1, $2, $3, $4, $5)
+             RETURNING id, pickup_qr_token`,
+            [input.eventId, userId, input.buyerEmail.toLowerCase(), foyerTotal, orderId],
+          );
+          const foyerOrderId = foRow.rows[0].id;
+          foyerOrderToken = foRow.rows[0].pickup_qr_token;
+          for (const item of input.foyerItems) {
+            const mi = menuMap.get(item.menuItemId)!;
+            await db().query(
+              `INSERT INTO orders.foyer_order_items
+                 (foyer_order_id, menu_item_id, item_name, quantity, unit_halire)
+               VALUES ($1, $2, $3, $4, $5)`,
+              [foyerOrderId, item.menuItemId, mi.name, item.quantity, mi.price_halire],
+            );
+            if (mi.available_count !== null) {
+              await db().query(
+                `UPDATE catalog.foyer_menu_items
+                 SET available_count = available_count - $1
+                 WHERE id = $2 AND available_count >= $1`,
+                [item.quantity, item.menuItemId],
+              );
+            }
+          }
+        }
+      }
+    }
+
+    // Digitální program (mig 359) — INSERT program_purchase + vrátit access_token.
+    let programAccessToken: string | undefined;
+    if (input.addProgram) {
+      const progRow = await db().query<{ id: string; program_price_halire: number }>(
+        `SELECT id, program_price_halire
+         FROM catalog.event_programs
+         WHERE event_id = $1 AND is_published = true AND program_price_halire > 0
+         LIMIT 1`,
+        [input.eventId],
+      );
+      if (progRow.rows.length > 0) {
+        const prog = progRow.rows[0];
+        const ppRow = await db().query<{ access_token: string }>(
+          `INSERT INTO orders.program_purchases (order_id, program_id, price_halire)
+           VALUES ($1, $2, $3)
+           RETURNING access_token`,
+          [orderId, prog.id, prog.program_price_halire],
+        );
+        programAccessToken = ppRow.rows[0].access_token;
+      }
+    }
 
     // Po commitu: vytvoř payment session přes provider switcher.
     // Benefit karty (Pluxee/Sodexo/Benefit Plus/Edenred/Gallery Beta) jdou přes vlastní lib.
@@ -1416,6 +1532,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       'benefit_plus',
       'edenred',
       'gallery_beta',
+      'multisport',
     ]);
     let paymentSession;
 
@@ -1436,7 +1553,8 @@ export async function POST(req: NextRequest): Promise<Response> {
         | 'pluxee'
         | 'benefit_plus'
         | 'edenred'
-        | 'gallery_beta';
+        | 'gallery_beta'
+        | 'multisport';
       try {
         const benefitResult = await createBenefitPayment({
           orderId,
@@ -1510,6 +1628,9 @@ export async function POST(req: NextRequest): Promise<Response> {
       loyaltyMaxPointsAvailable,
       totalAmount,
       promoCodeApplied: promoCodeId !== null,
+      ...(foyerOrderToken ? { foyerOrderToken } : {}),
+      ...(programAccessToken ? { programAccessToken } : {}),
+      ...(giftClaimToken ? { giftClaimToken } : {}),
     });
   } catch (err) {
     await client.query('ROLLBACK');

@@ -30,6 +30,7 @@ const inputSchema = z.object({
   quantity: z.number().int().min(1).max(20),
   buyerName: z.string().min(1).max(120).optional(),
   paymentMethod: z.enum(['cash', 'card_terminal']).default('cash'),
+  seatIds: z.array(z.string().uuid()).min(1).max(20).optional(),
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
@@ -100,33 +101,73 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
 
-    // 3) Auto-pick seats pro seated event
+    // 3) Seats pro seated event — buď manuální výběr z pokladny, nebo auto-pick
     let seatIds: string[] = [];
     if (tt.is_seated) {
-      const seatsRes = await client.query<{ id: string; sector: string; row: string; seat_number: string }>(
-        `SELECT id, sector, row, seat_number
-         FROM catalog.event_seats
-         WHERE event_id = $1
-           AND ticket_type_id = $2
-           AND status = 'available'
-         ORDER BY sector, row, seat_number
-         LIMIT $3
-         FOR UPDATE SKIP LOCKED`,
-        [input.eventId, input.ticketTypeId, input.quantity],
-      );
-      if (seatsRes.rows.length < input.quantity) {
-        await client.query('ROLLBACK');
-        return NextResponse.json(
-          {
-            error: 'NOT_ENOUGH_AVAILABLE_SEATS',
-            available: seatsRes.rows.length,
-            requested: input.quantity,
-          },
-          { status: 422 },
+      if (input.seatIds && input.seatIds.length > 0) {
+        // Manuální výběr pokladní (POS seat grid)
+        if (input.seatIds.length !== input.quantity) {
+          await client.query('ROLLBACK');
+          return NextResponse.json(
+            { error: 'SEAT_COUNT_MISMATCH', expected: input.quantity, got: input.seatIds.length },
+            { status: 422 },
+          );
+        }
+        const seatsRes = await client.query<{
+          id: string;
+          status: string;
+          ticket_type_id: string;
+        }>(
+          `SELECT id, status, ticket_type_id
+           FROM catalog.event_seats
+           WHERE id = ANY($1::uuid[])
+             AND event_id = $2
+           FOR UPDATE`,
+          [input.seatIds, input.eventId],
         );
+        if (seatsRes.rows.length !== input.seatIds.length) {
+          await client.query('ROLLBACK');
+          return NextResponse.json({ error: 'SEAT_NOT_FOUND' }, { status: 422 });
+        }
+        const unavailable = seatsRes.rows.filter(
+          (s) =>
+            (s.status !== 'available' && !(s.status === 'held')) ||
+            s.ticket_type_id !== input.ticketTypeId,
+        );
+        if (unavailable.length > 0) {
+          await client.query('ROLLBACK');
+          return NextResponse.json(
+            { error: 'SEAT_UNAVAILABLE', seats: unavailable.map((s) => s.id) },
+            { status: 422 },
+          );
+        }
+        seatIds = input.seatIds;
+      } else {
+        // Auto-pick — fallback (nemělo by nastat z POS UI, ale pro jistotu)
+        const seatsRes = await client.query<{ id: string }>(
+          `SELECT id
+           FROM catalog.event_seats
+           WHERE event_id = $1
+             AND ticket_type_id = $2
+             AND status = 'available'
+           ORDER BY sector, row, seat_number
+           LIMIT $3
+           FOR UPDATE SKIP LOCKED`,
+          [input.eventId, input.ticketTypeId, input.quantity],
+        );
+        if (seatsRes.rows.length < input.quantity) {
+          await client.query('ROLLBACK');
+          return NextResponse.json(
+            {
+              error: 'NOT_ENOUGH_AVAILABLE_SEATS',
+              available: seatsRes.rows.length,
+              requested: input.quantity,
+            },
+            { status: 422 },
+          );
+        }
+        seatIds = seatsRes.rows.map((r) => r.id);
       }
-      seatIds = seatsRes.rows.map((r) => r.id);
-      // Mark seats as sold (atomically)
       await client.query(
         `UPDATE catalog.event_seats SET status = 'sold' WHERE id = ANY($1::uuid[])`,
         [seatIds],

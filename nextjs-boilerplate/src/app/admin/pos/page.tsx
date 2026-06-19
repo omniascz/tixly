@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { PosSeatGrid } from './PosSeatGrid';
 
 interface EventOption {
   id: string;
@@ -39,6 +40,7 @@ export default function PosPage() {
   const [eventId, setEventId] = useState<string>('');
   const [ticketTypeId, setTicketTypeId] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
+  const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
   const [buyerName, setBuyerName] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card_terminal'>('cash');
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +67,9 @@ export default function PosPage() {
 
   const event = events.find((e) => e.id === eventId);
   const ticketType = event?.ticketTypes.find((t) => t.id === ticketTypeId);
-  const total = ticketType ? ticketType.basePrice * quantity : 0;
+  const isSeated = ticketType?.isSeated ?? false;
+  const effectiveQuantity = isSeated ? selectedSeatIds.length : quantity;
+  const total = ticketType ? ticketType.basePrice * effectiveQuantity : 0;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -82,9 +86,10 @@ export default function PosPage() {
         body: JSON.stringify({
           eventId,
           ticketTypeId,
-          quantity,
+          quantity: effectiveQuantity,
           buyerName: buyerName.trim() || undefined,
           paymentMethod,
+          ...(isSeated && selectedSeatIds.length > 0 ? { seatIds: selectedSeatIds } : {}),
         }),
       });
       const data = await res.json();
@@ -93,9 +98,10 @@ export default function PosPage() {
         return;
       }
       setSale(data as SaleResponse);
-      // Reset form pro další zákazník
+      // Reset pro dalšího zákazníka
       setBuyerName('');
       setQuantity(1);
+      setSelectedSeatIds([]);
       // ticketTypeId / eventId zůstává — typicky 1 představení po sobě
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Síťová chyba');
@@ -156,7 +162,10 @@ export default function PosPage() {
                   <select
                     id="pos-tt"
                     value={ticketTypeId}
-                    onChange={(e) => setTicketTypeId(e.target.value)}
+                    onChange={(e) => {
+                      setTicketTypeId(e.target.value);
+                      setSelectedSeatIds([]);
+                    }}
                     required
                     className="w-full rounded-md border bg-background px-3 py-2 text-sm"
                   >
@@ -170,7 +179,20 @@ export default function PosPage() {
                 </div>
               ) : null}
 
-              {ticketType ? (
+              {ticketType && isSeated ? (
+                <div>
+                  <label className="mb-1 block text-xs font-medium">Výběr sedadel</label>
+                  <PosSeatGrid
+                    eventId={eventId}
+                    ticketTypeId={ticketTypeId}
+                    selected={selectedSeatIds}
+                    onChange={setSelectedSeatIds}
+                    max={20}
+                  />
+                </div>
+              ) : null}
+
+              {ticketType && !isSeated ? (
                 <div>
                   <label className="mb-1 block text-xs font-medium">Počet kusů</label>
                   <div className="flex items-center gap-2">
@@ -260,7 +282,14 @@ export default function PosPage() {
                   <div className="text-xs text-muted-foreground">Celkem k inkasu</div>
                   <div className="text-2xl font-bold">{formatCzk(total)}</div>
                 </div>
-                <Button type="submit" disabled={loading || !ticketTypeId || quantity < 1}>
+                <Button
+                  type="submit"
+                  disabled={
+                    loading ||
+                    !ticketTypeId ||
+                    (isSeated ? selectedSeatIds.length < 1 : quantity < 1)
+                  }
+                >
                   {loading ? 'Vystavuji…' : 'Vystavit lístek'}
                 </Button>
               </div>

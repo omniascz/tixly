@@ -632,6 +632,12 @@ function TicketCard({
             ↔️ Změnit typ lístku
           </Link>
           <Link
+            href={`/${locale}/my-tickets/${ticket.id}/exchange`}
+            className="text-xs text-indigo-700 hover:underline"
+          >
+            📅 Změnit termín
+          </Link>
+          <Link
             href={`/${locale}/my-tickets/${ticket.id}/cancel-order`}
             className="text-xs text-rose-800 hover:underline"
           >

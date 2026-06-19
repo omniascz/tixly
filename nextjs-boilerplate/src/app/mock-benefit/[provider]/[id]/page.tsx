@@ -56,6 +56,12 @@ const PROVIDER_INFO: Record<
     emoji: '🎫',
     description: 'Ticket Restaurant + benefitní karty',
   },
+  multisport: {
+    name: 'Multisport',
+    color: 'bg-green-600',
+    emoji: '🏊',
+    description: 'Multisport Kultura — kulturní a divadelní vstupenky',
+  },
 };
 
 export default function MockBenefitPage(): JSX.Element {

@@ -18,7 +18,7 @@ import { randomUUID } from 'crypto';
 import { db } from '@/lib/db/rls-pool';
 
 
-export type BenefitProvider = 'pluxee' | 'benefit_plus' | 'gallery_beta' | 'edenred';
+export type BenefitProvider = 'pluxee' | 'benefit_plus' | 'gallery_beta' | 'edenred' | 'multisport';
 
 export interface CreateBenefitPaymentInput {
   orderId: string;
@@ -44,6 +44,8 @@ function hasRealCredentials(provider: BenefitProvider): boolean {
       return Boolean(process.env.GALLERY_BETA_API_KEY);
     case 'edenred':
       return Boolean(process.env.EDENRED_MERCHANT_ID && process.env.EDENRED_API_KEY);
+    case 'multisport':
+      return Boolean(process.env.MULTISPORT_MERCHANT_ID && process.env.MULTISPORT_API_KEY);
     default:
       return false;
   }
@@ -94,6 +96,7 @@ import {
   createBenefitPlusPayment,
   createEdenredPayment,
   createGalleryBetaPayment,
+  createMultisportPayment,
   createPluxeePayment,
 } from './benefit-providers';
 
@@ -102,6 +105,7 @@ const PROVIDER_HANDLERS: Partial<Record<BenefitProvider, BenefitProviderHandler>
   benefit_plus: createBenefitPlusPayment,
   edenred: createEdenredPayment,
   gallery_beta: createGalleryBetaPayment,
+  multisport: createMultisportPayment,
 };
 
 function shouldUseMock(): boolean {
