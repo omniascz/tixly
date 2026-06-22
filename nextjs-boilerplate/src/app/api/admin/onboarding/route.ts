@@ -116,6 +116,18 @@ export async function POST(req: NextRequest): Promise<Response> {
       return NextResponse.json({ error: 'INVALID_ACTION' }, { status: 422 });
     }
 
+    // ForgeMsg — provision this promoter's org + API key immediately on
+    // onboarding completion (the hourly forgemsg-provision cron is the fallback).
+    // Fire-and-forget: never block onboarding.
+    void (async () => {
+      try {
+        const { provisionPromoter } = await import('@/lib/forgemsg/provision');
+        await provisionPromoter(promoter.promoterId);
+      } catch (err) {
+        console.error('[onboarding] forgemsg provision failed:', err);
+      }
+    })();
+
     return NextResponse.json({ ok: true });
   });
 }
