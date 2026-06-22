@@ -36,13 +36,17 @@ export async function POST(req: NextRequest): Promise<Response> {
     currency: string;
     buyer_email: string;
     buyer_name: string | null;
+    buyer_phone: string | null;
     event_id: string;
     event_title: string;
     event_date_start: string;
+    promoter_id: string | null;
+    category: string | null;
   }>(
     `SELECT o.id, o.total_amount, o.currency,
-            u.email AS buyer_email, u.name AS buyer_name,
-            e.id AS event_id, e.title AS event_title, e.date_start AS event_date_start
+            u.email AS buyer_email, u.name AS buyer_name, u.phone AS buyer_phone,
+            e.id AS event_id, e.title AS event_title, e.date_start AS event_date_start,
+            e.promoter_id, e.category
      FROM orders.orders o
      JOIN identity.users u ON u.id = o.user_id
      JOIN catalog.events e ON e.id = o.event_id
@@ -92,6 +96,32 @@ export async function POST(req: NextRequest): Promise<Response> {
         `UPDATE orders.orders SET abandoned_email_sent_at = NOW() WHERE id = $1`,
         [o.id],
       );
+      // ForgeMsg — emit cart_abandoned so its recovery automation can react.
+      try {
+        const { emitForgeMsg, splitName } = await import('@/lib/forgemsg/emit');
+        await emitForgeMsg(
+          {
+            type: 'cart_abandoned',
+            contact: {
+              email: o.buyer_email,
+              phone: o.buyer_phone ?? undefined,
+              ...splitName(o.buyer_name),
+            },
+            event: {
+              externalId: o.event_id,
+              title: o.event_title,
+              category: o.category ?? undefined,
+              startsAt: o.event_date_start ?? undefined,
+              currency: ccy,
+            },
+            order: { orderId: o.id, amount: o.total_amount, currency: ccy },
+            payload: { cart_url: resumeUrl },
+          },
+          o.promoter_id,
+        );
+      } catch (emitErr) {
+        console.error('[abandoned-cart] forgemsg emit failed:', o.id, emitErr);
+      }
       sent += 1;
     } catch (err) {
       console.error('[abandoned-cart]', o.id, err);

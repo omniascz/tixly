@@ -53,6 +53,8 @@
     { "path": "/api/cron/dispatch?job=refresh-spotify", "schedule": "*/50 * * * *" },
     { "path": "/api/cron/dispatch?job=music-distribute", "schedule": "*/20 * * * *" },
     { "path": "/api/cron/dispatch?job=send-commemorative", "schedule": "0 10 * * *" },
+    { "path": "/api/cron/dispatch?job=forgemsg-dispatch", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/dispatch?job=forgemsg-sync-events", "schedule": "0 */6 * * *" },
     { "path": "/api/admin/lastminute/check", "schedule": "*/15 * * * *" }
   ]
 }
