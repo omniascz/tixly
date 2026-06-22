@@ -57,6 +57,12 @@ export async function POST(req: NextRequest): Promise<Response> {
       cancelled += 1;
       continue;
     }
+    // NOTE (ForgeMsg): production billing will charge via Stripe here; on a
+    // failed charge set status='past_due' and emit the dunning trigger:
+    //   await emitForgeMsg({ type: 'subscription_past_due',
+    //     contact: { email: <buyer email> },
+    //     payload: { renew_url, subscription_id: sub.id } }, <promoter_id>);
+    // Not wired today because this cron is a mock instant-renew (no past_due path).
     // Mock renew: posuneme period
     const advanceClause =
       sub.billing_cycle === 'monthly'

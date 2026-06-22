@@ -574,6 +574,59 @@ export async function POST(request: NextRequest): Promise<Response> {
     }
   }
 
+  // ForgeMsg — emit order_paid into the outbox (best-effort; never blocks tickets).
+  try {
+    const { emitForgeMsg, splitName } = await import('@/lib/forgemsg/emit');
+    const fm = await db().query<{
+      event_id: string;
+      promoter_id: string | null;
+      category: string | null;
+      subcategory: string | null;
+      venue_city: string | null;
+    }>(
+      `SELECT e.id AS event_id, e.promoter_id, e.category, e.subcategory, v.city AS venue_city
+         FROM orders.orders o
+         JOIN catalog.events e ON e.id = o.event_id
+         LEFT JOIN catalog.venues v ON v.id = e.venue_id
+        WHERE o.id = $1`,
+      [orderId],
+    );
+    const f = fm.rows[0];
+    if (f) {
+      await emitForgeMsg(
+        {
+          type: 'order_paid',
+          contact: {
+            email: order.buyer_email,
+            phone: order.buyer_phone ?? undefined,
+            ...splitName(order.buyer_name),
+            city: f.venue_city ?? undefined,
+          },
+          event: {
+            externalId: f.event_id,
+            title: order.event_title,
+            category: f.category ?? undefined,
+            subcategory: f.subcategory ?? undefined,
+            venueName: order.venue_name ?? undefined,
+            venueCity: f.venue_city ?? undefined,
+            startsAt: order.event_date_start ?? undefined,
+            currency: order.currency,
+          },
+          order: {
+            orderId: order.id,
+            amount: order.total_amount, // haléře (minor units) — ForgeMsg divides by 100
+            currency: order.currency,
+            seats: issued.length,
+          },
+          occurredAt: order.paid_at ?? undefined,
+        },
+        f.promoter_id,
+      );
+    }
+  } catch (err) {
+    console.error('[order-completed] forgemsg emit failed:', err);
+  }
+
   return NextResponse.json({
     success: true,
     orderId,

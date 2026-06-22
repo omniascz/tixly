@@ -164,6 +164,22 @@ export async function POST(
           }),
         },
       ).catch((err) => console.error('[lottery-winner-email]', err));
+
+      // ForgeMsg — emit lottery_won.
+      try {
+        const { emitForgeMsg, splitName } = await import('@/lib/forgemsg/emit');
+        await emitForgeMsg(
+          {
+            type: 'lottery_won',
+            contact: { email: w.email, ...splitName(w.name) },
+            event: { externalId: params.id, title: l.event_title },
+            payload: { buy_url: redeemUrl },
+          },
+          promoter.promoterId,
+        );
+      } catch (emitErr) {
+        console.error('[lottery draw] forgemsg emit failed:', emitErr);
+      }
     }
 
     return NextResponse.json({

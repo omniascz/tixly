@@ -376,6 +376,20 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
     await client.query('COMMIT');
     void triggerCommemorativeSend(t.event_id);
+    // ForgeMsg — emit event_attended (post-event review / cross-sell). Best-effort.
+    try {
+      const { emitForgeMsg, splitName } = await import('@/lib/forgemsg/emit');
+      await emitForgeMsg(
+        {
+          type: 'event_attended',
+          contact: { email: t.buyer_email, ...splitName(t.buyer_name) },
+          event: { externalId: t.event_id, title: t.event_title },
+        },
+        t.event_promoter_id,
+      );
+    } catch (emitErr) {
+      console.error('[scanner/validate] forgemsg emit failed:', emitErr);
+    }
 
     return NextResponse.json({
       result: 'admitted',

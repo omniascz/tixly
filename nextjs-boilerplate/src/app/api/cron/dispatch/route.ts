@@ -40,6 +40,10 @@ const ALLOWED_JOBS = new Set([
   'refresh-spotify',           // P4 — refresh Spotify tokens expiring soon
   'music-distribute',          // distribuce koncertů na Bandsintown/Songkick
   'send-commemorative',        // vzpomínkové vstupenky — den po představení
+  // ForgeMsg integration
+  'forgemsg-dispatch',         // drain outbox → ForgeMsg ticketing ingest
+  'forgemsg-sync-events',      // sync upcoming events + unsold seats → ForgeMsg
+  'forgemsg-provision',        // create ForgeMsg org + key for new promoters
 ]);
 
 export async function GET(req: NextRequest): Promise<Response> {
