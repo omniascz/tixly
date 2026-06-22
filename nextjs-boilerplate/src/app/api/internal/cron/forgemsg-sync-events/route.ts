@@ -68,6 +68,7 @@ export async function POST(req: NextRequest): Promise<Response> {
             venueName: ev.venue_name ?? undefined,
             venueCity: ev.venue_city ?? undefined,
             currency: ev.currency ?? 'CZK',
+            url: `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/cs/events/${ev.id}`,
             startsAt: ev.date_start ?? undefined,
             // Decouple from Tixly's status enum: sellable iff seats remain.
             status: ev.unsold > 0 ? 'on_sale' : 'sold_out',

@@ -43,6 +43,7 @@ export interface ForgeMsgEventBody {
     venueName?: string;
     venueCity?: string;
     currency?: string;
+    url?: string;
     startsAt?: string;
     status?: string;
     unsoldSeats?: number;
