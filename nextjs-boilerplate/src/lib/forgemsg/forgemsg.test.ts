@@ -14,7 +14,9 @@ beforeEach(() => {
   query.mockReset();
   vi.unstubAllGlobals();
 });
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 describe('splitName', () => {
   it('splits first/last, handles single + empty', () => {

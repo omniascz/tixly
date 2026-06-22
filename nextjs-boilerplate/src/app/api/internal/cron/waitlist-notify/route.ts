@@ -71,6 +71,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       ticket_type_name: string;
       event_id: string;
       event_title: string;
+      promoter_id: string | null;
     }>(
       `WITH next_batch AS (
          SELECT id FROM catalog.waitlist_entries
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest): Promise<Response> {
        FROM next_batch nb, catalog.ticket_types tt, catalog.events e
        WHERE we.id = nb.id AND tt.id = we.ticket_type_id AND e.id = tt.event_id
        RETURNING we.id, we.email, we.name, tt.name AS ticket_type_name,
-                 e.id AS event_id, e.title AS event_title`,
+                 e.id AS event_id, e.title AS event_title, e.promoter_id`,
       [tt.ticket_type_id, limit],
     );
     notified += upd.rows.length;
@@ -112,6 +113,22 @@ export async function POST(req: NextRequest): Promise<Response> {
           }),
         },
       ).catch((err) => console.error('[waitlist email]', err));
+
+      // ForgeMsg — emit waitlist_freed (own automation can react too).
+      try {
+        const { emitForgeMsg, splitName } = await import('@/lib/forgemsg/emit');
+        await emitForgeMsg(
+          {
+            type: 'waitlist_freed',
+            contact: { email: row.email, ...splitName(row.name) },
+            event: { externalId: row.event_id, title: row.event_title },
+            payload: { buy_url: buyUrl },
+          },
+          row.promoter_id,
+        );
+      } catch (emitErr) {
+        console.error('[waitlist-notify] forgemsg emit failed:', emitErr);
+      }
     }
   }
 

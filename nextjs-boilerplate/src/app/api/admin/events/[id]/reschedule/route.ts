@@ -154,6 +154,31 @@ export async function POST(
 
       await client.query('COMMIT');
 
+      // ForgeMsg — emit event_changed per affected attendee (after COMMIT so we
+      // never notify on a rolled-back reschedule). Best-effort.
+      try {
+        const { emitForgeMsg, splitName } = await import('@/lib/forgemsg/emit');
+        const eventTitle = eventCheck.rows[0].title;
+        for (const order of orders) {
+          await emitForgeMsg(
+            {
+              type: 'event_changed',
+              contact: { email: order.email, ...splitName(order.name) },
+              event: { externalId: eventId, title: eventTitle },
+              payload: {
+                reason: input.reason,
+                offer_refund: offerRefund,
+                response_deadline: responseDeadline,
+                new_event_id: input.newEventId ?? null,
+              },
+            },
+            promoter.promoterId,
+          );
+        }
+      } catch (emitErr) {
+        console.error('[reschedule] forgemsg emit failed:', emitErr);
+      }
+
       return NextResponse.json(
         {
           rescheduleId,

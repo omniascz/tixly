@@ -37,6 +37,8 @@ interface OrderRow {
   status: string;
   total_amount: number;
   user_id: string;
+  event_id: string;
+  currency: string;
   event_promoter_id: string;
   event_title: string;
   buyer_email: string;
@@ -120,7 +122,7 @@ export async function POST(
       // kupujícího (jiný user). INNER JOIN by celý dotaz vyprázdnil → falešné
       // 404 i pro vlastní objednávku. LEFT JOIN vrátí order vždy; buyer_email
       // může být null (e-mail je fire-and-forget, degraduje se gracefully).
-      `SELECT o.id, o.status, o.total_amount, o.user_id,
+      `SELECT o.id, o.status, o.total_amount, o.user_id, o.event_id, o.currency,
               e.promoter_id AS event_promoter_id,
               e.title AS event_title,
               u.email AS buyer_email, u.name AS buyer_name
@@ -247,6 +249,23 @@ export async function POST(
         console.error('[refund] email failed:', err);
       }
     })();
+
+    // ForgeMsg — emit order_refunded (reason segmentation, win-back exclusion).
+    try {
+      const { emitForgeMsg, splitName } = await import('@/lib/forgemsg/emit');
+      await emitForgeMsg(
+        {
+          type: 'order_refunded',
+          contact: { email: order.buyer_email, ...splitName(order.buyer_name) },
+          event: { externalId: order.event_id, title: order.event_title, currency: order.currency },
+          order: { orderId, amount: order.total_amount, currency: order.currency },
+          payload: { reason: input.reason },
+        },
+        order.event_promoter_id,
+      );
+    } catch (emitErr) {
+      console.error('[refund] forgemsg emit failed:', emitErr);
+    }
 
     return NextResponse.json({
       ok: true,
