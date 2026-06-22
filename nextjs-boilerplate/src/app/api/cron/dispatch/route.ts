@@ -43,6 +43,7 @@ const ALLOWED_JOBS = new Set([
   // ForgeMsg integration
   'forgemsg-dispatch',         // drain outbox → ForgeMsg ticketing ingest
   'forgemsg-sync-events',      // sync upcoming events + unsold seats → ForgeMsg
+  'forgemsg-provision',        // create ForgeMsg org + key for new promoters
 ]);
 
 export async function GET(req: NextRequest): Promise<Response> {
