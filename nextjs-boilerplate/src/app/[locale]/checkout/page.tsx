@@ -1,6 +1,7 @@
 'use client';
 import { FormEvent, Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { MetaPixel } from '@/components/tracking/MetaPixel';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -10,6 +11,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { fbqTrack } from '@/lib/tracking/fbq';
 
 function CheckoutForm() {
   const searchParams = useSearchParams();
@@ -87,6 +89,8 @@ function CheckoutForm() {
   const [insurance, setInsurance] = useState<InsuranceInfo | null>(null);
   const [insuranceOptIn, setInsuranceOptIn] = useState(false);
   const [unitPriceHalire, setUnitPriceHalire] = useState<number | null>(null);
+  const [metaPixelId, setMetaPixelId] = useState<string | null>(null);
+  const [currency, setCurrency] = useState('CZK');
 
   interface FoyerMenuItem {
     id: string;
@@ -164,10 +168,14 @@ function CheckoutForm() {
         (d: {
           ticketTypes?: Array<{ id: string; basePrice: number }>;
           eventFlags?: { requiresOtp: boolean; verifiedFanEnabled: boolean };
+          metaPixelId?: string | null;
+          currency?: string;
         } | null) => {
           const tt = d?.ticketTypes?.find((t) => t.id === ticketTypeId);
           if (tt) setUnitPriceHalire(tt.basePrice);
           if (d?.eventFlags) setEventFlags(d.eventFlags);
+          if (d?.metaPixelId) setMetaPixelId(d.metaPixelId);
+          if (d?.currency) setCurrency(d.currency);
         },
       )
       .catch(() => {});
@@ -391,6 +399,14 @@ function CheckoutForm() {
         return;
       }
       const data = await res.json();
+      // AddPaymentInfo — těsně před odchodem na platební bránu.
+      const qtyNum = parseInt(quantity, 10) || 1;
+      fbqTrack('AddPaymentInfo', {
+        content_ids: [eventId],
+        content_type: 'product',
+        num_items: qtyNum,
+        ...(unitPriceHalire ? { value: (unitPriceHalire * qtyNum) / 100, currency } : {}),
+      });
       router.push(data.gatewayUrl);
     } catch {
       setError('Síťová chyba');
@@ -401,6 +417,18 @@ function CheckoutForm() {
 
   return (
     <div className="mx-auto max-w-md">
+      <MetaPixel
+        pixelId={metaPixelId}
+        event="InitiateCheckout"
+        eventData={{
+          content_ids: [eventId],
+          content_type: 'product',
+          num_items: parseInt(quantity, 10) || 1,
+          ...(unitPriceHalire
+            ? { value: (unitPriceHalire * (parseInt(quantity, 10) || 1)) / 100, currency }
+            : {}),
+        }}
+      />
       <Card>
         <CardHeader>
           <CardTitle>Dokončení objednávky</CardTitle>

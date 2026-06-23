@@ -21,6 +21,12 @@ interface Settings {
     colorHex: string | null;
     tagline: string | null;
   };
+  tracking: {
+    metaPixelId: string | null;
+    ga4MeasurementId: string | null;
+    hasCapiToken: boolean;
+    hasGa4Secret: boolean;
+  };
   billing: {
     bankAccount: string | null;
   };
@@ -38,11 +44,12 @@ interface Settings {
   };
 }
 
-type Tab = 'general' | 'branding' | 'billing' | 'refund' | 'security';
+type Tab = 'general' | 'branding' | 'tracking' | 'billing' | 'refund' | 'security';
 
 const TABS: Array<{ id: Tab; label: string }> = [
   { id: 'general', label: 'Obecné' },
   { id: 'branding', label: 'Branding' },
+  { id: 'tracking', label: 'Marketing' },
   { id: 'billing', label: 'Billing & Výplaty' },
   { id: 'refund', label: 'Refund policy' },
   { id: 'security', label: 'Zabezpečení' },
@@ -60,6 +67,14 @@ export default function SettingsPage() {
   const [brandLogoUrl, setBrandLogoUrl] = useState('');
   const [brandColorHex, setBrandColorHex] = useState('');
   const [brandTagline, setBrandTagline] = useState('');
+
+  // Marketing / tracking
+  const [metaPixelId, setMetaPixelId] = useState('');
+  const [metaCapiToken, setMetaCapiToken] = useState('');
+  const [hasCapiToken, setHasCapiToken] = useState(false);
+  const [ga4MeasurementId, setGa4MeasurementId] = useState('');
+  const [ga4ApiSecret, setGa4ApiSecret] = useState('');
+  const [hasGa4Secret, setHasGa4Secret] = useState(false);
 
   // Billing
   const [bankAccount, setBankAccount] = useState('');
@@ -89,6 +104,12 @@ export default function SettingsPage() {
       setBrandLogoUrl(d.branding.logoUrl ?? '');
       setBrandColorHex(d.branding.colorHex ?? '');
       setBrandTagline(d.branding.tagline ?? '');
+      setMetaPixelId(d.tracking.metaPixelId ?? '');
+      setHasCapiToken(d.tracking.hasCapiToken);
+      setMetaCapiToken('');
+      setGa4MeasurementId(d.tracking.ga4MeasurementId ?? '');
+      setHasGa4Secret(d.tracking.hasGa4Secret);
+      setGa4ApiSecret('');
       setBankAccount(d.billing.bankAccount ?? '');
       setPayoutCycle(d.payout.cycle);
       setMinPayoutCzk(String(Math.round(d.payout.minPayoutHalire / 100)));
@@ -310,6 +331,113 @@ export default function SettingsPage() {
                 </div>
               </div>
             ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {tab === 'tracking' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Marketing pixely</CardTitle>
+            <CardDescription>
+              Měření konverzí přes Meta (Facebook/Instagram) a Google Analytics 4.
+              Jeden pixel platí pro všechny tvé akce. Vyplň, abychom mohli posílat
+              události (zobrazení, košík, nákup) do tvého reklamního účtu.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form
+              onSubmit={(e: FormEvent) => {
+                e.preventDefault();
+                const payload: Record<string, unknown> = {
+                  // '' = vymazat (plaintext IDs). undefined neposíláme.
+                  metaPixelId: metaPixelId.trim(),
+                  ga4MeasurementId: ga4MeasurementId.trim(),
+                };
+                // Secrety posíláme jen když uživatel něco napsal (write-only).
+                if (metaCapiToken.trim()) payload.metaCapiToken = metaCapiToken.trim();
+                if (ga4ApiSecret.trim()) payload.ga4ApiSecret = ga4ApiSecret.trim();
+                void patchAndReload(payload);
+              }}
+              className="space-y-5"
+            >
+              <div className="space-y-3 rounded-md border p-3">
+                <div className="text-sm font-semibold">Meta (Facebook / Instagram)</div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium">Pixel ID</label>
+                  <Input
+                    value={metaPixelId}
+                    onChange={(e) => setMetaPixelId(e.target.value)}
+                    placeholder="1234567890123456"
+                    inputMode="numeric"
+                    className="font-mono"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Najdeš v Meta Events Manageru. Jen číslice. Prázdné pole = vypnuto.
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium">
+                    Conversions API token{' '}
+                    {hasCapiToken ? (
+                      <span className="ml-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-800">
+                        nastaveno
+                      </span>
+                    ) : null}
+                  </label>
+                  <Input
+                    type="password"
+                    value={metaCapiToken}
+                    onChange={(e) => setMetaCapiToken(e.target.value)}
+                    placeholder={hasCapiToken ? '•••••••• (ponech prázdné = beze změny)' : 'EAAB...'}
+                    autoComplete="off"
+                    className="font-mono"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Server-side měření (funguje i přes adblock). Ukládá se šifrovaně,
+                    zpět ho nezobrazíme. Nákup se posílá přes CAPI vždy.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3 rounded-md border p-3">
+                <div className="text-sm font-semibold">Google Analytics 4</div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium">Measurement ID</label>
+                  <Input
+                    value={ga4MeasurementId}
+                    onChange={(e) => setGa4MeasurementId(e.target.value)}
+                    placeholder="G-XXXXXXXXXX"
+                    className="font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium">
+                    Measurement Protocol API secret{' '}
+                    {hasGa4Secret ? (
+                      <span className="ml-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-800">
+                        nastaveno
+                      </span>
+                    ) : null}
+                  </label>
+                  <Input
+                    type="password"
+                    value={ga4ApiSecret}
+                    onChange={(e) => setGa4ApiSecret(e.target.value)}
+                    placeholder={hasGa4Secret ? '•••••••• (ponech prázdné = beze změny)' : ''}
+                    autoComplete="off"
+                    className="font-mono"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Šifrovaně. Slouží pro server-side purchase event do GA4.
+                  </p>
+                </div>
+              </div>
+
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Ukládám…' : 'Uložit tracking'}
+              </Button>
+            </form>
           </CardContent>
         </Card>
       ) : null}

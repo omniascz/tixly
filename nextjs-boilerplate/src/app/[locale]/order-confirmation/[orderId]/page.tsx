@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { MetaPixel } from '@/components/tracking/MetaPixel';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import {
   Card,
@@ -25,6 +26,7 @@ interface OrderRow {
   variable_symbol: string | null;
   expires_at: string | null;
   promoter_bank_account: string | null;
+  promoter_meta_pixel_id: string | null;
   event_title: string | null;
   event_date_start: string | null;
   venue_name: string | null;
@@ -45,6 +47,7 @@ async function fetchOrder(orderId: string) {
          o.id, o.status, o.total_amount, o.currency, o.paid_at,
          o.payment_provider, o.variable_symbol, o.expires_at,
          p.bank_account AS promoter_bank_account,
+         p.meta_pixel_id AS promoter_meta_pixel_id,
          u.email AS buyer_email,
          e.title AS event_title, e.date_start AS event_date_start,
          v.name AS venue_name
@@ -126,8 +129,25 @@ export default async function OrderConfirmationPage({
   const locale = isValidLocale(params.locale) ? params.locale : DEFAULT_LOCALE;
   const t = getDict(locale).orderConfirmation;
 
+  const totalItems = items.reduce((s, it) => s + it.quantity, 0);
+
   return (
     <div className="mx-auto max-w-2xl">
+      {/* Purchase pixel — jen pro zaplacené. eventID = order.id se shoduje s
+          server-side CAPI Purchase (order-completed) → Meta dedupne na 1 konverzi. */}
+      {isPaid ? (
+        <MetaPixel
+          pixelId={order.promoter_meta_pixel_id}
+          event="Purchase"
+          eventData={{
+            content_type: 'product',
+            num_items: totalItems,
+            value: order.total_amount / 100,
+            currency: ccy,
+          }}
+          eventId={order.id}
+        />
+      ) : null}
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">

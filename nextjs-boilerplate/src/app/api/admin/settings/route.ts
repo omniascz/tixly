@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsPromoterNonStaff, runAsActivePromoterNonStaff } from '@/lib/admin-auth';
+import { encryptSecret } from '@/lib/crypto';
 import { z } from 'zod';
 
 
@@ -22,6 +23,10 @@ interface SettingsRow {
   brand_logo_url: string | null;
   brand_color_hex: string | null;
   brand_tagline: string | null;
+  meta_pixel_id: string | null;
+  meta_capi_token_enc: string | null;
+  ga4_measurement_id: string | null;
+  ga4_api_secret_enc: string | null;
   payout_cycle: string;
   rolling_reserve_pct: number;
   reserve_release_days: number;
@@ -39,6 +44,8 @@ export async function GET(req: NextRequest): Promise<Response> {
        p.id AS promoter_id, p.name AS promoter_name, p.slug AS promoter_slug, p.email AS promoter_email,
        p.contact_email, p.locale, p.bank_account,
        p.brand_logo_url, p.brand_color_hex, p.brand_tagline,
+       p.meta_pixel_id, p.meta_capi_token_enc,
+       p.ga4_measurement_id, p.ga4_api_secret_enc,
        COALESCE(s.payout_cycle, 'weekly') AS payout_cycle,
        COALESCE(s.rolling_reserve_pct, 500) AS rolling_reserve_pct,
        COALESCE(s.reserve_release_days, 90) AS reserve_release_days,
@@ -71,6 +78,14 @@ export async function GET(req: NextRequest): Promise<Response> {
       logoUrl: s.brand_logo_url,
       colorHex: s.brand_color_hex,
       tagline: s.brand_tagline,
+    },
+    // Tracking: pixel/measurement ID jsou veřejné → vracíme. CAPI token a GA4
+    // api_secret NIKDY nevracíme (write-only z UI), jen flag jestli jsou nastavené.
+    tracking: {
+      metaPixelId: s.meta_pixel_id,
+      ga4MeasurementId: s.ga4_measurement_id,
+      hasCapiToken: s.meta_capi_token_enc !== null,
+      hasGa4Secret: s.ga4_api_secret_enc !== null,
     },
     billing: {
       bankAccount: s.bank_account,
@@ -106,6 +121,19 @@ const patchSchema = z.object({
     .nullable()
     .optional(),
   brandTagline: z.string().max(200).nullable().optional(),
+
+  // Marketing tracking. Prázdný řetězec / null = vymazat. Token + GA4 secret
+  // se ukládají šifrovaně (viz PATCH níže).
+  metaPixelId: z
+    .union([z.string().regex(/^\d{5,20}$/, 'Pixel ID = 5–20 číslic'), z.literal('')])
+    .nullable()
+    .optional(),
+  metaCapiToken: z.union([z.string().max(500), z.literal('')]).nullable().optional(),
+  ga4MeasurementId: z
+    .union([z.string().regex(/^G-[A-Z0-9]{4,15}$/, 'GA4 ID formát G-XXXXXXX'), z.literal('')])
+    .nullable()
+    .optional(),
+  ga4ApiSecret: z.union([z.string().max(200), z.literal('')]).nullable().optional(),
 
   // Billing (owner-only)
   bankAccount: z.string().max(50).nullable().optional(),
@@ -152,6 +180,24 @@ export async function PATCH(req: NextRequest): Promise<Response> {
     const promoterSets: string[] = [];
     const promoterArgs: unknown[] = [];
     let pi = 1;
+    // Tracking: '' / null → vymazat (NULL); secrety šifrujeme. undefined = neměnit.
+    const metaPixelVal =
+      input.metaPixelId === undefined ? undefined : input.metaPixelId || null;
+    const ga4MidVal =
+      input.ga4MeasurementId === undefined ? undefined : input.ga4MeasurementId || null;
+    const capiTokenEncVal =
+      input.metaCapiToken === undefined
+        ? undefined
+        : input.metaCapiToken
+          ? encryptSecret(input.metaCapiToken)
+          : null;
+    const ga4SecretEncVal =
+      input.ga4ApiSecret === undefined
+        ? undefined
+        : input.ga4ApiSecret
+          ? encryptSecret(input.ga4ApiSecret)
+          : null;
+
     const promoterPatches: Array<[string, unknown]> = [
       ['contact_email', input.contactEmail],
       ['locale', input.locale],
@@ -159,6 +205,10 @@ export async function PATCH(req: NextRequest): Promise<Response> {
       ['brand_color_hex', input.brandColorHex],
       ['brand_tagline', input.brandTagline],
       ['bank_account', input.bankAccount],
+      ['meta_pixel_id', metaPixelVal],
+      ['meta_capi_token_enc', capiTokenEncVal],
+      ['ga4_measurement_id', ga4MidVal],
+      ['ga4_api_secret_enc', ga4SecretEncVal],
     ];
     for (const [col, val] of promoterPatches) {
       if (val !== undefined) {

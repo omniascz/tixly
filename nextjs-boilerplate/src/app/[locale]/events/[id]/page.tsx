@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Pool } from 'pg';
 import { ReportButton } from '@/components/public/ReportButton';
+import { MetaPixel } from '@/components/tracking/MetaPixel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate } from '@/lib/format';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
@@ -52,6 +53,7 @@ interface EventDetail {
   promoter_brand_color_hex: string | null;
   promoter_brand_logo_url: string | null;
   promoter_brand_tagline: string | null;
+  promoter_meta_pixel_id: string | null;
 }
 
 interface TicketTypeRow {
@@ -88,7 +90,8 @@ async function fetchDetail(id: string) {
              COALESCE(p.contact_email, p.email) AS promoter_contact_email,
              p.brand_color_hex AS promoter_brand_color_hex,
              p.brand_logo_url AS promoter_brand_logo_url,
-             p.brand_tagline AS promoter_brand_tagline
+             p.brand_tagline AS promoter_brand_tagline,
+             p.meta_pixel_id AS promoter_meta_pixel_id
       FROM catalog.events e
       LEFT JOIN catalog.venues v ON v.id = e.venue_id
       LEFT JOIN platform.promoters p ON p.id = e.promoter_id
@@ -260,6 +263,17 @@ export default async function EventDetailPage({
 
   return (
     <div className="space-y-6">
+      <MetaPixel
+        pixelId={event.promoter_meta_pixel_id}
+        event="ViewContent"
+        eventData={{
+          content_ids: [event.id],
+          content_type: 'product',
+          content_name: event.title,
+          ...(Number.isFinite(minPrice) ? { value: minPrice / 100 } : {}),
+          currency: event.currency ?? 'CZK',
+        }}
+      />
       <script
         type="application/ld+json"
         // SECURITY: JSON.stringify NEescapuje `</script>` ani `<`, takže promotér

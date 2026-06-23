@@ -49,15 +49,22 @@ export async function GET(
   const ev = await db().query<{
     requires_otp_validation: boolean;
     verified_fan_enabled: boolean;
+    meta_pixel_id: string | null;
+    currency: string | null;
   }>(
-    `SELECT COALESCE(requires_otp_validation, FALSE) AS requires_otp_validation,
-            COALESCE(verified_fan_enabled, FALSE) AS verified_fan_enabled
-       FROM catalog.events WHERE id = $1`,
+    `SELECT COALESCE(e.requires_otp_validation, FALSE) AS requires_otp_validation,
+            COALESCE(e.verified_fan_enabled, FALSE) AS verified_fan_enabled,
+            p.meta_pixel_id, e.currency
+       FROM catalog.events e
+       LEFT JOIN platform.promoters p ON p.id = e.promoter_id
+      WHERE e.id = $1`,
     [params.id],
   );
   const flags = ev.rows[0] ?? {
     requires_otp_validation: false,
     verified_fan_enabled: false,
+    meta_pixel_id: null,
+    currency: null,
   };
 
   return NextResponse.json({
@@ -76,5 +83,7 @@ export async function GET(
       requiresOtp: flags.requires_otp_validation,
       verifiedFanEnabled: flags.verified_fan_enabled,
     },
+    metaPixelId: flags.meta_pixel_id,
+    currency: flags.currency ?? 'CZK',
   });
 }

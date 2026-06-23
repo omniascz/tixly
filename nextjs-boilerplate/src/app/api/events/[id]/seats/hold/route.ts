@@ -23,6 +23,31 @@ const schema = z.object({
   seatIds: z.array(z.string().uuid()).min(1).max(MAX_SEATS),
 });
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+
+// Server-side Meta CAPI AddToCart pro promotéra dané akce. Volá se fire-and-forget
+// z POST holdu; běží ve stejném service kontextu (ALS) jako hold.
+async function fireAddToCart(eventId: string, holdToken: string, numItems: number): Promise<void> {
+  const { getPromoterTrackingByEvent } = await import('@/lib/tracking/promoter-creds');
+  const creds = await getPromoterTrackingByEvent(eventId);
+  if (!creds.metaPixelId || !creds.metaCapiToken) return;
+  const { sendMetaEvent } = await import('@/lib/tracking/meta-capi');
+  await sendMetaEvent(
+    {
+      eventName: 'AddToCart',
+      eventTime: Math.floor(Date.now() / 1000),
+      eventId: holdToken,
+      pixelId: creds.metaPixelId,
+      capiToken: creds.metaCapiToken,
+      contentIds: [eventId],
+      contentType: 'product',
+      numItems,
+      sourceUrl: `${BASE_URL}/cs/events/${eventId}`,
+    },
+    { eventId },
+  );
+}
+
 // CORS preflight pro cross-origin embed seat-picker (hold). Hlavičky doplní next.config.
 export function OPTIONS(): Response {
   return new Response(null, { status: 204 });
@@ -132,6 +157,15 @@ export async function POST(
       }
 
       await client.query('COMMIT');
+
+      // Meta CAPI AddToCart (server-side, adblock-proof). Fire-and-forget —
+      // NIKDY nesmí blokovat ani shodit hold response (kritické při onsale).
+      // Dedup key = holdToken → kdyby se časem doplnil i browser pixel
+      // AddToCart se stejným eventID, Meta to spáruje a nepočítá 2×.
+      void fireAddToCart(params.id, holdToken, parsed.data.seatIds.length).catch((err) =>
+        console.error('[seat hold] AddToCart tracking failed:', err),
+      );
+
       return NextResponse.json({
         holdToken,
         seatIds: parsed.data.seatIds,

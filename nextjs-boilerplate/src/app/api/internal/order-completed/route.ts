@@ -647,17 +647,11 @@ async function fireConversionTracking(orderId: string): Promise<void> {
     currency: string;
     buyer_email: string;
     event_title: string;
-    meta_pixel_id: string | null;
-    meta_capi_token: string | null;
-    ga4_measurement_id: string | null;
-    ga4_api_secret: string | null;
     items: { ticket_type_id: string; name: string; quantity: number; unit_price: number }[];
   }>(
     `SELECT o.event_id, o.total_amount, o.currency,
             u.email AS buyer_email,
             e.title AS event_title,
-            e.meta_pixel_id, e.meta_capi_token,
-            e.ga4_measurement_id, e.ga4_api_secret,
             (SELECT json_agg(json_build_object(
               'ticket_type_id', oi.ticket_type_id,
               'name', tt.name,
@@ -677,15 +671,20 @@ async function fireConversionTracking(orderId: string): Promise<void> {
   const valueMajor = o.total_amount / 100;
   const items = o.items ?? [];
 
-  if (o.meta_pixel_id && o.meta_capi_token) {
+  // Tracking creds jsou per-promotér (jeden pixel pro celé divadlo), CAPI token
+  // a GA4 secret dešifrované z platform.promoters.*_enc.
+  const { getPromoterTrackingByEvent } = await import('@/lib/tracking/promoter-creds');
+  const creds = await getPromoterTrackingByEvent(o.event_id);
+
+  if (creds.metaPixelId && creds.metaCapiToken) {
     const { sendMetaEvent } = await import('@/lib/tracking/meta-capi');
     await sendMetaEvent(
       {
         eventName: 'Purchase',
         eventTime: Math.floor(Date.now() / 1000),
         eventId: orderId,
-        pixelId: o.meta_pixel_id,
-        capiToken: o.meta_capi_token,
+        pixelId: creds.metaPixelId,
+        capiToken: creds.metaCapiToken,
         email: o.buyer_email,
         value: valueMajor,
         currency: o.currency,
@@ -699,12 +698,12 @@ async function fireConversionTracking(orderId: string): Promise<void> {
     );
   }
 
-  if (o.ga4_measurement_id && o.ga4_api_secret) {
+  if (creds.ga4MeasurementId && creds.ga4ApiSecret) {
     const { sendGA4Event } = await import('@/lib/tracking/ga4');
     await sendGA4Event(
       {
-        measurementId: o.ga4_measurement_id,
-        apiSecret: o.ga4_api_secret,
+        measurementId: creds.ga4MeasurementId,
+        apiSecret: creds.ga4ApiSecret,
         clientId: orderId, // server-side, no browser fingerprint — use order id as fallback
         eventName: 'purchase',
         params: {
