@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { CheckCircle2, XCircle, AlertTriangle, ScanLine, Settings2, Wifi, WifiOff, Camera } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -355,6 +356,11 @@ export default function ScannerPage() {
       <PageHeader
         title="Scanner"
         description="Manuální validace QR lístku. Pro festivaly nastav bránu (akce + den + zóna) a scanner bude validovat per gate."
+        actions={
+          <Link href="/admin/scanner/guide" className="text-sm text-primary hover:underline">
+            📋 Průvodce pro personál
+          </Link>
+        }
       />
 
       {/* Online/offline status badge */}
