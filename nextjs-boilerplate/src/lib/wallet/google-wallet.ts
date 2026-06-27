@@ -37,6 +37,10 @@ export interface GoogleWalletPassInput {
   organizationName: string;
   brandColorHex?: string | null;
   brandLogoUrl?: string | null;
+  /** Sedadlo (pro seated vstupenky) */
+  seatLabel?: string | null;
+  /** Bezbariérový vstup (text z event_zones.accessible_gate) */
+  accessibleGateInfo?: string | null;
 }
 
 const ISSUER_ID = process.env.GOOGLE_WALLET_ISSUER_ID ?? '3388000000000000000';
@@ -98,6 +102,13 @@ export function buildGoogleWalletJwt(p: GoogleWalletPassInput): SignResult {
             value: p.qrPayload,
             alternateText: p.ticketId.slice(0, 8),
           },
+          textModulesData: (() => {
+            const m = [
+              ...(p.seatLabel ? [{ id: 'seat', header: 'Sedadlo', body: p.seatLabel }] : []),
+              ...(p.accessibleGateInfo ? [{ id: 'accessible_gate', header: '♿ Bezbariérový vstup', body: p.accessibleGateInfo }] : []),
+            ];
+            return m.length > 0 ? m : undefined;
+          })(),
         },
       ],
     },

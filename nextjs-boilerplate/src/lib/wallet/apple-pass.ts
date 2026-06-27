@@ -42,6 +42,8 @@ export interface PassData {
   brandColorHex?: string | null;
   brandLogoUrl?: string | null;
   seatLabel?: string | null;
+  /** Bezbariérový vstup — zobrazí se na zadní straně pasu */
+  accessibleGateInfo?: string | null;
 }
 
 const PASS_TYPE_IDENTIFIER =
@@ -88,6 +90,9 @@ export function buildPassJson(p: PassData): Record<string, unknown> {
       backFields: [
         { key: 'email', label: 'E-mail', value: p.holderEmail },
         { key: 'ticketId', label: 'Ticket ID', value: p.ticketId },
+        ...(p.accessibleGateInfo
+          ? [{ key: 'accessible_gate', label: '♿ Bezbariérový vstup', value: p.accessibleGateInfo }]
+          : []),
         {
           key: 'terms',
           label: 'Podmínky',

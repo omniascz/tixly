@@ -12,6 +12,8 @@ interface TotpResponse {
   step: number;
   payload: string;
   status: string;
+  holderName?: string | null;
+  holderEmail?: string | null;
 }
 
 function authFetch(url: string): Promise<Response> {
@@ -147,13 +149,66 @@ export function LiveQrClient({
 
         <div className="flex items-center justify-center bg-white p-6">
           {qrDataUrl ? (
-            <img
-              src={qrDataUrl}
-              alt="QR kód lístku"
-              className="h-[320px] w-[320px]"
-              data-testid="ticket-qr"
-              data-payload={data.payload}
-            />
+            <div className="relative h-[320px] w-[320px]">
+              {/* SafeTix™-style animated shimmer — deterrent against screenshot sharing */}
+              <style>{`
+                @keyframes tixly-shimmer {
+                  0%   { transform: translateX(-140%) skewX(-18deg); }
+                  100% { transform: translateX(200%)  skewX(-18deg); }
+                }
+              `}</style>
+              <img
+                src={qrDataUrl}
+                alt="QR kód lístku"
+                className="h-full w-full"
+                data-testid="ticket-qr"
+                data-payload={data.payload}
+              />
+              {/* Shimmer stripe */}
+              <div
+                aria-hidden
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  overflow: 'hidden',
+                  pointerEvents: 'none',
+                  borderRadius: 2,
+                }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '55%',
+                    height: '100%',
+                    background: 'linear-gradient(90deg, transparent 20%, rgba(80,160,255,0.13) 50%, transparent 80%)',
+                    animation: 'tixly-shimmer 3s ease-in-out infinite',
+                  }}
+                />
+              </div>
+              {/* Holder watermark — identifikuje vlastníka při screenshotu */}
+              {(data.holderName ?? data.holderEmail) && (
+                <div
+                  aria-hidden
+                  style={{
+                    position: 'absolute',
+                    bottom: 6,
+                    left: 0,
+                    right: 0,
+                    textAlign: 'center',
+                    fontSize: 8,
+                    fontFamily: 'monospace',
+                    color: 'rgba(0,0,0,0.22)',
+                    pointerEvents: 'none',
+                    userSelect: 'none',
+                    letterSpacing: '0.03em',
+                  }}
+                >
+                  {data.holderName ?? data.holderEmail}
+                </div>
+              )}
+            </div>
           ) : (
             <div className="flex h-[320px] w-[320px] items-center justify-center text-muted-foreground">
               …

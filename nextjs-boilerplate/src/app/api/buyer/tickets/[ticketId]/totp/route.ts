@@ -42,11 +42,14 @@ export async function GET(
     user_phone: string | null;
     require_tan_validation: boolean;
     tan_validated_at: string | null;
+    holder_name: string | null;
+    holder_email: string;
   }>(
     `SELECT t.id, t.owner_id, t.status, t.totp_secret_encrypted,
             e.date_start::text AS event_date_start,
             COALESCE(e.qr_reveal_minutes_before, 0) AS qr_reveal_minutes_before,
             t.bound_phone_e164,
+            u.name AS holder_name, u.email AS holder_email,
             COALESCE(e.require_phone_binding, false) AS require_phone_binding,
             u.phone AS user_phone,
             COALESCE(e.require_tan_validation, false) AS require_tan_validation,
@@ -126,6 +129,8 @@ export async function GET(
     step: STEP_SECONDS,
     payload: `tixly:${t.id}:${code}`,
     status: t.status,
+    holderName: t.holder_name,
+    holderEmail: t.holder_email,
   });
 
   });

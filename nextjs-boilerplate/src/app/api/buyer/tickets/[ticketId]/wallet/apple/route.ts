@@ -18,6 +18,7 @@ export async function GET(
   return runAsUser(req, async (userId) => {
   const r = await db().query<{
     id: string;
+    event_id: string;
     event_title: string;
     event_date: string;
     venue_name: string | null;
@@ -30,8 +31,9 @@ export async function GET(
     sector: string | null;
     row_label: string | null;
     seat_number: string | null;
+    accessibility: boolean | null;
   }>(
-    `SELECT t.id,
+    `SELECT t.id, o.event_id,
             e.title AS event_title,
             e.date_start AS event_date,
             v.name AS venue_name,
@@ -41,7 +43,7 @@ export async function GET(
             p.name AS promoter_name,
             p.brand_color_hex,
             p.brand_logo_url,
-            es.sector, es.row AS row_label, es.seat_number
+            es.sector, es.row AS row_label, es.seat_number, es.accessibility
      FROM tickets.tickets t
      JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
      JOIN orders.orders o ON o.id = t.order_id
@@ -62,6 +64,24 @@ export async function GET(
     ? `${row.sector} · řada ${row.row_label ?? '?'} · sedadlo ${row.seat_number ?? '?'}`
     : null;
 
+  // Bezbariérový vstup (jen pro accessible sedadla)
+  let accessibleGateInfo: string | null = null;
+  if (row.accessibility && row.event_id) {
+    const gateRes = await db().query<{ gate_label: string; notes: string | null }>(
+      `SELECT vg.label AS gate_label, ez.accessible_gate_notes AS notes
+         FROM catalog.event_zones ez
+         JOIN catalog.venue_gates vg ON vg.id = ez.accessible_gate_id
+        WHERE ez.event_id = $1 AND ez.accessible_gate_id IS NOT NULL
+        ORDER BY vg.sort_order, vg.code LIMIT 3`,
+      [row.event_id],
+    ).catch(() => ({ rows: [] as { gate_label: string; notes: string | null }[] }));
+    if (gateRes.rows.length > 0) {
+      accessibleGateInfo = gateRes.rows
+        .map((g) => `${g.gate_label}${g.notes ? ` — ${g.notes}` : ''}`)
+        .join('; ');
+    }
+  }
+
   const out = buildPkpass({
     ticketId: row.id,
     eventTitle: row.event_title,
@@ -75,6 +95,7 @@ export async function GET(
     brandColorHex: row.brand_color_hex,
     brandLogoUrl: row.brand_logo_url,
     seatLabel,
+    accessibleGateInfo,
   });
 
   // Buffer → Uint8Array (BodyInit kompatibilní s NextResponse v Edge i Node runtime)
