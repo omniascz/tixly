@@ -256,7 +256,9 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     // resp. /cs/m/… které neexistují → 404 (rozbitý iframe na cizím webu / mobilní lístek).
     pathname.startsWith('/embed/') ||
     pathname.startsWith('/m/') ||
-    pathname.startsWith('/reseller/')
+    pathname.startsWith('/reseller/') ||
+    // Kiosk — samoobslužný terminál (bez locale prefix, bez auth)
+    pathname.startsWith('/kiosk/')
   ) {
     return NextResponse.next();
   }
