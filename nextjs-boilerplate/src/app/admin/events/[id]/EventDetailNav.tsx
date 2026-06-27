@@ -57,6 +57,8 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/transit-combo`, label: 'MHD Kombi', group: 'Marketing' },
     { href: `/admin/events/${eventId}/backstage`, label: 'Backstage moment', group: 'Marketing' },
     { href: `/admin/events/${eventId}/gifts`, label: 'Dárky', group: 'Marketing' },
+    { href: `/admin/events/${eventId}/sponsors`, label: 'Sponzorský modul', group: 'Marketing' },
+    { href: `/admin/events/${eventId}/travel-links`, label: 'Cestovní partneři', group: 'Marketing' },
 
     // Mobile / Pass
     { href: `/admin/events/${eventId}/hot-mode`, label: 'Hot mode', group: 'Mobile/Pass' },

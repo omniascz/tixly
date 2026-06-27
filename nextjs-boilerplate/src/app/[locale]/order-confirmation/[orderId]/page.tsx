@@ -14,9 +14,12 @@ import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 import { getDict } from '@/lib/i18n-dictionaries';
 import { ResaleButton } from './ResaleButton';
 import { SelfRefundButton } from './SelfRefundButton';
+import { PostPurchaseUpsell } from './PostPurchaseUpsell';
+import { SocialShareConfirmation } from './SocialShareConfirmation';
 
 interface OrderRow {
   id: string;
+  event_id: string | null;
   status: string;
   total_amount: number;
   currency: string;
@@ -44,7 +47,7 @@ async function fetchOrder(orderId: string) {
   return runWithServiceContext(async () => {
     const orderRes = await db().query<OrderRow>(
       `SELECT
-         o.id, o.status, o.total_amount, o.currency, o.paid_at,
+         o.id, o.event_id, o.status, o.total_amount, o.currency, o.paid_at,
          o.payment_provider, o.variable_symbol, o.expires_at,
          p.bank_account AS promoter_bank_account,
          p.meta_pixel_id AS promoter_meta_pixel_id,
@@ -313,6 +316,24 @@ export default async function OrderConfirmationPage({
               />
               <SelfRefundButton orderId={order.id} />
             </div>
+          ) : null}
+
+          {/* Social share — zobrazí se jen pro paid objednávky s event_id */}
+          {isPaid && order.event_id && order.event_title ? (
+            <SocialShareConfirmation
+              eventTitle={order.event_title}
+              eventUrl={`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/${locale}/events/${order.event_id}`}
+            />
+          ) : null}
+
+          {/* Post-purchase upsell: add-ony, cestovní linky, sponzoři */}
+          {isPaid && order.event_id ? (
+            <PostPurchaseUpsell
+              eventId={order.event_id}
+              eventUrl={`/${locale}/events/${order.event_id}`}
+              purchasedAddonNames={addons.map((a) => a.addon_name)}
+              currency={ccy}
+            />
           ) : null}
 
           <Link

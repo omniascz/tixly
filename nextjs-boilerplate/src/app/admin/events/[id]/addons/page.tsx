@@ -150,6 +150,22 @@ export default function EventAddonsPage() {
         }
       />
 
+      {/* Fan spending benchmarks */}
+      <div className="grid grid-cols-3 gap-3 rounded-xl border bg-gradient-to-r from-violet-50 to-emerald-50 p-4 text-center">
+        <div>
+          <div className="text-2xl font-extrabold text-violet-700">58%</div>
+          <div className="mt-0.5 text-xs text-muted-foreground">fanoušků kupuje<br/>add-on produkty</div>
+        </div>
+        <div>
+          <div className="text-2xl font-extrabold text-emerald-700">$300</div>
+          <div className="mt-0.5 text-xs text-muted-foreground">průměrný extra<br/>výdaj nad vstupenku</div>
+        </div>
+        <div>
+          <div className="text-2xl font-extrabold text-blue-700">30%</div>
+          <div className="mt-0.5 text-xs text-muted-foreground">fanoušků cestuje<br/>na akci</div>
+        </div>
+      </div>
+
       {feedback ? (
         <p className="rounded-md border border-emerald-200 bg-emerald-50 p-2 text-sm text-emerald-800">
           {feedback}
