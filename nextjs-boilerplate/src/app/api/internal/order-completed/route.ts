@@ -32,6 +32,7 @@ function safeEqual(a: string, b: string): boolean {
 
 interface OrderRow {
   id: string;
+  event_id: string | null;
   user_id: string;
   status: string;
   total_amount: number;
@@ -141,7 +142,7 @@ function pickEmailLocale(order: OrderRow): 'cs' | 'sk' | 'en' {
   return 'cs';
 }
 
-function buildEmailHtml(order: OrderRow, items: ItemRow[]): string {
+function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: string[] = []): string {
   const locale = pickEmailLocale(order);
   const s = EMAIL_STRINGS[locale];
   const currency = order.currency || 'CZK';
@@ -199,6 +200,11 @@ function buildEmailHtml(order: OrderRow, items: ItemRow[]): string {
     <h2 style="margin-top:24px;color:${brandColor}">${escapeHtml(order.event_title)}</h2>
     <p style="color:#666;margin:4px 0">📅 ${escapeHtml(dateStart)}</p>
     <p style="color:#666;margin:4px 0">📍 ${escapeHtml(order.venue_name ?? 'Online / TBD')}</p>
+    ${accessibleGateLines.length > 0 ? `
+    <div style="margin:12px 0;padding:10px 14px;background:#ecfdf5;border-left:3px solid #059669;border-radius:4px">
+      <strong style="color:#047857">♿ Bezbariérový vstup</strong><br/>
+      ${accessibleGateLines.map((l) => `<span style="color:#065f46;font-size:14px">${escapeHtml(l)}</span>`).join('<br/>')}
+    </div>` : ''}
 
     <table style="width:100%;border-collapse:collapse;margin-top:24px">
       <thead>
@@ -254,7 +260,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   // Načti objednávku + položky + akci + místo
   const orderRes = await db().query<OrderRow>(
     `SELECT
-       o.id, o.user_id, o.status, o.total_amount, o.currency, o.paid_at,
+       o.id, o.event_id, o.user_id, o.status, o.total_amount, o.currency, o.paid_at,
        u.email AS buyer_email, u.name AS buyer_name, u.phone AS buyer_phone,
        e.title AS event_title, e.date_start AS event_date_start,
        e.qr_policy AS event_qr_policy,
@@ -296,6 +302,23 @@ export async function POST(request: NextRequest): Promise<Response> {
     [orderId],
   );
 
+  // Bezbariérové vstupy pro tuto akci (mig 381)
+  // Vrátí seznam bran + poznámek pro zóny označené accessible_gate_id.
+  let accessibleGateLines: string[] = [];
+  if (order.event_id) {
+    const gateRes = await db().query<{ gate_code: string; gate_label: string; notes: string | null }>(
+      `SELECT vg.code AS gate_code, vg.label AS gate_label, ez.accessible_gate_notes AS notes
+         FROM catalog.event_zones ez
+         JOIN catalog.venue_gates vg ON vg.id = ez.accessible_gate_id
+        WHERE ez.event_id = $1 AND ez.accessible_gate_id IS NOT NULL
+        ORDER BY vg.sort_order, vg.code`,
+      [order.event_id],
+    ).catch(() => ({ rows: [] as { gate_code: string; gate_label: string; notes: string | null }[] }));
+    accessibleGateLines = gateRes.rows.map(
+      (g) => `${g.gate_label}${g.notes ? ` — ${g.notes}` : ''}`,
+    );
+  }
+
   // Confirm pending addons → confirmed
   await db().query(
     `UPDATE public.order_addons SET status = 'confirmed'
@@ -303,7 +326,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     [orderId],
   );
 
-  const html = buildEmailHtml(order, itemsRes.rows);
+  const html = buildEmailHtml(order, itemsRes.rows, accessibleGateLines);
 
   // Spočítej efektivní DPH sazbu (per-event vat_category > promoter flat rate).
   // Použito i v renderTicketsPdf níže.
@@ -438,11 +461,12 @@ export async function POST(request: NextRequest): Promise<Response> {
         sector: string | null;
         row: string | null;
         seat_number: string | null;
+        accessibility: boolean | null;
       }>(
         // tickets.tickets nemá order_item_id sloupec — join přes
         // (order_id, ticket_type_id), což je v order_items unikátní.
         `SELECT t.id AS ticket_id, oi.unit_price,
-                es.sector, es.row, es.seat_number
+                es.sector, es.row, es.seat_number, es.accessibility
          FROM tickets.tickets t
          JOIN orders.order_items oi
            ON oi.order_id = t.order_id AND oi.ticket_type_id = t.ticket_type_id
@@ -450,6 +474,7 @@ export async function POST(request: NextRequest): Promise<Response> {
          WHERE t.order_id = $1`,
         [orderId],
       );
+      const accessibleGateStr = accessibleGateLines.length > 0 ? accessibleGateLines.join('; ') : null;
       const priceByTicket = new Map(
         priceRes.rows.map((r) => [
           r.ticket_id,
@@ -458,6 +483,7 @@ export async function POST(request: NextRequest): Promise<Response> {
             seat: r.sector
               ? `${r.sector} · řada ${r.row ?? '?'} · sedadlo ${r.seat_number ?? '?'}`
               : null,
+            accessibleGateInfo: r.accessibility ? accessibleGateStr : null,
           },
         ]),
       );
@@ -485,6 +511,7 @@ export async function POST(request: NextRequest): Promise<Response> {
             issuer: order.event_title,
             unitPriceHalire: meta?.price,
             seatLabel: meta?.seat ?? null,
+            accessibleGateInfo: meta?.accessibleGateInfo ?? null,
           };
         }),
       );

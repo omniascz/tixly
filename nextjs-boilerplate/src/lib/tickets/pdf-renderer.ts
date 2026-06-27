@@ -39,6 +39,8 @@ export interface TicketPdfData {
   unitPriceHalire?: number;
   /** Sektor/řada/sedadlo pro seated lístek */
   seatLabel?: string | null;
+  /** Bezbariérový vstup — zobrazí se jen u sedadel s accessibility=true */
+  accessibleGateInfo?: string | null;
 }
 
 export interface PdfHeader {
@@ -124,6 +126,9 @@ export async function renderTicketsPdf(
     doc.fontSize(14).fillColor('#111').text(t.ticketTypeName);
     if (t.seatLabel) {
       doc.fontSize(11).fillColor('#444').text(`Sedadlo: ${t.seatLabel}`);
+    }
+    if (t.accessibleGateInfo) {
+      doc.fontSize(11).fillColor('#059669').text(`♿ Bezbariérový vstup: ${t.accessibleGateInfo}`);
     }
     doc.moveDown(0.5);
 
