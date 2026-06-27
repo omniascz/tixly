@@ -31,6 +31,7 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/guestlist`, label: 'Guestlist', group: 'Lístky' },
     { href: `/admin/events/${eventId}/wristbands`, label: 'Náramky', group: 'Lístky' },
     { href: `/admin/events/${eventId}/access-matrix`, label: 'Access matrix', group: 'Lístky' },
+    { href: `/admin/events/${eventId}/accessible-entrances`, label: 'Bezbariérové přístupy', group: 'Lístky' },
 
     // Pricing
     { href: `/admin/events/${eventId}/dynamic-pricing`, label: 'Dynamic pricing', group: 'Pricing' },
