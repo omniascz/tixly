@@ -250,6 +250,7 @@ export async function POST(req: NextRequest): Promise<Response> {
               e.insurance_enabled, e.insurance_pct, tt.is_seated,
               COALESCE(tt.requires_personalization, FALSE) AS requires_personalization,
               e.promoter_id, e.requires_otp_validation,
+              COALESCE(e.require_phone_verified, FALSE) AS require_phone_verified,
               COALESCE(e.verified_fan_enabled, FALSE) AS verified_fan_enabled,
               e.verified_fan_presale_starts_at::text AS vf_starts_at,
               e.verified_fan_presale_ends_at::text AS vf_ends_at
@@ -269,7 +270,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         { status: 404 },
       );
     }
-    const tt = ttRes.rows[0] as { id: string; event_id: string; remaining_qty: number; name: string; event_title: string; min_age: number | null; currency: string; queue_enabled: boolean; insurance_enabled: boolean; insurance_pct: number; is_seated: boolean; requires_personalization: boolean; promoter_id: string; requires_otp_validation: boolean; verified_fan_enabled: boolean; vf_starts_at: string | null; vf_ends_at: string | null };
+    const tt = ttRes.rows[0] as { id: string; event_id: string; remaining_qty: number; name: string; event_title: string; min_age: number | null; currency: string; queue_enabled: boolean; insurance_enabled: boolean; insurance_pct: number; is_seated: boolean; requires_personalization: boolean; promoter_id: string; requires_otp_validation: boolean; require_phone_verified: boolean; verified_fan_enabled: boolean; vf_starts_at: string | null; vf_ends_at: string | null };
 
     // Verified Fan gate (CZ priority #4) — pokud event má VF enabled, jen
     // approved fans s unused presale_code mohou koupit. Po úspěšném zápisu
@@ -694,15 +695,27 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     // 2) Najdi/založ guest usera
-    const userRes = await client.query<{ id: string }>(
+    const userRes = await client.query<{ id: string; phone_verified_at: string | null }>(
       `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at, created_at, updated_at)
        VALUES ($1, $2, '!guest', NOW(), NOW(), NOW())
        ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE
          SET updated_at = NOW()
-       RETURNING id`,
+       RETURNING id, phone_verified_at`,
       [input.buyerEmail.toLowerCase(), input.buyerName],
     );
     const userId = userRes.rows[0].id;
+
+    // Phone verification gate — proaktivní autentizace: event vyžaduje ověřený telefon.
+    if (tt.require_phone_verified && !userRes.rows[0].phone_verified_at) {
+      await client.query('ROLLBACK');
+      return NextResponse.json(
+        {
+          error: 'PHONE_VERIFICATION_REQUIRED',
+          message: 'Tato akce vyžaduje ověřené telefonní číslo. Ověřte telefon v nastavení účtu.',
+        },
+        { status: 422 },
+      );
+    }
 
     // 3) Inventář se rezervuje AŽ TĚSNĚ PŘED COMMITEM (atomicky, podmíněně) —
     //    viz blok "ATOMICKÁ REZERVACE INVENTÁŘE" níže. Tím se drží řádkový zámek

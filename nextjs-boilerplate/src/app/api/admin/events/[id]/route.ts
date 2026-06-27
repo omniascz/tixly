@@ -68,6 +68,7 @@ const editSchema = z.object({
   // Bez UI toggle buyer flow nikdy nedostane šanci tyto gates vidět.
   verifiedFanEnabled: z.boolean().optional(),
   requiresOtpValidation: z.boolean().optional(),
+  requirePhoneVerified: z.boolean().optional(),
 });
 
 export async function GET(
@@ -235,6 +236,7 @@ export async function PATCH(
            requires_otp_validation = COALESCE($18, requires_otp_validation),
            reentry_allowed = COALESCE($19, reentry_allowed),
            reentry_max_count = COALESCE($20, reentry_max_count),
+           require_phone_verified = COALESCE($21, require_phone_verified),
            updated_at = NOW()
        WHERE id = $6`,
       [
@@ -253,6 +255,7 @@ export async function PATCH(
         input.requiresOtpValidation ?? null,
         input.reentryAllowed ?? null,
         input.reentryMaxCount ?? null,
+        input.requirePhoneVerified ?? null,
       ],
     );
 
