@@ -111,6 +111,7 @@ const sections: NavSection[] = [
     label: 'Partneři',
     items: [
       { href: '/admin/resellers', label: 'Partnerská síť', icon: Banknote },
+      { href: '/admin/partner-applications', label: 'Affiliate žádosti', icon: Banknote },
     ],
   },
   {

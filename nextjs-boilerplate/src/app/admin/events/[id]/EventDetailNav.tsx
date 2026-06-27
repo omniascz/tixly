@@ -65,6 +65,7 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/emergency`, label: 'Nouzové oznámení', group: 'Operations' },
     { href: `/admin/events/${eventId}/postpone`, label: 'Odložit', group: 'Operations' },
     { href: `/admin/events/${eventId}/reschedule`, label: 'Přesun termínu', group: 'Operations' },
+    { href: `/admin/events/${eventId}/queue`, label: 'Smart Queue', group: 'Operations' },
     { href: `/admin/events/${eventId}/waitlist`, label: 'Čekací listina', group: 'Operations' },
     { href: `/admin/events/${eventId}/will-call`, label: 'Will Call', group: 'Operations' },
     { href: `/admin/events/${eventId}/live-ops`, label: 'Live ops', group: 'Operations' },
