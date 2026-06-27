@@ -83,6 +83,7 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/resale-policy`, label: 'Resale policy', group: 'Finance' },
     { href: `/admin/events/${eventId}/advance-payout`, label: 'Pre-event payout', group: 'Finance' },
     { href: `/admin/events/${eventId}/sales-report`, label: 'Sales report', group: 'Finance' },
+    { href: `/admin/events/${eventId}/demographics`, label: 'Demografie publika', group: 'Finance' },
   ];
 
   // Group items

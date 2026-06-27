@@ -265,6 +265,93 @@ export default function MarketingPage() {
           Tixly automaticky zachytí návštěvu a pakovní attribute proti finální platbě.
         </p>
       </div>
+
+      {/* Platform Performance Benchmarks */}
+      <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+        <CardHeader>
+          <CardTitle className="text-base">Tixly platforma — výkonnostní benchmarky</CardTitle>
+          <CardDescription>
+            Ověřená data z Tixly ekosystému. Porovnej svůj výkon s průměrem.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="rounded-lg border bg-background p-4 text-center">
+              <div className="text-3xl font-extrabold text-primary">+200%</div>
+              <div className="mt-1 text-sm font-medium">Fan engagement</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">
+                Nárůst zapojení fanoušků. Ověřeno na Jolly Joker Arena.
+              </div>
+            </div>
+            <div className="rounded-lg border bg-background p-4 text-center">
+              <div className="text-3xl font-extrabold text-emerald-600">+284%</div>
+              <div className="mt-1 text-sm font-medium">Digitální skeny</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">
+                Nárůst digitálních skenů za 6+ let provozu na platformě.
+              </div>
+            </div>
+            <div className="rounded-lg border bg-background p-4 text-center">
+              <div className="text-3xl font-extrabold text-blue-600">2,5%</div>
+              <div className="mt-1 text-sm font-medium">Nejnižší poplatek</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">
+                Nejnižší provize na CZ/SK trhu (PLG 5–7%, SMSticket 5%).
+              </div>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            * Benchmarky vycházejí z průměru promotérů na platformě. Individuální výsledky se liší dle žánru a cílového publika.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Marketing Consultant */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Marketing specialisté Tixly</CardTitle>
+          <CardDescription>
+            Konzultace, plánování kampaní a optimalizace jako součást prémiové služby.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-md border p-3 text-sm">
+              <div className="font-medium">📊 Analýza kampaní</div>
+              <p className="mt-1 text-muted-foreground text-xs">
+                Audit vašich UTM dat, identifikace top kanálů a doporučení pro realokaci budgetu.
+              </p>
+            </div>
+            <div className="rounded-md border p-3 text-sm">
+              <div className="font-medium">🎯 Paid media plán</div>
+              <p className="mt-1 text-muted-foreground text-xs">
+                Tvorba strategie pro Meta, Google a TikTok reklamu zaměřené na váš žánr.
+              </p>
+            </div>
+            <div className="rounded-md border p-3 text-sm">
+              <div className="font-medium">📧 Email & SMS workflow</div>
+              <p className="mt-1 text-muted-foreground text-xs">
+                Nastavení automatizovaných broadcast sekvencí (pre-sale, reminder, post-event).
+              </p>
+            </div>
+            <div className="rounded-md border p-3 text-sm">
+              <div className="font-medium">📈 Reporting & attribution</div>
+              <p className="mt-1 text-muted-foreground text-xs">
+                Propojení pixel + CAPI + UTM do kompletního attribution modelu.
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center gap-3">
+            <a
+              href="mailto:marketing@tixly.cz?subject=Konzultace marketing"
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              Požádat o konzultaci
+            </a>
+            <span className="text-xs text-muted-foreground">
+              Odpoví do 1 pracovního dne. Nezávazné.
+            </span>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
