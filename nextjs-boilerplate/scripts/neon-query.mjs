@@ -64,10 +64,36 @@ async function main() {
     sql = lines.join('\n');
   }
 
-  const result = await runSql(sql, connStr);
-  console.log('✓  Command:', result.command);
-  if (result.rows?.length) console.table(result.rows);
-  else console.log('   (no rows returned)');
+  // Split multi-statement SQL into individual statements
+  const stmts = sql
+    .split(/;[ \t]*(?:\r?\n|$)/)
+    .map(s => s.replace(/--[^\n]*/g, '').trim())  // strip line comments
+    .filter(s => s && !/^\/\*/.test(s));           // skip empty + block-comment-only
+
+  if (stmts.length <= 1) {
+    const result = await runSql(sql, connStr);
+    console.log('✓  Command:', result.command);
+    if (result.rows?.length) console.table(result.rows);
+    else console.log('   (no rows returned)');
+  } else {
+    console.log(`   ${stmts.length} statements`);
+    for (let i = 0; i < stmts.length; i++) {
+      const stmt = stmts[i].trim();
+      if (!stmt) continue;
+      try {
+        const result = await runSql(stmt, connStr);
+        console.log(`✓  [${i + 1}/${stmts.length}] ${result.command}`);
+      } catch (e) {
+        // Already-exists errors are fine for IF NOT EXISTS / CREATE INDEX IF NOT EXISTS
+        if (/already exists/i.test(e.message)) {
+          console.log(`~  [${i + 1}/${stmts.length}] already exists — skip`);
+        } else {
+          throw new Error(`Statement ${i + 1} failed: ${e.message}\nSQL: ${stmt.slice(0, 200)}`);
+        }
+      }
+    }
+    console.log('✓  All statements done');
+  }
 }
 
 main().catch(e => { console.error('❌ ', e.message); process.exit(1); });
