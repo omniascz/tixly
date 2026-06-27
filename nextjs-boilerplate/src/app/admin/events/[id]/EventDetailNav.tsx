@@ -22,6 +22,7 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/cast`, label: 'Obsazení', group: 'Základ' },
 
     // Tickety + Sedadla
+    { href: `/admin/events/${eventId}/ticket-types`, label: 'Typy vstupenek', group: 'Lístky' },
     { href: `/admin/events/${eventId}/tickets`, label: 'Lístky', group: 'Lístky' },
     { href: `/admin/events/${eventId}/holds`, label: 'Holds', group: 'Lístky' },
     { href: `/admin/events/${eventId}/view-photos`, label: 'Pohled ze sedadla', group: 'Lístky' },
@@ -76,6 +77,9 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/hospitality`, label: 'Hospitality', group: 'Operations' },
     { href: `/admin/events/${eventId}/foyer-menu`, label: 'Foyer menu', group: 'Operations' },
     { href: `/admin/events/${eventId}/foyer-orders`, label: 'Foyer objednávky', group: 'Operations' },
+
+    // Šablony
+    { href: `/admin/events/${eventId}/templates`, label: 'Šablony', group: 'Základ' },
 
     // After-event
     { href: `/admin/events/${eventId}/reviews`, label: 'Hodnocení', group: 'After-event' },

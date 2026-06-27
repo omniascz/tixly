@@ -1,8 +1,13 @@
 import { ReactNode } from 'react';
 import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
 import { Sidebar } from '@/components/admin/Sidebar';
 import { Topbar } from '@/components/admin/Topbar';
 import { getServerRoles } from '@/lib/server-session';
+
+export const metadata: Metadata = {
+  manifest: '/admin-manifest.json',
+};
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   // Defense in depth vedle middleware: /admin je JEN pro promotéra se členstvím.
