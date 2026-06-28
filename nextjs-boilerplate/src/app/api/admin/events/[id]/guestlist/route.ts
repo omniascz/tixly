@@ -131,11 +131,11 @@ export async function POST(
            (id, user_id, event_id, status, total_amount, currency, locale,
             gopay_payment_id, payment_provider, idempotency_key,
             discount_halire, requires_age_verification, paid_at,
-            expires_at, created_at, updated_at)
+            expires_at, comp_type, comp_notes, created_at, updated_at)
          VALUES ($1, $2, $3, 'paid', 0, $4, 'cs',
-                 $5, 'free', $6,
+                 $5, 'comp', $6,
                  0, FALSE, NOW(),
-                 NOW() + INTERVAL '1 day', NOW(), NOW())`,
+                 NOW() + INTERVAL '1 day', 'vip', $7, NOW(), NOW())`,
         [
           orderId,
           userId,
@@ -143,6 +143,7 @@ export async function POST(
           tt.currency,
           `guest-${randomUUID().slice(0, 8)}`,
           randomUUID(),
+          parsed.data.notes ?? null,
         ],
       );
 
