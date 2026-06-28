@@ -23,7 +23,7 @@ export async function GET(
       runWithServiceContext(() =>
         db().query(
           `SELECT resale_enabled, resale_max_price_pct, resale_platform_fee_pct,
-                  resale_cooling_hours, resale_allow_below_face
+                  resale_cooling_hours, resale_allow_below_face, fansale_mode
            FROM catalog.events WHERE id=$1`,
           [params.id],
         ),
@@ -88,11 +88,23 @@ export async function PATCH(
       resale_platform_fee_pct?: number;
       resale_cooling_hours?: number;
       resale_allow_below_face?: boolean;
+      fansale_mode?: boolean;
     };
 
     const fields: string[] = [];
     const values: unknown[] = [];
     let i = 1;
+
+    // fanSALE one-click: zapnutí vynutí enabled=true, cap=100, allow_below_face=true
+    if (b.fansale_mode !== undefined) {
+      fields.push(`fansale_mode=$${i++}`);
+      values.push(b.fansale_mode);
+      if (b.fansale_mode) {
+        fields.push(`resale_enabled=$${i++}`);         values.push(true);
+        fields.push(`resale_max_price_pct=$${i++}`);   values.push(100);
+        fields.push(`resale_allow_below_face=$${i++}`); values.push(true);
+      }
+    }
 
     if (b.resale_enabled          !== undefined) { fields.push(`resale_enabled=$${i++}`);           values.push(b.resale_enabled); }
     if (b.resale_max_price_pct    !== undefined) { fields.push(`resale_max_price_pct=$${i++}`);     values.push(b.resale_max_price_pct); }
@@ -103,10 +115,15 @@ export async function PATCH(
     if (fields.length === 0) return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
 
     values.push(params.id);
-    await runWithServiceContext(() =>
-      db().query(`UPDATE catalog.events SET ${fields.join(',')} WHERE id=$${i}`, values),
+    const updR = await runWithServiceContext(() =>
+      db().query(
+        `UPDATE catalog.events SET ${fields.join(',')} WHERE id=$${i}
+         RETURNING resale_enabled, resale_max_price_pct, resale_platform_fee_pct,
+                   resale_cooling_hours, resale_allow_below_face, fansale_mode`,
+        values,
+      ),
     );
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, settings: updR.rows[0] ?? {} });
   });
 }

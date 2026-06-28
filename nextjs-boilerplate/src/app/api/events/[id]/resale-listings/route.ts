@@ -44,7 +44,7 @@ export async function GET(
     ),
     runWithServiceContext(() =>
       db().query(
-        `SELECT resale_enabled, resale_max_price_pct, resale_platform_fee_pct
+        `SELECT resale_enabled, resale_max_price_pct, resale_platform_fee_pct, fansale_mode
          FROM catalog.events WHERE id=$1`,
         [params.id],
       ),
@@ -55,12 +55,14 @@ export async function GET(
     resale_enabled: boolean;
     resale_max_price_pct: number;
     resale_platform_fee_pct: number;
+    fansale_mode: boolean;
   } | undefined;
 
   return NextResponse.json({
     resale_enabled: event?.resale_enabled ?? false,
-    max_price_pct: event?.resale_max_price_pct ?? 110,
+    max_price_pct: event?.fansale_mode ? 100 : (event?.resale_max_price_pct ?? 110),
     platform_fee_pct: event?.resale_platform_fee_pct ?? 15,
+    fansale_mode: event?.fansale_mode ?? false,
     listings: listingsR.rows,
     count: listingsR.rows.length,
   });

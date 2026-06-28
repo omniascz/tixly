@@ -37,6 +37,7 @@ export async function POST(
            e.resale_platform_fee_pct,
            e.resale_cooling_hours,
            e.resale_allow_below_face,
+           e.fansale_mode,
            e.date_start,
            es.label                     AS seat_label
          FROM tickets.tickets t
@@ -58,7 +59,7 @@ export async function POST(
         ticket_type_name: string; face_price: number;
         resale_enabled: boolean; resale_max_price_pct: number;
         resale_platform_fee_pct: number; resale_cooling_hours: number;
-        resale_allow_below_face: boolean; date_start: string;
+        resale_allow_below_face: boolean; fansale_mode: boolean; date_start: string;
         seat_label: string | null;
       };
 
@@ -68,14 +69,19 @@ export async function POST(
       if (new Date(ticket.date_start) < new Date()) return NextResponse.json({ error: 'Event already started' }, { status: 409 });
 
       const facePrice = ticket.face_price ?? ticket.original_price ?? 0;
-      const maxPrice = Math.round(facePrice * ticket.resale_max_price_pct / 100);
+      // fanSALE: tvrdý strop = 100 % jmenovité hodnoty, nelze přebít nastavením resale_max_price_pct
+      const capPct   = ticket.fansale_mode ? 100 : ticket.resale_max_price_pct;
+      const maxPrice = Math.round(facePrice * capPct / 100);
       if (b.ask_price > maxPrice) {
         return NextResponse.json({
-          error: `Price exceeds cap of ${(maxPrice / 100).toFixed(0)} Kč`,
+          error: ticket.fansale_mode
+            ? `fanSALE: cena nesmí přesáhnout jmenovitou hodnotu (${(facePrice / 100).toFixed(0)} Kč)`
+            : `Price exceeds cap of ${(maxPrice / 100).toFixed(0)} Kč`,
           max_price: maxPrice,
+          fansale_mode: ticket.fansale_mode,
         }, { status: 422 });
       }
-      if (!ticket.resale_allow_below_face && b.ask_price < facePrice) {
+      if (!ticket.fansale_mode && !ticket.resale_allow_below_face && b.ask_price < facePrice) {
         return NextResponse.json({ error: 'Listing below face value is not allowed' }, { status: 422 });
       }
 
@@ -108,13 +114,14 @@ export async function POST(
             commission_rate, platform_fee_halire, seller_payout_halire,
             ticket_type_name, seat_label, seller_notes,
             status, mode)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'active','standard')
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'active',$13)
          RETURNING id, listed_at`,
         [
           params.ticketId, userId, b.ask_price, facePrice,
           facePrice, maxPrice,
           Math.round(ticket.resale_platform_fee_pct), platformFee, sellerPayout,
           ticket.ticket_type_name, ticket.seat_label ?? null, b.seller_notes ?? null,
+          ticket.fansale_mode ? 'fansale' : 'standard',
         ],
       );
 

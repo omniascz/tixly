@@ -9,6 +9,7 @@ interface ResaleSettings {
   resale_platform_fee_pct: number;
   resale_cooling_hours: number;
   resale_allow_below_face: boolean;
+  fansale_mode: boolean;
 }
 interface ResaleListing {
   id: string;
@@ -67,12 +68,14 @@ export default function ResaleMarketplacePage() {
 
   async function saveSetting(patch: Partial<ResaleSettings>) {
     setSaving(true);
-    await fetch(`/api/admin/events/${eventId}/resale-marketplace`, {
+    const r = await fetch(`/api/admin/events/${eventId}/resale-marketplace`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patch),
     });
-    setSettings((s) => s ? { ...s, ...patch } : s);
+    const d = await r.json() as { settings?: ResaleSettings };
+    // Pokud backend vrátil aktualizovaný settings (fanSALE one-click), použij ho celý
+    setSettings((s) => s ? { ...(d.settings ?? { ...s, ...patch }) } : s);
     setSaving(false);
   }
 
@@ -93,6 +96,46 @@ export default function ResaleMarketplacePage() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900">🔄 Sekundární trh</h1>
         <p className="text-slate-500 text-sm mt-1">Fan-to-fan resale — transparentní, s cenovým stropem</p>
+      </div>
+
+      {/* fanSALE one-click toggle */}
+      <div className={`rounded-xl border-2 p-5 ${settings.fansale_mode ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg font-bold text-slate-900">🛡️ Tixly fanSALE</span>
+              {settings.fansale_mode && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-600 text-white font-semibold">AKTIVNÍ</span>
+              )}
+            </div>
+            <p className="text-sm text-slate-600">
+              Přísný cenový strop — vstupenky lze prodat{' '}
+              <strong>max. za jmenovitou hodnotu (100 %)</strong>. Žádné přirážky.<br />
+              Jedno kliknutí aktivuje resale, nastaví strop na 100 % a povolí prodej pod face value.
+            </p>
+            {settings.fansale_mode && (
+              <p className="text-xs text-emerald-700 mt-1.5 font-medium">
+                ✓ resale aktivní · strop = 100 % face value · prodej pod face value povolen
+              </p>
+            )}
+          </div>
+          <button
+            onClick={() => void saveSetting({ fansale_mode: !settings.fansale_mode })}
+            disabled={saving}
+            className={`shrink-0 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+              settings.fansale_mode
+                ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                : 'bg-emerald-700 text-white hover:bg-emerald-800'
+            }`}
+          >
+            {settings.fansale_mode ? 'Vypnout fanSALE' : '🛡️ Aktivovat fanSALE'}
+          </button>
+        </div>
+        {!settings.fansale_mode && (
+          <p className="text-xs text-slate-400 mt-3 border-t pt-3">
+            Bez fanSALE: níže lze nastavit vlastní cenový strop (např. 110 % = +10 % přirážka).
+          </p>
+        )}
       </div>
 
       {/* Enable toggle */}
@@ -127,20 +170,24 @@ export default function ResaleMarketplacePage() {
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">
               Maximální cena (% face value)
+              {settings.fansale_mode && (
+                <span className="ml-2 text-xs text-emerald-700 font-semibold">← zamknuto fanSALE (100 %)</span>
+              )}
             </label>
             <div className="flex items-center gap-2">
               <input
                 type="number" min={100} max={300} step={5}
-                value={settings.resale_max_price_pct}
+                value={settings.fansale_mode ? 100 : settings.resale_max_price_pct}
+                disabled={settings.fansale_mode}
                 onChange={(e) => setSettings((s) => s ? { ...s, resale_max_price_pct: +e.target.value } : s)}
-                onBlur={() => void saveSetting({ resale_max_price_pct: settings.resale_max_price_pct })}
-                className="w-28 border rounded-lg px-3 py-2 text-sm"
+                onBlur={() => !settings.fansale_mode && void saveSetting({ resale_max_price_pct: settings.resale_max_price_pct })}
+                className={`w-28 border rounded-lg px-3 py-2 text-sm ${settings.fansale_mode ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : ''}`}
               />
               <span className="text-sm text-slate-500">
-                = max {(settings.resale_max_price_pct - 100).toFixed(0)} % přirážka nad face value
+                = max {(settings.fansale_mode ? 0 : settings.resale_max_price_pct - 100).toFixed(0)} % přirážka
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">110 = max 10 % nad cenou vstupenky</p>
+            {!settings.fansale_mode && <p className="text-xs text-slate-400 mt-1">110 = max 10 % nad cenou vstupenky</p>}
           </div>
 
           <div>

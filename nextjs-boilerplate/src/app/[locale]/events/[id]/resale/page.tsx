@@ -20,6 +20,7 @@ interface PageData {
   resale_enabled: boolean;
   max_price_pct: number;
   platform_fee_pct: number;
+  fansale_mode: boolean;
   listings: ResaleListing[];
   count: number;
 }
@@ -102,13 +103,45 @@ export default function EventResalePage() {
         <Link href={`/${locale}/events/${eventId}`} className="text-sm text-indigo-700 hover:underline">
           ← Zpět na akci
         </Link>
-        <h1 className="text-2xl font-bold text-slate-900 mt-3">🔄 Fan-to-fan resale</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          Vstupenky od jiných fanoušků. Cena max.{' '}
-          <strong>{(data.max_price_pct - 100).toFixed(0)} %</strong> nad face value.
-          Tixly si nechá {data.platform_fee_pct} % jako ochranu — zbytek jde prodávajícímu.
-        </p>
+        <div className="flex items-center gap-3 mt-3 flex-wrap">
+          <h1 className="text-2xl font-bold text-slate-900">🔄 Fan-to-fan resale</h1>
+          {data.fansale_mode && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-700 text-white text-xs font-bold tracking-wide">
+              🛡️ Tixly fanSALE
+            </span>
+          )}
+        </div>
+        {data.fansale_mode ? (
+          <p className="text-slate-600 text-sm mt-1">
+            Vstupenky od jiných fanoušků za{' '}
+            <strong>max. jmenovitou cenu</strong> — žádné přirážky, žádné překupníky.
+            Tixly si nechá {data.platform_fee_pct} % jako poplatek za zprostředkování.
+          </p>
+        ) : (
+          <p className="text-slate-500 text-sm mt-1">
+            Vstupenky od jiných fanoušků. Cena max.{' '}
+            <strong>{(data.max_price_pct - 100).toFixed(0)} %</strong> nad face value.
+            Tixly si nechá {data.platform_fee_pct} % jako ochranu — zbytek jde prodávajícímu.
+          </p>
+        )}
       </div>
+
+      {/* fanSALE info banner */}
+      {data.fansale_mode && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-5 py-4">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">🛡️</span>
+            <div>
+              <p className="font-semibold text-emerald-900 text-sm">Tixly fanSALE — garantovaná cena</p>
+              <p className="text-sm text-emerald-800 mt-0.5">
+                Pořadatel aktivoval fanSALE. Každá vstupenka na tomto trhu je nabízena{' '}
+                <strong>za max. původní cenu</strong> — systém to technicky vynucuje při listingu.
+                Nemůžete přeplatit za vstupenku více, než jste zaplatili u přeprodejce.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Info bar */}
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-5 py-3 flex items-center justify-between text-sm">
@@ -170,14 +203,20 @@ export default function EventResalePage() {
                     {l.section_label && (
                       <span className="text-xs text-slate-400">{l.section_label}</span>
                     )}
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      markup <= 0 ? 'bg-emerald-100 text-emerald-800' :
-                      markup <= 5 ? 'bg-blue-100 text-blue-800' :
-                      markup <= 10 ? 'bg-amber-100 text-amber-800' :
-                      'bg-orange-100 text-orange-800'
-                    }`}>
-                      {markup >= 0 ? '+' : ''}{markup} % {markup <= 0 ? '(pod face)' : markup <= 5 ? '(mírná přirážka)' : ''}
-                    </span>
+                    {data.fansale_mode ? (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-100 text-emerald-800">
+                        🛡️ fanSALE · {markup <= 0 ? 'pod face' : markup === 0 ? 'jmenovitá cena' : `+${markup} %`}
+                      </span>
+                    ) : (
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        markup <= 0 ? 'bg-emerald-100 text-emerald-800' :
+                        markup <= 5 ? 'bg-blue-100 text-blue-800' :
+                        markup <= 10 ? 'bg-amber-100 text-amber-800' :
+                        'bg-orange-100 text-orange-800'
+                      }`}>
+                        {markup >= 0 ? '+' : ''}{markup} % {markup <= 0 ? '(pod face)' : markup <= 5 ? '(mírná přirážka)' : ''}
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex items-baseline gap-3 mt-1.5">
@@ -211,7 +250,9 @@ export default function EventResalePage() {
         {[
           { icon: '🔒', title: 'Bezpečná platba', desc: 'Chráněno Tixly — peníze zpět pokud transfer selže' },
           { icon: '🎫', title: 'Nový QR kód', desc: 'Starý lístek je zneplatněn, dostanete nový ihned' },
-          { icon: '💸', title: 'Transparentní ceny', desc: `Max ${(data.max_price_pct - 100).toFixed(0)} % nad face value — žádné skryté přirážky` },
+          data.fansale_mode
+            ? { icon: '🛡️', title: 'Tixly fanSALE', desc: 'Cena max. = jmenovitá hodnota — systém vynucuje, nelze obejít' }
+            : { icon: '💸', title: 'Transparentní ceny', desc: `Max ${(data.max_price_pct - 100).toFixed(0)} % nad face value — žádné skryté přirážky` },
         ].map((b) => (
           <div key={b.title} className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
             <div className="text-2xl mb-1">{b.icon}</div>
