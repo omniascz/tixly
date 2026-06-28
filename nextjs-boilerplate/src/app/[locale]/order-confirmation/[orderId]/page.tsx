@@ -33,6 +33,10 @@ interface OrderRow {
   event_title: string | null;
   event_date_start: string | null;
   venue_name: string | null;
+  // Livestream
+  event_type: string | null;
+  streaming_url: string | null;
+  stream_replay_days: number;
 }
 
 interface ItemRow {
@@ -53,7 +57,8 @@ async function fetchOrder(orderId: string) {
          p.meta_pixel_id AS promoter_meta_pixel_id,
          u.email AS buyer_email,
          e.title AS event_title, e.date_start AS event_date_start,
-         v.name AS venue_name
+         v.name AS venue_name,
+         e.event_type, e.streaming_url, e.stream_replay_days
        FROM orders.orders o
        JOIN identity.users u ON u.id = o.user_id
        LEFT JOIN catalog.events e ON e.id = o.event_id
@@ -304,6 +309,34 @@ export default async function OrderConfirmationPage({
               <p className="mt-2 text-xs text-muted-foreground">
                 Termíny se konzumují automaticky při check-inu na bráně.
               </p>
+            </div>
+          ) : null}
+
+          {/* Livestream přístup — zobrazí se pro online akce s streaming_url */}
+          {isPaid && order.streaming_url ? (
+            <div className="rounded-md border border-blue-200 bg-blue-50 p-4">
+              <div className="flex items-center gap-2 text-blue-900">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                </svg>
+                <span className="font-semibold text-sm">Přístup k online přenosu</span>
+              </div>
+              <p className="mt-1 text-xs text-blue-800">
+                Odkaz pro sledování živého přenosu najdete v sekci{' '}
+                <strong>Moje lístky</strong> v okně zahájení akce.
+                Stream bude přístupný 15 minut před začátkem.
+              </p>
+              {order.stream_replay_days > 0 ? (
+                <p className="mt-1 text-xs text-blue-700">
+                  Záznam bude dostupný {order.stream_replay_days} dní po skončení (pokud to váš typ vstupenky zahrnuje).
+                </p>
+              ) : null}
+              <a
+                href={`/${locale}/my-tickets`}
+                className="mt-2 inline-flex items-center text-xs font-medium text-blue-700 hover:underline"
+              >
+                Přejít na Moje lístky →
+              </a>
             </div>
           ) : null}
 

@@ -21,6 +21,7 @@ const patchSchema = z.object({
   maxPerUser: z.number().int().min(1).max(100).nullable().optional(),
   zone: z.string().max(200).nullable().optional(),
   isSeated: z.boolean().optional(),
+  streamAccess: z.enum(['live', 'live_and_replay', 'none']).optional(),
 });
 
 async function ensureOwnership(eventId: string, ttId: string, promoterId: string) {
@@ -88,6 +89,7 @@ export async function PATCH(
            max_per_user = COALESCE($6, max_per_user),
            zone = COALESCE($7, zone),
            is_seated = COALESCE($8, is_seated),
+           stream_access = COALESCE($10, stream_access),
            updated_at = NOW()
        WHERE id = $9`,
       [
@@ -100,6 +102,7 @@ export async function PATCH(
         input.zone !== undefined ? (input.zone ?? null) : null,
         input.isSeated !== undefined ? input.isSeated : null,
         params.ttId,
+        input.streamAccess ?? null,
       ],
     );
 

@@ -14,6 +14,7 @@ interface Ticket {
   event_id: string;
   event_title: string;
   event_date: string;
+  event_date_end: string | null;
   ticket_type_id: string;
   ticket_type_name: string;
   venue_name: string | null;
@@ -25,6 +26,11 @@ interface Ticket {
   order_currency: string;
   insurance_status: string | null;
   insurance_premium: number | null;
+  // Livestream
+  event_type: string | null;
+  streaming_url: string | null;
+  stream_access: string;
+  stream_replay_days: number;
 }
 
 function authFetch(url: string, init?: RequestInit): Promise<Response> {
@@ -542,6 +548,7 @@ function TicketCard({
 
       {ticket.status === 'valid' ? (
         <div className="mt-3 flex flex-wrap items-center gap-2">
+          <StreamWatchButton ticket={ticket} />
           <Link
             href={`/${locale}/tickets/${ticket.id}/show`}
             className="inline-flex items-center rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
@@ -797,5 +804,92 @@ function TicketCard({
 
       {walletError ? <p className="mt-2 text-xs text-rose-700">{walletError}</p> : null}
     </div>
+  );
+}
+
+function StreamWatchButton({ ticket }: { ticket: Ticket }) {
+  const [busy,  setBusy]  = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Zobrazíme pouze pokud má event streaming_url a ticket stream_access != 'none'
+  if (!ticket.streaming_url || ticket.stream_access === 'none') return null;
+
+  const now       = Date.now();
+  const dateStart = new Date(ticket.event_date).getTime();
+  const dateEnd   = ticket.event_date_end
+    ? new Date(ticket.event_date_end).getTime()
+    : dateStart + 3 * 60 * 60 * 1000;
+
+  const liveOpenMs   = dateStart - 15 * 60 * 1000;
+  const liveCloseMs  = dateEnd + 30 * 60 * 1000;
+  const replayClose  = dateEnd + (ticket.stream_replay_days ?? 0) * 24 * 60 * 60 * 1000;
+
+  const isUpcoming = now < liveOpenMs && now > dateStart - 24 * 60 * 60 * 1000;
+  const isLive     = now >= liveOpenMs && now <= liveCloseMs;
+  const isReplay   = ticket.stream_access === 'live_and_replay' && now > liveCloseMs && now <= replayClose;
+
+  // Nezobrazovat button pokud akce je daleko v budoucnosti nebo stream skončil bez replay
+  if (!isUpcoming && !isLive && !isReplay) return null;
+
+  async function watchStream() {
+    setBusy(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/buyer/tickets/${ticket.id}/stream-access`, {
+        credentials: 'include',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json() as {
+        ok?: boolean;
+        streaming_url?: string;
+        stream_chat_url?: string | null;
+        is_live?: boolean;
+        error?: string;
+        minutesUntil?: number;
+      };
+      if (!res.ok) {
+        if (data.error === 'STREAM_NOT_YET_STARTED') {
+          setError(`Stream začíná za ${data.minutesUntil ?? '?'} minut.`);
+        } else if (data.error === 'STREAM_ENDED') {
+          setError('Stream skončil.');
+        } else {
+          setError(data.error ?? 'Nepodařilo se načíst stream.');
+        }
+        return;
+      }
+      if (data.streaming_url) {
+        window.open(data.streaming_url, '_blank', 'noopener');
+        if (data.stream_chat_url) {
+          window.open(data.stream_chat_url, '_blank', 'noopener');
+        }
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <span className="contents">
+      <button
+        type="button"
+        disabled={busy}
+        onClick={watchStream}
+        className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors disabled:opacity-60 ${
+          isLive
+            ? 'animate-pulse bg-red-600 hover:bg-red-700'
+            : isReplay
+              ? 'bg-purple-600 hover:bg-purple-700'
+              : 'bg-blue-600 hover:bg-blue-700'
+        }`}
+      >
+        {isLive
+          ? <><span className="h-2 w-2 rounded-full bg-white" />LIVE</>
+          : isReplay
+            ? '▶ Přehrát záznam'
+            : '📺 Sledovat stream'}
+      </button>
+      {error && <span className="text-xs text-rose-600">{error}</span>}
+    </span>
   );
 }

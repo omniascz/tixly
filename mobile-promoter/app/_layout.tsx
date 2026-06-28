@@ -18,6 +18,8 @@ export default function RootLayout() {
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="scanner" options={{ headerShown: false }} />
         <Stack.Screen name="live-ops" options={{ title: 'Live Ops' }} />
+        <Stack.Screen name="events/index" options={{ title: 'Moje akce' }} />
+        <Stack.Screen name="events/[id]" options={{ title: 'Dashboard akce' }} />
       </Stack>
     </>
   );

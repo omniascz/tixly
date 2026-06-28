@@ -57,6 +57,12 @@ interface EventDetail {
   promoter_brand_tagline: string | null;
   promoter_meta_pixel_id: string | null;
   promoter_gtm_container_id: string | null;
+  // Livestream
+  event_type: string | null;
+  streaming_url: string | null;
+  streaming_provider: string | null;
+  stream_replay_days: number;
+  date_end: string | null;
 }
 
 interface TicketTypeRow {
@@ -85,7 +91,9 @@ async function fetchDetail(id: string) {
   try {
     const eventResult = await db.query<EventDetail>(
       `
-      SELECT e.id, e.title, e.description, e.date_start, e.timezone, e.min_age, e.currency, e.queue_enabled,
+      SELECT e.id, e.title, e.description, e.date_start, e.date_end, e.timezone, e.min_age, e.currency, e.queue_enabled,
+             e.event_type,
+             e.streaming_url, e.streaming_provider, e.stream_replay_days,
              COALESCE(v.name, 'Online') AS venue_name,
              COALESCE(v.address, '') AS venue_address,
              e.promoter_id,
@@ -316,6 +324,11 @@ export default async function EventDetailPage({
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-3xl font-bold">{event.title}</h1>
+            {event.event_type === 'online' || event.event_type === 'hybrid' ? (
+              <span className="rounded-md bg-blue-100 px-2 py-1 text-xs font-bold text-blue-800">
+                {event.event_type === 'hybrid' ? 'Hybridní' : 'Online'}
+              </span>
+            ) : null}
             {event.min_age && event.min_age > 0 ? (
               <span className="rounded-md bg-rose-100 px-2 py-1 text-xs font-bold text-rose-800">
                 {event.min_age}+
@@ -323,8 +336,10 @@ export default async function EventDetailPage({
             ) : null}
           </div>
           <div className="mt-2 text-muted-foreground">
-            {event.venue_name}
-            {event.venue_address ? ` · ${event.venue_address}` : ''}
+            {event.event_type === 'online'
+              ? 'Online přenos'
+              : event.venue_name}
+            {event.venue_address && event.event_type !== 'online' ? ` · ${event.venue_address}` : ''}
           </div>
           <div className="mt-1 text-sm text-muted-foreground">
             {formatDate(event.date_start, locale)}
@@ -333,6 +348,32 @@ export default async function EventDetailPage({
             )}
           </div>
         </div>
+
+        {event.streaming_url ? (
+          <div className="rounded-md border border-blue-200 bg-blue-50 p-4">
+            <div className="flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600" aria-hidden="true">
+                <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+              </svg>
+              <span className="text-sm font-medium text-blue-900">Tato akce je dostupná jako online přenos</span>
+            </div>
+            <p className="mt-1 text-xs text-blue-700">
+              Po zakoupení vstupenky získáte přístup ke sledování živého streamu.
+              {event.stream_replay_days > 0
+                ? ` Záznam bude k dispozici ${event.stream_replay_days} dní po skončení.`
+                : ''}
+            </p>
+            {event.streaming_provider === 'youtube' && (
+              <p className="mt-1 text-xs text-blue-600">Platforma: YouTube Live</p>
+            )}
+            {event.streaming_provider === 'vimeo' && (
+              <p className="mt-1 text-xs text-blue-600">Platforma: Vimeo</p>
+            )}
+            {event.streaming_provider === 'zoom' && (
+              <p className="mt-1 text-xs text-blue-600">Platforma: Zoom</p>
+            )}
+          </div>
+        ) : null}
 
         {event.description && (
           <div className="prose prose-sm max-w-none">

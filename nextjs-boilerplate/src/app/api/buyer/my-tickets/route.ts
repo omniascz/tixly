@@ -2,7 +2,7 @@
  * GET /api/buyer/my-tickets
  *
  * List všech kupcových lístků s relevant context:
- *   - event title + date
+ *   - event title + date + stream info (pro online akce)
  *   - status (valid / used / revoked)
  *   - flex pass info (pass_kind, picks_required, picks_used)
  *   - insurance info (premium, status)
@@ -22,6 +22,7 @@ interface TicketRow {
   event_id: string;
   event_title: string;
   event_date: string;
+  event_date_end: string | null;
   ticket_type_id: string;
   ticket_type_name: string;
   venue_name: string | null;
@@ -33,6 +34,11 @@ interface TicketRow {
   order_currency: string;
   insurance_status: string | null;
   insurance_premium: number | null;
+  // Livestream fields
+  event_type: string | null;
+  streaming_url: string | null;
+  stream_access: string;
+  stream_replay_days: number;
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
@@ -41,9 +47,14 @@ export async function GET(req: NextRequest): Promise<Response> {
     `SELECT t.id, t.status, t.used_at, t.revoked_at, t.original_price,
             o.id AS order_id, o.status AS order_status, o.currency AS order_currency,
             e.id AS event_id, e.title AS event_title, e.date_start AS event_date,
+            e.date_end AS event_date_end,
+            e.event_type,
+            CASE WHEN e.streaming_url IS NOT NULL THEN 'has_stream' ELSE NULL END AS streaming_url,
             tt.id AS ticket_type_id, tt.name AS ticket_type_name,
+            tt.stream_access,
             v.name AS venue_name,
             f.pass_kind, f.picks_required,
+            e.stream_replay_days,
             (SELECT COUNT(*)::int FROM tickets.ticket_picks WHERE ticket_id = t.id) AS picks_used,
             (SELECT COUNT(*)::int FROM tickets.ticket_redemptions WHERE ticket_id = t.id) AS redemption_count,
             ins.status AS insurance_status,

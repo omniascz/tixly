@@ -1,108 +1,183 @@
 /**
- * POST /api/buyer/passkeys/register
+ * Passkey registration — full @simplewebauthn/server implementation.
  *
- * Step 1: GET-style preflight — vrátí challenge + relyingParty + user info.
- * Step 2: POST s { challengeId, credential: PublicKeyCredentialJSON } → uloží do DB.
+ * GET  — generateRegistrationOptions + store challenge
+ * POST — verifyRegistrationResponse + uložit credential do DB
  *
- * Skeleton — pro production použij @simplewebauthn/server pro verifikaci attestation.
- * Tady jen ukládáme raw credential.id + publicKey (klient je posílá v base64url).
+ * Bezpečnost:
+ * - Challenge je jednorázová (consumeChallenge = atomický UPDATE + returning)
+ * - counter, credentialDeviceType, backedUp uloženy pro audit
+ * - duplikátní credential_id → 409 (ON CONFLICT)
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
-import { runAsUser } from '@/lib/auth';
+import {
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+  type VerifyRegistrationResponseOpts,
+} from '@simplewebauthn/server';
+import type {
+  RegistrationResponseJSON,
+  AuthenticatorTransportFuture,
+} from '@simplewebauthn/types';
 import { z } from 'zod';
-import { createChallenge, consumeChallenge } from '@/lib/webauthn/challenges';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { runAsUser } from '@/lib/auth';
+import { consumeChallenge } from '@/lib/webauthn/challenges';
 
+export const dynamic = 'force-dynamic';
 
-const verifySchema = z.object({
-  challengeId: z.string().uuid(),
-  credentialId: z.string().min(1).max(1024),
-  publicKey: z.string().min(1).max(4096),
-  deviceName: z.string().max(100).optional(),
-  transports: z.array(z.string().max(20)).max(5).optional(),
-  aaguid: z.string().uuid().optional(),
-});
+function getRpConfig() {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+  const origin = appUrl.replace(/\/$/, '');
+  const rpID   = new URL(origin).hostname;
+  return { origin, rpID };
+}
 
+// ── GET: vygeneruj options pro registraci ─────────────────────────────────────
 export async function GET(req: NextRequest): Promise<Response> {
   return runAsUser(req, async (userId) => {
-  const user = await db().query<{ email: string; name: string | null }>(
-    `SELECT email, name FROM identity.users WHERE id = $1`,
-    [userId],
-  );
-  if (user.rows.length === 0) {
-    return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
-  }
+    const { origin, rpID } = getRpConfig();
 
-  const { id, challenge } = await createChallenge(userId, 'registration');
+    const userRow = await runWithServiceContext(() =>
+      db().query<{ email: string; name: string | null }>(
+        `SELECT email, name FROM identity.users WHERE id = $1`,
+        [userId],
+      ),
+    );
+    if (userRow.rows.length === 0) {
+      return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+    }
+    const u = userRow.rows[0];
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-  const rpId = new URL(appUrl).hostname;
+    // Existující credentials pro excludeCredentials
+    const existing = await runWithServiceContext(() =>
+      db().query<{ credential_id: Buffer; transports: string[] | null }>(
+        `SELECT credential_id, transports FROM identity.webauthn_credentials WHERE user_id = $1`,
+        [userId],
+      ),
+    );
 
-  return NextResponse.json({
-    challengeId: id,
-    publicKeyOptions: {
-      challenge,
-      rp: { id: rpId, name: 'Tixly' },
-      user: {
-        id: Buffer.from(userId).toString('base64url'),
-        name: user.rows[0].email,
-        displayName: user.rows[0].name ?? user.rows[0].email,
-      },
-      pubKeyCredParams: [
-        { type: 'public-key', alg: -7 }, // ES256
-        { type: 'public-key', alg: -257 }, // RS256
-      ],
+    const options = await generateRegistrationOptions({
+      rpName:             'Tixly',
+      rpID,
+      userID:             userId,
+      userName:           u.email,
+      userDisplayName:    u.name ?? u.email,
+      attestationType:    'none',
+      excludeCredentials: existing.rows.map((c) => ({
+        id:         c.credential_id,
+        type:       'public-key' as const,
+        transports: (c.transports ?? []) as AuthenticatorTransportFuture[],
+      })),
       authenticatorSelection: {
-        residentKey: 'preferred',
+        residentKey:      'preferred',
         userVerification: 'preferred',
       },
-      timeout: 60_000,
-      attestation: 'none',
-    },
-  });
+      supportedAlgorithmIDs: [-7, -257],
+    });
 
+    // Ulož challenge (options.challenge = base64url string)
+    const challengeBuf = Buffer.from(options.challenge, 'base64url');
+    const challengeRow = await runWithServiceContext(() =>
+      db().query<{ id: string }>(
+        `INSERT INTO identity.webauthn_challenges (user_id, challenge, challenge_type)
+         VALUES ($1, $2, 'registration')
+         RETURNING id`,
+        [userId, challengeBuf],
+      ),
+    );
+
+    return NextResponse.json({
+      challengeId:      challengeRow.rows[0].id,
+      expectedOrigin:   origin,
+      expectedRpID:     rpID,
+      publicKeyOptions: options,
+    });
   });
 }
 
+// ── POST: ověř attestation a ulož credential ──────────────────────────────────
+const postSchema = z.object({
+  challengeId: z.string().uuid(),
+  credential:  z.record(z.unknown()),
+  deviceName:  z.string().max(100).optional(),
+});
+
 export async function POST(req: NextRequest): Promise<Response> {
   return runAsUser(req, async (userId) => {
-  const body: unknown = await req.json().catch(() => ({}));
-  const parsed = verifySchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: 'INVALID_BODY' }, { status: 422 });
-  }
-
-  const challenge = await consumeChallenge(parsed.data.challengeId);
-  if (!challenge || challenge.challenge_type !== 'registration') {
-    return NextResponse.json({ error: 'INVALID_OR_EXPIRED_CHALLENGE' }, { status: 410 });
-  }
-
-  // SKELETON: production by tady ověřil attestation a counter
-  const credentialIdBuf = Buffer.from(parsed.data.credentialId, 'base64url');
-  const publicKeyBuf = Buffer.from(parsed.data.publicKey, 'base64url');
-
-  try {
-    const r = await db().query<{ id: string }>(
-      `INSERT INTO identity.webauthn_credentials
-         (user_id, credential_id, public_key, device_name, transports, aaguid)
-       VALUES ($1, $2, $3, $4, $5, $6::uuid)
-       RETURNING id`,
-      [
-        userId, credentialIdBuf, publicKeyBuf,
-        parsed.data.deviceName ?? null,
-        parsed.data.transports ?? null,
-        parsed.data.aaguid ?? null,
-      ],
-    );
-    return NextResponse.json({ registered: true, credentialId: r.rows[0].id }, { status: 201 });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : 'unknown';
-    if (msg.includes('duplicate')) {
-      return NextResponse.json({ error: 'ALREADY_REGISTERED' }, { status: 409 });
+    const body   = await req.json().catch(() => null);
+    const parsed = postSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'INVALID_BODY' }, { status: 422 });
     }
-    console.error('[POST /api/buyer/passkeys/register]', e);
-    return NextResponse.json({ error: 'DB_ERROR' }, { status: 500 });
-  }
 
+    const challengeRow = await consumeChallenge(parsed.data.challengeId);
+    if (!challengeRow || challengeRow.challenge_type !== 'registration') {
+      return NextResponse.json({ error: 'INVALID_OR_EXPIRED_CHALLENGE' }, { status: 410 });
+    }
+
+    const { origin, rpID }  = getRpConfig();
+    const expectedChallenge = (challengeRow.challenge as Buffer).toString('base64url');
+
+    let verification: Awaited<ReturnType<typeof verifyRegistrationResponse>>;
+    try {
+      const opts: VerifyRegistrationResponseOpts = {
+        response:                parsed.data.credential as unknown as RegistrationResponseJSON,
+        expectedChallenge,
+        expectedOrigin:          origin,
+        expectedRPID:            rpID,
+        requireUserVerification: false,
+      };
+      verification = await verifyRegistrationResponse(opts);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'verification failed';
+      return NextResponse.json({ error: 'VERIFICATION_FAILED', detail: msg }, { status: 400 });
+    }
+
+    if (!verification.verified || !verification.registrationInfo) {
+      return NextResponse.json({ error: 'NOT_VERIFIED' }, { status: 400 });
+    }
+
+    const {
+      credentialID,
+      credentialPublicKey,
+      counter,
+      credentialDeviceType,
+      credentialBackedUp,
+    } = verification.registrationInfo;
+
+    const transports =
+      (parsed.data.credential as { response?: { transports?: string[] } }).response?.transports
+      ?? null;
+
+    try {
+      const row = await runWithServiceContext(() =>
+        db().query<{ id: string }>(
+          `INSERT INTO identity.webauthn_credentials
+             (user_id, credential_id, public_key, counter,
+              device_name, transports, is_backup_eligible, is_backup_state)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           RETURNING id`,
+          [
+            userId,
+            Buffer.from(credentialID),
+            Buffer.from(credentialPublicKey),
+            counter,
+            parsed.data.deviceName ?? null,
+            transports,
+            credentialDeviceType === 'multiDevice',
+            credentialBackedUp,
+          ],
+        ),
+      );
+      return NextResponse.json({ ok: true, passkeyId: row.rows[0].id }, { status: 201 });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('unique') || msg.includes('duplicate')) {
+        return NextResponse.json({ error: 'CREDENTIAL_ALREADY_REGISTERED' }, { status: 409 });
+      }
+      console.error('[passkeys/register POST]', err);
+      return NextResponse.json({ error: 'DB_ERROR' }, { status: 500 });
+    }
   });
 }

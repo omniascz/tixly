@@ -17,6 +17,7 @@ const createSchema = z.object({
   zone: z.string().max(200).nullable().optional(),
   isSeated: z.boolean().optional(),
   kind: z.enum(['standing', 'seated', 'flex', 'online', 'addon']).optional(),
+  streamAccess: z.enum(['live', 'live_and_replay', 'none']).optional(),
 });
 
 export async function GET(
@@ -47,6 +48,7 @@ export async function GET(
       max_per_user: number | null;
       zone: string | null;
       is_seated: boolean;
+      stream_access: string;
       sold_qty: string;
       issued_qty: string;
     }>(
@@ -61,6 +63,7 @@ export async function GET(
          tt.max_per_user,
          tt.zone,
          COALESCE(tt.is_seated, false) AS is_seated,
+         tt.stream_access,
          (tt.total_qty - tt.remaining_qty)::text AS sold_qty,
          COUNT(t.id)::text AS issued_qty
        FROM catalog.ticket_types tt
@@ -85,6 +88,7 @@ export async function GET(
         maxPerUser: r.max_per_user,
         zone: r.zone,
         isSeated: r.is_seated,
+        streamAccess: r.stream_access,
       })),
     });
   });
@@ -133,8 +137,8 @@ export async function POST(
     const r = await db().query<{ id: string }>(
       `INSERT INTO catalog.ticket_types
          (event_id, name, description, kind, base_price, total_qty, remaining_qty,
-          max_per_user, zone, is_seated, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $6, $7, $8, $9, NOW())
+          max_per_user, zone, is_seated, stream_access, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $6, $7, $8, $9, $10, NOW())
        RETURNING id`,
       [
         params.id,
@@ -146,6 +150,7 @@ export async function POST(
         input.maxPerUser ?? null,
         input.zone ?? null,
         input.isSeated ?? false,
+        input.streamAccess ?? 'live',
       ],
     );
 
