@@ -9,10 +9,11 @@
  * Schema: src/lib/graphql/schema.ts (SDL string)
  * Resolvers: src/lib/graphql/resolvers.ts
  *
- * Rate limit: ne ještě — production deploy add through middleware.
+ * Rate limit: 120 req/min per IP (sliding window, Redis-backed).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit } from '@/lib/rate-limit/per-tenant';
 import { resolvers } from '@/lib/graphql/resolvers';
 import { SCHEMA_SDL } from '@/lib/graphql/schema';
 
@@ -58,6 +59,24 @@ function buildRootValue(): Record<string, unknown> {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    req.headers.get('x-real-ip') ??
+    'unknown';
+  const rl = await checkRateLimit(`graphql:${ip}`, { limit: 120, windowMs: 60_000 });
+  if (!rl.ok) {
+    return NextResponse.json(
+      { errors: [{ message: 'Too Many Requests' }] },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil((rl.retryAfterMs ?? 60_000) / 1000)),
+          'X-RateLimit-Remaining': '0',
+        },
+      },
+    );
+  }
+
   const mod = await getGraphQLModule();
   if (!mod) {
     return NextResponse.json(
