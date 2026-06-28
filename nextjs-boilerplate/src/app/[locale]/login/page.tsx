@@ -13,21 +13,34 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
+type Tab = 'password' | 'magic';
+
 export default function LoginPage({ params }: { params: { locale: string } }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const fromParam = searchParams.get('from');
+  const errorParam = searchParams.get('error');
+
+  const [tab, setTab] = useState<Tab>('password');
+
+  // Password tab state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [totpCode, setTotpCode] = useState('');
   const [backupCode, setBackupCode] = useState('');
   const [useBackup, setUseBackup] = useState(false);
   const [requires2fa, setRequires2fa] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  // Magic link tab state
+  const [magicEmail, setMagicEmail] = useState('');
+  const [magicSent, setMagicSent] = useState(false);
+  const [magicLoading, setMagicLoading] = useState(false);
+
+  const [error, setError] = useState<string | null>(errorParam ?? null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Už přihlášený? Nezůstávej na login stránce — přesměruj na správný dashboard.
+    // Už přihlášený? Přesměruj na správný dashboard.
     fetch('/api/auth/me')
       .then((r) => r.json())
       .then((data: { user?: unknown; roles?: { isPlatformAdmin?: boolean; promoterMemberships?: unknown[] } }) => {
@@ -43,6 +56,8 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ─── Password login ─────────────────────────────────────────────────────────
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -61,7 +76,6 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        // Server signalizuje, že má 2FA — přepneme do druhého kroku
         if (data.requires2fa) {
           setRequires2fa(true);
           setError(null);
@@ -90,104 +104,198 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
     }
   }
 
+  // ─── Magic link ─────────────────────────────────────────────────────────────
+
+  async function handleMagicLink(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setMagicLoading(true);
+    try {
+      const next = fromParam ?? `/${params.locale}/events`;
+      await fetch('/api/auth/magic-link/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: magicEmail, locale: params.locale, next }),
+      });
+      setMagicSent(true);
+    } catch {
+      setError('Síťová chyba');
+    } finally {
+      setMagicLoading(false);
+    }
+  }
+
+  // ─── Render ─────────────────────────────────────────────────────────────────
+
   return (
     <div className="mx-auto max-w-sm">
       <Card>
         <CardHeader>
           <CardTitle>Přihlášení</CardTitle>
-          <CardDescription>
-            Vstup pro kupce, promotéry i master adminy.
-          </CardDescription>
+          <CardDescription>Vstup pro kupce, promotéry i master adminy.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div>
-              <label htmlFor="login-email" className="mb-1 block text-xs font-medium">
-                E-mail
-              </label>
-              <Input
-                id="login-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                readOnly={requires2fa}
-                className={requires2fa ? 'bg-muted' : ''}
-              />
-            </div>
-            <div>
-              <label htmlFor="login-password" className="mb-1 block text-xs font-medium">
-                Heslo
-              </label>
-              <Input
-                id="login-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                readOnly={requires2fa}
-                className={requires2fa ? 'bg-muted' : ''}
-              />
-            </div>
-            {requires2fa ? (
-              <div className="space-y-2 rounded-md border bg-muted/30 p-3">
-                <p className="text-xs font-medium">
-                  Tento účet má aktivní 2FA. Zadej kód z aplikace.
-                </p>
-                {!useBackup ? (
-                  <div>
-                    <label htmlFor="login-totp" className="mb-1 block text-xs font-medium">
-                      6místný kód
-                    </label>
-                    <Input
-                      id="login-totp"
-                      inputMode="numeric"
-                      pattern="\d{6}"
-                      maxLength={6}
-                      value={totpCode}
-                      onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
-                      placeholder="123 456"
-                      required
-                      autoFocus
-                    />
-                  </div>
-                ) : (
-                  <div>
-                    <label htmlFor="login-backup" className="mb-1 block text-xs font-medium">
-                      Záložní kód (např. ABCD-1234)
-                    </label>
-                    <Input
-                      id="login-backup"
-                      value={backupCode}
-                      onChange={(e) => setBackupCode(e.target.value.toUpperCase())}
-                      placeholder="ABCD-1234"
-                      required
-                      autoFocus
-                    />
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setUseBackup(!useBackup);
-                    setTotpCode('');
-                    setBackupCode('');
-                  }}
-                  className="text-xs text-primary hover:underline"
-                >
-                  {useBackup ? 'Použít aplikační kód' : 'Ztratil/a jsem telefon — použít záložní kód'}
-                </button>
+          {/* Tab switcher */}
+          <div className="mb-4 flex gap-1 rounded-lg bg-muted p-1">
+            <button
+              type="button"
+              onClick={() => { setTab('password'); setError(null); }}
+              className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                tab === 'password'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              🔑 Heslem
+            </button>
+            <button
+              type="button"
+              onClick={() => { setTab('magic'); setError(null); setMagicSent(false); }}
+              className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                tab === 'magic'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              ✉️ Bez hesla
+            </button>
+          </div>
+
+          {/* ── Tab: Heslem ── */}
+          {tab === 'password' && (
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div>
+                <label htmlFor="login-email" className="mb-1 block text-xs font-medium">
+                  E-mail
+                </label>
+                <Input
+                  id="login-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  readOnly={requires2fa}
+                  className={requires2fa ? 'bg-muted' : ''}
+                />
               </div>
-            ) : null}
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading
-                ? '...'
-                : requires2fa
-                  ? 'Ověřit a přihlásit'
-                  : 'Přihlásit'}
-            </Button>
-          </form>
+              <div>
+                <label htmlFor="login-password" className="mb-1 block text-xs font-medium">
+                  Heslo
+                </label>
+                <Input
+                  id="login-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  readOnly={requires2fa}
+                  className={requires2fa ? 'bg-muted' : ''}
+                />
+              </div>
+              {requires2fa ? (
+                <div className="space-y-2 rounded-md border bg-muted/30 p-3">
+                  <p className="text-xs font-medium">
+                    Tento účet má aktivní 2FA. Zadej kód z aplikace.
+                  </p>
+                  {!useBackup ? (
+                    <div>
+                      <label htmlFor="login-totp" className="mb-1 block text-xs font-medium">
+                        6místný kód
+                      </label>
+                      <Input
+                        id="login-totp"
+                        inputMode="numeric"
+                        pattern="\d{6}"
+                        maxLength={6}
+                        value={totpCode}
+                        onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
+                        placeholder="123 456"
+                        required
+                        autoFocus
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <label htmlFor="login-backup" className="mb-1 block text-xs font-medium">
+                        Záložní kód (např. ABCD-1234)
+                      </label>
+                      <Input
+                        id="login-backup"
+                        value={backupCode}
+                        onChange={(e) => setBackupCode(e.target.value.toUpperCase())}
+                        placeholder="ABCD-1234"
+                        required
+                        autoFocus
+                      />
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUseBackup(!useBackup);
+                      setTotpCode('');
+                      setBackupCode('');
+                    }}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    {useBackup ? 'Použít aplikační kód' : 'Ztratil/a jsem telefon — použít záložní kód'}
+                  </button>
+                </div>
+              ) : null}
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? '...' : requires2fa ? 'Ověřit a přihlásit' : 'Přihlásit'}
+              </Button>
+            </form>
+          )}
+
+          {/* ── Tab: Bez hesla (magic link) ── */}
+          {tab === 'magic' && (
+            <>
+              {magicSent ? (
+                <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-center">
+                  <div className="mb-2 text-2xl">📬</div>
+                  <p className="font-semibold text-green-800">Odkaz odeslán!</p>
+                  <p className="mt-1 text-sm text-green-700">
+                    Zkontroluj svůj email{' '}
+                    <span className="font-medium">{magicEmail}</span>.
+                    Odkaz vyprší za 15 minut.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => { setMagicSent(false); setMagicEmail(''); }}
+                    className="mt-3 text-xs text-green-600 hover:underline"
+                  >
+                    Zkusit jiný email
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleMagicLink} className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Zadej svůj email a pošleme ti jednorázový přihlašovací odkaz. Žádné heslo.
+                  </p>
+                  <div>
+                    <label htmlFor="magic-email" className="mb-1 block text-xs font-medium">
+                      E-mail
+                    </label>
+                    <Input
+                      id="magic-email"
+                      type="email"
+                      value={magicEmail}
+                      onChange={(e) => setMagicEmail(e.target.value)}
+                      required
+                      autoFocus
+                      placeholder="tvuj@email.cz"
+                    />
+                  </div>
+                  {error && <p className="text-sm text-destructive">{error}</p>}
+                  <Button type="submit" disabled={magicLoading} className="w-full">
+                    {magicLoading ? '...' : 'Poslat přihlašovací odkaz'}
+                  </Button>
+                </form>
+              )}
+            </>
+          )}
 
           {/* Social login */}
           <div className="relative my-4 flex items-center">
@@ -227,7 +335,7 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
               Pokračovat přes Facebook
             </a>
             <PasskeyButton
-              email={email || undefined}
+              email={tab === 'password' ? email || undefined : magicEmail || undefined}
               locale={params.locale}
               next={fromParam ?? undefined}
             />
