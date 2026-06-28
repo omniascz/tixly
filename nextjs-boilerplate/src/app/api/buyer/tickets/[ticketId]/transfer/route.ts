@@ -42,6 +42,8 @@ interface Row {
   order_status: string;
   owner_email: string;
   owner_name: string | null;
+  transfer_policy: string;
+  max_transfer_count: number | null;
 }
 
 function buildSenderEmail(input: {
@@ -122,7 +124,8 @@ export async function POST(
       `SELECT t.id, t.status, t.ticket_type_id, t.owner_id, t.transfer_count,
               tt.name AS ticket_type_name,
               o.event_id, o.status AS order_status,
-              e.title AS event_title, e.event_date::text AS event_date,
+              e.title AS event_title, e.date_start::text AS event_date,
+              e.transfer_policy, e.max_transfer_count,
               u.email AS owner_email, u.name AS owner_name
        FROM tickets.tickets t
        JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
@@ -156,6 +159,31 @@ export async function POST(
     if (ticket.order_status !== 'paid') {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'ORDER_NOT_PAID' }, { status: 409 });
+    }
+
+    // Transfer policy gate
+    if (ticket.transfer_policy === 'disabled') {
+      await client.query('ROLLBACK');
+      return NextResponse.json(
+        {
+          error: 'TRANSFER_DISABLED',
+          message: 'Pořadatel zakázal převody vstupenek pro tuto akci.',
+        },
+        { status: 403 },
+      );
+    }
+    if (ticket.transfer_policy === 'restricted') {
+      const limit = ticket.max_transfer_count ?? 1;
+      if (ticket.transfer_count >= limit) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'TRANSFER_LIMIT_REACHED',
+            message: `Tuto vstupenku lze převést maximálně ${limit}×. Limit byl vyčerpán.`,
+          },
+          { status: 403 },
+        );
+      }
     }
     if (recipientEmail === ticket.owner_email.toLowerCase()) {
       await client.query('ROLLBACK');

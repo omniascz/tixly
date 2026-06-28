@@ -173,6 +173,7 @@ interface TicketTypeRow {
   insurance_pct: number;
   is_seated: boolean;
   requires_personalization: boolean;
+  max_per_user: number | null;
 }
 
 
@@ -249,6 +250,7 @@ export async function POST(req: NextRequest): Promise<Response> {
               e.min_age, e.currency, e.queue_enabled,
               e.insurance_enabled, e.insurance_pct, tt.is_seated,
               COALESCE(tt.requires_personalization, FALSE) AS requires_personalization,
+              tt.max_per_user,
               e.promoter_id, e.requires_otp_validation,
               COALESCE(e.require_phone_verified, FALSE) AS require_phone_verified,
               COALESCE(e.verified_fan_enabled, FALSE) AS verified_fan_enabled,
@@ -270,7 +272,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         { status: 404 },
       );
     }
-    const tt = ttRes.rows[0] as { id: string; event_id: string; remaining_qty: number; name: string; event_title: string; min_age: number | null; currency: string; queue_enabled: boolean; insurance_enabled: boolean; insurance_pct: number; is_seated: boolean; requires_personalization: boolean; promoter_id: string; requires_otp_validation: boolean; require_phone_verified: boolean; verified_fan_enabled: boolean; vf_starts_at: string | null; vf_ends_at: string | null };
+    const tt = ttRes.rows[0] as { id: string; event_id: string; remaining_qty: number; name: string; event_title: string; min_age: number | null; currency: string; queue_enabled: boolean; insurance_enabled: boolean; insurance_pct: number; is_seated: boolean; requires_personalization: boolean; max_per_user: number | null; promoter_id: string; requires_otp_validation: boolean; require_phone_verified: boolean; verified_fan_enabled: boolean; vf_starts_at: string | null; vf_ends_at: string | null };
 
     // Verified Fan gate (CZ priority #4) — pokud event má VF enabled, jen
     // approved fans s unused presale_code mohou koupit. Po úspěšném zápisu
@@ -704,6 +706,33 @@ export async function POST(req: NextRequest): Promise<Response> {
       [input.buyerEmail.toLowerCase(), input.buyerName],
     );
     const userId = userRes.rows[0].id;
+
+    // Per-buyer purchase limit — max_per_user na ticket_type omezuje počet kusů
+    // které může jeden uživatel (resp. email) koupit celkem přes všechny objednávky.
+    if (tt.max_per_user !== null && tt.max_per_user > 0) {
+      const boughtRes = await client.query<{ total: string }>(
+        `SELECT COALESCE(SUM(oi.quantity), 0)::text AS total
+         FROM orders.order_items oi
+         JOIN orders.orders o ON o.id = oi.order_id
+         WHERE oi.ticket_type_id = $1
+           AND o.user_id = $2
+           AND o.status IN ('pending', 'paid')`,
+        [tt.id, userId],
+      );
+      const alreadyBought = parseInt(boughtRes.rows[0]?.total ?? '0', 10);
+      if (alreadyBought + input.quantity > tt.max_per_user) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'PURCHASE_LIMIT_EXCEEDED',
+            message: `Limit je ${tt.max_per_user} ks na osobu. Již máš ${alreadyBought} ks, požaduješ ${input.quantity} ks.`,
+            limit: tt.max_per_user,
+            alreadyBought,
+          },
+          { status: 422 },
+        );
+      }
+    }
 
     // Phone verification gate — proaktivní autentizace: event vyžaduje ověřený telefon.
     if (tt.require_phone_verified && !userRes.rows[0].phone_verified_at) {
