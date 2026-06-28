@@ -31,7 +31,7 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/accreditation`, label: 'Akreditace', group: 'Lístky' },
     { href: `/admin/events/${eventId}/press`, label: 'Press akreditace', group: 'Lístky' },
     { href: `/admin/events/${eventId}/guestlist`, label: 'Guestlist', group: 'Lístky' },
-    { href: `/admin/events/${eventId}/wristbands`, label: 'Náramky', group: 'Lístky' },
+    { href: `/admin/events/${eventId}/wristbands`, label: 'Náramky (cashless)', group: 'Lístky' },
     { href: `/admin/events/${eventId}/access-matrix`, label: 'Access matrix', group: 'Lístky' },
     { href: `/admin/events/${eventId}/accessible-entrances`, label: 'Bezbariérové přístupy', group: 'Lístky' },
 
@@ -81,6 +81,11 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
 
     // Šablony
     { href: `/admin/events/${eventId}/templates`, label: 'Šablony', group: 'Základ' },
+
+    // RFID Presence
+    { href: `/admin/events/${eventId}/wristbands`, label: '💳 Náramky (cashless)', group: 'RFID' },
+    { href: `/admin/events/${eventId}/rfid-zones`, label: '🏟️ Zóny & Zařízení', group: 'RFID' },
+    { href: `/admin/events/${eventId}/rfid-live`, label: '📡 Live Dashboard', group: 'RFID' },
 
     // After-event
     { href: `/admin/events/${eventId}/reviews`, label: 'Hodnocení', group: 'After-event' },
