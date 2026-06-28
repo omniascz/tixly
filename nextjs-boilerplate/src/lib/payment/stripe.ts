@@ -94,6 +94,9 @@ export async function createStripeCheckoutSession(
     'line_items[0][price_data][currency]': input.currency.toLowerCase(),
     'line_items[0][price_data][unit_amount]': input.amountHalire,
     'line_items[0][price_data][product_data][name]': input.description,
+    // Automatic payment methods: Stripe shows iDEAL, Bancontact, SOFORT/EPS, Klarna,
+    // Apple Pay, Google Pay, BLIK, Przelewy24, Carte Bancaire etc. based on buyer locale.
+    'automatic_payment_methods[enabled]': true,
   };
 
   const session = await stripeRequest<{

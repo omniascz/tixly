@@ -81,6 +81,9 @@ const schema = z.object({
       // B2B kreditní účet — firma deposituje kredit, zaměstnanci nakupují
       // bez individuální platby. Žádná platební brána, jen debit z balance.
       'b2b_credit',
+      // International gateways
+      'mollie',   // NL/BE/FR — iDEAL, Bancontact, SEPA, Klarna, PayPal via Mollie
+      'paypal',   // DE/AT/FR/Global — standalone PayPal Orders API v2
     ])
     .default('gopay'),
   // Add-ons (parking, camping, F&B credit, merch…) — Fáze C
@@ -1781,7 +1784,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         currency: tt.currency,
         buyerEmail: input.buyerEmail,
         description: `${tt.event_title} × ${input.quantity}`,
-        paymentMethod: input.paymentMethod as 'gopay' | 'wero' | 'przelewy24' | 'bank_transfer',
+        paymentMethod: input.paymentMethod as 'gopay' | 'wero' | 'przelewy24' | 'bank_transfer' | 'mollie' | 'paypal',
         appUrl,
       });
     }

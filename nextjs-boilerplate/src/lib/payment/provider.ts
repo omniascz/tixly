@@ -1,24 +1,28 @@
 /**
  * Payment provider switcher.
  *
- * Tixly používá pro CZ + SK primárně **GoPay** nebo **ComGate** — tým si vybere
- * podle nejlepších podmínek (provize, settlement, podpora). Stripe je parked
- * pro budoucí mezinárodní expanzi (Větev B).
+ * CZ/SK: GoPay nebo ComGate (via PAYMENT_PROVIDER + PAYMENT_PROVIDER_EUR)
+ * EU/UK/Global: Stripe (automatic_payment_methods → iDEAL, Klarna, Apple Pay, BLIK etc.)
+ * PL: Przelewy24 real (when P24_MERCHANT_ID + P24_CRC_KEY + P24_API_KEY set)
+ * NL/BE/FR/EU: Mollie (when MOLLIE_API_KEY set)
+ * Global: PayPal standalone (when PAYPAL_CLIENT_ID + PAYPAL_CLIENT_SECRET set)
+ * A2A: Wero mock (real API vyžaduje EPI banking partnership)
  *
  * ENV switching:
  *   PAYMENT_PROVIDER=gopay|comgate|stripe|mock   — globální default
- *   PAYMENT_PROVIDER_EUR=gopay|comgate           — explicit override pro EUR
+ *   PAYMENT_PROVIDER_EUR=gopay|comgate|stripe     — explicit override pro EUR
  *
- * Když je GoPay/ComGate vybraná ale chybí povinné credentials, padá to do
- * mock režimu s console.warn — checkout funguje (přesměruje na /mock-gopay/[id]).
- *
- * Wero / Przelewy24 zůstávají mock dokud nedostanou samostatnou integraci.
+ * Pokud STRIPE_SECRET_KEY set a PAYMENT_PROVIDER_EUR není nastaveno, EUR platby
+ * jdou automaticky přes Stripe (iDEAL, Bancontact, Klarna, Apple Pay atd.).
  */
 
 import { randomUUID } from 'crypto';
 import { createComGateSession, getComGateConfig } from './comgate';
 import { createGopaySession, getGopayConfig } from './gopay-real';
 import { createStripeCheckoutSession } from './stripe';
+import { createP24Transaction, getP24Config } from './przelewy24';
+import { createMolliePayment, getMollieConfig } from './mollie';
+import { createPayPalOrder, getPayPalConfig } from './paypal';
 import { assertMockPaymentsAllowed } from './mock-guard';
 
 export interface CreatePaymentInput {
@@ -28,7 +32,7 @@ export interface CreatePaymentInput {
   buyerEmail: string;
   buyerName?: string;
   description: string;
-  paymentMethod: 'gopay' | 'wero' | 'przelewy24' | 'bank_transfer';
+  paymentMethod: 'gopay' | 'wero' | 'przelewy24' | 'bank_transfer' | 'mollie' | 'paypal';
   appUrl: string;
 }
 
@@ -42,31 +46,32 @@ export interface CreatePaymentResult {
     | 'mock-gopay'
     | 'mock-wero'
     | 'mock-przelewy24'
-    | 'bank_transfer';
+    | 'bank_transfer'
+    | 'przelewy24'
+    | 'mollie'
+    | 'paypal';
   paymentIntentId?: string | null;
 }
 
 type ProviderName = 'gopay' | 'comgate' | 'stripe' | 'mock';
 
 function selectProviderName(currency: string): ProviderName {
+  // Explicit EUR override wins
   if (currency === 'EUR' && process.env.PAYMENT_PROVIDER_EUR) {
     return process.env.PAYMENT_PROVIDER_EUR as ProviderName;
+  }
+  // Auto-route EUR to Stripe when key is present (covers DE/AT/NL/BE/FR/UK/Global)
+  if (currency === 'EUR' && process.env.STRIPE_SECRET_KEY) {
+    return 'stripe';
   }
   return (process.env.PAYMENT_PROVIDER ?? 'mock') as ProviderName;
 }
 
 /**
- * Vytvoří payment session pro daný order. Volá se z checkout endpointu po commit
- * základní objednávky (status='pending'). Vrácený gatewayUrl je redirect target.
- *
- * Routing podle paymentMethod:
- *   gopay (= karta default)  → selectProviderName(currency) — GoPay/ComGate/Stripe/mock
- *   wero                     → mock-wero (zatím)
- *   przelewy24               → mock-przelewy24 (zatím)
- *   bank_transfer            → confirmation page s VS
+ * Vytvoří payment session. Vrácený gatewayUrl je redirect target.
  */
 export async function createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
-  // Bank transfer = žádný redirect na bránu, kupec dostane VS a bankovní účet
+  // Bank transfer — žádný redirect, kupec dostane VS a bankovní účet
   if (input.paymentMethod === 'bank_transfer') {
     const paymentId = `bank-${randomUUID().slice(0, 8)}`;
     return {
@@ -76,7 +81,7 @@ export async function createPayment(input: CreatePaymentInput): Promise<CreatePa
     };
   }
 
-  // Wero/Przelewy24 zatím mock (vlastní integrace plánovaná) — v produkci fail-closed.
+  // Wero (European A2A) — real API vyžaduje EPI banking partnership, zůstává mock
   if (input.paymentMethod === 'wero') {
     assertMockPaymentsAllowed();
     const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
@@ -86,13 +91,92 @@ export async function createPayment(input: CreatePaymentInput): Promise<CreatePa
       provider: 'mock-wero',
     };
   }
+
+  // Przelewy24 (PL) — real implementation when configured, mock fallback
   if (input.paymentMethod === 'przelewy24') {
+    const cfg = getP24Config();
+    if (cfg.isConfigured) {
+      const notificationUrl = `${input.appUrl}/api/payments/przelewy24/webhook`;
+      const returnUrl = `${input.appUrl}/cs/order-confirmation/${input.orderId}`;
+      const session = await createP24Transaction({
+        orderId: input.orderId,
+        amountGrosze: input.amountHalire,
+        currency: input.currency,
+        buyerEmail: input.buyerEmail,
+        buyerName: input.buyerName,
+        description: input.description,
+        notificationUrl,
+        returnUrl,
+      });
+      return {
+        paymentId: session.paymentId,
+        gatewayUrl: session.gatewayUrl,
+        provider: 'przelewy24',
+      };
+    }
     assertMockPaymentsAllowed();
     const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
     return {
       paymentId,
       gatewayUrl: `/mock-przelewy24/${paymentId}`,
       provider: 'mock-przelewy24',
+    };
+  }
+
+  // Mollie (NL/BE/FR/EU — iDEAL, Bancontact, SEPA, Klarna, PayPal)
+  if (input.paymentMethod === 'mollie') {
+    const cfg = getMollieConfig();
+    if (cfg.isConfigured) {
+      const amountValue = (input.amountHalire / 100).toFixed(2);
+      const session = await createMolliePayment({
+        orderId: input.orderId,
+        amountValue,
+        currency: input.currency,
+        buyerEmail: input.buyerEmail,
+        description: input.description,
+        redirectUrl: `${input.appUrl}/cs/order-confirmation/${input.orderId}`,
+        webhookUrl: `${input.appUrl}/api/payments/mollie/webhook`,
+      });
+      return {
+        paymentId: session.id,
+        gatewayUrl: session.checkoutUrl,
+        provider: 'mollie',
+      };
+    }
+    assertMockPaymentsAllowed();
+    const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
+    return {
+      paymentId,
+      gatewayUrl: `/mock-gopay/${paymentId}`,
+      provider: 'mock-gopay',
+    };
+  }
+
+  // PayPal standalone (DE/AT/FR/Global)
+  if (input.paymentMethod === 'paypal') {
+    const cfg = getPayPalConfig();
+    if (cfg.isConfigured) {
+      const amountValue = (input.amountHalire / 100).toFixed(2);
+      const session = await createPayPalOrder({
+        orderId: input.orderId,
+        amountValue,
+        currency: input.currency,
+        description: input.description,
+        returnUrl: `${input.appUrl}/api/payments/paypal/capture?orderId=${input.orderId}`,
+        cancelUrl: `${input.appUrl}/cs/checkout?canceled=1&orderId=${input.orderId}`,
+      });
+      return {
+        paymentId: session.paypalOrderId,
+        gatewayUrl: session.approveUrl,
+        provider: 'paypal',
+      };
+    }
+    assertMockPaymentsAllowed();
+    const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
+    return {
+      paymentId,
+      gatewayUrl: `/mock-gopay/${paymentId}`,
+      provider: 'mock-gopay',
     };
   }
 
@@ -121,7 +205,6 @@ export async function createPayment(input: CreatePaymentInput): Promise<CreatePa
         provider: 'gopay',
       };
     }
-    // Není-li GoPay nakonfigurované, spadne do mock
   }
 
   if (providerName === 'comgate') {
@@ -143,11 +226,9 @@ export async function createPayment(input: CreatePaymentInput): Promise<CreatePa
         provider: 'comgate',
       };
     }
-    // Není-li ComGate nakonfigurované, spadne do mock
   }
 
   if (providerName === 'stripe' && process.env.STRIPE_SECRET_KEY) {
-    // Parked pro mezinárodní expanzi — Stripe stack zůstává v lib/payment/stripe.ts
     const session = await createStripeCheckoutSession({
       orderId: input.orderId,
       amountHalire: input.amountHalire,
@@ -166,8 +247,7 @@ export async function createPayment(input: CreatePaymentInput): Promise<CreatePa
     };
   }
 
-  // Mock fallback — žádný provider nakonfigurovaný. V produkci fail-closed (jinak
-  // by checkout mintoval vstupenky zdarma přes mock-gopay).
+  // Mock fallback — žádný provider nakonfigurovaný. V produkci fail-closed.
   assertMockPaymentsAllowed();
   const paymentId = `mock-pay-${randomUUID().slice(0, 8)}`;
   return {
