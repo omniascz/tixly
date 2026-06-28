@@ -3,7 +3,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ActivityIndicator,
   Alert,
-  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,7 +12,6 @@ import {
 import { Stack } from 'expo-router';
 import { apiFetch, ApiError } from '@/lib/api';
 import { getUser } from '@/lib/session';
-import { API_BASE_URL } from '@/lib/config';
 import { colors, radius, space } from '@/lib/theme';
 
 interface TicketType {
@@ -69,30 +67,16 @@ export default function EventDetailScreen() {
       ]);
       return;
     }
-    setBuying(true);
-    try {
-      const r = await apiFetch<{ gatewayUrl: string; orderId: string }>('/api/checkout', {
-        method: 'POST',
-        body: {
-          eventId: params.id,
-          ticketTypeId: selected,
-          quantity: qty,
-          buyerEmail: user.email,
-          buyerName: user.name,
-        },
-      });
-      const url = r.gatewayUrl.startsWith('http') ? r.gatewayUrl : `${API_BASE_URL}${r.gatewayUrl}`;
-      const canOpen = await Linking.canOpenURL(url);
-      if (canOpen) {
-        await Linking.openURL(url);
-      } else {
-        Alert.alert('Platba', 'Otevři platební bránu v prohlížeči:\n' + url);
-      }
-    } catch (e) {
-      Alert.alert('Nákup selhal', e instanceof ApiError ? e.message : 'Zkus to znovu.');
-    } finally {
-      setBuying(false);
-    }
+    // Navigace na checkout screen — tam proběhne Stripe PaymentSheet nebo WebView
+    router.push({
+      pathname: '/checkout',
+      params: {
+        eventId: params.id,
+        ticketTypeId: selected,
+        qty: String(qty),
+        title: params.title ?? 'Vstupenky',
+      },
+    });
   }
 
   const sel = types?.find((t) => t.id === selected);
@@ -180,7 +164,7 @@ export default function EventDetailScreen() {
                 </Text>
               )}
             </Pressable>
-            <Text style={styles.payNote}>Platbu dokončíš v prohlížeči (platební brána).</Text>
+            <Text style={styles.payNote}>Platba je zabezpečena Stripe — Apple Pay, Google Pay nebo karta.</Text>
           </>
         ) : null}
       </ScrollView>

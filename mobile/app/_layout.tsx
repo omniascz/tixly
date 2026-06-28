@@ -1,10 +1,12 @@
 import { Link, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Text } from 'react-native';
+import { StripeProvider } from '@stripe/stripe-react-native';
 import { colors } from '@/lib/theme';
+import { STRIPE_PUBLISHABLE_KEY } from '@/lib/config';
 
 export default function RootLayout() {
-  return (
+  const inner = (
     <>
       <StatusBar style="light" />
       <Stack
@@ -49,4 +51,13 @@ export default function RootLayout() {
       </Stack>
     </>
   );
+
+  if (STRIPE_PUBLISHABLE_KEY) {
+    return (
+      <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY} merchantIdentifier="merchant.cz.tixly">
+        {inner}
+      </StripeProvider>
+    );
+  }
+  return inner;
 }
