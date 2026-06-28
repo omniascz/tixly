@@ -838,7 +838,7 @@ function CheckoutForm() {
                   <span className="text-sm font-medium">🏦 Převodem</span>
                 </label>
                 <label
-                  className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'wero' ? 'border-primary bg-primary/5' : ''}`}
+                  className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'wero' ? 'border-[#6D28D9] bg-violet-50' : ''}`}
                 >
                   <input
                     type="radio"
@@ -847,9 +847,24 @@ function CheckoutForm() {
                     checked={paymentMethod === 'wero'}
                     onChange={() => setPaymentMethod('wero')}
                   />
-                  <span className="text-sm font-medium">⚡ Wero</span>
+                  <span className="text-sm font-medium">
+                    <span className="mr-1 inline-block rounded bg-violet-700 px-1.5 py-0.5 text-[10px] font-bold text-white">W</span>
+                    Wero <span className="text-xs text-muted-foreground">— A2A Instant</span>
+                  </span>
                 </label>
               </div>
+
+              {/* Wero phone hint — zobrazí se jen při výběru Wero */}
+              {paymentMethod === 'wero' && (
+                <div className="mt-2 rounded-lg border border-violet-200 bg-violet-50 p-3 text-xs text-violet-800">
+                  <p className="font-semibold">⚡ Wero — okamžitá platba z účtu</p>
+                  <p className="mt-1 text-violet-600">
+                    Po kliknutí na &quot;Zaplatit&quot; zadáš telefonní číslo nebo naskenuj QR kód
+                    ve své banking appce (Air Bank, ČSOB, KB, Raiffeisen…).
+                    Peníze dorazí do 10 sekund přes SEPA Instant.
+                  </p>
+                </div>
+              )}
 
               {/* BNPL — Buy Now Pay Later (CZ: Twisto / Skip Pay) */}
               <div className="mt-2 grid grid-cols-2 gap-2">

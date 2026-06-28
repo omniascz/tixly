@@ -16,10 +16,43 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { mockPaymentBlockedResponse } from '@/lib/payment/mock-guard';
 
+export const dynamic = 'force-dynamic';
 
 interface OrderRow {
   id: string;
   status: string;
+}
+
+/** GET — vrátí info o platbě pro zobrazení na mock Wero stránce */
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: { paymentId: string } },
+): Promise<Response> {
+  const blocked = mockPaymentBlockedResponse();
+  if (blocked) return blocked;
+  return runWithServiceContext(async () => {
+    const r = await db().query<{
+      id: string; total_amount: number; currency: string; status: string;
+      event_title: string | null;
+    }>(
+      `SELECT o.id, o.total_amount, o.currency, o.status,
+              e.title AS event_title
+       FROM orders.orders o
+       LEFT JOIN catalog.events e ON e.id = o.event_id
+       WHERE o.gopay_payment_id = $1
+       LIMIT 1`,
+      [params.paymentId],
+    );
+    if (!r.rows[0]) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    const row = r.rows[0];
+    return NextResponse.json({
+      paymentId: params.paymentId,
+      amount: row.total_amount,
+      currency: row.currency,
+      status: row.status,
+      eventTitle: row.event_title,
+    });
+  });
 }
 
 export async function POST(
