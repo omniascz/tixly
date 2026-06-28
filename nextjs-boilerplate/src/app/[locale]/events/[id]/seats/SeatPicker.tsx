@@ -29,6 +29,8 @@ interface Layout {
 
 interface TicketType {
   id: string;
+  name: string;
+  zone: string | null;
   price: number;
   count: number;
 }
@@ -355,16 +357,19 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
   return (
     <div className="space-y-4">
       <div className="rounded-md border bg-card p-3">
-        <h3 className="mb-2 text-sm font-semibold">Cenové kategorie</h3>
+        <h3 className="mb-2 text-sm font-semibold">Cenové zóny</h3>
         <div className="flex flex-wrap gap-3 text-xs">
           {data.ticketTypes.map((tt) => (
-            <span key={tt.id} className="flex items-center gap-1">
+            <span key={tt.id} className="flex items-center gap-1.5">
               <span
-                className="inline-block h-3 w-3 rounded"
+                className="inline-block h-3 w-3 flex-shrink-0 rounded"
                 style={{ background: sectorColorForType(tt.id, data) }}
                 aria-hidden
               />
-              {formatMoney(tt.price, 'CZK')} ({tt.count} sedadel)
+              <span className="font-medium">{tt.zone ?? tt.name}</span>
+              <span className="text-muted-foreground">
+                {formatMoney(tt.price, 'CZK')} · {tt.count} sedadel
+              </span>
             </span>
           ))}
           <span className="ml-2 flex items-center gap-1 text-muted-foreground">

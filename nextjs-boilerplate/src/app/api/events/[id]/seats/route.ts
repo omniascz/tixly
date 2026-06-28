@@ -73,12 +73,26 @@ export async function GET(
     args,
   );
 
+  // Fetch ticket type names + zones for legend
+  const ttIds = [...new Set(seats.rows.map((s) => s.ticket_type_id).filter(Boolean))];
+  const ttMeta =
+    ttIds.length > 0
+      ? await db().query<{ id: string; name: string; zone: string | null }>(
+          `SELECT id, name, zone FROM catalog.ticket_types WHERE id = ANY($1::uuid[])`,
+          [ttIds],
+        )
+      : { rows: [] as { id: string; name: string; zone: string | null }[] };
+  const ttMetaById = new Map(ttMeta.rows.map((r) => [r.id, r]));
+
   // Group ticket types
-  const ticketTypes = new Map<string, { id: string; price: number; count: number }>();
+  const ticketTypes = new Map<string, { id: string; name: string; zone: string | null; price: number; count: number }>();
   for (const s of seats.rows) {
     if (!s.ticket_type_id) continue;
+    const meta = ttMetaById.get(s.ticket_type_id);
     const tt = ticketTypes.get(s.ticket_type_id) ?? {
       id: s.ticket_type_id,
+      name: meta?.name ?? s.ticket_type_id.slice(0, 8),
+      zone: meta?.zone ?? null,
       price: s.base_price,
       count: 0,
     };

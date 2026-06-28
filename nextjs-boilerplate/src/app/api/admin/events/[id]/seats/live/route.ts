@@ -18,6 +18,7 @@ interface SeatRow {
   y_coord: number;
   status: string;
   hold_until: string | null;
+  hold_kind: string | null;
   ticket_type_name: string | null;
   accessibility: boolean;
 }
@@ -56,6 +57,7 @@ export async function GET(
              ELSE es.status
            END AS status,
            es.hold_until::text,
+           es.hold_kind,
            tt.name AS ticket_type_name,
            COALESCE(es.accessibility, false) AS accessibility
          FROM catalog.event_seats es
@@ -93,6 +95,7 @@ export async function GET(
         y: s.y_coord,
         status: s.status,
         holdUntil: s.hold_until,
+        holdKind: s.hold_kind,
         ticketTypeName: s.ticket_type_name,
         accessibility: s.accessibility,
       })),
