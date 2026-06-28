@@ -26,6 +26,7 @@ import {
   Layers,
   Plus,
   Code2,
+  FileSignature,
   type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -81,6 +82,7 @@ const sections: NavSection[] = [
     items: [
       { href: '/admin/staff', label: 'Personál', icon: UserCog },
       { href: '/admin/settings', label: 'Nastavení', icon: Settings },
+      { href: '/admin/documents', label: 'Dokumenty (QES)', icon: FileSignature },
     ],
   },
   {
