@@ -110,6 +110,23 @@ export default function ScannerPage() {
   const [events, setEvents] = useState<GateEvent[]>([]);
   const [gate, setGate] = useState<GateState>({ eventId: null, eventDayId: null, zoneId: null });
   const [showSettings, setShowSettings] = useState(true);
+  // Haptic feedback on scan result (Vibration API — mobile browsers)
+  useEffect(() => {
+    if (!result || typeof navigator === 'undefined' || !navigator.vibrate) return;
+    const denied: ScanResult['result'][] = [
+      'already_used', 'already_redeemed_today', 'revoked', 'not_found',
+      'invalid_token', 'wrong_promoter', 'totp_mismatch', 'invalid_status',
+      'wrong_zone_or_day', 'flex_limit_exhausted', 'day_not_picked',
+      'already_inside', 'reentry_limit_exceeded', 'not_inside',
+      'reentry_disabled', 'error',
+    ];
+    if (result.result === 'admitted' || result.result === 'exited') {
+      navigator.vibrate(100); // krátká, čistá vibrace = úspěch
+    } else if (denied.includes(result.result)) {
+      navigator.vibrate([80, 60, 80]); // dvojitá vibrace = zamítnutí
+    }
+  }, [result]);
+
   // Offline mode state
   const [online, setOnline] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
