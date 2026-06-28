@@ -133,12 +133,12 @@ export async function POST(req: NextRequest): Promise<Response> {
       const holdbackHalire = computeHoldbackAmount(grossNet, policy);
       const netPayout = Math.max(0, gross - refunds - chargebacks - fees - holdbackHalire);
 
-      // INSERT payout
+      // INSERT payout (currency column added in mig 391)
       const payoutRes = await client.query<{ id: string }>(
         `INSERT INTO platform.payouts
            (promoter_id, period_from, period_to, gross_revenue, platform_fees,
-            refunds, chargebacks, rolling_reserve, net_payout, status, payout_cycle)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending', 'weekly')
+            refunds, chargebacks, rolling_reserve, net_payout, currency, status, payout_cycle)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending', 'weekly')
          RETURNING id`,
         [
           row.promoter_id,
@@ -150,6 +150,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           chargebacks,
           holdbackHalire,
           netPayout,
+          row.currency,
         ],
       );
       const payoutId = payoutRes.rows[0].id;
