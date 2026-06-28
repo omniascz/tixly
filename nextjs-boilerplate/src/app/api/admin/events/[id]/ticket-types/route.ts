@@ -109,14 +109,27 @@ export async function POST(
     }
     const input = parsed.data;
 
-    const ownership = await db().query(
-      `SELECT currency FROM catalog.events WHERE id = $1 AND promoter_id = $2 LIMIT 1`,
+    const ownership = await db().query<{ currency: string; status: string }>(
+      `SELECT currency, status FROM catalog.events WHERE id = $1 AND promoter_id = $2 LIMIT 1`,
       [params.id, promoter.promoterId],
     );
     if (ownership.rows.length === 0) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
+    const evStatus = ownership.rows[0].status;
+    if (evStatus === 'cancelled' || evStatus === 'ended') {
+      return NextResponse.json(
+        {
+          error: 'EVENT_TERMINAL_STATUS',
+          message: `Nelze přidat typ vstupenky — akce je ve stavu "${evStatus}".`,
+        },
+        { status: 409 },
+      );
+    }
+
+    // remaining_qty = totalQty je záměrné: nový TT nemá žádné prodané vstupenky,
+    // takže celá kapacita je okamžitě dostupná i za aktivního prodeje.
     const r = await db().query<{ id: string }>(
       `INSERT INTO catalog.ticket_types
          (event_id, name, description, kind, base_price, total_qty, remaining_qty,

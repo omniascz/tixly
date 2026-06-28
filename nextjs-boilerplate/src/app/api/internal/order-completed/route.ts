@@ -21,6 +21,7 @@ import { resolveVatRate, splitGrossToNetVat } from '@/lib/tax/vat-rates';
 import { awardPointsForOrder } from '@/lib/loyalty/engine';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 import { renderTicketsPdf } from '@/lib/tickets/pdf-renderer';
+import { buildPkpass, type PassData } from '@/lib/wallet/apple-pass';
 
 
 function safeEqual(a: string, b: string): boolean {
@@ -337,10 +338,11 @@ export async function POST(request: NextRequest): Promise<Response> {
       })
     : (order.promoter_vat_rate_pct ?? 10);
 
-  // Issue tickets + render PDF attachment.
+  // Issue tickets + render PDF + Apple Wallet passes.
   // Failures here must NOT block the email (best-effort) — order is already paid.
   let ticketsIssued = 0;
   let pdfAttachment: { filename: string; content: Buffer } | undefined;
+  let walletAttachments: { filename: string; content: Buffer; contentType: string }[] = [];
   let issued: Awaited<ReturnType<typeof issueTicketsForOrder>> = [];
   try {
     issued = await issueTicketsForOrder(orderId, db() as unknown as Pool);
@@ -524,6 +526,35 @@ export async function POST(request: NextRequest): Promise<Response> {
         filename: `${filenameSlug || 'tixly'}-${order.id.slice(0, 8)}.pdf`,
         content: pdfBuf,
       };
+
+      // Apple Wallet passes — max 8 per email, best-effort.
+      // iOS Mail rozpozná .pkpass přílohu a nabídne "Přidat do Peněženky".
+      for (const t of issued.slice(0, 8)) {
+        try {
+          const passData: PassData = {
+            ticketId: t.ticketId,
+            eventTitle: order.event_title,
+            eventDateIso: order.event_date_start,
+            ticketTypeName: t.ticketTypeName,
+            holderName: order.buyer_name,
+            holderEmail: order.buyer_email,
+            venueName: order.venue_name,
+            qrPayload: `tixly://ticket/${t.ticketId}`,
+            organizationName: order.promoter_name ?? 'Tixly',
+            brandColorHex: order.brand_color_hex,
+            brandLogoUrl: order.brand_logo_url,
+            seatLabel: priceByTicket.get(t.ticketId)?.seat ?? null,
+          };
+          const { buffer: pkpassBuf } = buildPkpass(passData);
+          walletAttachments.push({
+            filename: `vstupenka-${t.ticketId.slice(0, 8)}.pkpass`,
+            content: pkpassBuf,
+            contentType: 'application/vnd.apple.pkpass',
+          });
+        } catch (passErr) {
+          console.warn('[order-completed] wallet pass failed for ticket', t.ticketId, passErr);
+        }
+      }
     }
   } catch (err) {
     console.error('[order-completed] ticket issue / PDF failed:', err);
@@ -560,12 +591,16 @@ export async function POST(request: NextRequest): Promise<Response> {
     const senderName = order.promoter_name ?? 'Tixly';
     const fromAddr = process.env.EMAIL_FROM ?? 'vstupenky@tixly.local';
     const subjectPrefix = order.promoter_name ?? 'Tixly';
+    const emailAttachments: { filename: string; content: Buffer; contentType?: string }[] = [
+      ...(pdfAttachment ? [pdfAttachment] : []),
+      ...walletAttachments,
+    ];
     await sendMail({
       from: `"${senderName}" <${fromAddr}>`,
       to: order.buyer_email,
       subject: `${subjectPrefix} — vstupenky na ${order.event_title}`,
       html,
-      attachments: pdfAttachment ? [pdfAttachment] : undefined,
+      attachments: emailAttachments.length > 0 ? emailAttachments : undefined,
     });
     emailSent = true;
   } catch (err) {
