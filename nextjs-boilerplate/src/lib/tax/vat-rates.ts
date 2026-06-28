@@ -94,6 +94,50 @@ export function resolveVatRate(input: {
   return getVatRate(country, category);
 }
 
+export interface EffectiveVatResult {
+  vatRatePct: number;
+  isReverseCharge: boolean;
+  reverseChargeNote: string | null;
+}
+
+/**
+ * Resolve effective VAT rate considering reverse charge (EU B2B cross-border).
+ *
+ * If buyer_vat_country ≠ seller_country and both are EU countries → 0%, reverse charge.
+ * Otherwise falls back to standard resolveVatRate().
+ *
+ * @param sellerCountry   promoter's country code
+ * @param vatCategory     event VAT category
+ * @param buyerVatCountry 2-letter country from buyer's EU VAT number (undefined = not provided)
+ */
+// EU member state codes (UK/GB excluded — post-Brexit)
+const EU_MEMBER_STATES = new Set([
+  'AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES',
+  'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT',
+  'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK',
+]);
+
+export function resolveEffectiveVatRate(input: {
+  sellerCountry: string | null | undefined;
+  vatCategory: string | null | undefined;
+  buyerVatCountry?: string | null;
+}): EffectiveVatResult {
+  if (input.buyerVatCountry) {
+    const buyer = input.buyerVatCountry.toUpperCase();
+    const seller = (input.sellerCountry ?? 'CZ').toUpperCase();
+    if (buyer !== seller && EU_MEMBER_STATES.has(buyer) && EU_MEMBER_STATES.has(seller)) {
+      // Cross-border EU B2B → reverse charge (Art. 44 Directive 2006/112/EC)
+      return {
+        vatRatePct: 0,
+        isReverseCharge: true,
+        reverseChargeNote: 'Přenesená daňová povinnost / Reverse charge – Article 44, Council Directive 2006/112/EC',
+      };
+    }
+  }
+  const vatRatePct = resolveVatRate({ country: input.sellerCountry, vatCategory: input.vatCategory });
+  return { vatRatePct, isReverseCharge: false, reverseChargeNote: null };
+}
+
 /** List all supported countries for UI dropdowns. */
 export const SUPPORTED_VAT_COUNTRIES: { code: Country; label: string }[] = [
   { code: 'CZ', label: 'Česká republika (CZ)' },

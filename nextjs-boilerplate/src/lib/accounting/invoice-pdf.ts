@@ -137,6 +137,20 @@ export function buildInvoicePdf(d: IsdocInvoiceData): Promise<Buffer> {
       }
     }
 
+    // ── Reverse charge note ────────────────────────────────────────────────
+    if (d.isReverseCharge) {
+      rowY += 20;
+      doc.font('Bold').fontSize(9).fillColor('#cc0000')
+        .text(
+          d.reverseChargeNote ??
+          'Přenesená daňová povinnost – Article 44, Council Directive 2006/112/EC.',
+          MARGIN,
+          rowY,
+          { width: COL_R - MARGIN },
+        );
+      doc.fillColor('#000000');
+    }
+
     // ── Footer ─────────────────────────────────────────────────────────────
     doc.fontSize(7).fillColor('#888888')
       .text(

@@ -28,6 +28,7 @@ import {
   PriceMismatchError,
   PriceResolutionError,
 } from '@/lib/pricing/resolve-price';
+import { validateVatNumber, isReverseChargeApplicable } from '@/lib/tax/vies';
 
 
 const schema = z.object({
@@ -161,6 +162,10 @@ const schema = z.object({
     .optional(),
   // Digitální program (mig 359) — buyer přikoupí přístup k programu events.
   addProgram: z.boolean().optional(),
+  // EU B2B reverse charge (mig 390) — B2B kupec zadá DIČ/VAT ID.
+  // Pokud je DIČ platné (VIES) a země kupce ≠ zemi pořadatele → 0% DPH, reverse charge.
+  buyerVatNumber: z.string().min(4).max(20).regex(/^[A-Z]{2}[0-9A-Z]+$/i).optional(),
+  buyerCompanyName: z.string().min(1).max(200).optional(),
 });
 
 interface TicketTypeRow {
@@ -351,10 +356,11 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     // P0 RISK MITIGATION: hard cap pro T1 promotery
     // Pokud promotér ještě nepass pre-review, kontrolujeme volume_used + nový order < cap
-    const capRes = await client.query<{ cap: number | null; used: number; passed_at: string | null }>(
+    const capRes = await client.query<{ cap: number | null; used: number; passed_at: string | null; country: string | null }>(
       `SELECT pre_review_volume_cap_halire AS cap,
               pre_review_volume_used_halire AS used,
-              pre_review_passed_at::text AS passed_at
+              pre_review_passed_at::text AS passed_at,
+              country
          FROM platform.promoters
         WHERE id = $1`,
       // POZN. (concurrency): bez FOR UPDATE — tohle je jen orientační READ capu.
@@ -379,6 +385,9 @@ export async function POST(req: NextRequest): Promise<Response> {
         );
       }
     }
+
+    // Persist promoter country for reverse charge check later
+    const promoterCountry = capRes.rows[0]?.country ?? 'CZ';
 
     // Timed entry: pokud event.timed_entry_enabled, entrySlotId je vyžadován a
     // musí mít remaining >= quantity.
@@ -1180,6 +1189,21 @@ export async function POST(req: NextRequest): Promise<Response> {
     // Bank transfer má delší expiraci (3 dny) než instant gateway (15 min)
     const expiresInterval = input.paymentMethod === 'bank_transfer' ? '3 days' : '15 minutes';
 
+    // EU B2B Reverse charge check (mig 390)
+    let isReverseCharge = false;
+    let resolvedBuyerVatNumber: string | null = null;
+    let resolvedBuyerCompanyName: string | null = input.buyerCompanyName ?? null;
+    if (input.buyerVatNumber) {
+      const viesResult = await validateVatNumber(input.buyerVatNumber);
+      if (viesResult.isValid) {
+        resolvedBuyerVatNumber = input.buyerVatNumber.toUpperCase().replace(/\s/g, '');
+        isReverseCharge = isReverseChargeApplicable(viesResult.countryCode, promoterCountry);
+        if (!resolvedBuyerCompanyName && viesResult.name) {
+          resolvedBuyerCompanyName = viesResult.name;
+        }
+      }
+    }
+
     const orderRes = await client.query<{ id: string }>(
       `INSERT INTO orders.orders
          (user_id, event_id, status, total_amount, currency, locale,
@@ -1187,12 +1211,14 @@ export async function POST(req: NextRequest): Promise<Response> {
           discount_halire, promo_code_id, requires_age_verification,
           is_gift, gift_recipient_email, gift_recipient_name, gift_message, gift_redeem_token,
           holder_names, variable_symbol, entry_slot_id, service_fee_minor,
+          buyer_vat_number, buyer_company_name, is_reverse_charge,
           expires_at, created_at, updated_at)
        VALUES ($1, $2, 'pending', $3, $4, 'cs',
                $5, $6, $7,
                $8, $9, $10,
                $11, $12, $13, $14, $15,
                $16, $17, $19, $20,
+               $21, $22, $23,
                NOW() + ($18 || '')::interval, NOW(), NOW())
        RETURNING id`,
       [
@@ -1201,7 +1227,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         totalAmount,
         tt.currency,
         paymentId,
-        input.paymentMethod, // gopay | wero | przelewy24 | bank_transfer
+        input.paymentMethod,
         randomUUID(),
         discountAmount + bundleDiscountAmount,
         promoCodeId,
@@ -1216,6 +1242,9 @@ export async function POST(req: NextRequest): Promise<Response> {
         expiresInterval,
         input.entrySlotId ?? null,
         serviceFeeMinor,
+        resolvedBuyerVatNumber,
+        resolvedBuyerCompanyName,
+        isReverseCharge,
       ],
     );
     const orderId = orderRes.rows[0].id;

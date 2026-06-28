@@ -53,6 +53,9 @@ interface OrderRow {
   brand_color_hex: string | null;
   brand_logo_url: string | null;
   promoter_vat_rate_pct: number | null;
+  buyer_vat_number: string | null;
+  buyer_company_name: string | null;
+  is_reverse_charge: boolean;
 }
 
 interface ItemRow {
@@ -178,13 +181,13 @@ function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: 
     : `${escapeHtml(promoterName)} přes Tixly`;
 
   // DPH rozpis (gross → net + dph). Per-event vat_category > promoter flat rate.
-  // SK + cultural = 5 %, CZ + cultural = 10 %, atd.
-  const vatRatePct = order.event_vat_category
-    ? resolveVatRate({
-        country: order.promoter_country,
-        vatCategory: order.event_vat_category,
-      })
-    : (order.promoter_vat_rate_pct ?? 10);
+  // B2B reverse charge → 0 % (EU cross-border, mig 390).
+  const effectiveVatRateEmail = order.is_reverse_charge
+    ? 0
+    : order.event_vat_category
+      ? resolveVatRate({ country: order.promoter_country, vatCategory: order.event_vat_category })
+      : (order.promoter_vat_rate_pct ?? 10);
+  const vatRatePct = effectiveVatRateEmail;
   const { netHalire, vatHalire } = splitGrossToNetVat(order.total_amount, vatRatePct);
 
   return `<!DOCTYPE html>
@@ -272,7 +275,10 @@ export async function POST(request: NextRequest): Promise<Response> {
        p.country AS promoter_country,
        p.brand_color_hex,
        p.brand_logo_url,
-       p.vat_rate_pct AS promoter_vat_rate_pct
+       p.vat_rate_pct AS promoter_vat_rate_pct,
+       o.buyer_vat_number,
+       o.buyer_company_name,
+       o.is_reverse_charge
      FROM orders.orders o
      JOIN identity.users u ON u.id = o.user_id
      LEFT JOIN catalog.events e ON e.id = o.event_id
@@ -330,13 +336,12 @@ export async function POST(request: NextRequest): Promise<Response> {
   const html = buildEmailHtml(order, itemsRes.rows, accessibleGateLines);
 
   // Spočítej efektivní DPH sazbu (per-event vat_category > promoter flat rate).
-  // Použito i v renderTicketsPdf níže.
-  const effectiveVatRatePct = order.event_vat_category
-    ? resolveVatRate({
-        country: order.promoter_country,
-        vatCategory: order.event_vat_category,
-      })
-    : (order.promoter_vat_rate_pct ?? 10);
+  // B2B reverse charge → 0 % (EU cross-border, mig 390).
+  const effectiveVatRatePct = order.is_reverse_charge
+    ? 0
+    : order.event_vat_category
+      ? resolveVatRate({ country: order.promoter_country, vatCategory: order.event_vat_category })
+      : (order.promoter_vat_rate_pct ?? 10);
 
   // Issue tickets + render PDF + Apple Wallet passes.
   // Failures here must NOT block the email (best-effort) — order is already paid.

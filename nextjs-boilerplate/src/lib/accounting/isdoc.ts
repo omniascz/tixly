@@ -75,6 +75,10 @@ export interface IsdocInvoiceData {
   // Platba
   paymentMeans?: 'transfer' | 'card' | 'cash';
   variableSymbol?: string;
+
+  // EU B2B Reverse charge (mig 390)
+  isReverseCharge?: boolean;
+  reverseChargeNote?: string;
 }
 
 function escapeXml(s: string): string {
@@ -130,9 +134,9 @@ export function buildIsdocXml(d: IsdocInvoiceData): string {
   <UUID>${uid}</UUID>
   <IssueDate>${d.issueDate}</IssueDate>
   <TaxPointDate>${d.taxableSupplyDate}</TaxPointDate>
-  <VATApplicable>true</VATApplicable>
+  <VATApplicable>${d.isReverseCharge ? 'false' : 'true'}</VATApplicable>
   <ElectronicPossibilityAgreementReference />
-  <Note>Vystaveno přes Tixly (tixly.cz)</Note>
+  <Note>${d.isReverseCharge ? escapeXml(d.reverseChargeNote ?? 'Přenesená daňová povinnost – Article 44, Council Directive 2006/112/EC.') : 'Vystaveno přes Tixly (tixly.cz)'}</Note>
   <LocalCurrencyCode>${escapeXml(d.currency)}</LocalCurrencyCode>
   <CurrRate>${d.exchangeRate ? fmt(d.exchangeRate) : '1.00'}</CurrRate>
   <RefCurrRate>1.00</RefCurrRate>

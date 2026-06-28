@@ -44,6 +44,8 @@ export async function GET(
     promoter_bank_account: string | null;
     promoter_iban: string | null;
     promoter_email: string | null;
+    is_reverse_charge: boolean;
+    buyer_vat_number: string | null;
   }>(
     `SELECT i.invoice_number,
             i.issue_date::text,
@@ -55,9 +57,12 @@ export async function GET(
             p.company_address AS promoter_address,
             p.bank_account AS promoter_bank_account,
             NULL::text AS promoter_iban,
-            p.contact_email AS promoter_email
+            p.contact_email AS promoter_email,
+            COALESCE(o.is_reverse_charge, FALSE) AS is_reverse_charge,
+            o.buyer_vat_number
      FROM orders.invoices i
      JOIN platform.promoters p ON p.id = i.promoter_id
+     LEFT JOIN orders.orders o ON o.id = i.order_id
      WHERE i.id = $1 AND i.promoter_id = $2`,
     [id, promoter.promoterId],
   );
@@ -128,6 +133,10 @@ export async function GET(
     total: toDecimal(inv.total_minor),
     paymentMeans: 'transfer',
     variableSymbol: inv.invoice_number.replace(/-/g, ''),
+    isReverseCharge: inv.is_reverse_charge,
+    reverseChargeNote: inv.is_reverse_charge
+      ? `Přenesená daňová povinnost (DIČ kupce: ${inv.buyer_vat_number ?? 'N/A'}) – Article 44, Council Directive 2006/112/EC.`
+      : undefined,
   };
 
   const pdfBuf = await buildInvoicePdf(data);
