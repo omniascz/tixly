@@ -307,6 +307,27 @@ export default async function OrderConfirmationPage({
             </div>
           ) : null}
 
+          {/* Calendar add — zobrazí se jen pro paid objednávky s datem události */}
+          {isPaid && order.event_date_start && order.event_title ? (
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={`/api/buyer/orders/${order.id}/calendar.ics`}
+                download
+                className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted"
+              >
+                📅 Stáhnout do kalendáře (.ics)
+              </a>
+              <a
+                href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(order.event_title)}&dates=${order.event_date_start.replace(/[-:]/g, '').replace('T', 'T').slice(0, 15) + 'Z'}/${order.event_date_start.replace(/[-:]/g, '').replace('T', 'T').slice(0, 15) + 'Z'}&location=${encodeURIComponent(order.venue_name ?? '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted"
+              >
+                📅 Přidat do Google Kalendáře
+              </a>
+            </div>
+          ) : null}
+
           {isPaid && tickets.length > 0 ? (
             <div className="space-y-2">
               <ResaleButton
