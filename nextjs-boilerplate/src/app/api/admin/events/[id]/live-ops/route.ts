@@ -32,7 +32,7 @@ export async function GET(
   }
   const ev = owns.rows[0];
 
-  const [sales, scanRate, redemptionsByZone, redemptionsByDay, queue, inventory] =
+  const [sales, scanRate, redemptionsByZone, redemptionsByDay, queue, inventory, gateStats] =
     await Promise.all([
       db().query<{ tickets_sold: string; revenue_halire: string; refunded_count: string }>(
         `SELECT
@@ -104,6 +104,19 @@ export async function GET(
          ORDER BY base_price ASC`,
         [params.id],
       ),
+      db().query<{ gate_id: string | null; gate_label: string | null; admitted: string; denied: string }>(
+        `SELECT
+           sl.gate_id,
+           g.label AS gate_label,
+           COUNT(*) FILTER (WHERE sl.scan_result = 'admitted')::text AS admitted,
+           COUNT(*) FILTER (WHERE sl.scan_result IN ('denied', 'already_used'))::text AS denied
+         FROM tickets.scan_logs sl
+         LEFT JOIN catalog.venue_gates g ON g.id = sl.gate_id
+         WHERE sl.event_id = $1
+         GROUP BY sl.gate_id, g.label
+         ORDER BY admitted DESC NULLS LAST`,
+        [params.id],
+      ),
     ]);
 
   return NextResponse.json({
@@ -147,6 +160,12 @@ export async function GET(
       totalQty: i.total_qty,
       remainingQty: i.remaining_qty,
       soldQty: i.total_qty !== null && i.remaining_qty !== null ? i.total_qty - i.remaining_qty : null,
+    })),
+    gates: gateStats.rows.map((g) => ({
+      gateId: g.gate_id,
+      gateLabel: g.gate_label ?? (g.gate_id ? `Brána ${g.gate_id.slice(0, 8)}` : 'Web scanner'),
+      admitted: Number(g.admitted),
+      denied: Number(g.denied),
     })),
     timestamp: new Date().toISOString(),
   });
