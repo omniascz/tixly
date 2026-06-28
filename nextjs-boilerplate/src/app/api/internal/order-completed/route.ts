@@ -784,4 +784,23 @@ async function fireConversionTracking(orderId: string): Promise<void> {
       { eventId: o.event_id, orderId },
     );
   }
+
+  if (creds.tiktokPixelId && creds.tiktokEventsToken) {
+    const { sendTikTokEvent } = await import('@/lib/tracking/tiktok-capi');
+    await sendTikTokEvent({
+      eventName: 'Purchase',
+      pixelId: creds.tiktokPixelId,
+      accessToken: creds.tiktokEventsToken,
+      eventId: orderId,
+      email: o.buyer_email,
+      value: valueMajor,
+      currency: o.currency,
+      contentId: items[0]?.ticket_type_id,
+      contentName: o.event_title,
+      quantity: items.reduce((s, i) => s + i.quantity, 0),
+      pageUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/cs/events/${o.event_id}`,
+      catalogEventId: o.event_id,
+      catalogOrderId: orderId,
+    });
+  }
 }

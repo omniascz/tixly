@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { Pool } from 'pg';
 import { ReportButton } from '@/components/public/ReportButton';
 import { MetaPixel } from '@/components/tracking/MetaPixel';
+import { GtmHeadScript, GtmNoScript } from '@/components/tracking/GtmScript';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate } from '@/lib/format';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
@@ -54,6 +55,7 @@ interface EventDetail {
   promoter_brand_logo_url: string | null;
   promoter_brand_tagline: string | null;
   promoter_meta_pixel_id: string | null;
+  promoter_gtm_container_id: string | null;
 }
 
 interface TicketTypeRow {
@@ -91,7 +93,8 @@ async function fetchDetail(id: string) {
              p.brand_color_hex AS promoter_brand_color_hex,
              p.brand_logo_url AS promoter_brand_logo_url,
              p.brand_tagline AS promoter_brand_tagline,
-             p.meta_pixel_id AS promoter_meta_pixel_id
+             p.meta_pixel_id AS promoter_meta_pixel_id,
+             p.gtm_container_id AS promoter_gtm_container_id
       FROM catalog.events e
       LEFT JOIN catalog.venues v ON v.id = e.venue_id
       LEFT JOIN platform.promoters p ON p.id = e.promoter_id
@@ -263,6 +266,8 @@ export default async function EventDetailPage({
 
   return (
     <div className="space-y-6">
+      <GtmHeadScript containerId={event.promoter_gtm_container_id ?? ''} />
+      <GtmNoScript containerId={event.promoter_gtm_container_id ?? ''} />
       <MetaPixel
         pixelId={event.promoter_meta_pixel_id}
         event="ViewContent"

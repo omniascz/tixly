@@ -18,6 +18,9 @@ export interface PromoterTrackingCreds {
   metaCapiToken: string | null;
   ga4MeasurementId: string | null;
   ga4ApiSecret: string | null;
+  gtmContainerId: string | null;
+  tiktokPixelId: string | null;
+  tiktokEventsToken: string | null;
 }
 
 const EMPTY: PromoterTrackingCreds = {
@@ -25,6 +28,9 @@ const EMPTY: PromoterTrackingCreds = {
   metaCapiToken: null,
   ga4MeasurementId: null,
   ga4ApiSecret: null,
+  gtmContainerId: null,
+  tiktokPixelId: null,
+  tiktokEventsToken: null,
 };
 
 function safeDecrypt(enc: string | null): string | null {
@@ -45,9 +51,13 @@ export async function getPromoterTrackingByEvent(
     meta_capi_token_enc: string | null;
     ga4_measurement_id: string | null;
     ga4_api_secret_enc: string | null;
+    gtm_container_id: string | null;
+    tiktok_pixel_id: string | null;
+    tiktok_events_token_enc: string | null;
   }>(
     `SELECT p.meta_pixel_id, p.meta_capi_token_enc,
-            p.ga4_measurement_id, p.ga4_api_secret_enc
+            p.ga4_measurement_id, p.ga4_api_secret_enc,
+            p.gtm_container_id, p.tiktok_pixel_id, p.tiktok_events_token_enc
        FROM catalog.events e
        JOIN platform.promoters p ON p.id = e.promoter_id
       WHERE e.id = $1`,
@@ -60,5 +70,8 @@ export async function getPromoterTrackingByEvent(
     metaCapiToken: safeDecrypt(row.meta_capi_token_enc),
     ga4MeasurementId: row.ga4_measurement_id,
     ga4ApiSecret: safeDecrypt(row.ga4_api_secret_enc),
+    gtmContainerId: row.gtm_container_id,
+    tiktokPixelId: row.tiktok_pixel_id,
+    tiktokEventsToken: safeDecrypt(row.tiktok_events_token_enc),
   };
 }

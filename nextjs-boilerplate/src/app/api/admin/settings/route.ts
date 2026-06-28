@@ -134,6 +134,12 @@ const patchSchema = z.object({
     .nullable()
     .optional(),
   ga4ApiSecret: z.union([z.string().max(200), z.literal('')]).nullable().optional(),
+  gtmContainerId: z
+    .union([z.string().regex(/^GTM-[A-Z0-9]+$/i, 'GTM ID formát GTM-XXXXXXX'), z.literal('')])
+    .nullable()
+    .optional(),
+  tiktokPixelId: z.union([z.string().max(50), z.literal('')]).nullable().optional(),
+  tiktokEventsToken: z.union([z.string().max(500), z.literal('')]).nullable().optional(),
 
   // Billing (owner-only)
   bankAccount: z.string().max(50).nullable().optional(),
@@ -198,6 +204,15 @@ export async function PATCH(req: NextRequest): Promise<Response> {
           ? encryptSecret(input.ga4ApiSecret)
           : null;
 
+    const gtmVal = input.gtmContainerId === undefined ? undefined : input.gtmContainerId || null;
+    const tiktokPixelVal = input.tiktokPixelId === undefined ? undefined : input.tiktokPixelId || null;
+    const tiktokTokenEncVal =
+      input.tiktokEventsToken === undefined
+        ? undefined
+        : input.tiktokEventsToken
+          ? encryptSecret(input.tiktokEventsToken)
+          : null;
+
     const promoterPatches: Array<[string, unknown]> = [
       ['contact_email', input.contactEmail],
       ['locale', input.locale],
@@ -209,6 +224,9 @@ export async function PATCH(req: NextRequest): Promise<Response> {
       ['meta_capi_token_enc', capiTokenEncVal],
       ['ga4_measurement_id', ga4MidVal],
       ['ga4_api_secret_enc', ga4SecretEncVal],
+      ['gtm_container_id', gtmVal],
+      ['tiktok_pixel_id', tiktokPixelVal],
+      ['tiktok_events_token_enc', tiktokTokenEncVal],
     ];
     for (const [col, val] of promoterPatches) {
       if (val !== undefined) {
