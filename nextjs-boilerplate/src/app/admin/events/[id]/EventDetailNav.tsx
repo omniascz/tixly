@@ -93,6 +93,7 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
 
     // After-event
     { href: `/admin/events/${eventId}/reviews`, label: 'Hodnocení', group: 'After-event' },
+    { href: `/admin/events/${eventId}/fan-ticket`, label: '🎫 Fan Ticket', group: 'Lístky' },
     { href: `/admin/events/${eventId}/commemorative`, label: 'Vzpomínková vstupenka', group: 'After-event' },
 
     // Finance

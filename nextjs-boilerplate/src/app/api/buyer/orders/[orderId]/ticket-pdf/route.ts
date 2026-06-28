@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 import { renderTicketsPdf } from '@/lib/tickets/pdf-renderer';
+import { renderFanTicketPdf } from '@/lib/tickets/fan-ticket-renderer';
 
 export async function GET(
   req: NextRequest,
@@ -38,11 +39,15 @@ export async function GET(
     brand_color_hex: string | null;
     brand_logo_url: string | null;
     vat_rate_pct: number | null;
+    fan_ticket_enabled: boolean;
+    fan_artwork_url: string | null;
   }>(
     `SELECT o.id, o.user_id,
             e.title AS event_title,
             e.date_start::text AS event_date_start,
             COALESCE(e.qr_policy, 'static_allowed') AS qr_policy,
+            e.fan_ticket_enabled,
+            e.fan_artwork_url,
             v.name AS venue_name,
             p.name AS promoter_name,
             o.buyer_email,
@@ -123,6 +128,37 @@ export async function GET(
       },
     ]),
   );
+
+  // Fan Ticket: prémiový renderer (landscape, artwork) pro první vstupenku
+  // Ostatní vstupenky v objednávce dostanou standardní PDF na dalších stránkách
+  if (order.fan_ticket_enabled && order.fan_artwork_url && issued.length > 0) {
+    const firstTicket = issued[0];
+    const firstMeta   = metaById.get(firstTicket.ticketId);
+    const fanBuf = await renderFanTicketPdf({
+      eventTitle:        order.event_title,
+      eventDateStart:    order.event_date_start,
+      venueName:         order.venue_name,
+      ticketTypeName:    firstTicket.ticketTypeName,
+      seatLabel:         firstMeta?.seat ?? null,
+      holderName:        order.buyer_name ?? '',
+      holderEmail:       order.buyer_email,
+      ticketId:          firstTicket.ticketId,
+      orderId:           order.id,
+      totpSecretBase32:  firstTicket.totpSecretBase32,
+      brandColorHex:     order.brand_color_hex,
+      artworkUrl:        order.fan_artwork_url,
+      promoterName:      order.promoter_name,
+    });
+    const slug = (order.promoter_name ?? 'tixly')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 20);
+    return new Response(new Uint8Array(fanBuf), {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${slug}-fanticket-${params.orderId.slice(0, 8)}.pdf"`,
+        'Cache-Control': 'private, no-store',
+      },
+    });
+  }
 
   const pdfBuf = await renderTicketsPdf(
     {
