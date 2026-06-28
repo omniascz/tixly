@@ -1212,6 +1212,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           is_gift, gift_recipient_email, gift_recipient_name, gift_message, gift_redeem_token,
           holder_names, variable_symbol, entry_slot_id, service_fee_minor,
           buyer_vat_number, buyer_company_name, is_reverse_charge,
+          withdrawal_rights_shown,
           expires_at, created_at, updated_at)
        VALUES ($1, $2, 'pending', $3, $4, 'cs',
                $5, $6, $7,
@@ -1219,6 +1220,7 @@ export async function POST(req: NextRequest): Promise<Response> {
                $11, $12, $13, $14, $15,
                $16, $17, $19, $20,
                $21, $22, $23,
+               $24,
                NOW() + ($18 || '')::interval, NOW(), NOW())
        RETURNING id`,
       [
@@ -1245,6 +1247,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         resolvedBuyerVatNumber,
         resolvedBuyerCompanyName,
         isReverseCharge,
+        true, // withdrawal_rights_shown — CRD Art. 16(l) exemption shown at checkout
       ],
     );
     const orderId = orderRes.rows[0].id;

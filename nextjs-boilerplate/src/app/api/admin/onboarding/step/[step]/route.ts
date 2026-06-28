@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 import { randomBytes } from 'crypto';
+import { buildESignatureRecord, type DocumentType } from '@/lib/compliance/e-signature';
 
 function slugify(text: string): string {
   return text
@@ -34,7 +35,7 @@ export async function POST(
 ): Promise<Response> {
   return runAsActivePromoter(req, async (promoter) => {
     const step = parseInt(params.step, 10);
-    if (isNaN(step) || step < 1 || step > 7) {
+    if (isNaN(step) || step < 1 || step > 8) {
       return NextResponse.json({ error: 'INVALID_STEP' }, { status: 400 });
     }
 
@@ -274,6 +275,64 @@ export async function POST(
 
       await markStepDone(promoter.promoterId, 7, { step7: { emails: list, invited } });
       return NextResponse.json({ invited });
+    }
+
+    // Step 8 — eIDAS T&C acceptance (required before KYC submission)
+    if (step === 8) {
+      const { documentContent, locale } = body as {
+        documentContent?: string;
+        locale?: string;
+      };
+
+      if (!documentContent || documentContent.length < 100) {
+        return NextResponse.json({ error: 'DOCUMENT_CONTENT_REQUIRED' }, { status: 400 });
+      }
+
+      const rawIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '';
+      const userAgent = req.headers.get('user-agent') ?? undefined;
+
+      const docs: DocumentType[] = ['terms_of_service', 'promoter_contract', 'dpa'];
+      for (const docType of docs) {
+        const sig = buildESignatureRecord({
+          userId: promoter.userId,
+          promoterId: promoter.promoterId,
+          documentType: docType,
+          documentContent,
+          rawIp,
+          userAgent,
+          locale: locale ?? 'cs',
+        });
+
+        await db().query(
+          `INSERT INTO compliance.e_signatures
+             (user_id, promoter_id, document_type, document_version, document_hash,
+              ip_address, user_agent, locale, signature_method)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+           ON CONFLICT DO NOTHING`,
+          [
+            sig.userId,
+            sig.promoterId,
+            sig.documentType,
+            sig.documentVersion,
+            sig.documentHash,
+            sig.ipAddress,
+            sig.userAgent,
+            sig.locale,
+            sig.signatureMethod,
+          ],
+        );
+      }
+
+      // Record on onboarding row
+      await db().query(
+        `UPDATE platform.promoter_onboarding
+         SET terms_accepted_at = NOW(), terms_version = $2, terms_ip = $3
+         WHERE promoter_id = $1`,
+        [promoter.promoterId, '2026-06', rawIp ? rawIp.replace(/\.\d+$/, '.0') : null],
+      );
+
+      await markStepDone(promoter.promoterId, 8, { step8: { termsAccepted: true, docs } });
+      return NextResponse.json({ ok: true, termsAccepted: true });
     }
 
     return NextResponse.json({ error: 'INVALID_STEP' }, { status: 400 });
