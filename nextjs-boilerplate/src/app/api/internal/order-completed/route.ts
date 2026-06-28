@@ -447,6 +447,45 @@ export async function POST(request: NextRequest): Promise<Response> {
       }
     }
 
+    // Party Pay — mark slot paid + check if session is now complete
+    {
+      const partyClient = await db().connect();
+      try {
+        await partyClient.query('BEGIN');
+        await partyClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+
+        const slotUpd = await partyClient.query<{ session_id: string }>(
+          `UPDATE orders.party_split_slots
+           SET status = 'paid', paid_at = NOW()
+           WHERE order_id = $1 AND status IN ('reserved', 'pending')
+           RETURNING session_id`,
+          [orderId],
+        );
+
+        if (slotUpd.rows.length > 0) {
+          const sessionId = slotUpd.rows[0].session_id;
+          // Complete session if all slots are paid
+          await partyClient.query(
+            `UPDATE orders.party_split_sessions
+             SET status = 'complete', completed_at = NOW(), updated_at = NOW()
+             WHERE id = $1
+               AND NOT EXISTS (
+                 SELECT 1 FROM orders.party_split_slots
+                 WHERE session_id = $1 AND status != 'paid'
+               )`,
+            [sessionId],
+          );
+        }
+
+        await partyClient.query('COMMIT');
+      } catch (err) {
+        await partyClient.query('ROLLBACK').catch(() => undefined);
+        console.error('[order-completed] party_split slot completion failed', err);
+      } finally {
+        partyClient.release();
+      }
+    }
+
     // Skip PDF when this is a duplicate call (existing tickets have empty secrets)
     const hasFreshSecrets = issued.every((t) => t.totpSecretBase32.length > 0);
     // Fire-and-forget conversion tracking (Q.2) — Meta CAPI + GA4
