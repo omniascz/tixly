@@ -23,12 +23,16 @@ export async function POST(
     };
 
     return runWithServiceContext(async () => {
-      // Lock listing atomically
+      // Lock listing atomically; join to get event info
       const listingR = await db().query(
-        `SELECT l.*, e.title AS event_title
-         FROM orders.resale_listings l
-         JOIN catalog.events e ON e.id = l.event_id
-         WHERE l.id=$1 AND l.status='available'
+        `SELECT l.*,
+                o.event_id,
+                e.title AS event_title
+         FROM resale.resale_listings l
+         JOIN tickets.tickets t ON t.id = l.ticket_id
+         JOIN orders.orders   o ON o.id = t.order_id
+         JOIN catalog.events  e ON e.id = o.event_id
+         WHERE l.id=$1 AND l.status='active'
            AND (l.expires_at IS NULL OR l.expires_at > NOW())
          FOR UPDATE SKIP LOCKED`,
         [params.listingId],
@@ -41,17 +45,17 @@ export async function POST(
       const listing = listingR.rows[0] as {
         id: string;
         ticket_id: string;
-        seller_user_id: string;
+        seller_id: string;
         event_id: string;
         event_title: string;
         ticket_type_name: string;
         seat_label: string | null;
-        listing_price_halire: number;
+        ask_price: number;
         platform_fee_halire: number;
         seller_payout_halire: number;
       };
 
-      if (listing.seller_user_id === userId) {
+      if (listing.seller_id === userId) {
         return NextResponse.json({ error: 'You cannot buy your own listing' }, { status: 409 });
       }
 
@@ -60,25 +64,24 @@ export async function POST(
       // Create pending order
       const orderR = await db().query(
         `INSERT INTO orders.orders
-           (buyer_user_id, event_id, total_amount, status, resale_listing_id)
+           (user_id, event_id, total_amount, status, resale_listing_id)
          VALUES ($1,$2,$3,'pending',$4)
          RETURNING id`,
-        [userId, listing.event_id, listing.listing_price_halire, params.listingId],
+        [userId, listing.event_id, listing.ask_price, params.listingId],
       );
 
       const orderId = orderR.rows[0].id as string;
 
       // Reserve listing
       await db().query(
-        `UPDATE orders.resale_listings
-         SET status='reserved', reserved_until=$1, buyer_user_id=$2, buyer_order_id=$3, updated_at=NOW()
+        `UPDATE resale.resale_listings
+         SET status='reserved', reserved_until=$1, buyer_id=$2, buyer_order_id=$3
          WHERE id=$4`,
         [reservedUntil.toISOString(), userId, orderId, params.listingId],
       );
 
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
-      // Try to initiate payment via existing checkout pay endpoint
       let paymentUrl: string | null = null;
       try {
         const payR = await fetch(`${appUrl}/api/checkout/pay`, {
@@ -89,7 +92,7 @@ export async function POST(
           },
           body: JSON.stringify({
             orderId,
-            amount: listing.listing_price_halire,
+            amount: listing.ask_price,
             currency: 'CZK',
             description: `Resale: ${listing.event_title} — ${listing.ticket_type_name}${listing.seat_label ? ` (${listing.seat_label})` : ''}`,
             paymentMethod: b.payment_method ?? 'gopay',
@@ -109,7 +112,7 @@ export async function POST(
         listing_id: params.listingId,
         reserved_until: reservedUntil.toISOString(),
         payment_url: paymentUrl,
-        amount_halire: listing.listing_price_halire,
+        amount_halire: listing.ask_price,
       }, { status: 201 });
     });
   });

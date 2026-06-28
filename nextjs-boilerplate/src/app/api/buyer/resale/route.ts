@@ -13,12 +13,14 @@ export async function GET(req: NextRequest): Promise<Response> {
     const listings = await runWithServiceContext(() =>
       db().query(
         `SELECT l.*,
-                e.title AS event_title,
-                e.start_date,
-                e.slug  AS event_slug
-         FROM orders.resale_listings l
-         JOIN catalog.events e ON e.id = l.event_id
-         WHERE l.seller_user_id = $1
+                e.title     AS event_title,
+                e.date_start,
+                e.slug      AS event_slug
+         FROM resale.resale_listings l
+         JOIN tickets.tickets   t ON t.id  = l.ticket_id
+         JOIN orders.orders     o ON o.id  = t.order_id
+         JOIN catalog.events    e ON e.id  = o.event_id
+         WHERE l.seller_id = $1
          ORDER BY l.listed_at DESC
          LIMIT 100`,
         [userId],

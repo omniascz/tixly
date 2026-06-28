@@ -14,7 +14,6 @@ export async function GET(
   { params }: { params: { id: string } },
 ): Promise<Response> {
   return runAsPromoter(req, async (ctx) => {
-    // ownership check: promoter must own this event
     const evOwn = await runWithServiceContext(() =>
       db().query(`SELECT id FROM catalog.events WHERE id=$1 AND promoter_id=$2 LIMIT 1`, [params.id, ctx.promoterId]),
     );
@@ -34,10 +33,12 @@ export async function GET(
           `SELECT l.*,
                   su.email AS seller_email,
                   bu.email AS buyer_email
-           FROM orders.resale_listings l
-           LEFT JOIN identity.users su ON su.id = l.seller_user_id
-           LEFT JOIN identity.users bu ON bu.id = l.buyer_user_id
-           WHERE l.event_id=$1
+           FROM resale.resale_listings l
+           JOIN tickets.tickets  t  ON t.id  = l.ticket_id
+           JOIN orders.orders    o  ON o.id  = t.order_id
+           LEFT JOIN identity.users su ON su.id = l.seller_id
+           LEFT JOIN identity.users bu ON bu.id = l.buyer_id
+           WHERE o.event_id = $1
            ORDER BY l.listed_at DESC
            LIMIT 500`,
           [params.id],
@@ -46,16 +47,18 @@ export async function GET(
       runWithServiceContext(() =>
         db().query(
           `SELECT
-             COUNT(*)                                          FILTER (WHERE status='available')   AS available_count,
-             COUNT(*)                                          FILTER (WHERE status='sold')        AS sold_count,
-             COUNT(*)                                          FILTER (WHERE status='cancelled')   AS cancelled_count,
-             COALESCE(SUM(listing_price_halire) FILTER (WHERE status='sold'), 0)::int             AS total_resale_volume,
-             COALESCE(SUM(platform_fee_halire)  FILTER (WHERE status='sold'), 0)::int             AS total_platform_fees,
+             COUNT(*)                                       FILTER (WHERE l.status='active')     AS active_count,
+             COUNT(*)                                       FILTER (WHERE l.status='sold')       AS sold_count,
+             COUNT(*)                                       FILTER (WHERE l.status='cancelled')  AS cancelled_count,
+             COALESCE(SUM(l.ask_price)     FILTER (WHERE l.status='sold'), 0)::int              AS total_resale_volume,
+             COALESCE(SUM(l.platform_fee_halire) FILTER (WHERE l.status='sold'), 0)::int        AS total_platform_fees,
              COALESCE(AVG(
-               ROUND((listing_price_halire::numeric / NULLIF(original_price_halire,0) - 1) * 100, 1)
-             ) FILTER (WHERE status='sold'), 0)::numeric(6,2)                                     AS avg_markup_pct
-           FROM orders.resale_listings
-           WHERE event_id=$1`,
+               ROUND((l.ask_price::numeric / NULLIF(l.original_price,0) - 1) * 100, 1)
+             ) FILTER (WHERE l.status='sold'), 0)::numeric(6,2)                                 AS avg_markup_pct
+           FROM resale.resale_listings l
+           JOIN tickets.tickets t ON t.id  = l.ticket_id
+           JOIN orders.orders   o ON o.id  = t.order_id
+           WHERE o.event_id = $1`,
           [params.id],
         ),
       ),
@@ -74,7 +77,6 @@ export async function PATCH(
   { params }: { params: { id: string } },
 ): Promise<Response> {
   return runAsPromoter(req, async (ctx) => {
-    // ownership check: promoter must own this event
     const evOwn = await runWithServiceContext(() =>
       db().query(`SELECT id FROM catalog.events WHERE id=$1 AND promoter_id=$2 LIMIT 1`, [params.id, ctx.promoterId]),
     );
