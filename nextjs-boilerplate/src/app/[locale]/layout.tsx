@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { CookieConsentBanner } from '@/components/public/CookieConsentBanner';
 import { TopNav } from '@/components/public/TopNav';
 import { SupportChatWidget } from '@/components/SupportChatWidget';
+import { DirSetter } from '@/components/DirSetter';
 
 export default function LocaleLayout({
   children,
@@ -13,6 +14,7 @@ export default function LocaleLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col">
+      <DirSetter locale={params.locale} />
       <header className="border-b bg-card">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <Link href={`/${params.locale}`} className="text-lg font-semibold">

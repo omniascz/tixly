@@ -94,3 +94,26 @@
   body { background: white; color: black; }
   .no-print { display: none !important; }
 }
+
+/* RTL language support (Arabic, Hebrew) */
+[dir="rtl"] {
+  text-align: right;
+}
+:lang(ar), :lang(he) {
+  font-family: "Segoe UI", Tahoma, system-ui, -apple-system, sans-serif;
+  letter-spacing: 0;
+}
+[dir="rtl"] .ml-auto { margin-left: 0; margin-right: auto; }
+[dir="rtl"] .mr-auto { margin-left: auto; margin-right: 0; }
+[dir="rtl"] nav .flex { flex-direction: row-reverse; }
+[dir="rtl"] .border-l { border-left: none; border-right-width: 1px; }
+[dir="rtl"] .border-r { border-right: none; border-left-width: 1px; }
+[dir="rtl"] .rounded-l-md { border-radius: 0 var(--radius) var(--radius) 0; }
+[dir="rtl"] .rounded-r-md { border-radius: var(--radius) 0 0 var(--radius); }
+[dir="rtl"] .pl-3 { padding-left: 0; padding-right: 0.75rem; }
+[dir="rtl"] .pr-3 { padding-right: 0; padding-left: 0.75rem; }
+[dir="rtl"] .pl-4 { padding-left: 0; padding-right: 1rem; }
+[dir="rtl"] .pr-4 { padding-right: 0; padding-left: 1rem; }
+[dir="rtl"] .pl-10 { padding-left: 0; padding-right: 2.5rem; }
+[dir="rtl"] .left-3 { left: auto; right: 0.75rem; }
+[dir="rtl"] .right-3 { right: auto; left: 0.75rem; }

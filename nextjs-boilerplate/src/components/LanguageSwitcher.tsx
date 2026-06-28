@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { LOCALES_ACTIVE, LOCALE_NAMES, LOCALE_COOKIE, type ActiveLocale } from '@/lib/i18n';
+import { LOCALES_ACTIVE, LOCALE_NAMES, LOCALE_COOKIE, isRtlLocale, type ActiveLocale } from '@/lib/i18n';
 
 const FLAGS: Record<string, string> = {
   cs: '🇨🇿',
@@ -12,6 +12,13 @@ const FLAGS: Record<string, string> = {
   nl: '🇳🇱',
   es: '🇪🇸',
   pl: '🇵🇱',
+  pt: '🇵🇹',
+  it: '🇮🇹',
+  sv: '🇸🇪',
+  da: '🇩🇰',
+  hu: '🇭🇺',
+  ar: '🇸🇦',
+  he: '🇮🇱',
 };
 
 export function LanguageSwitcher() {
@@ -19,10 +26,8 @@ export function LanguageSwitcher() {
   const router = useRouter();
 
   function switchTo(target: ActiveLocale): void {
-    // Cookie persistence
     document.cookie = `${LOCALE_COOKIE}=${target}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
 
-    // Replace prefix v pathname
     const segments = pathname.split('/');
     const currentPrefix = segments[1];
     const isLocalePrefix = (LOCALES_ACTIVE as readonly string[]).includes(currentPrefix ?? '');
@@ -37,18 +42,20 @@ export function LanguageSwitcher() {
   if (LOCALES_ACTIVE.length <= 1) return null;
 
   return (
-    <div className="flex items-center gap-1 text-xs">
-      {LOCALES_ACTIVE.map((l) => (
-        <button
-          key={l}
-          type="button"
-          onClick={() => switchTo(l)}
-          className="rounded px-2 py-1 hover:bg-muted"
-          title={LOCALE_NAMES[l]}
-        >
-          {FLAGS[l]} {l.toUpperCase()}
-        </button>
-      ))}
+    <div className="relative flex items-center text-xs">
+      <select
+        onChange={(e) => switchTo(e.target.value as ActiveLocale)}
+        className="rounded border bg-transparent px-2 py-1 text-xs hover:bg-muted cursor-pointer"
+        defaultValue=""
+        aria-label="Language"
+      >
+        <option value="" disabled>🌐 Lang</option>
+        {LOCALES_ACTIVE.map((l) => (
+          <option key={l} value={l} dir={isRtlLocale(l) ? 'rtl' : 'ltr'}>
+            {FLAGS[l]} {LOCALE_NAMES[l]}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
