@@ -97,6 +97,7 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
 
     // Finance
     { href: `/admin/events/${eventId}/distribution`, label: 'Distribuce', group: 'Finance' },
+    { href: `/admin/events/${eventId}/resale-marketplace`, label: '🔄 Sekundární trh', group: 'Finance' },
     { href: `/admin/events/${eventId}/resale-policy`, label: 'Resale policy', group: 'Finance' },
     { href: `/admin/events/${eventId}/advance-payout`, label: 'Pre-event payout', group: 'Finance' },
     { href: `/admin/events/${eventId}/sales-report`, label: 'Sales report', group: 'Finance' },
