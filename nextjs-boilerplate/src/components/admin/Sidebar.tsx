@@ -27,6 +27,7 @@ import {
   Plus,
   Code2,
   FileSignature,
+  Clapperboard,
   type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -52,6 +53,7 @@ const sections: NavSection[] = [
     items: [
       { href: '/admin/events/new', label: 'Nová akce', icon: Plus },
       { href: '/admin/events', label: 'Akce', icon: CalendarDays, staffAllowed: true },
+      { href: '/admin/films', label: 'Filmový katalog', icon: Clapperboard },
       { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, staffAllowed: true },
     ],
   },
