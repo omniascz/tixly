@@ -43,6 +43,7 @@ interface EventDetail {
   title: string;
   description: string | null;
   date_start: string;
+  timezone: string | null;
   venue_name: string;
   venue_address: string;
   min_age: number | null;
@@ -84,7 +85,7 @@ async function fetchDetail(id: string) {
   try {
     const eventResult = await db.query<EventDetail>(
       `
-      SELECT e.id, e.title, e.description, e.date_start, e.min_age, e.currency, e.queue_enabled,
+      SELECT e.id, e.title, e.description, e.date_start, e.timezone, e.min_age, e.currency, e.queue_enabled,
              COALESCE(v.name, 'Online') AS venue_name,
              COALESCE(v.address, '') AS venue_address,
              e.promoter_id,
@@ -327,6 +328,9 @@ export default async function EventDetailPage({
           </div>
           <div className="mt-1 text-sm text-muted-foreground">
             {formatDate(event.date_start, locale)}
+            {event.timezone && event.timezone !== 'Europe/Prague' && (
+              <span className="ml-1 text-xs opacity-70">({event.timezone})</span>
+            )}
           </div>
         </div>
 
