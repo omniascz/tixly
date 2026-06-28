@@ -78,6 +78,8 @@ export default function SettingsPage() {
 
   // Billing
   const [bankAccount, setBankAccount] = useState('');
+  const [swiftBic, setSwiftBic] = useState('');
+  const [payoutMethod, setPayoutMethod] = useState('bank_transfer');
   const [payoutCycle, setPayoutCycle] = useState('weekly');
   const [minPayoutCzk, setMinPayoutCzk] = useState('500');
 
@@ -111,6 +113,8 @@ export default function SettingsPage() {
       setHasGa4Secret(d.tracking.hasGa4Secret);
       setGa4ApiSecret('');
       setBankAccount(d.billing.bankAccount ?? '');
+      setSwiftBic((d.billing as { bankAccount: string | null; swiftBic?: string | null }).swiftBic ?? '');
+      setPayoutMethod((d.payout as { cycle: string; rollingReservePct: number; reserveReleaseDays: number; minPayoutHalire: number; payoutMethod?: string }).payoutMethod ?? 'bank_transfer');
       setPayoutCycle(d.payout.cycle);
       setMinPayoutCzk(String(Math.round(d.payout.minPayoutHalire / 100)));
       setRefundWindowDays(String(d.refundPolicy.windowDays));
@@ -459,12 +463,27 @@ export default function SettingsPage() {
                 if (!isOwner) return;
                 void patchAndReload({
                   bankAccount: bankAccount || null,
+                  swiftBic: swiftBic || null,
+                  payoutMethod,
                   payoutCycle,
                   minPayoutHalire: Math.round(parseFloat(minPayoutCzk) * 100),
                 });
               }}
               className="space-y-3"
             >
+              <div>
+                <label className="mb-1 block text-xs font-medium">Způsob výplaty</label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  value={payoutMethod}
+                  onChange={(e) => setPayoutMethod(e.target.value)}
+                  disabled={!isOwner}
+                >
+                  <option value="bank_transfer">Bankovní převod (CZ/SK — FIO)</option>
+                  <option value="sepa_credit">SEPA Credit Transfer (EU, IBAN + SWIFT)</option>
+                  <option value="wise">Wise (globální, multi-currency)</option>
+                </select>
+              </div>
               <div>
                 <label className="mb-1 block text-xs font-medium">Bankovní účet (IBAN)</label>
                 <Input
@@ -474,6 +493,20 @@ export default function SettingsPage() {
                   disabled={!isOwner}
                 />
               </div>
+              {(payoutMethod === 'sepa_credit' || payoutMethod === 'wise') && (
+                <div>
+                  <label className="mb-1 block text-xs font-medium">SWIFT / BIC kód</label>
+                  <Input
+                    value={swiftBic}
+                    onChange={(e) => setSwiftBic(e.target.value)}
+                    placeholder="GIBACZPX, TRWIBEB1…"
+                    disabled={!isOwner}
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Vyžadováno pro SEPA a Wise mezinárodní výplaty.
+                  </p>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="mb-1 block text-xs font-medium">Cyklus výplat</label>

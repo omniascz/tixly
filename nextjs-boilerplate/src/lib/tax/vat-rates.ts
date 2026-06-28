@@ -1,43 +1,51 @@
 /**
  * DPH sazby per země + per kategorie.
  *
- * CZ + SR jsou primary trhy. Hodnoty jsou v procentech (10 = 10 %).
- * Hard-coded backup; runtime by mohl číst z `platform.config.vat_rates`
- * pokud bude třeba dynamicky měnit.
+ * CZ + SK jsou primary trhy; EU rozšíření pokrývá DE, AT, PL, NL, BE, FR, UK, HU, HR, RO.
+ * Hodnoty jsou v procentech (10 = 10 %).
  *
- * SK specifika:
- *   - Kulturní akce mají 5 % DPH (ne 10 % jako v CZ)
- *   - Reduced rate je obvykle 5 % nebo 10 % (zákon o DPH §27)
+ * Poznámky ke kategorii 'cultural' (ticketing relevantní):
+ *   CZ: 10 %  SK: 5 %  DE: 7 %  AT: 13 %  PL: 8 %
+ *   NL: 9 %   BE: 6 %  FR: 5.5 %  UK: 20 % (standard — cultural exempt pouze pro charitativní org)
+ *   HU: 27 %  HR: 13 %  RO: 5 %
  *
  * Reference:
  *   - CZ: zákon č. 235/2004 Sb. (DPH)
- *   - SR: zákon č. 222/2004 Z. z. (DPH)
+ *   - SK: zákon č. 222/2004 Z. z. (DPH)
+ *   - EU: Directive 2006/112/EC + country amendments 2024
+ *   - UK: HMRC VAT Notice 700/1 (post-Brexit)
  */
 
-export type Country = 'CZ' | 'SR';
+export type Country =
+  | 'CZ' | 'SK'    // Primary markets (SK replaces legacy 'SR')
+  | 'SR'           // Legacy alias for SK
+  | 'DE' | 'AT' | 'PL' | 'NL' | 'BE' | 'FR' | 'UK'
+  | 'HU' | 'HR' | 'RO' | 'IT' | 'ES' | 'PT';
 
 export type VatCategory =
-  | 'standard'       // 21 % CZ / 23 % SR
-  | 'cultural'       // 10 % CZ / 5 % SR  ← KEY pro ticketing
-  | 'food_beverage'  // 12 % CZ / 19 % SR (F&B addony)
-  | 'merchandise'    // 21 % CZ / 23 % SR
-  | 'reduced';       // 10 % CZ / 5 % SR (alias pro cultural)
+  | 'standard'       // Full VAT rate
+  | 'cultural'       // Reduced: vstupenky, kultura  ← KEY pro ticketing
+  | 'food_beverage'  // F&B addony
+  | 'merchandise'    // Merchandising
+  | 'reduced';       // Alias pro cultural
 
 const RATES: Record<Country, Record<VatCategory, number>> = {
-  CZ: {
-    standard: 21,
-    cultural: 10,
-    food_beverage: 12,
-    merchandise: 21,
-    reduced: 10,
-  },
-  SR: {
-    standard: 23,
-    cultural: 5,
-    food_beverage: 19,
-    merchandise: 23,
-    reduced: 5,
-  },
+  CZ: { standard: 21, cultural: 10, food_beverage: 12, merchandise: 21, reduced: 10 },
+  SK: { standard: 23, cultural: 5,  food_beverage: 19, merchandise: 23, reduced: 5  },
+  SR: { standard: 23, cultural: 5,  food_beverage: 19, merchandise: 23, reduced: 5  }, // legacy alias
+  DE: { standard: 19, cultural: 7,  food_beverage: 7,  merchandise: 19, reduced: 7  },
+  AT: { standard: 20, cultural: 13, food_beverage: 10, merchandise: 20, reduced: 13 },
+  PL: { standard: 23, cultural: 8,  food_beverage: 8,  merchandise: 23, reduced: 8  },
+  NL: { standard: 21, cultural: 9,  food_beverage: 9,  merchandise: 21, reduced: 9  },
+  BE: { standard: 21, cultural: 6,  food_beverage: 6,  merchandise: 21, reduced: 6  },
+  FR: { standard: 20, cultural: 5,  food_beverage: 10, merchandise: 20, reduced: 5  },  // spectacles vivants 5.5 → 5 (approx)
+  UK: { standard: 20, cultural: 20, food_beverage: 20, merchandise: 20, reduced: 5  },  // UK: cultural = standard; reduced = 5 % (limited)
+  HU: { standard: 27, cultural: 27, food_beverage: 27, merchandise: 27, reduced: 5  },  // HU: no cultural reduced for standard events
+  HR: { standard: 25, cultural: 13, food_beverage: 5,  merchandise: 25, reduced: 13 },
+  RO: { standard: 19, cultural: 5,  food_beverage: 9,  merchandise: 19, reduced: 5  },
+  IT: { standard: 22, cultural: 10, food_beverage: 10, merchandise: 22, reduced: 10 },
+  ES: { standard: 21, cultural: 21, food_beverage: 10, merchandise: 21, reduced: 10 },  // ES: spektákly 21 % (žádná reduced pro live events)
+  PT: { standard: 23, cultural: 13, food_beverage: 13, merchandise: 23, reduced: 13 },
 };
 
 /**
@@ -77,10 +85,30 @@ export function resolveVatRate(input: {
   country: string | null | undefined;
   vatCategory: string | null | undefined;
 }): number {
-  const country: Country = input.country === 'SR' ? 'SR' : 'CZ';
+  const rawCountry = (input.country ?? 'CZ').toUpperCase() as Country;
+  const country: Country = RATES[rawCountry] ? rawCountry : 'CZ';
   const category = (input.vatCategory as VatCategory) || 'cultural';
-  if (!RATES[country][category]) {
+  if (!RATES[country]?.[category]) {
     return RATES[country].cultural;
   }
   return getVatRate(country, category);
 }
+
+/** List all supported countries for UI dropdowns. */
+export const SUPPORTED_VAT_COUNTRIES: { code: Country; label: string }[] = [
+  { code: 'CZ', label: 'Česká republika (CZ)' },
+  { code: 'SK', label: 'Slovensko (SK)' },
+  { code: 'DE', label: 'Německo (DE)' },
+  { code: 'AT', label: 'Rakousko (AT)' },
+  { code: 'PL', label: 'Polsko (PL)' },
+  { code: 'NL', label: 'Nizozemsko (NL)' },
+  { code: 'BE', label: 'Belgie (BE)' },
+  { code: 'FR', label: 'Francie (FR)' },
+  { code: 'UK', label: 'Velká Británie (UK)' },
+  { code: 'HU', label: 'Maďarsko (HU)' },
+  { code: 'HR', label: 'Chorvatsko (HR)' },
+  { code: 'RO', label: 'Rumunsko (RO)' },
+  { code: 'IT', label: 'Itálie (IT)' },
+  { code: 'ES', label: 'Španělsko (ES)' },
+  { code: 'PT', label: 'Portugalsko (PT)' },
+];
