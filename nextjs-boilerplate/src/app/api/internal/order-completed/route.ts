@@ -19,6 +19,7 @@ import { escapeHtml } from '@/lib/html-escape/escape';
 import { sendSms } from '@/lib/sms/bulkgate-mock';
 import { resolveVatRate, splitGrossToNetVat } from '@/lib/tax/vat-rates';
 import { awardPointsForOrder } from '@/lib/loyalty/engine';
+import { issueFanBonus } from '@/lib/fan-bonus/engine';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 import { renderTicketsPdf } from '@/lib/tickets/pdf-renderer';
 import { buildPkpass, type PassData } from '@/lib/wallet/apple-pass';
@@ -371,6 +372,28 @@ export async function POST(request: NextRequest): Promise<Response> {
         console.error('[order-completed] loyalty award failed', err);
       } finally {
         loyaltyClient.release();
+      }
+    }
+
+    // FanBonus — 2-3 % cashback jako platform-wide gift voucher, fire-and-forget.
+    if (order.total_amount > 0 && order.event_id) {
+      const fbClient = await db().connect();
+      try {
+        await fbClient.query('BEGIN');
+        await fbClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+        await issueFanBonus(fbClient, {
+          orderId,
+          eventId: order.event_id as string,
+          userId:  order.user_id ?? null,
+          buyerEmail: order.buyer_email,
+          orderTotalHalire: order.total_amount,
+        });
+        await fbClient.query('COMMIT');
+      } catch (err) {
+        await fbClient.query('ROLLBACK').catch(() => undefined);
+        console.error('[order-completed] fan-bonus issue failed', err);
+      } finally {
+        fbClient.release();
       }
     }
 
