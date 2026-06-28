@@ -493,6 +493,18 @@ export async function POST(request: NextRequest): Promise<Response> {
       void fireConversionTracking(orderId).catch((err) =>
         console.error('[order-completed] conversion tracking failed', err),
       );
+      // Accrue artist royalties asynchronně
+      void fetch(
+        `${process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/api/internal/royalties/accrue`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-internal-token': process.env.INTERNAL_API_TOKEN ?? process.env.INTERNAL_SERVICE_TOKEN ?? '',
+          },
+          body: JSON.stringify({ orderId }),
+        },
+      ).catch((err) => console.error('[order-completed] royalty accrue failed', err));
     }
 
     // QR policy: rotating_only nepošle PDF s QR (skipuje generování úplně,

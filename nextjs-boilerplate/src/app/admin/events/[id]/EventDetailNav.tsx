@@ -89,6 +89,9 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/rfid-live`, label: '📡 Live Dashboard', group: 'RFID' },
 
     // After-event
+    { href: `/admin/events/${eventId}/artist-royalties`, label: '🎤 Royalty umělců', group: 'Finance' },
+
+    // After-event
     { href: `/admin/events/${eventId}/reviews`, label: 'Hodnocení', group: 'After-event' },
     { href: `/admin/events/${eventId}/commemorative`, label: 'Vzpomínková vstupenka', group: 'After-event' },
 
