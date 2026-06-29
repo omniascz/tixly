@@ -2,6 +2,7 @@
 import { FormEvent, Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MetaPixel } from '@/components/tracking/MetaPixel';
+import { PixelManager } from '@/components/tracking/PixelManager';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -429,6 +430,18 @@ function CheckoutForm() {
             : {}),
         }}
       />
+      {eventId ? (
+        <PixelManager
+          eventId={eventId}
+          pageEvent="InitiateCheckout"
+          eventData={{
+            items: parseInt(quantity, 10) || 1,
+            ...(unitPriceHalire
+              ? { value: (unitPriceHalire * (parseInt(quantity, 10) || 1)) / 100, currency }
+              : {}),
+          }}
+        />
+      ) : null}
       <Card>
         <CardHeader>
           <CardTitle>Dokončení objednávky</CardTitle>

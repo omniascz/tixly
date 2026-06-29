@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { MetaPixel } from '@/components/tracking/MetaPixel';
+import { PixelManager } from '@/components/tracking/PixelManager';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import {
   Card,
@@ -145,17 +146,29 @@ export default async function OrderConfirmationPage({
       {/* Purchase pixel — jen pro zaplacené. eventID = order.id se shoduje s
           server-side CAPI Purchase (order-completed) → Meta dedupne na 1 konverzi. */}
       {isPaid ? (
-        <MetaPixel
-          pixelId={order.promoter_meta_pixel_id}
-          event="Purchase"
-          eventData={{
-            content_type: 'product',
-            num_items: totalItems,
-            value: order.total_amount / 100,
-            currency: ccy,
-          }}
-          eventId={order.id}
-        />
+        <>
+          <MetaPixel
+            pixelId={order.promoter_meta_pixel_id}
+            event="Purchase"
+            eventData={{
+              content_type: 'product',
+              num_items: totalItems,
+              value: order.total_amount / 100,
+              currency: ccy,
+            }}
+            eventId={order.id}
+          />
+          <PixelManager
+            eventId={order.event_id ?? ''}
+            pageEvent="Purchase"
+            eventData={{
+              orderId: order.id,
+              value: order.total_amount / 100,
+              currency: ccy,
+              items: totalItems,
+            }}
+          />
+        </>
       ) : null}
       <Card>
         <CardHeader>

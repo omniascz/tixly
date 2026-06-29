@@ -10,11 +10,22 @@ import { runAsPromoter, runAsPromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
 
 
+const ALL_PLATFORMS = [
+  'meta','google_ads','google_analytics','gtm',
+  'tiktok','snapchat','twitter','pinterest','linkedin',
+  'microsoft_bing','criteo','rtb_house','adform','outbrain','taboola','reddit','quora',
+  'hotjar','microsoft_clarity','smartlook','yandex_metrica','vwo',
+  'klaviyo','hubspot','activecampaign',
+  'segment','mixpanel','amplitude',
+  'custom_script','custom_image',
+] as const;
+
 const postSchema = z.object({
   eventId: z.string().uuid().nullable().optional(),
-  platform: z.enum(['meta', 'google_ads', 'google_analytics', 'tiktok', 'linkedin', 'twitter', 'custom']),
-  pixelId: z.string().min(2).max(200),
-  config: z.record(z.string(), z.unknown()).optional(),
+  platform: z.enum(ALL_PLATFORMS),
+  pixelId: z.string().min(1).max(500),
+  pixelName: z.string().max(80).optional(),
+  config: z.record(z.string(), z.string()).optional(),
   eventsTracked: z.array(z.string()).optional(),
 });
 
@@ -59,14 +70,15 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   const r = await db().query<{ id: string }>(
     `INSERT INTO marketing.tracking_pixels
-       (promoter_id, event_id, platform, pixel_id, config, events_tracked)
-     VALUES ($1, $2, $3, $4, $5::jsonb, $6)
+       (promoter_id, event_id, platform, pixel_id, pixel_name, config, events_tracked)
+     VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)
      RETURNING id`,
     [
       promoter.promoterId, parsed.data.eventId ?? null,
       parsed.data.platform, parsed.data.pixelId,
+      parsed.data.pixelName ?? null,
       parsed.data.config ? JSON.stringify(parsed.data.config) : null,
-      parsed.data.eventsTracked ?? ['ViewContent', 'AddToCart', 'Purchase'],
+      parsed.data.eventsTracked ?? ['ViewContent', 'InitiateCheckout', 'Purchase'],
     ],
   );
 

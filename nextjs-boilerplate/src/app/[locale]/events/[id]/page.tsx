@@ -4,6 +4,7 @@ import { Pool } from 'pg';
 import { ReportButton } from '@/components/public/ReportButton';
 import { MetaPixel } from '@/components/tracking/MetaPixel';
 import { GtmHeadScript, GtmNoScript } from '@/components/tracking/GtmScript';
+import { PixelManager } from '@/components/tracking/PixelManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate } from '@/lib/format';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
@@ -284,6 +285,16 @@ export default async function EventDetailPage({
           content_ids: [event.id],
           content_type: 'product',
           content_name: event.title,
+          ...(Number.isFinite(minPrice) ? { value: minPrice / 100 } : {}),
+          currency: event.currency ?? 'CZK',
+        }}
+      />
+      <PixelManager
+        eventId={event.id}
+        pageEvent="ViewContent"
+        eventData={{
+          contentName: event.title,
+          contentIds: [event.id],
           ...(Number.isFinite(minPrice) ? { value: minPrice / 100 } : {}),
           currency: event.currency ?? 'CZK',
         }}
