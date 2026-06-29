@@ -80,6 +80,8 @@ const sections: NavSection[] = [
     items: [
       { href: '/admin/dashboard/live', label: 'Live prodej', icon: TrendingUp, staffAllowed: true },
       { href: '/admin/pricemaster', label: 'Pricemaster', icon: TrendingUp },
+      { href: '/admin/reports/inhouse', label: 'Inhouse reporty', icon: FileSearch },
+      { href: '/admin/reports', label: 'Účetní reporty', icon: Receipt },
     ],
   },
   {
