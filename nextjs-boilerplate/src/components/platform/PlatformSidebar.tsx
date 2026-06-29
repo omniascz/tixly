@@ -7,6 +7,7 @@ import {
   Webhook,
   MapPin,
   AlertOctagon,
+  HeartHandshake,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -19,6 +20,7 @@ const items = [
   { href: '/platform/incidents', label: 'Incidenty', icon: AlertOctagon },
   { href: '/platform/audit-log', label: 'Audit log', icon: ScrollText },
   { href: '/platform/webhooks', label: 'Webhooks', icon: Webhook },
+  { href: '/platform/brand-connect', label: 'Brand Connect', icon: HeartHandshake },
 ];
 
 export function PlatformSidebar() {

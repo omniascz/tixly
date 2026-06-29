@@ -16,6 +16,7 @@ import { ResaleButton } from './ResaleButton';
 import { SelfRefundButton } from './SelfRefundButton';
 import { PostPurchaseUpsell } from './PostPurchaseUpsell';
 import { SocialShareConfirmation } from './SocialShareConfirmation';
+import { BrandConnectBanner } from './BrandConnectBanner';
 
 interface OrderRow {
   id: string;
@@ -378,6 +379,11 @@ export default async function OrderConfirmationPage({
               eventTitle={order.event_title}
               eventUrl={`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/${locale}/events/${order.event_id}`}
             />
+          ) : null}
+
+          {/* Brand Connect — partnerské bannery od inzerentů */}
+          {isPaid && order.event_id ? (
+            <BrandConnectBanner eventId={order.event_id} />
           ) : null}
 
           {/* Post-purchase upsell: add-ony, cestovní linky, sponzoři */}

@@ -29,6 +29,7 @@ import {
   FileSignature,
   Clapperboard,
   Trophy,
+  HeartHandshake,
   type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -112,6 +113,7 @@ const sections: NavSection[] = [
       { href: '/admin/collections', label: 'Kolekce', icon: Layers },
       { href: '/admin/tracking-pixels', label: 'Tracking Pixely', icon: Tag },
       { href: '/admin/event-templates', label: 'Event templates', icon: Repeat },
+      { href: '/admin/brand-connect', label: 'Brand Connect', icon: HeartHandshake },
     ],
   },
   {
