@@ -30,6 +30,7 @@ import {
   Clapperboard,
   Trophy,
   HeartHandshake,
+  BarChart3,
   type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -64,7 +65,6 @@ const sections: NavSection[] = [
     label: 'Prodej',
     items: [
       { href: '/admin/orders', label: 'Objednávky', icon: ShoppingCart, staffAllowed: true },
-      { href: '/admin/customers', label: 'Zákazníci', icon: Users },
       { href: '/admin/pos', label: 'Pokladna (POS)', icon: Banknote, staffAllowed: true },
       { href: '/admin/scanner', label: 'Scanner', icon: ScanLine, staffAllowed: true },
       { href: '/admin/event-groups', label: 'Event Groups', icon: Layers },
@@ -98,6 +98,7 @@ const sections: NavSection[] = [
       { href: '/admin/payouts', label: 'Výplaty', icon: Wallet },
       { href: '/admin/artist-payouts', label: 'Výplaty umělců', icon: Banknote },
       { href: '/admin/invoices', label: 'Faktury', icon: Receipt },
+      { href: '/admin/accounting', label: 'ERP Export', icon: FileSearch },
       { href: '/admin/bank-transfers', label: 'Bank výpisy', icon: Banknote },
     ],
   },
@@ -137,6 +138,13 @@ const sections: NavSection[] = [
     items: [
       { href: '/admin/audit-log', label: 'Audit log', icon: FileSearch },
       { href: '/admin/notifications', label: 'Notifikace', icon: Bell },
+    ],
+  },
+  {
+    label: 'CRM',
+    items: [
+      { href: '/admin/customers', label: 'Zákazníci', icon: Users },
+      { href: '/admin/crm/rfm', label: 'RFM Segmentace', icon: BarChart3 },
     ],
   },
   {

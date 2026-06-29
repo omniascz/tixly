@@ -108,6 +108,7 @@ export interface GopayCreateInput {
   description: string;
   notificationUrl: string;
   returnUrl: string;
+  allow_card_store?: boolean;
 }
 
 export interface GopayCreateResult {
@@ -150,6 +151,9 @@ export async function createGopaySession(input: GopayCreateInput): Promise<Gopay
       notification_url: input.notificationUrl,
     },
     lang: input.currency === 'EUR' ? 'SK' : 'CS',
+    ...(input.allow_card_store
+      ? { additional_params: [{ name: 'allow_card_store', value: 'true' }] }
+      : {}),
   };
 
   const res = await fetch(`${config.apiBaseUrl}/payments/payment`, {

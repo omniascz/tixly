@@ -163,6 +163,16 @@ function CheckoutForm() {
   // Verified Fan presale code
   const [presaleCode, setPresaleCode] = useState('');
 
+  const [savedMethods, setSavedMethods] = useState<{
+    id: string;
+    card_mask: string | null;
+    card_brand: string | null;
+    expires_month: number | null;
+    expires_year: number | null;
+    is_default: boolean;
+  }[]>([]);
+  const [selectedSavedMethodId, setSelectedSavedMethodId] = useState<string | null>(null);
+
   useEffect(() => {
     const lotteryToken = searchParams.get('lotteryToken');
     if (!lotteryToken) return;
@@ -361,6 +371,24 @@ function CheckoutForm() {
       .catch(() => {});
   }, [eventId]);
 
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    if (!token) return;
+    fetch('/api/buyer/saved-payment-methods', {
+      headers: { Authorization: `Bearer ${token}` },
+      credentials: 'include',
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then((d: { methods?: typeof savedMethods } | null) => {
+        if (d?.methods?.length) {
+          setSavedMethods(d.methods);
+          const def = d.methods.find(m => m.is_default);
+          if (def) setSelectedSavedMethodId(def.id);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   if (!eventId || !ticketTypeId) {
     return (
       <p className="text-sm text-destructive">
@@ -418,6 +446,7 @@ function CheckoutForm() {
       if (insurance && insuranceOptIn) body.insuranceOptIn = true;
       if (carbonOffset && carbonOffsetOptIn) body.carbonOffsetOptIn = true;
       if (selectedParkingOfferId) body.parkingOfferId = selectedParkingOfferId;
+      if (selectedSavedMethodId) body.savedPaymentMethodId = selectedSavedMethodId;
       const foyerItemsArr = Object.entries(foyerItems)
         .filter(([, q]) => q > 0)
         .map(([menuItemId, quantity]) => ({ menuItemId, quantity }));
@@ -1431,6 +1460,35 @@ function CheckoutForm() {
                 </div>
               );
             })()}
+            {savedMethods.length > 0 && (
+              <div className="rounded-md border border-purple-200 bg-purple-50 p-3">
+                <p className="text-sm font-semibold text-purple-900 mb-2">💳 Uložená karta</p>
+                {savedMethods.map((m) => (
+                  <label key={m.id} className="flex items-center gap-2 cursor-pointer mb-1">
+                    <input
+                      type="radio"
+                      name="savedMethod"
+                      value={m.id}
+                      checked={selectedSavedMethodId === m.id}
+                      onChange={() => setSelectedSavedMethodId(m.id)}
+                    />
+                    <span className="text-sm">
+                      {m.card_brand ?? 'Karta'} {m.card_mask ?? ''}
+                      {m.expires_month && m.expires_year ? ` — ${m.expires_month}/${m.expires_year}` : ''}
+                    </span>
+                  </label>
+                ))}
+                {selectedSavedMethodId && (
+                  <button
+                    type="button"
+                    className="text-xs text-purple-600 mt-1 hover:underline"
+                    onClick={() => setSelectedSavedMethodId(null)}
+                  >
+                    Platit novou kartou
+                  </button>
+                )}
+              </div>
+            )}
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button
               type="submit"

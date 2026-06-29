@@ -5,6 +5,128 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { formatMoney, isCurrency } from '@/lib/format';
 
+interface Membership {
+  id: string;
+  membership_code: string;
+  status: string;
+  valid_until: string | null;
+  bundle_id: string;
+  bundle_name: string;
+  card_color: string | null;
+  card_issued_at: string | null;
+}
+
+function MembershipsSection({ locale }: { locale: string }) {
+  const [memberships, setMemberships] = useState<Membership[] | null>(null);
+  const [walletBusy, setWalletBusy] = useState<Record<string, string>>({});
+  const [walletError, setWalletError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    if (!token) { setMemberships([]); return; }
+    fetch('/api/buyer/cross-passes/my-memberships', {
+      headers: { Authorization: `Bearer ${token}` },
+      credentials: 'include',
+    })
+      .then(r => r.ok ? r.json() : { memberships: [] })
+      .then((d: { memberships: Membership[] }) => setMemberships(d.memberships ?? []))
+      .catch(() => setMemberships([]));
+  }, []);
+
+  async function downloadWallet(membershipId: string, kind: 'apple' | 'pdf') {
+    setWalletBusy(b => ({ ...b, [`${membershipId}-${kind}`]: '1' }));
+    setWalletError(null);
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+      const url = kind === 'apple'
+        ? `/api/buyer/cross-passes/${membershipId}/wallet/apple`
+        : `/api/buyer/cross-passes/${membershipId}/wallet/pdf`;
+      const res = await fetch(url, {
+        credentials: 'include',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        setWalletError(j.error ?? `HTTP ${res.status}`);
+        return;
+      }
+      const blob = await res.blob();
+      const objUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objUrl;
+      a.download = kind === 'apple' ? `clenska-karta.pkpass` : `clenska-karta.pdf`;
+      a.click();
+      URL.revokeObjectURL(objUrl);
+    } finally {
+      setWalletBusy(b => { const n = { ...b }; delete n[`${membershipId}-${kind}`]; return n; });
+    }
+  }
+
+  if (!memberships || memberships.length === 0) return null;
+
+  const active = memberships.filter(m => m.status === 'active');
+  if (active.length === 0) return null;
+
+  return (
+    <div>
+      <h2 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">Členské karty</h2>
+      <div className="space-y-3">
+        {active.map(m => {
+          const bgColor = m.card_color ?? '#1a1a2e';
+          const validLabel = m.valid_until
+            ? new Date(m.valid_until).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })
+            : 'Neomezeno';
+          return (
+            <div
+              key={m.id}
+              className="rounded-lg p-4 text-white"
+              style={{ background: bgColor }}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-bold text-sm">{m.bundle_name}</p>
+                  <p className="text-xs opacity-75 mt-0.5">Platnost: {validLabel}</p>
+                  <p className="text-xs opacity-60 font-mono mt-0.5">KÓD: {m.membership_code}</p>
+                </div>
+                <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs">Aktivní</span>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-white/40 bg-white/10 text-white hover:bg-white/20"
+                  onClick={() => void downloadWallet(m.id, 'apple')}
+                  disabled={!!walletBusy[`${m.id}-apple`]}
+                >
+                  {walletBusy[`${m.id}-apple`] ? '…' : '📱 Apple Wallet'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-white/40 bg-white/10 text-white hover:bg-white/20"
+                  onClick={() => void downloadWallet(m.id, 'pdf')}
+                  disabled={!!walletBusy[`${m.id}-pdf`]}
+                >
+                  {walletBusy[`${m.id}-pdf`] ? '…' : '📄 Stáhnout kartu (PDF)'}
+                </Button>
+                <Link
+                  href={`/${locale}/cross-passes/${m.bundle_id}`}
+                  className="inline-flex items-center rounded-md border border-white/40 bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20"
+                >
+                  Detail předplatného →
+                </Link>
+              </div>
+              {walletError ? (
+                <p className="mt-2 text-xs text-rose-300">{walletError}</p>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 interface Ticket {
   id: string;
   status: string;
@@ -111,6 +233,7 @@ export function MyTicketsClient({ locale }: { locale: string }) {
 
   return (
     <div className="space-y-6">
+      <MembershipsSection locale={locale} />
       {upcoming.length > 0 ? (
         <Section title="Nadcházející">
           {upcoming.map((t) => (
@@ -803,6 +926,18 @@ function TicketCard({
       ) : null}
 
       {walletError ? <p className="mt-2 text-xs text-rose-700">{walletError}</p> : null}
+      {ticket.order_status === 'paid' ? (
+        <div className="mt-3 border-t pt-2">
+          <a
+            href={`/api/buyer/orders/${ticket.order_id}/invoice`}
+            target="_blank"
+            rel="noopener"
+            className="text-xs text-slate-600 hover:underline"
+          >
+            Stáhnout fakturu (PDF)
+          </a>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -82,6 +82,7 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/hospitality`, label: 'Hospitality', group: 'Operations' },
     { href: `/admin/events/${eventId}/foyer-menu`, label: 'Foyer menu', group: 'Operations' },
     { href: `/admin/events/${eventId}/foyer-orders`, label: 'Foyer objednávky', group: 'Operations' },
+    { href: `/admin/events/${eventId}/kiosk-display`, label: '🖥️ Kiosk display', group: 'Operations' },
 
     // Šablony
     { href: `/admin/events/${eventId}/templates`, label: 'Šablony', group: 'Základ' },

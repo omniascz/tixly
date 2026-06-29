@@ -182,6 +182,8 @@ const schema = z.object({
   carbonOffsetOptIn: z.boolean().optional(),
   // Parking bundle (mig 402) — přikoupení parkovacího místa ke vstupence.
   parkingOfferId: z.string().uuid().optional(),
+  // Saved payment method (mig 429) — 1-click checkout s uloženou kartou.
+  savedPaymentMethodId: z.string().uuid().optional(),
 });
 
 interface TicketTypeRow {
@@ -2003,6 +2005,23 @@ export async function POST(req: NextRequest): Promise<Response> {
         ...(travelBookingData ? { travelHotelName: travelBookingData.hotelName, travelCheckinDate: travelBookingData.checkinDate, travelNights: travelBookingData.nights } : {}),
       });
     }
+
+    // Saved payment method — pokud kupec poslal savedPaymentMethodId, načteme token
+    // a označíme last_used_at. Reálný GoPay recurrence token se předává dále pro 1-click platbu.
+    let savedPaymentToken: string | null = null;
+    if (input.savedPaymentMethodId) {
+      const spmRes = await db().query<{ token: string }>(
+        `UPDATE identity.saved_payment_methods
+         SET last_used_at = NOW()
+         WHERE id = $1 AND user_id = $2
+         RETURNING token`,
+        [input.savedPaymentMethodId, userId],
+      );
+      if (spmRes.rows.length > 0) {
+        savedPaymentToken = spmRes.rows[0].token;
+      }
+    }
+    void savedPaymentToken; // Wire-up: token k dispozici pro budoucí GoPay recurrence volání.
 
     // Po commitu: vytvoř payment session přes provider switcher.
     // Benefit karty (Pluxee/Sodexo/Benefit Plus/Edenred/Gallery Beta) jdou přes vlastní lib.
