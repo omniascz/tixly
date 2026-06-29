@@ -62,8 +62,8 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [bestCount, setBestCount] = useState(2);
-  // Click&View (DACH P2-6): mapa seatId → photoUrl pro buyer preview.
-  const [viewPhotos, setViewPhotos] = useState<Record<string, ViewPhoto>>({});
+  // Click&View (DACH P2-6): mapa sectorName → photoUrl pro buyer preview.
+  const [sectorPhotos, setSectorPhotos] = useState<Record<string, ViewPhoto>>({});
   const [previewSeat, setPreviewSeat] = useState<{
     seatId: string;
     sector: string;
@@ -75,8 +75,8 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
     let cancelled = false;
     fetch(`/api/events/${eventId}/seat-view-photos`)
       .then((r) => (r.ok ? r.json() : { photos: {} }))
-      .then((d: { photos: Record<string, ViewPhoto> }) => {
-        if (!cancelled) setViewPhotos(d.photos ?? {});
+      .then((d: { sectorPhotos?: Record<string, ViewPhoto> }) => {
+        if (!cancelled) setSectorPhotos(d.sectorPhotos ?? {});
       })
       .catch(() => {
         /* graceful — žádné photos */
@@ -382,6 +382,12 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
               ♿ Bezbariérové
             </span>
           ) : null}
+          {Object.keys(sectorPhotos).length > 0 ? (
+            <span className="ml-2 flex items-center gap-1 text-muted-foreground">
+              <span className="inline-block h-3 w-3 rounded border-2 border-amber-400 bg-transparent" aria-hidden />
+              📷 Pohled — klikni na sektor nebo Shift+klik na sedadlo
+            </span>
+          ) : null}
         </div>
       </div>
 
@@ -422,12 +428,12 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
           data={data}
           selected={selected}
           onToggle={toggle}
-          viewPhotos={viewPhotos}
+          sectorPhotos={sectorPhotos}
           onPreview={setPreviewSeat}
         />
       </div>
 
-      {previewSeat && viewPhotos[previewSeat.seatId] ? (
+      {previewSeat && sectorPhotos[previewSeat.sector] ? (
         <div
           role="dialog"
           aria-modal="true"
@@ -441,8 +447,9 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
           >
             <div className="mb-2 flex items-center justify-between">
               <h3 className="font-semibold">
-                Pohled ze sedadla {previewSeat.sector} · {previewSeat.row}/
-                {previewSeat.num}
+                {previewSeat.row
+                  ? `Pohled ze sedadla ${previewSeat.sector} · ${previewSeat.row}/${previewSeat.num}`
+                  : `Pohled ze sektoru ${previewSeat.sector}`}
               </h3>
               <button
                 type="button"
@@ -455,13 +462,13 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
             </div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={viewPhotos[previewSeat.seatId].photoUrl}
-              alt={`Pohled ze sedadla ${previewSeat.row}/${previewSeat.num}`}
+              src={sectorPhotos[previewSeat.sector]!.photoUrl}
+              alt={`Pohled ze sektoru ${previewSeat.sector}`}
               className="max-h-[70vh] w-full rounded-md object-contain"
             />
-            {viewPhotos[previewSeat.seatId].caption ? (
+            {sectorPhotos[previewSeat.sector]!.caption ? (
               <p className="mt-2 text-sm text-muted-foreground">
-                {viewPhotos[previewSeat.seatId].caption}
+                {sectorPhotos[previewSeat.sector]!.caption}
               </p>
             ) : null}
           </div>
@@ -638,13 +645,13 @@ function SvgChart({
   data,
   selected,
   onToggle,
-  viewPhotos,
+  sectorPhotos,
   onPreview,
 }: {
   data: Data;
   selected: Set<string>;
   onToggle: (s: Seat) => void;
-  viewPhotos: Record<string, ViewPhoto>;
+  sectorPhotos: Record<string, ViewPhoto>;
   onPreview: (info: { seatId: string; sector: string; row: string; num: string }) => void;
 }) {
   const seatLookup = useMemo(() => {
@@ -744,6 +751,7 @@ function SvgChart({
               const w = b.maxX - b.minX;
               const h = b.maxY - b.minY;
               const labelSize = Math.min(w, h) * 0.18;
+              const hasSectorPhoto = !!sectorPhotos[b.name];
               return (
                 <g key={b.name} style={{ cursor: soldOut ? 'not-allowed' : 'pointer' }}>
                   <rect
@@ -753,8 +761,8 @@ function SvgChart({
                     height={h + 8}
                     fill={dim}
                     fillOpacity={0.85}
-                    stroke="#fff"
-                    strokeWidth={2}
+                    stroke={hasSectorPhoto ? '#f59e0b' : '#fff'}
+                    strokeWidth={hasSectorPhoto ? 3 : 2}
                     rx={4}
                     onClick={() => !soldOut && setZoomedSector(b.name)}
                     role="button"
@@ -765,7 +773,7 @@ function SvgChart({
                         setZoomedSector(b.name);
                       }
                     }}
-                    aria-label={`Sektor ${b.name}, dostupných ${b.availableSeats} z ${b.totalSeats} sedadel`}
+                    aria-label={`Sektor ${b.name}, dostupných ${b.availableSeats} z ${b.totalSeats} sedadel${hasSectorPhoto ? ', foto pohledu dostupné' : ''}`}
                   />
                   <text
                     x={b.cx}
@@ -790,6 +798,36 @@ function SvgChart({
                   >
                     {soldOut ? 'Vyprodáno' : `${b.availableSeats} volných`}
                   </text>
+                  {hasSectorPhoto ? (
+                    <g
+                      style={{ cursor: 'pointer' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPreview({ seatId: '', sector: b.name, row: '', num: '' });
+                      }}
+                    >
+                      <rect
+                        x={b.maxX - 2}
+                        y={b.minY - 18}
+                        width={Math.max(labelSize * 1.8, 30)}
+                        height={Math.max(labelSize * 0.9, 16)}
+                        rx={3}
+                        fill="#f59e0b"
+                      />
+                      <text
+                        x={b.maxX + Math.max(labelSize * 0.9, 15)}
+                        y={b.minY - 10}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fontSize={Math.max(labelSize * 0.7, 10)}
+                        fill="#fff"
+                        fontWeight="bold"
+                        pointerEvents="none"
+                      >
+                        📷
+                      </text>
+                    </g>
+                  ) : null}
                 </g>
               );
             })}
@@ -826,7 +864,7 @@ function SvgChart({
                               ? '#94a3b8'
                               : (sector.color ?? colorForType(seat.ttId, data));
                         const interactive = seat.status === 'available';
-                        const hasViewPhoto = !!viewPhotos[seat.id];
+                        const hasViewPhoto = !!sectorPhotos[sector.name];
                         return (
                           <circle
                             key={seat.id}

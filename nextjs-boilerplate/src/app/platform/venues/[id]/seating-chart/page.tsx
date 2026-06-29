@@ -490,6 +490,7 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
         <Link href={`/platform/venues/${venueId}/seating-chart/import`} className="hover:underline">Import CSV/SVG/JSON</Link>
         <Link href={`/platform/venues/${venueId}/seating-chart/versions`} className="hover:underline">Historie verzí</Link>
         <Link href={`/platform/venues/${venueId}/seating-chart/editor`} className="hover:underline">Pokročilý vizuální editor</Link>
+        <Link href={`/platform/venues/${venueId}/seating-chart/view-photos`} className="font-medium text-amber-600 hover:underline">📷 Pohled ze sedadla — fotky</Link>
       </div>
     </div>
   );
