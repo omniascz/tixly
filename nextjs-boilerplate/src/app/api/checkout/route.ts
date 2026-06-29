@@ -180,6 +180,8 @@ const schema = z.object({
   postalCountry: z.string().length(2).optional(),
   // Carbon offset (mig 421) — dobrovolný příplatek na kompenzaci CO₂ emisí.
   carbonOffsetOptIn: z.boolean().optional(),
+  // Parking bundle (mig 402) — přikoupení parkovacího místa ke vstupence.
+  parkingOfferId: z.string().uuid().optional(),
 });
 
 interface TicketTypeRow {
@@ -1121,6 +1123,42 @@ export async function POST(req: NextRequest): Promise<Response> {
       };
     }
 
+    // Parking bundle (mig 402) — atomická rezervace parkovacího místa.
+    let parkingFeeHalire = 0;
+    let parkingBookingData: { offerId: string; confirmationCode: string; name: string } | null = null;
+    if (input.parkingOfferId) {
+      const po = await client.query<{
+        id: string; name: string; price_halire: number;
+        capacity: number; reserved_count: number;
+      }>(
+        `SELECT id, name, price_halire, capacity, reserved_count
+           FROM catalog.parking_offers
+          WHERE id = $1 AND event_id = $2 AND active = true
+            AND (booking_deadline IS NULL OR booking_deadline > NOW())
+          FOR UPDATE`,
+        [input.parkingOfferId, input.eventId],
+      );
+      if (po.rowCount === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'PARKING_OFFER_NOT_FOUND' }, { status: 404 });
+      }
+      const offer = po.rows[0];
+      if (offer.capacity > 0 && offer.reserved_count >= offer.capacity) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { error: 'PARKING_FULL', message: 'Parkovací místo je plně obsazeno.' },
+          { status: 409 },
+        );
+      }
+      parkingFeeHalire = offer.price_halire;
+      totalAmount += parkingFeeHalire;
+      parkingBookingData = {
+        offerId: offer.id,
+        name: offer.name,
+        confirmationCode: `PKG-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+      };
+    }
+
     // Postal delivery fee (mig 418) — přičte poštovné pokud buyer zvolil fyzické doručení.
     let postalFeeHalire = 0;
     if (input.deliveryMethod === 'postal') {
@@ -1680,6 +1718,20 @@ export async function POST(req: NextRequest): Promise<Response> {
             SET reserved_count = reserved_count + 1
           WHERE id = $1`,
         [travelBookingData.packageId],
+      );
+    }
+
+    // Parking bundle — zápis rezervace do orders.bundle_items + atomický reserved_count
+    if (parkingBookingData) {
+      await client.query(
+        `INSERT INTO orders.bundle_items
+           (order_id, item_type, parking_offer_id, price_halire, confirmation_code, status)
+         VALUES ($1, 'parking', $2, $3, $4, 'confirmed')`,
+        [orderId, parkingBookingData.offerId, parkingFeeHalire, parkingBookingData.confirmationCode],
+      );
+      await client.query(
+        `UPDATE catalog.parking_offers SET reserved_count = reserved_count + 1 WHERE id = $1`,
+        [parkingBookingData.offerId],
       );
     }
 

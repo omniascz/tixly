@@ -135,6 +135,17 @@ function CheckoutForm() {
   const [travelGuests, setTravelGuests] = useState(1);
   const [travelNotes, setTravelNotes] = useState('');
 
+  // Parking bundle (mig 402)
+  interface ParkingOffer {
+    id: string; name: string; description: string | null;
+    address: string | null; distance_meters: number | null;
+    vehicle_types: string[]; height_limit_cm: number | null;
+    price_halire: number; capacity: number; reserved_count: number;
+    access_instructions: string | null;
+  }
+  const [parkingOffers, setParkingOffers] = useState<ParkingOffer[]>([]);
+  const [selectedParkingOfferId, setSelectedParkingOfferId] = useState<string | null>(null);
+
   // Event-level gates (P1.5+P1.8 fixes) — VF presale + OTP SMS.
   const [eventFlags, setEventFlags] = useState<{
     requiresOtp: boolean;
@@ -202,6 +213,15 @@ function CheckoutForm() {
       .then((r) => (r.ok ? r.json() : null))
       .then((d: { packages?: TravelPackage[] } | null) => setTravelPackages(d?.packages ?? []))
       .catch(() => setTravelPackages([]));
+  }, [eventId]);
+
+  // Parking bundle — načteme dostupné parkovací nabídky
+  useEffect(() => {
+    if (!eventId) return;
+    fetch(`/api/events/${eventId}/parking-offers`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { offers?: ParkingOffer[] } | null) => setParkingOffers(d?.offers ?? []))
+      .catch(() => setParkingOffers([]));
   }, [eventId]);
 
   // Pro live preview pojistného načteme cenu ticket typu (base price)
@@ -397,6 +417,7 @@ function CheckoutForm() {
       if (ref) body.affiliateCode = ref;
       if (insurance && insuranceOptIn) body.insuranceOptIn = true;
       if (carbonOffset && carbonOffsetOptIn) body.carbonOffsetOptIn = true;
+      if (selectedParkingOfferId) body.parkingOfferId = selectedParkingOfferId;
       const foyerItemsArr = Object.entries(foyerItems)
         .filter(([, q]) => q > 0)
         .map(([menuItemId, quantity]) => ({ menuItemId, quantity }));
@@ -1204,6 +1225,44 @@ function CheckoutForm() {
                 </div>
               </div>
             ) : null}
+            {parkingOffers.length > 0 ? (
+              <div className="rounded-md border border-blue-200 bg-blue-50 p-3">
+                <p className="mb-2 text-sm font-semibold text-blue-900">🅿️ Parkování u akce</p>
+                <div className="space-y-2">
+                  {parkingOffers.map((offer) => {
+                    const selected = selectedParkingOfferId === offer.id;
+                    const spotsLeft = offer.capacity - offer.reserved_count;
+                    const full = spotsLeft <= 0;
+                    return (
+                      <div
+                        key={offer.id}
+                        onClick={() => { if (!full) setSelectedParkingOfferId(selected ? null : offer.id); }}
+                        className={`cursor-pointer rounded-md border p-2 transition-colors ${
+                          selected ? 'border-blue-500 bg-blue-100' : 'border-transparent bg-white hover:border-blue-300'
+                        } ${full ? 'cursor-not-allowed opacity-50' : ''}`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-xs font-medium">{offer.name}</p>
+                            {offer.address ? <p className="text-xs text-muted-foreground">{offer.address}</p> : null}
+                            {offer.distance_meters ? (
+                              <p className="text-xs text-muted-foreground">{(offer.distance_meters / 1000).toFixed(1)} km od místa</p>
+                            ) : null}
+                            {spotsLeft <= 5 && !full ? (
+                              <p className="text-xs font-medium text-rose-600">Zbývá jen {spotsLeft} míst!</p>
+                            ) : null}
+                            {full ? <p className="text-xs font-medium text-rose-600">Vyprodáno</p> : null}
+                          </div>
+                          <p className="shrink-0 text-sm font-semibold text-blue-700">
+                            {(offer.price_halire / 100).toLocaleString('cs-CZ')} Kč
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
             {insurance ? (() => {
               const qty = Math.max(1, parseInt(quantity, 10) || 1);
               const subtotal = (unitPriceHalire ?? 0) * qty;
@@ -1325,7 +1384,9 @@ function CheckoutForm() {
               const selectedTravel = travelPackages.find((p) => p.id === selectedTravelPackageId);
               const travelTotal = selectedTravel ? selectedTravel.pricePerNightHalire * selectedTravel.nights * travelGuests : 0;
               const carbonTotal = carbonOffset && carbonOffsetOptIn ? carbonOffset.amountHalire : 0;
-              const grandTotal = ticketTotal + foyerTotal + programTotal + travelTotal + carbonTotal;
+              const selectedParking = parkingOffers.find((p) => p.id === selectedParkingOfferId);
+              const parkingTotal = selectedParking ? selectedParking.price_halire : 0;
+              const grandTotal = ticketTotal + foyerTotal + programTotal + travelTotal + carbonTotal + parkingTotal;
               if (grandTotal <= 0 || unitPriceHalire === null) return null;
               return (
                 <div className="rounded-md bg-muted/40 px-3 py-2 text-sm">
@@ -1355,6 +1416,12 @@ function CheckoutForm() {
                     <div className="flex justify-between text-xs font-medium text-green-700">
                       <span>🌱 CO₂ offset</span>
                       <span>+{(carbonTotal / 100).toLocaleString('cs-CZ')} Kč</span>
+                    </div>
+                  ) : null}
+                  {parkingTotal > 0 && selectedParking ? (
+                    <div className="flex justify-between text-xs font-medium text-blue-700">
+                      <span>🅿️ {selectedParking.name}</span>
+                      <span>+{(parkingTotal / 100).toLocaleString('cs-CZ')} Kč</span>
                     </div>
                   ) : null}
                   <div className="mt-1 flex justify-between border-t pt-1 font-semibold">

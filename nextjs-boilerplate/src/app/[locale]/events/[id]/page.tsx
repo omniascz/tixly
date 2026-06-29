@@ -21,6 +21,7 @@ import {
   type TicketTypeWithAccess,
 } from './TicketPicker';
 import { TimedEntryWrapper } from './TimedEntryWrapper';
+import { SuperfanSection } from './SuperfanSection';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
@@ -518,6 +519,7 @@ export default async function EventDetailPage({
         </Card>
       </div>
     </div>
+      <SuperfanSection eventId={event.id} />
       <Recommendations eventId={event.id} locale={locale} />
 
       <div className="mt-6 text-center">
