@@ -74,6 +74,9 @@ export default function ScannerScreen() {
   const [zoneId, setZoneId] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>('standard');
   const [showConfig, setShowConfig] = useState(false);
+  // Lokální session počítadlo — resets on gate/event change
+  const [sessionAdmitted, setSessionAdmitted] = useState(0);
+  const [sessionDenied, setSessionDenied] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -85,6 +88,9 @@ export default function ScannerScreen() {
       }
     })();
   }, [router]);
+
+  // Reset session counters when gate config changes
+  useEffect(() => { setSessionAdmitted(0); setSessionDenied(0); }, [eventId, zoneId, dayId]);
 
   const ev = gates.find((g) => g.id === eventId) ?? null;
   const day = ev?.days.find((d) => d.id === dayId) ?? null;
@@ -113,6 +119,8 @@ export default function ScannerScreen() {
       try {
         const r = await apiFetch<ScanResult>(endpoint, { method: 'POST', body });
         setResult(r);
+        if (OK.has(r.result)) setSessionAdmitted((n) => n + 1);
+        else setSessionDenied((n) => n + 1);
       } catch (e) {
         if (e instanceof ApiError && e.status === 401) {
           router.replace('/login');
@@ -187,6 +195,13 @@ export default function ScannerScreen() {
         <View style={styles.frameWrap} pointerEvents="none">
           <View style={styles.frame} />
           <Text style={styles.hint}>{busy ? 'Ověřuji…' : 'Namiř na QR vstupenky'}</Text>
+          {(sessionAdmitted + sessionDenied) > 0 ? (
+            <View style={styles.sessionStats}>
+              <Text style={styles.sessionStatsText}>
+                ✓ {sessionAdmitted}{'  '}✗ {sessionDenied}{'  '}Session
+              </Text>
+            </View>
+          ) : null}
         </View>
       ) : null}
 
@@ -300,6 +315,8 @@ const styles = StyleSheet.create({
   frameWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg },
   frame: { width: 240, height: 240, borderWidth: 3, borderColor: colors.white, borderRadius: radius.lg, opacity: 0.9 },
   hint: { color: colors.white, fontSize: 16, fontWeight: '600' },
+  sessionStats: { backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: radius.pill, paddingHorizontal: space.lg, paddingVertical: 6 },
+  sessionStatsText: { color: '#fff', fontSize: 13, fontWeight: '700' },
   resultSheet: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: space.xl, paddingBottom: 48, gap: space.sm },
   resultLabel: { color: colors.white, fontSize: 28, fontWeight: '900' },
   resultEvent: { color: colors.white, fontSize: 18, fontWeight: '700' },

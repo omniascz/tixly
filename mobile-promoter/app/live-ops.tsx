@@ -16,11 +16,18 @@ interface GateEvent {
   title: string;
   dateStart: string;
 }
+interface GateStat {
+  gateId: string | null;
+  gateLabel: string;
+  admitted: number;
+  denied: number;
+}
 interface LiveOps {
   event: { title: string; currency: string };
   sales: { ticketsSold: number; revenueHalire: number; refundedCount: number };
   scanRate: { last5min: number; last15min: number; last60min: number; usedTotal: number; redemptionTotal: number };
   inventory: { id: string; name: string; remainingQty: number | null; soldQty: number | null }[];
+  gates: GateStat[];
   timestamp: string;
 }
 
@@ -115,6 +122,30 @@ export default function LiveOpsScreen() {
               <Stat label="60 min" value={String(data.scanRate.last60min)} />
             </View>
 
+            {data.gates && data.gates.length > 0 ? (
+              <>
+                <Text style={styles.section}>Brány — vstup / odmítnutí</Text>
+                {data.gates.map((g, i) => {
+                  const total = g.admitted + g.denied;
+                  const pct = total > 0 ? Math.round((g.admitted / total) * 100) : 100;
+                  return (
+                    <View key={g.gateId ?? String(i)} style={styles.gateRow}>
+                      <View style={styles.gateHeader}>
+                        <Text style={styles.gateName}>{g.gateLabel}</Text>
+                        <Text style={styles.gateNumbers}>
+                          <Text style={{ color: '#22c55e' }}>{g.admitted} ✓</Text>
+                          {g.denied > 0 ? <Text style={{ color: '#ef4444' }}>  {g.denied} ✗</Text> : null}
+                        </Text>
+                      </View>
+                      <View style={styles.progressBar}>
+                        <View style={[styles.progressFill, { width: `${pct}%` as `${number}%` }]} />
+                      </View>
+                    </View>
+                  );
+                })}
+              </>
+            ) : null}
+
             <Text style={styles.section}>Inventář</Text>
             {data.inventory.map((i) => (
               <View key={i.id} style={styles.invRow}>
@@ -159,5 +190,11 @@ const styles = StyleSheet.create({
   invRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: space.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
   invName: { fontSize: 15, color: colors.text, fontWeight: '600' },
   invMeta: { fontSize: 13, color: colors.textMuted },
+  gateRow: { marginBottom: space.sm },
+  gateHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
+  gateName: { fontSize: 14, color: colors.text, fontWeight: '600', flex: 1 },
+  gateNumbers: { fontSize: 14, fontWeight: '700' },
+  progressBar: { height: 6, borderRadius: 3, backgroundColor: colors.bgMuted, overflow: 'hidden' },
+  progressFill: { height: 6, borderRadius: 3, backgroundColor: '#22c55e' },
   ts: { fontSize: 12, color: colors.textMuted, textAlign: 'center', marginTop: space.md },
 });
