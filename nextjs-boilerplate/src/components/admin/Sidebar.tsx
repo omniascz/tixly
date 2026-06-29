@@ -31,6 +31,7 @@ import {
   Trophy,
   HeartHandshake,
   BarChart3,
+  Phone,
   type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -66,6 +67,7 @@ const sections: NavSection[] = [
     items: [
       { href: '/admin/orders', label: 'Objednávky', icon: ShoppingCart, staffAllowed: true },
       { href: '/admin/pos', label: 'Pokladna (POS)', icon: Banknote, staffAllowed: true },
+      { href: '/admin/call-center', label: 'Call Center', icon: Phone, staffAllowed: true },
       { href: '/admin/scanner', label: 'Scanner', icon: ScanLine, staffAllowed: true },
       { href: '/admin/event-groups', label: 'Event Groups', icon: Layers },
       { href: '/admin/productions', label: 'Produkce / reprízy', icon: Repeat },

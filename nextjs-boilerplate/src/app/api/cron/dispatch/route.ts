@@ -46,6 +46,8 @@ const ALLOWED_JOBS = new Set([
   'forgemsg-provision',        // create ForgeMsg org + key for new promoters
   // Feature 4: Payout SLA
   'event-payout-release',      // auto-payout N days after event ends (per-promoter SLA)
+  // Feature 8: Demand Forecasting
+  'demand-forecast',           // every 6h recompute demand score + check yield rules
 ]);
 
 export async function GET(req: NextRequest): Promise<Response> {

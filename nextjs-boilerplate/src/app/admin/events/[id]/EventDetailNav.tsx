@@ -46,6 +46,7 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/price-scenarios`, label: 'Price scenarios', group: 'Pricing' },
     { href: `/admin/events/${eventId}/volume-discounts`, label: 'Množ. slevy', group: 'Pricing' },
     { href: `/admin/events/${eventId}/group-discounts`, label: 'Group discounts', group: 'Pricing' },
+    { href: `/admin/events/${eventId}/demand-forecast`, label: 'Demand forecast', group: 'Pricing' },
 
     // Marketing
     { href: `/admin/events/${eventId}/broadcast`, label: 'Broadcast', group: 'Marketing' },
