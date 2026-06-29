@@ -28,6 +28,8 @@ interface EventSettings {
   // Festival / open-air — opakovaný vstup (re-entry)
   reentryAllowed?: boolean;
   reentryMaxCount?: number;
+  // mig 433 — purchase limit per event
+  maxTicketsPerBuyer?: number | null;
 }
 
 const QR_POLICY_LABELS: Record<EventSettings['qrPolicy'], { title: string; desc: string }> = {
@@ -449,6 +451,44 @@ export default function EventSettingsPage() {
             />
             <p className="mt-1 text-xs text-muted-foreground">
               Kolikrát smí lístek projít vstupem (1 = jednorázový, 3 = vstup + 2 návraty). Limit 1–100.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Purchase limit per event (mig 433) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Limit vstupenek na osobu</CardTitle>
+          <CardDescription>
+            Zabraňuje hoarding — omezuje kolik vstupenek si jedna osoba (email / účet) může koupit
+            pro celou akci napříč všemi typy vstupenek. Prázdné = bez limitu.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+              Max vstupenek na osobu
+            </label>
+            <Input
+              type="number"
+              min={1}
+              max={1000}
+              value={data.maxTicketsPerBuyer ?? ''}
+              placeholder="bez limitu"
+              onChange={(e) =>
+                setData({
+                  ...data,
+                  maxTicketsPerBuyer: e.target.value === '' ? null : Number(e.target.value),
+                })
+              }
+              onBlur={() => saveSettings({ maxTicketsPerBuyer: data.maxTicketsPerBuyer ?? null })}
+              disabled={saving}
+              className="max-w-32"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Platí pro celou akci (všechny typy vstupenek). Pro limit per typ vstupenky nastav
+              „Max ks na osobu" u konkrétního typu vstupenky.
             </p>
           </div>
         </CardContent>

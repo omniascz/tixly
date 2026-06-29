@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
-import { buildMembershipPkpass } from '@/lib/wallet/apple-pass';
+import { buildPkpass } from '@/lib/wallet/apple-pass';
+import type { PassData } from '@/lib/wallet/apple-pass';
 
 interface MembershipRow {
   id: string;
@@ -47,15 +48,19 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const out = buildMembershipPkpass({
-      membershipId: row.id,
-      bundleName: row.bundle_name,
-      validUntil: row.valid_until,
-      memberName: row.user_name,
-      memberEmail: row.email,
-      membershipCode: row.membership_code,
-      cardColorHex: row.card_color,
-    });
+    const passData: PassData = {
+      ticketId: row.id,
+      eventTitle: row.bundle_name ?? 'Členská karta',
+      eventDateIso: row.valid_until ?? new Date().toISOString(),
+      ticketTypeName: 'Člen',
+      holderName: row.user_name,
+      holderEmail: row.email,
+      venueName: null,
+      qrPayload: row.membership_code,
+      organizationName: 'Tixly',
+      brandColorHex: row.card_color,
+    };
+    const out = buildPkpass(passData);
 
     await db().query(
       `UPDATE tickets.cross_pass_memberships SET card_issued_at = NOW() WHERE id = $1`,

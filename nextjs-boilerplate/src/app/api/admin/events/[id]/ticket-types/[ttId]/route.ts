@@ -22,6 +22,13 @@ const patchSchema = z.object({
   zone: z.string().max(200).nullable().optional(),
   isSeated: z.boolean().optional(),
   streamAccess: z.enum(['live', 'live_and_replay', 'none']).optional(),
+  // mig 432 — presale access codes
+  presaleStartsAt: z.string().datetime({ offset: true }).nullable().optional(),
+  presaleEndsAt: z.string().datetime({ offset: true }).nullable().optional(),
+  presaleCode: z.string().min(4).max(40).nullable().optional(),
+  presaleCodeRequired: z.boolean().optional(),
+  // mig 433 — per-ticket-type purchase limit
+  maxPerBuyer: z.number().int().min(1).max(1000).nullable().optional(),
 });
 
 async function ensureOwnership(eventId: string, ttId: string, promoterId: string) {
@@ -90,6 +97,11 @@ export async function PATCH(
            zone = COALESCE($7, zone),
            is_seated = COALESCE($8, is_seated),
            stream_access = COALESCE($10, stream_access),
+           presale_starts_at = CASE WHEN $11::text IS NOT NULL THEN $11::timestamptz ELSE presale_starts_at END,
+           presale_ends_at = CASE WHEN $12::text IS NOT NULL THEN $12::timestamptz ELSE presale_ends_at END,
+           presale_code = CASE WHEN $13::text IS NOT NULL THEN $13 ELSE presale_code END,
+           presale_code_required = COALESCE($14, presale_code_required),
+           max_per_buyer = CASE WHEN $15::int IS NOT NULL THEN $15 ELSE max_per_buyer END,
            updated_at = NOW()
        WHERE id = $9`,
       [
@@ -103,6 +115,11 @@ export async function PATCH(
         input.isSeated !== undefined ? input.isSeated : null,
         params.ttId,
         input.streamAccess ?? null,
+        input.presaleStartsAt !== undefined ? (input.presaleStartsAt ?? null) : null,
+        input.presaleEndsAt !== undefined ? (input.presaleEndsAt ?? null) : null,
+        input.presaleCode !== undefined ? (input.presaleCode ?? null) : null,
+        input.presaleCodeRequired !== undefined ? input.presaleCodeRequired : null,
+        input.maxPerBuyer !== undefined ? (input.maxPerBuyer ?? null) : null,
       ],
     );
 

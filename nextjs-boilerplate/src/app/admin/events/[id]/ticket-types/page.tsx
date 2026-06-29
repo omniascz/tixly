@@ -25,6 +25,13 @@ interface TicketType {
   maxPerUser: number | null;
   zone: string | null;
   isSeated: boolean;
+  // mig 432 — presale access codes
+  presaleCodeRequired: boolean;
+  presaleStartsAt: string | null;
+  presaleEndsAt: string | null;
+  presaleCode: string | null;
+  // mig 433 — per-ticket-type purchase limit
+  maxPerBuyer: number | null;
 }
 
 function priceLabel(halire: number, currency = 'CZK'): string {
@@ -79,6 +86,13 @@ export default function TicketTypesPage({
   const [editMax, setEditMax] = useState('');
   const [editZone, setEditZone] = useState('');
   const [editDesc, setEditDesc] = useState('');
+  // mig 432 — presale
+  const [editPresaleRequired, setEditPresaleRequired] = useState(false);
+  const [editPresaleCode, setEditPresaleCode] = useState('');
+  const [editPresaleStartsAt, setEditPresaleStartsAt] = useState('');
+  const [editPresaleEndsAt, setEditPresaleEndsAt] = useState('');
+  // mig 433 — per-ticket-type purchase limit
+  const [editMaxPerBuyer, setEditMaxPerBuyer] = useState('');
 
   const load = () => {
     setLoading(true);
@@ -98,6 +112,11 @@ export default function TicketTypesPage({
     setEditingId(tt.id);
     setEditName(tt.name);
     setEditPrice(String((tt.basePrice / 100).toFixed(0)));
+    setEditPresaleRequired(tt.presaleCodeRequired);
+    setEditPresaleCode(tt.presaleCode ?? '');
+    setEditPresaleStartsAt(tt.presaleStartsAt ? tt.presaleStartsAt.slice(0, 16) : '');
+    setEditPresaleEndsAt(tt.presaleEndsAt ? tt.presaleEndsAt.slice(0, 16) : '');
+    setEditMaxPerBuyer(tt.maxPerBuyer ? String(tt.maxPerBuyer) : '');
     setEditCapacity(String(tt.totalQty));
     setEditMax(tt.maxPerUser ? String(tt.maxPerUser) : '');
     setEditZone(tt.zone ?? '');
@@ -117,6 +136,16 @@ export default function TicketTypesPage({
     const newMax = editMax ? parseInt(editMax, 10) : null;
     if (newMax !== tt.maxPerUser) body.maxPerUser = newMax;
     if (editZone !== (tt.zone ?? '')) body.zone = editZone || null;
+    // mig 432 — presale
+    if (editPresaleRequired !== tt.presaleCodeRequired) body.presaleCodeRequired = editPresaleRequired;
+    if (editPresaleCode !== (tt.presaleCode ?? '')) body.presaleCode = editPresaleCode || null;
+    if (editPresaleStartsAt !== (tt.presaleStartsAt ? tt.presaleStartsAt.slice(0, 16) : ''))
+      body.presaleStartsAt = editPresaleStartsAt ? new Date(editPresaleStartsAt).toISOString() : null;
+    if (editPresaleEndsAt !== (tt.presaleEndsAt ? tt.presaleEndsAt.slice(0, 16) : ''))
+      body.presaleEndsAt = editPresaleEndsAt ? new Date(editPresaleEndsAt).toISOString() : null;
+    // mig 433 — max per buyer
+    const newMaxPerBuyer = editMaxPerBuyer ? parseInt(editMaxPerBuyer, 10) : null;
+    if (newMaxPerBuyer !== tt.maxPerBuyer) body.maxPerBuyer = newMaxPerBuyer;
 
     if (Object.keys(body).length === 0) {
       setEditingId(null);
@@ -315,6 +344,54 @@ export default function TicketTypesPage({
                           <Label className="text-xs">Popis</Label>
                           <Input value={editDesc} onChange={(e) => setEditDesc(e.target.value)} />
                         </div>
+                        <div>
+                          <Label className="text-xs">Max ks na osobu (mig 433)</Label>
+                          <Input type="number" min={1} max={1000} value={editMaxPerBuyer} onChange={(e) => setEditMaxPerBuyer(e.target.value)} placeholder="bez limitu" />
+                        </div>
+                      </div>
+                      {/* Presale nastavení (mig 432) */}
+                      <div className="rounded-md border border-amber-200 bg-amber-50 p-3 space-y-3">
+                        <p className="text-xs font-semibold text-amber-900">Presale nastavení</p>
+                        <label className="flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={editPresaleRequired}
+                            onChange={(e) => setEditPresaleRequired(e.target.checked)}
+                          />
+                          <span className="font-medium text-amber-900">Vyžadovat přístupový kód</span>
+                        </label>
+                        {editPresaleRequired ? (
+                          <div className="grid gap-3 sm:grid-cols-3">
+                            <div>
+                              <Label className="text-xs">Přístupový kód</Label>
+                              <Input
+                                value={editPresaleCode}
+                                onChange={(e) => setEditPresaleCode(e.target.value.toUpperCase())}
+                                placeholder="PRESALE-XXXX"
+                                className="font-mono uppercase"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Presale začíná</Label>
+                              <Input
+                                type="datetime-local"
+                                value={editPresaleStartsAt}
+                                onChange={(e) => setEditPresaleStartsAt(e.target.value)}
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Presale končí</Label>
+                              <Input
+                                type="datetime-local"
+                                value={editPresaleEndsAt}
+                                onChange={(e) => setEditPresaleEndsAt(e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        ) : null}
+                        <p className="text-xs text-amber-800">
+                          Kupující budou muset zadat kód během presale období. Po jeho skončení je vstupenka dostupná normálně.
+                        </p>
                       </div>
                       <div className="flex gap-2">
                         <Button size="sm" onClick={() => saveEdit(tt)} disabled={saving}>Uložit</Button>

@@ -69,6 +69,8 @@ const editSchema = z.object({
   verifiedFanEnabled: z.boolean().optional(),
   requiresOtpValidation: z.boolean().optional(),
   requirePhoneVerified: z.boolean().optional(),
+  // mig 433 — purchase limit per event
+  maxTicketsPerBuyer: z.number().int().min(1).max(1000).nullable().optional(),
 });
 
 export async function GET(
@@ -96,7 +98,8 @@ export async function GET(
             COALESCE(verified_fan_enabled, FALSE) AS verified_fan_enabled,
             COALESCE(requires_otp_validation, FALSE) AS requires_otp_validation,
             COALESCE(reentry_allowed, FALSE) AS reentry_allowed,
-            COALESCE(reentry_max_count, 3) AS reentry_max_count
+            COALESCE(reentry_max_count, 3) AS reentry_max_count,
+            max_tickets_per_buyer
      FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
     [params.id, promoter.promoterId],
   );
@@ -125,6 +128,7 @@ export async function GET(
     vatCategory: e.vat_category,
     reentryAllowed: (e as { reentry_allowed?: boolean }).reentry_allowed ?? false,
     reentryMaxCount: (e as { reentry_max_count?: number }).reentry_max_count ?? 3,
+    maxTicketsPerBuyer: (e as { max_tickets_per_buyer?: number | null }).max_tickets_per_buyer ?? null,
   });
 
   });
@@ -237,6 +241,7 @@ export async function PATCH(
            reentry_allowed = COALESCE($19, reentry_allowed),
            reentry_max_count = COALESCE($20, reentry_max_count),
            require_phone_verified = COALESCE($21, require_phone_verified),
+           max_tickets_per_buyer = CASE WHEN $22::int IS NOT NULL THEN $22 ELSE max_tickets_per_buyer END,
            updated_at = NOW()
        WHERE id = $6`,
       [
@@ -256,6 +261,7 @@ export async function PATCH(
         input.reentryAllowed ?? null,
         input.reentryMaxCount ?? null,
         input.requirePhoneVerified ?? null,
+        input.maxTicketsPerBuyer !== undefined ? (input.maxTicketsPerBuyer ?? null) : null,
       ],
     );
 

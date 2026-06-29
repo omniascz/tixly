@@ -51,6 +51,11 @@ export async function GET(
       stream_access: string;
       sold_qty: string;
       issued_qty: string;
+      presale_code_required: boolean;
+      presale_starts_at: string | null;
+      presale_ends_at: string | null;
+      presale_code: string | null;
+      max_per_buyer: number | null;
     }>(
       `SELECT
          tt.id,
@@ -65,7 +70,12 @@ export async function GET(
          COALESCE(tt.is_seated, false) AS is_seated,
          tt.stream_access,
          (tt.total_qty - tt.remaining_qty)::text AS sold_qty,
-         COUNT(t.id)::text AS issued_qty
+         COUNT(t.id)::text AS issued_qty,
+         COALESCE(tt.presale_code_required, false) AS presale_code_required,
+         tt.presale_starts_at::text AS presale_starts_at,
+         tt.presale_ends_at::text AS presale_ends_at,
+         tt.presale_code,
+         tt.max_per_buyer
        FROM catalog.ticket_types tt
        LEFT JOIN tickets.tickets t ON t.ticket_type_id = tt.id AND t.status != 'cancelled'
        WHERE tt.event_id = $1
@@ -89,6 +99,11 @@ export async function GET(
         zone: r.zone,
         isSeated: r.is_seated,
         streamAccess: r.stream_access,
+        presaleCodeRequired: r.presale_code_required,
+        presaleStartsAt: r.presale_starts_at,
+        presaleEndsAt: r.presale_ends_at,
+        presaleCode: r.presale_code,
+        maxPerBuyer: r.max_per_buyer,
       })),
     });
   });

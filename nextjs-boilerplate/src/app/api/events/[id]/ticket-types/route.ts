@@ -15,6 +15,9 @@ interface TtRow {
   is_seated: boolean;
   picks_required: number | null;
   pass_kind: string | null;
+  presale_code_required: boolean;
+  presale_starts_at: string | null;
+  presale_ends_at: string | null;
 }
 
 // CORS preflight pro cross-origin embed widget. Hlavičky doplní next.config.
@@ -35,7 +38,10 @@ export async function GET(
   const r = await db().query<TtRow>(
     `SELECT tt.id, tt.name, tt.base_price, tt.remaining_qty,
             COALESCE(tt.is_seated, false) AS is_seated,
-            f.picks_required, f.pass_kind
+            f.picks_required, f.pass_kind,
+            COALESCE(tt.presale_code_required, false) AS presale_code_required,
+            tt.presale_starts_at::text AS presale_starts_at,
+            tt.presale_ends_at::text AS presale_ends_at
      FROM catalog.ticket_types tt
      JOIN catalog.events e ON e.id = tt.event_id AND e.status = 'published'
      LEFT JOIN catalog.flex_pass_settings f ON f.ticket_type_id = tt.id
@@ -78,6 +84,9 @@ export async function GET(
         t.pass_kind && t.picks_required
           ? { kind: t.pass_kind, picksRequired: t.picks_required }
           : null,
+      presaleCodeRequired: t.presale_code_required,
+      presaleStartsAt: t.presale_starts_at,
+      presaleEndsAt: t.presale_ends_at,
     })),
     eventFlags: {
       requiresOtp: flags.requires_otp_validation,

@@ -160,8 +160,23 @@ function CheckoutForm() {
   const [otpSending, setOtpSending] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
 
-  // Verified Fan presale code
+  // Verified Fan presale code (also reused for ticket-type presale)
   const [presaleCode, setPresaleCode] = useState('');
+
+  // Gift karta (mig 431)
+  const [giftCardCode, setGiftCardCode] = useState('');
+  const [giftCardInfo, setGiftCardInfo] = useState<{
+    remainingValue: number;
+    currency: string;
+    expiresAt: string | null;
+    isActive: boolean;
+  } | null>(null);
+  const [giftCardVerifying, setGiftCardVerifying] = useState(false);
+  const [giftCardError, setGiftCardError] = useState<string | null>(null);
+
+  // Presale kód pro ticket_type (mig 432) — zobrazí se pokud ticket type má presale_code_required
+  const [ttPresaleRequired, setTtPresaleRequired] = useState(false);
+  const [ttPresaleCode, setTtPresaleCode] = useState('');
 
   const [savedMethods, setSavedMethods] = useState<{
     id: string;
@@ -172,6 +187,26 @@ function CheckoutForm() {
     is_default: boolean;
   }[]>([]);
   const [selectedSavedMethodId, setSelectedSavedMethodId] = useState<string | null>(null);
+
+  // Loyalty body (mig 434) — načteme balance přihlášeného buyera
+  const [loyaltyBalance, setLoyaltyBalance] = useState<number | null>(null);
+  const [loyaltyPointsToRedeem, setLoyaltyPointsToRedeem] = useState(0);
+
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    if (!token) return;
+    fetch('/api/buyer/loyalty', {
+      headers: { Authorization: `Bearer ${token}` },
+      credentials: 'include',
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { pointsBalance?: number } | null) => {
+        if (d && typeof d.pointsBalance === 'number') {
+          setLoyaltyBalance(d.pointsBalance);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const lotteryToken = searchParams.get('lotteryToken');
@@ -242,13 +277,16 @@ function CheckoutForm() {
       .then((r) => (r.ok ? r.json() : null))
       .then(
         (d: {
-          ticketTypes?: Array<{ id: string; basePrice: number }>;
+          ticketTypes?: Array<{ id: string; basePrice: number; presaleCodeRequired?: boolean }>;
           eventFlags?: { requiresOtp: boolean; verifiedFanEnabled: boolean };
           metaPixelId?: string | null;
           currency?: string;
         } | null) => {
           const tt = d?.ticketTypes?.find((t) => t.id === ticketTypeId);
-          if (tt) setUnitPriceHalire(tt.basePrice);
+          if (tt) {
+            setUnitPriceHalire(tt.basePrice);
+            if (tt.presaleCodeRequired) setTtPresaleRequired(true);
+          }
           if (d?.eventFlags) setEventFlags(d.eventFlags);
           if (d?.metaPixelId) setMetaPixelId(d.metaPixelId);
           if (d?.currency) setCurrency(d.currency);
@@ -297,6 +335,45 @@ function CheckoutForm() {
       setOtpError((e as Error).message);
     } finally {
       setOtpSending(false);
+    }
+  }
+
+  async function verifyGiftCard(): Promise<void> {
+    const code = giftCardCode.trim().toUpperCase();
+    if (code.length < 4) return;
+    setGiftCardVerifying(true);
+    setGiftCardError(null);
+    setGiftCardInfo(null);
+    try {
+      const r = await fetch(`/api/buyer/gift-cards/${encodeURIComponent(code)}`);
+      const d = (await r.json()) as {
+        remainingValue?: number;
+        currency?: string;
+        expiresAt?: string | null;
+        isActive?: boolean;
+        error?: string;
+      };
+      if (!r.ok || !d.remainingValue) {
+        setGiftCardError(
+          d.error === 'NOT_FOUND' ? 'Gift karta nebyla nalezena.' :
+          'Nepodařilo se ověřit gift kartu.',
+        );
+        return;
+      }
+      if (!d.isActive) {
+        setGiftCardError('Tato gift karta není aktivní nebo již expirovala.');
+        return;
+      }
+      setGiftCardInfo({
+        remainingValue: d.remainingValue ?? 0,
+        currency: d.currency ?? 'CZK',
+        expiresAt: d.expiresAt ?? null,
+        isActive: d.isActive ?? false,
+      });
+    } catch {
+      setGiftCardError('Síťová chyba při ověřování gift karty.');
+    } finally {
+      setGiftCardVerifying(false);
     }
   }
 
@@ -475,6 +552,15 @@ function CheckoutForm() {
       // PSL-xxxx code, fan ho zadá tady aby projel gate v checkout/route.ts.
       if (eventFlags.verifiedFanEnabled && presaleCode.trim())
         body.presaleCode = presaleCode.trim().toUpperCase();
+      // Ticket-type presale code (mig 432) — pokud ticket type vyžaduje presale kód
+      if (!eventFlags.verifiedFanEnabled && ttPresaleRequired && ttPresaleCode.trim())
+        body.presaleCode = ttPresaleCode.trim().toUpperCase();
+      // Gift karta (mig 431)
+      if (giftCardCode.trim() && giftCardInfo?.isActive)
+        body.giftCardCode = giftCardCode.trim().toUpperCase();
+      // Loyalty body (mig 434)
+      if (loyaltyPointsToRedeem > 0)
+        body.redeemLoyaltyPoints = loyaltyPointsToRedeem;
       if (paymentMethod === 'b2b_credit' && b2bAccountCode.trim()) {
         body.b2bAccountCode = b2bAccountCode.trim().toUpperCase();
       }
@@ -499,6 +585,18 @@ function CheckoutForm() {
         }
         if (data.error === 'AGE_BELOW_MINIMUM') {
           setError(data.message ?? 'Nesplňuješ věkový limit.');
+          return;
+        }
+        if (data.error === 'INVALID_PRESALE_CODE') {
+          setError(data.message ?? 'Neplatný presale kód.');
+          return;
+        }
+        if (data.error === 'NOT_YET_ON_SALE') {
+          setError(data.message ?? 'Vstupenky zatím nejsou v prodeji.');
+          return;
+        }
+        if (data.error === 'PURCHASE_LIMIT_EXCEEDED') {
+          setError(data.message ?? `Překročen limit nákupu (max ${(data as { limit?: number }).limit ?? '?'} ks na osobu).`);
           return;
         }
         setError(data.message ?? data.error ?? `HTTP ${res.status}`);
@@ -715,6 +813,98 @@ function CheckoutForm() {
                   })}
                 </div>
               </fieldset>
+            ) : null}
+
+            {/* Gift karta (mig 431) — pole pro zadání a ověření kódu */}
+            <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 space-y-2">
+              <p className="text-xs font-semibold text-emerald-900">Mám gift kartu</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={giftCardCode}
+                  onChange={(e) => {
+                    setGiftCardCode(e.target.value.toUpperCase());
+                    setGiftCardInfo(null);
+                    setGiftCardError(null);
+                  }}
+                  placeholder="GK-XXXXXXXX"
+                  className="flex-1 rounded-md border border-emerald-300 px-3 py-2 font-mono text-sm uppercase"
+                  spellCheck={false}
+                  maxLength={20}
+                />
+                <button
+                  type="button"
+                  onClick={() => { void verifyGiftCard(); }}
+                  disabled={giftCardVerifying || giftCardCode.trim().length < 4}
+                  className="rounded-md bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  {giftCardVerifying ? '...' : 'Ověřit'}
+                </button>
+              </div>
+              {giftCardInfo?.isActive ? (
+                <p className="text-xs text-emerald-800">
+                  Zbývající hodnota: <strong>{(giftCardInfo.remainingValue / 100).toLocaleString('cs-CZ')} {giftCardInfo.currency}</strong>
+                  {giftCardInfo.expiresAt ? ` (platí do ${new Date(giftCardInfo.expiresAt).toLocaleDateString('cs-CZ')})` : ''}
+                </p>
+              ) : null}
+              {giftCardError ? (
+                <p className="text-xs text-rose-600">{giftCardError}</p>
+              ) : null}
+            </div>
+
+            {/* Loyalty body (mig 434) — uplatnění bodů */}
+            {loyaltyBalance !== null && loyaltyBalance > 0 ? (
+              <div className="rounded-md border border-violet-200 bg-violet-50 p-3 space-y-2">
+                <p className="text-xs font-semibold text-violet-900">
+                  Máš {loyaltyBalance.toLocaleString('cs-CZ')} bodů (= max {Math.floor(loyaltyBalance / 100).toLocaleString('cs-CZ')} Kč sleva)
+                </p>
+                <p className="text-xs text-violet-700">100 bodů = 1 Kč sleva, max 50 % z objednávky</p>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min={0}
+                    max={loyaltyBalance}
+                    step={100}
+                    value={loyaltyPointsToRedeem}
+                    onChange={(e) => setLoyaltyPointsToRedeem(parseInt(e.target.value, 10))}
+                    className="flex-1 accent-violet-600"
+                  />
+                  <span className="w-28 text-right text-xs font-medium text-violet-900">
+                    {loyaltyPointsToRedeem > 0
+                      ? `−${Math.floor(loyaltyPointsToRedeem / 100).toLocaleString('cs-CZ')} Kč`
+                      : 'Neuplatnit'}
+                  </span>
+                </div>
+                {loyaltyPointsToRedeem > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setLoyaltyPointsToRedeem(0)}
+                    className="text-xs text-violet-600 hover:underline"
+                  >
+                    Zrušit uplatnění
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+
+            {/* Ticket-type presale kód (mig 432) — viditelné jen pokud ticket type vyžaduje */}
+            {ttPresaleRequired && !eventFlags.verifiedFanEnabled ? (
+              <div className="rounded-md border border-amber-300 bg-amber-50 p-3">
+                <label className="block text-xs font-medium text-amber-900">
+                  Přístupový kód pro presale *
+                  <input
+                    type="text"
+                    required
+                    value={ttPresaleCode}
+                    onChange={(e) => setTtPresaleCode(e.target.value.toUpperCase())}
+                    placeholder="PRESALE-XXXX"
+                    className="mt-1 block w-full rounded-md border border-amber-300 px-3 py-2 font-mono text-sm uppercase"
+                  />
+                </label>
+                <p className="mt-1 text-xs text-amber-800">
+                  Tento typ vstupenky je v presale. Zadej přístupový kód, který jsi obdržel(a).
+                </p>
+              </div>
             ) : null}
 
             {/* Verified Fan presale code (P1.5) — viditelné jen pro VF events */}
@@ -1415,8 +1605,12 @@ function CheckoutForm() {
               const carbonTotal = carbonOffset && carbonOffsetOptIn ? carbonOffset.amountHalire : 0;
               const selectedParking = parkingOffers.find((p) => p.id === selectedParkingOfferId);
               const parkingTotal = selectedParking ? selectedParking.price_halire : 0;
-              const grandTotal = ticketTotal + foyerTotal + programTotal + travelTotal + carbonTotal + parkingTotal;
-              if (grandTotal <= 0 || unitPriceHalire === null) return null;
+              const giftCardDiscount = giftCardInfo?.isActive ? Math.min(giftCardInfo.remainingValue, ticketTotal + foyerTotal + programTotal + travelTotal + carbonTotal + parkingTotal) : 0;
+              const loyaltyDiscount = loyaltyPointsToRedeem > 0
+                ? Math.floor(loyaltyPointsToRedeem / 100) * 100
+                : 0;
+              const grandTotal = Math.max(0, ticketTotal + foyerTotal + programTotal + travelTotal + carbonTotal + parkingTotal - giftCardDiscount - loyaltyDiscount);
+              if ((ticketTotal + foyerTotal + programTotal + travelTotal + carbonTotal + parkingTotal) <= 0 || unitPriceHalire === null) return null;
               return (
                 <div className="rounded-md bg-muted/40 px-3 py-2 text-sm">
                   <div className="flex justify-between">
@@ -1451,6 +1645,18 @@ function CheckoutForm() {
                     <div className="flex justify-between text-xs font-medium text-blue-700">
                       <span>🅿️ {selectedParking.name}</span>
                       <span>+{(parkingTotal / 100).toLocaleString('cs-CZ')} Kč</span>
+                    </div>
+                  ) : null}
+                  {giftCardDiscount > 0 ? (
+                    <div className="flex justify-between text-xs font-medium text-emerald-700">
+                      <span>Gift karta ({giftCardCode.toUpperCase()})</span>
+                      <span>−{(giftCardDiscount / 100).toLocaleString('cs-CZ')} Kč</span>
+                    </div>
+                  ) : null}
+                  {loyaltyDiscount > 0 ? (
+                    <div className="flex justify-between text-xs font-medium text-violet-700">
+                      <span>Tixly body ({loyaltyPointsToRedeem.toLocaleString('cs-CZ')} bodů)</span>
+                      <span>−{(loyaltyDiscount / 100).toLocaleString('cs-CZ')} Kč</span>
                     </div>
                   ) : null}
                   <div className="mt-1 flex justify-between border-t pt-1 font-semibold">

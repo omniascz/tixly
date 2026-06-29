@@ -128,6 +128,9 @@ const schema = z.object({
   b2bAccountCode: z.string().min(4).max(20).optional(),
   // Gift voucher kód — aplikuje se PO promo kódu jako přímá sleva z balance.
   voucherCode: z.string().min(8).max(40).optional(),
+  // Gift karta (mig 431) — platform-wide prepaid hodnota. Kód GK-XXXXXXXX.
+  // Aplikuje se po voucheru, před service fee.
+  giftCardCode: z.string().min(4).max(20).optional(),
   // Restwert kredit (DACH P0-2 Q4 polish) — buyer uplatní zbytkový kredit ze
   // svých subscriptions.holders u téhož promotéra. Aplikuje se PO voucheru.
   // Vyžaduje x-user-id header (přihlášený buyer; guest nemá historii).
@@ -200,6 +203,15 @@ interface TicketTypeRow {
   is_seated: boolean;
   requires_personalization: boolean;
   max_per_user: number | null;
+  // mig 432 — presale access codes
+  presale_starts_at: string | null;
+  presale_ends_at: string | null;
+  presale_code: string | null;
+  presale_code_required: boolean;
+  // mig 433 — purchase limit per ticket type
+  max_per_buyer: number | null;
+  // mig 433 — purchase limit per event (from events table)
+  max_tickets_per_buyer: number | null;
 }
 
 
@@ -281,7 +293,13 @@ export async function POST(req: NextRequest): Promise<Response> {
               COALESCE(e.require_phone_verified, FALSE) AS require_phone_verified,
               COALESCE(e.verified_fan_enabled, FALSE) AS verified_fan_enabled,
               e.verified_fan_presale_starts_at::text AS vf_starts_at,
-              e.verified_fan_presale_ends_at::text AS vf_ends_at
+              e.verified_fan_presale_ends_at::text AS vf_ends_at,
+              tt.presale_starts_at::text AS presale_starts_at,
+              tt.presale_ends_at::text AS presale_ends_at,
+              tt.presale_code,
+              COALESCE(tt.presale_code_required, FALSE) AS presale_code_required,
+              tt.max_per_buyer,
+              e.max_tickets_per_buyer
        FROM catalog.ticket_types tt
        JOIN catalog.events e ON e.id = tt.event_id
        WHERE tt.id = $1 AND tt.event_id = $2 AND e.status = 'published'`,
@@ -298,7 +316,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         { status: 404 },
       );
     }
-    const tt = ttRes.rows[0] as { id: string; event_id: string; remaining_qty: number; name: string; event_title: string; min_age: number | null; currency: string; queue_enabled: boolean; insurance_enabled: boolean; insurance_pct: number; is_seated: boolean; requires_personalization: boolean; max_per_user: number | null; promoter_id: string; requires_otp_validation: boolean; require_phone_verified: boolean; verified_fan_enabled: boolean; vf_starts_at: string | null; vf_ends_at: string | null };
+    const tt = ttRes.rows[0] as { id: string; event_id: string; remaining_qty: number; name: string; event_title: string; min_age: number | null; currency: string; queue_enabled: boolean; insurance_enabled: boolean; insurance_pct: number; is_seated: boolean; requires_personalization: boolean; max_per_user: number | null; promoter_id: string; requires_otp_validation: boolean; require_phone_verified: boolean; verified_fan_enabled: boolean; vf_starts_at: string | null; vf_ends_at: string | null; presale_starts_at: string | null; presale_ends_at: string | null; presale_code: string | null; presale_code_required: boolean; max_per_buyer: number | null; max_tickets_per_buyer: number | null };
 
     // Verified Fan gate (CZ priority #4) — pokud event má VF enabled, jen
     // approved fans s unused presale_code mohou koupit. Po úspěšném zápisu
@@ -342,6 +360,44 @@ export async function POST(req: NextRequest): Promise<Response> {
       // buyer email → users.id), tak tady ho nemáme. Buď přesunout user
       // resolution výš, nebo akceptovat že code lze sdílet (MVP).
       verifiedFanRequestId = vfRes.rows[0].id;
+    }
+
+    // Presale access code (mig 432) — per ticket_type presale window s přístupovým kódem.
+    // Pouze pokud event NENÍ ve Verified Fan módu (VF má prioritu, používá stejný presaleCode field).
+    if (!tt.verified_fan_enabled && tt.presale_code_required && tt.presale_code) {
+      const now = Date.now();
+      const startsAt = tt.presale_starts_at ? new Date(tt.presale_starts_at).getTime() : null;
+      const endsAt = tt.presale_ends_at ? new Date(tt.presale_ends_at).getTime() : null;
+
+      const inPresaleWindow =
+        startsAt !== null && endsAt !== null && now >= startsAt && now <= endsAt;
+      const beforePresale = startsAt !== null && now < startsAt;
+
+      if (inPresaleWindow) {
+        // Jsme v presale okně — vyžadujeme kód
+        if (!input.presaleCode || input.presaleCode.toUpperCase().trim() !== tt.presale_code.toUpperCase()) {
+          await client.query('ROLLBACK');
+          return NextResponse.json(
+            {
+              error: 'INVALID_PRESALE_CODE',
+              message: 'Neplatný přístupový kód pro presale. Zkontroluj kód a zkus to znovu.',
+            },
+            { status: 422 },
+          );
+        }
+      } else if (beforePresale) {
+        // Před presale oknem — vstupenka zatím není v prodeji
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'NOT_YET_ON_SALE',
+            message: 'Tento typ vstupenky zatím není v prodeji. Presale začíná ' +
+              (tt.presale_starts_at ? new Date(tt.presale_starts_at).toLocaleDateString('cs-CZ') : 'brzy') + '.',
+          },
+          { status: 422 },
+        );
+      }
+      // afterPresaleWindow: dostupné normálně, pokračujeme bez kontroly kódu
     }
 
     // OTP validation (CZ priority #3) — pokud event vyžaduje, validuj otpToken
@@ -770,6 +826,59 @@ export async function POST(req: NextRequest): Promise<Response> {
       [input.buyerEmail.toLowerCase(), input.buyerName],
     );
     const userId = userRes.rows[0].id;
+
+    // Per-event purchase limit (mig 433) — max_tickets_per_buyer na events omezuje
+    // celkový počet vstupenek napříč všemi ticket_types pro danou akci.
+    if (tt.max_tickets_per_buyer !== null && tt.max_tickets_per_buyer > 0) {
+      const eventBoughtRes = await client.query<{ total: string }>(
+        `SELECT COALESCE(SUM(oi.quantity), 0)::text AS total
+         FROM orders.order_items oi
+         JOIN orders.orders o ON o.id = oi.order_id
+         WHERE o.event_id = $1
+           AND o.status IN ('pending', 'paid')
+           AND (o.user_id = $2 OR LOWER(o.buyer_email) = LOWER($3))`,
+        [input.eventId, userId, input.buyerEmail],
+      );
+      const eventAlreadyBought = parseInt(eventBoughtRes.rows[0]?.total ?? '0', 10);
+      if (eventAlreadyBought + input.quantity > tt.max_tickets_per_buyer) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'PURCHASE_LIMIT_EXCEEDED',
+            message: `Limit pro tuto akci je ${tt.max_tickets_per_buyer} vstupenek na osobu. Již máš ${eventAlreadyBought} ks, požaduješ ${input.quantity} ks.`,
+            limit: tt.max_tickets_per_buyer,
+            alreadyBought: eventAlreadyBought,
+          },
+          { status: 422 },
+        );
+      }
+    }
+
+    // Per-ticket-type purchase limit (mig 433) — max_per_buyer na ticket_type.
+    if (tt.max_per_buyer !== null && tt.max_per_buyer > 0) {
+      const ttBoughtRes = await client.query<{ total: string }>(
+        `SELECT COALESCE(SUM(oi.quantity), 0)::text AS total
+         FROM orders.order_items oi
+         JOIN orders.orders o ON o.id = oi.order_id
+         WHERE oi.ticket_type_id = $1
+           AND o.status IN ('pending', 'paid')
+           AND (o.user_id = $2 OR LOWER(o.buyer_email) = LOWER($3))`,
+        [tt.id, userId, input.buyerEmail],
+      );
+      const ttAlreadyBought = parseInt(ttBoughtRes.rows[0]?.total ?? '0', 10);
+      if (ttAlreadyBought + input.quantity > tt.max_per_buyer) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'PURCHASE_LIMIT_EXCEEDED',
+            message: `Limit pro tento typ vstupenky je ${tt.max_per_buyer} ks na osobu. Již máš ${ttAlreadyBought} ks, požaduješ ${input.quantity} ks.`,
+            limit: tt.max_per_buyer,
+            alreadyBought: ttAlreadyBought,
+          },
+          { status: 422 },
+        );
+      }
+    }
 
     // Per-buyer purchase limit — max_per_user na ticket_type omezuje počet kusů
     // které může jeden uživatel (resp. email) koupit celkem přes všechny objednávky.
@@ -1280,6 +1389,47 @@ export async function POST(req: NextRequest): Promise<Response> {
       voucherRedeemedHalire = Math.min(voucher.balance_halire, totalAmount);
       voucherId = voucher.id;
       totalAmount -= voucherRedeemedHalire;
+    }
+
+    // Gift karta redemption (mig 431) — aplikuje se po voucheru, před restwert.
+    // Odečte min(remaining, totalAmount) od totalAmount; debit po COMMIT.
+    let giftCardRedeemedHalire = 0;
+    let giftCardId: string | null = null;
+    if (input.giftCardCode && totalAmount > 0) {
+      const gcCode = input.giftCardCode.trim().toUpperCase();
+      const gcRes = await client.query<{
+        id: string;
+        remaining_value_halire: string;
+        is_active: boolean;
+        expires_at: string | null;
+      }>(
+        `SELECT id, remaining_value_halire, is_active, expires_at
+           FROM platform.gift_cards
+          WHERE code = $1
+          FOR UPDATE`,
+        [gcCode],
+      );
+      if (gcRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'GIFT_CARD_INVALID', message: 'Gift karta nebyla nalezena.' }, { status: 422 });
+      }
+      const gc = gcRes.rows[0];
+      if (!gc.is_active) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'GIFT_CARD_INACTIVE', message: 'Tato gift karta není aktivní.' }, { status: 422 });
+      }
+      if (gc.expires_at && new Date(gc.expires_at).getTime() < Date.now()) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'GIFT_CARD_EXPIRED', message: 'Platnost gift karty vypršela.' }, { status: 422 });
+      }
+      const remaining = parseInt(gc.remaining_value_halire, 10);
+      if (remaining === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'GIFT_CARD_DEPLETED', message: 'Gift karta je vyčerpána.' }, { status: 422 });
+      }
+      giftCardRedeemedHalire = Math.min(remaining, totalAmount);
+      giftCardId = gc.id;
+      totalAmount -= giftCardRedeemedHalire;
     }
 
     // Restwert kredit (P0-2 polish) — aplikuje se po voucheru. Pull holders
@@ -1796,6 +1946,18 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
 
+    // Gift karta: dekrement remaining_value (uvnitř transakce, těsně před COMMIT)
+    if (giftCardId && giftCardRedeemedHalire > 0) {
+      await client.query(
+        `UPDATE platform.gift_cards
+         SET remaining_value_halire = remaining_value_halire - $2,
+             is_active = CASE WHEN remaining_value_halire - $2 = 0 THEN false ELSE is_active END,
+             last_used_at = NOW()
+         WHERE id = $1`,
+        [giftCardId, giftCardRedeemedHalire],
+      );
+    }
+
     // Voucher: dekrement balance + zápis redemption (uvnitř transakce)
     if (voucherId && voucherRedeemedHalire > 0) {
       await client.query(
@@ -1999,6 +2161,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         bundleDiscountAmount,
         bundleId,
         voucherRedeemedHalire,
+        giftCardApplied: giftCardRedeemedHalire,
         restwertAppliedHalire,
         restwertHolders,
         loyaltyDiscountHalire,
@@ -2129,6 +2292,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       bundleDiscountAmount,
       bundleId,
       voucherRedeemedHalire,
+      giftCardApplied: giftCardRedeemedHalire,
       restwertAppliedHalire,
       restwertHolders,
       loyaltyDiscountHalire,
