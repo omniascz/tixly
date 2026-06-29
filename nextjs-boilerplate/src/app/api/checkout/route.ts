@@ -187,6 +187,9 @@ const schema = z.object({
   parkingOfferId: z.string().uuid().optional(),
   // Saved payment method (mig 429) — 1-click checkout s uloženou kartou.
   savedPaymentMethodId: z.string().uuid().optional(),
+  // Splátkový plán (mig 094/232) — buyer zaplatí zálohu teď, zbytek v N splátkách.
+  // planId musí patřit k danému eventu a být active=true.
+  paymentPlanId: z.string().uuid().optional(),
 });
 
 interface TicketTypeRow {
@@ -2070,6 +2073,52 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     await client.query('COMMIT');
 
+    // Splátkový plán (mig 094/232) — attach plan after COMMIT, reduce charge to deposit only.
+    let depositAmount: number | null = null;
+    if (input.paymentPlanId) {
+      try {
+        const planRow = await db().query<{
+          id: string; deposit_pct: number; installments_count: number;
+          interval_days: number; event_id: string | null; active: boolean;
+        }>(
+          `SELECT id, deposit_pct, installments_count, interval_days, event_id, active
+             FROM catalog.payment_plans WHERE id = $1`,
+          [input.paymentPlanId],
+        );
+        const plan = planRow.rows[0];
+        if (plan && plan.active && (plan.event_id === null || plan.event_id === input.eventId)) {
+          depositAmount = Math.floor((totalAmount * plan.deposit_pct) / 100);
+          const remaining = totalAmount - depositAmount;
+          const oppRes = await db().query<{ id: string }>(
+            `INSERT INTO orders.order_payment_plans
+               (order_id, plan_id, total_amount, currency, deposit_amount, status)
+             VALUES ($1, $2, $3, $4, $5, 'active') RETURNING id`,
+            [orderId, plan.id, totalAmount, tt.currency, depositAmount],
+          );
+          const oppId = oppRes.rows[0].id;
+          if (plan.installments_count > 0) {
+            const base = Math.floor(remaining / plan.installments_count);
+            const last = remaining - base * (plan.installments_count - 1);
+            const now = Date.now();
+            for (let i = 1; i <= plan.installments_count; i++) {
+              const amt = i === plan.installments_count ? last : base;
+              const dueAt = new Date(now + plan.interval_days * i * 24 * 60 * 60 * 1000);
+              await db().query(
+                `INSERT INTO orders.payment_installments
+                   (order_payment_plan_id, sequence, amount, due_at, status)
+                 VALUES ($1, $2, $3, $4, 'pending')`,
+                [oppId, i, amt, dueAt.toISOString()],
+              );
+            }
+          }
+        }
+      } catch (planErr) {
+        console.error('[checkout] payment plan attach error:', planErr);
+        // Non-fatal — fall back to full payment
+        depositAmount = null;
+      }
+    }
+
     // Po commitu: foyer pre-order (mig 359) — nápoje/jídlo na přestávku.
     let foyerOrderToken: string | undefined;
     if (input.foyerItems && input.foyerItems.length > 0) {
@@ -2259,7 +2308,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       const { createPayment } = await import('@/lib/payment/provider');
       paymentSession = await createPayment({
         orderId,
-        amountHalire: totalAmount,
+        amountHalire: depositAmount !== null ? depositAmount : totalAmount,
         currency: tt.currency,
         buyerEmail: input.buyerEmail,
         description: `${tt.event_title} × ${input.quantity}`,

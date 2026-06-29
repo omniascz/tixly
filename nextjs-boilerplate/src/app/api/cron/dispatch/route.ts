@@ -48,6 +48,8 @@ const ALLOWED_JOBS = new Set([
   'event-payout-release',      // auto-payout N days after event ends (per-promoter SLA)
   // Feature 8: Demand Forecasting
   'demand-forecast',           // every 6h recompute demand score + check yield rules
+  // Seat upgrade notifications — unique differentiator vs Eventim/TM
+  'seat-upgrade-notify',       // hourly: notify buyers when better seats open up
 ]);
 
 export async function GET(req: NextRequest): Promise<Response> {

@@ -87,6 +87,11 @@ function CheckoutForm() {
   }
   const [addons, setAddons] = useState<PublicAddon[]>([]);
   const [addonQty, setAddonQty] = useState<Record<string, number>>({});
+  // Splátkové plány
+  const [paymentPlans, setPaymentPlans] = useState<{
+    id: string; name: string; deposit_pct: number; installments_count: number; interval_days: number;
+  }[]>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [insurance, setInsurance] = useState<InsuranceInfo | null>(null);
   const [insuranceOptIn, setInsuranceOptIn] = useState(false);
   const [carbonOffset, setCarbonOffset] = useState<{ amountHalire: number; label: string } | null>(null);
@@ -236,6 +241,10 @@ function CheckoutForm() {
         setInsurance(d.insurance);
       })
       .catch(() => setAddons([]));
+    fetch(`/api/events/${eventId}/payment-plans`)
+      .then((r) => r.json() as Promise<{ plans: typeof paymentPlans }>)
+      .then((d) => setPaymentPlans(d.plans ?? []))
+      .catch(() => {});
   }, [eventId]);
 
   // Carbon offset — načteme platformové nastavení jednou při mountu
@@ -564,6 +573,8 @@ function CheckoutForm() {
       if (paymentMethod === 'b2b_credit' && b2bAccountCode.trim()) {
         body.b2bAccountCode = b2bAccountCode.trim().toUpperCase();
       }
+      // Splátkový plán
+      if (selectedPlanId) body.paymentPlanId = selectedPlanId;
       // QR attribution: cookie qr_ref nastavená v /api/qr/[slug] redirect
       // (90 days TTL). Server validuje že kampaň patří k tomuto eventu.
       const qrRefMatch =
@@ -1482,6 +1493,52 @@ function CheckoutForm() {
                 </div>
               </div>
             ) : null}
+            {paymentPlans.length > 0 ? (
+              <div className="rounded-md border border-blue-200 bg-blue-50 p-3">
+                <p className="mb-2 text-sm font-semibold text-blue-900">💳 Platit ve splátkách</p>
+                <div className="space-y-1.5">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-blue-800">
+                    <input
+                      type="radio"
+                      name="paymentPlan"
+                      value=""
+                      checked={selectedPlanId === null}
+                      onChange={() => setSelectedPlanId(null)}
+                    />
+                    Zaplatit celou částku najednou
+                  </label>
+                  {paymentPlans.map((plan) => {
+                    const qty = Math.max(1, parseInt(quantity, 10) || 1);
+                    const total = (unitPriceHalire ?? 0) * qty;
+                    const deposit = Math.floor((total * plan.deposit_pct) / 100);
+                    const remaining = total - deposit;
+                    const installAmt = plan.installments_count > 0 ? Math.round(remaining / plan.installments_count) : 0;
+                    return (
+                      <label key={plan.id} className="flex cursor-pointer items-start gap-2 text-sm text-blue-800">
+                        <input
+                          type="radio"
+                          name="paymentPlan"
+                          value={plan.id}
+                          checked={selectedPlanId === plan.id}
+                          onChange={() => setSelectedPlanId(plan.id)}
+                          className="mt-0.5"
+                        />
+                        <span>
+                          <span className="font-medium">{plan.name}</span>
+                          {total > 0 ? (
+                            <span className="ml-1 text-xs text-blue-700">
+                              — nyní {(deposit / 100).toLocaleString('cs-CZ')} Kč,
+                              pak {plan.installments_count}× {(installAmt / 100).toLocaleString('cs-CZ')} Kč
+                              každých {plan.interval_days} dní
+                            </span>
+                          ) : null}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
             {insurance ? (() => {
               const qty = Math.max(1, parseInt(quantity, 10) || 1);
               const subtotal = (unitPriceHalire ?? 0) * qty;
@@ -1659,10 +1716,28 @@ function CheckoutForm() {
                       <span>−{(loyaltyDiscount / 100).toLocaleString('cs-CZ')} Kč</span>
                     </div>
                   ) : null}
-                  <div className="mt-1 flex justify-between border-t pt-1 font-semibold">
-                    <span>Celkem (bez poplatků)</span>
-                    <span>{(grandTotal / 100).toLocaleString('cs-CZ')} Kč</span>
-                  </div>
+                  {selectedPlanId ? (() => {
+                    const plan = paymentPlans.find((p) => p.id === selectedPlanId);
+                    if (!plan) return null;
+                    const deposit = Math.floor((grandTotal * plan.deposit_pct) / 100);
+                    return (
+                      <>
+                        <div className="mt-1 flex justify-between border-t pt-1 text-sm text-blue-700">
+                          <span>Záloha nyní ({plan.deposit_pct} %)</span>
+                          <span className="font-bold">{(deposit / 100).toLocaleString('cs-CZ')} Kč</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Zbytek v {plan.installments_count} splátkách</span>
+                          <span>{((grandTotal - deposit) / 100).toLocaleString('cs-CZ')} Kč</span>
+                        </div>
+                      </>
+                    );
+                  })() : (
+                    <div className="mt-1 flex justify-between border-t pt-1 font-semibold">
+                      <span>Celkem (bez poplatků)</span>
+                      <span>{(grandTotal / 100).toLocaleString('cs-CZ')} Kč</span>
+                    </div>
+                  )}
                 </div>
               );
             })()}
