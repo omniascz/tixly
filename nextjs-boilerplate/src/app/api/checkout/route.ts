@@ -166,6 +166,11 @@ const schema = z.object({
   // Pokud je DIČ platné (VIES) a země kupce ≠ zemi pořadatele → 0% DPH, reverse charge.
   buyerVatNumber: z.string().min(4).max(20).regex(/^[A-Z]{2}[0-9A-Z]+$/i).optional(),
   buyerCompanyName: z.string().min(1).max(200).optional(),
+  // EVENTIM.Travel (mig 414) — buyer přidá hotelový balíček k objednávce.
+  // packageId musí patřit k danému eventu, kapacita se atomicky sníží.
+  travelPackageId: z.string().uuid().optional(),
+  travelGuests: z.number().int().min(1).max(10).optional(),
+  travelNotes: z.string().max(300).optional(),
 });
 
 interface TicketTypeRow {
@@ -1037,6 +1042,76 @@ export async function POST(req: NextRequest): Promise<Response> {
       totalAmount += insurancePremium;
     }
 
+    // EVENTIM.Travel — validate package + compute price (added to totalAmount before voucher/loyalty)
+    let travelBookingData: {
+      packageId: string;
+      hotelName: string;
+      hotelAddress: string | null;
+      hotelStars: number | null;
+      roomName: string;
+      checkinDate: string;
+      checkoutDate: string;
+      nights: number;
+      guests: number;
+      pricePerNightHalire: number;
+      totalPriceHalire: number;
+    } | null = null;
+
+    if (input.travelPackageId) {
+      const tp = await client.query<{
+        id: string;
+        hotel_name: string;
+        hotel_address: string | null;
+        hotel_stars: number | null;
+        room_name: string;
+        checkin_date: string;
+        checkout_date: string;
+        nights: number;
+        total_capacity: number;
+        reserved_count: number;
+        price_per_night_halire: number;
+      }>(
+        `SELECT p.id, h.name AS hotel_name, h.address AS hotel_address, h.stars AS hotel_stars,
+                r.name AS room_name, p.checkin_date, p.checkout_date, p.nights,
+                p.total_capacity, p.reserved_count,
+                COALESCE(p.price_per_night_override_halire, r.price_per_night_halire) AS price_per_night_halire
+           FROM catalog.event_travel_packages p
+           JOIN catalog.travel_hotels h ON h.id = p.hotel_id
+           JOIN catalog.travel_hotel_rooms r ON r.id = p.hotel_room_id
+          WHERE p.id = $1 AND p.event_id = $2 AND p.active = true AND h.active = true AND r.active = true
+          FOR UPDATE OF p`,
+        [input.travelPackageId, input.eventId],
+      );
+      if (tp.rowCount === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'TRAVEL_PACKAGE_NOT_FOUND' }, { status: 404 });
+      }
+      const pkg = tp.rows[0];
+      if (pkg.total_capacity > 0 && pkg.reserved_count >= pkg.total_capacity) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { error: 'TRAVEL_PACKAGE_FULL', message: 'Ubytování je plně obsazeno.' },
+          { status: 409 },
+        );
+      }
+      const guests = input.travelGuests ?? 1;
+      const travelTotal = pkg.price_per_night_halire * pkg.nights * guests;
+      totalAmount += travelTotal;
+      travelBookingData = {
+        packageId: pkg.id,
+        hotelName: pkg.hotel_name,
+        hotelAddress: pkg.hotel_address,
+        hotelStars: pkg.hotel_stars,
+        roomName: pkg.room_name,
+        checkinDate: pkg.checkin_date,
+        checkoutDate: pkg.checkout_date,
+        nights: pkg.nights,
+        guests,
+        pricePerNightHalire: pkg.price_per_night_halire,
+        totalPriceHalire: travelTotal,
+      };
+    }
+
     // Gift voucher redemption — aplikuje se až po insurance + bundles + promo.
     // Voucher se odečte z totalAmount do balance limitu.
     let voucherRedeemedHalire = 0;
@@ -1530,6 +1605,40 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
 
+    // EVENTIM.Travel — zápis rezervace + atomický inkrement reserved_count
+    if (travelBookingData) {
+      const confCode = `TXL-HTL-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+      await client.query(
+        `INSERT INTO orders.travel_bookings
+           (order_id, package_id, hotel_name, hotel_address, hotel_stars, room_name,
+            checkin_date, checkout_date, nights, guests, price_per_night_halire, total_price_halire,
+            confirmation_code, guest_notes, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 'pending')`,
+        [
+          orderId,
+          travelBookingData.packageId,
+          travelBookingData.hotelName,
+          travelBookingData.hotelAddress,
+          travelBookingData.hotelStars,
+          travelBookingData.roomName,
+          travelBookingData.checkinDate,
+          travelBookingData.checkoutDate,
+          travelBookingData.nights,
+          travelBookingData.guests,
+          travelBookingData.pricePerNightHalire,
+          travelBookingData.totalPriceHalire,
+          confCode,
+          input.travelNotes ?? null,
+        ],
+      );
+      await client.query(
+        `UPDATE catalog.event_travel_packages
+            SET reserved_count = reserved_count + 1
+          WHERE id = $1`,
+        [travelBookingData.packageId],
+      );
+    }
+
     // Voucher: dekrement balance + zápis redemption (uvnitř transakce)
     if (voucherId && voucherRedeemedHalire > 0) {
       await client.query(
@@ -1744,6 +1853,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         ...(foyerOrderToken ? { foyerOrderToken } : {}),
         ...(programAccessToken ? { programAccessToken } : {}),
         ...(giftClaimToken ? { giftClaimToken } : {}),
+        ...(travelBookingData ? { travelHotelName: travelBookingData.hotelName, travelCheckinDate: travelBookingData.checkinDate, travelNights: travelBookingData.nights } : {}),
       });
     }
 
@@ -1855,6 +1965,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       ...(foyerOrderToken ? { foyerOrderToken } : {}),
       ...(programAccessToken ? { programAccessToken } : {}),
       ...(giftClaimToken ? { giftClaimToken } : {}),
+      ...(travelBookingData ? { travelHotelName: travelBookingData.hotelName, travelCheckinDate: travelBookingData.checkinDate, travelNights: travelBookingData.nights } : {}),
     });
   } catch (err) {
     await client.query('ROLLBACK');

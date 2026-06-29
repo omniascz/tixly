@@ -147,7 +147,21 @@ function pickEmailLocale(order: OrderRow): 'cs' | 'sk' | 'en' {
   return 'cs';
 }
 
-function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: string[] = []): string {
+interface TravelBookingEmailRow {
+  hotel_name: string;
+  hotel_address: string | null;
+  hotel_stars: number | null;
+  room_name: string;
+  checkin_date: string;
+  checkout_date: string;
+  nights: number;
+  guests: number;
+  price_per_night_halire: number;
+  total_price_halire: number;
+  confirmation_code: string | null;
+}
+
+function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: string[] = [], travelBookings: TravelBookingEmailRow[] = []): string {
   const locale = pickEmailLocale(order);
   const s = EMAIL_STRINGS[locale];
   const currency = order.currency || 'CZK';
@@ -237,6 +251,21 @@ function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: 
         <td style="padding:8px;text-align:right;font-weight:700;font-size:18px">${fmt(order.total_amount)}</td>
       </tr>
     </table>
+
+    ${travelBookings.length > 0 ? travelBookings.map((tb) => `
+    <div style="margin-top:28px;border:2px solid #f59e0b;border-radius:8px;overflow:hidden">
+      <div style="background:#f59e0b;padding:12px 16px;color:#fff">
+        <strong style="font-size:16px">🏨 Ubytování — EVENTIM.Travel</strong>
+      </div>
+      <div style="padding:16px;background:#fffbeb">
+        <p style="margin:0 0 8px;font-size:17px;font-weight:600">${escapeHtml(tb.hotel_name)}${tb.hotel_stars ? ` ${'★'.repeat(tb.hotel_stars)}` : ''}</p>
+        ${tb.hotel_address ? `<p style="margin:0 0 4px;color:#666;font-size:13px">📍 ${escapeHtml(tb.hotel_address)}</p>` : ''}
+        <p style="margin:4px 0;font-size:14px">🛏 ${escapeHtml(tb.room_name)} · ${tb.guests > 1 ? `${tb.guests} hosté` : '1 host'}</p>
+        <p style="margin:4px 0;font-size:14px">📅 Check-in: <strong>${escapeHtml(tb.checkin_date)}</strong> → Check-out: <strong>${escapeHtml(tb.checkout_date)}</strong> (${tb.nights} nocí)</p>
+        <p style="margin:8px 0 0;font-size:15px;font-weight:600">Cena ubytování: ${fmt(tb.total_price_halire)}</p>
+        ${tb.confirmation_code ? `<p style="margin:8px 0 0;padding:8px;background:#fef3c7;border-radius:4px;font-size:13px">Kód rezervace: <code style="font-size:15px;font-weight:bold">${escapeHtml(tb.confirmation_code)}</code></p>` : ''}
+      </div>
+    </div>`).join('') : ''}
 
     <p style="margin-top:32px;color:#666;font-size:13px">
       ${s.orderNumberLabel}: <code>${escapeHtml(order.id)}</code><br/>
@@ -334,7 +363,33 @@ export async function POST(request: NextRequest): Promise<Response> {
     [orderId],
   );
 
-  const html = buildEmailHtml(order, itemsRes.rows, accessibleGateLines);
+  // EVENTIM.Travel — confirm pending travel bookings + load for email
+  await db().query(
+    `UPDATE orders.travel_bookings SET status = 'confirmed' WHERE order_id = $1 AND status = 'pending'`,
+    [orderId],
+  );
+  const travelRes = await db().query<{
+    hotel_name: string;
+    hotel_address: string | null;
+    hotel_stars: number | null;
+    room_name: string;
+    checkin_date: string;
+    checkout_date: string;
+    nights: number;
+    guests: number;
+    price_per_night_halire: number;
+    total_price_halire: number;
+    confirmation_code: string | null;
+  }>(
+    `SELECT hotel_name, hotel_address, hotel_stars, room_name,
+            checkin_date, checkout_date, nights, guests,
+            price_per_night_halire, total_price_halire, confirmation_code
+       FROM orders.travel_bookings WHERE order_id = $1 AND status = 'confirmed'`,
+    [orderId],
+  );
+  const travelBookings = travelRes.rows;
+
+  const html = buildEmailHtml(order, itemsRes.rows, accessibleGateLines, travelBookings);
 
   // Spočítej efektivní DPH sazbu (per-event vat_category > promoter flat rate).
   // B2B reverse charge → 0 % (EU cross-border, mig 390).

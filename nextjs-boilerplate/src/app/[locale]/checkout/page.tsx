@@ -112,6 +112,27 @@ function CheckoutForm() {
   const [programInfo, setProgramInfo] = useState<ProgramInfo | null>(null);
   const [addProgram, setAddProgram] = useState(false);
 
+  // EVENTIM.Travel — hotelové balíčky k eventu
+  interface TravelPackage {
+    id: string;
+    hotelName: string;
+    hotelCity: string | null;
+    hotelStars: number | null;
+    hotelCoverImageUrl: string | null;
+    roomName: string;
+    roomBreakfastIncluded: boolean;
+    checkinDate: string;
+    checkoutDate: string;
+    nights: number;
+    availableCount: number | null;
+    pricePerNightHalire: number;
+    totalPriceHalire: number;
+  }
+  const [travelPackages, setTravelPackages] = useState<TravelPackage[]>([]);
+  const [selectedTravelPackageId, setSelectedTravelPackageId] = useState<string | null>(null);
+  const [travelGuests, setTravelGuests] = useState(1);
+  const [travelNotes, setTravelNotes] = useState('');
+
   // Event-level gates (P1.5+P1.8 fixes) — VF presale + OTP SMS.
   const [eventFlags, setEventFlags] = useState<{
     requiresOtp: boolean;
@@ -157,6 +178,15 @@ function CheckoutForm() {
         setInsurance(d.insurance);
       })
       .catch(() => setAddons([]));
+  }, [eventId]);
+
+  // EVENTIM.Travel — načteme dostupné balíčky pro event
+  useEffect(() => {
+    if (!eventId) return;
+    fetch(`/api/events/${eventId}/travel-packages`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { packages?: TravelPackage[] } | null) => setTravelPackages(d?.packages ?? []))
+      .catch(() => setTravelPackages([]));
   }, [eventId]);
 
   // Pro live preview pojistného načteme cenu ticket typu (base price)
@@ -356,6 +386,12 @@ function CheckoutForm() {
         .map(([menuItemId, quantity]) => ({ menuItemId, quantity }));
       if (foyerItemsArr.length > 0) body.foyerItems = foyerItemsArr;
       if (addProgram && programInfo) body.addProgram = true;
+      // EVENTIM.Travel — přidáme hotel balíček pokud byl vybrán
+      if (selectedTravelPackageId) {
+        body.travelPackageId = selectedTravelPackageId;
+        if (travelGuests > 1) body.travelGuests = travelGuests;
+        if (travelNotes.trim()) body.travelNotes = travelNotes.trim();
+      }
       // Group bookings — friend přišel přes /cs/group/[token] share link
       // (checkoutUrl returned z /api/group-invitations/[token]). Token se
       // propaguje sem přes ?groupInvitation= a backend linkne order na
@@ -1088,6 +1124,70 @@ function CheckoutForm() {
                 </label>
               </div>
             ) : null}
+            {travelPackages.length > 0 ? (
+              <div className="rounded-md border border-amber-300 bg-amber-50">
+                <div className="flex items-center gap-2 border-b border-amber-200 px-3 py-2">
+                  <span className="text-base">🏨</span>
+                  <span className="text-sm font-semibold text-amber-900">Ubytování — EVENTIM.Travel (volitelné)</span>
+                </div>
+                <div className="space-y-2 p-3">
+                  {travelPackages.map((pkg) => {
+                    const selected = selectedTravelPackageId === pkg.id;
+                    const totalForGuests = pkg.pricePerNightHalire * pkg.nights * travelGuests;
+                    return (
+                      <div
+                        key={pkg.id}
+                        className={`rounded-md border-2 p-3 cursor-pointer transition-colors ${selected ? 'border-amber-500 bg-amber-100' : 'border-transparent bg-white hover:border-amber-300'}`}
+                        onClick={() => setSelectedTravelPackageId(selected ? null : pkg.id)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedTravelPackageId(selected ? null : pkg.id); }}}
+                        aria-pressed={selected}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-sm">
+                              {pkg.hotelName}{pkg.hotelStars ? ` ${'★'.repeat(pkg.hotelStars)}` : ''}
+                              {pkg.hotelCity ? ` · ${pkg.hotelCity}` : ''}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {pkg.roomName}{pkg.roomBreakfastIncluded ? ' · snídaně ✓' : ''}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              📅 {pkg.checkinDate} → {pkg.checkoutDate} ({pkg.nights} nocí)
+                            </p>
+                            {pkg.availableCount !== null && pkg.availableCount <= 5 ? (
+                              <p className="text-xs font-medium text-rose-600">Zbývá jen {pkg.availableCount} míst!</p>
+                            ) : null}
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-muted-foreground">{((pkg.pricePerNightHalire) / 100).toLocaleString('cs-CZ')} Kč/noc</p>
+                            <p className="font-semibold text-amber-700 text-sm">{((totalForGuests) / 100).toLocaleString('cs-CZ')} Kč</p>
+                          </div>
+                        </div>
+                        {selected ? (
+                          <div className="mt-2 flex items-center gap-3">
+                            <label className="text-xs font-medium">Hosté:</label>
+                            <div className="flex items-center gap-1">
+                              <Button type="button" variant="outline" size="sm" disabled={travelGuests <= 1} onClick={(e) => { e.stopPropagation(); setTravelGuests((g) => Math.max(1, g - 1)); }}>−</Button>
+                              <span className="w-8 text-center text-sm">{travelGuests}</span>
+                              <Button type="button" variant="outline" size="sm" disabled={travelGuests >= 4} onClick={(e) => { e.stopPropagation(); setTravelGuests((g) => Math.min(4, g + 1)); }}>+</Button>
+                            </div>
+                            <input
+                              className="flex-1 rounded-md border px-2 py-1 text-xs"
+                              placeholder="Poznámka k ubytování (volitelné)"
+                              value={travelNotes}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) => setTravelNotes(e.target.value)}
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
             {insurance ? (() => {
               const qty = Math.max(1, parseInt(quantity, 10) || 1);
               const subtotal = (unitPriceHalire ?? 0) * qty;
@@ -1186,7 +1286,9 @@ function CheckoutForm() {
                 0,
               );
               const programTotal = addProgram && programInfo ? programInfo.programPriceHalire : 0;
-              const grandTotal = ticketTotal + foyerTotal + programTotal;
+              const selectedTravel = travelPackages.find((p) => p.id === selectedTravelPackageId);
+              const travelTotal = selectedTravel ? selectedTravel.pricePerNightHalire * selectedTravel.nights * travelGuests : 0;
+              const grandTotal = ticketTotal + foyerTotal + programTotal + travelTotal;
               if (grandTotal <= 0 || unitPriceHalire === null) return null;
               return (
                 <div className="rounded-md bg-muted/40 px-3 py-2 text-sm">
@@ -1204,6 +1306,12 @@ function CheckoutForm() {
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>Digitální program</span>
                       <span>{(programTotal / 100).toLocaleString('cs-CZ')} Kč</span>
+                    </div>
+                  ) : null}
+                  {travelTotal > 0 && selectedTravel ? (
+                    <div className="flex justify-between text-xs font-medium text-amber-700">
+                      <span>🏨 {selectedTravel.hotelName} ({selectedTravel.nights} nocí × {travelGuests > 1 ? `${travelGuests} hosté` : '1 host'})</span>
+                      <span>{(travelTotal / 100).toLocaleString('cs-CZ')} Kč</span>
                     </div>
                   ) : null}
                   <div className="mt-1 flex justify-between border-t pt-1 font-semibold">
