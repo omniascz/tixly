@@ -35,6 +35,7 @@ export async function GET(
     tier_locked: boolean;
     chargeback_holdback_pct: number | null;
     chargeback_holdback_days: number | null;
+    auto_payout_days_after_event: number | null;
     created_at: string; updated_at: string;
   }>(
     `SELECT id, name, slug, email, contact_email, status, locale,
@@ -46,6 +47,7 @@ export async function GET(
             country, primary_currency,
             tier, tier_locked,
             chargeback_holdback_pct, chargeback_holdback_days,
+            auto_payout_days_after_event,
             created_at, updated_at
        FROM platform.promoters
       WHERE id = $1`,
@@ -120,6 +122,7 @@ const patchSchema = z.object({
   tierLocked: z.boolean().optional(),
   chargebackHoldbackPct: z.number().int().min(0).max(2000).nullable().optional(),
   chargebackHoldbackDays: z.number().int().min(0).max(365).nullable().optional(),
+  autoPayoutDaysAfterEvent: z.number().int().min(1).max(365).nullable().optional(),
   vatRatePct: z.number().int().min(0).max(50).optional(),
   vatPayer: z.boolean().optional(),
   // Fee override (vytvoří nový aktivní fee_schedule)
@@ -176,6 +179,10 @@ export async function PATCH(
     if (input.chargebackHoldbackDays !== undefined) {
       updates.push(`chargeback_holdback_days = $${i++}`);
       values.push(input.chargebackHoldbackDays);
+    }
+    if (input.autoPayoutDaysAfterEvent !== undefined) {
+      updates.push(`auto_payout_days_after_event = $${i++}`);
+      values.push(input.autoPayoutDaysAfterEvent);
     }
     if (input.vatRatePct !== undefined) {
       updates.push(`vat_rate_pct = $${i++}`);

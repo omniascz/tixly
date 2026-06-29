@@ -47,6 +47,7 @@ interface PromoterDetail {
   tier_locked: boolean;
   chargeback_holdback_pct: number | null;
   chargeback_holdback_days: number | null;
+  auto_payout_days_after_event: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -434,6 +435,9 @@ function CzSkSettingsCard({
   const [holdbackDays, setHoldbackDays] = useState<string>(
     promoter.chargeback_holdback_days?.toString() ?? '',
   );
+  const [autoPayoutDays, setAutoPayoutDays] = useState<string>(
+    promoter.auto_payout_days_after_event?.toString() ?? '',
+  );
   const [feePct, setFeePct] = useState<string>(
     activeFee ? (activeFee.percentage_fee / 100).toString() : '',
   );
@@ -457,6 +461,7 @@ function CzSkSettingsCard({
         tier,
         chargebackHoldbackPct: holdbackPct === '' ? null : Number(holdbackPct),
         chargebackHoldbackDays: holdbackDays === '' ? null : Number(holdbackDays),
+        autoPayoutDaysAfterEvent: autoPayoutDays === '' ? null : Number(autoPayoutDays),
       };
       if (feePct !== '' && buyerFee !== '') {
         body.feePctBps = Math.round(Number(feePct) * 100);
@@ -566,6 +571,24 @@ function CzSkSettingsCard({
               onChange={(e) => setHoldbackDays(e.target.value)}
             />
           </div>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+            Automatická výplata po akci (dny)
+          </label>
+          <Input
+            type="number"
+            min={1}
+            max={365}
+            value={autoPayoutDays}
+            placeholder="Počet dní po konci akce (prázdné = vypnuto)"
+            onChange={(e) => setAutoPayoutDays(e.target.value)}
+            className="max-w-xs"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Prázdné nebo 0 = automatická výplata vypnuta. Kladné číslo = payout se vytvoří automaticky N dní po konci akce.
+          </p>
         </div>
 
         <div className="rounded-md border bg-muted/30 p-3">

@@ -32,13 +32,33 @@ export interface Stage {
   label: string;
 }
 
+interface OverlayElement {
+  id: string;
+  type: 'football_pitch' | 'tennis_court' | 'bar' | 'stage_icon' | 'entrance' | 'stairs';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  label?: string;
+}
+
 export interface Layout {
   viewBox: string;
   sectors: Sector[];
   stage?: Stage;
+  overlays?: OverlayElement[];
 }
 
-type Tool = 'select' | 'row-straight' | 'row-arc' | 'pan';
+type Tool = 'select' | 'row-straight' | 'row-arc' | 'pan' | 'overlay';
+
+const OVERLAY_DEFAULTS: Record<OverlayElement['type'], { width: number; height: number; label: string }> = {
+  football_pitch: { width: 200, height: 130, label: 'Hřiště' },
+  tennis_court:   { width: 150, height: 70,  label: 'Tenisový kurt' },
+  bar:            { width: 60,  height: 40,  label: 'Bar' },
+  stage_icon:     { width: 80,  height: 50,  label: 'Pódium' },
+  entrance:       { width: 30,  height: 30,  label: 'Vstup' },
+  stairs:         { width: 30,  height: 40,  label: 'Schody' },
+};
 
 interface Props {
   initialLayout: Layout | null;
@@ -76,6 +96,9 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
   const [vb, setVb] = useState<ViewBox>(() => parseViewBox(initialLayout?.viewBox ?? DEFAULT_VIEWBOX));
   // Stage z importu/sector tools — editor ho zobrazuje ale nemění (úprava přes /seating-chart/tools).
   const [stage] = useState<Stage | undefined>(initialLayout?.stage);
+  const [overlays, setOverlays] = useState<OverlayElement[]>(initialLayout?.overlays ?? []);
+  const [selectedOverlayType, setSelectedOverlayType] = useState<OverlayElement['type']>('football_pitch');
+  const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
   const [chartName, setChartName] = useState(initialName);
   const [activeSectorIdx, setActiveSectorIdx] = useState<number | null>(null);
@@ -218,6 +241,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
       else if (e.key === '2') setTool('row-straight');
       else if (e.key === '3') setTool('row-arc');
       else if (e.key === '4') setTool('pan');
+      else if (e.key === '5') setTool('overlay');
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -268,9 +292,22 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
       } else {
         setPendingPoints(next);
       }
+    } else if (tool === 'overlay') {
+      const defaults = OVERLAY_DEFAULTS[selectedOverlayType];
+      const newOverlay: OverlayElement = {
+        id: Math.random().toString(36).slice(2),
+        type: selectedOverlayType,
+        x: p.x - defaults.width / 2,
+        y: p.y - defaults.height / 2,
+        width: defaults.width,
+        height: defaults.height,
+        label: defaults.label,
+      };
+      setOverlays((prev) => [...prev, newOverlay]);
     } else if (tool === 'select') {
       // Click on empty space → deselect
       setSelectedSeats(new Set());
+      setSelectedOverlayId(null);
     }
   }
 
@@ -383,7 +420,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
         }
         finalViewBox = `0 0 ${Math.ceil(maxX + 50)} ${Math.ceil(maxY + 50)}`;
       }
-      await onSave(chartName, { viewBox: finalViewBox, sectors, stage });
+      await onSave(chartName, { viewBox: finalViewBox, sectors, stage, overlays: overlays.length > 0 ? overlays : undefined });
       setFeedback('Layout uložen.');
     } catch (e) {
       setError((e as Error).message);
@@ -418,6 +455,33 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
         <ToolButton active={tool === 'pan'} onClick={() => setTool('pan')}>
           ✋ Pan <kbd>4</kbd>
         </ToolButton>
+        <ToolButton active={tool === 'overlay'} onClick={() => { setTool('overlay'); setPendingPoints([]); }}>
+          🏟 Objekty <kbd>5</kbd>
+        </ToolButton>
+        {tool === 'overlay' ? (
+          <>
+            <div className="ml-1 h-6 w-px bg-border" />
+            {(Object.keys(OVERLAY_DEFAULTS) as OverlayElement['type'][]).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setSelectedOverlayType(t)}
+                className={
+                  selectedOverlayType === t
+                    ? 'rounded-md bg-amber-500 px-2 py-1 text-xs font-medium text-white'
+                    : 'rounded-md border bg-background px-2 py-1 text-xs font-medium hover:bg-muted'
+                }
+              >
+                {t === 'football_pitch' ? '⚽ Hřiště'
+                  : t === 'tennis_court' ? '🎾 Kurt'
+                  : t === 'bar' ? '🍺 Bar'
+                  : t === 'stage_icon' ? '🎤 Pódium'
+                  : t === 'entrance' ? '🚪 Vstup'
+                  : '🪜 Schody'}
+              </button>
+            ))}
+          </>
+        ) : null}
         <div className="ml-2 h-6 w-px bg-border" />
         <Button variant="outline" size="sm" onClick={undo} disabled={history.length === 0}>
           ↶ Undo
@@ -453,6 +517,21 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
             </Button>
             <Button variant="destructive" size="sm" onClick={deleteSelected}>
               🗑 Smazat
+            </Button>
+          </>
+        ) : null}
+        {selectedOverlayId !== null ? (
+          <>
+            <span className="text-xs text-muted-foreground">Objekt vybrán</span>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                setOverlays((prev) => prev.filter((o) => o.id !== selectedOverlayId));
+                setSelectedOverlayId(null);
+              }}
+            >
+              🗑 Smazat objekt
             </Button>
           </>
         ) : null}
@@ -748,6 +827,112 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
                 );
               })}
 
+              {/* Overlay elements */}
+              {overlays.map((ov) => {
+                const isSelectedOv = selectedOverlayId === ov.id;
+                return (
+                  <g
+                    key={ov.id}
+                    style={{ cursor: tool === 'select' ? 'pointer' : 'default' }}
+                    onClick={(e) => {
+                      if (tool === 'select') {
+                        e.stopPropagation();
+                        setSelectedOverlayId(isSelectedOv ? null : ov.id);
+                        setSelectedSeats(new Set());
+                      }
+                    }}
+                  >
+                    {isSelectedOv ? (
+                      <rect
+                        x={ov.x - 3}
+                        y={ov.y - 3}
+                        width={ov.width + 6}
+                        height={ov.height + 6}
+                        fill="none"
+                        stroke="#f59e0b"
+                        strokeWidth={2}
+                        strokeDasharray="6 3"
+                        rx={4}
+                      />
+                    ) : null}
+                    {ov.type === 'football_pitch' ? (
+                      <g>
+                        <rect x={ov.x} y={ov.y} width={ov.width} height={ov.height} fill="#16a34a" rx={4} />
+                        {/* Halfway line */}
+                        <line x1={ov.x + ov.width / 2} y1={ov.y + 5} x2={ov.x + ov.width / 2} y2={ov.y + ov.height - 5} stroke="white" strokeWidth={1.5} />
+                        {/* Center circle */}
+                        <circle cx={ov.x + ov.width / 2} cy={ov.y + ov.height / 2} r={ov.height * 0.18} fill="none" stroke="white" strokeWidth={1.5} />
+                        {/* Penalty box left */}
+                        <rect x={ov.x + 5} y={ov.y + ov.height * 0.2} width={ov.width * 0.15} height={ov.height * 0.6} fill="none" stroke="white" strokeWidth={1.2} />
+                        {/* Penalty box right */}
+                        <rect x={ov.x + ov.width - 5 - ov.width * 0.15} y={ov.y + ov.height * 0.2} width={ov.width * 0.15} height={ov.height * 0.6} fill="none" stroke="white" strokeWidth={1.2} />
+                        {/* Outer border */}
+                        <rect x={ov.x + 5} y={ov.y + 5} width={ov.width - 10} height={ov.height - 10} fill="none" stroke="white" strokeWidth={1.5} />
+                        <text x={ov.x + ov.width / 2} y={ov.y + ov.height / 2} textAnchor="middle" dominantBaseline="middle" fontSize={Math.min(14, ov.height * 0.12)} fill="white" fontWeight="700" pointerEvents="none">
+                          {ov.label}
+                        </text>
+                      </g>
+                    ) : ov.type === 'tennis_court' ? (
+                      <g>
+                        <rect x={ov.x} y={ov.y} width={ov.width} height={ov.height} fill="#1d4ed8" rx={4} />
+                        {/* Net line */}
+                        <line x1={ov.x + ov.width / 2} y1={ov.y + 4} x2={ov.x + ov.width / 2} y2={ov.y + ov.height - 4} stroke="white" strokeWidth={2} />
+                        {/* Service boxes */}
+                        <line x1={ov.x + ov.width * 0.15} y1={ov.y + ov.height / 2} x2={ov.x + ov.width * 0.85} y2={ov.y + ov.height / 2} stroke="white" strokeWidth={1} />
+                        <rect x={ov.x + 4} y={ov.y + 4} width={ov.width - 8} height={ov.height - 8} fill="none" stroke="white" strokeWidth={1.2} />
+                        <text x={ov.x + ov.width / 2} y={ov.y + ov.height / 2} textAnchor="middle" dominantBaseline="middle" fontSize={Math.min(12, ov.height * 0.15)} fill="white" fontWeight="700" pointerEvents="none">
+                          {ov.label}
+                        </text>
+                      </g>
+                    ) : ov.type === 'bar' ? (
+                      <g>
+                        <rect x={ov.x} y={ov.y} width={ov.width} height={ov.height} fill="#92400e" rx={4} />
+                        <text x={ov.x + ov.width / 2} y={ov.y + ov.height / 2} textAnchor="middle" dominantBaseline="middle" fontSize={Math.min(13, ov.height * 0.3)} fill="white" fontWeight="700" pointerEvents="none">
+                          🍺 {ov.label}
+                        </text>
+                      </g>
+                    ) : ov.type === 'entrance' ? (
+                      <g>
+                        <rect x={ov.x} y={ov.y} width={ov.width} height={ov.height} fill="#16a34a" rx={ov.width * 0.3} />
+                        <text x={ov.x + ov.width / 2} y={ov.y + ov.height / 2} textAnchor="middle" dominantBaseline="middle" fontSize={Math.min(11, ov.width * 0.28)} fill="white" fontWeight="700" pointerEvents="none">
+                          🚪
+                        </text>
+                        <text x={ov.x + ov.width / 2} y={ov.y + ov.height + 12} textAnchor="middle" fontSize={10} fill="#333" pointerEvents="none">
+                          {ov.label}
+                        </text>
+                      </g>
+                    ) : ov.type === 'stairs' ? (
+                      <g>
+                        <rect x={ov.x} y={ov.y} width={ov.width} height={ov.height} fill="#94a3b8" rx={3} />
+                        {/* Step lines */}
+                        {Array.from({ length: 4 }, (_, i) => (
+                          <line
+                            key={i}
+                            x1={ov.x + 2}
+                            y1={ov.y + (ov.height / 5) * (i + 1)}
+                            x2={ov.x + ov.width - 2}
+                            y2={ov.y + (ov.height / 5) * (i + 1)}
+                            stroke="white"
+                            strokeWidth={1.5}
+                          />
+                        ))}
+                        <text x={ov.x + ov.width / 2} y={ov.y + ov.height + 12} textAnchor="middle" fontSize={10} fill="#333" pointerEvents="none">
+                          {ov.label}
+                        </text>
+                      </g>
+                    ) : (
+                      /* stage_icon */
+                      <g>
+                        <rect x={ov.x} y={ov.y} width={ov.width} height={ov.height} fill="#1e1b4b" rx={4} />
+                        <text x={ov.x + ov.width / 2} y={ov.y + ov.height / 2} textAnchor="middle" dominantBaseline="middle" fontSize={Math.min(13, ov.height * 0.28)} fill="white" fontWeight="700" pointerEvents="none">
+                          🎤 {ov.label}
+                        </text>
+                      </g>
+                    )}
+                  </g>
+                );
+              })}
+
               {/* Stage / podium rendering */}
               {stage && (() => {
                 let gMinX = Infinity, gMaxX = -Infinity, gMinY = Infinity, gMaxY = -Infinity;
@@ -875,7 +1060,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
               <CardTitle className="text-sm">Klávesové zkratky</CardTitle>
             </CardHeader>
             <CardContent className="space-y-1 text-xs text-muted-foreground">
-              <div><kbd>1</kbd>–<kbd>4</kbd> Tool</div>
+              <div><kbd>1</kbd>–<kbd>5</kbd> Tool</div>
               <div><kbd>Ctrl/Cmd+Z</kbd> Undo</div>
               <div><kbd>Ctrl/Cmd+Y</kbd> Redo</div>
               <div><kbd>Del</kbd> Smazat výběr</div>
@@ -914,6 +1099,13 @@ function ToolButton({
 }
 
 function ToolHints({ tool, pendingCount }: { tool: Tool; pendingCount: number }) {
+  if (tool === 'overlay') {
+    return (
+      <div className="mb-2 rounded-md bg-violet-50 px-3 py-1.5 text-xs text-violet-900">
+        <strong>Objekty:</strong> klikni na canvas pro vložení objektu. V režimu Select pak klikni na objekt pro výběr a smazání.
+      </div>
+    );
+  }
   if (tool === 'select') {
     return (
       <div className="mb-2 rounded-md bg-muted/50 px-3 py-1.5 text-xs">

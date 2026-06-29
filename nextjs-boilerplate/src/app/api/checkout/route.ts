@@ -827,8 +827,8 @@ export async function POST(req: NextRequest): Promise<Response> {
     let volumeDiscountAmount = 0;
     let volumeDiscountPct = 0;
     if (input.quantity >= 2) {
-      const volRes = await client.query<{ discount_pct: number; min_qty: number }>(
-        `SELECT discount_pct, min_qty
+      const volRes = await client.query<{ discount_pct: number; min_qty: number; free_qty: number }>(
+        `SELECT discount_pct, min_qty, free_qty
          FROM catalog.volume_discount_rules
          WHERE ticket_type_id = $1 AND active = TRUE AND min_qty <= $2
          ORDER BY min_qty DESC
@@ -836,8 +836,16 @@ export async function POST(req: NextRequest): Promise<Response> {
         [tt.id, input.quantity],
       );
       if (volRes.rows.length > 0) {
-        volumeDiscountPct = volRes.rows[0].discount_pct;
-        volumeDiscountAmount = Math.floor((subtotalAmount * volumeDiscountPct) / 100);
+        const vr = volRes.rows[0];
+        if (vr.free_qty > 0) {
+          // BOGO: free_qty tickets are free (deduct their unit price)
+          const freeCount = Math.min(vr.free_qty, input.quantity - vr.min_qty + vr.free_qty);
+          volumeDiscountAmount = Math.min(unitPriceHalire * freeCount, subtotalAmount);
+          volumeDiscountPct = Math.round((volumeDiscountAmount / (unitPriceHalire * input.quantity)) * 100);
+        } else {
+          volumeDiscountPct = vr.discount_pct;
+          volumeDiscountAmount = Math.floor((subtotalAmount * volumeDiscountPct) / 100);
+        }
         subtotalAmount -= volumeDiscountAmount;
       }
     }

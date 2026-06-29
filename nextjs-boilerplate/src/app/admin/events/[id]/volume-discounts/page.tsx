@@ -16,6 +16,7 @@ interface TicketType {
 interface Tier {
   minQty: number;
   discountPct: number;
+  freeQty: number;
 }
 
 function authFetch(url: string, init?: RequestInit): Promise<Response> {
@@ -66,8 +67,12 @@ export default function VolumeDiscountsPage({
         for (const tt of list) {
           const r = await authFetch(`/api/admin/ticket-types/${tt.id}/volume-discount`);
           if (r.ok) {
-            const dat = (await r.json()) as { tiers: Tier[] };
-            all[tt.id] = dat.tiers ?? [];
+            const dat = (await r.json()) as { tiers: Array<Tier & { id?: string; active?: boolean }> };
+            all[tt.id] = (dat.tiers ?? []).map((t) => ({
+              minQty: t.minQty,
+              discountPct: t.discountPct,
+              freeQty: t.freeQty ?? 0,
+            }));
           } else {
             all[tt.id] = [];
           }
@@ -78,6 +83,18 @@ export default function VolumeDiscountsPage({
       }
     }
   }, [eventId]);
+
+  function setTierMode(ttId: string, idx: number, mode: 'discount' | 'bogo'): void {
+    setTiersByType((prev) => {
+      const list = [...(prev[ttId] ?? [])];
+      if (mode === 'bogo') {
+        list[idx] = { ...list[idx], discountPct: 0, freeQty: list[idx].freeQty > 0 ? list[idx].freeQty : 1 };
+      } else {
+        list[idx] = { ...list[idx], freeQty: 0, discountPct: list[idx].discountPct > 0 ? list[idx].discountPct : 10 };
+      }
+      return { ...prev, [ttId]: list };
+    });
+  }
 
   function updateTier(ttId: string, idx: number, key: keyof Tier, value: number): void {
     setTiersByType((prev) => {
@@ -90,7 +107,7 @@ export default function VolumeDiscountsPage({
   function addTier(ttId: string): void {
     setTiersByType((prev) => ({
       ...prev,
-      [ttId]: [...(prev[ttId] ?? []), { minQty: 5, discountPct: 10 }],
+      [ttId]: [...(prev[ttId] ?? []), { minQty: 5, discountPct: 10, freeQty: 0 }],
     }));
   }
 
@@ -165,10 +182,11 @@ export default function VolumeDiscountsPage({
                 ) : (
                   <div className="space-y-2">
                     {tiers.map((tier, idx) => {
+                      const isBogo = tier.freeQty > 0;
                       const exampleQty = tier.minQty;
-                      const exampleDiscount = Math.floor(
-                        (tt.base_price * exampleQty * tier.discountPct) / 100,
-                      );
+                      const exampleDiscount = isBogo
+                        ? tt.base_price * Math.min(tier.freeQty, exampleQty - tier.minQty + tier.freeQty)
+                        : Math.floor((tt.base_price * exampleQty * tier.discountPct) / 100);
                       return (
                         <div key={idx} className="flex flex-wrap items-end gap-2 rounded-md border p-2">
                           <div>
@@ -188,22 +206,56 @@ export default function VolumeDiscountsPage({
                           </div>
                           <div>
                             <label className="block text-[11px] uppercase text-muted-foreground">
-                              Sleva %
+                              Typ slevy
                             </label>
-                            <Input
-                              type="number"
-                              min={1}
-                              max={90}
-                              value={tier.discountPct}
+                            <select
+                              value={isBogo ? 'bogo' : 'discount'}
                               onChange={(e) =>
-                                updateTier(tt.id, idx, 'discountPct', Number(e.target.value) || 1)
+                                setTierMode(tt.id, idx, e.target.value as 'discount' | 'bogo')
                               }
-                              className="w-20"
-                            />
+                              className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                            >
+                              <option value="discount">Sleva %</option>
+                              <option value="bogo">Bezplatné vstupenky (BOGO)</option>
+                            </select>
                           </div>
+                          {isBogo ? (
+                            <div>
+                              <label className="block text-[11px] uppercase text-muted-foreground">
+                                Zdarma ks
+                              </label>
+                              <Input
+                                type="number"
+                                min={1}
+                                max={20}
+                                value={tier.freeQty}
+                                onChange={(e) =>
+                                  updateTier(tt.id, idx, 'freeQty', Number(e.target.value) || 1)
+                                }
+                                className="w-20"
+                              />
+                            </div>
+                          ) : (
+                            <div>
+                              <label className="block text-[11px] uppercase text-muted-foreground">
+                                Sleva %
+                              </label>
+                              <Input
+                                type="number"
+                                min={1}
+                                max={90}
+                                value={tier.discountPct}
+                                onChange={(e) =>
+                                  updateTier(tt.id, idx, 'discountPct', Number(e.target.value) || 1)
+                                }
+                                className="w-20"
+                              />
+                            </div>
+                          )}
                           <div className="text-xs text-muted-foreground">
-                            Při {exampleQty} ks → sleva {formatCzk(exampleDiscount)} z{' '}
-                            {formatCzk(tt.base_price * exampleQty)}
+                            {isBogo
+                              ? `Kup ${exampleQty}, dostaneš ${tier.freeQty} zdarma → ušetříš ${formatCzk(exampleDiscount)}`
+                              : `Při ${exampleQty} ks → sleva ${formatCzk(exampleDiscount)} z ${formatCzk(tt.base_price * exampleQty)}`}
                           </div>
                           <button
                             type="button"

@@ -17,7 +17,8 @@ import { z } from 'zod';
 
 const tierSchema = z.object({
   minQty: z.number().int().min(2).max(1000),
-  discountPct: z.number().int().min(1).max(90),
+  discountPct: z.number().int().min(0).max(90),
+  freeQty: z.number().int().min(0).max(20).optional().default(0),
 });
 const putSchema = z.object({
   tiers: z.array(tierSchema).max(10),
@@ -50,9 +51,10 @@ export async function GET(
     id: string;
     min_qty: number;
     discount_pct: number;
+    free_qty: number;
     active: boolean;
   }>(
-    `SELECT id, min_qty, discount_pct, active
+    `SELECT id, min_qty, discount_pct, free_qty, active
      FROM catalog.volume_discount_rules
      WHERE ticket_type_id = $1
      ORDER BY min_qty ASC`,
@@ -64,6 +66,7 @@ export async function GET(
       id: row.id,
       minQty: row.min_qty,
       discountPct: row.discount_pct,
+      freeQty: row.free_qty,
       active: row.active,
     })),
   });
@@ -88,7 +91,7 @@ export async function PUT(
     );
   }
 
-  // Validate uniqueness of minQty in payload
+  // Validate uniqueness of minQty in payload + BOGO/discount mutual exclusivity
   const seen = new Set<number>();
   for (const t of parsed.data.tiers) {
     if (seen.has(t.minQty)) {
@@ -98,6 +101,12 @@ export async function PUT(
       );
     }
     seen.add(t.minQty);
+    if ((t.freeQty ?? 0) > 0 && t.discountPct > 0) {
+      return NextResponse.json(
+        { error: 'INVALID_TIER', message: 'Kombinace free_qty a discount_pct není povolena' },
+        { status: 422 },
+      );
+    }
   }
 
   const client = await db().connect();
@@ -109,9 +118,9 @@ export async function PUT(
     );
     for (const t of parsed.data.tiers) {
       await client.query(
-        `INSERT INTO catalog.volume_discount_rules (ticket_type_id, min_qty, discount_pct)
-         VALUES ($1, $2, $3)`,
-        [params.id, t.minQty, t.discountPct],
+        `INSERT INTO catalog.volume_discount_rules (ticket_type_id, min_qty, discount_pct, free_qty)
+         VALUES ($1, $2, $3, $4)`,
+        [params.id, t.minQty, t.discountPct, t.freeQty ?? 0],
       );
     }
     await client.query(

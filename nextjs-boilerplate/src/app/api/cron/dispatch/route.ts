@@ -44,6 +44,8 @@ const ALLOWED_JOBS = new Set([
   'forgemsg-dispatch',         // drain outbox → ForgeMsg ticketing ingest
   'forgemsg-sync-events',      // sync upcoming events + unsold seats → ForgeMsg
   'forgemsg-provision',        // create ForgeMsg org + key for new promoters
+  // Feature 4: Payout SLA
+  'event-payout-release',      // auto-payout N days after event ends (per-promoter SLA)
 ]);
 
 export async function GET(req: NextRequest): Promise<Response> {
