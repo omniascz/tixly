@@ -85,30 +85,32 @@ export async function GET(
     }
   }
 
-  const out = buildGoogleWalletJwt({
-    ticketId: row.id,
-    eventTitle: row.event_title,
-    eventDateIso: row.event_date,
-    ticketTypeName: row.ticket_type_name,
-    holderName: row.buyer_name,
-    holderEmail: row.buyer_email,
-    venueName: row.venue_name,
-    qrPayload: `tixly://ticket/${row.id}`,
-    organizationName: row.promoter_name ?? 'Tixly',
-    brandColorHex: row.brand_color_hex,
-    brandLogoUrl: row.brand_logo_url,
-    seatLabel,
-    accessibleGateInfo,
-  });
+  let out: ReturnType<typeof buildGoogleWalletJwt>;
+  try {
+    out = buildGoogleWalletJwt({
+      ticketId: row.id,
+      eventTitle: row.event_title,
+      eventDateIso: row.event_date,
+      ticketTypeName: row.ticket_type_name,
+      holderName: row.buyer_name,
+      holderEmail: row.buyer_email,
+      venueName: row.venue_name,
+      qrPayload: `tixly://ticket/${row.id}`,
+      organizationName: row.promoter_name ?? 'Tixly',
+      brandColorHex: row.brand_color_hex,
+      brandLogoUrl: row.brand_logo_url,
+      seatLabel,
+      accessibleGateInfo,
+    });
+  } catch (e) {
+    console.error('[wallet/google] JWT build failed:', e);
+    return NextResponse.json(
+      { error: 'WALLET_NOT_CONFIGURED', detail: e instanceof Error ? e.message : String(e) },
+      { status: 503 },
+    );
+  }
 
-  return NextResponse.json({
-    saveUrl: out.saveUrl,
-    signed: out.signed,
-    walletStatus: out.signed ? 'signed' : 'unsigned-demo',
-    note: out.signed
-      ? null
-      : 'Pro produkční fungování nastav GOOGLE_WALLET_PRIVATE_KEY_PEM (Service Account RS256).',
-  });
+  return NextResponse.json({ saveUrl: out.saveUrl, signed: true });
 
   });
 }

@@ -25,8 +25,9 @@
  *   5. Doplnit do env, deploy
  */
 
-import { createHash, createSign } from 'crypto';
+import { createHash } from 'crypto';
 import { Buffer } from 'node:buffer';
+import * as forge from 'node-forge';
 import { createZip, type ZipFile } from './zip-store';
 
 export interface PassData {
@@ -166,20 +167,35 @@ export function buildPkpass(p: PassData): BuildResult {
 
   if (certPem && keyPem && wwdrPem) {
     try {
-      // PKCS#7 detached signature via node:crypto.createSign('SHA1')
-      // — Real Apple Wallet vyžaduje plný PKCS#7 SignedData ASN.1; zde
-      // vrátíme jen raw RSA-SHA1 signaturu jako approximation pro
-      // dev pipeline. Pro produkci nahradit voláním openssl smime nebo
-      // node-forge.
-      const signer = createSign('RSA-SHA1');
-      signer.update(manifestBuf);
-      signer.end();
-      signature = signer.sign(keyPem);
+      // Plný PKCS#7 SignedData detached signature — přesně to, co Apple PassKit vyžaduje.
+      // iOS ověřuje celý PKCS#7 CMS včetně chain (Pass Type ID cert + Apple WWDR intermediate).
+      const cert = forge.pki.certificateFromPem(certPem);
+      const key = forge.pki.privateKeyFromPem(keyPem);
+      const wwdr = forge.pki.certificateFromPem(wwdrPem);
+
+      const p7 = forge.pkcs7.createSignedData();
+      p7.content = forge.util.createBuffer(manifestBuf.toString('binary'));
+      p7.addCertificate(wwdr);
+      p7.addCertificate(cert);
+      p7.addSigner({
+        key,
+        certificate: cert,
+        digestAlgorithm: forge.pki.oids.sha1,
+        authenticatedAttributes: [
+          { type: forge.pki.oids.contentType, value: forge.pki.oids.data },
+          { type: forge.pki.oids.messageDigest },
+          { type: forge.pki.oids.signingTime, value: new Date().toISOString() },
+        ],
+      });
+      p7.sign({ detached: true });
+
+      const derBytes = forge.asn1.toDer(p7.toAsn1()).getBytes();
+      signature = Buffer.from(derBytes, 'binary');
       signed = true;
-      note = 'Signature je raw RSA-SHA1; produkčně přepiš na PKCS#7 SignedData přes node-forge.';
+      note = null;
     } catch (e) {
       signature = Buffer.from([0]);
-      note = `Sign selhal: ${e instanceof Error ? e.message : String(e)}`;
+      note = `PKCS#7 sign selhal: ${e instanceof Error ? e.message : String(e)}`;
     }
   } else {
     signature = Buffer.from([0]); // placeholder, iOS odmítne

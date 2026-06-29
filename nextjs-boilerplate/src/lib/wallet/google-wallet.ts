@@ -23,7 +23,7 @@
  *      Body: { id: "{ISSUER}.tixly_event_ticket", eventName: ..., ... }
  */
 
-import { createHmac, createSign } from 'crypto';
+import { createSign } from 'crypto';
 
 export interface GoogleWalletPassInput {
   ticketId: string;
@@ -58,7 +58,7 @@ function base64url(input: string | Buffer): string {
 interface SignResult {
   jwt: string;
   saveUrl: string;
-  signed: boolean; // false = HMAC fallback, Google to odmítne
+  signed: true;
 }
 
 export function buildGoogleWalletJwt(p: GoogleWalletPassInput): SignResult {
@@ -120,38 +120,25 @@ export function buildGoogleWalletJwt(p: GoogleWalletPassInput): SignResult {
   const signingInput = `${headerB64}.${payloadB64}`;
 
   const privateKeyPem = process.env.GOOGLE_WALLET_PRIVATE_KEY_PEM;
-  let sigB64: string;
-  let signed = false;
-
-  if (privateKeyPem) {
-    try {
-      // Env může mít literály `\n` — překonvertovat na skutečné nové řádky.
-      const pem = privateKeyPem.replace(/\\n/g, '\n');
-      const signer = createSign('RSA-SHA256');
-      signer.update(signingInput);
-      signer.end();
-      sigB64 = base64url(signer.sign(pem));
-      signed = true;
-    } catch (e) {
-      console.error('[google-wallet] RS256 sign failed, falling back to HMAC:', e);
-      sigB64 = base64url(
-        createHmac('sha256', process.env.ENCRYPTION_KEY ?? 'demo')
-          .update(signingInput)
-          .digest(),
-      );
-    }
-  } else {
-    sigB64 = base64url(
-      createHmac('sha256', process.env.ENCRYPTION_KEY ?? 'demo')
-        .update(signingInput)
-        .digest(),
+  if (!privateKeyPem) {
+    throw new Error(
+      'GOOGLE_WALLET_PRIVATE_KEY_PEM není nastaven. ' +
+      'Vytvoř Service Account v Google Cloud → Google Wallet API → stáhni JSON klíč → ' +
+      'vložit private_key PEM do env (\\n jako literál).',
     );
   }
+
+  // Env může mít literály `\n` — překonvertovat na skutečné nové řádky.
+  const pem = privateKeyPem.replace(/\\n/g, '\n');
+  const signer = createSign('RSA-SHA256');
+  signer.update(signingInput);
+  signer.end();
+  const sigB64 = base64url(signer.sign(pem));
 
   const jwt = `${headerB64}.${payloadB64}.${sigB64}`;
   return {
     jwt,
     saveUrl: `https://pay.google.com/gp/v/save/${jwt}`,
-    signed,
+    signed: true,
   };
 }
