@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { straightRow, arcRow, rowLabel, type Point, type SeatPosition } from './geometry';
+import { straightRow, arcRow, bezierRow, bezierPath, rowLabel, type Point, type SeatPosition } from './geometry';
 
 const PALETTE = ['#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#84cc16', '#ef4444', '#14b8a6'];
 
@@ -49,7 +49,7 @@ export interface Layout {
   overlays?: OverlayElement[];
 }
 
-type Tool = 'select' | 'row-straight' | 'row-arc' | 'pan' | 'overlay';
+type Tool = 'select' | 'row-straight' | 'row-arc' | 'row-bezier' | 'pan' | 'overlay';
 
 const OVERLAY_DEFAULTS: Record<OverlayElement['type'], { width: number; height: number; label: string }> = {
   football_pitch: { width: 200, height: 130, label: 'Hřiště' },
@@ -242,6 +242,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
       else if (e.key === '3') setTool('row-arc');
       else if (e.key === '4') setTool('pan');
       else if (e.key === '5') setTool('overlay');
+      else if (e.key === '6') { setTool('row-bezier'); setPendingPoints([]); }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -286,6 +287,22 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
           const count = Number.parseInt(countStr, 10);
           if (!Number.isNaN(count) && count > 0 && count <= 200) {
             addRow(arcRow(next[0], next[1], next[2], count));
+          }
+        }
+        setPendingPoints([]);
+      } else {
+        setPendingPoints(next);
+      }
+    } else if (tool === 'row-bezier') {
+      // Flow: P0 (start), P3 (end), P1 (ctrl near start), P2 (ctrl near end) → create
+      const next = [...pendingPoints, p];
+      if (next.length === 4) {
+        const countStr = window.prompt('Kolik sedadel v křivkové řadě?', '25');
+        if (countStr) {
+          const count = Number.parseInt(countStr, 10);
+          if (!Number.isNaN(count) && count > 0 && count <= 200) {
+            // Points: [P0, P3, P1, P2]
+            addRow(bezierRow(next[0], next[2], next[3], next[1], count));
           }
         }
         setPendingPoints([]);
@@ -458,6 +475,9 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
         <ToolButton active={tool === 'overlay'} onClick={() => { setTool('overlay'); setPendingPoints([]); }}>
           🏟 Objekty <kbd>5</kbd>
         </ToolButton>
+        <ToolButton active={tool === 'row-bezier'} onClick={() => { setTool('row-bezier'); setPendingPoints([]); }}>
+          〜 Křivka <kbd>6</kbd>
+        </ToolButton>
         {tool === 'overlay' ? (
           <>
             <div className="ml-1 h-6 w-px bg-border" />
@@ -600,7 +620,9 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
                       ? 'grabbing'
                       : tool === 'select'
                         ? 'default'
-                        : 'crosshair',
+                        : tool === 'row-bezier'
+                          ? 'cell'
+                          : 'crosshair',
               }}
               onMouseDown={(e) => {
                 if (tool === 'pan' && e.button === 0) {
@@ -685,6 +707,44 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
                   y2={pendingPoints[1].y}
                   stroke="#f59e0b"
                   strokeDasharray="4 2"
+                />
+              ) : null}
+
+              {/* Bezier tool preview */}
+              {tool === 'row-bezier' && pendingPoints.length >= 2 ? (
+                <line
+                  x1={pendingPoints[0].x}
+                  y1={pendingPoints[0].y}
+                  x2={pendingPoints[1].x}
+                  y2={pendingPoints[1].y}
+                  stroke="#3b82f6"
+                  strokeDasharray="6 3"
+                  strokeWidth={1.5}
+                />
+              ) : null}
+              {tool === 'row-bezier' && pendingPoints.length >= 3 ? (
+                <path
+                  d={bezierPath(
+                    pendingPoints[0],
+                    pendingPoints[2],
+                    pendingPoints.length >= 4 ? pendingPoints[3] : pendingPoints[1],
+                    pendingPoints[1],
+                  )}
+                  fill="none"
+                  stroke="#3b82f6"
+                  strokeDasharray="5 3"
+                  strokeWidth={2}
+                />
+              ) : null}
+              {tool === 'row-bezier' && pendingPoints.length >= 3 ? (
+                <line
+                  x1={pendingPoints[0].x}
+                  y1={pendingPoints[0].y}
+                  x2={pendingPoints[2].x}
+                  y2={pendingPoints[2].y}
+                  stroke="#93c5fd"
+                  strokeDasharray="2 3"
+                  strokeWidth={1}
                 />
               ) : null}
 
@@ -1060,7 +1120,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
               <CardTitle className="text-sm">Klávesové zkratky</CardTitle>
             </CardHeader>
             <CardContent className="space-y-1 text-xs text-muted-foreground">
-              <div><kbd>1</kbd>–<kbd>5</kbd> Tool</div>
+              <div><kbd>1</kbd>–<kbd>6</kbd> Tool</div>
               <div><kbd>Ctrl/Cmd+Z</kbd> Undo</div>
               <div><kbd>Ctrl/Cmd+Y</kbd> Redo</div>
               <div><kbd>Del</kbd> Smazat výběr</div>
@@ -1130,6 +1190,19 @@ function ToolHints({ tool, pendingCount }: { tool: Tool; pendingCount: number })
           : pendingCount === 1
             ? 'Klikni na vrchol oblouku (mezi)'
             : 'Klikni na konec → zadej počet sedadel'}
+      </div>
+    );
+  }
+  if (tool === 'row-bezier') {
+    const steps = [
+      'Klikni na START křivky (P0)',
+      'Klikni na KONEC křivky (P3)',
+      'Klikni na 1. řídící bod (P1 — tvaruje začátek)',
+      'Klikni na 2. řídící bod (P2 — tvaruje konec) → zadej počet sedadel',
+    ];
+    return (
+      <div className="mb-2 rounded-md bg-blue-50 px-3 py-1.5 text-xs text-blue-900">
+        <strong>Bézier křivka ({pendingCount}/4):</strong> {steps[pendingCount] ?? ''}
       </div>
     );
   }

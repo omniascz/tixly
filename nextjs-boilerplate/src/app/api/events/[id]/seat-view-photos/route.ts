@@ -41,11 +41,13 @@ export async function GET(
 
     const r = await client.query<{
       sector_name: string;
-      photo_url: string;
+      photo_url: string | null;
       thumbnail_url: string | null;
       caption: string | null;
+      is_360: boolean;
+      embed_url: string | null;
     }>(
-      `SELECT sector_name, photo_url, thumbnail_url, caption
+      `SELECT sector_name, photo_url, thumbnail_url, caption, is_360, embed_url
          FROM catalog.seat_view_photos
         WHERE venue_id = $1
         ORDER BY sort_order, sector_name`,
@@ -56,13 +58,15 @@ export async function GET(
 
     const sectorPhotos: Record<
       string,
-      { photoUrl: string; thumbnailUrl: string | null; caption: string | null }
+      { photoUrl: string | null; thumbnailUrl: string | null; caption: string | null; is360: boolean; embedUrl: string | null }
     > = {};
     for (const row of r.rows) {
       sectorPhotos[row.sector_name] = {
         photoUrl: row.photo_url,
         thumbnailUrl: row.thumbnail_url,
         caption: row.caption,
+        is360: row.is_360,
+        embedUrl: row.embed_url,
       };
     }
 

@@ -139,24 +139,74 @@ interface BuildResult {
  *
  * S kompletními env proměnnými podepíše manifest.json přes PKCS#7 detached signaturu.
  */
-export function buildPkpass(p: PassData): BuildResult {
-  const passJson = Buffer.from(JSON.stringify(buildPassJson(p), null, 2), 'utf-8');
+export interface MembershipPassData {
+  membershipId: string;
+  bundleName: string;
+  validUntil: string | null;
+  memberName: string | null;
+  memberEmail: string;
+  membershipCode: string;
+  cardColorHex?: string | null;
+}
 
+function buildMembershipPassJson(p: MembershipPassData): Record<string, unknown> {
+  const validLabel = p.validUntil
+    ? new Date(p.validUntil).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })
+    : 'Neomezeno';
+  return {
+    formatVersion: 1,
+    passTypeIdentifier: PASS_TYPE_IDENTIFIER,
+    teamIdentifier: TEAM_IDENTIFIER,
+    organizationName: 'Tixly',
+    serialNumber: `membership-${p.membershipId}`,
+    description: p.bundleName,
+    storeCard: {
+      primaryFields: [{ key: 'member', label: 'ČLEN', value: p.memberName ?? p.memberEmail }],
+      secondaryFields: [
+        { key: 'bundle', label: 'PŘEDPLATNÉ', value: p.bundleName },
+        { key: 'valid', label: 'PLATNOST', value: validLabel },
+      ],
+      auxiliaryFields: [
+        { key: 'code', label: 'KÓD ČLENA', value: p.membershipCode },
+      ],
+      backFields: [
+        {
+          key: 'info',
+          label: 'Podmínky',
+          value: 'Karta je nepřenosná. Platí pro uvedeného člena. Podmínky na tixly.cz.',
+        },
+        { key: 'email', label: 'Email', value: p.memberEmail },
+      ],
+    },
+    barcodes: [
+      {
+        format: 'PKBarcodeFormatQR',
+        message: p.membershipCode,
+        messageEncoding: 'iso-8859-1',
+        altText: p.membershipCode,
+      },
+    ],
+    backgroundColor: hexToRgb(p.cardColorHex),
+    foregroundColor: 'rgb(255, 255, 255)',
+    labelColor: 'rgb(200, 200, 220)',
+    logoText: 'Tixly',
+  };
+}
+
+function pkpassFromJson(passJsonBuf: Buffer): BuildResult {
   const files: ZipFile[] = [
-    { name: 'pass.json', data: passJson },
+    { name: 'pass.json', data: passJsonBuf },
     { name: 'icon.png', data: PLACEHOLDER_PNG },
     { name: 'icon@2x.png', data: PLACEHOLDER_PNG },
     { name: 'logo.png', data: PLACEHOLDER_PNG },
   ];
 
-  // manifest.json: SHA1 každého souboru (kromě manifest.json a signature samotných)
   const manifest: Record<string, string> = {};
   for (const f of files) {
     manifest[f.name] = createHash('sha1').update(f.data).digest('hex');
   }
   const manifestBuf = Buffer.from(JSON.stringify(manifest), 'utf-8');
 
-  // Signature
   let signature: Buffer;
   let signed = false;
   let note: string | null = null;
@@ -167,8 +217,6 @@ export function buildPkpass(p: PassData): BuildResult {
 
   if (certPem && keyPem && wwdrPem) {
     try {
-      // Plný PKCS#7 SignedData detached signature — přesně to, co Apple PassKit vyžaduje.
-      // iOS ověřuje celý PKCS#7 CMS včetně chain (Pass Type ID cert + Apple WWDR intermediate).
       const cert = forge.pki.certificateFromPem(certPem);
       const key = forge.pki.privateKeyFromPem(keyPem);
       const wwdr = forge.pki.certificateFromPem(wwdrPem);
@@ -198,17 +246,22 @@ export function buildPkpass(p: PassData): BuildResult {
       note = `PKCS#7 sign selhal: ${e instanceof Error ? e.message : String(e)}`;
     }
   } else {
-    signature = Buffer.from([0]); // placeholder, iOS odmítne
-    note =
-      'Unsigned pass — doplň APPLE_PASS_CERT_PEM, APPLE_PASS_KEY_PEM, APPLE_WWDR_CERT_PEM pro fungování v iOS.';
+    signature = Buffer.from([0]);
+    note = 'Unsigned pass — doplň APPLE_PASS_CERT_PEM, APPLE_PASS_KEY_PEM, APPLE_WWDR_CERT_PEM pro fungování v iOS.';
   }
 
   files.push({ name: 'manifest.json', data: manifestBuf });
   files.push({ name: 'signature', data: signature });
 
-  return {
-    buffer: createZip(files),
-    signed,
-    note,
-  };
+  return { buffer: createZip(files), signed, note };
+}
+
+export function buildMembershipPkpass(p: MembershipPassData): BuildResult {
+  const passJson = Buffer.from(JSON.stringify(buildMembershipPassJson(p), null, 2), 'utf-8');
+  return pkpassFromJson(passJson);
+}
+
+export function buildPkpass(p: PassData): BuildResult {
+  const passJson = Buffer.from(JSON.stringify(buildPassJson(p), null, 2), 'utf-8');
+  return pkpassFromJson(passJson);
 }

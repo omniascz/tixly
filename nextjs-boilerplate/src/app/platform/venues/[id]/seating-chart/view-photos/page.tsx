@@ -17,10 +17,12 @@ import { Badge } from '@/components/ui/badge';
 interface Photo {
   id: string;
   sector_name: string;
-  photo_url: string;
+  photo_url: string | null;
   thumbnail_url: string | null;
   caption: string | null;
   sort_order: number;
+  is_360: boolean;
+  embed_url: string | null;
 }
 
 interface ChartLayout {
@@ -48,8 +50,8 @@ export default function SeatViewPhotosPage({ params }: { params: { id: string } 
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  // Stav per-sektor formuláře: sectorName → { url, caption, busy, uploadBusy }
-  const [form, setForm] = useState<Record<string, { url: string; caption: string }>>({});
+  // Stav per-sektor formuláře: sectorName → { url, caption, is360, embedUrl }
+  const [form, setForm] = useState<Record<string, { url: string; caption: string; is360: boolean; embedUrl: string }>>({});
 
   useEffect(() => {
     void (async () => {
@@ -59,8 +61,8 @@ export default function SeatViewPhotosPage({ params }: { params: { id: string } 
         const j = (await chartRes.json()) as { chart?: { layout?: ChartLayout } };
         const names = j.chart?.layout?.sectors?.map((s) => s.name) ?? [];
         setSectors(names);
-        const init: Record<string, { url: string; caption: string }> = {};
-        for (const n of names) init[n] = { url: '', caption: '' };
+        const init: Record<string, { url: string; caption: string; is360: boolean; embedUrl: string }> = {};
+        for (const n of names) init[n] = { url: '', caption: '', is360: false, embedUrl: '' };
         setForm(init);
       }
 
@@ -73,7 +75,7 @@ export default function SeatViewPhotosPage({ params }: { params: { id: string } 
         setForm((prev) => {
           const next = { ...prev };
           for (const p of j.photos) {
-            next[p.sector_name] = { url: p.photo_url, caption: p.caption ?? '' };
+            next[p.sector_name] = { url: p.photo_url ?? '', caption: p.caption ?? '', is360: p.is_360, embedUrl: p.embed_url ?? '' };
           }
           return next;
         });
@@ -83,21 +85,29 @@ export default function SeatViewPhotosPage({ params }: { params: { id: string } 
     })();
   }, [venueId]);
 
-  function setField(sector: string, field: 'url' | 'caption', value: string) {
-    setForm((prev) => ({ ...prev, [sector]: { ...(prev[sector] ?? { url: '', caption: '' }), [field]: value } }));
+  function setField(sector: string, field: 'url' | 'caption' | 'embedUrl', value: string) {
+    setForm((prev) => ({ ...prev, [sector]: { ...(prev[sector] ?? { url: '', caption: '', is360: false, embedUrl: '' }), [field]: value } }));
+  }
+
+  function setIs360(sector: string, value: boolean) {
+    setForm((prev) => ({ ...prev, [sector]: { ...(prev[sector] ?? { url: '', caption: '', is360: false, embedUrl: '' }), is360: value } }));
   }
 
   async function save(sectorName: string) {
     setError(null);
     setFeedback(null);
-    const { url, caption } = form[sectorName] ?? { url: '', caption: '' };
-    if (!url.trim()) {
-      setError(`Sektor „${sectorName}": zadej URL fotky.`);
+    const { url, caption, is360, embedUrl } = form[sectorName] ?? { url: '', caption: '', is360: false, embedUrl: '' };
+    if (!is360 && !url.trim()) {
+      setError(`Sektor „${sectorName}": zadej URL fotky nebo povol 360° a zadej embed URL.`);
+      return;
+    }
+    if (is360 && !embedUrl.trim() && !url.trim()) {
+      setError(`Sektor „${sectorName}": pro 360° pohled zadej embed URL nebo photo URL.`);
       return;
     }
     const res = await authFetch(`/api/platform/venues/${venueId}/seat-view-photos`, {
       method: 'POST',
-      body: JSON.stringify({ sectorName, photoUrl: url.trim(), caption: caption.trim() || null }),
+      body: JSON.stringify({ sectorName, photoUrl: url.trim() || null, caption: caption.trim() || null, is360, embedUrl: embedUrl.trim() || null }),
     });
     const j = (await res.json().catch(() => ({}))) as { photo?: Photo; error?: string };
     if (!res.ok) {
@@ -130,7 +140,7 @@ export default function SeatViewPhotosPage({ params }: { params: { id: string } 
       return;
     }
     setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
-    setForm((prev) => ({ ...prev, [photo.sector_name]: { url: '', caption: '' } }));
+    setForm((prev) => ({ ...prev, [photo.sector_name]: { url: '', caption: '', is360: false, embedUrl: '' } }));
     setFeedback(`✓ Foto pro „${photo.sector_name}" smazáno.`);
   }
 
@@ -169,7 +179,7 @@ export default function SeatViewPhotosPage({ params }: { params: { id: string } 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {allSectors.map((sectorName) => {
             const existingPhoto = photos.find((p) => p.sector_name === sectorName);
-            const f = form[sectorName] ?? { url: '', caption: '' };
+            const f = form[sectorName] ?? { url: '', caption: '', is360: false, embedUrl: '' };
             return (
               <SectorPhotoCard
                 key={sectorName}
@@ -178,8 +188,12 @@ export default function SeatViewPhotosPage({ params }: { params: { id: string } 
                 existingPhoto={existingPhoto ?? null}
                 url={f.url}
                 caption={f.caption}
+                is360={f.is360}
+                embedUrl={f.embedUrl}
                 onUrlChange={(v) => setField(sectorName, 'url', v)}
                 onCaptionChange={(v) => setField(sectorName, 'caption', v)}
+                onIs360Change={(v) => setIs360(sectorName, v)}
+                onEmbedUrlChange={(v) => setField(sectorName, 'embedUrl', v)}
                 onSave={() => void save(sectorName)}
                 onDelete={() => existingPhoto && void remove(existingPhoto)}
                 onUploadDone={(url) => setField(sectorName, 'url', url)}
@@ -206,8 +220,12 @@ interface CardProps {
   existingPhoto: Photo | null;
   url: string;
   caption: string;
+  is360: boolean;
+  embedUrl: string;
   onUrlChange: (v: string) => void;
   onCaptionChange: (v: string) => void;
+  onIs360Change: (v: boolean) => void;
+  onEmbedUrlChange: (v: string) => void;
   onSave: () => void;
   onDelete: () => void;
   onUploadDone: (url: string) => void;
@@ -219,8 +237,12 @@ function SectorPhotoCard({
   existingPhoto,
   url,
   caption,
+  is360,
+  embedUrl,
   onUrlChange,
   onCaptionChange,
+  onIs360Change,
+  onEmbedUrlChange,
   onSave,
   onDelete,
   onUploadDone,
@@ -262,44 +284,86 @@ function SectorPhotoCard({
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-sm">
           <span>{sectorName}</span>
-          {existingPhoto ? <Badge variant="secondary">Má foto</Badge> : <Badge variant="outline">Bez foto</Badge>}
+          {existingPhoto ? (
+            existingPhoto.is_360
+              ? <Badge className="bg-indigo-100 text-indigo-800">🔭 360°</Badge>
+              : <Badge variant="secondary">Má foto</Badge>
+          ) : <Badge variant="outline">Bez foto</Badge>}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Náhled existující fotky */}
+        {/* Náhled existující fotky / 360° embed */}
         {existingPhoto ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={existingPhoto.thumbnail_url ?? existingPhoto.photo_url}
-            alt={`Pohled ze sektoru ${sectorName}`}
-            className="h-32 w-full rounded-md object-cover"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
+          existingPhoto.is_360 ? (
+            <div className="flex h-32 items-center justify-center rounded-md bg-indigo-50 text-xs font-medium text-indigo-800">
+              🔭 360° embed nastaven
+              {existingPhoto.embed_url ? ` (${existingPhoto.embed_url.slice(0, 30)}…)` : ''}
+            </div>
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={existingPhoto.thumbnail_url ?? existingPhoto.photo_url ?? ''}
+              alt={`Pohled ze sektoru ${sectorName}`}
+              className="h-32 w-full rounded-md object-cover"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          )
         ) : (
           <div className="flex h-32 items-center justify-center rounded-md bg-muted text-xs text-muted-foreground">
             Žádná fotka
           </div>
         )}
 
-        {/* Upload souboru */}
-        <div>
-          <label className="flex cursor-pointer items-center justify-center gap-1 rounded-md border border-dashed p-2 text-xs text-primary hover:bg-muted/50">
-            {uploadBusy ? 'Nahrávám…' : '📁 Nahrát soubor (JPEG/PNG/WebP)'}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              disabled={uploadBusy}
-              onChange={handleFile}
-            />
-          </label>
-          {uploadError ? <p className="mt-1 text-xs text-rose-700">{uploadError}</p> : null}
-        </div>
+        {/* 360° checkbox */}
+        <label className="flex items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            checked={is360}
+            onChange={(e) => onIs360Change(e.target.checked)}
+            className="h-4 w-4 rounded"
+          />
+          <span className="font-medium">🔭 Je to 360° / VR pohled (zobrazí se jako iframe)</span>
+        </label>
 
-        {/* URL paste */}
+        {/* Embed URL (pouze pro 360°) */}
+        {is360 ? (
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Embed URL (Matterport, YouTube 360°, Google Photos…)</label>
+            <Input
+              value={embedUrl}
+              onChange={(e) => onEmbedUrlChange(e.target.value)}
+              placeholder="https://my.matterport.com/show/?m=…"
+              className="text-xs"
+            />
+            {embedUrl ? (
+              <p className="mt-1 text-xs text-blue-700">Náhled: otevře se jako iframe v modalu pro buyer</p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* Upload souboru (pouze pro standardní fotku) */}
+        {!is360 ? (
+          <div>
+            <label className="flex cursor-pointer items-center justify-center gap-1 rounded-md border border-dashed p-2 text-xs text-primary hover:bg-muted/50">
+              {uploadBusy ? 'Nahrávám…' : '📁 Nahrát soubor (JPEG/PNG/WebP)'}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                disabled={uploadBusy}
+                onChange={handleFile}
+              />
+            </label>
+            {uploadError ? <p className="mt-1 text-xs text-rose-700">{uploadError}</p> : null}
+          </div>
+        ) : null}
+
+        {/* URL paste (pro foto; volitelné i pro 360° jako fallback) */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-muted-foreground">URL fotky</label>
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">
+            {is360 ? 'URL náhledového obrázku (volitelné — fallback pro foto)' : 'URL fotky'}
+          </label>
           <Input
             value={url}
             onChange={(e) => onUrlChange(e.target.value)}

@@ -42,9 +42,11 @@ interface Data {
 }
 
 interface ViewPhoto {
-  photoUrl: string;
+  photoUrl: string | null;
   thumbnailUrl: string | null;
   caption: string | null;
+  is360?: boolean;
+  embedUrl?: string | null;
 }
 
 const MAX_SELECTION = 10;
@@ -442,11 +444,12 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
           data-testid="seat-view-modal"
         >
           <div
-            className="max-w-2xl rounded-lg bg-card p-4 shadow-xl"
+            className="w-full max-w-3xl rounded-lg bg-card p-4 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-2 flex items-center justify-between">
               <h3 className="font-semibold">
+                {sectorPhotos[previewSeat.sector]!.is360 ? '360° ' : ''}
                 {previewSeat.row
                   ? `Pohled ze sedadla ${previewSeat.sector} · ${previewSeat.row}/${previewSeat.num}`
                   : `Pohled ze sektoru ${previewSeat.sector}`}
@@ -460,12 +463,21 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
                 ×
               </button>
             </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={sectorPhotos[previewSeat.sector]!.photoUrl}
-              alt={`Pohled ze sektoru ${previewSeat.sector}`}
-              className="max-h-[70vh] w-full rounded-md object-contain"
-            />
+            {sectorPhotos[previewSeat.sector]!.is360 ? (
+              <iframe
+                src={sectorPhotos[previewSeat.sector]!.embedUrl ?? sectorPhotos[previewSeat.sector]!.photoUrl ?? ''}
+                title={`360° pohled ze sektoru ${previewSeat.sector}`}
+                className="h-[60vh] w-full rounded-md border-0"
+                allowFullScreen
+              />
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={sectorPhotos[previewSeat.sector]!.photoUrl ?? ''}
+                alt={`Pohled ze sektoru ${previewSeat.sector}`}
+                className="max-h-[70vh] w-full rounded-md object-contain"
+              />
+            )}
             {sectorPhotos[previewSeat.sector]!.caption ? (
               <p className="mt-2 text-sm text-muted-foreground">
                 {sectorPhotos[previewSeat.sector]!.caption}
