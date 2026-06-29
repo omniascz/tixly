@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 interface SavedMethod {
   id: string;
-  provider: string;
   card_mask: string | null;
   card_brand: string | null;
   expires_month: number | null;
@@ -20,6 +18,7 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
   return fetch(url, {
     ...init,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -29,96 +28,123 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
 }
 
 export default function MyPaymentMethodsPage() {
-  const [methods, setMethods] = useState<SavedMethod[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [methods, setMethods] = useState<SavedMethod[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
-  const load = async () => {
-    setLoading(true);
+  async function load() {
     try {
-      const r = await authFetch('/api/buyer/saved-payment-methods');
-      const d = await r.json() as { methods?: SavedMethod[] };
+      const res = await authFetch('/api/buyer/saved-payment-methods');
+      if (!res.ok) {
+        setError(res.status === 401 ? 'Pro zobrazení platebních metod se musíš přihlásit.' : `HTTP ${res.status}`);
+        return;
+      }
+      const d = (await res.json()) as { methods: SavedMethod[] };
       setMethods(d.methods ?? []);
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Síťová chyba');
     }
-  };
+  }
 
   useEffect(() => { void load(); }, []);
 
-  const remove = async (id: string) => {
+  async function deleteMethod(id: string) {
+    if (!confirm('Smazat uloženou kartu?')) return;
     setBusy(id);
-    await authFetch(`/api/buyer/saved-payment-methods/${id}`, { method: 'DELETE' });
-    setBusy(null);
-    await load();
-  };
+    try {
+      const res = await authFetch(`/api/buyer/saved-payment-methods/${id}`, { method: 'DELETE' });
+      if (res.ok) await load();
+      else setError(`Smazání selhalo: HTTP ${res.status}`);
+    } finally {
+      setBusy(null);
+    }
+  }
 
-  const setDefault = async (id: string) => {
+  async function setDefault(id: string) {
     setBusy(id);
-    await authFetch(`/api/buyer/saved-payment-methods/${id}`, { method: 'PATCH' });
-    setBusy(null);
-    await load();
-  };
+    try {
+      const res = await authFetch(`/api/buyer/saved-payment-methods/${id}`, { method: 'PATCH' });
+      if (res.ok) await load();
+      else setError(`Nepodařilo se nastavit výchozí: HTTP ${res.status}`);
+    } finally {
+      setBusy(null);
+    }
+  }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <h1 className="text-2xl font-bold">Platební metody</h1>
 
-      {loading ? (
-        <p className="text-sm text-muted-foreground">Načítám…</p>
-      ) : methods.length === 0 ? (
-        <Card>
-          <CardContent className="py-8 text-center text-sm text-muted-foreground">
-            Nemáte uložené žádné platební metody.
-            <br />
-            Karty se ukládají automaticky při platbě.
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {methods.map((m) => (
-            <Card key={m.id}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  💳 {m.card_brand ?? m.provider.toUpperCase()} {m.card_mask ?? ''}
-                  {m.is_default && <Badge className="text-xs">Výchozí</Badge>}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pb-3">
-                {m.expires_month && m.expires_year ? (
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Platí do: {String(m.expires_month).padStart(2, '0')}/{m.expires_year}
-                  </p>
-                ) : null}
-                <div className="flex gap-2">
-                  {!m.is_default && (
+      {error ? (
+        <div className="rounded-md border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900">
+          {error}
+        </div>
+      ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Uložené karty</CardTitle>
+          <CardDescription>
+            Uložené platební metody jsou šifrovaně uloženy a slouží pro rychlý checkout.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {methods === null ? (
+            <p className="text-sm text-muted-foreground">Načítám…</p>
+          ) : methods.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Zatím nemáš žádné uložené platební metody. Po platbě kartou budeš mít možnost kartu uložit pro příští nákupy.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {methods.map(m => (
+                <div
+                  key={m.id}
+                  className={`flex items-center justify-between rounded-md border p-3 ${m.is_default ? 'border-primary bg-primary/5' : ''}`}
+                >
+                  <div>
+                    <p className="text-sm font-medium">
+                      {m.card_brand ?? 'Karta'} {m.card_mask ?? ''}
+                      {m.is_default ? (
+                        <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">výchozí</span>
+                      ) : null}
+                    </p>
+                    {m.expires_month && m.expires_year ? (
+                      <p className="text-xs text-muted-foreground">
+                        Platí do: {m.expires_month}/{m.expires_year}
+                      </p>
+                    ) : null}
+                    <p className="text-xs text-muted-foreground">
+                      Přidáno: {new Date(m.created_at).toLocaleDateString('cs-CZ')}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {!m.is_default ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => void setDefault(m.id)}
+                        disabled={busy === m.id}
+                      >
+                        Nastavit výchozí
+                      </Button>
+                    ) : null}
                     <Button
                       size="sm"
                       variant="outline"
+                      className="border-rose-200 text-rose-700 hover:bg-rose-50"
+                      onClick={() => void deleteMethod(m.id)}
                       disabled={busy === m.id}
-                      onClick={() => setDefault(m.id)}
                     >
-                      Nastavit jako výchozí
+                      {busy === m.id ? '…' : 'Smazat'}
                     </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    disabled={busy === m.id}
-                    onClick={() => remove(m.id)}
-                  >
-                    Odstranit
-                  </Button>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      <p className="text-xs text-muted-foreground">
-        Platební metody jsou bezpečně uloženy a slouží pro rychlejší checkout při příštím nákupu.
-      </p>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

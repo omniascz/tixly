@@ -228,6 +228,12 @@ export default function ProfilePage() {
             >
               👥 Sleduji
             </a>
+            <a
+              href="/cs/my-payment-methods"
+              className="rounded-md border bg-card p-3 text-center text-sm hover:bg-muted"
+            >
+              💳 Platební metody
+            </a>
           </div>
         </CardContent>
       </Card>
