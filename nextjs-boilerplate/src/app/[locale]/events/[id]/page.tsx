@@ -20,6 +20,7 @@ import {
   type TicketAccess,
   type TicketTypeWithAccess,
 } from './TicketPicker';
+import { TimedEntryWrapper } from './TimedEntryWrapper';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
@@ -58,6 +59,7 @@ interface EventDetail {
   promoter_brand_tagline: string | null;
   promoter_meta_pixel_id: string | null;
   promoter_gtm_container_id: string | null;
+  timed_entry_enabled: boolean;
   // Livestream
   event_type: string | null;
   streaming_url: string | null;
@@ -93,6 +95,7 @@ async function fetchDetail(id: string) {
     const eventResult = await db.query<EventDetail>(
       `
       SELECT e.id, e.title, e.description, e.date_start, e.date_end, e.timezone, e.min_age, e.currency, e.queue_enabled,
+             e.timed_entry_enabled,
              e.event_type,
              e.streaming_url, e.streaming_provider, e.stream_replay_days,
              COALESCE(v.name, 'Online') AS venue_name,
@@ -486,16 +489,29 @@ export default async function EventDetailPage({
                     }
                   />
                 ) : null}
-                <TicketPicker
-                  eventId={event.id}
-                  locale={locale}
-                  currency={event.currency}
-                  queueEnabled={event.queue_enabled}
-                  ticketTypes={ticketTypes}
-                  days={days}
-                  zones={zones}
-                  t={t.eventDetail}
-                />
+                {event.timed_entry_enabled ? (
+                  <TimedEntryWrapper
+                    eventId={event.id}
+                    locale={locale}
+                    currency={event.currency}
+                    queueEnabled={event.queue_enabled}
+                    ticketTypes={ticketTypes}
+                    days={days}
+                    zones={zones}
+                    t={t.eventDetail}
+                  />
+                ) : (
+                  <TicketPicker
+                    eventId={event.id}
+                    locale={locale}
+                    currency={event.currency}
+                    queueEnabled={event.queue_enabled}
+                    ticketTypes={ticketTypes}
+                    days={days}
+                    zones={zones}
+                    t={t.eventDetail}
+                  />
+                )}
               </>
             )}
           </CardContent>

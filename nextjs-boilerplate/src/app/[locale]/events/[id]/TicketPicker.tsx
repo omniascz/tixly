@@ -53,6 +53,7 @@ interface Props {
   days: PickerDay[];
   zones: PickerZone[];
   t?: PickerDict;
+  entrySlotId?: string;
 }
 
 const FALLBACK: PickerDict = {
@@ -87,7 +88,7 @@ function summarize(tt: TicketTypeWithAccess, days: PickerDay[], zones: PickerZon
   return parts.join(' / ');
 }
 
-export function TicketPicker({ eventId, locale, currency, queueEnabled, ticketTypes, days, zones, t }: Props) {
+export function TicketPicker({ eventId, locale, currency, queueEnabled, ticketTypes, days, zones, t, entrySlotId }: Props) {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
   const router = useRouter();
@@ -162,6 +163,7 @@ export function TicketPicker({ eventId, locale, currency, queueEnabled, ticketTy
     const params = new URLSearchParams({ eventId, ticketTypeId: tt.id });
     if (selectedDay) params.set('eventDayId', selectedDay);
     if (selectedZone) params.set('zoneId', selectedZone);
+    if (entrySlotId) params.set('entrySlotId', entrySlotId);
     let target: string;
     if (tt.is_seated) {
       target = `/${locale}/events/${eventId}/seats?${params.toString()}`;

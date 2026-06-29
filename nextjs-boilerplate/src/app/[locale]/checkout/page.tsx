@@ -1,5 +1,5 @@
 'use client';
-import { FormEvent, Suspense, useEffect, useState } from 'react';
+import { FormEvent, Suspense, useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MetaPixel } from '@/components/tracking/MetaPixel';
 import { PixelManager } from '@/components/tracking/PixelManager';
@@ -362,6 +362,9 @@ function CheckoutForm() {
       // orders.group_invitations.
       const groupInvitation = searchParams.get('groupInvitation');
       if (groupInvitation) body.groupInvitationToken = groupInvitation;
+      // Timed entry slot — pokud event.timed_entry_enabled, buyer vybral slot na event stránce
+      const entrySlotId = searchParams.get('entrySlotId');
+      if (entrySlotId) body.entrySlotId = entrySlotId;
       // OTP (P1.8) — pokud event vyžaduje requires_otp_validation, posíláme
       // ověřený token získaný přes /api/buyer/otp/verify. Backend (checkout
       // route.ts ~243) odmítne pokud chybí nebo expired.
@@ -450,6 +453,9 @@ function CheckoutForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {searchParams.get('entrySlotId') ? (
+            <TimedSlotInfo eventId={eventId ?? ''} slotId={searchParams.get('entrySlotId') ?? ''} />
+          ) : null}
           {lotteryEntryId ? (
             <div className="mb-4 rounded-md border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-900">
               <p className="font-semibold">Uplatňujete výherní los</p>
@@ -1218,6 +1224,38 @@ function CheckoutForm() {
           </form>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function TimedSlotInfo({ eventId, slotId }: { eventId: string; slotId: string }) {
+  const [info, setInfo] = useState<{ start: string; end: string; remaining: number } | null>(null);
+
+  const load = useCallback(async () => {
+    if (!eventId || !slotId) return;
+    try {
+      const r = await fetch(`/api/events/${eventId}/entry-slots?date=${new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Prague' })}`);
+      const d = (await r.json()) as { days?: Array<{ slots: Array<{ id: string; start: string; end: string; remaining: number }> }> };
+      const allSlots = (d.days ?? []).flatMap((day) => day.slots);
+      const found = allSlots.find((s) => s.id === slotId);
+      if (found) setInfo(found);
+    } catch { /* ignore */ }
+  }, [eventId, slotId]);
+
+  useEffect(() => { void load(); }, [load]);
+
+  if (!info) return null;
+
+  const fmt = (iso: string) => new Date(iso).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Prague' });
+  const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Prague' });
+
+  return (
+    <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm">
+      <p className="font-semibold text-emerald-900">Časový vstup</p>
+      <p className="mt-0.5 text-emerald-800">
+        {fmtDate(info.start)} · {fmt(info.start)} – {fmt(info.end)}
+      </p>
+      <p className="mt-0.5 text-xs text-emerald-700">Zbývá {info.remaining} míst v tomto termínu</p>
     </div>
   );
 }
