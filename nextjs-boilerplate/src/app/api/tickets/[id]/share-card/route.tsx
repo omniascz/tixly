@@ -8,7 +8,7 @@ import { NextRequest } from 'next/server';
 import { ImageResponse } from 'next/og';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const SIZE = 1080;
