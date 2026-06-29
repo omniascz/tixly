@@ -49,7 +49,7 @@ CREATE POLICY box_office_sessions_promoter ON orders.box_office_sessions FOR ALL
   current_setting('app.is_platform_admin', true) = 'true'
   OR EXISTS (
     SELECT 1 FROM catalog.events e
-      JOIN identity.promoter_members pm ON pm.promoter_id = e.promoter_id
+      JOIN platform.promoter_members pm ON pm.promoter_id = e.promoter_id
      WHERE e.id = event_id
        AND pm.user_id::text = current_setting('app.user_id', true)
   )
@@ -60,7 +60,7 @@ CREATE POLICY box_office_sales_promoter ON orders.box_office_sales FOR ALL USING
   OR EXISTS (
     SELECT 1 FROM orders.box_office_sessions s
       JOIN catalog.events e ON e.id = s.event_id
-      JOIN identity.promoter_members pm ON pm.promoter_id = e.promoter_id
+      JOIN platform.promoter_members pm ON pm.promoter_id = e.promoter_id
      WHERE s.id = session_id
        AND pm.user_id::text = current_setting('app.user_id', true)
   )

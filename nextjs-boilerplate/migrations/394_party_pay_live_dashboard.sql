@@ -45,18 +45,19 @@ ALTER TABLE orders.party_split_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders.party_split_slots    ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY party_split_sessions_owner ON orders.party_split_sessions
-  FOR ALL TO authenticated
-  USING (organizer_user_id = auth.uid());
+  FOR ALL
+  USING (organizer_user_id::text = current_setting('app.current_user_id', true));
 
 CREATE POLICY party_split_sessions_public_read ON orders.party_split_sessions
-  FOR SELECT TO authenticated
-  USING (status = 'open');  -- members read via share_token (service ctx)
+  FOR SELECT
+  USING (status = 'open');
 
 CREATE POLICY party_split_slots_session ON orders.party_split_slots
-  FOR SELECT TO authenticated
+  FOR SELECT
   USING (
     session_id IN (
-      SELECT id FROM orders.party_split_sessions WHERE organizer_user_id = auth.uid()
+      SELECT id FROM orders.party_split_sessions
+      WHERE organizer_user_id::text = current_setting('app.current_user_id', true)
     )
   );
 
@@ -68,10 +69,12 @@ CREATE TABLE IF NOT EXISTS analytics.event_sales_snapshots (
   captured_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   event_id       UUID NOT NULL REFERENCES catalog.events(id) ON DELETE CASCADE,
   tickets_sold   INTEGER NOT NULL DEFAULT 0,
-  revenue_total  BIGINT NOT NULL DEFAULT 0,   -- halíře
-  unique_buyers  INTEGER NOT NULL DEFAULT 0,
-  UNIQUE (event_id, date_trunc('hour', captured_at))
+  revenue_total  BIGINT NOT NULL DEFAULT 0,
+  unique_buyers  INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE INDEX IF NOT EXISTS event_sales_snapshots_event_hour_idx
+  ON analytics.event_sales_snapshots (event_id, captured_at);
 
 CREATE INDEX IF NOT EXISTS event_sales_snap_event_idx
   ON analytics.event_sales_snapshots (event_id, captured_at DESC);
@@ -80,9 +83,8 @@ CREATE INDEX IF NOT EXISTS event_sales_snap_event_idx
 -- Postal code → count stored per event; populated from orders.orders.billing_postal_code
 -- or from user profile. Updated by cron or checkout trigger.
 
-ALTER TABLE orders.orders
-  ADD COLUMN IF NOT EXISTS billing_postal_code TEXT,
-  ADD COLUMN IF NOT EXISTS billing_country_code TEXT;  -- ISO 3166-1 alpha-2
+ALTER TABLE orders.orders ADD COLUMN IF NOT EXISTS billing_postal_code TEXT;
+ALTER TABLE orders.orders ADD COLUMN IF NOT EXISTS billing_country_code TEXT;
 
 -- Aggregated geo cache (rebuilt nightly by cron)
 CREATE TABLE IF NOT EXISTS analytics.audience_geo (

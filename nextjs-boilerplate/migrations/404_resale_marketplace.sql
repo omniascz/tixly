@@ -16,7 +16,7 @@ ALTER TABLE orders.orders
 -- ─── Resale listings ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS orders.resale_listings (
   id                    uuid        NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  ticket_id             uuid        NOT NULL REFERENCES orders.tickets(id)  ON DELETE CASCADE,
+  ticket_id             uuid        NOT NULL REFERENCES tickets.tickets(id)  ON DELETE CASCADE,
   seller_user_id        uuid        NOT NULL REFERENCES identity.users(id)  ON DELETE RESTRICT,
   event_id              uuid        NOT NULL REFERENCES catalog.events(id)  ON DELETE CASCADE,
 
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS orders.resale_listings (
 
   buyer_user_id         uuid        REFERENCES identity.users(id)  ON DELETE SET NULL,
   buyer_order_id        uuid        REFERENCES orders.orders(id)   ON DELETE SET NULL,
-  new_ticket_id         uuid        REFERENCES orders.tickets(id)  ON DELETE SET NULL,
+  new_ticket_id         uuid        REFERENCES tickets.tickets(id)  ON DELETE SET NULL,
 
   seller_notes          text,
   created_at            timestamptz NOT NULL DEFAULT NOW(),

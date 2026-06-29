@@ -12,16 +12,9 @@ ALTER TABLE lineups.artists ADD COLUMN IF NOT EXISTS public boolean NOT NULL DEF
 ALTER TABLE lineups.event_artists ADD COLUMN IF NOT EXISTS public boolean NOT NULL DEFAULT true;
 
 -- Public RLS: select when artist.public=true
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename='artists' AND schemaname='lineups' AND policyname='artists_public_select'
-  ) THEN
-    CREATE POLICY artists_public_select ON lineups.artists
-      FOR SELECT USING (
-        public = true
-        OR promoter_id::text = current_setting('app.current_promoter_id', true)
-        OR current_setting('app.is_platform_admin', true) = 'true'
-      );
-  END IF;
-END $$;
+CREATE POLICY artists_public_select ON lineups.artists
+  FOR SELECT USING (
+    public = true
+    OR promoter_id::text = current_setting('app.current_promoter_id', true)
+    OR current_setting('app.is_platform_admin', true) = 'true'
+  );

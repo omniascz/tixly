@@ -2,11 +2,7 @@
 -- Extends marketing.tracking_pixels to support all major advertising/analytics platforms
 
 -- Drop old platform CHECK constraint (only had 7 types)
-DO $$ BEGIN
-  ALTER TABLE marketing.tracking_pixels
-    DROP CONSTRAINT IF EXISTS tracking_pixels_platform_check;
-EXCEPTION WHEN others THEN NULL;
-END $$;
+ALTER TABLE marketing.tracking_pixels DROP CONSTRAINT IF EXISTS tracking_pixels_platform_check;
 
 -- Add new constraint covering 30 pixel types
 ALTER TABLE marketing.tracking_pixels

@@ -110,7 +110,7 @@ CREATE POLICY event_travel_packages_write ON catalog.event_travel_packages
     current_setting('app.is_platform_admin', true) = 'true'
     OR EXISTS (
       SELECT 1 FROM catalog.events e
-       JOIN identity.promoter_members pm ON pm.promoter_id = e.promoter_id
+       JOIN platform.promoter_members pm ON pm.promoter_id = e.promoter_id
       WHERE e.id = event_id
         AND pm.user_id::text = current_setting('app.user_id', true)
     )

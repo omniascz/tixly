@@ -4,10 +4,9 @@
 
 -- ─── Publish API — external event sources ────────────────────────────────────
 
-ALTER TABLE catalog.events
-  ADD COLUMN IF NOT EXISTS source_system      TEXT,   -- NULL = tixly-native; 'external' = via Publish API
-  ADD COLUMN IF NOT EXISTS source_event_id   TEXT,   -- ID in the source system
-  ADD COLUMN IF NOT EXISTS source_callback_url TEXT;  -- webhook URL to notify source of sold tickets
+ALTER TABLE catalog.events ADD COLUMN IF NOT EXISTS source_system TEXT;
+ALTER TABLE catalog.events ADD COLUMN IF NOT EXISTS source_event_id TEXT;
+ALTER TABLE catalog.events ADD COLUMN IF NOT EXISTS source_callback_url TEXT;
 
 -- Enforce uniqueness: one external ID per source system
 CREATE UNIQUE INDEX IF NOT EXISTS events_source_idx
@@ -64,5 +63,5 @@ CREATE TABLE IF NOT EXISTS platform.whitelabel_tenants (
 -- RLS: only platform admin can manage tenants
 ALTER TABLE platform.whitelabel_tenants ENABLE ROW LEVEL SECURITY;
 CREATE POLICY wl_tenants_admin ON platform.whitelabel_tenants
-  FOR ALL TO authenticated
-  USING ((SELECT is_platform_admin FROM identity.users WHERE id = auth.uid()));
+  FOR ALL
+  USING (current_setting('app.is_platform_admin', true) = 'true');

@@ -25,11 +25,11 @@ CREATE INDEX IF NOT EXISTS dsa_reports_target_idx ON compliance.dsa_reports (tar
 
 ALTER TABLE compliance.dsa_reports ENABLE ROW LEVEL SECURITY;
 CREATE POLICY dsa_reports_admin ON compliance.dsa_reports
-  FOR ALL TO authenticated
-  USING ((SELECT is_platform_admin FROM identity.users WHERE id = auth.uid()));
+  FOR ALL
+  USING (current_setting('app.is_platform_admin', true) = 'true');
 CREATE POLICY dsa_reports_own ON compliance.dsa_reports
-  FOR SELECT TO authenticated
-  USING (reporter_user_id = auth.uid());
+  FOR SELECT
+  USING (reporter_user_id::text = current_setting('app.current_user_id', true));
 
 -- ─── eIDAS — Electronic Signatures ──────────────────────────────────────────
 
@@ -51,18 +51,17 @@ CREATE INDEX IF NOT EXISTS e_signatures_user_idx     ON compliance.e_signatures 
 CREATE INDEX IF NOT EXISTS e_signatures_promoter_idx ON compliance.e_signatures (promoter_id);
 ALTER TABLE compliance.e_signatures ENABLE ROW LEVEL SECURITY;
 CREATE POLICY e_signatures_own ON compliance.e_signatures
-  FOR SELECT TO authenticated
-  USING (user_id = auth.uid());
+  FOR SELECT
+  USING (user_id::text = current_setting('app.current_user_id', true));
 
 -- ─── AML / KYC extensions ────────────────────────────────────────────────────
 
-ALTER TABLE platform.promoters
-  ADD COLUMN IF NOT EXISTS aml_status          TEXT DEFAULT 'pending',       -- pending|clear|flagged|manual_review
-  ADD COLUMN IF NOT EXISTS sanctions_checked_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS sanctions_match      JSONB,                        -- null = clear, else match data
-  ADD COLUMN IF NOT EXISTS is_pep              BOOLEAN DEFAULT FALSE,         -- politically exposed person
-  ADD COLUMN IF NOT EXISTS eu_company_id       TEXT,                          -- EU company registry ID (non-CZ)
-  ADD COLUMN IF NOT EXISTS eu_country          TEXT;                          -- country of the EU registry
+ALTER TABLE platform.promoters ADD COLUMN IF NOT EXISTS aml_status TEXT DEFAULT 'pending';
+ALTER TABLE platform.promoters ADD COLUMN IF NOT EXISTS sanctions_checked_at TIMESTAMPTZ;
+ALTER TABLE platform.promoters ADD COLUMN IF NOT EXISTS sanctions_match JSONB;
+ALTER TABLE platform.promoters ADD COLUMN IF NOT EXISTS is_pep BOOLEAN DEFAULT FALSE;
+ALTER TABLE platform.promoters ADD COLUMN IF NOT EXISTS eu_company_id TEXT;
+ALTER TABLE platform.promoters ADD COLUMN IF NOT EXISTS eu_country TEXT;
 
 -- AML checks audit log
 CREATE TABLE IF NOT EXISTS compliance.aml_checks (
@@ -80,8 +79,8 @@ CREATE TABLE IF NOT EXISTS compliance.aml_checks (
 CREATE INDEX IF NOT EXISTS aml_checks_promoter_idx ON compliance.aml_checks (promoter_id, checked_at DESC);
 ALTER TABLE compliance.aml_checks ENABLE ROW LEVEL SECURITY;
 CREATE POLICY aml_checks_admin ON compliance.aml_checks
-  FOR ALL TO authenticated
-  USING ((SELECT is_platform_admin FROM identity.users WHERE id = auth.uid()));
+  FOR ALL
+  USING (current_setting('app.is_platform_admin', true) = 'true');
 
 -- ─── Consumer Rights — checkout withdrawal notice ────────────────────────────
 

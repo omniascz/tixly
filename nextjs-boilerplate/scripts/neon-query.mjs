@@ -66,8 +66,8 @@ async function main() {
 
   // Split multi-statement SQL into individual statements
   const stmts = sql
-    .split(/;[ \t]*(?:\r?\n|$)/)
-    .map(s => s.replace(/--[^\n]*/g, '').trim())  // strip line comments
+    .split(/;[ \t]*(?:--[^\n]*)?(?:\r?\n|$)/)     // split on ; optionally followed by inline comment
+    .map(s => s.replace(/--[^\n]*/g, '').trim())  // strip remaining line comments
     .filter(s => s && !/^\/\*/.test(s));           // skip empty + block-comment-only
 
   if (stmts.length <= 1) {
