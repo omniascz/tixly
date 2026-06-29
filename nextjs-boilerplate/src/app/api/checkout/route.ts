@@ -171,6 +171,13 @@ const schema = z.object({
   travelPackageId: z.string().uuid().optional(),
   travelGuests: z.number().int().min(1).max(10).optional(),
   travelNotes: z.string().max(300).optional(),
+  // Postal delivery (mig 418) — fyzické doručení vstupenek poštou.
+  deliveryMethod: z.enum(['digital', 'postal']).default('digital'),
+  postalName: z.string().max(200).optional(),
+  postalAddressLine1: z.string().max(200).optional(),
+  postalCity: z.string().max(100).optional(),
+  postalPostalCode: z.string().max(20).optional(),
+  postalCountry: z.string().length(2).optional(),
 });
 
 interface TicketTypeRow {
@@ -1112,6 +1119,22 @@ export async function POST(req: NextRequest): Promise<Response> {
       };
     }
 
+    // Postal delivery fee (mig 418) — přičte poštovné pokud buyer zvolil fyzické doručení.
+    let postalFeeHalire = 0;
+    if (input.deliveryMethod === 'postal') {
+      const country = (input.postalCountry ?? 'CZ').toUpperCase();
+      const feeRow = await client.query<{ fee_halire: number; carrier: string }>(
+        `SELECT fee_halire, carrier FROM platform.postal_fees WHERE country=$1 AND active=true`,
+        [country],
+      );
+      if (feeRow.rowCount === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'POSTAL_NOT_AVAILABLE_FOR_COUNTRY' }, { status: 422 });
+      }
+      postalFeeHalire = feeRow.rows[0].fee_halire;
+      totalAmount += postalFeeHalire;
+    }
+
     // Gift voucher redemption — aplikuje se až po insurance + bundles + promo.
     // Voucher se odečte z totalAmount do balance limitu.
     let voucherRedeemedHalire = 0;
@@ -1288,6 +1311,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           holder_names, variable_symbol, entry_slot_id, service_fee_minor,
           buyer_vat_number, buyer_company_name, is_reverse_charge,
           withdrawal_rights_shown,
+          delivery_method, postal_fee_halire,
           expires_at, created_at, updated_at)
        VALUES ($1, $2, 'pending', $3, $4, 'cs',
                $5, $6, $7,
@@ -1296,6 +1320,7 @@ export async function POST(req: NextRequest): Promise<Response> {
                $16, $17, $19, $20,
                $21, $22, $23,
                $24,
+               $25, $26,
                NOW() + ($18 || '')::interval, NOW(), NOW())
        RETURNING id`,
       [
@@ -1323,6 +1348,8 @@ export async function POST(req: NextRequest): Promise<Response> {
         resolvedBuyerCompanyName,
         isReverseCharge,
         true, // withdrawal_rights_shown — CRD Art. 16(l) exemption shown at checkout
+        input.deliveryMethod ?? 'digital',
+        postalFeeHalire,
       ],
     );
     const orderId = orderRes.rows[0].id;
@@ -1636,6 +1663,23 @@ export async function POST(req: NextRequest): Promise<Response> {
             SET reserved_count = reserved_count + 1
           WHERE id = $1`,
         [travelBookingData.packageId],
+      );
+    }
+
+    // Postal delivery — zápis adresy do orders.postal_deliveries (status=pending)
+    if (input.deliveryMethod === 'postal' && input.postalAddressLine1 && input.postalCity) {
+      await client.query(
+        `INSERT INTO orders.postal_deliveries
+           (order_id, recipient_name, address_line1, city, postal_code, country)
+         VALUES ($1,$2,$3,$4,$5,$6)`,
+        [
+          orderId,
+          input.postalName ?? '',
+          input.postalAddressLine1,
+          input.postalCity,
+          input.postalPostalCode ?? '',
+          (input.postalCountry ?? 'CZ').toUpperCase(),
+        ],
       );
     }
 

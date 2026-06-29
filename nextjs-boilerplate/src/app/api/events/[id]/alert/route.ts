@@ -1,0 +1,73 @@
+/**
+ * POST /api/events/[id]/alert — "Upozorni mě" přihlášení
+ * DELETE /api/events/[id]/alert?token=xxx — odhlášení (unsubscribe)
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db/rls-pool';
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+): Promise<Response> {
+  let body: { email?: string; alertType?: string };
+  try { body = (await req.json()) as typeof body; } catch {
+    return NextResponse.json({ error: 'INVALID_JSON' }, { status: 400 });
+  }
+
+  const email = (body.email ?? '').trim().toLowerCase();
+  const alertType = body.alertType ?? 'on_sale';
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return NextResponse.json({ error: 'INVALID_EMAIL' }, { status: 422 });
+  }
+  if (!['on_sale', 'restock', 'price_drop'].includes(alertType)) {
+    return NextResponse.json({ error: 'INVALID_ALERT_TYPE' }, { status: 422 });
+  }
+
+  const userId = req.headers.get('x-user-id');
+
+  const client = await db().connect();
+  try {
+    // Check event exists + is published
+    const ev = await client.query(
+      `SELECT id, title FROM catalog.events WHERE id = $1`,
+      [params.id],
+    );
+    if (ev.rowCount === 0) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+
+    const r = await client.query<{ token: string }>(
+      `INSERT INTO marketing.ticket_alerts (email, event_id, user_id, alert_type)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (email, event_id, alert_type) DO UPDATE SET cancelled_at = NULL
+       RETURNING token`,
+      [email, params.id, userId ?? null, alertType],
+    );
+
+    return NextResponse.json({ token: r.rows[0].token, eventTitle: ev.rows[0].title });
+  } catch (err) {
+    console.error('[POST /api/events/:id/alert]', err);
+    return NextResponse.json({ error: 'INTERNAL' }, { status: 500 });
+  } finally {
+    client.release();
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+): Promise<Response> {
+  const token = req.nextUrl.searchParams.get('token');
+  if (!token) return NextResponse.json({ error: 'MISSING_TOKEN' }, { status: 400 });
+
+  const client = await db().connect();
+  try {
+    await client.query(
+      `UPDATE marketing.ticket_alerts
+          SET cancelled_at = now()
+        WHERE token = $1 AND event_id = $2`,
+      [token, params.id],
+    );
+    return NextResponse.json({ unsubscribed: true });
+  } finally {
+    client.release();
+  }
+}
