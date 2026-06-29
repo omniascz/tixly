@@ -89,6 +89,8 @@ function CheckoutForm() {
   const [addonQty, setAddonQty] = useState<Record<string, number>>({});
   const [insurance, setInsurance] = useState<InsuranceInfo | null>(null);
   const [insuranceOptIn, setInsuranceOptIn] = useState(false);
+  const [carbonOffset, setCarbonOffset] = useState<{ amountHalire: number; label: string } | null>(null);
+  const [carbonOffsetOptIn, setCarbonOffsetOptIn] = useState(false);
   const [unitPriceHalire, setUnitPriceHalire] = useState<number | null>(null);
   const [metaPixelId, setMetaPixelId] = useState<string | null>(null);
   const [currency, setCurrency] = useState('CZK');
@@ -179,6 +181,19 @@ function CheckoutForm() {
       })
       .catch(() => setAddons([]));
   }, [eventId]);
+
+  // Carbon offset — načteme platformové nastavení jednou při mountu
+  useEffect(() => {
+    const loc = typeof window !== 'undefined' ? (localStorage.getItem('locale') ?? 'cs') : 'cs';
+    fetch(`/api/carbon-offset-settings?locale=${loc}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { active?: boolean; amountHalire?: number; label?: string } | null) => {
+        if (d?.active && d.amountHalire && d.label) {
+          setCarbonOffset({ amountHalire: d.amountHalire, label: d.label });
+        }
+      })
+      .catch(() => undefined);
+  }, []);
 
   // EVENTIM.Travel — načteme dostupné balíčky pro event
   useEffect(() => {
@@ -381,6 +396,7 @@ function CheckoutForm() {
       if (seatIdsCsv) body.seatIds = seatIdsCsv.split(',');
       if (ref) body.affiliateCode = ref;
       if (insurance && insuranceOptIn) body.insuranceOptIn = true;
+      if (carbonOffset && carbonOffsetOptIn) body.carbonOffsetOptIn = true;
       const foyerItemsArr = Object.entries(foyerItems)
         .filter(([, q]) => q > 0)
         .map(([menuItemId, quantity]) => ({ menuItemId, quantity }));
@@ -1215,6 +1231,26 @@ function CheckoutForm() {
                 </div>
               );
             })() : null}
+            {carbonOffset ? (
+              <div className="rounded-md border border-green-200 bg-green-50 p-3">
+                <label className="flex cursor-pointer items-start gap-2 text-sm font-medium text-green-900">
+                  <input
+                    type="checkbox"
+                    checked={carbonOffsetOptIn}
+                    onChange={(e) => setCarbonOffsetOptIn(e.target.checked)}
+                    className="mt-0.5"
+                    data-testid="carbon-offset-opt-in"
+                  />
+                  <span>
+                    <span className="block">🌱 {carbonOffset.label}</span>
+                    <span className="mt-0.5 block text-xs font-normal text-green-800">
+                      Dobrovolný příplatek jde celý na výsadbu stromů a ochranu lesů přes partnera Mossy Earth.
+                      Nezahrnujeme do naší marže.
+                    </span>
+                  </span>
+                </label>
+              </div>
+            ) : null}
             <div className="rounded-md border bg-muted/30 p-3">
               <label className="flex items-center gap-2 text-sm font-medium">
                 <input
@@ -1288,7 +1324,8 @@ function CheckoutForm() {
               const programTotal = addProgram && programInfo ? programInfo.programPriceHalire : 0;
               const selectedTravel = travelPackages.find((p) => p.id === selectedTravelPackageId);
               const travelTotal = selectedTravel ? selectedTravel.pricePerNightHalire * selectedTravel.nights * travelGuests : 0;
-              const grandTotal = ticketTotal + foyerTotal + programTotal + travelTotal;
+              const carbonTotal = carbonOffset && carbonOffsetOptIn ? carbonOffset.amountHalire : 0;
+              const grandTotal = ticketTotal + foyerTotal + programTotal + travelTotal + carbonTotal;
               if (grandTotal <= 0 || unitPriceHalire === null) return null;
               return (
                 <div className="rounded-md bg-muted/40 px-3 py-2 text-sm">
@@ -1312,6 +1349,12 @@ function CheckoutForm() {
                     <div className="flex justify-between text-xs font-medium text-amber-700">
                       <span>🏨 {selectedTravel.hotelName} ({selectedTravel.nights} nocí × {travelGuests > 1 ? `${travelGuests} hosté` : '1 host'})</span>
                       <span>{(travelTotal / 100).toLocaleString('cs-CZ')} Kč</span>
+                    </div>
+                  ) : null}
+                  {carbonTotal > 0 ? (
+                    <div className="flex justify-between text-xs font-medium text-green-700">
+                      <span>🌱 CO₂ offset</span>
+                      <span>+{(carbonTotal / 100).toLocaleString('cs-CZ')} Kč</span>
                     </div>
                   ) : null}
                   <div className="mt-1 flex justify-between border-t pt-1 font-semibold">

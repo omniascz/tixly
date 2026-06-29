@@ -178,6 +178,8 @@ const schema = z.object({
   postalCity: z.string().max(100).optional(),
   postalPostalCode: z.string().max(20).optional(),
   postalCountry: z.string().length(2).optional(),
+  // Carbon offset (mig 421) — dobrovolný příplatek na kompenzaci CO₂ emisí.
+  carbonOffsetOptIn: z.boolean().optional(),
 });
 
 interface TicketTypeRow {
@@ -1135,6 +1137,18 @@ export async function POST(req: NextRequest): Promise<Response> {
       totalAmount += postalFeeHalire;
     }
 
+    // Carbon offset (mig 421) — dobrovolný příplatek za CO₂ kompenzaci.
+    let carbonOffsetHalire = 0;
+    if (input.carbonOffsetOptIn === true) {
+      const co2Row = await client.query<{ amount_halire: number }>(
+        `SELECT amount_halire FROM platform.carbon_offset_settings WHERE active=true ORDER BY id LIMIT 1`,
+      );
+      if (co2Row.rowCount && co2Row.rowCount > 0) {
+        carbonOffsetHalire = co2Row.rows[0].amount_halire;
+        totalAmount += carbonOffsetHalire;
+      }
+    }
+
     // Gift voucher redemption — aplikuje se až po insurance + bundles + promo.
     // Voucher se odečte z totalAmount do balance limitu.
     let voucherRedeemedHalire = 0;
@@ -1312,6 +1326,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           buyer_vat_number, buyer_company_name, is_reverse_charge,
           withdrawal_rights_shown,
           delivery_method, postal_fee_halire,
+          carbon_offset_halire,
           expires_at, created_at, updated_at)
        VALUES ($1, $2, 'pending', $3, $4, 'cs',
                $5, $6, $7,
@@ -1321,6 +1336,7 @@ export async function POST(req: NextRequest): Promise<Response> {
                $21, $22, $23,
                $24,
                $25, $26,
+               $27,
                NOW() + ($18 || '')::interval, NOW(), NOW())
        RETURNING id`,
       [
@@ -1350,6 +1366,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         true, // withdrawal_rights_shown — CRD Art. 16(l) exemption shown at checkout
         input.deliveryMethod ?? 'digital',
         postalFeeHalire,
+        carbonOffsetHalire,
       ],
     );
     const orderId = orderRes.rows[0].id;
