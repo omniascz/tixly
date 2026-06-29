@@ -26,3 +26,9 @@ out/
 .vercel
 .env*.local
 scripts/e2e-smoke-results.txt
+
+# Production env files — never commit plaintext secrets
+.env.prod
+.env.prod.decrypted
+.env.prod.tmp
+.env.prod.backup*
