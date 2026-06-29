@@ -534,8 +534,10 @@ export async function POST(req: NextRequest): Promise<Response> {
         status: string;
         ticket_type_id: string;
         hold_until: string | null;
+        x: number | null;
+        y: number | null;
       }>(
-        `SELECT id, status, ticket_type_id, hold_until FROM catalog.event_seats
+        `SELECT id, status, ticket_type_id, hold_until, x, y FROM catalog.event_seats
          WHERE id = ANY($1::uuid[]) AND event_id = $2 AND notes = $3
          FOR UPDATE`,
         [input.seatIds, input.eventId, input.seatHoldToken],
@@ -581,6 +583,38 @@ export async function POST(req: NextRequest): Promise<Response> {
           },
           { status: 409 },
         );
+      }
+      const sdRes = await client.query<{ social_distance_seats: number }>(
+        `SELECT social_distance_seats FROM catalog.events WHERE id = $1`,
+        [input.eventId],
+      );
+      const distN = sdRes.rows[0]?.social_distance_seats ?? 0;
+      if (distN > 0) {
+        const mySeats = heldSeats.rows.map((s) => ({ id: s.id, x: s.x ?? 0, y: s.y ?? 0 }));
+        const conflictRes = await client.query<{ id: string; x: number; y: number }>(
+          `SELECT id, x, y FROM catalog.event_seats
+            WHERE event_id = $1
+              AND id != ALL($2::uuid[])
+              AND status IN ('sold', 'held')
+              AND (hold_until IS NULL OR hold_until > NOW())`,
+          [input.eventId, input.seatIds],
+        );
+        for (const mine of mySeats) {
+          for (const other of conflictRes.rows) {
+            const dx = Math.abs((mine.x ?? 0) - (other.x ?? 0));
+            const dy = Math.abs((mine.y ?? 0) - (other.y ?? 0));
+            if (dy < 0.5 && dx > 0 && dx <= distN) {
+              await client.query('ROLLBACK');
+              return NextResponse.json(
+                {
+                  error: 'SOCIAL_DISTANCE_VIOLATION',
+                  message: `Tato sedadla porušují pravidlo sociálního odstupu (min. ${distN} volná místa vedle).`,
+                },
+                { status: 409 },
+              );
+            }
+          }
+        }
       }
     }
 

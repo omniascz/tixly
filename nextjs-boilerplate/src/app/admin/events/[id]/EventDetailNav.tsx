@@ -72,6 +72,7 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
 
     // Lifecycle / Operations
     { href: `/admin/events/${eventId}/emergency`, label: 'Nouzové oznámení', group: 'Operations' },
+    { href: `/admin/events/${eventId}/social-distancing`, label: 'Soc. odstup', group: 'Operations' },
     { href: `/admin/events/${eventId}/postpone`, label: 'Odložit', group: 'Operations' },
     { href: `/admin/events/${eventId}/reschedule`, label: 'Přesun termínu', group: 'Operations' },
     { href: `/admin/events/${eventId}/queue`, label: 'Smart Queue', group: 'Operations' },
