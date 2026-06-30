@@ -1,6 +1,7 @@
 'use client';
 import { FormEvent, Suspense, useEffect, useState, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, useParams } from 'next/navigation';
+import { BuyerGuarantee } from '@/components/BuyerGuarantee';
 import { MetaPixel } from '@/components/tracking/MetaPixel';
 import { PixelManager } from '@/components/tracking/PixelManager';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,8 @@ import { fbqTrack } from '@/lib/tracking/fbq';
 function CheckoutForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const routeParams = useParams<{ locale: string }>();
+  const locale = routeParams?.locale ?? 'cs';
   const eventId = searchParams.get('eventId');
   const ticketTypeId = searchParams.get('ticketTypeId');
 
@@ -1793,6 +1796,7 @@ function CheckoutForm() {
             >
               {loading ? '...' : 'Pokračovat na platbu'}
             </Button>
+            <BuyerGuarantee locale={locale} variant="compact" />
           </form>
         </CardContent>
       </Card>
