@@ -94,12 +94,12 @@ export async function GET(req: NextRequest): Promise<Response> {
            SELECT json_agg(json_build_object(
              'id', tt.id,
              'name', tt.name,
-             'price_halire', tt.price_halire,
-             'currency', tt.currency,
-             'capacity_remaining', tt.capacity_remaining
-           ) ORDER BY tt.price_halire ASC)
+             'price_halire', tt.base_price,
+             'currency', e.currency,
+             'capacity_remaining', tt.remaining_qty
+           ) ORDER BY tt.base_price ASC)
            FROM catalog.ticket_types tt
-           WHERE tt.event_id = e.id AND tt.status = 'on_sale' AND tt.capacity_remaining > 0
+           WHERE tt.event_id = e.id AND tt.remaining_qty > 0
          ) AS ticket_types
        FROM catalog.events e
        JOIN catalog.productions pr ON pr.id = e.production_id

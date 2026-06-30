@@ -101,10 +101,12 @@ export async function POST(
       await client.query('BEGIN');
 
       const ttRes = await client.query<{ id: string; currency: string }>(
-        `SELECT id, currency FROM catalog.ticket_types
-         WHERE event_id = $1 AND is_published = TRUE
-         ORDER BY sort_order, created_at
-         LIMIT 1`,
+        `SELECT tt.id, e.currency
+           FROM catalog.ticket_types tt
+           JOIN catalog.events e ON e.id = tt.event_id
+          WHERE tt.event_id = $1 AND tt.visibility = 'public'
+          ORDER BY tt.created_at
+          LIMIT 1`,
         [eventId],
       );
       if (ttRes.rows.length === 0) {
@@ -117,9 +119,9 @@ export async function POST(
       const tt = ttRes.rows[0];
 
       const userRes = await client.query<{ id: string }>(
-        `INSERT INTO identity.users (email, name, password_hash, status)
-         VALUES (LOWER($1), $2, '', 'active')
-         ON CONFLICT (email) DO UPDATE SET updated_at = NOW()
+        `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at, created_at, updated_at)
+         VALUES (LOWER($1), $2, '', NOW(), NOW(), NOW())
+         ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE SET updated_at = NOW()
          RETURNING id`,
         [parsed.data.guestEmail, parsed.data.guestName],
       );
@@ -170,18 +172,18 @@ export async function POST(
         created_at: string;
       }>(
         `INSERT INTO orders.guestlist_entries
-           (event_id, guest_name, guest_email, notes, invited_by, ticket_id, order_id)
+           (event_id, promoter_id, guest_name, guest_email, notes, invited_by, ticket_id)
          VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING id, guest_name, guest_email, notes, invited_by, status,
-                   ticket_id, order_id, checked_in_at, created_at`,
+                   ticket_id, NULL::uuid AS order_id, checked_in_at, created_at`,
         [
           eventId,
+          promoter.promoterId,
           parsed.data.guestName,
           parsed.data.guestEmail,
           parsed.data.notes ?? null,
           parsed.data.invitedBy ?? null,
           ticketId,
-          orderId,
         ],
       );
 
@@ -219,7 +221,7 @@ export async function DELETE(
 
       const entryRes = await client.query<{ ticket_id: string | null; status: string }>(
         `UPDATE orders.guestlist_entries
-         SET status = 'cancelled', updated_at = NOW()
+         SET status = 'cancelled'
          WHERE id = $1 AND event_id = $2 AND status <> 'cancelled'
          RETURNING ticket_id, status`,
         [parsed.data.entryId, eventId],
@@ -234,8 +236,8 @@ export async function DELETE(
       if (ticketId) {
         await client.query(
           `UPDATE tickets.tickets
-           SET status = 'cancelled', updated_at = NOW()
-           WHERE id = $1 AND status NOT IN ('used', 'cancelled')`,
+           SET status = 'revoked', updated_at = NOW()
+           WHERE id = $1 AND status NOT IN ('used', 'revoked')`,
           [ticketId],
         );
       }
@@ -275,7 +277,7 @@ export async function PATCH(
 
     const r = await db().query<{ id: string }>(
       `UPDATE orders.guestlist_entries
-       SET status = $3, updated_at = NOW()${checkinClause}
+       SET status = $3${checkinClause}
        WHERE id = $1 AND event_id = $2
        RETURNING id`,
       [parsed.data.entryId, eventId, parsed.data.status],

@@ -103,8 +103,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       // Resolve ticket types with FOR UPDATE lock
       const ticketTypeIds = body.tickets.map((t) => t.ticketTypeId);
       const ttRes = await client.query<TicketTypeRow>(
-        `SELECT tt.id, tt.name, tt.price_halire, tt.currency,
-                tt.capacity_remaining, e.promoter_id, e.id AS event_id,
+        `SELECT tt.id, tt.name, tt.base_price AS price_halire, e.currency,
+                tt.remaining_qty AS capacity_remaining, e.promoter_id, e.id AS event_id,
                 p.default_payment_provider AS payment_provider
          FROM catalog.ticket_types tt
          JOIN catalog.events e ON e.id = tt.event_id
@@ -196,7 +196,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       for (const line of body.tickets) {
         await client.query(
           `UPDATE catalog.ticket_types
-           SET capacity_remaining = capacity_remaining - $2, updated_at = NOW()
+           SET remaining_qty = remaining_qty - $2
            WHERE id = $1`,
           [line.ticketTypeId, line.quantity],
         );
