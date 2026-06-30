@@ -239,6 +239,25 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
   const input = parsed.data;
+
+  // Early-guard: krypto bez nakonfigurovaného Triple-A nesmí v produkci založit
+  // objednávku (mock-crypto je tam vypnutý → slepá 403 ulička). Fail-closed JEŠTĚ
+  // PŘED vytvořením objednávky, aby nevznikaly mrtvé pending objednávky.
+  if (input.paymentMethod === 'crypto') {
+    const { getTripleAConfig } = await import('@/lib/payment/triplea');
+    const { mockPaymentsAllowed } = await import('@/lib/payment/mock-guard');
+    if (!getTripleAConfig().isConfigured && !mockPaymentsAllowed()) {
+      return NextResponse.json(
+        {
+          error: 'PAYMENT_METHOD_UNAVAILABLE',
+          message: 'Krypto platba není momentálně dostupná. Zvolte prosím jinou metodu.',
+          provider: 'crypto',
+        },
+        { status: 503 },
+      );
+    }
+  }
+
   const client = await db().connect();
 
   try {
@@ -2261,14 +2280,32 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     const bnplProviders = new Set(['twisto', 'skippay']);
     if (input.paymentMethod === 'crypto') {
-      // Krypto (Bitcoin/Ethereum) — Triple-A gateway. Real API vyžaduje
-      // TRIPLEA_API_KEY; bez něj mock brána (stejný completion flow jako BNPL).
-      const cryptoPaymentId = randomUUID();
-      paymentSession = {
-        paymentId: cryptoPaymentId,
-        gatewayUrl: `${appUrl}/mock-crypto/${cryptoPaymentId}`,
-        provider: 'crypto',
-      };
+      // Krypto (Bitcoin/stablecoiny) přes Triple-A. Nakonfigurovaný → reálná
+      // hosted brána + webhook potvrzení; jinak mock (jen mimo produkci —
+      // early-guard výše to na prod bez Triple-A vůbec nepustí).
+      const { getTripleAConfig, createTripleAPayment } = await import('@/lib/payment/triplea');
+      if (getTripleAConfig().isConfigured) {
+        const session = await createTripleAPayment({
+          orderId,
+          amountHalire: depositAmount !== null ? depositAmount : totalAmount,
+          currency: tt.currency,
+          notifyUrl: `${appUrl}/api/payments/triplea/webhook`,
+          successUrl: `${appUrl}/cs/order-confirmation/${orderId}`,
+          cancelUrl: `${appUrl}/cs/checkout?orderId=${orderId}&canceled=1`,
+        });
+        paymentSession = {
+          paymentId: session.paymentReference,
+          gatewayUrl: session.hostedUrl,
+          provider: 'crypto',
+        };
+      } else {
+        const cryptoPaymentId = randomUUID();
+        paymentSession = {
+          paymentId: cryptoPaymentId,
+          gatewayUrl: `${appUrl}/mock-crypto/${cryptoPaymentId}`,
+          provider: 'crypto',
+        };
+      }
     } else if (bnplProviders.has(input.paymentMethod)) {
       // BNPL mock provider — žádný real API, dev mode similar k mock-gopay
       const bnplPaymentId = randomUUID();
