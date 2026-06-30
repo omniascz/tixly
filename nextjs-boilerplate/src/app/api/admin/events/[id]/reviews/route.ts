@@ -29,7 +29,7 @@ export async function GET(
       is_public: boolean;
       created_at: string;
     }>(
-      `SELECT id, rating, comment, reviewer_name, is_public, created_at
+      `SELECT id, rating, body AS comment, NULL::text AS reviewer_name, is_public, created_at
        FROM marketing.event_reviews
        WHERE event_id = $1 AND rating IS NOT NULL
        ORDER BY created_at DESC`,

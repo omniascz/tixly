@@ -29,10 +29,11 @@ export async function GET(
           [params.id],
         ),
         client.query(
-          `SELECT id, name, price_halire, remaining_qty, currency
+          `SELECT id, name, base_price AS price_halire, remaining_qty,
+                  (SELECT currency FROM catalog.events WHERE id = $1) AS currency
              FROM catalog.ticket_types
             WHERE event_id = $1 AND remaining_qty > 0
-            ORDER BY price_halire`,
+            ORDER BY base_price`,
           [params.id],
         ),
         client.query(

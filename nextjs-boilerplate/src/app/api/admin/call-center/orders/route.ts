@@ -10,7 +10,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   return runAsActivePromoter(req, async (promoter) => {
     const rows = await db().query<{
       id: string;
-      buyer_email: string;
+      buyer_email: string | null;
       buyer_name: string | null;
       total_amount: number;
       currency: string;
@@ -19,10 +19,11 @@ export async function GET(req: NextRequest): Promise<Response> {
       created_at: string;
       event_name: string | null;
     }>(
-      `SELECT o.id, o.buyer_email, o.buyer_name, o.total_amount, o.currency, o.status,
+      `SELECT o.id, u.email AS buyer_email, u.name AS buyer_name, o.total_amount, o.currency, o.status,
               o.phone_payment_link, o.created_at::text,
-              e.name AS event_name
+              e.title AS event_name
          FROM orders.orders o
+         LEFT JOIN identity.users u ON u.id = o.user_id
          LEFT JOIN catalog.events e ON e.id = o.event_id
         WHERE o.order_source = 'phone'
           AND o.event_id IN (

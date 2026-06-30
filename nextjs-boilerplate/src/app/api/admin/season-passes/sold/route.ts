@@ -20,7 +20,9 @@ export async function GET(req: NextRequest): Promise<Response> {
   return runAsActivePromoter(req, async (promoter) => {
     const r = await db().query<SoldPassRow>(
       `SELECT sp.id, sp.product_id, sp.pass_token, sp.holder_email, sp.holder_name,
-              sp.uses_remaining, sp.valid_until::text, sp.status, sp.created_at::text,
+              sp.uses_remaining, sp.valid_until::text,
+              CASE WHEN sp.valid_until IS NULL OR sp.valid_until > NOW() THEN 'active' ELSE 'expired' END AS status,
+              sp.created_at::text,
               spp.title AS product_title, spp.total_uses
        FROM orders.season_passes sp
        JOIN catalog.season_pass_products spp ON spp.id = sp.product_id

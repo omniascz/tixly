@@ -64,9 +64,9 @@ export async function GET(
       db().query<LiveRow>(
         `WITH totals AS (
            SELECT
-             COALESCE(SUM(tt.capacity_total), 0)    AS capacity_total,
+             COALESCE(SUM(tt.total_qty), 0)         AS capacity_total,
              COALESCE(SUM(
-               tt.capacity_total - tt.capacity_remaining
+               tt.total_qty - tt.remaining_qty
              ), 0)                                   AS tickets_sold,
              COALESCE(SUM(o.total_amount) FILTER (
                WHERE o.status = 'paid'
@@ -93,10 +93,10 @@ export async function GET(
          SELECT t.capacity_total, t.tickets_sold, t.revenue_total, t.refunds_total,
                 v.velocity_1h, v.velocity_24h,
                 e.date_start,
-                pr.title AS event_title
+                COALESCE(pr.title, e.title) AS event_title
          FROM totals t, velocity v
          JOIN catalog.events e ON e.id = $1
-         JOIN catalog.productions pr ON pr.id = e.production_id`,
+         LEFT JOIN catalog.productions pr ON pr.id = e.production_id`,
         [eventId],
       ),
 

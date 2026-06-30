@@ -53,7 +53,7 @@ export async function POST(
       const ttRes = await client.query<{
         id: string; name: string; price_halire: number; remaining_qty: number; currency: string;
       }>(
-        `SELECT id, name, price_halire, remaining_qty, currency
+        `SELECT id, name, base_price AS price_halire, remaining_qty, currency
            FROM catalog.ticket_types
           WHERE id = $1 AND event_id = $2 AND remaining_qty >= $3
           FOR UPDATE`,

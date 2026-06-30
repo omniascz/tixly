@@ -60,7 +60,7 @@ export async function GET(
         `SELECT t.id, t.user_id, u.email AS user_email, t.fingerprint,
                 t.status, t.joined_at, t.admitted_at, t.expires_at
          FROM platform.queue_tokens t
-         LEFT JOIN platform.users u ON u.id = t.user_id
+         LEFT JOIN identity.users u ON u.id = t.user_id
          WHERE t.event_id = $1
          ORDER BY
            CASE t.status WHEN 'waiting' THEN 0 WHEN 'admitted' THEN 1 ELSE 2 END,

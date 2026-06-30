@@ -34,7 +34,7 @@ export async function GET(
 
     const r = await db().query<LastminuteRuleRow>(
       `SELECT id, event_id, hours_before, min_occupancy_pct, discount_pct,
-              is_active, triggered_at, created_at, updated_at
+              is_active, triggered_at, created_at, created_at AS updated_at
        FROM catalog.lastminute_rules
        WHERE event_id = $1`,
       [params.id],
@@ -80,8 +80,7 @@ export async function POST(
              min_occupancy_pct = EXCLUDED.min_occupancy_pct,
              discount_pct      = EXCLUDED.discount_pct,
              is_active         = EXCLUDED.is_active,
-             triggered_at      = NULL,
-             updated_at        = NOW()
+             triggered_at      = NULL
        RETURNING id`,
       [params.id, promoter.promoterId, hoursBefore, minOccupancyPct, discountPct, isActive],
     );
@@ -114,7 +113,7 @@ export async function PATCH(
 
     const r = await db().query<{ id: string }>(
       `UPDATE catalog.lastminute_rules
-       SET is_active = $1, updated_at = NOW()
+       SET is_active = $1
        WHERE event_id = $2 AND promoter_id = $3
        RETURNING id`,
       [parsed.data.isActive, params.id, promoter.promoterId],

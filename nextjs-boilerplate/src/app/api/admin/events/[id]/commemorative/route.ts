@@ -34,7 +34,7 @@ export async function GET(
     }
 
     const r = await db().query<TemplateRow>(
-      `SELECT event_id, quote, theme_color, accent_color, custom_message, is_active, updated_at, created_at
+      `SELECT event_id, quote, theme_color, accent_color, custom_message, is_active, created_at AS updated_at, created_at
          FROM catalog.commemorative_templates
         WHERE event_id = $1`,
       [eventId],
@@ -79,9 +79,8 @@ export async function POST(
          theme_color    = COALESCE(EXCLUDED.theme_color, catalog.commemorative_templates.theme_color),
          accent_color   = COALESCE(EXCLUDED.accent_color, catalog.commemorative_templates.accent_color),
          custom_message = COALESCE(EXCLUDED.custom_message, catalog.commemorative_templates.custom_message),
-         is_active      = COALESCE(EXCLUDED.is_active, catalog.commemorative_templates.is_active),
-         updated_at     = NOW()
-       RETURNING event_id, quote, theme_color, accent_color, custom_message, is_active, updated_at, created_at`,
+         is_active      = COALESCE(EXCLUDED.is_active, catalog.commemorative_templates.is_active)
+       RETURNING event_id, quote, theme_color, accent_color, custom_message, is_active, created_at AS updated_at, created_at`,
       [
         eventId,
         d.quote ?? null,

@@ -54,7 +54,7 @@ export async function GET(
       created_at: string;
     }>(
       `SELECT id, guest_name, guest_email, notes, invited_by, status,
-              ticket_id, order_id, checked_in_at, created_at
+              ticket_id, NULL::uuid AS order_id, checked_in_at, created_at
        FROM orders.guestlist_entries
        WHERE event_id = $1
        ORDER BY guest_name`,

@@ -60,7 +60,7 @@ export async function GET(
       `SELECT
          tt.id,
          tt.name,
-         tt.description,
+         NULL::text AS description,
          tt.kind,
          tt.base_price,
          tt.total_qty,

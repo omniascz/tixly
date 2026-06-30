@@ -30,10 +30,12 @@ export async function GET(
       buyer_email: string | null;
       created_at: string;
     }>(
-      `SELECT id, pickup_qr_token, status, total_halire, buyer_email, created_at
-       FROM orders.foyer_orders
-       WHERE event_id = $1 AND status = $2
-       ORDER BY created_at DESC
+      `SELECT fo.id, fo.pickup_qr_token, fo.status, fo.total_halire, u.email AS buyer_email, fo.created_at
+       FROM orders.foyer_orders fo
+       LEFT JOIN orders.orders o ON o.id = fo.order_id
+       LEFT JOIN identity.users u ON u.id = o.user_id
+       WHERE fo.event_id = $1 AND fo.status = $2
+       ORDER BY fo.created_at DESC
        LIMIT 200`,
       [params.id, status],
     );
