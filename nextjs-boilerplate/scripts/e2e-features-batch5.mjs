@@ -49,9 +49,11 @@ async function main() {
   // ── 2. WAITLIST ────────────────────────────────────────────────────────────
   console.log('\n━━━ 2. Waitlist — fronta na vyprodaný typ ━━━');
   const wlEmail = `b5wl-${ts}@t.cz`;
+  // waitlist je jen pro vyprodaný typ → vyprodáme akci, jinak route (správně) vrátí 409
+  await q(`UPDATE catalog.ticket_types SET remaining_qty = 0 WHERE event_id = $1`, [eid]);
   const wl1 = await api('POST', `/api/events/${eid}/waitlist`, { body: { ticketTypeId: tt, email: wlEmail, name: 'Čekatel' } });
-  check('Přihlášení na waitlist (201)', wl1.status === 201 && wl1.j?.status === 'waiting', `status=${wl1.status} ${JSON.stringify(wl1.j?.error||'')}`);
-  const wlDb = (await q(`SELECT COUNT(*)::int n FROM catalog.waitlist_entries WHERE ticket_type_id=$1 AND LOWER(email)=LOWER($2)`, [tt, wlEmail])).rows[0]?.n;
+  check('Přihlášení na waitlist (201)', wl1.status === 201 && !!wl1.j?.waitlistId, `status=${wl1.status} ${JSON.stringify(wl1.j?.error||'')}`);
+  const wlDb = (await q(`SELECT COUNT(*)::int n FROM orders.waiting_list WHERE ticket_type_id=$1 AND LOWER(email)=LOWER($2)`, [tt, wlEmail])).rows[0]?.n;
   check('Waitlist entry v DB', wlDb === 1, `${wlDb} záznamů`);
   const wl2 = await api('POST', `/api/events/${eid}/waitlist`, { body: { ticketTypeId: tt, email: wlEmail, name: 'Čekatel' } });
   check('Opakované přihlášení → idempotentní (existing)', wl2.j?.existing === true, `existing=${wl2.j?.existing}`);
