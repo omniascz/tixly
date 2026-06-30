@@ -3,7 +3,8 @@
  *
  * Body: { seatId }
  * Přihlášený přítel si vezme jedno z držených sousedních sedadel a dostane
- * mock-gopay platební bránu. Sedadlo se rezervuje na vytvořenou objednávku;
+ * platební bránu (reálná GoPay/ComGate/Stripe v produkci přes createPayment;
+ * mock jen mimo prod). Sedadlo se rezervuje na vytvořenou objednávku;
  * pokud nezaplatí do 30 min, cron release-group-invite-holds ho uvolní.
  *
  * Pod /api/buyer/ → middleware injektuje x-user-id (optional-auth), takže
@@ -74,8 +75,8 @@ export async function POST(
       }
 
       const ttId = inv.ticket_type_id ?? seat.ticket_type_id;
-      const priceR = await client.query<{ base_price: number; currency: string }>(
-        `SELECT tt.base_price, e.currency
+      const priceR = await client.query<{ base_price: number; currency: string; event_title: string }>(
+        `SELECT tt.base_price, e.currency, e.title AS event_title
            FROM catalog.ticket_types tt JOIN catalog.events e ON e.id = tt.event_id
           WHERE tt.id = $1`,
         [ttId],
@@ -84,17 +85,25 @@ export async function POST(
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'TICKET_TYPE_NOT_FOUND' }, { status: 404 });
       }
-      const { base_price: price, currency } = priceR.rows[0];
+      const { base_price: price, currency, event_title: eventTitle } = priceR.rows[0];
 
-      // Kupující je linkován přes user_id; orders nemá buyer_email/buyer_name.
-      const paymentId = randomUUID();
+      // Kupující je linkován přes user_id; orders nemá buyer_email/buyer_name,
+      // ale reálná platební brána potřebuje e-mail.
+      const userR = await client.query<{ email: string; name: string | null }>(
+        `SELECT email, name FROM identity.users WHERE id = $1`,
+        [userId],
+      );
+      const buyer = userR.rows[0];
+
+      // Order s placeholder payment id; reálnou bránu spustíme až po commitu.
+      const placeholderPaymentId = randomUUID();
       const ordR = await client.query<{ id: string }>(
         `INSERT INTO orders.orders
            (user_id, event_id, status, total_amount, currency, gopay_payment_id,
             payment_provider, group_invitation_id, expires_at)
          VALUES ($1, $2, 'pending', $3, $4, $5, 'gopay', $6, NOW() + INTERVAL '30 minutes')
          RETURNING id`,
-        [userId, inv.event_id, price, currency, paymentId, inv.id],
+        [userId, inv.event_id, price, currency, placeholderPaymentId, inv.id],
       );
       const orderId = ordR.rows[0].id;
 
@@ -119,14 +128,44 @@ export async function POST(
       );
       await client.query('COMMIT');
 
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-      return NextResponse.json({
-        ok: true,
-        orderId,
-        gatewayUrl: `${appUrl}/mock-gopay/${paymentId}`,
-        amount: price,
-        currency,
-      });
+      // Po commitu: reálná platební brána přes stejný switcher jako hlavní
+      // checkout (GoPay/ComGate/Stripe v produkci; mock jen mimo prod).
+      const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+      try {
+        const { createPayment } = await import('@/lib/payment/provider');
+        const session = await createPayment({
+          orderId,
+          amountHalire: price,
+          currency,
+          buyerEmail: buyer?.email ?? '',
+          buyerName: buyer?.name ?? undefined,
+          description: `${eventTitle} — sedadlo`,
+          paymentMethod: 'gopay',
+          appUrl,
+        });
+        // Jen gopay_payment_id (podle něj brána/webhook najde order). Sloupec
+        // payment_provider zůstává 'gopay' z INSERTu — runtime impl ('mock-gopay'
+        // ap.) není v orders_payment_provider_check; mirror hlavního checkoutu.
+        await db().query(
+          `UPDATE orders.orders SET gopay_payment_id = $2, updated_at = NOW() WHERE id = $1`,
+          [orderId, session.paymentId],
+        );
+        return NextResponse.json({
+          ok: true,
+          orderId,
+          gatewayUrl: session.gatewayUrl,
+          provider: session.provider,
+          amount: price,
+          currency,
+        });
+      } catch (payErr) {
+        // Order zůstane pending; cron release-group-invite-holds sedadlo uvolní.
+        console.error('[claim payment init]', payErr);
+        return NextResponse.json(
+          { error: 'PAYMENT_INIT_FAILED', orderId, message: 'Nepodařilo se spustit platební bránu.' },
+          { status: 502 },
+        );
+      }
     } catch (err) {
       await client.query('ROLLBACK').catch(() => undefined);
       console.error('[POST /api/buyer/group-invitations/[token]/claim]', err);
