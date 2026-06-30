@@ -38,13 +38,17 @@ export async function GET(
       message: string | null;
       status: string;
       expires_at: string;
+      adjacent_reserve: boolean;
+      held_seat_ids: string[];
+      hold_expires_at: string | null;
     }>(
       `SELECT gi.id, gi.organizer_user_id, u.email AS organizer_email,
               u.name AS organizer_name,
               gi.event_id, e.title AS event_title,
               e.date_start::text AS event_date_start,
               gi.ticket_type_id, gi.target_seats, gi.message,
-              gi.status, gi.expires_at::text
+              gi.status, gi.expires_at::text,
+              gi.adjacent_reserve, gi.held_seat_ids, gi.hold_expires_at::text
          FROM orders.group_invitations gi
          JOIN identity.users u ON u.id = gi.organizer_user_id
          JOIN catalog.events e ON e.id = gi.event_id
@@ -66,6 +70,26 @@ export async function GET(
     );
     const alreadyPaid = Number(progress.rows[0].count);
 
+    // AXS Invite: seznam držených sousedních sedadel + claim status
+    let seats: { id: string; label: string; claimed: boolean }[] = [];
+    if (i.adjacent_reserve && i.held_seat_ids.length > 0) {
+      const sr = await client.query<{
+        id: string; sector: string | null; row: string | null;
+        seat_number: string | null; status: string; hold_kind: string | null;
+      }>(
+        `SELECT id, sector, row, seat_number, status, hold_kind
+           FROM catalog.event_seats WHERE id = ANY($1::uuid[])
+          ORDER BY NULLIF(regexp_replace(COALESCE(seat_number,''), '\\D', '', 'g'), '')::int NULLS LAST, seat_number`,
+        [i.held_seat_ids],
+      );
+      seats = sr.rows.map((s) => ({
+        id: s.id,
+        label: `${s.sector ?? ''} řada ${s.row ?? '?'} · sedadlo ${s.seat_number ?? '?'}`.trim(),
+        // claimed = už není volně držené (někdo ho vzal → sold/held-claimed)
+        claimed: !(s.status === 'held' && s.hold_kind === 'group_invite'),
+      }));
+    }
+
     await client.query('COMMIT');
 
     return NextResponse.json({
@@ -84,6 +108,9 @@ export async function GET(
       },
       ticketTypeId: i.ticket_type_id,
       targetSeats: i.target_seats,
+      adjacentReserve: i.adjacent_reserve,
+      holdExpiresAt: i.hold_expires_at,
+      seats,
       message: i.message,
       progress: {
         alreadyPaid,

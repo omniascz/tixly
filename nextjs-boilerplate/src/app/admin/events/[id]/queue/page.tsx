@@ -14,6 +14,7 @@ interface QueueStats {
   eventTitle: string;
   queueEnabled: boolean;
   maxConcurrent: number;
+  queueMode: 'fifo' | 'random';
   waiting: number;
   active: number;
   slotsAvailable: number;
@@ -81,6 +82,23 @@ export default function QueueAdminPage(): JSX.Element {
         throwOnError: true,
       });
       setSaved(stats.queueEnabled ? 'Fronta vypnuta.' : 'Fronta zapnuta.');
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Chyba');
+    } finally { setBusy(false); }
+  }
+
+  async function saveMode(mode: 'fifo' | 'random') {
+    setBusy(true); setSaved(null);
+    try {
+      await typedFetch(`/api/admin/events/${eventId}/queue`, {
+        method: 'PATCH',
+        body: { queueMode: mode },
+        throwOnError: true,
+      });
+      setSaved(mode === 'random'
+        ? 'Režim fronty: náhodný výběr (čas příchodu nerozhoduje).'
+        : 'Režim fronty: dle pořadí příchodu (first-come).');
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Chyba');
@@ -227,6 +245,34 @@ export default function QueueAdminPage(): JSX.Element {
             />
             <Button onClick={() => void saveMax()} disabled={busy} variant="outline">
               Uložit
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Režim fronty</CardTitle>
+            <CardDescription className="text-xs">
+              <strong>Náhodný</strong> (AXS Fair AXS): pořadí se losuje — kdo dorazí dřív nemá výhodu,
+              anti-bot pro masivní onsale. <strong>Příchodem</strong>: klasické first-come.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex gap-2">
+            <Button
+              onClick={() => void saveMode('fifo')}
+              disabled={busy || stats.queueMode === 'fifo'}
+              variant={stats.queueMode === 'fifo' ? 'default' : 'outline'}
+              className="flex-1"
+            >
+              Příchodem
+            </Button>
+            <Button
+              onClick={() => void saveMode('random')}
+              disabled={busy || stats.queueMode === 'random'}
+              variant={stats.queueMode === 'random' ? 'default' : 'outline'}
+              className="flex-1"
+            >
+              Náhodný
             </Button>
           </CardContent>
         </Card>

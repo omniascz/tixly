@@ -12,6 +12,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
+type Seat = { id: string; label: string; claimed: boolean };
 type Preview = {
   invitationId: string;
   status: string;
@@ -20,6 +21,9 @@ type Preview = {
   event: { id: string; title: string; dateStart: string };
   ticketTypeId: string | null;
   targetSeats: number;
+  adjacentReserve?: boolean;
+  holdExpiresAt?: string | null;
+  seats?: Seat[];
   message: string | null;
   progress: { alreadyPaid: number; remaining: number; targetSeats: number };
   checkoutUrl: string;
@@ -33,6 +37,33 @@ export default function GroupClaimPage({
 }): JSX.Element {
   const [data, setData] = useState<Preview | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [claiming, setClaiming] = useState<string | null>(null);
+  const [claimError, setClaimError] = useState<string | null>(null);
+
+  async function claimSeat(seatId: string): Promise<void> {
+    setClaimError(null);
+    setClaiming(seatId);
+    try {
+      const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+      if (!accessToken) {
+        window.location.href = `/${params.locale}/login?redirect=/${params.locale}/group/${params.token}`;
+        return;
+      }
+      const r = await fetch(`/api/buyer/group-invitations/${params.token}/claim`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ seatId }),
+      });
+      const j = (await r.json()) as { gatewayUrl?: string; error?: string };
+      if (!r.ok || !j.gatewayUrl) {
+        setClaimError(j.error ?? `Chyba ${r.status}`);
+        return;
+      }
+      window.location.href = j.gatewayUrl;
+    } finally {
+      setClaiming(null);
+    }
+  }
 
   useEffect(() => {
     void fetch(`/api/group-invitations/${params.token}`)
@@ -122,6 +153,37 @@ export default function GroupClaimPage({
               Pozvánka {data.expired ? 'vypršela' : 'už není aktivní'}. Můžeš si
               ale stále koupit vstupenku samostatně.
             </p>
+          ) : data.adjacentReserve && data.seats && data.seats.length > 0 ? (
+            <div>
+              <p className="mb-3 text-sm font-medium text-slate-700">
+                Vyber si jedno z držených sousedních sedadel. Drženo do{' '}
+                {data.holdExpiresAt
+                  ? new Date(data.holdExpiresAt).toLocaleString('cs-CZ', { dateStyle: 'short', timeStyle: 'short' })
+                  : '48 h'}.
+              </p>
+              {claimError && <p className="mb-2 text-sm text-rose-600">{claimError}</p>}
+              <div className="space-y-2">
+                {data.seats.map((s) => (
+                  <div
+                    key={s.id}
+                    className={`flex items-center justify-between rounded-md border px-4 py-3 ${s.claimed ? 'border-slate-200 bg-slate-50 opacity-60' : 'border-emerald-200 bg-emerald-50/40'}`}
+                  >
+                    <span className="text-sm font-medium text-slate-800">🎟 {s.label}</span>
+                    {s.claimed ? (
+                      <span className="text-xs font-medium text-slate-500">Obsazeno</span>
+                    ) : (
+                      <button
+                        onClick={() => void claimSeat(s.id)}
+                        disabled={claiming !== null}
+                        className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                      >
+                        {claiming === s.id ? 'Otevírám platbu…' : 'Vzít a zaplatit'}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : (
             <Link
               href={data.checkoutUrl}

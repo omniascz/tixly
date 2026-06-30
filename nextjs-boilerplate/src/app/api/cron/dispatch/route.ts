@@ -50,6 +50,8 @@ const ALLOWED_JOBS = new Set([
   'demand-forecast',           // every 6h recompute demand score + check yield rules
   // Seat upgrade notifications — unique differentiator vs Eventim/TM
   'seat-upgrade-notify',       // hourly: notify buyers when better seats open up
+  // AXS Invite — release expired adjacent-seat holds
+  'release-group-invite-holds',
 ]);
 
 export async function GET(req: NextRequest): Promise<Response> {

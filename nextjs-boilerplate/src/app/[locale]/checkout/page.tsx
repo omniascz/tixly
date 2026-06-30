@@ -54,6 +54,7 @@ function CheckoutForm() {
     | 'multisport'
     | 'twisto'
     | 'skippay'
+    | 'crypto'
     | 'b2b_credit'
   >('gopay');
   const [b2bAccountCode, setB2bAccountCode] = useState('');
@@ -1216,6 +1217,20 @@ function CheckoutForm() {
                   />
                   <span className="font-medium">
                     Skip Pay <span className="text-xs text-muted-foreground">— 4 splátky (ČSOB)</span>
+                  </span>
+                </label>
+                <label
+                  className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'crypto' ? 'border-[#F7931A] bg-orange-50' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="crypto"
+                    checked={paymentMethod === 'crypto'}
+                    onChange={() => setPaymentMethod('crypto')}
+                  />
+                  <span className="font-medium">
+                    ₿ Krypto <span className="text-xs text-muted-foreground">— Bitcoin / Ethereum (Triple-A)</span>
                   </span>
                 </label>
               </div>

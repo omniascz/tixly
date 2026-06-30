@@ -28,6 +28,8 @@ interface TokenRow {
   admitted_at: string | null;
   expires_at: string | null;
   queue_max_concurrent: number;
+  queue_mode: string;
+  draw_seed: number;
 }
 
 export async function GET(
@@ -42,7 +44,7 @@ export async function GET(
 
   const r = await db().query<TokenRow>(
     `SELECT t.id, t.event_id, t.status, t.joined_at, t.admitted_at, t.expires_at,
-            e.queue_max_concurrent
+            t.draw_seed, e.queue_max_concurrent, e.queue_mode
      FROM platform.queue_tokens t
      JOIN catalog.events e ON e.id = t.event_id
      WHERE t.id = $1 AND t.event_id = $2`,
@@ -52,10 +54,12 @@ export async function GET(
     return NextResponse.json({ error: 'Token not found' }, { status: 404 });
   }
   const token = r.rows[0];
+  const isRandom = token.queue_mode === 'random';
 
-  // Try Redis fast-path
+  // Try Redis fast-path — pouze pro FIFO. Random mód řadí dle draw_seed v DB
+  // (Redis udržuje jen FCFS pořadí), proto pro random jdeme přímo DB cestou.
   try {
-    if (await redisAvailable()) {
+    if (!isRandom && await redisAvailable()) {
       const rs = await getQueueStatusRedis(params.eventId, params.token);
       if (rs.status === 'admitted') {
         // Sync DB pokud ještě není
@@ -145,12 +149,21 @@ export async function GET(
     return NextResponse.json({ status: token.status });
   }
 
-  // Status='waiting': spočítej position + zkus admit-on-poll
-  const aheadCount = await db().query<{ count: string }>(
-    `SELECT COUNT(*)::text AS count FROM platform.queue_tokens
-     WHERE event_id = $1 AND status = 'waiting' AND joined_at < $2`,
-    [token.event_id, token.joined_at],
-  );
+  // Status='waiting': spočítej position + zkus admit-on-poll.
+  // Random mód (AXS "Fair AXS"): pořadí dle draw_seed (čas příchodu nerozhoduje),
+  // tie-break joined_at. FIFO: dle joined_at.
+  const aheadCount = isRandom
+    ? await db().query<{ count: string }>(
+        `SELECT COUNT(*)::text AS count FROM platform.queue_tokens
+         WHERE event_id = $1 AND status = 'waiting'
+           AND (draw_seed < $2 OR (draw_seed = $2 AND joined_at < $3))`,
+        [token.event_id, token.draw_seed, token.joined_at],
+      )
+    : await db().query<{ count: string }>(
+        `SELECT COUNT(*)::text AS count FROM platform.queue_tokens
+         WHERE event_id = $1 AND status = 'waiting' AND joined_at < $2`,
+        [token.event_id, token.joined_at],
+      );
   const position = Number(aheadCount.rows[0]?.count ?? 0) + 1;
 
   const activeCount = await db().query<{ count: string }>(

@@ -25,6 +25,7 @@ interface EventRow {
   title: string;
   queue_enabled: boolean;
   queue_max_concurrent: number;
+  queue_mode: string;
   promoter_id: string;
 }
 
@@ -34,7 +35,7 @@ export async function GET(
 ): Promise<Response> {
   return runAsPromoter(req, async (ctx) => {
     const evR = await db().query<EventRow>(
-      `SELECT id, title, queue_enabled, queue_max_concurrent, promoter_id
+      `SELECT id, title, queue_enabled, queue_max_concurrent, queue_mode, promoter_id
        FROM catalog.events WHERE id = $1`,
       [params.id],
     );
@@ -77,6 +78,7 @@ export async function GET(
       eventTitle: ev.title,
       queueEnabled: ev.queue_enabled,
       maxConcurrent: ev.queue_max_concurrent,
+      queueMode: ev.queue_mode,
       waiting,
       active,
       slotsAvailable: Math.max(0, ev.queue_max_concurrent - active),
@@ -96,6 +98,7 @@ export async function GET(
 const patchSchema = z.object({
   queueEnabled:  z.boolean().optional(),
   maxConcurrent: z.number().int().min(1).max(5000).optional(),
+  queueMode:     z.enum(['fifo', 'random']).optional(),
 });
 
 export async function PATCH(
@@ -125,6 +128,10 @@ export async function PATCH(
     if (parsed.data.maxConcurrent !== undefined) {
       vals.push(parsed.data.maxConcurrent);
       updates.push(`queue_max_concurrent = $${vals.length}`);
+    }
+    if (parsed.data.queueMode !== undefined) {
+      vals.push(parsed.data.queueMode);
+      updates.push(`queue_mode = $${vals.length}`);
     }
 
     if (updates.length > 0) {

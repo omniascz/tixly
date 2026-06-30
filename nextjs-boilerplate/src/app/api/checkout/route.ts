@@ -85,6 +85,9 @@ const schema = z.object({
       // International gateways
       'mollie',   // NL/BE/FR — iDEAL, Bancontact, SEPA, Klarna, PayPal via Mollie
       'paypal',   // DE/AT/FR/Global — standalone PayPal Orders API v2
+      // Krypto (AXS parity) — Bitcoin/Ethereum přes Triple-A. Mock brána
+      // /mock-crypto/[paymentId] v dev mode (real API vyžaduje TRIPLEA_API_KEY).
+      'crypto',
     ])
     .default('gopay'),
   // Add-ons (parking, camping, F&B credit, merch…) — Fáze C
@@ -2257,7 +2260,16 @@ export async function POST(req: NextRequest): Promise<Response> {
     let paymentSession;
 
     const bnplProviders = new Set(['twisto', 'skippay']);
-    if (bnplProviders.has(input.paymentMethod)) {
+    if (input.paymentMethod === 'crypto') {
+      // Krypto (Bitcoin/Ethereum) — Triple-A gateway. Real API vyžaduje
+      // TRIPLEA_API_KEY; bez něj mock brána (stejný completion flow jako BNPL).
+      const cryptoPaymentId = randomUUID();
+      paymentSession = {
+        paymentId: cryptoPaymentId,
+        gatewayUrl: `${appUrl}/mock-crypto/${cryptoPaymentId}`,
+        provider: 'crypto',
+      };
+    } else if (bnplProviders.has(input.paymentMethod)) {
       // BNPL mock provider — žádný real API, dev mode similar k mock-gopay
       const bnplPaymentId = randomUUID();
       paymentSession = {
