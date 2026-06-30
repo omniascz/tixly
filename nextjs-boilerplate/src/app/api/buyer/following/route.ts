@@ -56,15 +56,15 @@ export async function GET(req: NextRequest): Promise<Response> {
            e.date_start,
            v.name AS venue_name,
            v.city,
-           MIN(tt.price)::text AS min_price,
-           COALESCE(MIN(tt.currency), 'CZK') AS currency,
+           MIN(tt.base_price)::text AS min_price,
+           COALESCE(MIN(e.currency), 'CZK') AS currency,
            ea.is_headliner
          FROM lineups.artist_follows af
          JOIN lineups.event_artists ea ON ea.artist_id = af.artist_id
          JOIN catalog.events e ON e.id = ea.event_id
          JOIN catalog.productions pr ON pr.id = e.production_id
          LEFT JOIN catalog.venues v ON v.id = e.venue_id
-         LEFT JOIN catalog.ticket_types tt ON tt.event_id = e.id AND tt.status = 'on_sale'
+         LEFT JOIN catalog.ticket_types tt ON tt.event_id = e.id AND tt.remaining_qty > 0
          WHERE af.user_id = $1
            AND e.status = 'published'
            AND e.date_start > NOW()

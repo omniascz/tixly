@@ -43,7 +43,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     `SELECT category, COUNT(*)::text AS cnt
        FROM marketing.editorial_articles
       WHERE status = 'published' AND category IS NOT NULL
-      GROUP BY category ORDER BY cnt::int DESC`,
+      GROUP BY category ORDER BY COUNT(*) DESC`,
   );
 
   return NextResponse.json({

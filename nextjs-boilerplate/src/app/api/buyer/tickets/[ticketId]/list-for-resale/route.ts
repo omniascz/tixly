@@ -31,7 +31,7 @@ export async function POST(
            t.id, t.status, t.owner_id, t.original_price, t.order_id,
            o.paid_at, o.event_id,
            tt.name                      AS ticket_type_name,
-           tt.price                     AS face_price,
+           tt.base_price                AS face_price,
            e.resale_enabled,
            e.resale_max_price_pct,
            e.resale_platform_fee_pct,

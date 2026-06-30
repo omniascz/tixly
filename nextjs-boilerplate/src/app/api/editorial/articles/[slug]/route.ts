@@ -39,11 +39,11 @@ export async function GET(
     }>(
       `SELECT e.id, e.title, e.slug, e.date_start::text,
               e.cover_image_url, v.city, v.name AS venue_name,
-              MIN(tt.price_halire) AS min_price_halire, e.currency
+              MIN(tt.base_price) AS min_price_halire, e.currency
          FROM marketing.editorial_article_events eae
          JOIN catalog.events e ON e.id = eae.event_id
          LEFT JOIN catalog.venues v ON v.id = e.venue_id
-         LEFT JOIN catalog.ticket_types tt ON tt.event_id = e.id AND tt.is_hidden = false
+         LEFT JOIN catalog.ticket_types tt ON tt.event_id = e.id
         WHERE eae.article_id = $1 AND e.status = 'published' AND e.date_start > NOW()
         GROUP BY e.id, e.title, e.slug, e.date_start, e.cover_image_url,
                  v.city, v.name, e.currency

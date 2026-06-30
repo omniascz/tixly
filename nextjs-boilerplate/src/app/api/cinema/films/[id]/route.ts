@@ -38,10 +38,10 @@ export async function GET(
          v.name          AS venue_name,
          v.city          AS venue_city,
          v.address       AS venue_address,
-         (SELECT MIN(tt.price) FROM catalog.ticket_types tt
-          WHERE tt.event_id = e.id AND tt.status = 'active')::int  AS price_from,
+         (SELECT MIN(tt.base_price) FROM catalog.ticket_types tt
+          WHERE tt.event_id = e.id AND tt.remaining_qty > 0)::int  AS price_from,
          (SELECT SUM(tt.remaining_qty) FROM catalog.ticket_types tt
-          WHERE tt.event_id = e.id AND tt.status = 'active')::int  AS remaining_qty
+          WHERE tt.event_id = e.id)::int  AS remaining_qty
        FROM catalog.events e
        LEFT JOIN catalog.cinema_screens cs ON cs.id = e.cinema_screen_id
        LEFT JOIN catalog.venues          v  ON v.id  = e.venue_id

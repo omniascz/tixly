@@ -8,7 +8,7 @@ const env = readFileSync(new URL('../.env.local', import.meta.url), 'utf8');
 const pool = new pg.Pool({ connectionString: (env.match(/^DATABASE_URL="?([^"\n]+)"?/m) || [])[1] });
 async function q(s, p = []) { const c = await pool.connect(); try { await c.query(`SET app.role='service'`); return await c.query(s, p); } finally { c.release(); } }
 async function api(method, path, { token, body } = {}) {
-  const h = {}; if (token) h.Authorization = `Bearer ${token}`; if (body !== undefined) h['Content-Type'] = 'application/json';
+  const h = { 'X-Forwarded-For': '77.'+((Date.now()>>8)%256)+'.'+(Math.floor(Math.random()*256))+'.'+(Math.floor(Math.random()*256)) }; if (token) h.Authorization = `Bearer ${token}`; if (body !== undefined) h['Content-Type'] = 'application/json';
   const r = await fetch(`${BASE}${path}`, { method, headers: h, body: body !== undefined ? JSON.stringify(body) : undefined });
   let j = null; try { j = await r.json(); } catch {}
   return { status: r.status, j };

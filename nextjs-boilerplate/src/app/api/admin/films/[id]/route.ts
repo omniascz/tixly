@@ -31,7 +31,7 @@ export async function GET(
            (SELECT COUNT(*) FROM tickets.tickets t
              JOIN orders.orders o ON o.id = t.order_id
              WHERE o.event_id = e.id AND o.status = 'paid')::int AS tickets_sold,
-           (SELECT MIN(tt.price) FROM catalog.ticket_types tt WHERE tt.event_id = e.id)::int AS price_from
+           (SELECT MIN(tt.base_price) FROM catalog.ticket_types tt WHERE tt.event_id = e.id)::int AS price_from
          FROM catalog.events e
          LEFT JOIN catalog.cinema_screens cs ON cs.id = e.cinema_screen_id
          LEFT JOIN catalog.venues          v  ON v.id  = e.venue_id

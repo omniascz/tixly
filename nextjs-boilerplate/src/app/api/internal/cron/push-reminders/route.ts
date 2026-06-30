@@ -160,15 +160,14 @@ export async function POST(req: NextRequest): Promise<Response> {
     const onsale = await db().query<OnsaleRow>(
       `SELECT DISTINCT wl.user_id, pr.title AS event_title, e.slug,
               tt.name AS tt_name,
-              tt.price::text AS price,
-              COALESCE(tt.currency, 'CZK') AS currency
+              tt.base_price::text AS price,
+              COALESCE(e.currency, 'CZK') AS currency
        FROM catalog.ticket_types tt
        JOIN catalog.events e ON e.id = tt.event_id
        JOIN catalog.productions pr ON pr.id = e.production_id
        JOIN orders.waiting_list wl ON wl.event_id = e.id
        JOIN identity.notification_preferences np ON np.user_id = wl.user_id
-       WHERE tt.sale_start BETWEEN NOW() - INTERVAL '15 minutes' AND NOW()
-         AND tt.status = 'on_sale'
+       WHERE e.sale_start_at BETWEEN NOW() - INTERVAL '15 minutes' AND NOW()
          AND np.push_enabled = TRUE
          AND np.pre_event_reminders = TRUE
          AND NOT EXISTS (
@@ -205,16 +204,15 @@ export async function POST(req: NextRequest): Promise<Response> {
     const onsaleFollow = await db().query<OnsaleRow>(
       `SELECT DISTINCT af.user_id, pr.title AS event_title, e.slug,
               tt.name AS tt_name,
-              tt.price::text AS price,
-              COALESCE(tt.currency, 'CZK') AS currency
+              tt.base_price::text AS price,
+              COALESCE(e.currency, 'CZK') AS currency
        FROM catalog.ticket_types tt
        JOIN catalog.events e ON e.id = tt.event_id
        JOIN catalog.productions pr ON pr.id = e.production_id
        JOIN lineups.event_artists ea ON ea.event_id = e.id
        JOIN lineups.artist_follows af ON af.artist_id = ea.artist_id
        JOIN identity.notification_preferences np ON np.user_id = af.user_id
-       WHERE tt.sale_start BETWEEN NOW() - INTERVAL '15 minutes' AND NOW()
-         AND tt.status = 'on_sale'
+       WHERE e.sale_start_at BETWEEN NOW() - INTERVAL '15 minutes' AND NOW()
          AND np.push_enabled = TRUE
          AND np.pre_event_reminders = TRUE
          AND NOT EXISTS (

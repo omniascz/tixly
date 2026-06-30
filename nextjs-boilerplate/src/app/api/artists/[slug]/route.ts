@@ -33,7 +33,7 @@ export async function GET(
       `SELECT e.id, e.title, e.slug, e.date_start, e.cover_image_url, e.category,
               v.name AS venue_name, v.city,
               ea.is_headliner,
-              (SELECT MIN(tt.price_halire) FROM catalog.ticket_types tt
+              (SELECT MIN(tt.base_price) FROM catalog.ticket_types tt
                 WHERE tt.event_id = e.id AND tt.remaining_qty > 0) AS cheapest_ticket_halire,
               p.name AS promoter_name
          FROM lineups.event_artists ea

@@ -29,10 +29,10 @@ export async function GET(
          at.id AS away_team_id, at.name AS away_team_name, at.short_name AS away_short,
          at.logo_url AS away_logo, at.primary_color AS away_color,
          v.name AS venue_name, v.city AS venue_city,
-         (SELECT MIN(tt.price) FROM catalog.ticket_types tt
-          WHERE tt.event_id = e.id AND tt.status = 'active')::int AS price_from,
+         (SELECT MIN(tt.base_price) FROM catalog.ticket_types tt
+          WHERE tt.event_id = e.id AND tt.remaining_qty > 0)::int AS price_from,
          (SELECT SUM(tt.remaining_qty) FROM catalog.ticket_types tt
-          WHERE tt.event_id = e.id AND tt.status = 'active')::int AS remaining_qty
+          WHERE tt.event_id = e.id)::int AS remaining_qty
        FROM catalog.events e
        LEFT JOIN catalog.sport_teams ht ON ht.id = e.home_team_id
        LEFT JOIN catalog.sport_teams at ON at.id = e.away_team_id
