@@ -54,7 +54,7 @@ export async function POST(
 
     const soldOutCheck = await db().query<{ remaining: string | null }>(
       `SELECT SUM(remaining_qty)::text AS remaining FROM catalog.ticket_types
-       WHERE event_id = $1 AND status = 'published'`,
+       WHERE event_id = $1`,
       [params.id],
     );
     const remaining = Number(soldOutCheck.rows[0]?.remaining ?? 0);
