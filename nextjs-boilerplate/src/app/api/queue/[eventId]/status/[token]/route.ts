@@ -116,6 +116,13 @@ export async function GET(
           maxConcurrent: token.queue_max_concurrent,
           etaSeconds,
           source: 'redis',
+          // Transparentní fér fronta — fanoušek vidí pravidlo i svůj auditovatelný klíč.
+          fairness: {
+            mode: 'fifo',
+            rule: 'Pořadí striktně podle času příchodu do fronty — kdo dřív přišel, jde dřív. Žádné skryté priority.',
+            yourJoinedAt: token.joined_at,
+            botProtection: true,
+          },
         });
       }
     }
@@ -198,13 +205,37 @@ export async function GET(
 
   // Stále čekáš
   const etaSeconds = Math.max(0, (position - slotsFree) * 5);
+
+  // Transparentní fér fronta — celkový počet čekajících + auditovatelné pravidlo pořadí.
+  const totalWaitingRes = await db().query<{ count: string }>(
+    `SELECT COUNT(*)::text AS count FROM platform.queue_tokens
+     WHERE event_id = $1 AND status = 'waiting'`,
+    [token.event_id],
+  );
+  const totalWaiting = Number(totalWaitingRes.rows[0]?.count ?? 0);
+  const fairness = isRandom
+    ? {
+        mode: 'random' as const,
+        rule: 'Férové losování: každý dostal náhodné číslo losu, nižší číslo jde dřív. Čas příchodu nerozhoduje — přijít v první vteřině nezvýhodňuje.',
+        yourDrawNumber: token.draw_seed,
+        botProtection: true,
+      }
+    : {
+        mode: 'fifo' as const,
+        rule: 'Pořadí striktně podle času příchodu do fronty — kdo dřív přišel, jde dřív. Žádné skryté priority.',
+        yourJoinedAt: token.joined_at,
+        botProtection: true,
+      };
+
   return NextResponse.json({
     status: 'waiting',
     position,
     ahead: position - 1,
+    totalWaiting,
     activeBuyers: active,
     maxConcurrent: token.queue_max_concurrent,
     etaSeconds,
+    fairness,
   });
 
   });

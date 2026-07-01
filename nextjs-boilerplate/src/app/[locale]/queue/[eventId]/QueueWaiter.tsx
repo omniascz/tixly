@@ -3,16 +3,25 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+interface Fairness {
+  mode: 'fifo' | 'random';
+  rule: string;
+  yourJoinedAt?: string;
+  yourDrawNumber?: number;
+  botProtection?: boolean;
+}
 interface StatusResponse {
   status: 'waiting' | 'admitted' | 'completed' | 'expired' | 'cancelled';
   position?: number;
   ahead?: number;
+  totalWaiting?: number;
   activeBuyers?: number;
   maxConcurrent?: number;
   etaSeconds?: number;
   admittedAt?: string;
   expiresAt?: string;
   message?: string;
+  fairness?: Fairness;
 }
 
 interface Props {
@@ -173,6 +182,7 @@ export function QueueWaiter({ eventId, locale, initialToken, ticketTypeId }: Pro
       </div>
       <div className="text-sm text-muted-foreground">
         {status.ahead ?? 0} {(status.ahead ?? 0) === 1 ? 'člověk přede' : 'lidí před'} tebou
+        {typeof status.totalWaiting === 'number' ? ` · ${status.totalWaiting} ve frontě celkem` : ''}
       </div>
       <div className="rounded-md bg-muted/40 p-3 text-xs">
         <div>
@@ -185,6 +195,31 @@ export function QueueWaiter({ eventId, locale, initialToken, ticketTypeId }: Pro
           Odhadovaný čas: <strong>{eta}</strong>
         </div>
       </div>
+
+      {status.fairness ? (
+        <div className="rounded-md border border-sky-200 bg-sky-50 p-3 text-left text-xs text-sky-900">
+          <div className="flex items-center gap-1.5 font-semibold">
+            <span aria-hidden>⚖️</span>
+            Férová fronta — jak funguje pořadí
+          </div>
+          <p className="mt-1">{status.fairness.rule}</p>
+          {status.fairness.mode === 'random' && status.fairness.yourDrawNumber != null ? (
+            <p className="mt-1">
+              Tvé číslo losu: <strong className="tabular-nums">{status.fairness.yourDrawNumber}</strong>{' '}
+              <span className="text-sky-700">(nižší jde dřív — nezáleží, kdy jsi přišel)</span>
+            </p>
+          ) : null}
+          {status.fairness.mode === 'fifo' && status.fairness.yourJoinedAt ? (
+            <p className="mt-1">
+              Připojil ses:{' '}
+              <strong>{new Date(status.fairness.yourJoinedAt).toLocaleTimeString('cs-CZ')}</strong>
+            </p>
+          ) : null}
+          {status.fairness.botProtection ? (
+            <p className="mt-1 text-sky-700">🛡️ Fronta je chráněná proti robotům (otisk zařízení + limity).</p>
+          ) : null}
+        </div>
+      ) : null}
       <p className="text-xs text-muted-foreground">
         Stránku nezavírej — automaticky budeš přesměrován až přijdeš na řadu. Frontu
         opouštíš zavřením této stránky.
