@@ -2,6 +2,7 @@
 import { FormEvent, Suspense, useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { BuyerGuarantee } from '@/components/BuyerGuarantee';
+import { EudiVerifyButton } from '@/components/EudiVerifyButton';
 import { MetaPixel } from '@/components/tracking/MetaPixel';
 import { PixelManager } from '@/components/tracking/PixelManager';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,9 @@ function CheckoutForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [ageGate, setAgeGate] = useState<{ minAge: number } | null>(null);
+  // EUDI brána (mig 446) — nastaví se, když backend vrátí EUDI_REQUIRED.
+  const [eudiGate, setEudiGate] = useState(false);
+  const [eudiRequestId, setEudiRequestId] = useState<string | null>(null);
   const [birthDate, setBirthDate] = useState('');
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<
@@ -586,6 +590,8 @@ function CheckoutForm() {
           ? document.cookie.match(/(?:^|;\s*)qr_ref=([0-9a-f-]{36})/i)
           : null;
       if (qrRefMatch) body.qrRef = qrRefMatch[1];
+      // EUDI (mig 446) — requestId dokončeného ověření peněženkou (jen když ho máme).
+      if (eudiRequestId) body.eudiRequestId = eudiRequestId;
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -600,6 +606,11 @@ function CheckoutForm() {
         }
         if (data.error === 'AGE_BELOW_MINIMUM') {
           setError(data.message ?? 'Nesplňuješ věkový limit.');
+          return;
+        }
+        if (data.error === 'EUDI_REQUIRED') {
+          setEudiGate(true);
+          setError(data.message ?? 'Tato akce vyžaduje ověření evropskou peněženkou.');
           return;
         }
         if (data.error === 'INVALID_PRESALE_CODE') {
@@ -1407,6 +1418,16 @@ function CheckoutForm() {
                     pravdivé.
                   </span>
                 </label>
+              </div>
+            ) : null}
+            {eudiGate && eventId ? (
+              <div className="space-y-2">
+                <EudiVerifyButton eventId={eventId} onRequest={setEudiRequestId} />
+                {eudiRequestId ? (
+                  <p className="text-xs text-sky-700">
+                    Po dokončení ověření v peněžence klikni znovu na tlačítko platby.
+                  </p>
+                ) : null}
               </div>
             ) : null}
             {travelPackages.length > 0 ? (

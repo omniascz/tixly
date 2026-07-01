@@ -11,9 +11,11 @@ import { useState } from 'react';
 interface Props {
   eventId: string;
   orderId?: string;
+  /** Předá requestId zahájeného ověření rodiči (checkout ho pak pošle při platbě). */
+  onRequest?: (requestId: string) => void;
 }
 
-export function EudiVerifyButton({ eventId, orderId }: Props) {
+export function EudiVerifyButton({ eventId, orderId, onRequest }: Props) {
   const [loading, setLoading] = useState(false);
   const [uri, setUri] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export function EudiVerifyButton({ eventId, orderId }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ eventId, orderId }),
       });
-      const j = (await res.json()) as { openid4vpUri?: string; message?: string; error?: string };
+      const j = (await res.json()) as { requestId?: string; openid4vpUri?: string; message?: string; error?: string };
       if (res.status === 503) {
         setMsg('Ověření evropskou peněženkou bude aktivní po spuštění EUDI (mandát EU do 12/2026).');
         return;
@@ -38,6 +40,7 @@ export function EudiVerifyButton({ eventId, orderId }: Props) {
         return;
       }
       setUri(j.openid4vpUri);
+      if (j.requestId && onRequest) onRequest(j.requestId);
     } catch (e) {
       setMsg(e instanceof Error ? e.message : 'Chyba sítě.');
     } finally {

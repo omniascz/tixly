@@ -18,11 +18,11 @@
  */
 
 import { randomUUID } from 'crypto';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { calculateAgeYears } from '@/lib/age/calculate';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import {
   resolveCurrentPrice,
   PriceMismatchError,
@@ -49,6 +49,9 @@ const schema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'birthDate musí být YYYY-MM-DD')
     .optional(),
   ageConfirmed: z.boolean().optional(),
+  // EUDI (mig 446) — requestId dokončeného ověření peněženkou (vyžadováno jen u akcí
+  // s eudi_required a NAKONFIGUROVANÝM verifierem; jinak se ignoruje).
+  eudiRequestId: z.string().min(10).max(200).optional(),
   // Promo code (volitelný) — server validuje a aplikuje slevu na unit price * quantity
   promoCode: z
     .string()
@@ -324,7 +327,8 @@ export async function POST(req: NextRequest): Promise<Response> {
               tt.presale_code,
               COALESCE(tt.presale_code_required, FALSE) AS presale_code_required,
               tt.max_per_buyer,
-              e.max_tickets_per_buyer
+              e.max_tickets_per_buyer,
+              (to_jsonb(e.*) -> 'eudi_required') AS eudi_required
        FROM catalog.ticket_types tt
        JOIN catalog.events e ON e.id = tt.event_id
        WHERE tt.id = $1 AND tt.event_id = $2 AND e.status = 'published'`,
@@ -341,7 +345,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         { status: 404 },
       );
     }
-    const tt = ttRes.rows[0] as { id: string; event_id: string; remaining_qty: number; name: string; event_title: string; min_age: number | null; currency: string; queue_enabled: boolean; insurance_enabled: boolean; insurance_pct: number; is_seated: boolean; requires_personalization: boolean; max_per_user: number | null; promoter_id: string; requires_otp_validation: boolean; require_phone_verified: boolean; verified_fan_enabled: boolean; vf_starts_at: string | null; vf_ends_at: string | null; presale_starts_at: string | null; presale_ends_at: string | null; presale_code: string | null; presale_code_required: boolean; max_per_buyer: number | null; max_tickets_per_buyer: number | null };
+    const tt = ttRes.rows[0] as { id: string; event_id: string; remaining_qty: number; name: string; event_title: string; min_age: number | null; currency: string; queue_enabled: boolean; insurance_enabled: boolean; insurance_pct: number; is_seated: boolean; requires_personalization: boolean; max_per_user: number | null; promoter_id: string; requires_otp_validation: boolean; require_phone_verified: boolean; verified_fan_enabled: boolean; vf_starts_at: string | null; vf_ends_at: string | null; presale_starts_at: string | null; presale_ends_at: string | null; presale_code: string | null; presale_code_required: boolean; max_per_buyer: number | null; max_tickets_per_buyer: number | null; eudi_required: { age18?: boolean; samePerson?: boolean; residency?: string | null } | null };
 
     // Verified Fan gate (CZ priority #4) — pokud event má VF enabled, jen
     // approved fans s unused presale_code mohou koupit. Po úspěšném zápisu
@@ -385,6 +389,34 @@ export async function POST(req: NextRequest): Promise<Response> {
       // buyer email → users.id), tak tady ho nemáme. Buď přesunout user
       // resolution výš, nebo akceptovat že code lze sdílet (MVP).
       verifiedFanRequestId = vfRes.rows[0].id;
+    }
+
+    // EUDI gate (mig 446) — CONFIG-GATED: vynucuje se JEN když je verifier reálně
+    // nakonfigurovaný. Bez configu (na-klíč stav) se přeskočí → nezablokuje nákupy.
+    const eudiReq = tt.eudi_required;
+    const eudiNeeded = !!eudiReq && (eudiReq.age18 === true || eudiReq.samePerson === true || !!eudiReq.residency);
+    if (eudiNeeded) {
+      const { eudiConfig } = await import('@/lib/eudi/verifier');
+      if (eudiConfig() !== null) {
+        const ver = input.eudiRequestId
+          ? await client.query(
+              `SELECT 1 FROM identity.eudi_verifications
+                WHERE request_id = $1 AND event_id = $2 AND status = 'verified'
+                  AND verified_at > NOW() - INTERVAL '2 hours'`,
+              [input.eudiRequestId, input.eventId],
+            )
+          : { rows: [] as unknown[] };
+        if (ver.rows.length === 0) {
+          await client.query('ROLLBACK');
+          return NextResponse.json(
+            {
+              error: 'EUDI_REQUIRED',
+              message: 'Tato akce vyžaduje ověření evropskou peněženkou. Dokonči ověření a zkus to znovu.',
+            },
+            { status: 422 },
+          );
+        }
+      }
     }
 
     // Presale access code (mig 432) — per ticket_type presale window s přístupovým kódem.
