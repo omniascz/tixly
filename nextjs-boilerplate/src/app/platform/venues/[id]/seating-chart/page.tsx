@@ -35,6 +35,67 @@ interface BuilderSector {
 type StagePos = 'top' | 'bottom' | 'none';
 
 const PALETTE = ['#d83a2e', '#e8821e', '#3b82f6', '#8b5cf6', '#06b6d4', '#84cc16'];
+
+// Šablony typických sálů pro „start od nuly" — obsluha klikne a jen dolaďuje počty.
+interface HallTemplate {
+  key: string;
+  label: string;
+  desc: string;
+  chartName: string;
+  stage: StagePos;
+  stageLabel: string;
+  sectors: BuilderSector[];
+}
+const TEMPLATES: HallTemplate[] = [
+  {
+    key: 'theater-balcony',
+    label: '🎭 Divadlo s balkonem',
+    desc: 'Přízemí + balkon, jeviště nahoře',
+    chartName: 'Hlediště',
+    stage: 'top',
+    stageLabel: 'JEVIŠTĚ',
+    sectors: [
+      { name: 'Přízemí', color: PALETTE[0], rowLabelFormat: 'letter', groups: [{ from: 1, to: 15, seats: 22 }] },
+      { name: 'Balkon', color: PALETTE[1], rowLabelFormat: 'letter', groups: [{ from: 1, to: 4, seats: 26 }] },
+    ],
+  },
+  {
+    key: 'cinema',
+    label: '🎬 Kinosál',
+    desc: 'Široké řady s uličkou, plátno nahoře',
+    chartName: 'Sál',
+    stage: 'top',
+    stageLabel: 'PLÁTNO',
+    sectors: [
+      { name: 'Sál', color: PALETTE[2], rowLabelFormat: 'letter', groups: [{ from: 1, to: 12, seats: 18, aisleAfter: 9 }] },
+    ],
+  },
+  {
+    key: 'big-hall',
+    label: '🏛 Velký sál (2 balkony)',
+    desc: 'Parter + 2 balkony',
+    chartName: 'Hlediště',
+    stage: 'top',
+    stageLabel: 'JEVIŠTĚ',
+    sectors: [
+      { name: 'Parter', color: PALETTE[0], rowLabelFormat: 'letter', groups: [{ from: 1, to: 20, seats: 28 }] },
+      { name: '1. balkon', color: PALETTE[1], rowLabelFormat: 'letter', groups: [{ from: 1, to: 5, seats: 30 }] },
+      { name: '2. balkon', color: PALETTE[3], rowLabelFormat: 'letter', groups: [{ from: 1, to: 4, seats: 30 }] },
+    ],
+  },
+  {
+    key: 'club',
+    label: '🪑 Malý sál / klub',
+    desc: 'Jeden sektor, pódium nahoře',
+    chartName: 'Sál',
+    stage: 'top',
+    stageLabel: 'PÓDIUM',
+    sectors: [
+      { name: 'Sál', color: PALETTE[2], groups: [{ from: 1, to: 8, seats: 12 }] },
+    ],
+  },
+];
+
 const SEAT_DX = 30;
 const SEAT_DY = 32;
 const AISLE = 42;
@@ -219,21 +280,38 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
     });
   }
 
+  function applyTemplate(t: HallTemplate) {
+    setStage(t.stage);
+    setStageLabel(t.stageLabel);
+    setChartName(t.chartName);
+    setSectors(t.sectors.map((s) => ({ ...s, groups: s.groups.map((g) => ({ ...g })) })));
+    setError(null);
+    setFeedback(`Šablona „${t.label}" načtena — dolaď počty a ulož.`);
+  }
+
   const [importing, setImporting] = useState(false);
   async function importFromImage(file: File) {
     setError(null);
     setFeedback(null);
     setImporting(true);
     try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const fr = new FileReader();
-        fr.onload = () => resolve(String(fr.result));
-        fr.onerror = () => reject(new Error('Nepodařilo se načíst soubor.'));
-        fr.readAsDataURL(file);
-      });
+      const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+      let dataUrl: string;
+      if (isPdf) {
+        // PDF plán → vyrenderujeme 1. stránku na PNG (klientsky) a pošleme jako obrázek.
+        const { pdfFirstPageToPngDataUrl } = await import('@/lib/seating/pdf-to-image');
+        dataUrl = await pdfFirstPageToPngDataUrl(file);
+      } else {
+        dataUrl = await new Promise<string>((resolve, reject) => {
+          const fr = new FileReader();
+          fr.onload = () => resolve(String(fr.result));
+          fr.onerror = () => reject(new Error('Nepodařilo se načíst soubor.'));
+          fr.readAsDataURL(file);
+        });
+      }
       const m = dataUrl.match(/^data:(image\/(png|jpeg|webp|gif));base64,(.+)$/);
       if (!m) {
-        setError('Podporované jsou PNG, JPEG, WEBP nebo GIF.');
+        setError('Podporované jsou PNG, JPEG, WEBP, GIF nebo PDF.');
         return;
       }
       const res = await authFetch(`/api/platform/venues/${venueId}/seating-chart/from-image`, {
@@ -320,6 +398,28 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
       {error ? <div className="rounded-md border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900">{error}</div> : null}
       {feedback ? <div className="rounded-md border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">{feedback}</div> : null}
 
+      <Card>
+        <CardHeader><CardTitle className="text-base">Rychlý start ze šablony</CardTitle></CardHeader>
+        <CardContent>
+          <p className="mb-2 text-xs text-muted-foreground">
+            Vyber typ sálu — předvyplní se sektory a řady. Pak už jen upravíš počty a uložíš.
+          </p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {TEMPLATES.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => applyTemplate(t)}
+                className="flex flex-col items-start gap-0.5 rounded-lg border bg-background p-3 text-left hover:border-primary hover:bg-primary/5"
+              >
+                <span className="text-sm font-medium">{t.label}</span>
+                <span className="text-xs text-muted-foreground">{t.desc}</span>
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       <form onSubmit={save} className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         {/* ── LEVÝ sloupec: zadání ── */}
         <div className="space-y-4">
@@ -351,10 +451,10 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
             <CardHeader><CardTitle className="text-base">2 · Sektory a řady</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 p-3 text-sm font-medium text-primary hover:bg-primary/10">
-                📷 {importing ? 'Čtu obrázek mapy…' : 'Načíst z obrázku mapy (rychlé) — nebo zadej ručně níže'}
+                📷 {importing ? 'Čtu plán…' : 'Načíst z obrázku nebo PDF plánu (rychlé) — nebo zadej ručně níže'}
                 <input
                   type="file"
-                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,.pdf"
                   className="hidden"
                   disabled={importing}
                   onChange={(e) => {

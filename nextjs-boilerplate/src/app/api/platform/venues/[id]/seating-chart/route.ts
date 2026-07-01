@@ -7,10 +7,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
-import { runAsPlatformAdmin } from '@/lib/platform-auth';
 import { z } from 'zod';
 import { logAction, extractRequestContext } from '@/lib/audit/log';
+import { db } from '@/lib/db/rls-pool';
+import { runAsPlatformAdmin } from '@/lib/platform-auth';
 
 
 const seatSchema = z.object({
@@ -36,6 +36,24 @@ const sectorSchema = z.object({
 const stageSchema = z.object({
   position: z.enum(['top', 'bottom', 'left', 'right']),
   label: z.string().min(1).max(50),
+  // Volná geometrie jeviště — když je vyplněná, editor/preview ji použije místo
+  // auto-výpočtu z bounding boxu sedadel (umožňuje přetáhnout/otočit/zvětšit jeviště).
+  // Zpětně kompatibilní: staré charty mají jen position+label.
+  x: z.number().optional(),
+  y: z.number().optional(),
+  w: z.number().positive().optional(),
+  h: z.number().positive().optional(),
+  rotation: z.number().optional(),
+});
+
+const overlaySchema = z.object({
+  id: z.string().min(1).max(40),
+  type: z.enum(['football_pitch', 'tennis_court', 'bar', 'stage_icon', 'entrance', 'stairs']),
+  x: z.number(),
+  y: z.number(),
+  width: z.number().positive(),
+  height: z.number().positive(),
+  label: z.string().max(100).optional(),
 });
 
 // Volitelná "builder" specifikace (skupiny řad) — uloží se s layoutem, aby šel
@@ -62,6 +80,10 @@ const layoutSchema = z.object({
   sectors: z.array(sectorSchema).min(1).max(200),
   stage: stageSchema.optional(),
   builder: builderSchema.optional(),
+  // Objekty (hřiště/bar/vstupy…) — dřív je editor posílal, ale schema je zahazovalo. Nyní persistujeme.
+  overlays: z.array(overlaySchema).max(200).optional(),
+  // Podkladový plánek — buď URL, nebo nahraný zmenšený obrázek jako data URL (JPEG ~stovky kB).
+  floorPlanUrl: z.string().max(3_000_000).optional(),
 });
 
 const postSchema = z.object({

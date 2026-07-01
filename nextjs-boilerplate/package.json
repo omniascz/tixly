@@ -49,6 +49,7 @@
     "next-themes": "^0.2.1",
     "node-forge": "^1.4.0",
     "otplib": "^13.4.0",
+    "pdfjs-dist": "^4.10.38",
     "pdfkit": "^0.18.0",
     "pg": "^8.20.0",
     "qrcode": "^1.5.4",
