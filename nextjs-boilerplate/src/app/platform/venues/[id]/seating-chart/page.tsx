@@ -289,6 +289,46 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
     setFeedback(`Šablona „${t.label}" načtena — dolaď počty a ulož.`);
   }
 
+  // AI generování/úprava z textu (na klíč — bez ANTHROPIC_API_KEY vrátí route 503).
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  async function aiFromText(mode: 'new' | 'edit') {
+    if (!aiPrompt.trim()) {
+      setError('Napiš popis sálu (např. „sál 15 řad po 17 místech, jeviště nahoře").');
+      return;
+    }
+    setError(null);
+    setFeedback(null);
+    setAiLoading(true);
+    try {
+      const payload =
+        mode === 'edit'
+          ? { prompt: aiPrompt, currentBuilder: { stage, sectors: sectors.map((s) => ({ name: s.name, groups: s.groups })) } }
+          : { prompt: aiPrompt };
+      const res = await authFetch(`/api/platform/venues/${venueId}/seating-chart/from-text`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      const j = (await res.json()) as {
+        builder?: { stage: StagePos; sectors: { name: string; groups: RowGroup[] }[] };
+        totalSeats?: number;
+        message?: string;
+        error?: string;
+      };
+      if (!res.ok || !j.builder) {
+        setError(j.message ?? j.error ?? `AI selhalo (HTTP ${res.status}).`);
+        return;
+      }
+      setStage(j.builder.stage);
+      setSectors(j.builder.sectors.map((s, i) => ({ name: s.name, color: PALETTE[i % PALETTE.length], groups: s.groups })));
+      setFeedback(`AI ${mode === 'edit' ? 'upravila plán' : 'vygenerovala plán'}: ${j.totalSeats} sedadel. Zkontroluj náhled a dolaď, pak ulož.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'AI generování selhalo.');
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
   const [importing, setImporting] = useState(false);
   async function importFromImage(file: File) {
     setError(null);
@@ -416,6 +456,32 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
                 <span className="text-xs text-muted-foreground">{t.desc}</span>
               </button>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">🪄 Popiš sál slovy (AI)</CardTitle></CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            Napiš plán běžnou řečí a AI ho vygeneruje. Pak dolaď ručně, nebo dej další instrukci a nech
+            AI upravit stávající plán. Např. „sál 15 řad po 17 místech, jeviště nahoře" →
+            pak „přidej balkon vlevo a vpravo, vždy 15 míst".
+          </p>
+          <textarea
+            value={aiPrompt}
+            onChange={(e) => setAiPrompt(e.target.value)}
+            rows={2}
+            placeholder="Popiš sál… (např. sál 15 řad po 17 místech, jeviště nahoře)"
+            className="w-full rounded-md border bg-background p-2 text-sm"
+          />
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" size="sm" onClick={() => void aiFromText('new')} disabled={aiLoading}>
+              {aiLoading ? 'Generuji…' : '🪄 Vygenerovat nový plán'}
+            </Button>
+            <Button type="button" size="sm" variant="outline" onClick={() => void aiFromText('edit')} disabled={aiLoading}>
+              ✏️ Uprav stávající podle popisu
+            </Button>
           </div>
         </CardContent>
       </Card>
