@@ -38,11 +38,14 @@ export async function GET(
     title: string;
     fee_payer: string | null;
     default_currency: string;
+    no_surge_pledge: boolean | null;
   }>(
-    // fee_payer (kdo platí service fee) není ve schématu → default 'buyer'
+    // fee_payer (kdo platí service fee) není ve schématu → default 'buyer'.
+    // no_surge_pledge čteme migračně bezpečně přes to_jsonb (NULL když sloupec ještě není).
     `SELECT e.promoter_id, e.title,
             'buyer'::text AS fee_payer,
-            COALESCE(e.currency, 'CZK') AS default_currency
+            COALESCE(e.currency, 'CZK') AS default_currency,
+            (to_jsonb(e.*) ->> 'no_surge_pledge')::boolean AS no_surge_pledge
        FROM catalog.events e
       WHERE e.id = $1 AND e.status = 'published'`,
     [params.id],
@@ -119,6 +122,8 @@ export async function GET(
     };
   });
 
+  const noSurgePledge = event.no_surge_pledge === true;
+
   return NextResponse.json({
     eventId: params.id,
     eventTitle: event.title,
@@ -128,6 +133,14 @@ export async function GET(
     serviceFeeBasis: svc.basis,
     qty,
     tickets,
+    // Poctivá cena — všechno all-in, žádné skryté poplatky u pokladny.
+    honestPricing: {
+      allIn: true,
+      noSurgePledge,
+      guarantee: noSurgePledge
+        ? 'Poctivá cena: co vidíš, to zaplatíš — cena se u této akce nikdy nezvýší nad zveřejněnou.'
+        : 'Cena je all-in včetně všech poplatků. Žádné skryté poplatky u pokladny.',
+    },
     disclaimer:
       svc.totalFeeMinor > 0
         ? `Ceny jsou All-In. ${feeLabel}.`

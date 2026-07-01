@@ -30,6 +30,8 @@ interface EventSettings {
   reentryMaxCount?: number;
   // mig 433 — purchase limit per event
   maxTicketsPerBuyer?: number | null;
+  // mig 445 — poctivá cena: záruka „bez surge"
+  noSurgePledge?: boolean;
 }
 
 const QR_POLICY_LABELS: Record<EventSettings['qrPolicy'], { title: string; desc: string }> = {
@@ -201,6 +203,28 @@ export default function EventSettingsPage() {
           {feedback}
         </div>
       ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>✅ Poctivá cena (bez surge)</CardTitle>
+          <CardDescription>
+            Veřejná záruka fanouškům, že cena se u této akce nikdy nezvýší nad zveřejněnou.
+            Dynamic pricing pak smí jen zlevňovat (slevy, last-minute), ne zdražovat.
+            Diferenciátor proti surge/Platinum cenám konkurence.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={data.noSurgePledge ?? false}
+              onChange={(e) => saveSettings({ noSurgePledge: e.target.checked })}
+              disabled={saving}
+            />
+            Slíbit „bez surge" — cena nikdy nepřekročí zveřejněnou
+          </label>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

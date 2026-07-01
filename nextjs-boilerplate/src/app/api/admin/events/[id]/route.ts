@@ -11,9 +11,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
+import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
 import { runAiGate, TRUST_THRESHOLD_PUBLISHED_EVENTS } from '@/lib/moderation/ai-gate';
 import { notifyFollowers } from '@/lib/push/notify-followers';
 
@@ -71,6 +71,8 @@ const editSchema = z.object({
   requirePhoneVerified: z.boolean().optional(),
   // mig 433 — purchase limit per event
   maxTicketsPerBuyer: z.number().int().min(1).max(1000).nullable().optional(),
+  // mig 445 — poctivá cena: záruka, že dynamic pricing nikdy nezdraží nad base
+  noSurgePledge: z.boolean().optional(),
 });
 
 export async function GET(
@@ -99,7 +101,8 @@ export async function GET(
             COALESCE(requires_otp_validation, FALSE) AS requires_otp_validation,
             COALESCE(reentry_allowed, FALSE) AS reentry_allowed,
             COALESCE(reentry_max_count, 3) AS reentry_max_count,
-            max_tickets_per_buyer
+            max_tickets_per_buyer,
+            (to_jsonb(events.*) ->> 'no_surge_pledge')::boolean AS no_surge_pledge
      FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
     [params.id, promoter.promoterId],
   );
@@ -129,6 +132,7 @@ export async function GET(
     reentryAllowed: (e as { reentry_allowed?: boolean }).reentry_allowed ?? false,
     reentryMaxCount: (e as { reentry_max_count?: number }).reentry_max_count ?? 3,
     maxTicketsPerBuyer: (e as { max_tickets_per_buyer?: number | null }).max_tickets_per_buyer ?? null,
+    noSurgePledge: (e as { no_surge_pledge?: boolean | null }).no_surge_pledge ?? false,
   });
 
   });
@@ -264,6 +268,20 @@ export async function PATCH(
         input.maxTicketsPerBuyer !== undefined ? (input.maxTicketsPerBuyer ?? null) : null,
       ],
     );
+
+    // no_surge_pledge zvlášť přes savepoint — migračně bezpečné (když sloupec ještě
+    // neexistuje, savepoint se odroluje a zbytek editu proběhne).
+    if (input.noSurgePledge !== undefined) {
+      await client.query('SAVEPOINT sp_pledge');
+      try {
+        await client.query(
+          `UPDATE catalog.events SET no_surge_pledge = $1 WHERE id = $2`,
+          [input.noSurgePledge, event.id],
+        );
+      } catch {
+        await client.query('ROLLBACK TO SAVEPOINT sp_pledge');
+      }
+    }
 
     if (significantChange) {
       const decision =

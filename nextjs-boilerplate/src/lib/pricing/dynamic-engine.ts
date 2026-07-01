@@ -118,11 +118,15 @@ export function evaluateRules(
   rules: DPRule[],
   metrics: DemandMetrics,
   ticketType: TicketTypeDP,
+  noSurge = false,
 ): PriceAdjustment | null {
   const cur      = currentPrice(ticketType);
   const base     = ticketType.base_price;
   const minPrice = ticketType.dp_min_halire ?? Math.round(base * 0.50);
-  const maxPrice = ticketType.dp_max_halire ?? Math.round(base * 2.00);
+  // No-surge záruka: cena nikdy nepřekročí zveřejněnou base (dynamic smí jen zlevnit).
+  const maxPrice = noSurge
+    ? Math.min(base, ticketType.dp_max_halire ?? base)
+    : (ticketType.dp_max_halire ?? Math.round(base * 2.00));
 
   const sorted = [...rules]
     .filter((r) => r.applies_to === 'all' || r.applies_to === ticketType.id)
@@ -219,6 +223,17 @@ function buildReason(rule: DPRule, m: DemandMetrics): string {
 export async function recalculateEvent(eventId: string): Promise<{ updated: number; metrics: DemandMetrics }> {
   const metrics = await computeDemandMetrics(eventId);
 
+  // No-surge záruka poctivé ceny — když je slíbená, engine nikdy nezdraží nad base.
+  // to_jsonb čtení je migračně bezpečné: vrátí NULL, když sloupec ještě neexistuje (ne chybu).
+  const pledgeR = await runWithServiceContext(() =>
+    db().query<{ no_surge_pledge: boolean | null }>(
+      `SELECT (to_jsonb(e.*) ->> 'no_surge_pledge')::boolean AS no_surge_pledge
+         FROM catalog.events e WHERE e.id = $1`,
+      [eventId],
+    ),
+  );
+  const noSurge = pledgeR.rows[0]?.no_surge_pledge === true;
+
   const rulesR = await runWithServiceContext(() =>
     db().query(
       `SELECT id, rule_type, trigger_condition, price_adjustment,
@@ -246,7 +261,7 @@ export async function recalculateEvent(eventId: string): Promise<{ updated: numb
   let updated = 0;
 
   for (const tt of ttR.rows as TicketTypeDP[]) {
-    const adjustment = evaluateRules(rules, metrics, tt);
+    const adjustment = evaluateRules(rules, metrics, tt, noSurge);
     if (!adjustment) continue;
 
     await runWithServiceContext(() =>
