@@ -28,7 +28,13 @@ const groupSchema = z.object({
 const builderShape = z.object({
   stage: z.enum(['top', 'bottom', 'none']),
   sectors: z
-    .array(z.object({ name: z.string().min(1).max(100), groups: z.array(groupSchema).min(1).max(100) }))
+    .array(
+      z.object({
+        name: z.string().min(1).max(100),
+        groups: z.array(groupSchema).min(1).max(100),
+        placement: z.enum(['front', 'left', 'right']).optional(),
+      }),
+    )
     .min(1)
     .max(50),
 });
@@ -48,14 +54,15 @@ Pravidla:
 - V každém sektoru seskup PO SOBĚ JDOUCÍ řady se STEJNÝM počtem sedadel do jedné skupiny
   {from, to, seats}. "15 řad po 17 místech" = jedna skupina {from:1,to:15,seats:17}.
 - "aisleAfter" = počet sedadel v levém bloku, pokud má řada uprostřed uličku. Jinak vynech.
-- Balkon/sektor "vlevo" a "vpravo" reprezentuj jako DVA samostatné sektory
-  ("Balkon vlevo", "Balkon vpravo") — geometrie skládá sektory pod sebe.
+- "placement" = umístění sektoru: "front" (parter/přízemí a zadní balkon — vodorovné řady
+  pod sebou, default), "left" (boční balkon/lóže VLEVO), "right" (boční balkon/lóže VPRAVO).
+  Když zadání mluví o balkonu vlevo/vpravo, použij placement "left"/"right".
 - Když UPRAVUJEŠ stávající plán (dostaneš CURRENT), vrať CELÝ upravený plán,
   ne jen změnu. Zachovej sektory a řady, které se úpravy netýkají.
 - Drž se zadání co nejpřesněji. Nevymýšlej sektory navíc.
 
 Vrať POUZE JSON, nic jiného, v tomto tvaru:
-{"stage":"top|bottom|none","sectors":[{"name":"Přízemí","groups":[{"from":1,"to":15,"seats":17}]}]}`;
+{"stage":"top|bottom|none","sectors":[{"name":"Přízemí","placement":"front","groups":[{"from":1,"to":15,"seats":17}]},{"name":"Balkon vlevo","placement":"left","groups":[{"from":1,"to":3,"seats":10}]}]}`;
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
   return runAsPlatformAdmin(req, async () => {

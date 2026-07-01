@@ -26,11 +26,15 @@ interface RowGroup {
   aisleAfter?: number; // ulička po N-tém sedadle (volitelné)
   accCount?: number;   // první N sedadel v každé řadě = bezbariérové (♿)
 }
+type SectorPlacement = 'front' | 'left' | 'right';
 interface BuilderSector {
   name: string;
   color: string;
   groups: RowGroup[];
   rowLabelFormat?: 'number' | 'letter'; // číslování řad: 1,2,3 nebo A,B,C (default = number)
+  // Umístění sektoru: 'front' (parter/zadní balkon — vodorovné řady pod sebou),
+  // 'left'/'right' (boční balkon/lóže — svislé řady po boku parteru). Default 'front'.
+  placement?: SectorPlacement;
 }
 type StagePos = 'top' | 'bottom' | 'none';
 
@@ -100,6 +104,7 @@ const SEAT_DX = 30;
 const SEAT_DY = 32;
 const AISLE = 42;
 const SECTOR_GAP = 80;
+const SIDE_GAP = 70; // mezera parter → boční balkon
 const CENTER = 700;
 
 function sectorSeatCount(s: BuilderSector): number {
@@ -139,12 +144,12 @@ function rowSeats(count: number, x0: number, y: number, start = 1, accLimit = 0)
 
 function generateLayout(stage: StagePos, sectors: BuilderSector[], stageLabel: string): GenLayout {
   const STAGE_H = stage === 'none' ? 0 : 70;
-  let y = (stage === 'top' ? STAGE_H + 30 : 0) + 60;
   const genSectors: GenSector[] = [];
 
-  for (const sec of sectors) {
+  // 1) FRONT (parter + zadní balkony) — vodorovné řady, stack dolů.
+  let y = (stage === 'top' ? STAGE_H + 30 : 0) + 60;
+  for (const sec of sectors.filter((s) => (s.placement ?? 'front') === 'front')) {
     const rows: GenRow[] = [];
-    // seřaď skupiny podle čísla řady
     const groups = [...sec.groups].sort((a, b) => a.from - b.from);
     for (const g of groups) {
       for (let rn = g.from; rn <= g.to; rn++) {
@@ -164,8 +169,7 @@ function generateLayout(stage: StagePos, sectors: BuilderSector[], stageLabel: s
           const x0 = CENTER - ((n - 1) * SEAT_DX) / 2;
           seats = rowSeats(n, x0, y, 1, accLimit);
         }
-        const rowLabel = rowNumToLabel(rn, sec.rowLabelFormat);
-        rows.push({ label: rowLabel, seats });
+        rows.push({ label: rowNumToLabel(rn, sec.rowLabelFormat), seats });
         y += SEAT_DY;
       }
     }
@@ -173,13 +177,54 @@ function generateLayout(stage: StagePos, sectors: BuilderSector[], stageLabel: s
     y += SECTOR_GAP;
   }
 
+  // Rozměry front bloku (parteru) — podle nich umístíme boční balkony.
+  const frontSeats = genSectors.flatMap((s) => s.rows.flatMap((r) => r.seats));
+  const fMinX = frontSeats.length ? Math.min(...frontSeats.map((s) => s.x)) : CENTER - 200;
+  const fMaxX = frontSeats.length ? Math.max(...frontSeats.map((s) => s.x)) : CENTER + 200;
+  const fMinY = frontSeats.length ? Math.min(...frontSeats.map((s) => s.y)) : (stage === 'top' ? STAGE_H + 90 : 100);
+  const fMaxY = frontSeats.length ? Math.max(...frontSeats.map((s) => s.y)) : 600;
+  const fCenterY = (fMinY + fMaxY) / 2;
+
+  // 2) BOČNÍ balkony/lóže — svislé řady (sedadla ve sloupci), řady stranou od parteru.
+  function buildSide(side: 'left' | 'right') {
+    let edge = side === 'left' ? fMinX - SIDE_GAP : fMaxX + SIDE_GAP;
+    for (const sec of sectors.filter((s) => s.placement === side)) {
+      const rows: GenRow[] = [];
+      const groups = [...sec.groups].sort((a, b) => a.from - b.from);
+      let rowsInSec = 0;
+      for (const g of groups) {
+        for (let rn = g.from; rn <= g.to; rn++) {
+          const n = g.seats;
+          const accLimit = g.accCount && g.accCount > 0 ? Math.min(g.accCount, n) : 0;
+          const rowX = side === 'left' ? edge - rowsInSec * SEAT_DY : edge + rowsInSec * SEAT_DY;
+          const y0 = fCenterY - ((n - 1) * SEAT_DX) / 2;
+          const seats: GenSeat[] = Array.from({ length: n }, (_, i) => {
+            const s: GenSeat = { num: String(i + 1), x: Math.round(rowX), y: Math.round(y0 + i * SEAT_DX) };
+            if (accLimit > 0 && i < accLimit) s.acc = true;
+            return s;
+          });
+          rows.push({ label: rowNumToLabel(rn, sec.rowLabelFormat), seats });
+          rowsInSec++;
+        }
+      }
+      genSectors.push({ name: sec.name, color: sec.color, rows });
+      edge = side === 'left'
+        ? edge - rowsInSec * SEAT_DY - SECTOR_GAP
+        : edge + rowsInSec * SEAT_DY + SECTOR_GAP;
+    }
+  }
+  buildSide('left');
+  buildSide('right');
+
   const all = genSectors.flatMap((s) => s.rows.flatMap((r) => r.seats));
   const xs = all.map((s) => s.x);
   const ys = all.map((s) => s.y);
+  const ysMin = ys.length ? Math.min(...ys) : 0;
+  const ysMax = ys.length ? Math.max(...ys) : 800;
   const minX = (xs.length ? Math.min(...xs) : 0) - 60;
   const maxX = (xs.length ? Math.max(...xs) : 1000) + 60;
-  const minY = stage === 'top' ? 20 : (ys.length ? Math.min(...ys) : 0) - 40;
-  const maxY = (ys.length ? Math.max(...ys) : 800) + (stage === 'bottom' ? STAGE_H + 30 : 40);
+  const minY = stage === 'top' ? Math.min(20, ysMin - 40) : ysMin - 40;
+  const maxY = ysMax + (stage === 'bottom' ? STAGE_H + 30 : 40);
   const viewBox = `${Math.round(minX)} ${Math.round(minY)} ${Math.round(maxX - minX)} ${Math.round(maxY - minY)}`;
 
   return {
@@ -310,7 +355,7 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
         body: JSON.stringify(payload),
       });
       const j = (await res.json()) as {
-        builder?: { stage: StagePos; sectors: { name: string; groups: RowGroup[] }[] };
+        builder?: { stage: StagePos; sectors: { name: string; groups: RowGroup[]; placement?: SectorPlacement }[] };
         totalSeats?: number;
         message?: string;
         error?: string;
@@ -320,7 +365,7 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
         return;
       }
       setStage(j.builder.stage);
-      setSectors(j.builder.sectors.map((s, i) => ({ name: s.name, color: PALETTE[i % PALETTE.length], groups: s.groups })));
+      setSectors(j.builder.sectors.map((s, i) => ({ name: s.name, color: PALETTE[i % PALETTE.length], groups: s.groups, placement: s.placement })));
       setFeedback(`AI ${mode === 'edit' ? 'upravila plán' : 'vygenerovala plán'}: ${j.totalSeats} sedadel. Zkontroluj náhled a dolaď, pak ulož.`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'AI generování selhalo.');
@@ -359,7 +404,7 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
         body: JSON.stringify({ imageBase64: m[3], mediaType: m[1] }),
       });
       const j = (await res.json().catch(() => ({}))) as {
-        builder?: { stage: StagePos; sectors: { name: string; groups: RowGroup[] }[] };
+        builder?: { stage: StagePos; sectors: { name: string; groups: RowGroup[]; placement?: SectorPlacement }[] };
         totalSeats?: number;
         message?: string;
         error?: string;
@@ -370,7 +415,7 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
       }
       setStage(j.builder.stage);
       setSectors(
-        j.builder.sectors.map((s, i) => ({ name: s.name, color: PALETTE[i % PALETTE.length], groups: s.groups })),
+        j.builder.sectors.map((s, i) => ({ name: s.name, color: PALETTE[i % PALETTE.length], groups: s.groups, placement: s.placement })),
       );
       setFeedback(`Načteno z obrázku: ${j.totalSeats} sedadel. Zkontroluj náhled a případně dolaď, pak ulož.`);
     } catch (err) {
@@ -551,6 +596,16 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
                         >{fmt === 'number' ? '1,2,3' : 'A,B,C'}</button>
                       ))}
                     </div>
+                    <select
+                      value={s.placement ?? 'front'}
+                      onChange={(e) => setSector(si, { placement: e.target.value as SectorPlacement })}
+                      className="rounded border bg-background px-1 py-0.5 text-xs"
+                      title="Umístění sektoru (parter / boční balkon)"
+                    >
+                      <option value="front">Střed</option>
+                      <option value="left">Levý bok</option>
+                      <option value="right">Pravý bok</option>
+                    </select>
                     <span className="ml-auto text-xs text-muted-foreground">{sectorSeatCount(s)} sedadel</span>
                     <button type="button" onClick={() => duplicateSector(si)} className="text-xs text-primary hover:underline">duplikovat</button>
                     {sectors.length > 1 ? (

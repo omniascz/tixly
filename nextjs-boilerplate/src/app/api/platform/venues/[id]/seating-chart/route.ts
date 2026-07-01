@@ -71,6 +71,8 @@ const builderSchema = z.object({
       name: z.string().min(1).max(100),
       color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
       groups: z.array(builderGroupSchema).min(1).max(100),
+      rowLabelFormat: z.enum(['number', 'letter']).optional(),
+      placement: z.enum(['front', 'left', 'right']).optional(),
     }),
   ).min(1).max(50),
 });
