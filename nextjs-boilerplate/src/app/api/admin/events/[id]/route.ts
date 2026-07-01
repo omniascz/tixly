@@ -73,6 +73,15 @@ const editSchema = z.object({
   maxTicketsPerBuyer: z.number().int().min(1).max(1000).nullable().optional(),
   // mig 445 — poctivá cena: záruka, že dynamic pricing nikdy nezdraží nad base
   noSurgePledge: z.boolean().optional(),
+  // mig 446 — EUDI peněženka: které důkazy akce vyžaduje (selektivní zveřejnění)
+  eudiRequired: z
+    .object({
+      age18: z.boolean().optional(),
+      samePerson: z.boolean().optional(),
+      residency: z.string().max(2).nullable().optional(),
+    })
+    .nullable()
+    .optional(),
 });
 
 export async function GET(
@@ -102,7 +111,8 @@ export async function GET(
             COALESCE(reentry_allowed, FALSE) AS reentry_allowed,
             COALESCE(reentry_max_count, 3) AS reentry_max_count,
             max_tickets_per_buyer,
-            (to_jsonb(events.*) ->> 'no_surge_pledge')::boolean AS no_surge_pledge
+            (to_jsonb(events.*) ->> 'no_surge_pledge')::boolean AS no_surge_pledge,
+            (to_jsonb(events.*) -> 'eudi_required') AS eudi_required
      FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
     [params.id, promoter.promoterId],
   );
@@ -133,6 +143,7 @@ export async function GET(
     reentryMaxCount: (e as { reentry_max_count?: number }).reentry_max_count ?? 3,
     maxTicketsPerBuyer: (e as { max_tickets_per_buyer?: number | null }).max_tickets_per_buyer ?? null,
     noSurgePledge: (e as { no_surge_pledge?: boolean | null }).no_surge_pledge ?? false,
+    eudiRequired: (e as { eudi_required?: unknown }).eudi_required ?? null,
   });
 
   });
@@ -280,6 +291,19 @@ export async function PATCH(
         );
       } catch {
         await client.query('ROLLBACK TO SAVEPOINT sp_pledge');
+      }
+    }
+
+    // eudi_required (mig 446) — také přes savepoint (migračně bezpečné).
+    if (input.eudiRequired !== undefined) {
+      await client.query('SAVEPOINT sp_eudi');
+      try {
+        await client.query(
+          `UPDATE catalog.events SET eudi_required = $1::jsonb WHERE id = $2`,
+          [input.eudiRequired ? JSON.stringify(input.eudiRequired) : null, event.id],
+        );
+      } catch {
+        await client.query('ROLLBACK TO SAVEPOINT sp_eudi');
       }
     }
 

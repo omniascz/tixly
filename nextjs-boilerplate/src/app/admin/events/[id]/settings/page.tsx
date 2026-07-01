@@ -32,6 +32,8 @@ interface EventSettings {
   maxTicketsPerBuyer?: number | null;
   // mig 445 — poctivá cena: záruka „bez surge"
   noSurgePledge?: boolean;
+  // mig 446 — EUDI peněženka: které důkazy akce vyžaduje
+  eudiRequired?: { age18?: boolean; samePerson?: boolean; residency?: string | null } | null;
 }
 
 const QR_POLICY_LABELS: Record<EventSettings['qrPolicy'], { title: string; desc: string }> = {
@@ -222,6 +224,41 @@ export default function EventSettingsPage() {
               disabled={saving}
             />
             Slíbit „bez surge" — cena nikdy nepřekročí zveřejněnou
+          </label>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>🇪🇺 Ověření evropskou peněženkou (EUDI)</CardTitle>
+          <CardDescription>
+            Fanoušek dokáže věk / „stejná osoba u vstupu" bez sdílení identity (selektivní
+            zveřejnění). Anti-scalping bez sběru dat — příkop, který US hráči v EU nemají.
+            Aktivní po spuštění EUDI (mandát EU do 12/2026).
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={data.eudiRequired?.age18 ?? false}
+              onChange={(e) =>
+                saveSettings({ eudiRequired: { ...(data.eudiRequired ?? {}), age18: e.target.checked } })
+              }
+              disabled={saving}
+            />
+            Vyžadovat důkaz věku 18+ (bez odhalení data narození)
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={data.eudiRequired?.samePerson ?? false}
+              onChange={(e) =>
+                saveSettings({ eudiRequired: { ...(data.eudiRequired ?? {}), samePerson: e.target.checked } })
+              }
+              disabled={saving}
+            />
+            Vyžadovat „stejná osoba u vstupu" (vázání lístku na držitele)
           </label>
         </CardContent>
       </Card>
