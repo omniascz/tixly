@@ -425,9 +425,14 @@ export default function PlatformSeatingChartPage({ params }: { params: { id: str
             Souřadnice ani rozteče řešit nemusíš.
           </p>
         </div>
-        <Link href={`/platform/venues/${venueId}/seating-chart/editor`}>
-          <Button variant="outline" size="sm">Pokročilý vizuální editor →</Button>
-        </Link>
+        <div className="flex flex-col gap-2">
+          <Link href={`/platform/venues/${venueId}/seating-chart/editor`}>
+            <Button variant="outline" size="sm" className="w-full">Pokročilý vizuální editor →</Button>
+          </Link>
+          <Link href={`/platform/venues/${venueId}/seating-chart/stadium`}>
+            <Button variant="outline" size="sm" className="w-full">🏟 Generátor stadionu →</Button>
+          </Link>
+        </div>
       </div>
 
       {hadNonBuilderChart ? (

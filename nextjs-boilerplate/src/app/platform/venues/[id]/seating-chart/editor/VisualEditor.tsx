@@ -94,6 +94,9 @@ const OVERLAY_DEFAULTS: Record<OverlayElement['type'], { width: number; height: 
 /** Prahová vzdálenost pro přichycení (snap) při tažení sedadel — ve viewBox jednotkách. */
 const SNAP_THRESHOLD = 8;
 
+/** Nad tímto počtem sedadel kreslíme seat vrstvu do <canvas> místo SVG (mega stadiony). */
+const CANVAS_THRESHOLD = 2000;
+
 interface Props {
   initialLayout: Layout | null;
   chartName: string;
@@ -165,6 +168,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
     origSectors: Sector[];
   } | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // History (undo/redo)
   const [history, setHistory] = useState<Sector[][]>([]);
@@ -601,6 +605,99 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
     [sectors],
   );
 
+  // Mega charty (stadiony) kreslíme do canvasu — desítky tisíc SVG kroužků = paint storm.
+  const useCanvas = totalSeats > CANVAS_THRESHOLD;
+
+  // Hit-test sedadla pod bodem (vb souřadnice) — v canvas módu nejsou DOM sedadla.
+  function findSeatAt(p: Point): { id: string; orig: Point } | null {
+    const R2 = 16 * 16;
+    let best: { id: string; orig: Point } | null = null;
+    let bestD = R2;
+    for (const s of sectors) {
+      for (const r of s.rows) {
+        for (const seat of r.seats) {
+          const dx = seat.x - p.x;
+          const dy = seat.y - p.y;
+          const d = dx * dx + dy * dy;
+          if (d < bestD) {
+            bestD = d;
+            best = { id: seatId(s.name, r.label, seat.num), orig: { x: seat.x, y: seat.y } };
+          }
+        }
+      }
+    }
+    return best;
+  }
+
+  // Canvas render seat vrstvy s viewport cullingem (zvládne 50k+).
+  useEffect(() => {
+    if (!useCanvas) return;
+    const canvas = canvasRef.current;
+    const svg = svgRef.current;
+    if (!canvas || !svg) return;
+    let raf = 0;
+    const draw = () => {
+      const rect = svg.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      const scale = Math.min(rect.width / vb.w, rect.height / vb.h);
+      const offX = (rect.width - vb.w * scale) / 2;
+      const offY = (rect.height - vb.h * scale) / 2;
+      const seatR = Math.max(1, 13 * scale);
+      const showNums = showSeatNums && seatR > 9;
+      const stroke = seatR > 3;
+      if (showNums) {
+        ctx.font = `${Math.round(seatR)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+      }
+      for (const sector of sectors) {
+        for (const row of sector.rows) {
+          for (const seat of row.seats) {
+            const id = seatId(sector.name, row.label, seat.num);
+            const sel = selectedSeats.has(id);
+            const odx = sel && dragOffset ? dragOffset.dx : 0;
+            const ody = sel && dragOffset ? dragOffset.dy : 0;
+            const sx = offX + (seat.x + odx - vb.x) * scale;
+            const sy = offY + (seat.y + ody - vb.y) * scale;
+            if (sx < -seatR || sx > rect.width + seatR || sy < -seatR || sy > rect.height + seatR) continue;
+            ctx.beginPath();
+            ctx.arc(sx, sy, seatR, 0, Math.PI * 2);
+            ctx.fillStyle = sel ? '#10b981' : seat.blocked ? '#94a3b8' : sector.color;
+            ctx.fill();
+            if (stroke) {
+              ctx.lineWidth = sel ? 2 : 1;
+              ctx.strokeStyle = sel ? '#000000' : seat.accessibility ? '#dc2626' : '#ffffff';
+              ctx.stroke();
+            }
+            if (showNums) {
+              ctx.fillStyle = '#ffffff';
+              ctx.fillText(seat.num, sx, sy);
+            }
+          }
+        }
+      }
+    };
+    raf = requestAnimationFrame(draw);
+    const onResize = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(draw);
+    };
+    window.addEventListener('resize', onResize);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [useCanvas, sectors, vb, selectedSeats, dragOffset, showSeatNums, fullscreen]);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2 rounded-md border bg-card p-2">
@@ -807,10 +904,20 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
             ) : (
               <ToolHints tool={tool} pendingCount={pendingPoints.length} />
             )}
+            <div
+              className={
+                useCanvas
+                  ? fullscreen ? 'relative flex flex-1 flex-col bg-slate-50' : 'relative bg-slate-50'
+                  : fullscreen ? 'relative flex flex-1 flex-col' : 'relative'
+              }
+            >
+            {useCanvas ? (
+              <canvas ref={canvasRef} aria-hidden className="pointer-events-none absolute inset-0 z-0" />
+            ) : null}
             <svg
               ref={svgRef}
               viewBox={vbToString(vb)}
-              className="block w-full bg-slate-50"
+              className={`relative z-10 block w-full ${useCanvas ? '' : 'bg-slate-50'}`}
               style={{
                 minHeight: fullscreen ? '100%' : 500,
                 flex: fullscreen ? 1 : undefined,
@@ -837,9 +944,32 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
                   };
                   return;
                 }
-                // Select tool: press na prázdno = start marquee (rámečkový výběr).
+                // Select tool: v canvas módu nejdřív hit-test sedadla (nemají DOM),
+                // jinak press na prázdno = start marquee (rámečkový výběr).
                 if (tool === 'select' && e.button === 0 && !pendingRow) {
                   const p = svgPoint(e);
+                  if (useCanvas) {
+                    const hit = findSeatAt(p);
+                    if (hit) {
+                      const multi = e.shiftKey || e.metaKey || e.ctrlKey;
+                      let ids: Set<string>;
+                      if (selectedSeats.has(hit.id)) ids = new Set(selectedSeats);
+                      else if (multi) { ids = new Set(selectedSeats); ids.add(hit.id); }
+                      else ids = new Set([hit.id]);
+                      setSelectedSeats(ids);
+                      setSelectedStage(false);
+                      setSelectedOverlayId(null);
+                      gestureRef.current = {
+                        kind: 'seats',
+                        startPt: p,
+                        snapshot: sectors,
+                        primaryOrig: hit.orig,
+                        selectedIds: ids,
+                        lastOffset: null,
+                      };
+                      return;
+                    }
+                  }
                   gestureRef.current = {
                     kind: 'marquee',
                     startPt: p,
@@ -1107,7 +1237,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
                           {row.label}
                         </text>
                       )}
-                      {row.seats.map((seat) => {
+                      {!useCanvas && row.seats.map((seat) => {
                         const id = seatId(sector.name, row.label, seat.num);
                         const isSelected = selectedSeats.has(id);
                         const r = isSelected ? 16 : 14; // 1:1 s preview
@@ -1407,6 +1537,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
                 );
               })() : null}
             </svg>
+            </div>
           </CardContent>
         </Card>
 
