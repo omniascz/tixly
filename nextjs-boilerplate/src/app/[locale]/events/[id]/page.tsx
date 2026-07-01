@@ -1,27 +1,28 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Pool } from 'pg';
+import { Co2TravelBadge } from '@/components/Co2TravelBadge';
 import { ReportButton } from '@/components/public/ReportButton';
-import { MetaPixel } from '@/components/tracking/MetaPixel';
 import { GtmHeadScript, GtmNoScript } from '@/components/tracking/GtmScript';
+import { MetaPixel } from '@/components/tracking/MetaPixel';
 import { PixelManager } from '@/components/tracking/PixelManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate } from '@/lib/format';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 import { getDict } from '@/lib/i18n-dictionaries';
+import { GroupInviteButton } from './GroupInviteButton';
 import { LotteryCard } from './LotteryCard';
 import { Recommendations } from './Recommendations';
-import { GroupInviteButton } from './GroupInviteButton';
-import { ShareButtons } from './ShareButtons';
 import { RestwertBalanceBadge } from './RestwertBalanceBadge';
 import { RsvpButtons } from './RsvpButtons';
+import { ShareButtons } from './ShareButtons';
+import { SuperfanSection } from './SuperfanSection';
 import {
   TicketPicker,
   type TicketAccess,
   type TicketTypeWithAccess,
 } from './TicketPicker';
 import { TimedEntryWrapper } from './TimedEntryWrapper';
-import { SuperfanSection } from './SuperfanSection';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
@@ -519,6 +520,9 @@ export default async function EventDetailPage({
         </Card>
       </div>
     </div>
+      <div className="mx-auto mt-4 max-w-md px-4">
+        <Co2TravelBadge eventId={event.id} />
+      </div>
       <SuperfanSection eventId={event.id} />
       <Recommendations eventId={event.id} locale={locale} />
 
