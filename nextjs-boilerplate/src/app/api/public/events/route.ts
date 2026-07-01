@@ -12,6 +12,7 @@
  *   min_price   - min ticket price in CZK
  *   max_price   - max ticket price in CZK
  *   q           - keyword search in title / description
+ *   accessible  - '1'/'true' → jen akce s bezbariérovým vstupem nebo bezbariérovými sedadly
  *   sort        - date_asc | date_desc | price_asc | price_desc | relevance (default: date_asc)
  *   limit       - max 100, default 20
  *   offset      - pagination offset, default 0
@@ -47,6 +48,8 @@ interface EventRow {
   promoter_id: string;
   promoter_name: string | null;
   available_capacity: number | null;
+  has_accessible_gate: boolean | null;
+  has_accessible_seats: boolean | null;
   total: string;
 }
 
@@ -66,6 +69,8 @@ export async function GET(req: NextRequest): Promise<Response> {
     const minPrice   = sp.get('min_price') ? Number(sp.get('min_price')) * 100 : null;
     const maxPrice   = sp.get('max_price') ? Number(sp.get('max_price')) * 100 : null;
     const q          = sp.get('q')?.trim()            ?? null;
+    // A1 přístupnost: filtr na akce s bezbariérovým vstupem nebo bezbariérovými sedadly.
+    const accessibleOnly = sp.get('accessible') === '1' || sp.get('accessible') === 'true';
 
     const conditions: string[] = [
       `e.status = 'published'`,
@@ -105,6 +110,12 @@ export async function GET(req: NextRequest): Promise<Response> {
       vals.push(`%${q.toLowerCase()}%`);
       conditions.push(`(LOWER(e.title) LIKE $${vals.length} OR LOWER(e.description) LIKE $${vals.length})`);
     }
+    if (accessibleOnly) {
+      conditions.push(`(
+        EXISTS (SELECT 1 FROM catalog.venue_gates vg WHERE vg.venue_id = e.venue_id AND vg.is_accessible = true)
+        OR EXISTS (SELECT 1 FROM catalog.event_seats es WHERE es.event_id = e.id AND es.accessibility = true)
+      )`);
+    }
 
     const where = conditions.join(' AND ');
 
@@ -131,6 +142,8 @@ export async function GET(req: NextRequest): Promise<Response> {
         e.currency,
         e.promoter_id, p.name AS promoter_name,
         e.available_capacity,
+        EXISTS (SELECT 1 FROM catalog.venue_gates vg WHERE vg.venue_id = e.venue_id AND vg.is_accessible = true) AS has_accessible_gate,
+        EXISTS (SELECT 1 FROM catalog.event_seats es WHERE es.event_id = e.id AND es.accessibility = true) AS has_accessible_seats,
         COUNT(*) OVER() AS total
       ${baseQuery}
       ORDER BY ${sort}
@@ -163,6 +176,11 @@ export async function GET(req: NextRequest): Promise<Response> {
         name: ev.promoter_name,
       },
       availableCapacity: ev.available_capacity,
+      accessibility: {
+        stepFreeGate: ev.has_accessible_gate === true,
+        accessibleSeats: ev.has_accessible_seats === true,
+        supported: ev.has_accessible_gate === true || ev.has_accessible_seats === true,
+      },
       ticketUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/cs/p/${ev.slug ?? ev.id}`,
     }));
 
