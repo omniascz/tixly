@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { formatMoney, isCurrency } from '@/lib/format';
+import { GroupReserveButton } from './GroupReserveButton';
 
 export interface TicketAccess {
   event_day_id: string | null;
@@ -310,6 +311,11 @@ export function TicketPicker({ eventId, locale, currency, queueEnabled, ticketTy
                   )}
                 </div>
               </div>
+              {tt.available > 1 ? (
+                <div className="mt-1">
+                  <GroupReserveButton eventId={eventId} ticketTypeId={tt.id} />
+                </div>
+              ) : null}
               {showSummary ? (
                 <div className="mt-2 text-[11px] text-muted-foreground">
                   <span className="rounded bg-muted/40 px-1.5 py-0.5">
