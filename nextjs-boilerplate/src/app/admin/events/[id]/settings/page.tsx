@@ -34,6 +34,8 @@ interface EventSettings {
   noSurgePledge?: boolean;
   // mig 446 — EUDI peněženka: které důkazy akce vyžaduje
   eudiRequired?: { age18?: boolean; samePerson?: boolean; residency?: string | null } | null;
+  // mig 447 — CO₂ štítek: průměrná jednosměrná vzdálenost dojezdu
+  avgTripKm?: number | null;
 }
 
 const QR_POLICY_LABELS: Record<EventSettings['qrPolicy'], { title: string; desc: string }> = {
@@ -224,6 +226,32 @@ export default function EventSettingsPage() {
               disabled={saving}
             />
             Slíbit „bez surge" — cena nikdy nepřekročí zveřejněnou
+          </label>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>🌱 CO₂ štítek dopravy</CardTitle>
+          <CardDescription>
+            Doprava diváků je 70–90 % emisí akce. Zadej průměrnou vzdálenost dojezdu — u checkoutu
+            se ukáže úspora vlakem vs autem (a brzy i vlakový bundle). Prázdné = default 40 km.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <label className="block text-sm">
+            Průměrná jednosměrná vzdálenost dojezdu (km)
+            <Input
+              type="number"
+              min={0}
+              max={2000}
+              className="mt-1 max-w-[160px]"
+              value={data.avgTripKm ?? ''}
+              onChange={(e) =>
+                saveSettings({ avgTripKm: e.target.value === '' ? null : Number(e.target.value) })
+              }
+              disabled={saving}
+            />
           </label>
         </CardContent>
       </Card>

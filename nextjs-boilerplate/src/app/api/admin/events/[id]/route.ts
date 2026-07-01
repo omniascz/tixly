@@ -82,6 +82,8 @@ const editSchema = z.object({
     })
     .nullable()
     .optional(),
+  // mig 447 — CO₂ štítek: očekávaná průměrná jednosměrná vzdálenost dojezdu (km)
+  avgTripKm: z.number().int().min(0).max(2000).nullable().optional(),
 });
 
 export async function GET(
@@ -112,7 +114,8 @@ export async function GET(
             COALESCE(reentry_max_count, 3) AS reentry_max_count,
             max_tickets_per_buyer,
             (to_jsonb(events.*) ->> 'no_surge_pledge')::boolean AS no_surge_pledge,
-            (to_jsonb(events.*) -> 'eudi_required') AS eudi_required
+            (to_jsonb(events.*) -> 'eudi_required') AS eudi_required,
+            (to_jsonb(events.*) ->> 'avg_trip_km')::int AS avg_trip_km
      FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
     [params.id, promoter.promoterId],
   );
@@ -144,6 +147,7 @@ export async function GET(
     maxTicketsPerBuyer: (e as { max_tickets_per_buyer?: number | null }).max_tickets_per_buyer ?? null,
     noSurgePledge: (e as { no_surge_pledge?: boolean | null }).no_surge_pledge ?? false,
     eudiRequired: (e as { eudi_required?: unknown }).eudi_required ?? null,
+    avgTripKm: (e as { avg_trip_km?: number | null }).avg_trip_km ?? null,
   });
 
   });
@@ -304,6 +308,19 @@ export async function PATCH(
         );
       } catch {
         await client.query('ROLLBACK TO SAVEPOINT sp_eudi');
+      }
+    }
+
+    // avg_trip_km (mig 447) — savepoint (migračně bezpečné).
+    if (input.avgTripKm !== undefined) {
+      await client.query('SAVEPOINT sp_trip');
+      try {
+        await client.query(
+          `UPDATE catalog.events SET avg_trip_km = $1 WHERE id = $2`,
+          [input.avgTripKm, event.id],
+        );
+      } catch {
+        await client.query('ROLLBACK TO SAVEPOINT sp_trip');
       }
     }
 
