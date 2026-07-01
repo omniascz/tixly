@@ -48,9 +48,61 @@ export default function StadiumBuilderPage({ params }: { params: { id: string } 
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
 
   function setStand(i: number, patch: Partial<StandForm>) {
     setStands((prev) => prev.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
+  }
+
+  // AI: popiš stadion slovy → návrh tribun (na klíč — bez ANTHROPIC_API_KEY vrátí route 503).
+  async function aiStadium() {
+    if (!aiPrompt.trim()) {
+      setError('Napiš popis stadionu (např. „stadion pro 50 000, 4 tribuny, 2 patra, s rohy").');
+      return;
+    }
+    setError(null);
+    setFeedback(null);
+    setAiLoading(true);
+    try {
+      const res = await authFetch(`/api/platform/venues/${venueId}/seating-chart/from-text-stadium`, {
+        method: 'POST',
+        body: JSON.stringify({ prompt: aiPrompt }),
+      });
+      const j = (await res.json()) as {
+        spec?: {
+          pitchLabel?: string;
+          stands: { side: StandSide; name: string; rows: number; seatsPerRow: number; tiers?: number }[];
+          corners?: boolean;
+          cornerRows?: number;
+          cornerSeatsPerRow?: number;
+        };
+        totalSeats?: number;
+        message?: string;
+        error?: string;
+      };
+      if (!res.ok || !j.spec) {
+        setError(j.message ?? j.error ?? `AI selhalo (HTTP ${res.status}).`);
+        return;
+      }
+      const bySide = new Map(j.spec.stands.map((s) => [s.side, s]));
+      setStands((prev) =>
+        prev.map((f) => {
+          const s = bySide.get(f.side);
+          if (!s) return { ...f, enabled: false };
+          return { ...f, enabled: true, name: s.name || f.name, rows: s.rows, seatsPerRow: s.seatsPerRow, tiers: s.tiers ?? 1 };
+        }),
+      );
+      setCorners(!!j.spec.corners);
+      if (j.spec.cornerRows) setCornerRows(j.spec.cornerRows);
+      if (j.spec.cornerSeatsPerRow) setCornerSeatsPerRow(j.spec.cornerSeatsPerRow);
+      if (j.spec.pitchLabel) setPitchLabel(j.spec.pitchLabel);
+      setFeedback(`AI navrhla stadion: ~${(j.totalSeats ?? 0).toLocaleString('cs-CZ')} sedadel. Zkontroluj náhled a dolaď, pak ulož.`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'AI selhalo.');
+    } finally {
+      setAiLoading(false);
+    }
   }
 
   const layout = useMemo(() => {
@@ -139,6 +191,26 @@ export default function StadiumBuilderPage({ params }: { params: { id: string } 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         {/* ── Zadání ── */}
         <div className="space-y-4">
+          <Card>
+            <CardHeader><CardTitle className="text-base">🪄 Popiš stadion slovy (AI)</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-xs text-muted-foreground">
+                Např. „stadion pro 50 000 diváků, 4 tribuny, 2 patra, s rohy". AI navrhne tribuny,
+                pak dolaď čísla a ulož.
+              </p>
+              <textarea
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                rows={2}
+                placeholder="Popiš stadion… (např. pro 50 000, 4 tribuny, 2 patra)"
+                className="w-full rounded-md border bg-background p-2 text-sm"
+              />
+              <Button type="button" size="sm" onClick={() => void aiStadium()} disabled={aiLoading}>
+                {aiLoading ? 'Generuji…' : '🪄 Navrhnout stadion (AI)'}
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader><CardTitle className="text-base">Základ</CardTitle></CardHeader>
             <CardContent className="space-y-3">
