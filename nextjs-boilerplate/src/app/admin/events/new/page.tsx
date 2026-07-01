@@ -21,16 +21,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
+  TOP_CATEGORIES,
+  TOP_CATEGORY_MAP,
+  FORMATS,
+} from '@/lib/events/categories';
+import {
   EVENT_TEMPLATES,
   TEMPLATE_LIST,
   type TemplateId,
   type EventTemplate,
 } from '@/lib/events/templates';
-import {
-  TOP_CATEGORIES,
-  TOP_CATEGORY_MAP,
-  FORMATS,
-} from '@/lib/events/categories';
 
 interface Venue {
   id: string;
@@ -211,6 +211,7 @@ export default function NewEventWizardPage() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [venueSectors, setVenueSectors] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [seatWarning, setSeatWarning] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const initialBase = useMemo(() => {
@@ -628,9 +629,24 @@ export default function NewEventWizardPage() {
           publishImmediately: publish,
         }),
       });
-      const d = await r.json();
+      const d = (await r.json()) as {
+        message?: string;
+        error?: string;
+        eventId?: string;
+        sectorsSkipped?: string[];
+        seatsWarning?: string | null;
+      };
       if (!r.ok) {
         setError(d.message ?? d.error ?? `HTTP ${r.status}`);
+        return;
+      }
+      // Akce vytvořena. Pokud se část sedadel nevygenerovala (názvy sektorů ≠ zóny),
+      // NEsmíme tiše přesměrovat — ukaž varování a nech obsluhu zareagovat.
+      if (Array.isArray(d.sectorsSkipped) && d.sectorsSkipped.length > 0) {
+        setSeatWarning(
+          d.seatsWarning ??
+            `Pozor: sektory ${d.sectorsSkipped.join(', ')} se nevygenerovaly a jejich sedadla se nebudou prodávat.`,
+        );
         return;
       }
       router.push('/admin/events');
@@ -652,6 +668,20 @@ export default function NewEventWizardPage() {
           Krok {stepIdx + 1} z {visibleSteps.length}
         </p>
       </div>
+
+      {seatWarning ? (
+        <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+          <div className="font-semibold">✅ Akce vytvořena — ale pozor na sedadla</div>
+          <p className="mt-1">⚠️ {seatWarning}</p>
+          <button
+            type="button"
+            onClick={() => router.push('/admin/events')}
+            className="mt-3 rounded-md bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700"
+          >
+            Rozumím → přejít na akce
+          </button>
+        </div>
+      ) : null}
 
       {/* Stepper */}
       <ol className="flex flex-wrap items-center gap-2">

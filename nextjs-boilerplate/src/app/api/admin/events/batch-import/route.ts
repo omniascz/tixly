@@ -20,9 +20,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
-import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
+import { runAsActivePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
 import { copyLayoutToEventSeats } from '@/lib/seats/copy-layout-to-event-seats';
 
 
@@ -51,6 +51,7 @@ interface RowResult {
   eventId?: string;
   error?: string;
   seatsInserted?: number;
+  seatsSkipped?: string[];
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
@@ -139,12 +140,14 @@ export async function POST(req: NextRequest): Promise<Response> {
 
         // 3) Seated event → copy layout
         let seatsInserted = 0;
+        let seatsSkipped: string[] = [];
         if (row.isSeated && row.zone) {
           const r = await copyLayoutToEventSeats(client, eventId);
           seatsInserted = r.insertedSeats;
+          seatsSkipped = r.skippedSectors;
         }
 
-        results.push({ index: i, title: row.title, success: true, eventId, seatsInserted });
+        results.push({ index: i, title: row.title, success: true, eventId, seatsInserted, seatsSkipped });
       } catch (e) {
         results.push({
           index: i,

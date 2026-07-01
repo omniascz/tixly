@@ -7,9 +7,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
+import { runAsPromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
 import {
   runAiGate,
   TRUST_THRESHOLD_PUBLISHED_EVENTS,
@@ -522,12 +522,19 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
 
     await client.query('COMMIT');
-    const message =
+    let message =
       initialStatus === 'rejected'
         ? 'Akce byla automaticky zamítnuta kvůli zakázanému obsahu. Pro vysvětlení kontaktuj support.'
         : initialStatus === 'published'
           ? 'Akce byla auto-publikována (AI gate + ověřený promotér).'
           : 'Akce čeká na schválení master adminem. Po schválení půjde do prodeje.';
+    // Tichá vada: sektory z plánu sálu, které se netrefí do žádné zóny typu vstupenky,
+    // se přeskočí a jejich sedadla se NEvygenerují (nebudou se prodávat). Nesmí to zůstat tiché.
+    const seatsWarning =
+      seatCopy.skippedSectors.length > 0
+        ? `Pozor: sektory z plánu sálu se nevygenerovaly a NEBUDOU se prodávat, protože jejich název neodpovídá žádné zóně typu vstupenky: ${seatCopy.skippedSectors.join(', ')}. Sjednoť názvy sektorů v plánu sálu se zónami typů vstupenek a sedadla vygeneruj znovu.`
+        : null;
+    if (seatsWarning) message += ` ⚠️ ${seatsWarning}`;
     return NextResponse.json(
       {
         eventId,
@@ -536,6 +543,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         seatsCreated: seatCopy.insertedSeats,
         sectorsMapped: seatCopy.matchedSectors,
         sectorsSkipped: seatCopy.skippedSectors,
+        seatsWarning,
       },
       { status: 201 },
     );

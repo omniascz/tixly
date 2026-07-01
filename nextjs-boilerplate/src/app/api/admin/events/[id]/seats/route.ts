@@ -15,9 +15,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
-import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
+import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
 
 
 const postSchema = z.object({
@@ -179,9 +179,15 @@ export async function POST(
 
     // Bulk insert seats — UNNEST scales to 100k+ seats in one round trip per sector.
     let inserted = 0;
+    const skippedSectors: string[] = [];
     for (const sector of layout.sectors) {
       const ttId = mapping.get(sector.name);
-      if (!ttId) continue; // skip sectors not mapped
+      if (!ttId) {
+        // Sektor bez mapování na typ vstupenky — jeho sedadla se nevytvoří. Nesmí to být tiché.
+        const seatCount = (sector.rows ?? []).reduce((a, r) => a + (r.seats?.length ?? 0), 0);
+        if (seatCount > 0) skippedSectors.push(sector.name);
+        continue;
+      }
 
       const rowLabels: string[] = [];
       const seatNums: string[] = [];
@@ -229,7 +235,11 @@ export async function POST(
     );
 
     await client.query('COMMIT');
-    return NextResponse.json({ ok: true, inserted });
+    const warning =
+      skippedSectors.length > 0
+        ? `Pozor: ${skippedSectors.length} sektorů se nevygenerovalo (nemají přiřazený typ vstupenky): ${skippedSectors.join(', ')}. Jejich sedadla se nebudou prodávat.`
+        : null;
+    return NextResponse.json({ ok: true, inserted, skippedSectors, warning });
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('[event seats generate]', err);
