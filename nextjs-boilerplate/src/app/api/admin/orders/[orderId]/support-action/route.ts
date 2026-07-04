@@ -144,14 +144,11 @@ export async function POST(
          WHERE id = $1`,
         [input.ticketId, targetUserId],
       );
-      await client.query(
-        `INSERT INTO tickets.ticket_transfer_log
-           (ticket_id, from_user_id, to_user_id, transferred_by_user_id, transfer_reason, created_at)
-         VALUES ($1, $2, $3, $4, 'support_transfer', NOW())`,
-        [input.ticketId, order.user_id, targetUserId, promoter.userId],
-      ).catch(() => {
-        // Tabulka existuje s touto schema, ale tolerujeme schema drift
-      });
+      // Pozn.: dřívější INSERT do tickets.ticket_transfer_log byl odstraněn — cílil na
+      // ŠPATNOU tabulku (ta je resale-transfer log: listing_id + rotace TOTP, sloupce
+      // from_user_id/to_user_id/transferred_by_user_id/transfer_reason NEEXISTUJÍ → 42703,
+      // maskováno .catch). Support transfer je plně auditovaný přes audit.support_actions
+      // níže (:~254) s metadata { fromUserId, toUserId, targetEmail } — nic se neztrácí.
       metadata = { fromUserId: order.user_id, toUserId: targetUserId, targetEmail: input.targetEmail };
     } else if (input.action === 'name_change') {
       const ticket = await client.query<{ id: string; owner_id: string }>(
