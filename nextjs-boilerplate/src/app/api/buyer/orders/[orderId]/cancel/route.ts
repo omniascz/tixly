@@ -134,18 +134,22 @@ export async function POST(
       [params.orderId],
     );
 
-    // Refund request pokud nějaký
+    // Refund request pokud nějaký.
+    // POZOR: žádný .catch() tady — refund_request NENÍ best-effort. Když selže,
+    // musí probublat do outer catch → ROLLBACK → 500 (ne tichá 200 + ztracený
+    // refundační závazek). Jinak COMMIT na aborted tx projde jako ROLLBACK a
+    // celý cancel se zahodí, přestože endpoint vrátí úspěch.
     if (refundAmount > 0 && order.status !== 'pending') {
       await client.query(
         `INSERT INTO orders.refund_requests
-           (order_id, amount_halire, reason, status, promoter_id, created_at)
-         VALUES ($1, $2, $3, 'pending', $4, now())`,
+           (order_id, user_id, refunded_halire, reason, status, promoter_id)
+         VALUES ($1, $2, $3, $4, 'pending', $5)`,
         [
-          params.orderId, refundAmount,
+          params.orderId, order.user_id, refundAmount,
           `Buyer self-service cancel${parsed.data.reason ? ': ' + parsed.data.reason : ''}`,
           order.promoter_id,
         ],
-      ).catch(() => null);
+      );
     }
 
     await client.query('COMMIT');
