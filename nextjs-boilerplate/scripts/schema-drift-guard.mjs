@@ -150,18 +150,19 @@ function groupDrift(drift) {
   console.log(`# schema-drift-guard - Varianta A (PREPARE parse-only)`);
   const { staticQ, dynamicQ } = extract();
 
-  let branchId, ephemeralCreated = false;
-  if (EPHEMERAL) {
-    branchId = (await createBranch()).id; ephemeralCreated = true;
-    console.log(`# ephemeral prod-clone vetev vytvorena: ${branchId}`);
-  } else {
-    branchId = process.env.GUARD_BRANCH_ID;
-    if (!branchId) { console.error('bez --ephemeral je potreba GUARD_BRANCH_ID'); process.exit(2); }
-    console.log(`# zdroj pravdy: existujici vetev ${branchId}`);
-  }
-
-  let exitCode = 0, client;
+  // Vytvoreni vetve je UVNITR try, aby ji finally VZDY smazal — i kdyz guard najde
+  // drift (exit 1) NEBO cokoli mezi create a pripojenim hodi. Zadna prod-clone vetev
+  // se tak nehromadi po cervenych/spadlych bezech.
+  let branchId, ephemeralCreated = false, exitCode = 0, client;
   try {
+    if (EPHEMERAL) {
+      branchId = (await createBranch()).id; ephemeralCreated = true;
+      console.log(`# ephemeral prod-clone vetev vytvorena: ${branchId}`);
+    } else {
+      branchId = process.env.GUARD_BRANCH_ID;
+      if (!branchId) throw new Error('bez --ephemeral je potreba GUARD_BRANCH_ID');
+      console.log(`# zdroj pravdy: existujici vetev ${branchId}`);
+    }
     const { c, schemaCount } = await openClient(branchId);
     client = c;
     console.log(`# schemata v search_path: ${schemaCount}`);
