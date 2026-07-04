@@ -55,11 +55,14 @@ export async function POST(
     return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
   }
 
-  // Notify všechny buyery (fire-and-forget broadcast)
+  // Notify všechny buyery (fire-and-forget broadcast — best-effort, NEblokuje odložení).
+  // Schéma marketing.event_broadcasts: `channel` neexistuje (odstraněno); `filter` je NOT NULL
+  // (doplněno 'all_buyers'); `status` povoluje jen sending/completed/failed ('queued' → 'sending').
+  // Polykač NErozhazuje odložení (autocommit výše už proběhlo), ale selhání LOGUJE — ne tiše null.
   void db().query(
     `INSERT INTO marketing.event_broadcasts
-       (event_id, promoter_id, subject, body, channel, sent_by_user_id, status)
-     VALUES ($1, $2, $3, $4, 'email', $5, 'queued')`,
+       (event_id, promoter_id, subject, body, filter, sent_by_user_id, status)
+     VALUES ($1, $2, $3, $4, 'all_buyers', $5, 'sending')`,
     [
       eventId, promoter.promoterId,
       `Akce odložena${parsed.data.rescheduledTo ? ' — nový termín' : ''}`,
@@ -69,7 +72,7 @@ export async function POST(
         : 'Nový termín bude oznámen.'),
       promoter.userId,
     ],
-  ).catch(() => null);
+  ).catch((err) => console.error('[postpone broadcast] nepodařilo se zařadit notifikaci:', err));
 
   return NextResponse.json({
     ok: true,
