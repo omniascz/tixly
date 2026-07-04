@@ -76,7 +76,7 @@ export async function POST(
 
     await db().query(
       `UPDATE orders.guestlist_entries
-       SET status = 'attended', checked_in_at = COALESCE(checked_in_at, NOW()), updated_at = NOW()
+       SET status = 'attended', checked_in_at = COALESCE(checked_in_at, NOW())
        WHERE id = $1`,
       [entry.id],
     );

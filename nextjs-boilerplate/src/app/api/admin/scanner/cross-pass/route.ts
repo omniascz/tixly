@@ -168,14 +168,18 @@ export async function POST(req: NextRequest): Promise<Response> {
       });
     }
 
+    // POZOR: tabulka cross_pass_redemptions nemá sloupec event_day_id (a nikdy neměla —
+    // ani pod jiným jménem). Datový model je per-event: idempotence výše je klíčovaná na
+    // (membership_id, event_id), per-day redemption neexistuje. eventDayId je z requestu
+    // nadále přijímán (viz schema), ale ZÁMĚRNĚ nepersistován. Per-day by byla samostatná
+    // featura (nový sloupec + změna idempotence), ne tento drift fix.
     await client.query(
       `INSERT INTO tickets.cross_pass_redemptions
-         (membership_id, event_id, event_day_id, scanned_by_user_id)
-       VALUES ($1, $2, $3, $4)`,
+         (membership_id, event_id, scanned_by_user_id)
+       VALUES ($1, $2, $3)`,
       [
         member.id,
         parsed.data.eventId,
-        parsed.data.eventDayId ?? null,
         promoter.userId,
       ],
     );
