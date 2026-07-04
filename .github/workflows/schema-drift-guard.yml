@@ -1,0 +1,72 @@
+name: Schema Drift Guard
+
+# Kontrakt-test: každý statický SQL dotaz vs živé prod schéma (HANDOFF §5 bod 2).
+# Chytí drift (kód proti staršímu schématu → runtime 42703) v CI, ne až v produkci.
+# Neblokující baseline režim: padá jen na NOVÉM driftu nad scripts/schema-drift-baseline.json,
+# existující dluh (162 míst) neshazuje. Na push/PR měnící SQL nebo migrace.
+#
+# BEZPEČNOST — trigger je ZÁMĚRNĚ `pull_request`, NIKDY `pull_request_target`.
+#   Guard čte a spouští (PREPARE) SQL ze zdrojáků proti živé DB s NEON_API_KEY.
+#   `pull_request_target` běží v kontextu base repa SE secrets, ale s checkoutem PR kódu
+#   → známý RCE / secret-exfil vektor (CVE-2025-61671, CVSS 9.3). S `pull_request` běží
+#   fork PR bez secrets → guard nemá NEON_API_KEY → job selže bez přístupu k DB. To je
+#   ŽÁDOUCÍ (prázdný secret na forku = žádný přístup ke klíči, který umí mazat DB větve).
+
+on:
+  push:
+    paths:
+      - 'nextjs-boilerplate/src/**'
+      - 'nextjs-boilerplate/migrations/**'
+      - 'nextjs-boilerplate/scripts/schema-drift-guard.mjs'
+      - 'nextjs-boilerplate/scripts/schema-drift-baseline.json'
+      - '.github/workflows/schema-drift-guard.yml'
+  pull_request:
+    paths:
+      - 'nextjs-boilerplate/src/**'
+      - 'nextjs-boilerplate/migrations/**'
+      - 'nextjs-boilerplate/scripts/schema-drift-guard.mjs'
+      - 'nextjs-boilerplate/scripts/schema-drift-baseline.json'
+      - '.github/workflows/schema-drift-guard.yml'
+
+concurrency:
+  group: schema-drift-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  schema-drift:
+    name: Schema drift (SQL vs live schema)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Druhá závora kolem NEON_API_KEY: klíč je v GitHub Environmentu `schema-drift`,
+    # ne jen repo secret. Environment lze chránit (required reviewers / branch omezení).
+    environment: schema-drift
+    defaults:
+      run:
+        working-directory: nextjs-boilerplate
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: nextjs-boilerplate/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Guard si s --ephemeral sám vytvoří prod-clone Neon větev z produkce a v `finally`
+      # ji VŽDY smaže — i když najde drift (exit 1) nebo cokoli selže → žádné leaklé větve.
+      # --baseline = neblokující: exit 1 jen na NOVÉM driftu nad baseline.
+      #
+      # NEON_API_KEY musí mít PRÁVĚ JEN scope, co guard potřebuje: create/delete branch
+      # + connect na tomto projektu. Dedikovaný project-scoped, short-lived klíč pro CI —
+      # NE účtový/org admin token. Rotovat.
+      - name: Run schema-drift guard
+        run: node scripts/schema-drift-guard.mjs --ephemeral --baseline scripts/schema-drift-baseline.json
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
