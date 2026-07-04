@@ -1,0 +1,830 @@
+{
+  "note": "Snapshot known-drift mist. CI (--baseline) pada jen na NOVEM driftu nad tento snapshot. Utahovat, jak fixy ubyvaji; na 0 -> blocking.",
+  "generatedAt": "2026-07-04T18:30:25.939Z",
+  "totalDrift": 162,
+  "distinctKeys": 137,
+  "entries": [
+    {
+      "file": "src/app/api/admin/anti-scalping/overview/route.ts",
+      "code": "42P01",
+      "msg": "relation \"platform.promoter_alerts\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/b2b/[accountId]/deposit/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"b2b_accounts\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/broadcasts/[id]/send/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"broadcasts\" does not exist",
+      "count": 4
+    },
+    {
+      "file": "src/app/api/admin/broadcasts/route.ts",
+      "code": "42703",
+      "msg": "column \"sent_by_user_id\" of relation \"broadcasts\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/commemorative/send/route.ts",
+      "code": "42703",
+      "msg": "column es.row_label does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/event-templates/[id]/apply/route.ts",
+      "code": "42703",
+      "msg": "column \"description\" of relation \"ticket_types\" does not exist",
+      "count": 2
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/accreditation/[reqId]/route.ts",
+      "code": "42703",
+      "msg": "column \"status\" of relation \"users\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/ai-description/route.ts",
+      "code": "42703",
+      "msg": "column e.event_date does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/backstage/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"backstage_moments\" does not exist",
+      "count": 2
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/box-office/sell/route.ts",
+      "code": "42703",
+      "msg": "column \"currency\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/box-office/sell/route.ts",
+      "code": "42703",
+      "msg": "column \"email_verified\" of relation \"users\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/clone/route.ts",
+      "code": "42703",
+      "msg": "column \"description\" of relation \"ticket_types\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/clone/route.ts",
+      "code": "42703",
+      "msg": "column \"image_url\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/comps/route.ts",
+      "code": "42703",
+      "msg": "column \"status\" of relation \"users\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/comps/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"ticket_types\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/comps/route.ts",
+      "code": "42703",
+      "msg": "column tt.is_published does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/emergency/route.ts",
+      "code": "42703",
+      "msg": "column t.event_id does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/foyer-orders/route.ts",
+      "code": "42P01",
+      "msg": "relation \"orders.foyer_order_items\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/lastminute/route.ts",
+      "code": "42703",
+      "msg": "column \"promoter_id\" does not exist",
+      "count": 2
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/lastminute/route.ts",
+      "code": "42703",
+      "msg": "column \"promoter_id\" of relation \"lastminute_rules\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/postpone/route.ts",
+      "code": "42703",
+      "msg": "column \"channel\" of relation \"event_broadcasts\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/press/route.ts",
+      "code": "42703",
+      "msg": "column \"currency\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/press/route.ts",
+      "code": "42703",
+      "msg": "column \"status\" of relation \"users\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/program/route.ts",
+      "code": "42703",
+      "msg": "column \"about_text\" of relation \"event_programs\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/reschedule/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"event_reschedules\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/reschedule/route.ts",
+      "code": "42703",
+      "msg": "column \"user_id\" of relation \"reschedule_responses\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/reschedule/stats/route.ts",
+      "code": "42703",
+      "msg": "column rr.user_id does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/save-as-template/route.ts",
+      "code": "42703",
+      "msg": "column \"base_price\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/save-as-template/route.ts",
+      "code": "42703",
+      "msg": "column \"description\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/save-as-template/route.ts",
+      "code": "42P01",
+      "msg": "relation \"catalog.group_discounts\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/ticket-types/[ttId]/route.ts",
+      "code": "42703",
+      "msg": "column \"description\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/ticket-types/route.ts",
+      "code": "42703",
+      "msg": "column \"description\" of relation \"ticket_types\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/waitlist/[entryId]/route.ts",
+      "code": "42703",
+      "msg": "column \"currency\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/events/[id]/waitlist/[entryId]/route.ts",
+      "code": "42703",
+      "msg": "column \"status\" of relation \"users\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/import/route.ts",
+      "code": "42703",
+      "msg": "column \"role\" of relation \"users\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/import/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"promoter_contacts\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/lastminute/check/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"lastminute_rules\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/lottery/[campaignId]/advance/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"lottery_entries\" does not exist",
+      "count": 2
+    },
+    {
+      "file": "src/app/api/admin/lottery/[campaignId]/draw/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"lottery_campaigns\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/lottery/[campaignId]/draw/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"lottery_entries\" does not exist",
+      "count": 2
+    },
+    {
+      "file": "src/app/api/admin/marketing/overview/route.ts",
+      "code": "42703",
+      "msg": "column c.attribution_data does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/onboarding/step/[step]/route.ts",
+      "code": "42703",
+      "msg": "column \"author\" of relation \"productions\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/onboarding/step/[step]/route.ts",
+      "code": "42703",
+      "msg": "column \"description\" of relation \"ticket_types\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/onboarding/step/[step]/route.ts",
+      "code": "42703",
+      "msg": "column \"duration_minutes\" of relation \"events\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/onboarding/step/[step]/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"venues\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/orders/[orderId]/support-action/route.ts",
+      "code": "42703",
+      "msg": "column \"from_user_id\" of relation \"ticket_transfer_log\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/payouts/execute/route.ts",
+      "code": "42703",
+      "msg": "column p.payout_currency does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/reservations/route.ts",
+      "code": "42703",
+      "msg": "column \"status\" of relation \"users\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/reviews/send-requests/route.ts",
+      "code": "42703",
+      "msg": "column \"reviewer_email\" of relation \"event_reviews\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/reviews/send-requests/route.ts",
+      "code": "42703",
+      "msg": "column e.starts_at does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/admin/ticket-changes/[changeId]/route.ts",
+      "code": "42703",
+      "msg": "column \"amount_halire\" of relation \"refund_requests\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/artists/[slug]/route.ts",
+      "code": "42703",
+      "msg": "column e.published does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/auth/forgot-password/route.ts",
+      "code": "42703",
+      "msg": "column \"locale\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/buyer/announcements/[token]/respond/route.ts",
+      "code": "42703",
+      "msg": "column \"order_id\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/buyer/announcements/[token]/respond/route.ts",
+      "code": "42703",
+      "msg": "column \"responded_at\" of relation \"announcement_responses\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/buyer/cross-passes/[membershipId]/wallet/apple/route.ts",
+      "code": "42703",
+      "msg": "column m.membership_code does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/buyer/cross-passes/[membershipId]/wallet/pdf/route.ts",
+      "code": "42703",
+      "msg": "column m.membership_code does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/buyer/cross-passes/my-memberships/route.ts",
+      "code": "42703",
+      "msg": "column m.membership_code does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/buyer/orders/[orderId]/ticket-pdf/route.ts",
+      "code": "42703",
+      "msg": "column o.buyer_email does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/buyer/subscriptions/[id]/refund-prorata/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"subscriptions\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/buyer/tickets/[ticketId]/exchange/route.ts",
+      "code": "42703",
+      "msg": "column \"row_label\" does not exist",
+      "count": 2
+    },
+    {
+      "file": "src/app/api/buyer/tickets/[ticketId]/list-for-resale/route.ts",
+      "code": "42703",
+      "msg": "column es.label does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/cart/validate/route.ts",
+      "code": "42703",
+      "msg": "column \"price_halire\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/foyer-orders/[id]/status/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"foyer_orders\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/foyer-orders/route.ts",
+      "code": "42703",
+      "msg": "column \"buyer_email\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/foyer-orders/route.ts",
+      "code": "42703",
+      "msg": "column \"user_id\" of relation \"foyer_orders\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/foyer-orders/route.ts",
+      "code": "42P01",
+      "msg": "relation \"orders.foyer_order_items\" does not exist",
+      "count": 2
+    },
+    {
+      "file": "src/app/api/gift/[token]/route.ts",
+      "code": "42703",
+      "msg": "column tt.sort_order does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/checkout/party-split/[token]/route.ts",
+      "code": "42703",
+      "msg": "column \"capacity_remaining\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/checkout/party-split/route.ts",
+      "code": "42703",
+      "msg": "column tt.price_halire does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/checkout/pay-by-link/[orderId]/route.ts",
+      "code": "42703",
+      "msg": "column po.order_id does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/checkout/route.ts",
+      "code": "42703",
+      "msg": "column \"price_halire\" of relation \"bundle_items\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/checkout/route.ts",
+      "code": "42703",
+      "msg": "column \"program_price_halire\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/checkout/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"b2b_accounts\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/checkout/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"lottery_entries\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/checkout/route.ts",
+      "code": "42703",
+      "msg": "column \"user_id\" of relation \"foyer_orders\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/checkout/route.ts",
+      "code": "42703",
+      "msg": "column \"x\" does not exist",
+      "count": 2
+    },
+    {
+      "file": "src/app/api/checkout/route.ts",
+      "code": "42703",
+      "msg": "column o.buyer_email does not exist",
+      "count": 2
+    },
+    {
+      "file": "src/app/api/checkout/route.ts",
+      "code": "42P01",
+      "msg": "relation \"orders.foyer_order_items\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/internal/cron/demand-forecast/route.ts",
+      "code": "42703",
+      "msg": "column \"start_at\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/internal/cron/demand-forecast/route.ts",
+      "code": "42703",
+      "msg": "column \"tickets_sold\" of relation \"demand_forecasts\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/internal/cron/expire-pending-orders/route.ts",
+      "code": "42703",
+      "msg": "column \"event_seat_id\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/internal/cron/push-reminders/route.ts",
+      "code": "42703",
+      "msg": "column wl.user_id does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/internal/cron/seat-upgrade-notify/route.ts",
+      "code": "42703",
+      "msg": "column \"order_id\" of relation \"seat_upgrades\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/internal/cron/seat-upgrade-notify/route.ts",
+      "code": "42703",
+      "msg": "column s2.event_id does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/internal/cron/seat-upgrade-notify/route.ts",
+      "code": "42P01",
+      "msg": "relation \"orders.seat_assignments\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/internal/cron/send-reminders/route.ts",
+      "code": "42703",
+      "msg": "column u.locale does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/internal/cron/verify-event-completion/route.ts",
+      "code": "42703",
+      "msg": "column \"payload\" of relation \"anomaly_alerts\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/kiosk/order/route.ts",
+      "code": "42703",
+      "msg": "column \"is_active\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/kiosk/order/route.ts",
+      "code": "42P01",
+      "msg": "relation \"catalog.promoters\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/lottery/[campaignId]/enter/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"lottery_campaigns\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/my/orders/[id]/upgrade-options/route.ts",
+      "code": "42P01",
+      "msg": "relation \"catalog.seat_map_entries\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/my/orders/[id]/upgrade-options/route.ts",
+      "code": "42P01",
+      "msg": "relation \"catalog.seat_maps\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/my/orders/[id]/upgrade-options/route.ts",
+      "code": "42P01",
+      "msg": "relation \"orders.seat_assignments\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/my/orders/[id]/upgrade/route.ts",
+      "code": "42703",
+      "msg": "column \"price_halire\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/my/orders/[id]/upgrade/route.ts",
+      "code": "42P01",
+      "msg": "relation \"orders.seat_assignments\" does not exist",
+      "count": 3
+    },
+    {
+      "file": "src/app/api/my/tickets/[ticketId]/transfer/route.ts",
+      "code": "42703",
+      "msg": "column \"token\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/partner/sales/route.ts",
+      "code": "42703",
+      "msg": "column \"status\" of relation \"users\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/payments/wise/webhook/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"payouts\" does not exist",
+      "count": 2
+    },
+    {
+      "file": "src/app/api/platform/promoters/[id]/route.ts",
+      "code": "42703",
+      "msg": "column \"doc_type\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/press/accreditation/route.ts",
+      "code": "42703",
+      "msg": "column \"name\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/press/event/[id]/route.ts",
+      "code": "42703",
+      "msg": "column e.name does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/programs/[eventId]/route.ts",
+      "code": "42703",
+      "msg": "column \"is_published\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/public/events/[id]/kiosk/route.ts",
+      "code": "42703",
+      "msg": "column \"capacity\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/reseller/events/route.ts",
+      "code": "42703",
+      "msg": "column tt.is_active does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/reseller/sale/route.ts",
+      "code": "42703",
+      "msg": "column \"is_active\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/reseller/sale/route.ts",
+      "code": "42P01",
+      "msg": "relation \"auth.users\" does not exist",
+      "count": 3
+    },
+    {
+      "file": "src/app/api/reschedule/[token]/route.ts",
+      "code": "42703",
+      "msg": "column \"event_id\" of relation \"tickets\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/reschedule/[token]/route.ts",
+      "code": "42703",
+      "msg": "column rr.user_id does not exist",
+      "count": 2
+    },
+    {
+      "file": "src/app/api/reviews/[token]/route.ts",
+      "code": "42703",
+      "msg": "column e.starts_at does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/reviews/[token]/route.ts",
+      "code": "42703",
+      "msg": "column er.review_token does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/season-passes/[passToken]/route.ts",
+      "code": "42703",
+      "msg": "column \"holder_user_id\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/season-passes/[passToken]/route.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"season_passes\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/season-passes/[passToken]/route.ts",
+      "code": "42703",
+      "msg": "column sp.status does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/season-passes/route.ts",
+      "code": "42703",
+      "msg": "column \"holder_user_id\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/season-passes/route.ts",
+      "code": "42703",
+      "msg": "column \"holder_user_id\" of relation \"season_passes\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/tickets/[id]/memory/route.ts",
+      "code": "42703",
+      "msg": "column es.row_label does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/tickets/transfer/[token]/route.ts",
+      "code": "42703",
+      "msg": "column \"token\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/tickets/transfer/[token]/route.ts",
+      "code": "42703",
+      "msg": "column tr.token does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/v1/publish/events/route.ts",
+      "code": "42703",
+      "msg": "column \"description\" of relation \"productions\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/v1/publish/events/route.ts",
+      "code": "42703",
+      "msg": "column \"price_halire\" of relation \"ticket_types\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/v1/wl/orders/route.ts",
+      "code": "42703",
+      "msg": "column \"data\" of relation \"payment_events\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/v1/wl/orders/route.ts",
+      "code": "42703",
+      "msg": "column \"unit_price_halire\" of relation \"order_items\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/v1/wl/orders/route.ts",
+      "code": "42703",
+      "msg": "column p.default_payment_provider does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/v3/events/[id]/route.ts",
+      "code": "42703",
+      "msg": "column \"country_code\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/v3/events/[id]/route.ts",
+      "code": "42703",
+      "msg": "column \"description\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/app/api/v3/events/[id]/ticket_classes/route.ts",
+      "code": "42703",
+      "msg": "column \"description\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/lib/ai/smart-send-time.ts",
+      "code": "42P01",
+      "msg": "relation \"marketing.campaign_recipient_events\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/lib/forgemsg/dispatch.ts",
+      "code": "42P01",
+      "msg": "relation \"public.forgemsg_credentials\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/lib/forgemsg/provision.ts",
+      "code": "42P01",
+      "msg": "relation \"public.forgemsg_credentials\" does not exist",
+      "count": 3
+    },
+    {
+      "file": "src/lib/graphql/resolvers.ts",
+      "code": "42703",
+      "msg": "column \"cover_image\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/lib/graphql/resolvers.ts",
+      "code": "42703",
+      "msg": "column \"latitude\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/lib/payouts/executor.ts",
+      "code": "42703",
+      "msg": "column \"updated_at\" of relation \"payouts\" does not exist",
+      "count": 5
+    },
+    {
+      "file": "src/lib/payouts/executor.ts",
+      "code": "42703",
+      "msg": "column \"wise_recipient_id\" of relation \"promoters\" does not exist",
+      "count": 2
+    },
+    {
+      "file": "src/lib/payouts/executor.ts",
+      "code": "42703",
+      "msg": "column p.payout_currency does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/lib/pricing/resolve-price.ts",
+      "code": "42P01",
+      "msg": "relation \"pricing.price_tiers\" does not exist",
+      "count": 1
+    },
+    {
+      "file": "src/lib/tracking/tiktok-capi.ts",
+      "code": "42703",
+      "msg": "column \"event_name\" of relation \"tracking_events\" does not exist",
+      "count": 1
+    }
+  ]
+}
