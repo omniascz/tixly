@@ -125,15 +125,20 @@ export async function POST(
       );
     }
 
-    // Refund pokud applicable — vytvoříme refund_request (admin musí potvrdit)
+    // Refund pokud applicable — vytvoříme refund_request (admin musí potvrdit).
+    // POZOR: žádný .catch() — jako u cancel (fix #1). refund_request NENÍ best-effort;
+    // selhání musí probublat do outer catch → ROLLBACK → 500, ne se tiše ztratit.
+    // Sloupce: refunded_halire (ne amount_halire), user_id NOT NULL (z orders přes join).
     if (change.refund_amount_halire > 0) {
       await client.query(
         `INSERT INTO orders.refund_requests
-           (order_id, amount_halire, reason, status, promoter_id, created_at)
-         SELECT t.order_id, $1, $2, 'pending', $3, now()
-           FROM tickets.tickets t WHERE t.id = $4`,
+           (order_id, user_id, refunded_halire, reason, status, promoter_id)
+         SELECT t.order_id, o.user_id, $1, $2, 'pending', $3
+           FROM tickets.tickets t
+           JOIN orders.orders o ON o.id = t.order_id
+          WHERE t.id = $4`,
         [change.refund_amount_halire, `Ticket swap ${change.change_type}`, promoter.promoterId, change.ticket_id],
-      ).catch(() => null);
+      );
     }
 
     await client.query(
