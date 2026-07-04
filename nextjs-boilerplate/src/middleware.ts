@@ -313,6 +313,8 @@ export const config = {
     // Exclude Next.js internals + static assets v /public co se servují přímo.
     // embed.js, sw.js a manifest.json MUSÍ být accessible bez locale prefix
     // (3rd party embeds + service worker registrations).
-    '/((?!_next/static|_next/image|favicon\\.ico|robots\\.txt|sitemap\\.xml|embed\\.js|sw\\.js|manifest\\.json|icons/).*)',
+    // pdf.worker.min.mjs = pdfjs worker (seating editor) — same-origin z /public;
+    // bez výjimky by locale middleware udělal 307 → /cs/pdf.worker.min.mjs → 404.
+    '/((?!_next/static|_next/image|favicon\\.ico|robots\\.txt|sitemap\\.xml|embed\\.js|sw\\.js|manifest\\.json|pdf\\.worker\\.min\\.mjs|icons/).*)',
   ],
 };

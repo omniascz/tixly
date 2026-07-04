@@ -12,11 +12,13 @@
 /** Vyrenderuje 1. stránku PDF na PNG data URL. maxDim omezuje delší stranu (px). */
 export async function pdfFirstPageToPngDataUrl(file: File, maxDim = 2200): Promise<string> {
   const pdfjs = await import('pdfjs-dist');
-  // Worker přes bundlovanou URL (webpack/Next emit jako asset).
-  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url,
-  ).toString();
+  // Worker se servíruje same-origin z /public/pdf.worker.min.mjs (generuje ho `prebuild`
+  // copy skript z nainstalovaného pdfjs-dist — verzně přesné). ZÁMĚRNĚ NEpoužíváme
+  // new URL('…pdf.worker.min.mjs', import.meta.url): ten vzor nutí webpack emitovat ESM
+  // worker jako asset, který pak Terser minifikuje jako ne-modul → produkční build padá
+  // („'import'/'export' cannot be used outside of module code"). pdfjs 4 načte .mjs jako
+  // module worker (type:'module').
+  pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
   const buf = await file.arrayBuffer();
   const doc = await pdfjs.getDocument({ data: new Uint8Array(buf) }).promise;
