@@ -136,10 +136,10 @@ export async function POST(
       for (const order of orders) {
         const tokenResult = await client.query<{ response_token: string }>(
           `INSERT INTO orders.reschedule_responses
-             (reschedule_id, order_id, user_id)
-           VALUES ($1, $2, $3)
+             (reschedule_id, order_id)
+           VALUES ($1, $2)
            RETURNING response_token`,
-          [rescheduleId, order.id, order.user_id],
+          [rescheduleId, order.id],
         );
         const token = tokenResult.rows[0].response_token;
         console.log(`Reschedule notification → ${order.email}: token=${token}`);
