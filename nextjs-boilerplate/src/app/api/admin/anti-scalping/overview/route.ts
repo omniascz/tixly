@@ -87,7 +87,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       }>(
         `SELECT a.id, a.alert_type, a.severity, a.message, a.created_at::text,
                 e.title AS event_title
-         FROM platform.promoter_alerts a
+         FROM audit.anomaly_alerts a
          LEFT JOIN catalog.events e ON e.id = a.event_id
          WHERE a.promoter_id = $1
            AND a.alert_type IN ('fraud_cluster', 'traffic_spike', 'queue_overflow', 'bot_detected')

@@ -40,11 +40,11 @@ export async function POST(req: NextRequest): Promise<Response> {
       const evRes = await client.query<{ id: string; title: string; currency: string; promoter_slug: string }>(
         `SELECT e.id, e.title, e.currency, p.slug AS promoter_slug
            FROM catalog.events e
-           JOIN catalog.promoters p ON p.id = e.promoter_id
+           JOIN platform.promoters p ON p.id = e.promoter_id
           WHERE e.id = $1
             AND p.slug = $2
             AND e.status = 'published'
-            AND e.starts_at > NOW()`,
+            AND e.date_start > NOW()`,
         [input.eventId, input.promoterSlug],
       );
       const ev = evRes.rows[0];
