@@ -2173,58 +2173,17 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
     }
 
-    // Po commitu: foyer pre-order (mig 359) — nápoje/jídlo na přestávku.
-    let foyerOrderToken: string | undefined;
-    if (input.foyerItems && input.foyerItems.length > 0) {
-      const menuItemIds = input.foyerItems.map((i) => i.menuItemId);
-      const menuRows = await db().query<{
-        id: string;
-        name: string;
-        price_halire: number;
-        available_count: number | null;
-        is_active: boolean;
-      }>(
-        `SELECT id, name, price_halire, available_count, is_active
-         FROM catalog.foyer_menu_items
-         WHERE id = ANY($1::uuid[]) AND event_id = $2`,
-        [menuItemIds, input.eventId],
-      );
-      if (menuRows.rows.length === menuItemIds.length) {
-        const menuMap = new Map(menuRows.rows.map((r) => [r.id, r]));
-        const allActive = input.foyerItems.every((i) => menuMap.get(i.menuItemId)?.is_active);
-        if (allActive) {
-          const foyerTotal = input.foyerItems.reduce((sum, i) => {
-            return sum + (menuMap.get(i.menuItemId)?.price_halire ?? 0) * i.quantity;
-          }, 0);
-          const foRow = await db().query<{ id: string; pickup_qr_token: string }>(
-            `INSERT INTO orders.foyer_orders
-               (event_id, user_id, buyer_email, total_halire, order_id)
-             VALUES ($1, $2, $3, $4, $5)
-             RETURNING id, pickup_qr_token`,
-            [input.eventId, userId, input.buyerEmail.toLowerCase(), foyerTotal, orderId],
-          );
-          const foyerOrderId = foRow.rows[0].id;
-          foyerOrderToken = foRow.rows[0].pickup_qr_token;
-          for (const item of input.foyerItems) {
-            const mi = menuMap.get(item.menuItemId)!;
-            await db().query(
-              `INSERT INTO orders.foyer_order_items
-                 (foyer_order_id, menu_item_id, item_name, quantity, unit_halire)
-               VALUES ($1, $2, $3, $4, $5)`,
-              [foyerOrderId, item.menuItemId, mi.name, item.quantity, mi.price_halire],
-            );
-            if (mi.available_count !== null) {
-              await db().query(
-                `UPDATE catalog.foyer_menu_items
-                 SET available_count = available_count - $1
-                 WHERE id = $2 AND available_count >= $1`,
-                [item.quantity, item.menuItemId],
-              );
-            }
-          }
-        }
-      }
-    }
+    // Po commitu: foyer pre-order (mig 359) — DOČASNĚ VYPNUTO (schema drift, třída 3 ORPHAN).
+    // Realita schématu: orders.foyer_orders má DENORMALIZOVANÝ tvar (`items` jsonb NOT NULL,
+    // BEZ user_id/buyer_email), a orders.foyer_order_items NEEXISTUJE. Původní INSERT
+    // (user_id/buyer_email + child řádky) padal 42703/42P01 AŽ PO COMMITu objednávky (:2128),
+    // takže objednávka držela inventář a buyer dostal 500 → orphan pending.
+    // Blok odstraněn: input.foyerItems je ZÁMĚRNĚ ignorován (žádný orphan, žádný false-success —
+    // foyerOrderToken zůstává undefined → odpověď NETVRDÍ foyer úspěch). Foyer fieldset je zároveň
+    // skryt v UI (checkout/page.tsx: FOYER_PREORDER_ENABLED=false), takže buyer ho ani nevybere.
+    // Znovuzapnutí = feature ticket "foyer pre-order → přepsat na jsonb model E2E" (REMEDIATION.md).
+    const foyerOrderToken: string | undefined = undefined;
+    void input.foyerItems; // schema-accepted, ale záměrně nepersistováno (viz výše)
 
     // Digitální program (mig 359) — INSERT program_purchase + vrátit access_token.
     let programAccessToken: string | undefined;

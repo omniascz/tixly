@@ -16,6 +16,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { fbqTrack } from '@/lib/tracking/fbq';
 
+// Foyer pre-order DOČASNĚ VYPNUTO — schema drift (třída 3 ORPHAN): orders.foyer_orders má jiný
+// (jsonb `items`) tvar a orders.foyer_order_items neexistuje, takže checkout INSERT padal 42703/42P01
+// AŽ PO commitu objednávky → orphan + tichý false-success. Fieldset se proto nenačítá (buyer ho
+// nevidí ani nevybere) a backend input.foyerItems ignoruje. Re-enable až po feature ticketu
+// "foyer pre-order → přepsat na jsonb model E2E" (REMEDIATION.md).
+const FOYER_PREORDER_ENABLED = false;
+
 function CheckoutForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -417,6 +424,7 @@ function CheckoutForm() {
   }
 
   useEffect(() => {
+    if (!FOYER_PREORDER_ENABLED) return; // foyer dočasně vypnut (viz konstanta nahoře)
     if (!eventId) return;
     fetch(`/api/events/${eventId}/foyer-menu`)
       .then((r) => (r.ok ? r.json() : null))
