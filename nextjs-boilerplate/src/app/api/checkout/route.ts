@@ -1840,7 +1840,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       if (lrRow.source === 'campaigns') {
         await client.query(
           `UPDATE orders.lottery_entries
-           SET status = 'converted', order_id = $2, updated_at = NOW()
+           SET status = 'converted', order_id = $2
            WHERE id = $1`,
           [input.lotteryEntryId, orderId],
         );

@@ -176,8 +176,8 @@ export async function POST(req: NextRequest): Promise<Response> {
            (promoter_id, user_id, email, name, phone,
             historical_purchases, historical_spend_halire,
             first_purchase_at, last_purchase_at,
-            import_job_id, import_source, updated_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NOW())
+            import_job_id, import_source)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
          ON CONFLICT (promoter_id, email) DO UPDATE
            SET name                    = EXCLUDED.name,
                phone                   = EXCLUDED.phone,
@@ -186,8 +186,7 @@ export async function POST(req: NextRequest): Promise<Response> {
                first_purchase_at       = EXCLUDED.first_purchase_at,
                last_purchase_at        = EXCLUDED.last_purchase_at,
                import_job_id           = EXCLUDED.import_job_id,
-               import_source           = EXCLUDED.import_source,
-               updated_at              = NOW()
+               import_source           = EXCLUDED.import_source
          RETURNING (xmax = 0) AS inserted`,
         [
           promoter.promoterId,

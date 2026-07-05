@@ -147,7 +147,7 @@ export async function POST(
 
       await client.query(
         `UPDATE catalog.event_reschedules
-         SET sent_at = NOW(), recipient_count = $1, updated_at = NOW()
+         SET sent_at = NOW(), recipient_count = $1
          WHERE id = $2`,
         [orders.length, rescheduleId],
       );

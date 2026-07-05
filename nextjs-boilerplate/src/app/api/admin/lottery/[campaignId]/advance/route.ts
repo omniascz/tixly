@@ -36,7 +36,7 @@ export async function POST(
 
       await client.query(
         `UPDATE orders.lottery_entries
-         SET status = 'expired', updated_at = NOW()
+         SET status = 'expired'
          WHERE campaign_id = $1
            AND status = 'won'
            AND payment_deadline < NOW()`,
@@ -74,8 +74,7 @@ export async function POST(
         await client.query(
           `UPDATE orders.lottery_entries
            SET status = 'won',
-               payment_deadline = $3,
-               updated_at = NOW()
+               payment_deadline = $3
            WHERE id = $1 AND campaign_id = $2`,
           [w.id, campaign.id, newDeadline.toISOString()],
         );

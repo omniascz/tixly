@@ -86,7 +86,7 @@ export async function POST(
     // 3) Cancel subscription immediately
     await client.query(
       `UPDATE subscriptions.subscriptions
-         SET status = 'cancelled', cancelled_at = now(), updated_at = now()
+         SET status = 'cancelled', cancelled_at = now()
        WHERE id = $1`,
       [params.id],
     );

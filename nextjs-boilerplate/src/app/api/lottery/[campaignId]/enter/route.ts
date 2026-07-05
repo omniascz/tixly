@@ -65,8 +65,7 @@ export async function POST(
       `UPDATE orders.lottery_campaigns
        SET entry_count = (
          SELECT COUNT(*) FROM orders.lottery_entries WHERE campaign_id = $1
-       ),
-       updated_at = NOW()
+       )
        WHERE id = $1
        RETURNING entry_count`,
       [params.campaignId],

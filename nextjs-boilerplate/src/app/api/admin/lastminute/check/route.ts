@@ -100,7 +100,7 @@ async function runCheck(promoterId: string | null): Promise<{ checked: number; t
 
     await db().query(
       `UPDATE catalog.lastminute_rules
-       SET triggered_at = NOW(), updated_at = NOW()
+       SET triggered_at = NOW()
        WHERE id = $1`,
       [rule.rule_id],
     );

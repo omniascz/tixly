@@ -66,8 +66,7 @@ export async function POST(
          thumbnail_url = EXCLUDED.thumbnail_url,
          title = EXCLUDED.title,
          description = EXCLUDED.description,
-         notify_minutes_before = EXCLUDED.notify_minutes_before,
-         updated_at = now()
+         notify_minutes_before = EXCLUDED.notify_minutes_before
        RETURNING *`,
       [
         params.id,
@@ -119,7 +118,7 @@ export async function PATCH(
 
     const r = await db().query(
       `UPDATE catalog.backstage_moments bm
-          SET is_active = $3, updated_at = now()
+          SET is_active = $3
          FROM catalog.events e
         WHERE bm.event_id = e.id
           AND bm.event_id = $1

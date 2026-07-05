@@ -109,7 +109,7 @@ export async function POST(
 
     await db().query(
       `UPDATE communications.broadcasts
-       SET status = 'sending', recipient_count = $2, updated_at = NOW()
+       SET status = 'sending', recipient_count = $2
        WHERE id = $1`,
       [broadcast.id, recipients.length],
     );
@@ -141,12 +141,12 @@ export async function POST(
       .then(async (res) => {
         if (!res.ok) {
           await db().query(
-            `UPDATE communications.broadcasts SET status = 'failed', updated_at = NOW() WHERE id = $1`,
+            `UPDATE communications.broadcasts SET status = 'failed' WHERE id = $1`,
             [broadcast.id],
           );
         } else {
           await db().query(
-            `UPDATE communications.broadcasts SET status = 'sent', sent_at = NOW(), updated_at = NOW() WHERE id = $1`,
+            `UPDATE communications.broadcasts SET status = 'sent', sent_at = NOW() WHERE id = $1`,
             [broadcast.id],
           );
         }
@@ -154,7 +154,7 @@ export async function POST(
       .catch(async (err) => {
         console.error('[broadcasts send]', err);
         await db().query(
-          `UPDATE communications.broadcasts SET status = 'failed', updated_at = NOW() WHERE id = $1`,
+          `UPDATE communications.broadcasts SET status = 'failed' WHERE id = $1`,
           [broadcast.id],
         );
       });

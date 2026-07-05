@@ -95,7 +95,7 @@ export async function POST(
       } else {
         const ins = await db().query<{ id: string }>(
           `INSERT INTO catalog.venues
-             (promoter_id, name, capacity, city, venue_type, address, country, created_at, updated_at)
+             (promoter_id, name, capacity, city, venue_type, address, country, created_at, last_modified_at)
            VALUES ($1, $2, $3, 'Praha', $4, $5, 'CZ', NOW(), NOW())
            RETURNING id`,
           [promoter.promoterId, venueName, capacity, venueType ?? 'seated', address ?? null],

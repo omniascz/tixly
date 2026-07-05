@@ -78,8 +78,7 @@ export async function POST(
           `UPDATE orders.lottery_entries
            SET status = 'won',
                payment_deadline = $3,
-               draw_position = $4,
-               updated_at = NOW()
+               draw_position = $4
            WHERE id = $1 AND campaign_id = $2`,
           [w.id, campaign.id, paymentDeadline.toISOString(), i + 1],
         );
@@ -92,7 +91,7 @@ export async function POST(
         const loserIds = losers.map((l) => l.id);
         await client.query(
           `UPDATE orders.lottery_entries
-           SET status = 'lost', updated_at = NOW()
+           SET status = 'lost'
            WHERE id = ANY($1::uuid[]) AND campaign_id = $2`,
           [loserIds, campaign.id],
         );
@@ -105,8 +104,7 @@ export async function POST(
         `UPDATE orders.lottery_campaigns
          SET status = 'drawn',
              drawn_at = NOW(),
-             winner_count = $2,
-             updated_at = NOW()
+             winner_count = $2
          WHERE id = $1`,
         [campaign.id, winners.length],
       );
