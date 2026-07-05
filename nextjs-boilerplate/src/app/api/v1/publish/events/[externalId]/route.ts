@@ -104,7 +104,7 @@ export async function PUT(
       if (body.description !== undefined) { prodUpdates.push(`description = $${prodValues.push(body.description)}`); }
       if (prodUpdates.length > 0) {
         await db().query(
-          `UPDATE catalog.productions SET ${prodUpdates.join(', ')}, updated_at = NOW()
+          `UPDATE catalog.productions SET ${prodUpdates.join(', ')}
            WHERE id = (SELECT production_id FROM catalog.events WHERE id = $1)`,
           prodValues,
         );

@@ -30,7 +30,7 @@ export async function POST(
 
     await client.query(
       `UPDATE platform.b2b_accounts
-       SET credit_balance_halire = credit_balance_halire + $2, updated_at = NOW()
+       SET credit_balance_halire = credit_balance_halire + $2
        WHERE id = $1`,
       [accountId, amountHalire],
     );

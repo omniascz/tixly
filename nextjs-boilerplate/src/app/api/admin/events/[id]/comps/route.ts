@@ -214,8 +214,7 @@ export async function POST(
       if (tt.remaining_qty !== null) {
         const decrRes = await client.query<{ remaining_qty: number }>(
           `UPDATE catalog.ticket_types
-           SET remaining_qty = remaining_qty - $1,
-               updated_at = NOW()
+           SET remaining_qty = remaining_qty - $1
            WHERE id = $2 AND remaining_qty >= $1
            RETURNING remaining_qty`,
           [input.quantity, tt.id],

@@ -242,7 +242,7 @@ export async function POST(
 
       await client.query(
         `UPDATE orders.season_passes
-         SET uses_remaining = uses_remaining - 1, updated_at = NOW()
+         SET uses_remaining = uses_remaining - 1
          WHERE id = $1`,
         [pass.id],
       );

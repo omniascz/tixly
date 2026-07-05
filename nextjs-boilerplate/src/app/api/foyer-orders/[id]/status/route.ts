@@ -27,7 +27,7 @@ export async function PATCH(
 
     const r = await db().query(
       `UPDATE orders.foyer_orders fo
-       SET status = $1, updated_at = now()
+       SET status = $1
        WHERE fo.id = $2
          AND EXISTS (
            SELECT 1 FROM catalog.events e

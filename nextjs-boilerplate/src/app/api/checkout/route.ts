@@ -2093,7 +2093,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       b2bAccountId = b2bRes.rows[0].id;
       await client.query(
         `UPDATE platform.b2b_accounts
-         SET credit_balance_halire = credit_balance_halire - $2, updated_at = NOW()
+         SET credit_balance_halire = credit_balance_halire - $2
          WHERE id = $1`,
         [b2bAccountId, totalAmount],
       );
