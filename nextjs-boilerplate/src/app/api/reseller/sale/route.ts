@@ -71,7 +71,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     let userRes = await client.query<UserRow>(
-      `SELECT id FROM auth.users WHERE email = $1 LIMIT 1`,
+      `SELECT id FROM identity.users WHERE email = $1 AND anonymized_at IS NULL LIMIT 1`,
       [buyerEmail],
     )
     let userId: string
@@ -79,15 +79,18 @@ export async function POST(req: NextRequest): Promise<Response> {
       userId = userRes.rows[0].id
     } else {
       userId = randomUUID()
-      await client.query(
-        `INSERT INTO auth.users (id, email, name, is_platform_admin)
-         VALUES ($1, $2, $3, false)
-         ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name
+      // identity.users: guest se sentinel password_hash (nemůže se přihlásit),
+      // gdpr_consent_at je NOT NULL bez defaultu. ON CONFLICT musí odpovídat
+      // PARTIAL unique indexu uq_identity_users_email_active (WHERE anonymized_at IS NULL),
+      // jinak 42P10 — stejný vzor jako checkout/season-passes.
+      const ins = await client.query<UserRow>(
+        `INSERT INTO identity.users (id, email, name, is_platform_admin, password_hash, gdpr_consent_at)
+         VALUES ($1, $2, $3, false, '!guest', NOW())
+         ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE SET name = EXCLUDED.name
          RETURNING id`,
         [userId, buyerEmail, buyerName],
       )
-      const refetch = await client.query<UserRow>(`SELECT id FROM auth.users WHERE email = $1`, [buyerEmail])
-      userId = refetch.rows[0].id
+      userId = ins.rows[0].id
     }
 
     const totalAmount = tt.base_price * quantity
