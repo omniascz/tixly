@@ -23,6 +23,13 @@ import { fbqTrack } from '@/lib/tracking/fbq';
 // "foyer pre-order → přepsat na jsonb model E2E" (REMEDIATION.md).
 const FOYER_PREORDER_ENABLED = false;
 
+// Digitální program-booklet DOČASNĚ VYPNUT — schema drift (třída 3): catalog.event_programs je
+// rozvrhová/timetable tabulka, prodejní booklet sloupce (program_price_halire, is_published)
+// neexistují → checkout :2233 by spadl 42703 PO commitu. Backend addProgram fail-closed odmítá;
+// tady navíc nenačítáme programInfo, aby se checkbox nevykreslil (nespoléhat na to, že loader
+// právě teď 500-uje). Re-enable až po feature ticketu "digitální program-booklet subsystém".
+const PROGRAM_PURCHASE_ENABLED = false;
+
 function CheckoutForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -435,6 +442,7 @@ function CheckoutForm() {
   }, [eventId]);
 
   useEffect(() => {
+    if (!PROGRAM_PURCHASE_ENABLED) return; // program-booklet dočasně vypnut (viz konstanta nahoře)
     if (!eventId) return;
     fetch(`/api/programs/${eventId}`)
       .then((r) => (r.ok ? r.json() : null))

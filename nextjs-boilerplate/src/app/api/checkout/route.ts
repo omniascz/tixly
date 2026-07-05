@@ -261,6 +261,26 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
   }
 
+  // Early-guard: digitální program-booklet je DOČASNĚ NEDOSTUPNÝ (schema drift, třída 3 ORPHAN).
+  // catalog.event_programs je v prod schématu ROZVRHOVÁ/timetable tabulka — booklet sloupce
+  // (program_price_halire, is_published) NEEXISTUJÍ nikde. Post-commit blok níže by proto spadl
+  // 42703 AŽ PO COMMITu objednávky (:2128) → buyer platí, dostane 500, objednávka drží inventář =
+  // orphan. Fail-closed JEŠTĚ PŘED vytvořením objednávky (stejně jako crypto guard výše):
+  // žádná objednávka, žádný orphan, čisté odmítnutí místo 42703-crashe. Z běžného UI addProgram
+  // nikdy nepřijde (fieldset skryt); tohle je pojistka proti přímému API POST.
+  // Znovuzapnutí = feature ticket "digitální program-booklet subsystém" (REMEDIATION.md).
+  if (input.addProgram) {
+    // 503 (ne 400) — sjednoceno s crypto guardem výše (PAYMENT_METHOD_UNAVAILABLE):
+    // request není chybný, feature je dočasně nedostupná.
+    return NextResponse.json(
+      {
+        error: 'PROGRAM_PURCHASE_UNAVAILABLE',
+        message: 'Digitální program není momentálně dostupný.',
+      },
+      { status: 503 },
+    );
+  }
+
   const client = await db().connect();
 
   try {
@@ -2186,6 +2206,11 @@ export async function POST(req: NextRequest): Promise<Response> {
     void input.foyerItems; // schema-accepted, ale záměrně nepersistováno (viz výše)
 
     // Digitální program (mig 359) — INSERT program_purchase + vrátit access_token.
+    // ⚠️ NEDOSAŽITELNÉ: input.addProgram je fail-closed odmítnut early-guardem výše
+    // (před BEGIN), takže sem s addProgram=true nikdy nedojde. Blok PONECHÁN ZÁMĚRNĚ jako
+    // baseline dluh (SELECT event_programs = drift třídy 3, event_programs je rozvrhová tabulka,
+    // program_price_halire/is_published neexistují). NEOPRAVOVAT column-fixem ani migrací tvořící
+    // booklet sloupce = to je featura (viz feature ticket v REMEDIATION.md).
     let programAccessToken: string | undefined;
     if (input.addProgram) {
       const progRow = await db().query<{ id: string; program_price_halire: number }>(
