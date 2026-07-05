@@ -78,7 +78,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     if (wiseStatus === 'outgoing_payment_sent') {
       const upd = await db().query(
         `UPDATE platform.payouts
-         SET status = 'paid', executed_at = COALESCE(executed_at, NOW()), updated_at = NOW()
+         SET status = 'paid', executed_at = COALESCE(executed_at, NOW())
          WHERE external_payout_id = $1 AND payout_provider = 'wise'
            AND status IN ('processing', 'pending')`,
         [transferId],
@@ -88,8 +88,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       await db().query(
         `UPDATE platform.payouts
          SET status = 'failed',
-             failure_reason = $2,
-             updated_at = NOW()
+             failure_reason = $2
          WHERE external_payout_id = $1 AND payout_provider = 'wise'`,
         [transferId, `Wise status: ${wiseStatus}`],
       );

@@ -86,7 +86,7 @@ export async function executePayout(row: PromoterPayoutRow): Promise<ExecuteResu
 
   await db().query(
     `UPDATE platform.payouts
-     SET status = 'failed', failure_reason = $2, updated_at = NOW()
+     SET status = 'failed', failure_reason = $2
      WHERE id = $1`,
     [row.payout_id, reason],
   );
@@ -163,7 +163,7 @@ async function executeWisePayout(
       `UPDATE platform.payouts
        SET status = 'processing', payout_provider = 'wise',
            external_payout_id = $2, executed_at = NOW(),
-           failure_reason = NULL, updated_at = NOW()
+           failure_reason = NULL
        WHERE id = $1`,
       [row.payout_id, String(transfer.id)],
     );
@@ -214,7 +214,7 @@ async function executePayPalPayout(
       `UPDATE platform.payouts
        SET status = 'processing', payout_provider = 'paypal',
            external_payout_id = $2, executed_at = NOW(),
-           failure_reason = NULL, updated_at = NOW()
+           failure_reason = NULL
        WHERE id = $1`,
       [row.payout_id, result.batchId],
     );
@@ -245,7 +245,7 @@ async function executeFioPayout(
   await db().query(
     `UPDATE platform.payouts
      SET status = 'processing', payout_provider = 'fio',
-         executed_at = NOW(), failure_reason = $2, updated_at = NOW()
+         executed_at = NOW(), failure_reason = $2
      WHERE id = $1`,
     [
       row.payout_id,
@@ -268,7 +268,7 @@ async function failPayout(payoutId: string, reason: string, retryCount: number):
   await db().query(
     `UPDATE platform.payouts
      SET status = $2, failure_reason = $3,
-         retry_count = retry_count + 1, updated_at = NOW()
+         retry_count = retry_count + 1
      WHERE id = $1`,
     [payoutId, newStatus, reason.slice(0, 500)],
   );
