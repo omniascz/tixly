@@ -82,9 +82,9 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     // Create/upsert buyer user
     const userRes = await client.query<{ id: string }>(
-      `INSERT INTO identity.users (email, name, phone, password_hash, status)
-       VALUES (LOWER($1), $2, $3, '', 'active')
-       ON CONFLICT (email) DO UPDATE
+      `INSERT INTO identity.users (email, name, phone, password_hash, gdpr_consent_at)
+       VALUES (LOWER($1), $2, $3, '!guest', NOW())
+       ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE
          SET name = COALESCE(EXCLUDED.name, identity.users.name),
              phone = COALESCE(EXCLUDED.phone, identity.users.phone),
              updated_at = NOW()

@@ -168,8 +168,8 @@ export async function POST(
 
       // Resolve or create recipient user
       const userRes = await client.query<{ id: string }>(
-        `INSERT INTO identity.users (email, name, password_hash, status, created_at, updated_at)
-         VALUES (LOWER($1), $2, '', 'active', NOW(), NOW())
+        `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at, created_at, updated_at)
+         VALUES (LOWER($1), $2, '!guest', NOW(), NOW(), NOW())
          ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE
            SET name = COALESCE(EXCLUDED.name, identity.users.name),
                updated_at = NOW()

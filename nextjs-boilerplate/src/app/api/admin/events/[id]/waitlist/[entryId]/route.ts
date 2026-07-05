@@ -74,9 +74,9 @@ export async function PATCH(
     const basePrice = ttRes.rows[0]?.base_price ?? 0;
 
     const userRes = await db().query<{ id: string }>(
-      `INSERT INTO identity.users (email, name, password_hash, status)
-       VALUES (LOWER($1), $2, '', 'active')
-       ON CONFLICT (email) DO UPDATE SET updated_at = NOW()
+      `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at)
+       VALUES (LOWER($1), $2, '!guest', NOW())
+       ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE SET updated_at = NOW()
        RETURNING id`,
       [entry.email, entry.name ?? entry.email],
     );
