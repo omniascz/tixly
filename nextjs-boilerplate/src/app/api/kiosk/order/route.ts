@@ -59,7 +59,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       }>(
         `SELECT id, name, base_price, remaining_qty, is_seated
            FROM catalog.ticket_types
-          WHERE id = $1 AND event_id = $2 AND is_active = true
+          WHERE id = $1 AND event_id = $2
           FOR UPDATE`,
         [input.ticketTypeId, input.eventId],
       );

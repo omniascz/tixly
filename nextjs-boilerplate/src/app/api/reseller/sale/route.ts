@@ -56,7 +56,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const ttRes = await client.query<TicketTypeRow>(
       `SELECT id, base_price, remaining_qty, name, event_id
        FROM catalog.ticket_types
-       WHERE id = $1 AND event_id = $2 AND is_active = true
+       WHERE id = $1 AND event_id = $2
        FOR UPDATE`,
       [ticketTypeId, eventId],
     )
@@ -105,9 +105,9 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     await client.query(
       `INSERT INTO orders.order_items
-         (id, order_id, ticket_type_id, quantity, unit_price)
-       VALUES (gen_random_uuid(), $1, $2, $3, $4)`,
-      [orderId, ticketTypeId, quantity, tt.base_price],
+         (id, order_id, ticket_type_id, quantity, unit_price, total_price)
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5)`,
+      [orderId, ticketTypeId, quantity, tt.base_price, tt.base_price * quantity],
     )
 
     await client.query(
