@@ -151,14 +151,13 @@ export async function POST(
     // takže celá kapacita je okamžitě dostupná i za aktivního prodeje.
     const r = await db().query<{ id: string }>(
       `INSERT INTO catalog.ticket_types
-         (event_id, name, description, kind, base_price, total_qty, remaining_qty,
+         (event_id, name, kind, base_price, total_qty, remaining_qty,
           max_per_user, zone, is_seated, stream_access, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $6, $7, $8, $9, $10, NOW())
+       VALUES ($1, $2, $3, $4, $5, $5, $6, $7, $8, $9, NOW())
        RETURNING id`,
       [
         params.id,
         input.name,
-        input.description ?? null,
         input.kind ?? 'standing',
         input.priceHalire,
         input.totalQty,

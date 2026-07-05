@@ -100,10 +100,8 @@ export async function POST(
     const ttMappingRes = await client.query<{ old_id: string; new_id: string }>(
       `WITH inserted AS (
         INSERT INTO catalog.ticket_types
-          (event_id, name, description, base_price, currency, vat_pct,
-           total_qty, remaining_qty, visibility, sort_order)
-        SELECT $2, name, description, base_price, currency, vat_pct,
-               total_qty, total_qty, visibility, sort_order
+          (event_id, name, kind, base_price, total_qty, remaining_qty, visibility)
+        SELECT $2, name, kind, base_price, total_qty, total_qty, visibility
           FROM catalog.ticket_types
          WHERE event_id = $1
         RETURNING id, name

@@ -164,10 +164,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     for (const tt of body.tickets) {
       const ttRes = await db().query<{ id: string }>(
         `INSERT INTO catalog.ticket_types
-           (event_id, name, price_halire, currency, capacity_total, capacity_remaining, status)
-         VALUES ($1, $2, $3, $4, $5, $5, 'on_sale')
+           (event_id, name, base_price, total_qty, remaining_qty, kind)
+         VALUES ($1, $2, $3, $4, $4, 'standing')
          RETURNING id`,
-        [eventId, tt.name, tt.price, tt.currency, tt.capacity],
+        [eventId, tt.name, tt.price, tt.capacity],
       );
       ticketTypes.push({ externalId: tt.externalId, ticketTypeId: ttRes.rows[0].id });
     }

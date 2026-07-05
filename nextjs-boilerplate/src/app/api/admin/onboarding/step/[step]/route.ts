@@ -223,10 +223,10 @@ export async function POST(
       for (const tt of limited) {
         const r = await db().query<{ id: string }>(
           `INSERT INTO catalog.ticket_types
-             (event_id, name, description, base_price, total_qty, remaining_qty, visibility, is_seated)
-           VALUES ($1, $2, $3, $4, $5, $5, 'public', false)
+             (event_id, name, kind, base_price, total_qty, remaining_qty, visibility, is_seated)
+           VALUES ($1, $2, 'standing', $3, $4, $4, 'public', false)
            RETURNING id`,
-          [eventId, tt.name, tt.description ?? null, tt.priceHalire, tt.quantity],
+          [eventId, tt.name, tt.priceHalire, tt.quantity],
         );
         ticketTypeIds.push(r.rows[0].id);
       }

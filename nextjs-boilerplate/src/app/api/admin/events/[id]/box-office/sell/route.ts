@@ -75,9 +75,9 @@ export async function POST(
       // Ensure guest user exists
       let userId: string;
       const userRes = await client.query<{ id: string }>(
-        `INSERT INTO identity.users (email, name, password_hash, email_verified)
-         VALUES ($1, $2, '', true)
-         ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name
+        `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at)
+         VALUES ($1, $2, '!guest', NOW())
+         ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE SET name = EXCLUDED.name
          RETURNING id`,
         [buyerEmail.toLowerCase(), buyerName],
       );

@@ -163,9 +163,9 @@ export async function POST(req: NextRequest): Promise<Response> {
       const last_purchase_at = lastPurchaseRaw ? new Date(lastPurchaseRaw) : null;
 
       const userRes = await db().query(
-        `INSERT INTO identity.users (email, name, role, password_hash)
-         VALUES ($1, $2, 'buyer', '$2b$10$placeholder_import_hash')
-         ON CONFLICT (email) DO UPDATE SET name = COALESCE(EXCLUDED.name, identity.users.name)
+        `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at)
+         VALUES ($1, $2, '$2b$10$placeholder_import_hash', NOW())
+         ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE SET name = COALESCE(EXCLUDED.name, identity.users.name)
          RETURNING id`,
         [email, name],
       );

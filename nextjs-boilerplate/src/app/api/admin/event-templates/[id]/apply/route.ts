@@ -89,10 +89,10 @@ export async function POST(
       for (const tt of data.ticket_types) {
         await client.query(
           `INSERT INTO catalog.ticket_types
-             (event_id, name, description, base_price, total_qty, remaining_qty, visibility)
-           VALUES ($1, $2, $3, $4, $5, $5, $6)`,
+             (event_id, name, kind, base_price, total_qty, remaining_qty, visibility)
+           VALUES ($1, $2, 'standing', $3, $4, $4, $5)`,
           [
-            parsed.data.eventId, tt.name, tt.description ?? null,
+            parsed.data.eventId, tt.name,
             tt.base_price ?? 0, tt.total_qty ?? 100, tt.visibility ?? 'public',
           ],
         );
@@ -105,12 +105,11 @@ export async function POST(
       const vip = data.vip_package;
       await client.query(
         `INSERT INTO catalog.ticket_types
-           (event_id, name, description, base_price, total_qty, remaining_qty, visibility)
-         VALUES ($1, $2, $3, $4, $5, $5, 'public')`,
+           (event_id, name, kind, base_price, total_qty, remaining_qty, visibility)
+         VALUES ($1, $2, 'standing', $3, $4, $4, 'public')`,
         [
           parsed.data.eventId,
           vip.name,
-          vip.description + '\n\n' + (vip.benefits ?? []).map((b) => `• ${b}`).join('\n'),
           vip.price, 10,
         ],
       );
