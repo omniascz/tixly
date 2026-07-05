@@ -46,7 +46,7 @@ export async function POST(
       base_price: number; total_qty: number;
       max_per_user: number | null; zone: string | null;
     }>(
-      `SELECT name, description, base_price, total_qty, max_per_user, zone
+      `SELECT name, NULL::text AS description, base_price, total_qty, max_per_user, zone
        FROM catalog.ticket_types WHERE event_id = $1 ORDER BY created_at`,
       [params.id],
     );
