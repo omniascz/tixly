@@ -141,7 +141,7 @@ export async function POST(
                 tt.remaining_qty
          FROM catalog.ticket_types tt
          JOIN catalog.events e ON e.id = tt.event_id
-         WHERE tt.id = $1 AND tt.event_id = $2 AND tt.is_published = TRUE`,
+         WHERE tt.id = $1 AND tt.event_id = $2 AND tt.visibility = 'public'`,
         [input.ticketTypeId, eventId],
       );
       if (ttRes.rows.length === 0) {

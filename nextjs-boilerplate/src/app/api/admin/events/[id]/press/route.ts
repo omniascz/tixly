@@ -124,10 +124,12 @@ export async function PATCH(
       await client.query('BEGIN');
 
       const ttRes = await client.query<{ id: string; currency: string }>(
-        `SELECT id, currency FROM catalog.ticket_types
-         WHERE event_id = $1 AND is_published = TRUE
-         ORDER BY sort_order, created_at
-         LIMIT 1`,
+        `SELECT tt.id, e.currency
+           FROM catalog.ticket_types tt
+           JOIN catalog.events e ON e.id = tt.event_id
+          WHERE tt.event_id = $1 AND tt.visibility = 'public'
+          ORDER BY tt.created_at
+          LIMIT 1`,
         [eventId],
       );
       if (ttRes.rows.length === 0) {
