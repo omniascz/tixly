@@ -41,7 +41,7 @@ export async function GET(
          JOIN catalog.venues v ON v.id = e.venue_id
          JOIN platform.promoters p ON p.id = e.promoter_id
         WHERE ea.artist_id = $1
-          AND e.published = true
+          AND e.status = 'published'
           AND e.date_start >= now()
         ORDER BY e.date_start ASC
         LIMIT 20`,

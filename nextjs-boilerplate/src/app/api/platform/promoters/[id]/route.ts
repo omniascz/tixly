@@ -76,10 +76,10 @@ export async function GET(
       [params.id],
     ),
     db().query<{ id: string; doc_type: string; file_url: string; uploaded_at: string }>(
-      `SELECT id, doc_type, file_url, uploaded_at
+      `SELECT id, type AS doc_type, file_url, created_at AS uploaded_at
          FROM platform.promoter_documents
         WHERE promoter_id = $1
-        ORDER BY uploaded_at DESC`,
+        ORDER BY created_at DESC`,
       [params.id],
     ).catch(() => ({ rows: [] as { id: string; doc_type: string; file_url: string; uploaded_at: string }[] })),
   ]);

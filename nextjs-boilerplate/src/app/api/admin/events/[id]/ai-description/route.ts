@@ -53,7 +53,7 @@ export async function POST(
 
   const ev = await db().query<EventRow>(
     `SELECT e.id, e.title, e.event_type, v.name AS venue_name, v.city,
-            e.event_date::text AS event_date
+            e.date_start::text AS event_date
      FROM catalog.events e
      LEFT JOIN catalog.venues v ON v.id = e.venue_id
      WHERE e.id = $1 AND e.promoter_id = $2`,
