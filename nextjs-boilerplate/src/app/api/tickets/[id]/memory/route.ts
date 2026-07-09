@@ -41,7 +41,7 @@ export async function GET(
               ct.quote, ct.theme_color, ct.accent_color, ct.custom_message,
               tt.name AS ticket_type_name,
               CASE WHEN es.id IS NOT NULL
-                   THEN concat_ws(' ', es.sector, es.row_label, es.seat_number::text)
+                   THEN concat_ws(' ', es.sector, es.row, es.seat_number::text)
                    ELSE NULL END AS seat_label
          FROM tickets.tickets t
          JOIN orders.orders o ON o.id = t.order_id

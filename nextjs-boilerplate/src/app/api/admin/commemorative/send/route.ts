@@ -63,7 +63,7 @@ async function executeSend(eventId: string): Promise<Response> {
     const tickets = await db().query<TicketRow>(
       `SELECT t.id,
               CASE WHEN es.id IS NOT NULL
-                   THEN concat_ws(' ', es.sector, es.row_label, es.seat_number::text)
+                   THEN concat_ws(' ', es.sector, es.row, es.seat_number::text)
                    ELSE NULL END AS seat_label,
               u.email AS buyer_email,
               u.name  AS buyer_name,
