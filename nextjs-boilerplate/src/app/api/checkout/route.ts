@@ -672,7 +672,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         x: number | null;
         y: number | null;
       }>(
-        `SELECT id, status, ticket_type_id, hold_until, x, y FROM catalog.event_seats
+        `SELECT id, status, ticket_type_id, hold_until, x_coord AS x, y_coord AS y FROM catalog.event_seats
          WHERE id = ANY($1::uuid[]) AND event_id = $2 AND notes = $3
          FOR UPDATE`,
         [input.seatIds, input.eventId, input.seatHoldToken],
@@ -727,7 +727,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       if (distN > 0) {
         const mySeats = heldSeats.rows.map((s) => ({ id: s.id, x: s.x ?? 0, y: s.y ?? 0 }));
         const conflictRes = await client.query<{ id: string; x: number; y: number }>(
-          `SELECT id, x, y FROM catalog.event_seats
+          `SELECT id, x_coord AS x, y_coord AS y FROM catalog.event_seats
             WHERE event_id = $1
               AND id != ALL($2::uuid[])
               AND status IN ('sold', 'held')
