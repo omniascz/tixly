@@ -224,7 +224,7 @@ export async function POST(
           row_label: string | null;
           seat_num: string | null;
         }>(
-          `SELECT id, status, row_label, seat_num
+          `SELECT id, status, row AS row_label, seat_number AS seat_num
              FROM catalog.event_seats
             WHERE id = $1 AND event_id = $2
               FOR UPDATE`,
@@ -243,10 +243,10 @@ export async function POST(
           row_label: string | null;
           seat_num: string | null;
         }>(
-          `SELECT id, row_label, seat_num
+          `SELECT id, row AS row_label, seat_number AS seat_num
              FROM catalog.event_seats
             WHERE event_id = $1 AND status = 'available'
-            ORDER BY row_label, seat_num
+            ORDER BY row, seat_number
             LIMIT 1
               FOR UPDATE`,
           [parsed.data.targetEventId],
