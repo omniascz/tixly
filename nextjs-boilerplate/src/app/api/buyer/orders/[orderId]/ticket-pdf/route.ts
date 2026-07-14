@@ -50,13 +50,14 @@ export async function GET(
             e.fan_artwork_url,
             v.name AS venue_name,
             p.name AS promoter_name,
-            o.buyer_email,
-            o.buyer_name,
+            u.email AS buyer_email,
+            u.name AS buyer_name,
             p.brand_color_hex,
             p.brand_logo_url,
             p.vat_rate_pct
      FROM orders.orders o
      JOIN catalog.events e ON e.id = o.event_id
+     JOIN identity.users u ON u.id = o.user_id
      LEFT JOIN catalog.venues v ON v.id = e.venue_id
      LEFT JOIN platform.promoters p ON p.id = e.promoter_id
      WHERE o.id = $1 AND o.status = 'paid'`,
