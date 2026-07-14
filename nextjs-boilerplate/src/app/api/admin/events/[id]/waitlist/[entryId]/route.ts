@@ -62,8 +62,9 @@ export async function PATCH(
     }
 
     const ttRes = await db().query<{ id: string; currency: string; base_price: number }>(
-      `SELECT id, currency, base_price FROM catalog.ticket_types
-       WHERE event_id = $1 AND status = 'published'
+      `SELECT id, (SELECT currency FROM catalog.events WHERE id = $1) AS currency, base_price
+       FROM catalog.ticket_types
+       WHERE event_id = $1 AND visibility = 'public'
        ORDER BY base_price ASC
        LIMIT 1`,
       [params.id],
