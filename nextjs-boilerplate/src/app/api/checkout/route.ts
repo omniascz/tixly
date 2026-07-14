@@ -913,8 +913,8 @@ export async function POST(req: NextRequest): Promise<Response> {
          JOIN orders.orders o ON o.id = oi.order_id
          WHERE o.event_id = $1
            AND o.status IN ('pending', 'paid')
-           AND (o.user_id = $2 OR LOWER(o.buyer_email) = LOWER($3))`,
-        [input.eventId, userId, input.buyerEmail],
+           AND o.user_id = $2`,
+        [input.eventId, userId],
       );
       const eventAlreadyBought = parseInt(eventBoughtRes.rows[0]?.total ?? '0', 10);
       if (eventAlreadyBought + input.quantity > tt.max_tickets_per_buyer) {
@@ -939,8 +939,8 @@ export async function POST(req: NextRequest): Promise<Response> {
          JOIN orders.orders o ON o.id = oi.order_id
          WHERE oi.ticket_type_id = $1
            AND o.status IN ('pending', 'paid')
-           AND (o.user_id = $2 OR LOWER(o.buyer_email) = LOWER($3))`,
-        [tt.id, userId, input.buyerEmail],
+           AND o.user_id = $2`,
+        [tt.id, userId],
       );
       const ttAlreadyBought = parseInt(ttBoughtRes.rows[0]?.total ?? '0', 10);
       if (ttAlreadyBought + input.quantity > tt.max_per_buyer) {
