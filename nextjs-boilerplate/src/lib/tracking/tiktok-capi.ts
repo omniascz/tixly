@@ -104,7 +104,7 @@ export async function sendTikTokEvent(
       void db()
         .query(
           `INSERT INTO marketing.tracking_events
-             (event_name, platform, status, promoter_event_id, order_id, payload, created_at)
+             (event_type, provider, status, event_id, order_id, payload, created_at)
            VALUES ($1, 'tiktok', $2, $3, $4, $5::jsonb, NOW())`,
           [
             input.eventName,
@@ -114,7 +114,10 @@ export async function sendTikTokEvent(
             JSON.stringify({ eventId, pixelId: input.pixelId, response: responseBody }),
           ],
         )
-        .catch(() => {});
+        .catch((err) =>
+          // best-effort audit log — nesmí shodit konverzi, ale selhání má být viditelné
+          console.warn('[tiktok-capi] tracking_events audit log failed', err),
+        );
     }
 
     return { ok, error: ok ? undefined : JSON.stringify(responseBody) };
