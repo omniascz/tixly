@@ -118,12 +118,24 @@ export async function POST(req: NextRequest): Promise<Response> {
       // Tabulka může mít jiný název v této instalaci, ignore
     });
 
-    // Audit
+    // Audit.
+    // Dva blockery, oba doložené reálným během proti klonu prod schématu:
+    //  1) `$1` krmil `record_id` (text) I `actor_id` (uuid) → Postgres neumí
+    //     odvodit jeden typ pro jeden parametr → 42P08 UŽ PŘI PARSE, tedy ještě
+    //     před kontrolou CHECKu. Proto dva parametry s explicitními casty.
+    //  2) `actor_type='self'` není v `audit_log_actor_type_check`
+    //     (povoleno user/system/admin/platform_admin/gate/promoter). Kanonická
+    //     hodnota pro koncového uživatele jednajícího na svém vlastním účtu je
+    //     `'user'` — tak to má 13 dalších lokací (buyer/orders/refund,
+    //     buyer/tickets/transfer, buyer/subscriptions…). `'self'` byl jediný
+    //     výskyt v celém repu.
+    // Důsledek PŘED opravou: 42P08 → catch → ROLLBACK → HTTP 500 a heslo se
+    // NEZMĚNILO. Tohle je RESTORE rozbité funkce, ne změna chování.
     await client.query(
       `INSERT INTO audit.audit_log
          (schema_name, table_name, record_id, action, actor_id, actor_type, new_values)
-       VALUES ('identity', 'users', $1, 'UPDATE', $1, 'self', $2::jsonb)`,
-      [matchedUserId, JSON.stringify({ event: 'password_reset', ip })],
+       VALUES ('identity', 'users', $1::text, 'UPDATE', $2::uuid, 'user', $3::jsonb)`,
+      [matchedUserId, matchedUserId, JSON.stringify({ event: 'password_reset', ip })],
     );
 
     await client.query('COMMIT');
