@@ -8,43 +8,23 @@
  *     Unit test nad textem SQL tenhle rozdíl typů nemůže znát.
  *   - `23514` závisí na obsahu `audit_log_actor_type_check`.
  * Aserce nad řetězcem SQL by byla tautologie („SQL obsahuje 'user'"), která
- * nedokazuje, že cesta projde. Proto sem, do live dráhy, kde už je zavedený
- * lifecycle ephemeral klonu.
+ * nedokazuje, že cesta projde.
  *
- * Test volá SKUTEČNÝ route handler, ne repliku SQL — replika by mohla
- * divergovat od routy přesně v tom, co se testuje.
- *
- * Bez `NEON_API_KEY` se přeskočí.
+ * Test volá SKUTEČNÝ route handler, ne repliku SQL.
+ * Klon i seed jdou přes `tests/helpers/live-fixture`.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { NextRequest } from 'next/server';
-import { Pool } from 'pg';
+import type { Pool } from 'pg';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 
-const NEON_API = 'https://console.neon.tech/api/v2';
-const PROJECT = 'fragrant-wildflower-75132205';
-const PARENT_BRANCH = 'br-rough-paper-alom0zky';
-const DB_NAME = 'neondb';
-const ROLE = 'neondb_owner';
+import { createLiveClone, makeSeed, hasNeonKey, type LiveClone, type Seed } from './helpers/live-fixture';
 
-const apiKey = process.env.NEON_API_KEY;
-
-async function neon(path: string, init: RequestInit = {}) {
-  const res = await fetch(NEON_API + path, {
-    ...init,
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-  });
-  const body = await res.text();
-  if (!res.ok) throw new Error(`Neon API ${res.status}: ${body}`);
-  return body ? JSON.parse(body) : null;
-}
-
-describe.skipIf(!apiKey)('auth/reset-password proti reálnému schématu (live)', () => {
-  let branchId: string | null = null;
+describe.skipIf(!hasNeonKey)('auth/reset-password proti reálnému schématu (live)', () => {
+  let clone: LiveClone;
   let pool: Pool;
-
-  const run = `${Date.now()}`;
+  let seed: Seed;
 
   function req(body: unknown): NextRequest {
     return new Request('http://x/api/auth/reset-password', {
@@ -54,23 +34,17 @@ describe.skipIf(!apiKey)('auth/reset-password proti reálnému schématu (live)'
     }) as unknown as NextRequest;
   }
 
-  /** Založí uživatele s platným reset tokenem. Vrací i plaintext token. */
-  async function seedUserWithToken(label: string) {
-    const email = `reset-${label}-${run}@tixly.test`;
-    const u = await pool.query<{ id: string }>(
-      `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at)
-       VALUES ($1, 'Reset Tester', '!guest', NOW()) RETURNING id`,
-      [email],
-    );
-    const userId = u.rows[0].id;
+  /** Uživatel (přes seed factory) + platný reset token. Vrací i plaintext token. */
+  async function withResetToken(label: string) {
+    const u = await seed.user(label, 'Reset Tester');
     const token = randomUUID();
     const tokenHash = await bcrypt.hash(token, 4);
     const t = await pool.query<{ id: string }>(
       `INSERT INTO identity.password_reset_tokens (user_id, token_hash, expires_at)
        VALUES ($1, $2, NOW() + INTERVAL '1 hour') RETURNING id`,
-      [userId, tokenHash],
+      [u.id, tokenHash],
     );
-    return { userId, tokenId: t.rows[0].id, token, email };
+    return { userId: u.id, tokenId: t.rows[0].id, token, email: u.email };
   }
 
   async function secretOf(userId: string): Promise<string | null> {
@@ -82,37 +56,13 @@ describe.skipIf(!apiKey)('auth/reset-password proti reálnému schématu (live)'
   }
 
   beforeAll(async () => {
-    const created = await neon(`/projects/${PROJECT}/branches`, {
-      method: 'POST',
-      body: JSON.stringify({
-        branch: { parent_id: PARENT_BRANCH, name: `reset-pw-${run}` },
-        endpoints: [{ type: 'read_write' }],
-      }),
-    });
-    branchId = created.branch.id;
-    await new Promise((r) => setTimeout(r, 4000));
-    const { uri } = await neon(
-      `/projects/${PROJECT}/connection_uri?branch_id=${branchId}&role_name=${ROLE}&database_name=${DB_NAME}`,
-    );
-    process.env.DATABASE_URL = uri;
-    pool = new Pool({ connectionString: uri, max: 4 });
+    clone = await createLiveClone('reset-pw');
+    pool = clone.pool;
+    seed = makeSeed(pool);
   }, 180_000);
 
   afterAll(async () => {
-    if (pool) await pool.end().catch(() => undefined);
-    // Líný pool z rls-pool musí zmizet PŘED smazáním větve, jinak
-    // `Connection terminated unexpectedly` → unhandled error → exit 1.
-    try {
-      const { db: appDb } = await import('@/lib/db/rls-pool');
-      await appDb().end();
-    } catch {
-      /* nikdy neinicializován / už zavřený */
-    }
-    if (branchId) {
-      await neon(`/projects/${PROJECT}/branches/${branchId}`, { method: 'DELETE' }).catch((e) =>
-        console.error('[cleanup] větev nesmazána:', branchId, e),
-      );
-    }
+    await clone?.cleanup();
   }, 60_000);
 
   it('audit_log CHECK a typy sloupců jsou pořád takové, jak fix předpokládá', async () => {
@@ -139,7 +89,7 @@ describe.skipIf(!apiKey)('auth/reset-password proti reálnému schématu (live)'
 
   it('reset hesla DOBĚHNE a heslo se REÁLNĚ změní', async () => {
     const { POST } = await import('@/app/api/auth/reset-password/route');
-    const s = await seedUserWithToken('ok');
+    const s = await withResetToken('ok');
     const before = await secretOf(s.userId);
 
     const res = await POST(req({ token: s.token, newPassword: 'NovéHeslo123!' }));
@@ -162,7 +112,7 @@ describe.skipIf(!apiKey)('auth/reset-password proti reálnému schématu (live)'
 
   it('audit řádek se zapíše s actor_type=user a actor_id = vlastní id', async () => {
     const { POST } = await import('@/app/api/auth/reset-password/route');
-    const s = await seedUserWithToken('audit');
+    const s = await withResetToken('audit');
 
     const res = await POST(req({ token: s.token, newPassword: 'JinéHeslo456!' }));
     expect(res.status).toBe(200);
@@ -189,7 +139,7 @@ describe.skipIf(!apiKey)('auth/reset-password proti reálnému schématu (live)'
 
   it('neplatný token nic nezmění (fix neotevřel cestu bez tokenu)', async () => {
     const { POST } = await import('@/app/api/auth/reset-password/route');
-    const s = await seedUserWithToken('badtoken');
+    const s = await withResetToken('badtoken');
     const before = await secretOf(s.userId);
 
     const res = await POST(req({ token: randomUUID(), newPassword: 'Nepovolené789!' }));
