@@ -697,3 +697,37 @@ baseline není úplný". Bylo to **měření vlastní chyby** — `execSync` jde
 Windows přes `cmd.exe`, kde `&` v connection URI rozsekne příkaz, psql se
 nespustil a porovnávalo se proti prázdnu. Opraveno `execFileSync` s polem
 argumentů + tvrdou kontrolou „tabulek > 0" PŘED porovnáním.
+
+### §19b Doplnění: triggery a sekvence (mezera v původním ověření)
+
+Ověření v `8a2822c` porovnalo **4 dimenze** z šesti, které měly být porovnány —
+`pg_trigger` a sekvence chyběly, a přesto byl commit pojmenován „OVĚŘENÝ".
+Doplněno proti klonu obnovenému **z verze v repu** (ne ze scratchpadu):
+
+```
+                       produkce   klon po baseline
+triggers (pg_get_triggerdef)  36        36     0 rozdílů
+sequences (typ/start/inc/min/max/cycle) 15  15  0 rozdílů
+seqOwners (sekvence → sloupec, pg_depend) 15 15  0 rozdílů
+```
+
+Guard potvrdil aplikaci před porovnáním: `tabulek=607, policies=596`.
+
+`seqOwners` je tam schválně: kdyby baseline sekvenci vytvořil, ale neuvázal ji
+k sloupci, `DEFAULT nextval(...)` by přestal fungovat a **žádná** ze čtyř
+původních dimenzí by to nechytila. Sedí i to.
+
+Pozn.: dřívější „14 CREATE SEQUENCE" byl opět grep, ne měření — reálně je jich
+15 a strojové porovnání dává 15 = 15. Stejná třída nepřesnosti jako 599 vs 600
+tabulek; ani jedno není mezera ve schématu.
+
+**Souhrn ověření baseline — všech 6 dimenzí:**
+
+| dimenze | rozdílů |
+|---|---|
+| columns | 0 |
+| indexes | 0 |
+| policies | 0 |
+| triggers | 0 |
+| sequences (+ vazby na sloupce) | 0 |
+| constraints | 2 přerenderované, shodné povolené hodnoty |
