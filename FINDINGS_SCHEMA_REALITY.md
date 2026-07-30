@@ -354,3 +354,81 @@ PŘIBYLO (0)
 
 Žádná nová vrstva se pod opravami neodkryla — což je konzistentní s tím, že
 u všech tří byl peel na klonu čistý.
+
+---
+---
+
+# AKTUALIZACE 2026-07-30 (třetí session) — tiché crony, seed factory
+
+## §8 NOVÁ TŘÍDA: tiché selhání cronů — je jich 9, ne 3 ani 30
+
+Prohledány všechny `src/app/api/internal/**` (43 souborů) na dva vzorce:
+`.catch()` navěšený na zápisový dotaz, a `try{zápis}catch{}` bez rethrow.
+
+| route | vzorec | co se stane s daty | hlásí úspěch? |
+|---|---|---|---|
+| `internal/cron/seat-upgrade-notify:83` + `:66` | `.catch(()=>{})` **+** try/catch ve smyčce **+** `COMMIT` na aborted tx | **nic se nezapíše**, `notified` se zvýší | 🔴 **ano — `{ok:true,notified:N}`** |
+| `internal/resale/complete-transfer:96` | `.catch()` inert, autocommit | zápis chybí | 🟠 ano |
+| `internal/cron/demand-forecast:128` | try/catch ve smyčce, čítač `processed` | per-event zápis chybí | 🟠 ano |
+| `internal/cron/verify-event-completion:129` | try/catch ve smyčce | alert se nezapíše | 🟠 ano |
+| `internal/cron/bank-sync-fio:57` | try/catch ve smyčce | per-transakce zápis chybí | 🟠 ano |
+| `internal/cron/onboarding-reminder:137` | try/catch ve smyčce | per-promotér zápis chybí | 🟠 ano |
+| `internal/order-completed:408, :462` | 2× try/catch bez rethrow | post-processing chybí | 🟠 ano |
+| `internal/cron/consent-log-purge:30` | try/catch → explicitně `{ok:true,purged:0}` | purge se neprovede | 🟠 ano — **záměrně**, komentář `:41` |
+| `internal/web-vitals:33` | try/catch bez rethrow | metrika se nezapíše | 🟠 ano |
+
+**Metodická korekce:** první verze detektoru hlásila 12. Regex na „rethrow"
+nepřekročil vnořené závorky → označil i **hlasité** handlery
+(`release-rolling-reserves`, `expire-pending-orders`, `event-payout-release`
+z catch vracejí **500**). Po opravě 8 + 1 z prvního průchodu = 9.
+
+⚠️ **Tichost sama není bug** — stává se jím teprve, když je zápis pod ní rozbitý.
+Z těch 9 má sken rozbitý zápis potvrzený u **3** (`seat-upgrade-notify`,
+`demand-forecast`, `verify-event-completion`). U zbylých 6 to NEBYLO ověřeno.
+
+---
+
+# 🕶️ SLEPÁ MÍSTA — konsolidovaný seznam (čemu NEVĚŘIT)
+
+Jedno místo pravdy o tom, co **žádný** z našich nástrojů nevidí.
+
+| # | třída | rozsah | vidí guard? | vidí sken? |
+|---|---|---|---|---|
+| 1 | **Typová inference parametrů (42P08)** — týž `$N` pro sloupce různých typů | neznámý | ❌ má ho jako INCONCLUSIVE (`REMEDIATION.md:497`) | ❌ nepokrývá žádná z 5 tříd |
+| 2 | **Dynamicky skládané SQL** | **135 dotazů** | ❌ vypisuje jmenovitě jako mezeru | ❌ dtto |
+| 3 | **Nekvalifikované identifikátory v T4** | neznámý, velký | ❌ | ❌ jen `alias.sloupec` |
+| 4 | **SQL mimo `.query(literál)`** | neznámý | ❌ | ❌ |
+| 5 | **CHECK mimo IN/ARRAY list + parametrizované hodnoty** | většina CHECKů | ❌ | ⚠️ jen literály |
+| 6 | **Spolknuté chyby (tichý no-op)** | 9 rout, viz §8 | ❌ | ❌ statický sken nevidí runtime |
+| 7 | **`COMMIT` na aborted tx** (třída 1 FALSE SUCCESS) | ≥1 potvrzený | ❌ | ❌ |
+| 8 | **RLS** | celé | ❌ | ❌ introspekce jede jako bypassrls owner |
+| 9 | **Runtime-only** (race, T-AUDIT-GUC, data-dependent) | — | ❌ | ❌ |
+
+**Objevené tím, že se na ně narazilo, ne tím, že je nástroj našel:** #1 (fix
+`auth/reset-password`), #3 (`programs/[eventId] is_published`), #7
+(`seat-upgrade-notify`). To je empirický důvod nevěřit číslu „celkem=144".
+
+---
+
+# §9 Seed factory (`tests/helpers/live-fixture.ts`)
+
+`tests/helpers/` neexistovalo; Neon boilerplate byl duplikovaný ve všech 5 live
+testech, entity seed ve 3, a kopie se rozcházely v tom, které NOT NULL sloupce
+dodávají. Factory je jedno místo pravdy.
+
+**Zásada:** lístky se NESEEDUJÍ ručně — volá se `issueTicketsForOrder`
+(táž funkce jako checkout/comps/guestlist), protože jen ona ví, jak se plní
+`totp_secret_encrypted` / `totp_secret_iv` / `ticket_seq`. Uživatelé jdou přes
+`createOrGetGuestUser`. Seed, který vyrobí data jiného tvaru než produkce,
+je horší než žádný.
+
+Důkaz: `tests/live-fixture.live.test.ts` (4 aserce nad factory samotnou);
+`auth-reset-password.live.test.ts` přepsán 202 → 152 řádků, pořád zelený.
+
+# §10 Delta po fixech této session
+
+```
+148 (výchozí) → 145 (po reset-password/press/resale) → 144 (po season-passes)
+UBYLO: T1 season_passes.holder_user_id
+PŘIBYLO: žádné
+```
