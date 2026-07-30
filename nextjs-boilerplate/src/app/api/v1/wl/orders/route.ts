@@ -203,8 +203,13 @@ export async function POST(req: NextRequest): Promise<Response> {
         // Create order items
         const tt = ttRes.rows.find((r) => r.id === line.ticketTypeId)!;
         await client.query(
+          // `orders.order_items` má `unit_price` / `total_price`, ne `*_halire`
+          // (jednotka je haléř tak jako tak). PŘED: 42703 → ROLLBACK → 500 při
+          // KAŽDÉ white-label objednávce. Ověřeno reálným během proti klonu.
+          // Pozn.: CHECK `total_price = unit_price * quantity` drží, protože
+          // hodnota se počítá stejně jako dřív.
           `INSERT INTO orders.order_items
-             (order_id, ticket_type_id, quantity, unit_price_halire, total_price_halire)
+             (order_id, ticket_type_id, quantity, unit_price, total_price)
            VALUES ($1, $2, $3, $4, $5)`,
           [orderId, line.ticketTypeId, line.quantity, tt.price_halire, tt.price_halire * line.quantity],
         );
@@ -214,7 +219,9 @@ export async function POST(req: NextRequest): Promise<Response> {
       const callbackUrl = body.webhookUrl ?? tenant.callbackUrl;
       if (callbackUrl) {
         await client.query(
-          `INSERT INTO orders.payment_events (order_id, event_type, data)
+          // `payment_events` má `raw_payload` (NOT NULL), ne `data`.
+          // PŘED: 42703 → ROLLBACK → 500. Ověřeno reálným během.
+          `INSERT INTO orders.payment_events (order_id, event_type, raw_payload)
            VALUES ($1, 'wl_order_created', $2)`,
           [orderId, JSON.stringify({ tenantId: tenant.tenantId, tenantSlug: tenant.slug, callbackUrl, customerEmail: body.customerEmail })],
         );
