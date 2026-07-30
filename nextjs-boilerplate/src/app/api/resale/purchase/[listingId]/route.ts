@@ -62,12 +62,17 @@ export async function POST(
       const reservedUntil = new Date(Date.now() + 15 * 60 * 1000);
 
       // Create pending order
+      // `expires_at` je na orders.orders NOT NULL bez defaultu a INSERT ho
+      // neuváděl → 23502 při KAŽDÉM nákupu z resale (doloženo reálným během
+      // proti klonu prod schématu). Hodnota = `reservedUntil`, tedy TÁŽ, kterou
+      // hned pod tím dostává rezervace listingu — pending objednávka tak expiruje
+      // právě když padá rezervace, což je zjevný záměr toho výpočtu na :62.
       const orderR = await db().query(
         `INSERT INTO orders.orders
-           (user_id, event_id, total_amount, status, resale_listing_id)
-         VALUES ($1,$2,$3,'pending',$4)
+           (user_id, event_id, total_amount, status, resale_listing_id, expires_at)
+         VALUES ($1,$2,$3,'pending',$4,$5)
          RETURNING id`,
-        [userId, listing.event_id, listing.ask_price, params.listingId],
+        [userId, listing.event_id, listing.ask_price, params.listingId, reservedUntil],
       );
 
       const orderId = orderR.rows[0].id as string;

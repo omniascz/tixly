@@ -80,9 +80,16 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   await db().query(
+    // `promoter_id` je na orders.press_accreditations NOT NULL bez defaultu a
+    // INSERT ho neuváděl → 23502 při KAŽDÉ žádosti o akreditaci (doloženo
+    // reálným během proti klonu prod schématu). Bere se z akce subquery —
+    // stejný vzor jako currency redirect (box-office/route.ts:33), protože
+    // catalog.events.promoter_id je NOT NULL FK, takže vazba je 1:1 a subquery
+    // nemůže vrátit NULL ani víc řádků.
     `INSERT INTO orders.press_accreditations
-       (event_id, journalist_name, journalist_email, media_outlet, purpose)
-     VALUES ($1, $2, LOWER($3), $4, $5)`,
+       (event_id, promoter_id, journalist_name, journalist_email, media_outlet, purpose)
+     VALUES ($1, (SELECT promoter_id FROM catalog.events WHERE id = $1),
+             $2, LOWER($3), $4, $5)`,
     [
       body.eventId,
       body.journalistName.trim(),
