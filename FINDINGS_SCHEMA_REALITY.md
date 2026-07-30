@@ -731,3 +731,97 @@ tabulek; ani jedno není mezera ve schématu.
 | triggers | 0 |
 | sequences (+ vazby na sloupce) | 0 |
 | constraints | 2 přerenderované, shodné povolené hodnoty |
+
+---
+
+## §20 ROZSAH OVĚŘENÍ BASELINE (jedno místo pravdy)
+
+Aby to nikdo nemusel dolovat z commit messages. Commit `8a2822c` se jmenuje
+„OVĚŘENÝ" a v době vzniku to bylo **nadsazené** — pokrýval 4 dimenze z šesti.
+Doplněno v `bad9fe1`. Tenhle výčet platí.
+
+### Co OVĚŘENÉ JE
+
+Měřeno proti **klonu produkční větve**, vyprázdněnému `DROP SCHEMA … CASCADE`
+(+ `DROP`/`CREATE public`), pak aplikován baseline a strojově porovnáno:
+
+| dimenze | rozdílů |
+|---|---|
+| `information_schema.columns` (typ, nullable, default) | 0 |
+| `pg_indexes` (plný `indexdef`) | 0 |
+| `pg_policies` (qual, with_check, cmd) | 0 |
+| `pg_trigger` (plný `pg_get_triggerdef`) | 0 |
+| sekvence (typ/start/inc/min/max/cycle) | 0 |
+| vazby sekvence → sloupec (`pg_depend`) | 0 |
+| `pg_constraint` | **2 přerenderované** |
+| extensions | 4 v baseline = 4 na produkci (+ `plpgsql`, implicitní) |
+
+Ty 2 constrainty (`events_transfer_policy_check`, `orders_comp_type_check`)
+se liší jen zápisem `ANY(...)` po round-tripu; povolené hodnoty jsou shodné.
+**Rozhodnuto: v pořádku.**
+
+### Co ověřené NENÍ
+
+- **Obnova na čisté databázi.** Testováno výhradně na vyprázdněném klonu
+  produkce, kde zůstaly role, extensions a cluster-level objekty. Restore
+  na čerstvý Neon projekt **neproběhl**.
+- **Že baseline sám stačí k funkční aplikaci.** Nestačí — viz §21.
+
+## §21 Baseline NENÍ soběstačný recept
+
+`000_baseline_20260730.sql` byl pořízen s `--no-owner --no-privileges`
+(moje volba při dumpu). Grep to potvrzuje:
+
+```
+CREATE ROLE               0        CREATE EXTENSION            4
+CREATE USER               0        CREATE SCHEMA AUTHORIZATION 0
+GRANT                     0        OWNER TO                    0
+ALTER DEFAULT PRIVILEGES  0        REVOKE                      0
+```
+
+Co na produkci existuje a baseline to nezaloží:
+
+| objekt | rozsah | důsledek chybění |
+|---|---|---|
+| role `tixly_app` (`NOBYPASSRLS`, LOGIN) | 1 | aplikační role neexistuje |
+| členství `neondb_owner` → `tixly_app` | 1 | owner se nedostane pod app roli |
+| `USAGE` na schématech pro `tixly_app` | **78** | žádný přístup ke schématům |
+| table granty pro `tixly_app` | **4200** na 77 schématech | žádné čtení ani zápis |
+| default privileges (`EXECUTE` na budoucí funkce) | **234** | nové funkce bez práv |
+
+**Klíčový důsledek:** obnova ze samotného baseline vytvoří kompletní schéma
+včetně všech 596 RLS policies — a aplikace se přesto nedostane k jedinému
+řádku, protože role, které se ta pravidla týkají, neexistuje. Schéma by
+vypadalo správně a nefungovalo by.
+
+Pozn.: `pg_policies.roles` je u všech 596 policies `{public}`, takže policies
+samy na existenci `tixly_app` nezávisí — závisí na ní přístup.
+
+**Doplněno:** `migrations/000_baseline_globals.sql` (511 řádků) — role, členství,
+78× `GRANT USAGE ON SCHEMA`, 77× `GRANT … ON ALL TABLES`, granty na sekvencích,
+234× `ALTER DEFAULT PRIVILEGES`. **Nepouštěno na produkci.**
+
+⚠️ **Heslo role `tixly_app` z `pg_roles` vyčíst nejde** — soubor na to má
+komentář a `ALTER ROLE … PASSWORD` se musí doplnit ručně.
+
+⚠️ Soubor je **vygenerovaný, ne otestovaný**: restore `baseline` + `globals`
+na čistou DB neproběhl.
+
+## §22 Deploy-order — TVRDÁ ZÁVISLOST
+
+**RLS verifikace musí být v deploy gate DŘÍV, než `BUNDLE_340-348_prod.sql`
+zmizí z deploy cesty.**
+
+BUNDLE dnes při každém deployi dropne a znovu vytvoří 153 RLS policies
+(atomicky, v `BEGIN;…COMMIT;`) a je **jediné, co RLS drží konzistentní**.
+Baseline všech 596 policies obsahuje, ale aplikuje se **jednou** — drift po
+deployi už nikdo automaticky nevrátí. Odstranit BUNDLE bez náhradní verifikace
+= bezpečnostní regrese, ne úklid.
+
+Pořadí (žádný krok nepřeskakovat):
+
+1. `000_baseline_20260730.sql` + `000_baseline_globals.sql` (v tomhle pořadí)
+2. mig **450** → **451** → **452**
+3. capacity backfill
+4. **RLS verifikace do deploy gate** ← tvrdá závislost
+5. teprve pak odstranit `BUNDLE_340-348_prod.sql`
