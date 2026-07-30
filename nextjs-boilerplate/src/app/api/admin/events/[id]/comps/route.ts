@@ -16,6 +16,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
+import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 import { z } from 'zod';
@@ -167,16 +168,15 @@ export async function POST(
       }
 
       // Resolve or create recipient user
-      const userRes = await client.query<{ id: string }>(
-        `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at, created_at, updated_at)
-         VALUES (LOWER($1), $2, '!guest', NOW(), NOW(), NOW())
-         ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE
-           SET name = COALESCE(EXCLUDED.name, identity.users.name),
-               updated_at = NOW()
-         RETURNING id`,
-        [input.recipientEmail.toLowerCase().trim(), input.recipientName],
-      );
-      const userId = userRes.rows[0].id;
+      // `fillName` reprodukuje původní `DO UPDATE SET
+      // name = COALESCE(EXCLUDED.name, identity.users.name), updated_at = NOW()`.
+      // Prakticky se od `touch` liší jen tehdy, když je na existujícím účtu
+      // `name` NULL — pak ho comps doplní.
+      const userId = await createOrGetGuestUser(client, {
+        email: input.recipientEmail,
+        name: input.recipientName,
+        onExisting: 'fillName',
+      });
 
       // Create comp order (total_amount=0, payment_provider='comp', status='paid')
       const orderId = randomUUID();

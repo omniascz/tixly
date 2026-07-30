@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
+import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 import { randomUUID } from 'crypto';
@@ -141,14 +142,10 @@ export async function PATCH(
       }
       const tt = ttRes.rows[0];
 
-      const userRes = await client.query<{ id: string }>(
-        `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at)
-         VALUES (LOWER($1), $2, '!guest', NOW())
-         ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE SET updated_at = NOW()
-         RETURNING id`,
-        [acc.journalist_email, acc.journalist_name],
-      );
-      const userId = userRes.rows[0].id;
+      const userId = await createOrGetGuestUser(client, {
+        email: acc.journalist_email,
+        name: acc.journalist_name,
+      });
 
       const orderId = randomUUID();
       await client.query(

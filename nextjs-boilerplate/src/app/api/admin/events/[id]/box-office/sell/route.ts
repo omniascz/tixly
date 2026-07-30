@@ -8,6 +8,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
+import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 import { runAsPromoter } from '@/lib/admin-auth';
 
 export async function POST(
@@ -73,16 +74,17 @@ export async function POST(
       const buyerEmail = body.buyerEmail ?? `boxoffice-${Date.now()}@tixly.local`;
       const buyerName = body.buyerName ?? 'Pokladní prodej';
 
-      // Ensure guest user exists
-      let userId: string;
-      const userRes = await client.query<{ id: string }>(
-        `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at)
-         VALUES ($1, $2, '!guest', NOW())
-         ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE SET name = EXCLUDED.name
-         RETURNING id`,
-        [buyerEmail.toLowerCase(), buyerName],
-      );
-      userId = userRes.rows[0].id;
+      // Ensure guest user exists.
+      // `overwriteName` reprodukuje původní `ON CONFLICT ... DO UPDATE SET
+      // name = EXCLUDED.name` (bez `updated_at`) 1:1 — pokladní prodej tedy
+      // pořád přepíše jméno na účtu, i když patří registrovanému zákazníkovi.
+      // Že je to takhle žádoucí, je samostatné produktové rozhodnutí; tenhle
+      // refactor chování nemění.
+      const userId = await createOrGetGuestUser(client, {
+        email: buyerEmail,
+        name: buyerName,
+        onExisting: 'overwriteName',
+      });
 
       const orderRes = await client.query<{ id: string }>(
         `INSERT INTO orders.orders

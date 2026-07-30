@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
+import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 import { z } from 'zod';
@@ -118,14 +119,10 @@ export async function POST(
       }
       const tt = ttRes.rows[0];
 
-      const userRes = await client.query<{ id: string }>(
-        `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at, created_at, updated_at)
-         VALUES (LOWER($1), $2, '', NOW(), NOW(), NOW())
-         ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE SET updated_at = NOW()
-         RETURNING id`,
-        [parsed.data.guestEmail, parsed.data.guestName],
-      );
-      const userId = userRes.rows[0].id;
+      const userId = await createOrGetGuestUser(client, {
+        email: parsed.data.guestEmail,
+        name: parsed.data.guestName,
+      });
 
       const orderId = randomUUID();
       await client.query(

@@ -23,6 +23,7 @@ import { z } from 'zod';
 
 import { calculateAgeYears } from '@/lib/age/calculate';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 import {
   resolveCurrentPrice,
   PriceMismatchError,
@@ -894,15 +895,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     // 2) Najdi/založ guest usera
-    const userRes = await client.query<{ id: string; phone_verified_at: string | null }>(
-      `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at, created_at, updated_at)
-       VALUES ($1, $2, '!guest', NOW(), NOW(), NOW())
-       ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE
-         SET updated_at = NOW()
-       RETURNING id, phone_verified_at`,
-      [input.buyerEmail.toLowerCase(), input.buyerName],
-    );
-    const userId = userRes.rows[0].id;
+    const userId = await createOrGetGuestUser(client, {
+      email: input.buyerEmail,
+      name: input.buyerName,
+    });
 
     // Per-event purchase limit (mig 433) — max_tickets_per_buyer na events omezuje
     // celkový počet vstupenek napříč všemi ticket_types pro danou akci.
@@ -985,15 +981,23 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     // Phone verification gate — proaktivní autentizace: event vyžaduje ověřený telefon.
-    if (tt.require_phone_verified && !userRes.rows[0].phone_verified_at) {
-      await client.query('ROLLBACK');
-      return NextResponse.json(
-        {
-          error: 'PHONE_VERIFICATION_REQUIRED',
-          message: 'Tato akce vyžaduje ověřené telefonní číslo. Ověřte telefon v nastavení účtu.',
-        },
-        { status: 422 },
+    // `phone_verified_at` se dotahuje jen když ho gate opravdu potřebuje (dřív
+    // chodilo v RETURNING guest upsertu, ten teď dělá sdílený helper).
+    if (tt.require_phone_verified) {
+      const pv = await client.query<{ phone_verified_at: string | null }>(
+        `SELECT phone_verified_at FROM identity.users WHERE id = $1`,
+        [userId],
       );
+      if (!pv.rows[0]?.phone_verified_at) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            error: 'PHONE_VERIFICATION_REQUIRED',
+            message: 'Tato akce vyžaduje ověřené telefonní číslo. Ověřte telefon v nastavení účtu.',
+          },
+          { status: 422 },
+        );
+      }
     }
 
     // 3) Inventář se rezervuje AŽ TĚSNĚ PŘED COMMITEM (atomicky, podmíněně) —

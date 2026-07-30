@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db/rls-pool';
+import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 import { randomUUID } from 'crypto';
 
@@ -74,14 +75,12 @@ export async function PATCH(
     const currency = ttRes.rows[0]?.currency ?? 'CZK';
     const basePrice = ttRes.rows[0]?.base_price ?? 0;
 
-    const userRes = await db().query<{ id: string }>(
-      `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at)
-       VALUES (LOWER($1), $2, '!guest', NOW())
-       ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE SET updated_at = NOW()
-       RETURNING id`,
-      [entry.email, entry.name ?? entry.email],
-    );
-    const userId = userRes.rows[0].id;
+    // Pozn.: tahle cesta běží v autocommitu (db(), bez BEGIN) — helper transakci
+    // neotevírá, takže se chování nemění.
+    const userId = await createOrGetGuestUser(db(), {
+      email: entry.email,
+      name: entry.name,
+    });
 
     const orderId = randomUUID();
     await db().query(

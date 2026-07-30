@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
+import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
 
@@ -168,14 +169,10 @@ async function issueCompTicket(input: {
     const tt = ttRes.rows[0];
 
     // Find or create shadow user (anonymní akreditační účet)
-    const userRes = await client.query<{ id: string }>(
-      `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at)
-       VALUES (LOWER($1), $2, '!guest', NOW())
-       ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE SET updated_at = NOW()
-       RETURNING id`,
-      [input.applicantEmail, input.applicantName],
-    );
-    const userId = userRes.rows[0].id;
+    const userId = await createOrGetGuestUser(client, {
+      email: input.applicantEmail,
+      name: input.applicantName,
+    });
 
     const orderId = randomUUID();
     await client.query(
