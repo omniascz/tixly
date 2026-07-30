@@ -9,7 +9,11 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx', 'src/**/*.test.ts', 'src/**/*.test.tsx'],
-    exclude: ['node_modules', 'dist', '.next'],
+    // `*.live.test.ts` končí na `.test.ts`, takže by je `include` výše natáhl sem —
+    // ale ty soubory deklarují `// @vitest-environment node` a tenhle config jim
+    // i tak aplikuje `setupFiles: ./tests/setup.ts`, které sahá na `window`
+    // → ReferenceError už při collectu. Mají vlastní dráhu: vitest.live.config.ts.
+    exclude: ['node_modules', 'dist', '.next', 'tests/**/*.live.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
