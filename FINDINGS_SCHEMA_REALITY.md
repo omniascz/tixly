@@ -579,3 +579,65 @@ tracking_events_provider_check tiktok  : NENÍ
    (mig 340–449 se aplikovaly, aniž se zapsaly). → **zdrojem pravdy o stavu
    schématu je schéma samo, ne ta tabulka.** Konzistentní s dřívějším poučením
    „baseline.sql je stale".
+
+---
+---
+
+# AKTUALIZACE 2026-07-30 (šestá session) — DEPLOY CESTA: diagnóza
+
+## §17 Migrace se aplikují TŘEMI soupeřícími cestami; ta, která běží, je nejhorší
+
+### Cesta 1 — `.github/workflows/deploy.yml:86-91` — **jediná, co reálně běží**
+
+```yaml
+for migration in migrations/*.sql; do
+  echo "Aplikuji: $migration"
+  psql "$DATABASE_URL" -f "$migration"
+done
+```
+
+Pět nezávislých vad:
+
+1. **Nezapisuje do `public.schema_migrations` vůbec.** → tohle je příčina toho,
+   že evidence zamrzla na 339, zatímco schéma je u ~449.
+2. **Aplikuje VŠECHNO při každém deployi**, bez kontroly stavu. Migrace jsou
+   většinou idempotentní (`IF NOT EXISTS`), ale spoléhat na to není politika.
+3. **Sahá jen na kořenový `migrations/`** (293 souborů, 001–437).
+   `nextjs-boilerplate/migrations/` (74 souborů, **375–452**) **nikdy neaplikuje** —
+   proto tam 450/451/452 nejsou.
+4. **Bere i ne-migrace**: `BUNDLE_340-348_prod.sql`, `test_big_health_check.sql`,
+   `test_delete_safety.sql`, `test_feature_interaction_audit.sql`.
+5. **`psql` bez `ON_ERROR_STOP=1`** → vrací exit 0, i když příkazy uvnitř selžou.
+   Krok v CI tedy **zezelená i po neúspěšné migraci**. Stejná třída jako tiché crony.
+
+### Cesta 2 — `scripts/run-migrations.sh` — **jediná správná, ale nepoužívaná**
+
+Zakládá tabulku jako `(filename TEXT PRIMARY KEY, applied_at TIMESTAMPTZ)`,
+před aplikací kontroluje `WHERE filename = …`, pouští s `ON_ERROR_STOP=1`
+a po úspěchu zapíše. **Tahle cesta vytvořila těch 245 řádků do 339** a od té doby
+se zjevně nepoužila.
+
+### Cesta 3 — `scripts/prod-migrate.mjs` + `nextjs-boilerplate/scripts/prod-migrate-runner.mjs`
+
+Obě dělají `SELECT version FROM public.schema_migrations`, ale tabulka má
+`filename`/`applied_at` → **42703**. U `prod-migrate.mjs:49` je to navíc obalené
+`try{}catch{}`, které zaloguje *„tabulka neexistuje — předpokládám prázdnou DB"*
+a pokračuje s **prázdnou množinou aplikovaných** → pokusilo by se aplikovat
+úplně všechno od nuly. To není jen rozbité, to je nebezpečné.
+
+### 🔎 Čtvrtá, nezdokumentovaná cesta — důkaz sporem
+
+`orders.ticket_transfers` na produkci **existuje** (změřeno v BLOKU A, včetně
+rozbitého `base64url` DEFAULTu). Vznikla migrací **416**, která leží **výhradně**
+v `nextjs-boilerplate/migrations/`. Cesta 1 na tu složku nesahá, cesty 2 a 3
+neběžely. → **Tu tabulku vytvořil někdo ručně** (psql / Neon konzole), mimo
+jakoukoli evidovanou cestu. Přinejmenším část schématu tedy vznikla ad hoc.
+
+### Důsledek pro deploy 450/451/452
+
+Nasadit je dnešní CI cestou **nelze** — je v jiné složce, než na kterou workflow
+sahá. Oprava runneru sama nestačí; musí se rozhodnout, **která složka je
+kanonická** a sjednotit je (čísla 375, 435, 436, 437 se v obou překrývají —
+u nich je potřeba ověřit, jestli jde o totéž).
+
+**NEOPRAVENO** — tahle session skončila na diagnóze.
