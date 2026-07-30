@@ -158,16 +158,23 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
       const orderId = orderRes.rows[0].id;
 
+      // `holder_user_id` na orders.season_passes NEEXISTUJE a nikdy neexistoval
+      // — tabulka má jen (id, product_id, order_id, holder_email, holder_name,
+      // uses_remaining, valid_until, pass_token, created_at). Není to
+      // přejmenování: žádný user/holder-id sloupec tam není vůbec, vazba na
+      // kupce vede přes `order_id` → orders.orders.user_id (NOT NULL FK).
+      // PŘED opravou 42703 → ROLLBACK → 500 při KAŽDÉM nákupu permanentky.
+      // Ověřeno reálným INSERTem proti klonu prod schématu: RED 42703,
+      // PO odstranění projde a vrátí pass_token; žádná další vrstva pod tím.
       const passRes = await client.query<{ id: string; pass_token: string }>(
         `INSERT INTO orders.season_passes
-           (product_id, order_id, holder_user_id, holder_email, holder_name,
+           (product_id, order_id, holder_email, holder_name,
             uses_remaining, valid_until)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING id, pass_token`,
         [
           product.id,
           orderId,
-          userId,
           buyerEmail,
           buyerName,
           product.total_uses,
