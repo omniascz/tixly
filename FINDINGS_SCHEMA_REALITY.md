@@ -641,3 +641,59 @@ kanonická** a sjednotit je (čísla 375, 435, 436, 437 se v obou překrývají 
 u nich je potřeba ověřit, jestli jde o totéž).
 
 **NEOPRAVENO** — tahle session skončila na diagnóze.
+
+---
+
+## §18 Otevřené riziko: RLS po baseline
+
+`BUNDLE_340-348_prod.sql` zůstává v `migrations/` **záměrně**. Při každém deployi
+dropne a znovu vytvoří **153 RLS policies** (v `BEGIN;…COMMIT;`, tedy atomicky).
+Je to dnes **jediné, co drží RLS konzistentní** — proto se neodstraňuje spolu
+s test skripty.
+
+**Až se přejde na baseline, tahle pojistka zmizí.** Baseline obsahuje všech
+**596 policies** (ověřeno, viz §19), ale aplikuje se jednou, ne při každém
+deployi. Znamená to:
+
+- drift RLS policy po deployi už nikdo automaticky nevrátí zpět
+- **RLS bude potřebovat vlastní verifikaci** — např. porovnat `pg_policies`
+  proti očekávanému seznamu jako součást deploy gate
+
+Bez toho je odstranění BUNDLE regrese v bezpečnosti, ne úklid.
+
+## §19 Baseline OVĚŘEN jako reprodukovatelný
+
+Postup: klon produkční větve → `DROP SCHEMA … CASCADE` všech user schémat
+(+ `DROP`/`CREATE` `public`, protože ho `pg_dump --schema-only` nevytváří —
+čerstvá DB ho má vždy) → aplikace baseline → strojové porovnání.
+
+```
+                 produkce   klon po baseline
+columns             6465          6465        0 rozdílů
+indexes             2025          2025        0 rozdílů
+policies             596           596        0 rozdílů
+constraints         2392          2392        2 přerenderované
+tabulky              607           607
+```
+
+**Jediný rozdíl jsou 2 CHECK constrainty**, a jde o renderování, ne o obsah:
+
+```
+produkce: CHECK (((transfer_policy)::text = ANY ((ARRAY['open'::varchar, …])::text[])))
+klon:     CHECK (((transfer_policy)::text = ANY (ARRAY[('open'::varchar)::text, …])))
+```
+
+Povolené hodnoty jsou na obou stranách totožné (`events_transfer_policy_check`:
+open/restricted/disabled; `orders_comp_type_check`: artist/other/press/sponsor/
+staff/vip). Postgres výraz po round-tripu jinak normalizuje — známý artefakt
+`pg_dump`, ne mezera.
+
+**Vysvětlení 607 vs 599:** 607 = 600 `BASE TABLE` + 7 `VIEW`. Dřívější údaj
+„dump má 599 tabulek" byl grep `^CREATE TABLE`, který o jednu podstřelil kvůli
+formátování. Schéma mezeru nemá — dokazuje to 0 rozdílů ve sloupcích.
+
+**Metodická poznámka:** předchozí pokus o tohle ověření vykázal „11478 rozdílů,
+baseline není úplný". Bylo to **měření vlastní chyby** — `execSync` jde na
+Windows přes `cmd.exe`, kde `&` v connection URI rozsekne příkaz, psql se
+nespustil a porovnávalo se proti prázdnu. Opraveno `execFileSync` s polem
+argumentů + tvrdou kontrolou „tabulek > 0" PŘED porovnáním.
