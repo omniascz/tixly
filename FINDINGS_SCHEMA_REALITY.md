@@ -432,3 +432,79 @@ Důkaz: `tests/live-fixture.live.test.ts` (4 aserce nad factory samotnou);
 UBYLO: T1 season_passes.holder_user_id
 PŘIBYLO: žádné
 ```
+
+---
+---
+
+# AKTUALIZACE 2026-07-30 (čtvrtá session) — doměření tichých rout + čisté opravy
+
+## §11 Doměření 7 zápisů z tichých rout — 5 z 9 je NEŠKODNÝCH
+
+Metoda: každý zápis pustit na klonu v zahozené transakci. Diskriminátor —
+**23503 (FK violation) znamená, že sloupce i CHECKy prošly**, tedy struktura
+je v pořádku; 42703/42P01/23502/23514 znamená rozbitý zápis.
+
+| route | verdikt | důkaz |
+|---|---|---|
+| `resale/complete-transfer:96` | ✅ **ZÁPIS FUNGUJE** | 23503 `{seller_payouts_listing_id_fkey}` — jen FK |
+| `cron/bank-sync-fio:57` | ✅ **ZÁPIS FUNGUJE** | prošel naostro |
+| `cron/onboarding-reminder:137` | ✅ **ZÁPIS FUNGUJE** | prošel naostro |
+| `cron/consent-log-purge:30` | ✅ **ZÁPIS FUNGUJE** | prošel naostro |
+| `web-vitals:33` | ✅ **ZÁPIS FUNGUJE** | prošel naostro |
+| `cron/verify-event-completion:129` | 🔴 **ZÁPIS ROZBITÝ** | 42703 `payload` neexistuje |
+| `order-completed:462` | 🔴 **ZÁPIS ROZBITÝ** | 23514 `{ticket_modular_access_level_check}` — `access_level='full'` mimo výčet |
+
+**`order-completed:462` je NOVÝ nález** — sken ho nenašel (T5 ten INSERT ve
+vnořené smyčce nerozparsoval). Modular-pass přístupy se tiše nezapisují.
+
+**Bilance třídy:** z 9 tichých rout má rozbitý zápis **4** (`seat-upgrade-notify`,
+`demand-forecast`, `verify-event-completion`, `order-completed:462`), zbylých
+5 zapisuje správně a jejich tichost je dnes neškodná.
+
+### `consent-log-purge` — záměr, nebo racionalizace?
+Komentář `:41` říká: *„Tabulka neexistuje → migration neaplikována; vrať 200 ať
+cron nepadá"*. **Je to racionalizace.** Změřeno: `compliance.cookie_consent_log`
+na produkční větvi **existuje** a DELETE projde. Předpoklad komentáře tedy
+neplatí. Navíc catch polyká **jakoukoli** chybu a vrací `purged: 0`, což je
+nerozlišitelné od poctivého smazání nula řádků — GDPR purge může tiše přestat
+fungovat a nikdo se to nedozví. Doporučení do backlogu: chytat jen `42P01`,
+zbytek propagovat.
+
+## §12 Protřídění zbytku fronty (introspekcí, PŘED opravou)
+
+| lokace | kategorie | důvod |
+|---|---|---|
+| `v1/wl/orders:206` ✅ | ČISTÁ | `unit_price`/`total_price` existují |
+| `v1/wl/orders:217` ✅ | ČISTÁ | `raw_payload` existuje |
+| `lastminute:75` ✅ | ČISTÁ | `promoter_id` na tabulce NENÍ → odstranit |
+| `lottery:119` ✅ | ČISTÁ | `promoter_id` JE NOT NULL, jen se nedodával |
+| `admin/broadcasts:76` ⚠️ | ČÁSTEČNĚ | `sent_by_user_id` odstranit = čisté; `target='event'` mimo CHECK = migrace |
+| `my/tickets/transfer:102` 🔧 | **CHCE MIGRACI** | viz §13 |
+| `admin/artists:62` 🔧 | **CHCE MIGRACI** | `lineups.artists.event_id` je NOT NULL, ale route je promotér-level katalog bez akce |
+| `admin/reviews/send-requests:58` 🎫 | **NEPOSTAVENÝ SUBSYSTÉM** | `event_reviews` vyžaduje `user_id` + `rating` (CHECK 1–5); „žádost o recenzi" není recenze a nemá kam |
+
+## §13 `ticket_transfers` je mrtvá na úrovni DDL — 3 vrstvy
+
+```
+VRSTVA 1  RED, jak je v kódu            → 42703 column "token" does not exist
+VRSTVA 2  + order_id, pořád RETURNING token → 42703 (dtto — parse předchází exekuci)
+VRSTVA 3  + RETURNING transfer_token AS token → 22023 unrecognized encoding: "base64url"
+```
+
+Třetí vrstva NENÍ v aplikaci. `migrations/416_ticket_transfers.sql:11`:
+```sql
+transfer_token text NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(24), 'base64url'),
+```
+`base64url` umí Postgres až od **PG 18**; produkční větev běží na starší verzi.
+→ do `orders.ticket_transfers` **nelze vložit žádný řádek**, ať kód udělá cokoli.
+Migrace se aplikovala, tabulka existuje, ale je nepoužitelná. **Oprava chce
+migraci** (změnit DEFAULT na `base64` + úprava, nebo generovat token v kódu).
+
+Korekce dřívějšího tvrzení: v minulé session jsem psal, že vrstva 1 je
+`23502 order_id`. Není — parse-time 42703 na `RETURNING token` přichází dřív.
+
+## §14 Delta
+
+```
+144 → 135   (ubylo 9, PŘIBYLO 0)
+```
