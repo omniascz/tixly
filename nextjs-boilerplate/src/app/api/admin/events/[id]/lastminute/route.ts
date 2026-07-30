@@ -72,9 +72,13 @@ export async function POST(
     const { hoursBefore, minOccupancyPct, discountPct, isActive } = parsed.data;
 
     const r = await db().query<{ id: string }>(
+      // `catalog.lastminute_rules` NEMÁ sloupec `promoter_id` — vazba na
+      // promotéra vede přes `event_id` → catalog.events.promoter_id.
+      // Není to přejmenování, sloupec tam prostě není. PŘED: 42703 → 500 při
+      // každém uložení pravidla. Ověřeno reálným během proti klonu.
       `INSERT INTO catalog.lastminute_rules
-         (event_id, promoter_id, hours_before, min_occupancy_pct, discount_pct, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6)
+         (event_id, hours_before, min_occupancy_pct, discount_pct, is_active)
+       VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (event_id) DO UPDATE
          SET hours_before      = EXCLUDED.hours_before,
              min_occupancy_pct = EXCLUDED.min_occupancy_pct,
@@ -82,7 +86,7 @@ export async function POST(
              is_active         = EXCLUDED.is_active,
              triggered_at      = NULL
        RETURNING id`,
-      [params.id, promoter.promoterId, hoursBefore, minOccupancyPct, discountPct, isActive],
+      [params.id, hoursBefore, minOccupancyPct, discountPct, isActive],
     );
 
     return NextResponse.json({ id: r.rows[0].id }, { status: 201 });
