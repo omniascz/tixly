@@ -825,3 +825,67 @@ Pořadí (žádný krok nepřeskakovat):
 3. capacity backfill
 4. **RLS verifikace do deploy gate** ← tvrdá závislost
 5. teprve pak odstranit `BUNDLE_340-348_prod.sql`
+
+---
+
+## §23 Granty: uvnitř schémat uniformní, ale 7 tabulek grant NEMÁ
+
+Měřeno na produkci per tabulka (`information_schema.role_table_grants`):
+
+- **77/77 schémat uniformních** — všechny tabulky s grantem mají tutéž sadu
+  `DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE`
+- **ALE 7 base tabulek nemá grant vůbec**: `communications.broadcasts`,
+  `communications.emergency_announcements`, `communications.announcement_responses`,
+  `brands.advertisers`, `brands.campaigns`, `brands.event_partnerships`,
+  `brands.impressions`
+
+→ `GRANT … ON ALL TABLES IN SCHEMA` (v1 globals) by jim práva **PŘIDAL**.
+To je rozšíření oprávnění, ne obnova. **Globals přegenerovány PER TABULKU**
+(600 příkazů). Přesnost > délka souboru.
+
+Sekvence: uniformní, reálná práva `rwU` = **SELECT, UPDATE, USAGE** — v1 psal
+jen `USAGE, SELECT`, chyběl UPDATE. Opraveno.
+Funkce: 17 má explicitní grant; v1 je neměl vůbec. Doplněno.
+
+> 🔎 Vedlejší nález: `communications.broadcasts` grant nemá, přestože do ní
+> aplikace zapisuje (`admin/broadcasts:76`, opraveno v `63fd1d4`). Pod
+> `tixly_app` by ten INSERT skončil na **42501 insufficient_privilege**.
+> Sken ani guard to nevidí — oba běží jako `neondb_owner`. **Neověřeno naživo.**
+
+## §24 Test dvojice baseline+globals na „čisté" DB — NÁHRAŽKA
+
+**Čerstvý Neon projekt nelze**: `HTTP 404 project-scoped keys are not allowed
+to create projects`. Použit klon, ze kterého odstraněna schémata, role
+`tixly_app` i extensions (výchozí stav: `tabulek=0 role=0 extensions=1`).
+**Není to plný test čisté DB** — role clusteru a Neon systémové objekty zůstaly.
+
+**Pořadí:** zadání říkalo globals → baseline. **Je to obráceně.** Globals
+udělují granty na objekty, které musí existovat dřív. Správně
+**baseline → globals**; ověřeno během (obojí `OK`, `tabulek=607 policies=596`).
+
+### Strukturální porovnání: 3 rozdíly z 9 dimenzí
+
+| dimenze | rozdílů |
+|---|---|
+| columns, constraints, indexes, policies, triggers, sequences, roles, extensions | **0** |
+| grants | **3 chybí** |
+
+Chybějící granty jsou všechny PostGIS pohledy: `public.geography_columns`,
+`public.geometry_columns`, `public.spatial_ref_sys`. **Proč se neaplikovaly,
+jsem nezjistil** — jsou v globals vygenerované a psql skončil bez chyby.
+
+### Funkční test jako `tixly_app`
+
+```
+připojen jako: tixly_app (bypassrls=false)
+✅ SELECT identity.users → 0 řádků
+❌ INSERT → 42501 new row violates row-level security policy for table "users"
+```
+
+**To odmítnutí je správné chování, ne vada receptu.** Připojil jsem se surově,
+bez `SET LOCAL app.role`/`app.*` GUC, které aplikace nastavuje přes `rls-pool`.
+RLS zafungovalo. Dokázáno tím: role existuje a přihlásí se, granty fungují
+(SELECT neskončil na 42501 kvůli právům), RLS je aktivní a vynucuje se.
+
+**NEDOKÁZÁNO:** že se stejným INSERTem *s* korektním GUC kontextem projde.
+Ten test jsem nespustil.
