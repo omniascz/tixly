@@ -106,7 +106,10 @@
       "WebFetch(domain:terms.goout.net)",
       "WebFetch(domain:novaspirala.cz)",
       "WebFetch(domain:play.google.com)",
-      "WebFetch(domain:help.go-out.co)"
+      "WebFetch(domain:help.go-out.co)",
+      "PowerShell(Set-Location C:\\\\Users\\\\omnia\\\\Documents\\\\tixly\\\\nextjs-boilerplate; npx tsc --noEmit; Write-Host \"web tsc exit: $LASTEXITCODE\")",
+      "mcp__plugin_vercel_vercel__list_deployments",
+      "Skill(update-config)"
     ]
   }
 }
