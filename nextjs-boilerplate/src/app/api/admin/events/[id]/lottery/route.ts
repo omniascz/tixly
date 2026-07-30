@@ -116,13 +116,17 @@ export async function POST(
     }
 
     const r = await db().query<{ id: string }>(
+      // `promoter_id` je na orders.lottery_campaigns NOT NULL bez defaultu
+      // a INSERT ho neuváděl → 23502 → 500 při každém založení losování.
+      // Ověřeno reálným během proti klonu.
       `INSERT INTO orders.lottery_campaigns
-         (event_id, ticket_type_id, max_winners, registration_opens, registration_closes,
-          draw_at, payment_window_hours, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'draft')
+         (event_id, promoter_id, ticket_type_id, max_winners, registration_opens,
+          registration_closes, draw_at, payment_window_hours, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'draft')
        RETURNING id`,
       [
         params.id,
+        promoter.promoterId,
         parsed.data.ticketTypeId ?? null,
         parsed.data.maxWinners,
         parsed.data.registrationOpens ?? null,
