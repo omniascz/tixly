@@ -282,3 +282,75 @@ trg_sync_user_name             sync_user_name             BEFORE  INSERT+UPDATE
 5. **Transakční hranice (43 rout)** — nejdřív rozhodnout kritérium, které
    multi-write potřebuje atomicitu; pak dávkově.
 6. **135 dynamických dotazů** — pořád nezkontrolovaných, žádným nástrojem.
+
+---
+---
+
+# AKTUALIZACE 2026-07-30 (druhá session) — doostření + první fixy
+
+## §1 Doostření: 15× `NEVÍM` → 0× `NEVÍM`
+
+Bylo jich **15, ne 14** (v prvním reportu jsem to spočítal špatně). Verdikt
+`KÓD` = přečtena podmínka větve i obal výjimky; `MĚŘENO` = spuštěno proti klonu.
+
+| lokace | bucket PO doostření | mechanika | základ |
+|---|---|---|---|
+| `admin/broadcasts:76` | ROZBITÉ DNES | hlavní tok, `db()` autocommit, v souboru **0 catch bloků** → probublá → 500 | KÓD |
+| `admin/events/[id]/lastminute:75` | ROZBITÉ DNES | dtto (0 catch bloků) | KÓD |
+| `admin/events/[id]/lottery:119` | ROZBITÉ DNES | dtto (0 catch bloků) | KÓD |
+| `admin/artists:62` | ROZBITÉ DNES | dtto (0 catch bloků) | KÓD |
+| `admin/reviews/send-requests:58` | ROZBITÉ DNES | hlavní tok ve smyčce, `runWithServiceContext(db().query)`, 0 catch bloků → 500 | KÓD |
+| `press/accreditation:83` | ✅ **OPRAVENO** | hlavní tok, autocommit, 0 catch → 500 | **MĚŘENO** |
+| `resale/purchase/[listingId]:66` | ✅ **OPRAVENO** | hlavní tok, autocommit | **MĚŘENO** |
+| `season-passes:162` | ROZBITÉ DNES | v tx → ROLLBACK → 500 | KÓD |
+| `my/tickets/[ticketId]/transfer:102` | ROZBITÉ DNES | v tx → ROLLBACK → 500; **2 vrstvy** (viz níže) | KÓD + introspekce |
+| `partner/sales:103` | ROZBITÉ DNES | v tx → ROLLBACK → 500; **chce migraci** | KÓD |
+| `v1/wl/orders:206` | ROZBITÉ DNES | v tx, hned za dekrementem inventáře → ROLLBACK (bez orphanu) → 500 | KÓD |
+| `internal/cron/release-rolling-reserves:63` | ROZBITÉ DNES | v tx, **není** v `.catch` → ROLLBACK → uvolnění rezerv se NEPROVEDE (finanční) | KÓD |
+| `internal/cron/demand-forecast:148` | ROZBITÉ DNES **ale TIŠE** | per-event `try{}catch` (`:128`/`:191`), autocommit → cron vrátí úspěch a **nezapíše nic** | KÓD |
+| `internal/cron/seat-upgrade-notify:84` | 🔴 **FALSE SUCCESS** | viz §5 níže — samostatná, horší třída | KÓD |
+| `platform/reports/[id]:85` | **ZA PODMÍNKY** | jen `if (status==='resolved_action' && suspendEvent && event_id)`; v tx → ROLLBACK vezme i suspendaci akce | KÓD |
+
+## §5 NOVÝ NÁLEZ: `seat-upgrade-notify` je FALSE SUCCESS, ne obyčejná 500
+
+Nejde o „padá to". Mechanika (`REMEDIATION.md:585`, varianta A):
+1. Jediný zápis v transakci (`:84`) je obalený `.catch(() => {})` (`:87`) → chyba se **spolkne**
+2. `notified++` se přesto zvýší
+3. Transakce je ale **aborted** → každý další kandidát padne na **25P02**, odchytí ho
+   per-kandidát `catch` na `:96`
+4. `COMMIT` na `:102` na aborted tx Postgres provede **tiše jako ROLLBACK**, bez throw
+5. Handler vrátí **`{ok: true, notified: N}`** s N ≥ 1
+
+Cron tedy tvrdí, že odeslal upozornění, a nezapsal ani řádek. Vyšší severita než
+čistá 500, protože to nikdo nepozná. **Neopraveno** — chce rozhodnutí, jestli
+subsystém seat-upgrade dostavět (chybí 3 tabulky) nebo cestu vypnout jako foyer.
+
+## §6 Vrstvení: potvrzeno, že 2 vrstvy nejsou výjimka
+
+| lokace | vrstva 1 | vrstva 2 | vrstva 3 |
+|---|---|---|---|
+| `subscriptions/checkout:125` | 42P10 (arbiter) | 23502 `gdpr_consent_at` | žádná |
+| `auth/reset-password:123` ✅ | **42P08** (`$1` = text I uuid) | 23514 `actor_type='self'` | žádná |
+| `my/tickets/transfer:102` | 23502 `order_id` | **42703** `RETURNING token` (sloupec je `transfer_token`) | ? |
+| `box-office/sell:90` | 23502 `expires_at` | 23514 `payment_provider='box_office'` | ? |
+| `press/accreditation:83` ✅ | 23502 `promoter_id` | žádná (změřeno) | — |
+| `resale/purchase:66` ✅ | 23502 `expires_at` | žádná (změřeno) | — |
+
+**42P08 nevidí ani jeden z našich nástrojů:** `schema-drift-guard.mjs` ho má
+v pravidlech jako INCONCLUSIVE, ne drift (`REMEDIATION.md:497`), a
+`schema-reality-scan.mjs` odvozování typů parametrů nepokrývá žádnou z pěti tříd.
+Doplněno do FALSE NEGATIVES: **sdílený parametr `$N` použitý na sloupce různých
+typů = celá nepokrytá třída.**
+
+## §7 Delta skenu po 3 fixech
+
+```
+PŘED: 148   PO: 145
+UBYLO (3):  T2 press_accreditations.promoter_id
+            T2 orders.expires_at (resale/purchase)
+            T5 audit_log.actor_type (auth/reset-password)
+PŘIBYLO (0)
+```
+
+Žádná nová vrstva se pod opravami neodkryla — což je konzistentní s tím, že
+u všech tří byl peel na klonu čistý.
