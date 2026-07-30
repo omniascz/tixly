@@ -73,13 +73,21 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     const r = await db().query<{ id: string }>(
+      // `communications.broadcasts` NEMÁ sloupec `sent_by_user_id` — tabulka
+      // vůbec nemá uživatelský sloupec, jen `promoter_id`. PŘED: 42703 → 500
+      // při každém založení rozesílky. Ověřeno reálným během proti klonu.
+      //
+      // ⚠️ ZBÝVÁ PODMÍNĚNÝ BLOCKER (tímhle commitem NEOPRAVENÝ): zod na :9
+      // povoluje `target: 'event'`, ale `broadcasts_target_check` zná jen
+      // all/buyers_only/contacts_only/subscribers → `target='event'` dá 23514.
+      // Změřeno. Oprava chce migraci (rozšířit CHECK) nebo produktové
+      // rozhodnutí mapovat 'event' na jinou hodnotu — obojí mimo tenhle commit.
       `INSERT INTO communications.broadcasts
-         (promoter_id, sent_by_user_id, subject, body, target, event_id, status)
-       VALUES ($1, $2, $3, $4, $5, $6, 'draft')
+         (promoter_id, subject, body, target, event_id, status)
+       VALUES ($1, $2, $3, $4, $5, 'draft')
        RETURNING id`,
       [
         promoter.promoterId,
-        promoter.userId,
         input.subject,
         input.body,
         input.target,
