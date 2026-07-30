@@ -495,10 +495,15 @@ Třetí vrstva NENÍ v aplikaci. `migrations/416_ticket_transfers.sql:11`:
 ```sql
 transfer_token text NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(24), 'base64url'),
 ```
-`base64url` umí Postgres až od **PG 18**; produkční větev běží na starší verzi.
+**🔧 KOREKCE 2026-07-30:** dřívější tvrzení „`base64url` umí Postgres až od PG 18;
+produkční větev běží na starší verzi" **BYLO ŠPATNĚ**. `base64url` v `encode()`
+přibyl až v **PostgreSQL 19** (commit `e1d91718`), a ta zatím **nevyšla**.
+Nejde tedy o starou větev Neonu — **ten výraz nefunguje nikde**, na žádné
+existující verzi Postgresu. Migrace 416 je rozbitá absolutně, ne relativně.
+
 → do `orders.ticket_transfers` **nelze vložit žádný řádek**, ať kód udělá cokoli.
 Migrace se aplikovala, tabulka existuje, ale je nepoužitelná. **Oprava chce
-migraci** (změnit DEFAULT na `base64` + úprava, nebo generovat token v kódu).
+migraci** (zrušit DEFAULT a generovat token v Node).
 
 Korekce dřívějšího tvrzení: v minulé session jsem psal, že vrstva 1 je
 `23502 order_id`. Není — parse-time 42703 na `RETURNING token` přichází dřív.
@@ -508,3 +513,69 @@ Korekce dřívějšího tvrzení: v minulé session jsem psal, že vrstva 1 je
 ```
 144 → 135   (ubylo 9, PŘIBYLO 0)
 ```
+
+---
+---
+
+# AKTUALIZACE 2026-07-30 (pátá session) — BLOK A + B
+
+## §15 🔟 DESÁTÁ TŘÍDA: odložené vyhodnocení v DDL
+
+**Vzorec:** migrace projde, tabulka vznikne, ale výraz v `DEFAULT` /`CHECK`/
+generated column se vyhodnotí až při INSERTu. Do té doby to nikdo nepozná:
+guard dělá `PREPARE` (DEFAULT se nevyhodnocuje), sken čte `column_default`
+jako **text** a neptá se, jestli ten text vůbec jde spustit.
+
+**Metoda:** vytáhnout všechny DEFAULTy obsahující volání funkce (mimo `nextval`)
+a každý REÁLNĚ vyhodnotit `SELECT <expr>` na klonu.
+
+```
+DEFAULTů s voláním funkce: 1292
+CHECKů s voláním funkce:      10
+generated columns:             2
+SELHÁVAJÍCÍCH:                 3
+```
+
+| tabulka.sloupec | výraz | chyba | zapisovatelé v `src/` |
+|---|---|---|---|
+| `marketing.ticket_alerts.token` | `encode(gen_random_bytes(16),'base64url')` | `22023 unrecognized encoding` | `events/[id]/alert/route.ts` |
+| `orders.party_split_sessions.share_token` | `encode(gen_random_bytes(18),'base64url')` | `22023` | `checkout/party-split/route.ts`, `checkout/party-split/[token]/route.ts`, `internal/order-completed`, `cron/audience-geo-snapshot` |
+| `orders.ticket_transfers.transfer_token` | `encode(gen_random_bytes(24),'base64url')` | `22023` | `my/tickets/[ticketId]/transfer`, `tickets/transfer/[token]` |
+
+**Není to jedna rozbitá migrace, je to zkopírovaný idiom ve třech.** Všechny tři
+tabulky jsou dnes **nepoužitelné** — nelze do nich vložit žádný řádek. Dotčené
+featury (ticket alerts, party split, P2P transfer) jsou mrtvé na úrovni DDL,
+ne aplikace.
+
+**🔧 KOREKCE dřívějšího tvrzení:** psal jsem, že `base64url` umí Postgres od
+PG 18 a produkční větev je starší. **Špatně.** `base64url` v `encode()` přidal
+až **PostgreSQL 19** (commit `e1d91718`), který zatím **nevyšel** → ten výraz
+nefunguje **nikde**, na žádné existující verzi. Není to konfigurace Neonu.
+
+**Mezera, kterou tenhle sken nepokrývá:** 10 CHECKů s voláním funkce nejde
+ověřit izolovaným `SELECT` (vyhodnocují se proti NEW řádku) — pozná je až INSERT.
+
+## §16 Stav migrací 450/451/452 — NEJSOU aplikované
+
+Ověřeno **dvakrát nezávisle** proti produkční větvi `br-rough-paper-alom0zky`:
+
+```
+450/451/452 v public.schema_migrations : ŽÁDNÁ
+tickets.ticket_seq (efekt mig 450)     : NENÍ
+orders_payment_provider_check kiosk_card: NENÍ
+tracking_events_provider_check tiktok  : NENÍ
+```
+
+→ **Verdikt: smějí se EDITOVAT**, není třeba stavět 453+ patro.
+
+### Dva vedlejší nálezy z toho měření
+
+1. **`scripts/prod-migrate-runner.mjs:41` je rozbitý.** Dělá
+   `SELECT version FROM public.schema_migrations`, ale tabulka má sloupce
+   **`filename`, `applied_at`** — žádný `version`. → `42703` při každém spuštění.
+   Migrační runner tedy dnes nefunguje.
+2. **Evidence migrací je STALE.** `schema_migrations` má 245 řádků a končí na
+   `339_rls_submodule_tables_policies.sql`, ale schéma je reálně mnohem dál
+   (mig 340–449 se aplikovaly, aniž se zapsaly). → **zdrojem pravdy o stavu
+   schématu je schéma samo, ne ta tabulka.** Konzistentní s dřívějším poučením
+   „baseline.sql je stale".
