@@ -19,6 +19,12 @@
 -- brands.advertisers, .campaigns, .event_partnerships, .impressions) dnes
 -- grant NEMÁ. `ON ALL TABLES` by jim ho přidal = rozšíření oprávnění.
 --
+-- POZN.: granty na PostGIS pohledy (geography_columns, geometry_columns,
+-- spatial_ref_sys) jsou ZÁMĚRNĚ VYNECHANÉ. Ty objekty vlastní cloud_admin
+-- a patří extensioně (pg_depend deptype=e), takže neondb_owner na ně grant
+-- udělit NEMŮŽE — Postgres vrátí WARNING "no privileges were granted",
+-- NE error, takže to ani ON_ERROR_STOP=1 nechytí.
+--
 -- Vygenerováno z br-rough-paper-alom0zky 2026-07-30.
 --
 
@@ -521,8 +527,6 @@ GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "pu
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."fnb_menu_items" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."fnb_preorders" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."forgemsg_outbox" TO tixly_app;
-GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."geography_columns" TO tixly_app;
-GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."geometry_columns" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."insurance_claims" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."onboarding_wizard_sessions" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."order_addons" TO tixly_app;
@@ -531,7 +535,6 @@ GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "pu
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."presale_events" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."refunds" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."schema_migrations" TO tixly_app;
-GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."spatial_ref_sys" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."ticket_installments" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."ticket_payment_plans" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."wallet_device_registrations" TO tixly_app;

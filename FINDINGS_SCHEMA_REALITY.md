@@ -889,3 +889,65 @@ RLS zafungovalo. Dokázáno tím: role existuje a přihlásí se, granty funguj�
 
 **NEDOKÁZÁNO:** že se stejným INSERTem *s* korektním GUC kontextem projde.
 Ten test jsem nespustil.
+
+---
+
+## §25 GUC test — recept je FUNKČNĚ ověřený
+
+Na klonu obnoveném z `baseline` + `globals`, připojen jako `tixly_app`
+(`current_user=tixly_app session_user=tixly_app bypassrls=false`):
+
+```
+A) BEZ GUC          → 42501 new row violates row-level security policy  ✅ RLS blokuje
+B) SET LOCAL app.role='service'
+   INSERT identity.users → ✅ PROŠEL, id=d8d4f99b-…
+   zpětné čtení          → ✅ 1 řádek
+```
+
+GUC podle `rls-pool.ts:145-154` (`app.current_promoter_id`, `app.is_platform_admin`,
+`app.current_user_id`, `app.role`); `runWithServiceContext` používá `app.role='service'`
+→ `app_is_service()`.
+
+**Verdikt: dvojice `baseline` + `globals` vytvoří DB, kde se aplikační role
+připojí, podléhá RLS a se správným kontextem zapíše.** To je ten test, který
+minule chyběl.
+
+## §26 Schémata `communications` a `brands` jsou pro aplikaci ZAVŘENÁ
+
+Pod `tixly_app` (s korektním kontextem):
+
+```
+communications.broadcasts : 42501 permission denied for schema communications
+brands.advertisers        : 42501 permission denied for schema brands
+```
+
+Není to „7 tabulek bez grantu" — **celá dvě schémata nemají ani `USAGE`**.
+(Globals generují 78 `GRANT USAGE ON SCHEMA`, protože přesně tolik schémat má
+`tixly_app` v `nspacl`; `communications` a `brands` mezi nimi nejsou.)
+
+🔴 **Korekce mého vlastního tvrzení:** commit `63fd1d4` „opravil"
+`admin/broadcasts:76` (odstranění neexistujícího `sent_by_user_id`). Ta oprava
+je správná na úrovni SQL, ale **cestu nezprovozní** — pod aplikační rolí padne
+dřív, na `42501 permission denied for schema communications`. Totéž platí pro
+`emergency_announcements`, `announcement_responses` a čtyři tabulky v `brands`.
+
+**NEZMĚŘENO:** jestli je to záměr (mrtvý subsystém) nebo chybějící grant.
+Neopravuji — vyžaduje rozhodnutí.
+
+## §27 PostGIS granty: příčina nalezena, z globals odstraněny
+
+`ON_ERROR_STOP=1` **byl** nastaven. Ty 3 granty ale nevrátily error, nýbrž:
+
+```
+WARNING: no privileges were granted for "geography_columns"
+WARNING: no privileges were granted for "geometry_columns"
+WARNING: no privileges were granted for "spatial_ref_sys"
+```
+
+Příčina: ty objekty vlastní `cloud_admin` a patří extensioně
+(`pg_depend deptype='e'`), takže `neondb_owner` na ně grant udělit **nemůže**.
+Postgres to hlásí jako WARNING, ne ERROR → `ON_ERROR_STOP` to nechytí.
+
+→ Dřívější „3 rozdíly" **nebylo podhodnocené**, byly přesně 3 a příčina je známá.
+→ Granty na ty pohledy **z globals odstraněny** — reprodukovat je nelze
+a produkce je má z jiného zdroje (pravděpodobně od `cloud_admin`).
