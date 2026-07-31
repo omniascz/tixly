@@ -47,7 +47,7 @@ const PROJECT = 'fragrant-wildflower-75132205';
 const PROD_BRANCH = 'br-rough-paper-alom0zky';
 const DB_NAME = 'neondb';
 const ROLE = 'neondb_owner';
-const MIGRATIONS_DIR = 'migrations';
+const MIGRATIONS_DIR = '../migrations'; // sloučeno do kořenové složky (fc95cb2)
 const PENDING_MIGRATIONS = [
   '450_tickets_dedup_unique.sql',
   '451_orders_payment_provider_pos.sql',

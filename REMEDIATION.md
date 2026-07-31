@@ -1015,3 +1015,41 @@ běží jako `neondb_owner`, který granty nepotřebuje. Viz FINDINGS §30.
 **NEOPRAVENO.** Jestli jsou `communications` a `brands` zavřené záměrně
 (mrtvý subsystém) nebo jde o chybějící grant, je produktové rozhodnutí, ne
 měření.
+
+---
+
+## 🔒 DEPLOY REQUIREMENT (ruční krok ve Vercelu)
+
+**Produkční `DATABASE_URL` MUSÍ používat roli `tixly_app`, ne `neondb_owner`.**
+
+Důvod: `tixly_app` je **jediná** role s `BYPASSRLS = false`. Pod `neondb_owner`
+je všech **596 RLS policies inertních** — existují, ale nikdy se nevyhodnotí.
+
+Je to jediný krok celého deploye, který se dělá ručně (heslo role se z `pg_roles`
+vyčíst nedá; generuje se a ukládá do env). Viz `migrations/000_baseline_globals.sql`.
+
+## ⚠️ NOVÝ FRONT: guest-create helper padá pod produkční rolí
+
+Změřeno 2026-07-31 (FINDINGS §31): live sada pod `tixly_app` → **6 z 30 testů
+padá**, všech 6 na jedné příčině:
+
+```
+new row violates row-level security policy (USING expression) for table "users"
+  at createOrGetGuestUser (src/lib/identity/guest-user.ts:130)
+```
+
+`ON CONFLICT … DO UPDATE` musí projít i **USING** výrazem RLS policy nad
+existujícím řádkem; kontext admin cest (`app.role='promoter'`) na
+`identity.users` nestačí.
+
+**Dotčené cesty (všech 7 přepojených + 18 nepřepojených kopií):**
+`admin/events/[id]/comps`, `.../guestlist`, `.../press`, `.../accreditation`,
+`.../waitlist/[entryId]`, `.../box-office/sell` — checkout jako jediný prošel.
+
+Pod `neondb_owner` to nikdy nebylo vidět. **NEOPRAVENO.**
+
+## ⚠️ Rozhodnutí: `communications` a `brands`
+
+Obě schémata jsou pro `tixly_app` zavřená (ani `USAGE`). Stojí na nich
+**13 route souborů** (5 + 8, výčet ve FINDINGS §32). Buď udělit granty, nebo
+vypnout vzorem foyer. Bez rozhodnutí jsou to mrtvé cesty, které vypadají živě.

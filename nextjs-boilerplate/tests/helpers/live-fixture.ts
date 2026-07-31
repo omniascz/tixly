@@ -88,15 +88,32 @@ export async function createLiveClone(
       `&role_name=${ROLE}&database_name=${DB_NAME}`,
   );
 
-  process.env.DATABASE_URL = uri;
   process.env.NEXT_PUBLIC_APP_URL ??= 'http://localhost:3000';
   // Vydávání lístků šifruje TOTP secret — bez klíče issuer spadne.
   process.env.ENCRYPTION_KEY ??= 'a'.repeat(64);
 
+  // Seed a asserty jdou VŽDY přes owner pool (ground truth, bypassrls).
   const pool = new Pool({ connectionString: uri, max: 6 });
 
+  // `LIVE_AS_APP_ROLE=1` → route handlery se připojí jako `tixly_app`
+  // (BYPASSRLS=false), tedy pod rolí, kterou má používat produkce.
+  // Default zůstává `neondb_owner`, aby se stávající sada nechovala jinak.
+  //
+  // Proč to existuje: všechna dosavadní měření běžela jako owner, který
+  // granty nepotřebuje a RLS ho míjí → výsledky byly systematicky
+  // optimistické o celou vrstvu oprávnění (FINDINGS §30).
+  if (process.env.LIVE_AS_APP_ROLE === '1') {
+    const pw = `LiveTest_${randomUUID().slice(0, 12)}`;
+    await pool.query(`ALTER ROLE tixly_app WITH PASSWORD '${pw}'`);
+    process.env.DATABASE_URL = uri.replace(/\/\/[^@]+@/, `//tixly_app:${pw}@`);
+  } else {
+    process.env.DATABASE_URL = uri;
+  }
+
   for (const file of opts.migrations ?? PENDING_MIGRATIONS) {
-    const sql = await readFile(join('migrations', file), 'utf8');
+    // `../migrations` — migrace se archivačním commitem `fc95cb2` sloučily do
+    // JEDINÉ kořenové složky; `nextjs-boilerplate/migrations/` zanikla.
+    const sql = await readFile(join('..', 'migrations', file), 'utf8');
     await pool.query(sql);
   }
 

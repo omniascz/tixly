@@ -1038,3 +1038,65 @@ z našich měření to nezachytilo (§26).
 
 **Rozsah: neznámý.** Nepřeměřováno. Otevřené riziko — správně by se sken
 i live testy měly pouštět pod `tixly_app` s GUC kontextem, ne pod ownerem.
+
+---
+
+## §31 §30 ZMĚŘENO: pod `tixly_app` padá 6 z 30 live testů (20 %)
+
+Live sada pod dvěma rolemi, jinak identická (`LIVE_AS_APP_ROLE=1`):
+
+```
+neondb_owner (BYPASSRLS=true) : 5 files passed, 30 passed | 1 skipped, exit 0
+tixly_app    (BYPASSRLS=false): 1 file FAILED, 6 failed / 24 passed, exit 1
+```
+
+**Zkreslení §30 je tedy 20 % live sady.** Všech 6 pádů je v
+`admin-guest.live.test.ts` a mají JEDNU společnou příčinu:
+
+```
+new row violates row-level security policy (USING expression) for table "users"
+  at createOrGetGuestUser (src/lib/identity/guest-user.ts:130)
+  at admin/events/[id]/comps/route.ts:175
+```
+
+🔴 **Padá SDÍLENÝ guest-create helper.** `ON CONFLICT … DO UPDATE` musí projít
+i **USING** výrazem RLS policy nad existujícím řádkem, a kontext admin cest
+(`runAsActivePromoter` → `app.role='promoter'`, `app.current_promoter_id`)
+na `identity.users` nestačí.
+
+Dopad je širší než 6 testů: helper má **7 přepojených call-sites** a čeká na něj
+**18 nepřepojených kopií** (REMEDIATION §1). Pod produkční rolí je tedy dnes
+rozbitá celá guest-create třída na admin cestách.
+
+`checkout-guest.live.test.ts` (4 testy) **prošel** — checkout jede v jiném
+kontextu. Rozdíl mezi nimi je ta hranice, kterou je potřeba pochopit.
+
+**NEOPRAVENO** — je to nový front, ne úklid.
+
+### Co tohle číslo NEPOKRÝVÁ
+
+20 % je zkreslení **live sady**, ne celého systému. Sken (`schema-reality-scan`)
+pod `tixly_app` spuštěný **nebyl** — `information_schema` filtruje podle
+oprávnění, takže by pod app rolí viděl méně objektů a výsledek by nebyl
+srovnatelný. Skutečné zkreslení napříč všemi 135 nálezy je **neznámé**.
+
+## §32 `communications` a `brands`: 13 route souborů na mrtvých schématech
+
+Obě schémata nemají pro `tixly_app` ani `USAGE` (§26). Kód, který na nich stojí:
+
+**`communications` — 5 souborů:** `admin/broadcasts`, `admin/broadcasts/[id]/preview`,
+`admin/broadcasts/[id]/send`, `admin/events/[id]/emergency`,
+`buyer/announcements/[token]/respond`
+
+**`brands` — 8 souborů:** `admin/brand-connect/proposals`,
+`admin/brand-connect/proposals/[id]`, `brand-connect/event/[id]`,
+`brand-connect/track`, `platform/brand-connect/advertisers`,
+`platform/brand-connect/campaigns`, `platform/brand-connect/campaigns/[id]`,
+`platform/brand-connect/campaigns/[id]/match`
+
+**Rozhodnutí, které je potřeba udělat:**
+- **udělit granty** (`GRANT USAGE ON SCHEMA` + table granty) — pokud jsou
+  brand-connect a broadcasts živé featury, které mají fungovat
+- **vypnout je vzorem foyer** (UI flag + backend guard) — pokud jsou mrtvé
+
+13 route souborů je dost na to, aby to nebylo triviální ani jedním směrem.

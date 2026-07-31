@@ -70,7 +70,7 @@ describe.skipIf(!apiKey || !process.env.RUN_AUDIT_REPRO)(
 
     pool = new Pool({ connectionString: uri, max: 4 });
     for (const m of PENDING_MIGRATIONS) {
-      await pool.query(await readFile(`migrations/${m}`, 'utf8'));
+      await pool.query(await readFile(`../migrations/${m}`, 'utf8'));
     }
     await pool.query(`INSERT INTO platform.promoters (id, email, name) VALUES ($1, $2, 'P')`, [
       promoterId,
