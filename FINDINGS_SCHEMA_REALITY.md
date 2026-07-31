@@ -951,3 +951,90 @@ Postgres to hlásí jako WARNING, ne ERROR → `ON_ERROR_STOP` to nechytí.
 → Dřívější „3 rozdíly" **nebylo podhodnocené**, byly přesně 3 a příčina je známá.
 → Granty na ty pohledy **z globals odstraněny** — reprodukovat je nelze
 a produkce je má z jiného zdroje (pravděpodobně od `cloud_admin`).
+
+---
+
+## §28 Pod jakou rolí běží produkce — NEJDE ROZHODNOUT (a proč)
+
+### Co je změřené
+
+**Neon API, role na větvi `br-rough-paper-alom0zky`:**
+```
+neondb_owner   (created 2026-05-20)
+tixly_app      (created 2026-06-01)     ← Neon-managed role, existuje
+```
+
+**`pg_roles`:**
+
+| role | LOGIN | BYPASSRLS | SUPER |
+|---|---|---|---|
+| `cloud_admin` | ✅ | ✅ | ✅ |
+| `neon_service` | ✅ | ✅ | — |
+| `neon_superuser` | — | ✅ | — |
+| `neondb_owner` | ✅ | **✅** | — |
+| `tixly_app` | ✅ | **❌** | — |
+
+**`pg_stat_activity`:** jediné spojení = **moje vlastní** (`neondb_owner`,
+`client 10.34.32.201/32`, dotaz = tenhle audit). **Žádné spojení od aplikace.**
+Endpoint `ep-weathered-wind-alvbjysw`: `state=idle`, `last_active=2026-07-30T21:09`.
+
+**Proč tam aplikace není:**
+```
+identity.users : 3 řádky
+orders.orders  : 0 řádků
+catalog.events : 0 řádků
+```
+Produkční DB **nemá žádný provoz** — 0 akcí, 0 objednávek. Konzistentní
+s tím, že projekt je předprodukční.
+
+### Verdikt: **NEJDE ROZHODNOUT**
+
+`pg_stat_activity` nemůže odpovědět, protože **aplikace není a nikdy nebyla
+připojená**. Nedokazuje to ani inertnost RLS, ani jeho vynucování.
+
+**Indicie, že `tixly_app` JE zamýšlená aplikační role** (indicie, ne důkaz):
+- je Neon-managed (figuruje v API seznamu rolí), tedy někdo ji vědomě založil
+- je **jediná** role s `BYPASSRLS = false` — u ostatních by RLS nedávalo smysl
+- má 4200 table grantů a 78 schema `USAGE` grantů výhradně pro sebe
+
+**Co chybí k rozhodnutí a jak to získat:**
+1. hodnota `DATABASE_URL` v produkčním prostředí Vercelu → `vercel env pull`
+   (CLI **není nainstalované**: `npm i -g vercel`) nebo Vercel dashboard
+2. NEBO zachytit aplikaci připojenou — dnes nelze, DB je bez provozu
+
+**Netipuju.** Dokud se nepřečte to URI, není doloženo ani „RLS se vynucuje",
+ani „RLS je inertní".
+
+> ⚠️ Kdyby produkce jela jako `neondb_owner`, je RLS **inertní** (bypassrls=true)
+> a všech 596 policies je dekorace. To je scénář, který se **nedá vyloučit**
+> a stojí za jedno přečtení env proměnné.
+
+## §29 🕶️ Slepá třída: `WARNING` není `ERROR`
+
+`ON_ERROR_STOP=1` chytá **jen ERROR**. Postgres hlásí řadu neúspěchů jako
+WARNING a psql pokračuje s exit 0. Doloženo na PostGIS grantech (§27):
+```
+WARNING: no privileges were granted for "geography_columns"
+→ psql exit 0, přesto grant NEudělen
+```
+**Důsledek pro budoucí deploy runner:** „migrace proběhla (exit 0)" **neznamená**
+„efekt nastal". Runner musí buď parsovat warningy, nebo — spolehlivěji —
+po aplikaci **porovnat schéma proti očekávání**, ne věřit exit kódu.
+Je to táž třída jako tiché crony (§8) a `psql` bez `ON_ERROR_STOP` v `deploy.yml`
+(§17), jen o patro výš.
+
+## §30 🕶️ Slepá třída: všechna dosavadní měření běžela jako `neondb_owner`
+
+Sken, guard, všechny RED→GREEN harnessy i live testy se připojují jako
+`neondb_owner` — role s **`BYPASSRLS = true` a bez potřeby grantů**.
+
+**Všechny dosavadní výsledky jsou proto systematicky OPTIMISTICKÉ o celou
+vrstvu oprávnění.** Cesta, která u nás „PROŠLA", může pod aplikační rolí
+skončit na `42501` — buď chybějícím grantem, nebo RLS policy.
+
+Doloženo: `communications.broadcasts` a `brands.advertisers` jsou pod
+`tixly_app` nedostupné (`42501 permission denied for schema`), a **žádné**
+z našich měření to nezachytilo (§26).
+
+**Rozsah: neznámý.** Nepřeměřováno. Otevřené riziko — správně by se sken
+i live testy měly pouštět pod `tixly_app` s GUC kontextem, ne pod ownerem.

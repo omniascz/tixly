@@ -986,3 +986,32 @@ INSERT do `audit.anomaly_alerts (promoter_id, alert_type, severity, payload)`:
    - ⚠️ **DEPLOY POŘADÍ:** migraci **452 aplikovat na prod PŘED** nasazením kódu — INSERT s `provider='tiktok'` potřebuje rozšířený enum, jinak 23514. *(dosud nenasazeno.)*
 
 Baseline lze utáhnout: −3 (třída 1) a nadále dle třídy 3+ jak fixy ubývají.
+
+---
+
+## 🔧 KOREKCE 2026-07-31 — `63fd1d4` admin/broadcasts NENÍ zprovozněný
+
+Commit `63fd1d4` („fix(broadcasts): odstranit neexistující sent_by_user_id —
+částečný restore") je na úrovni SQL **správný** — sloupec `sent_by_user_id` na
+`communications.broadcasts` opravdu neexistuje a jeho odstranění je korektní.
+
+**ALE cesta se tím nerozběhne.** Změřeno pod aplikační rolí `tixly_app`:
+
+```
+communications.broadcasts → 42501 permission denied for schema communications
+```
+
+Schéma `communications` **nemá pro `tixly_app` ani `USAGE`**. INSERT tedy padne
+dřív, než se vůbec dostane ke sloupcům. Totéž platí pro
+`communications.emergency_announcements`, `.announcement_responses` a čtyři
+tabulky ve schématu `brands`.
+
+Tvrzení v tom commitu, že „zbylé 4 hodnoty targetu po tomhle commitu fungují",
+je tedy **nepravdivé** — nefunguje žádná.
+
+**Proč to nikdo nechytil:** všechna měření (sken, guard, RED→GREEN harnessy)
+běží jako `neondb_owner`, který granty nepotřebuje. Viz FINDINGS §30.
+
+**NEOPRAVENO.** Jestli jsou `communications` a `brands` zavřené záměrně
+(mrtvý subsystém) nebo jde o chybějící grant, je produktové rozhodnutí, ne
+měření.
