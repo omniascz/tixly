@@ -1241,3 +1241,40 @@ takže po `RESET` (kdy v GUC zůstane prázdný řetězec) dají `''::uuid` →
 **22P02 → 500**. Náprava je stejná jako výše: volat helper.
 
 **NEOPRAVENO.**
+
+---
+
+## 🔴 453 POZASTAVENA: 4 ze 7 tvarů JOINu ztratí data (FINDINGS §40)
+
+Otestováno proti 7 cestám, kterými se 126 sites dostává na `identity.users`.
+Izolace funguje (cizí tenant zmizel), ale:
+
+```
+✅ drží     : orders (63 sites), tým (11), anonymizovaný uživatel
+🔴 ZTRACENO : tickets (14), přímo podle id, podle e-mailu (8), actor/audit (9)
+```
+
+**Nasadit 453 v současné podobě = tiché vyprázdnění dat na skeneru.**
+
+### Jediná jednoznačná díra: cesta přes `tickets`
+
+Držitel lístku, jehož objednávku má někdo jiný (dárek, transfer), po 453 zmizí.
+Dotčené routes běží pod `runAsActivePromoter`, tedy tam, kde policy zabírá:
+`admin/scanner/validate`, `scanner/reentry`, `scanner/validate-nfc`,
+`admin/commemorative/send`. Promotér na svou akci nárok má.
+
+Návrh šesté větve je ve FINDINGS §40. **Nepřidán naslepo** — přidává třetí
+`EXISTS` na řádek a výkon 453 pořád není změřený. Patří do jednoho rozhodnutí
+s `EXPLAIN` na produkčních datech.
+
+### Zbylé tři jsou spíš správné chování
+
+`actor/audit` skrytí platformních pracovníků je žádoucí (důsledek: prázdné
+jméno v audit logu). `přímo podle id` / `podle e-mailu` u člověka bez
+objednávky je konzistentní se záměrem — ale **5 z 8 e-mailových sites běží pod
+`runAsActivePromoter`** (`admin/customers`, `customers/export`, `staff`,
+`team`, `broadcasts/send`) a jestli některý cílí i na lidi bez objednávky,
+tiše se vyprázdní. Vyžaduje projít těch 5 rout; od stolu to rozhodnout nejde.
+
+**Pořadí prací:** projít 5 e-mailových rout → rozhodnout o šesté větvi →
+`EXPLAIN` na datech → teprve pak nasazovat 453.

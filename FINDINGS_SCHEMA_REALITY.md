@@ -1504,3 +1504,77 @@ Nahradit ho za `app_is_service()` by **aktivovalo dosud mrtvou větev**, tedy
 rozšířilo přístup. To je jiné rozhodnutí než oprava pádu a patří do migrace
 na 39 name-drift policies. 454 mění pouze tvar castu; množina viditelných
 řádků se pro platné UUID nemění.
+
+---
+
+## §40 🔴 Migrace 453 NENÍ nasaditelná: 4 ze 7 tvarů JOINu ztratí data
+
+126 JOIN sites na `identity.users` se dá roztřídit na **7 distinktních cest**.
+`scripts/test-453-join-paths.mjs` seedne po jednom uživateli pro každý vztah
+a změří viditelnost pod `tixly_app` v kontextu promotéra A.
+
+| cesta | sites | před 453 | po 453 | verdikt |
+|---|---|---|---|---|
+| přes `orders` (`u.id=o.user_id`) | 63 | 1 | 1 | ✅ drží |
+| přes `tickets` (`u.id=t.owner_id`) | 14 | 1 | **0** | 🔴 **ZTRACENO** |
+| přes tým (`u.id=pm.user_id`) | 11 | 1 | 1 | ✅ drží |
+| přímo podle `id` (guest bez objednávky) | — | 1 | **0** | 🔴 ZTRACENO |
+| podle e-mailu (`LOWER(u.email)=`) | 8 | 1 | **0** | 🔴 ZTRACENO |
+| actor/audit (`actor_user_id`…) | 9 | 1 | **0** | 🔴 ZTRACENO |
+| anonymizovaný (měl objednávku) | — | 1 | 1 | ✅ drží |
+| 🔒 cizí tenant | — | 1 | **0** | ✅ správně zmizel |
+
+Izolace funguje (cizí tenant zmizel), ale **cena je vyšší, než §37 ukazovala** —
+tam se testoval jen ten jeden tvar, který drží.
+
+### 1. `tickets` → DÍRA V POLICY, ne správné chování
+
+Nejzávažnější. Uživatel vlastní lístek na akci promotéra A, ale **objednávku
+má někdo jiný** — dárek nebo lístek po transferu. Větev „zákazník přes orders"
+ho nenajde, protože v `orders` není.
+
+A není to okrajové: ty routes běží pod `runAsActivePromoter`, tedy přesně
+v kontextu, kde policy zabírá:
+
+```
+admin/scanner/validate       runAsActivePromoter   ← kontrola na vstupu
+admin/scanner/reentry        runAsActivePromoter
+admin/scanner/validate-nfc   runAsActivePromoter
+admin/commemorative/send     runAsActivePromoter
+```
+
+🔴 Po 453 by **skenování na vstupu přestalo vidět držitele lístku** u každého
+dárku a každého transferu. Promotér na to má legitimní nárok — je to jeho akce.
+
+**Návrh (NEAPLIKOVÁN — záměrně):** doplnit do 453 šestou větev
+```sql
+OR (app_current_promoter_id() IS NOT NULL AND EXISTS (
+      SELECT 1 FROM tickets.tickets tk
+      JOIN orders.orders o2 ON o2.id = tk.order_id
+      JOIN catalog.events e2 ON e2.id = o2.event_id
+      WHERE tk.owner_id = users.id AND e2.promoter_id = app_current_promoter_id()))
+```
+Nepřidávám ji naslepo: přidává třetí `EXISTS` na řádek a výkon 453 zatím
+NENÍ změřený (§37). Patří to do jednoho rozhodnutí s `EXPLAIN` na datech.
+
+### 2.–4. Zbylé tři: spíš správné chování než díra
+
+- **actor/audit (9 sites)** — platformní pracovník bez vztahu k promotérovi.
+  Že ho promotér nevidí, je **žádoucí**. Důsledek je kosmetický, ale reálný:
+  v audit logu zůstane prázdné jméno místo „kdo to udělal". Produktové
+  rozhodnutí, ne bezpečnostní.
+- **přímo podle `id` / podle e-mailu** — testovaný případ byl guest, který
+  checkout nedokončil, takže u promotéra objednávku nemá. Že ho promotér
+  nevidí, je konzistentní se záměrem 453. Ale 5 z těch 8 e-mailových sites
+  běží pod `runAsActivePromoter` (`admin/customers`, `customers/export`,
+  `staff`, `team`, `broadcasts/send`) — a **jestli některý z nich cílí
+  i na lidi bez objednávky (např. obnova opuštěného košíku), tiše se vyprázdní**.
+  To NEJDE rozhodnout od stolu; vyžaduje projít těch 5 rout.
+
+### Co tenhle test NEDOKAZUJE
+
+Sonda je **jedna na cestu**, ne na všech 126 sites. Cesta „drží" znamená, že
+drží ten tvar, který jsem seedoval — ne že všech 63 rout v kategorii `orders`
+čte přes `orders`. Zbývá i **výkon** (stále neměřený) a 3 cesty, které mají
+sites, ale nedostaly vlastní sondu (resale protistrany, `friend_id`,
+feature tabulky typu waitlist/verified_fan).
