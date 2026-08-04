@@ -2710,3 +2710,57 @@ pátá čeká na rozhodnutí.
 Čekal jsem 500 kvůli blockeru 5, ale vrátil jiný kód a už jsem ho nezměřil —
 došel kontext. Nechat je s tvrzením, které jsem neověřil, by bylo horší než
 je vypnout. V souboru je to označené včetně toho, co tam patří po opravě.
+
+---
+
+## §65 ✅ Party-split DOJETÝ: „v prodeji" se drží na AKCI, ne na typu lístku
+
+Blocker z §64 (`tt.status = 'on_sale'`) **nebyl produktová díra, ale špatný
+alias.** Recon funkčních prodejních cest ukázal zavedený vzorec:
+
+```
+checkout/route.ts:355            WHERE tt.id = $1 AND tt.event_id = $2 AND e.status = 'published'
+events/[id]/ticket-types:46      JOIN catalog.events e ON e.id = tt.event_id AND e.status = 'published'
+… celkem 69 výskytů `e.status = 'published'` v src/
+```
+
+Stav prodeje se drží na `catalog.events.status`
+(`draft|pending_review|published|rejected|flagged|cancelled|completed`),
+ne na `ticket_types`. Party-split měl tentýž tvar dotazu jako hlavní checkout,
+jen filtroval `tt.status` místo `e.status` — sloupec, který na `ticket_types`
+nikdy nebyl. **Nevymýšlel jsem model, použil jsem ten, který běží na 69 místech.**
+
+🔧 Korekce §64: „produktové rozhodnutí" bylo nadsazené. Kdybych se nejdřív
+podíval, jak to dělají funkční cesty, nemusel jsem to označit za blocker.
+
+### Party-split přes SKUTEČNÉ handlery — 3/3 PROŠLO
+
+```
+[party-split create]   201  shareToken=U4aMZ9_AvWn02CV32Typm9ue  (URL-safe, 24 zn.)
+                            shareUrl=/party/U4aMZ9_…
+[party-split capacity] 409  {"error":"INSUFFICIENT_CAPACITY","available":5}
+[alert]                200  token z Node, URL-safe
+```
+
+Kapacitní test má smysl teprve po opravě: první verze posílala `totalSlots:
+9999` a dostávala `400 INVALID_INPUT` (validace `totalSlots <= 20`) — netestovala
+kapacitu vůbec. Teď jde 10 slotů proti typu s `remaining_qty = 5` a vrací
+`409` s `available: 5`, tedy **hodnotou přečtenou z `remaining_qty`**.
+
+Celý peel party-split, 5 vrstev, všechny uzavřené:
+
+| # | vrstva | chyba | kde |
+|---|---|---|---|
+| 1 | `share_token DEFAULT encode(…,'base64url')` | 22023 | mig 456 |
+| 2 | `tt.capacity_remaining` → `remaining_qty` | 42703 | §63 |
+| 3 | `tt.price_halire` → `base_price` | 42703 | §63 |
+| 4 | dekrement na starém jménu | 42703 | §63 |
+| 5 | `tt.status` → `e.status = 'published'` | 42703 | §65 |
+
+### `capacity_remaining` mimo `src/`
+
+Grep celého repa (bez `node_modules`): mimo `src/` jen dokumentace
+(FINDINGS, REMEDIATION, migrations/README) a jeden můj komentář v
+`rls-gate.yml`. **Žádný mobilní klient (`mobile/`, `mobile-promoter/`) ani
+embed widget to pole nekonzumuje**, takže dva `wl/` aliasy jsou veřejný
+kontrakt bez známého konzumenta v tomhle repu.

@@ -76,7 +76,12 @@ export async function POST(req: NextRequest): Promise<Response> {
        FROM catalog.ticket_types tt
        JOIN catalog.events e ON e.id = tt.event_id
        JOIN catalog.productions pr ON pr.id = e.production_id
-       WHERE tt.id = $1 AND e.id = $2 AND tt.status = 'on_sale'`,
+       -- tt.status NEEXISTUJE. Stav prodeje se v tomhle schematu drzi na AKCI,
+       -- ne na typu listku: hlavni checkout ma tentyz tvar dotazu
+       -- (checkout/route.ts:355) a filtruje e.status = 'published', stejne tak
+       -- verejny vypis events/[id]/ticket-types:46. Vzorec je zavedeny na
+       -- 69 mistech — nevymyslim novy.
+       WHERE tt.id = $1 AND e.id = $2 AND e.status = 'published'`,
       [body.ticketTypeId, body.eventId],
     );
 

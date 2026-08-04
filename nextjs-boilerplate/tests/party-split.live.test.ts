@@ -21,6 +21,7 @@ let clone: LiveClone;
 const ids = {
   user: randomUUID(), promoter: randomUUID(), venue: randomUUID(),
   production: randomUUID(), event: randomUUID(), ticketType: randomUUID(),
+  scarceType: randomUUID(),
 };
 
 d('party-split přes skutečné handlery', () => {
@@ -38,22 +39,23 @@ d('party-split přes skutečné handlery', () => {
       [ids.venue]);
     await q(`INSERT INTO catalog.productions (id,promoter_id,title) VALUES ($1,$2,'Prod')`,
       [ids.production, ids.promoter]).catch(() => undefined);
-    await q(`INSERT INTO catalog.events (id,promoter_id,organizer_id,venue_id,production_id,title,date_start,slug)
-             VALUES ($1,$2,$3,$4,$5,'E',now()+interval '30 day',$6)`,
+    await q(`INSERT INTO catalog.events (id,promoter_id,organizer_id,venue_id,production_id,title,date_start,slug,status)
+             VALUES ($1,$2,$3,$4,$5,'E',now()+interval '30 day',$6,'published')`,
       [ids.event, ids.promoter, ids.user, ids.venue, ids.production, 'ev-' + ids.event.slice(0, 8)]);
     // `ticket_types` NEMA sloupec `status` — ma `visibility`
     // ('public'|'hidden'|'access_code'). Viz blocker nize.
     await q(`INSERT INTO catalog.ticket_types (id,event_id,name,kind,base_price,total_qty,remaining_qty,visibility)
              VALUES ($1,$2,'TT','standing',50000,100,100,'public')`,
       [ids.ticketType, ids.event]);
+    // druhy typ se zamerne MALO mizty — na nem se testuje kapacitni brana
+    await q(`INSERT INTO catalog.ticket_types (id,event_id,name,kind,base_price,total_qty,remaining_qty,visibility)
+             VALUES ($1,$2,'Scarce','standing',50000,100,5,'public')`,
+      [ids.scarceType, ids.event]);
   }, 180_000);
 
   afterAll(async () => { await clone?.cleanup(); }, 120_000);
 
-  // 🔴 NEDOKONCENO: handler nevraci 500 (blocker `tt.status`) ani uspech —
-  // skutecny navratovy kod jsem nezmeril, dosel kontext. Test je proto
-  // vypnuty, aby netvrdil nic, co neni overene. Viz FINDINGS 64.
-  it.skip('POST /api/checkout/party-split založí session a vrátí share_token', async () => {
+  it('POST /api/checkout/party-split založí session a vrátí share_token', async () => {
     const { POST } = await import('@/app/api/checkout/party-split/route');
     const req = new Request('http://localhost:3000/api/checkout/party-split', {
       method: 'POST',
@@ -65,32 +67,30 @@ d('party-split přes skutečné handlery', () => {
       }),
     });
     const res = await POST(req as never);
-    await res.json();
-    // 🔴 BLOCKER (produktove rozhodnuti, FINDINGS 64): dotaz filtruje
-    // `tt.status = 'on_sale'`, ale `catalog.ticket_types` sloupec `status`
-    // NEMA — ma `visibility` ('public'|'hidden'|'access_code') a zadne
-    // sales_start_at/sales_end_at. Cim se ma "on sale" nahradit, nejde
-    // odvodit ze schematu; nevymyslim to.
-    // Test zatim FIXUJE dnesni stav, aby slo poznat, az se to rozhodne:
-    // po oprave sem patri `expect(res.status).toBeLessThan(500)`.
-    expect(res.status).toBe(500);
+    const body = await res.json();
+    console.log('[party-split create]', res.status, JSON.stringify(body).slice(0, 200));
+    expect(res.status).toBeLessThan(500);
   }, 120_000);
 
-  it.skip('kapacitni kontrola cte remaining_qty (ne neexistujici sloupec)', async () => {
+  it('kapacitni kontrola cte remaining_qty (ne neexistujici sloupec)', async () => {
     const { POST } = await import('@/app/api/checkout/party-split/route');
     const req = new Request('http://localhost:3000/api/checkout/party-split', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-user-id': ids.user },
       body: JSON.stringify({
-        eventId: ids.event, ticketTypeId: ids.ticketType,
-        totalSlots: 9999, organizerEmail: `org2_${randomUUID().slice(0, 6)}@t.cz`,
+        // 10 slotu proti typu, ktery ma remaining_qty = 5.
+        // (9999 by spadlo na validaci `totalSlots <= 20`, ne na kapacite)
+        eventId: ids.event, ticketTypeId: ids.scarceType,
+        totalSlots: 10, organizerEmail: `org2_${randomUUID().slice(0, 6)}@t.cz`,
       }),
     });
     const res = await POST(req as never);
-    await res.json();
-    // Tentyz blocker jako vyse — az padne rozhodnuti o `status`, ma tu byt
-    // `expect(res.status).toBe(409)` s error === 'INSUFFICIENT_CAPACITY'.
-    expect(res.status).toBe(500);
+    const body = await res.json();
+    console.log('[party-split capacity]', res.status, JSON.stringify(body).slice(0, 200));
+    // 409 = kapacita se PRECETLA z remaining_qty (drive 42703 -> 500)
+    expect(res.status).toBe(409);
+    expect(body.error).toBe('INSUFFICIENT_CAPACITY');
+    expect(body.available).toBe(5);
   }, 120_000);
 
   it('POST /api/events/[id]/alert vlozi radek s tokenem z Node', async () => {
