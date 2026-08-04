@@ -96,6 +96,21 @@ Nic z toho **není na produkci**. Pořadí je závazné.
 | 453 | `453_users_select_scoped.sql` | `p_users_select` → 3 policies podle vztahu (self / promotér / buyer) | ✅ **ODBLOKOVÁNO** — výkon vyřešen `SECURITY DEFINER` (18,6 s → 62 ms na provozních cestách), FINDINGS §48; správnost §42 |
 | 454 | `454_rls_cast_nullif_fix.sql` | 4 policies: přímý cast GUC → `app_current_user_id()` | opravuje 22P02/500, RED→GREEN doloženo, FINDINGS §39 |
 | 455 | `455_rls_namedrift_identity.sql` | 20 policies: `app.promoter_id`/`app.user_id` → `app_*()` helpery | jen jména IDENTITY; příznaky oprávnění ZÁMĚRNĚ neřeší, FINDINGS §44 |
+| 456 | `456_drop_base64url_defaults.sql` | zrušit `DEFAULT encode(…,'base64url')` na 3 tokenech | nasadit SPOLU s kódem, který token dodává, FINDINGS §62 |
+
+### ⚠️ „capacity backfill" — v pořadí NENÍ a nemá být
+
+V deploy-orderu se dlouho vedl „capacity backfill". **Žádná taková migrace
+neexistuje a nikdy nevznikla.** Šlo o `capacity_remaining` → `remaining_qty`,
+což byl **rename ve WRITE cestě**, ne datový backfill (REMEDIATION §6: „UPDATE
+dekrement INVENTÁŘE, třída jako oversell"). V DB je rename **hotový** —
+`000_baseline` obsahuje `remaining_qty` (21×) a `capacity_remaining` **ani
+jednou**.
+
+🔴 **Nedodělaná je druhá polovina: 5 souborů kódu pořád čte `capacity_remaining`**,
+včetně dekrementu inventáře v `checkout/party-split/[token]/route.ts:233`
+(`SET capacity_remaining = capacity_remaining - 1`). Ty dotazy dnes padají na
+`42703`. Je to práce v kódu, ne migrace — do pořadí nasazení tedy nepatří.
 
 ### ⚠️ Baseline nelze pustit přes SQL driver
 
