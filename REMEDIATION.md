@@ -1193,3 +1193,51 @@ něco jiného. Viz FINDINGS §36 (pokrytí nástrojů).
 vůbec** — ověřeno reálným během, ne odhadem. Runner musí být `psql`, nebo je
 odfiltrovat (`scripts/baseline-clone.mjs` to dělá). Po odfiltrování projde
 baseline za 5,6 s a globals za 0,1 s.
+
+---
+
+## 🗺️ FRONT 2 ZMAPOVÁN: name-drift GUC — opravit stranu POLICIES (migrace 454)
+
+Rozsah: **39 unikátních policies** čte 7 jmen, která `rls-pool.ts` nenastavuje.
+(Korekce: dřív jsem psal 42; to byl součet přes jména, s překryvy.)
+
+```
+app.bypass_rls 13 │ app.promoter_id 10 │ app.user_id 10 │ app.is_service 4
+app.is_admin    2 │ app.use_service_role 2 │ app.platform_admin 1
+```
+
+### Rozhodnutí směru: opravit policies, NE rls-pool
+
+„Levnější" varianta (7 aliasů v `rls-pool.ts`) **je nepoužitelná**: 5 ze 7 jmen
+nejsou identita, ale zvýšení oprávnění (`bypass_rls`, `is_admin`,
+`platform_admin`, `is_service`, `use_service_role`). Kdyby je aplikace začala
+nastavovat, izolaci by to **vyplo, ne obnovilo** — `app.bypass_rls='on'` sedí
+na 13 tabulkách.
+
+Historie potvrzuje kanonickou stranu: konvenci `app_*()` zavedly migrace
+285/303/310, `rls-pool` ji dodržuje. Rozjely se pozdější migrace
+(385b, 404, 420) a jedna starší (236_wero). **Migrace 454 má 39 policies
+převést na `app_current_promoter_id()` / `app_current_user_id()` /
+`app_is_platform_admin()` / `app_is_service()`.**
+
+Očekávaný efekt: překlopí část z 12 tabulek, kde dnes aplikace nevidí ani
+vlastní data (6 z nich sedí přesně na tenhle rozpor).
+
+## 🔴 SAMOSTATNÝ BUG: 4 policies obcházejí helper → 22P02, ne fail-closed
+
+Je to obráceně, než jsem čekal. Osiřelá jména jsou bezpečná (nikdy se nenastaví
+→ `NULL` → fail-closed). Nebezpečné jsou čtyři, které castují **nastavovaný**
+`app.current_user_id` napřímo, bez `NULLIF`:
+
+```
+catalog.scanner_devices   platform_admin_devices
+catalog.scanner_devices   promoter_own_devices
+identity.oauth_accounts   oauth_accounts_own
+lineups.artist_follows    artist_follows_own
+```
+
+`app_current_user_id()` dělá `NULLIF(current_setting(…),'')::uuid`. Tyhle ne —
+takže po `RESET` (kdy v GUC zůstane prázdný řetězec) dají `''::uuid` →
+**22P02 → 500**. Náprava je stejná jako výše: volat helper.
+
+**NEOPRAVENO.**

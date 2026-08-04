@@ -1391,3 +1391,89 @@ Dvě kola falešně červené, obě moje:
    `uq_identity_users_email_active … WHERE anonymized_at IS NULL` a predikát
    se musí zopakovat — přesně jak to dělá `guest-user.ts:133`. Kdybych se
    nepodíval do kódu, hlásil bych „453 rozbila guest-create".
+
+---
+
+## §38 Name-drift GUC: přesná mapa, a proč se MUSÍ opravit strana policies
+
+`scripts/rls-guc-map.mjs`, změřeno na klonu z baseline.
+
+### Mapa
+
+| GUC | policies | nastavuje aplikace? | jak se čte |
+|---|---|---|---|
+| `app.is_platform_admin` | 37 | ✅ | přes `app_is_platform_admin()` |
+| `app.current_user_id` | 19 | ✅ | přes `app_current_user_id()` |
+| `app.current_promoter_id` | 6 | ✅ | přes `app_current_promoter_id()` |
+| `app.role` | 0 | ✅ | přes `app_is_service()` |
+| `app.bypass_rls` | 13 | 🔴 **NE** | přímo v policy |
+| `app.promoter_id` | 10 | 🔴 **NE** | přímo v policy |
+| `app.user_id` | 10 | 🔴 **NE** | přímo v policy |
+| `app.is_service` | 4 | 🔴 **NE** | přímo v policy |
+| `app.is_admin` | 2 | 🔴 **NE** | přímo v policy |
+| `app.use_service_role` | 2 | 🔴 **NE** | přímo v policy |
+| `app.platform_admin` | 1 | 🔴 **NE** | přímo v policy |
+
+🔧 **Korekce mého čísla z §34:** psal jsem „42 policies". Správně je
+**39 unikátních policies** — 42 byl součet přes jména, a některé policies čtou
+dvě nenastavovaná jména najednou.
+
+Vzorec je viditelný: **co jde přes `app_*()` funkce, to funguje; co sahá na
+`current_setting()` přímo, to je rozbité.**
+
+### Směr sjednocení: opravit POLICIES. Opačný směr NELZE.
+
+Nabízí se „levnější" varianta — doplnit 7 aliasů do `rls-pool.ts` (7 řádků
+místo migrace nad 39 policies). **Ta varianta je ale nepoužitelná**, a ne
+z estetických důvodů:
+
+🔴 **5 ze 7 jmen nejsou identita, ale ZVÝŠENÍ OPRÁVNĚNÍ:** `app.bypass_rls`,
+`app.is_admin`, `app.platform_admin`, `app.is_service`, `app.use_service_role`.
+Kdyby je `rls-pool` začal nastavovat, izolaci by to **neobnovilo, ale vyplo** —
+`app.bypass_rls = 'on'` je doslova bypass a sedí na 13 tabulkách.
+
+Zbylá 2 (`app.promoter_id`, `app.user_id`) jsou skutečné aliasy identity, kde by
+alias smysl dával — ale kvůli přetypování níže by problém stejně nevyřešil.
+
+**Historie potvrzuje, která strana je kanonická:**
+
+```
+mig 285 / 303 / 310  → zavedly app_current_promoter_id(), app_is_service()… (konvence)
+rls-pool.ts          → 20f5857, b1cfe14 (Fáze 2 foundation); naposledy 2026-06-03
+mig 236_wero_payments → app.is_admin  = STARŠÍ než konvence (legacy, nikdy nepřevedeno)
+mig 385b / 404 / 420  → app.promoter_id, app.bypass_rls, app.user_id
+                        = NOVĚJŠÍ než konvence (drift vznikal dál)
+```
+
+Konvence tedy existuje od mig 285 a `rls-pool` ji dodržuje. Rozjely se pozdější
+migrace, ne aplikace. **Opravit se má 39 policies, na `app_*()` funkce.**
+
+### 🔴 Podtřída 22P02 — a je obráceně, než jsem čekal
+
+Přetypovaných výskytů: **13**. Rozdělení je to podstatné:
+
+| kde | počet | co se stane při prázdném řetězci |
+|---|---|---|
+| na **nenastavovaném** jménu | 9 | GUC je `NULL` → `NULL::uuid` = `NULL` → **fail-closed** |
+| na **nastavovaném** jménu | 4 | ⚠️ **`''::uuid` → 22P02 → 500** |
+
+Nebezpečné **nejsou** ty osiřelé — ty aplikace nikdy nenastaví, takže zůstanou
+`NULL`. Nebezpečné jsou ty čtyři, které sahají na `app.current_user_id`, tedy
+GUC, který aplikace **reálně nastavuje** a po `RESET` z něj zůstane prázdný
+řetězec (doloženo dřív jako T-AUDIT-GUC):
+
+```
+⚠️ catalog.scanner_devices    platform_admin_devices   (current_setting('app.current_user_id',true))::uuid
+⚠️ catalog.scanner_devices    promoter_own_devices     — dtto
+⚠️ identity.oauth_accounts    oauth_accounts_own       — dtto
+⚠️ lineups.artist_follows     artist_follows_own       — dtto
+```
+
+Proč zrovna ony: **obcházejí helper.** `app_current_user_id()` dělá
+`NULLIF(current_setting(…), '')::uuid` — tedy prázdný řetězec ošetřuje. Tyhle
+čtyři castují napřímo, bez `NULLIF`. **Každá je potenciální 500, ne fail-closed.**
+
+🟡 Zbylých 21 výskytů je porovnání s textem (`app.bypass_rls = 'on'`,
+`app.is_service = 'true'`…) — nikdy nesedí, tedy mrtvé, ale bezpečné.
+
+**NEOPRAVENO** — na tomhle kroku mělo být jen zmapování.
