@@ -1664,3 +1664,98 @@ Sociální cesta potřebuje vlastní větev, ne rozšíření promotérské: „
 uživatele, se kterým mám potvrzené přátelství / čekající žádost".
 To je jiný vztah než tenant scoping a měl by se řešit samostatně —
 plošné rozšíření 453 by díru jen zvětšilo.
+
+---
+
+## §42 453 ROZDĚLENA podle vztahu — vše drží, izolace platí v OBOU kontextech
+
+`identity.users` se čte ze dvou nezávislých důvodů. Migrace 453 to nově
+vyjadřuje **třemi policies** místo jedné:
+
+```
+p_users_select_self      service │ platform admin │ vlastní řádek
+p_users_select_promoter  app_can_see_user_as_promoter(id)
+p_users_select_buyer     app_can_see_user_as_buyer(id)
+```
+
+**Proč tři policies, a ne jedna s OR:** Postgres permissive policies OR-uje
+sám, takže výsledek je totožný — ale oddělené policies znemožňují
+**strukturálně** to, co byl původní problém: aby rozšíření promotérské strany
+zvětšilo přístup i v sociální. Navíc je `pg_policies` ukáže jako tři řádky,
+takže je census i isolation harness měří odděleně. `identity.users` tenhle
+vzor už používá (`p_users_write`, `p_users_promoter_insert`) — nezavádíme
+nový styl. Predikáty jsou ve STABLE SQL helperech, aby šly testovat samostatně.
+
+### Výsledek (klon z baseline, `tixly_app`)
+
+| kontext | sonda | před | po |
+|---|---|---|---|
+| **promotér** | orders (63 sites) | 1 | **1 ✅** |
+| | tickets (14 sites) | 1 | **1 ✅** |
+| | tým (11 sites) | 1 | **1 ✅** |
+| | verified-fan **bez objednávky** | 1 | **1 ✅** |
+| | ⚪ bez vztahu | 1 | **0** správně zmizel |
+| | 🔒 cizí tenant | 1 | **0 ✅** |
+| **buyer** | vlastní řádek | 1 | **1 ✅** |
+| | přítel (`friendships`) | 1 | **1 ✅** |
+| | žádost příchozí (from→me) | 1 | **1 ✅** |
+| | žádost odchozí (me→to) | 1 | **1 ✅** |
+| | 🔒 cizí ne-přítel | 1 | **0 ✅** |
+| | 🔒 cizí tenant | 1 | **0 ✅** |
+
+**rozbitých cest: 0 | úniků: 0**
+
+`verified_fan_requests` doplněn jako čtvrtá promotérská větev — fanoušek bez
+objednávky je přesně smysl té funkce (přihlášky PŘED prodejem), takže to byla
+chybějící větev, ne správné chování.
+
+Buyer větev je ZÁMĚRNĚ jen přátelství + čekající žádost. Rozšíření na
+„kdokoli na stejné akci" by z ní udělalo díru — na akci chodí tisíce lidí,
+kteří o sobě nemají co vědět.
+
+⚠️ Detail, který stojí za zapamatování: `social_graph.friendships` má
+`CHECK (user_a < user_b)`, tedy kanonické pořadí dvojice. Helper proto **musí**
+kontrolovat obě orientace. Můj první seed to porušil, dostal `23514`, a sonda
+„přítel" pak měřila ne-přítele — vypadalo to jako rozbitá policy.
+
+## §43 🕶️ Slepá dimenze: „měřeno pod promotérem" ≠ „měřeno"
+
+Vedle slepých míst jednotlivých nástrojů (§36) je ještě jedno, které je
+napříč všemi: **kontext, ve kterém se měří**.
+
+Všech 58 sond isolation harnessu (§34) běželo pod promotérským kontextem
+(`app.current_promoter_id` + `app.role='promoter'`). Buyer kontext se neměřil
+ani jednou — a hned první měření (§41) našlo rozbité sociální funkce, které
+by prošly do produkce.
+
+**Rozsah, který to zaslepuje:**
+
+```
+policies celkem                                   598
+user-scoped (buyer-relevantní)                    176
+promoter-scoped                                   299
+obojí                                              83
+🔴 JEN user-scoped — buyer je JEDINÝ způsob, jak je vyhodnotit   93
+```
+
+🔴 **93 policies nelze pod promotérským kontextem vyhodnotit vůbec.** Sedí na
+nich `identity.*` (mfa_configs, oauth_accounts, gdpr_requests, login_history,
+notification_preferences…), `auth.passkey_*`, `compliance.*`, `blacklist.appeals`,
+`catalog.waitlist_entries`, `catalog.lottery_entries`. Jsou to přesně ty
+tabulky, kde se řeší soukromí uživatele — a o kterých naše měření neřeklo nic.
+
+### Klíč k dopadu: INNER vs LEFT
+
+Když policy řádek skryje, důsledek závisí na tvaru JOINu. Napříč 126 sites na
+`identity.users`:
+
+```
+INNER JOIN : 103   → řádek ZMIZÍ CELÝ (funkce se tiše vyprázdní)
+LEFT  JOIN :  23   → řádek zůstane, jen se nedoplní jméno (degradace)
+```
+
+Proto „RLS zabralo" nesmí být čteno jako „nic se nerozbilo": u 103 ze 126 míst
+je rozdíl mezi skrytím a smazáním z pohledu UI nulový.
+
+**Důsledek pro každé další měření:** každá sonda musí běžet v OBOU kontextech,
+jinak měří jen polovinu. Skript `test-453-split.mjs` je tak psaný.

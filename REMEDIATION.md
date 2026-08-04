@@ -1321,3 +1321,45 @@ Takže „přímo podle id" a „podle e-mailu" **blokátory nejsou**.
 2. Rozhodnout verified-fan (větev, nebo přepsat na LEFT JOIN)
 3. Teprve pak 453 + šestá větev nasadit
 4. `EXPLAIN` ještě jednou na promotérovi řádu 100k zákazníků (změřeno jen 200)
+
+---
+
+## ✅ 453 ODPOZASTAVENA — rozdělena podle vztahu (FINDINGS §42)
+
+`p_users_select` nahrazena **třemi policies**: `_self` (service/admin/vlastní),
+`_promoter` (`app_can_see_user_as_promoter`), `_buyer`
+(`app_can_see_user_as_buyer`). Oddělení je strukturální — rozšíření jedné
+strany už nemůže zvětšit přístup ve druhé.
+
+Změřeno v OBOU kontextech: **0 rozbitých cest, 0 úniků.**
+Promotér drží orders / tickets / tým / verified-fan; buyer drží vlastní řádek /
+přítele / obě orientace žádosti. Izolace: cizí tenant 0, cizí ne-přítel 0.
+
+Doplněna 4. promotérská větev `verified_fan_requests` — fanoušek bez objednávky
+je smysl té funkce, tedy chybějící větev, ne správné chování.
+
+**Zbývá před nasazením:** `EXPLAIN` na promotérovi řádu 100k zákazníků
+(§41 měřilo 200) — nová větev přidává čtvrtý `EXISTS`.
+
+## 🕶️ NOVÁ SLEPÁ DIMENZE: buyer kontext (FINDINGS §43)
+
+Všech 58 sond isolation harnessu běželo pod promotérem. Buyer se neměřil ani
+jednou — a první měření hned našlo rozbité sociální funkce.
+
+```
+policies celkem                                598
+user-scoped (buyer-relevantní)                 176
+🔴 JEN user-scoped (buyer je jediná cesta)      93
+```
+
+93 policies **nelze pod promotérským kontextem vyhodnotit vůbec**:
+`identity.mfa_configs`, `oauth_accounts`, `gdpr_requests`, `login_history`,
+`notification_preferences`, `auth.passkey_*`, `compliance.*`,
+`blacklist.appeals`, `catalog.waitlist_entries`, `lottery_entries` — tedy
+přesně tabulky o soukromí uživatele.
+
+**Klíč k dopadu:** 103 ze 126 JOIN sites na `users` je INNER (řádek zmizí
+celý), jen 23 je LEFT (degradace). „RLS zabralo" proto nesmí být čteno jako
+„nic se nerozbilo".
+
+**Pravidlo pro další měření:** každá sonda musí běžet v obou kontextech.

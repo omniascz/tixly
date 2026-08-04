@@ -93,7 +93,7 @@ Nic z toho **není na produkci**. Pořadí je závazné.
 | 450 | `450_tickets_dedup_unique.sql` | unique index na lístcích | |
 | 451 | `451_orders_payment_provider_pos.sql` | rozšíření CHECK na `payment_provider` | |
 | 452 | `452_tracking_events_provider_tiktok.sql` | rozšíření CHECK na `provider` | |
-| 453 | `453_users_select_scoped.sql` | zúžení `p_users_select` z `USING (true)` | 🔴 **POZASTAVENO** — 4 ze 7 tvarů JOINu ztratí data, FINDINGS §40 |
+| 453 | `453_users_select_scoped.sql` | `p_users_select` → 3 policies podle vztahu (self / promotér / buyer) | ✅ odpozastaveno: 0 rozbitých cest, 0 úniků v obou kontextech, FINDINGS §42 |
 | 454 | `454_rls_cast_nullif_fix.sql` | 4 policies: přímý cast GUC → `app_current_user_id()` | opravuje 22P02/500, RED→GREEN doloženo, FINDINGS §39 |
 
 ### ⚠️ Baseline nelze pustit přes SQL driver
