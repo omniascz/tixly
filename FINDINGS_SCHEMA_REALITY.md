@@ -1180,3 +1180,155 @@ Za jejich hranicí zůstává 596 policies nezměřených.
 Buď `psql`, nebo je runner musí odfiltrovat. Po odfiltrování baseline projde
 čistě (5,6 s) a globals na něj navážou (0,1 s) — recept je funkční, ale
 **není spustitelný „jak leží"**.
+
+---
+
+## §34 RLS ZMĚŘENA: 596 policies = 64 vzorců; 14 účinných, 12 odepírá všechno, 7 děravých
+
+Poslední neměřená vrstva. Sčítání (`scripts/rls-policy-census.mjs`) + empirický
+test izolace (`scripts/rls-isolation-test.mjs`) na klonu z baseline.
+
+### Sčítání
+
+```
+policies celkem            : 596
+DISTINKTNÍCH VZORCŮ        : 64      ← netestuje se 596×, testuje se 64 tvarů
+tabulek s ENABLE RLS       : 411
+role, na které policies míří: {public} → 596 ze 596
+```
+
+🟢 **Otázka „411 ENABLE vs 596 policies" je zodpovězená: NENÍ to nesoulad.**
+Policies na tabulce BEZ `ENABLE ROW LEVEL SECURITY`: **0**.
+Tabulek s `ENABLE RLS` a bez jediné policy (tiché deny): **0**.
+Rozdíl je prostě víc policies na jednu tabulku. Žádná policy není mrtvá tímhle
+způsobem — a všech 596 míří na `{public}`, takže na `tixly_app` **platí**.
+
+### 🔴 Name-drift GUC: 7 nastavení, která policies čtou a aplikace NIKDY nenastaví
+
+`rls-pool.ts:145-154` nastavuje: `app.current_promoter_id`, `app.current_user_id`,
+`app.is_platform_admin`, `app.role`. Všechna čtyři někdo čte — dobře.
+Opačným směrem je to horší:
+
+```
+app.bypass_rls       13 policies      app.promoter_id      10 policies
+app.user_id          10 policies      app.is_service        4 policies
+app.is_admin          2 policies      app.use_service_role  2 policies
+app.platform_admin    1 policy
+```
+
+Celkem **42 policies čte nastavení, které nikdy nikdo nenastaví**. Nejde
+o bezpečnostní díru (fail-closed), ale o **funkční** — predikát nemůže být
+nikdy pravdivý, takže policy jen odepírá.
+
+Pozor na dva různé tvary:
+- `current_setting('app.bypass_rls', true) = 'on'` → porovnání textu, nikdy
+  nesedí → **mrtvé, ale bezpečné**
+- `(current_setting('app.promoter_id', true))::uuid` → **přetypování**. Když je
+  GUC nenastavené, vrací `NULL` (v pořádku); když je nastavené na prázdný
+  řetězec — což je doložený stav po `RESET` (T-AUDIT-GUC) — je to `''::uuid`
+  → **22P02 a dotaz spadne**. Tohle je runtime chyba, ne jen mrtvý kód.
+
+### Test izolace: dva tenanti, `tixly_app` s GUC tenanta A
+
+58 reprezentativních tabulek (jedna na vzorec + všech 12 `USING (true)`):
+
+| verdikt | počet | co to znamená |
+|---|---|---|
+| 🟢 izolace funguje | **14** | vidí vlastní řádek, cizí NE |
+| 🔴 děravé | **7** | vidí i cizí řádek |
+| ⛔ odepírá všechno | **12** | nevidí **ani vlastní** řádek |
+| ⚪ neměřeno | **25** | seed neprošel (FK/CHECK řetěz) |
+
+⛔ **„Vidí 0 z 2" NENÍ důkaz izolace** — je to důkaz, že aplikace nedosáhne ani
+na vlastní data. Původně jsem to počítal jako úspěch; je to chyba v opačném
+směru. 6 z těch 12 sedí přesně na name-drift GUC výše:
+
+```
+identity.magic_link_tokens  ← app.user_id        payments.wero_payments   ← app.promoter_id, app.is_admin
+orders.box_office_sales     ← app.user_id        payments.wero_webhooks   ← app.promoter_id, app.is_admin
+orders.seat_upgrades        ← app.user_id        catalog.venue_gates      ← app.promoter_id, app.is_service
+```
+
+### 🔴 Děravé (7)
+
+Pět je `SELECT USING (true)` nad číselníky, kde je veřejné čtení nejspíš záměr
+(`travel_hotels`, `travel_hotel_rooms`, `postal_fees`, `carbon_offset_settings`,
+`platform.promoters`) — ale **záměr to nikde neříká**, takže to zůstává nález.
+
+🔴 **`identity.users` je jiná liga.** Policy `p_users_select` je
+`PERMISSIVE SELECT USING (true)` — a protože se permissive policies OR-ují,
+přebije obojí zbývající policy. Každé připojení s jakýmkoli GUC kontextem
+přečte **všechny řádky**, včetně sloupců:
+
+```
+email, phone, name, password_hash, birth_year, gender, country_code,
+city, postal_code, stripe_customer_id
+```
+
+Změřeno, ne odvozeno: tenant A viděl řádky tenanta B. **NEOPRAVENO.**
+
+### Co číslo NEPOKRÝVÁ
+
+25 z 58 vzorců je **NEMĚŘENO** — seed neprošel přes FK/CHECK řetěz
+(`event_seats`, `ticket_types`, `resale_listings`, `event_reviews` a další).
+Není to „v pořádku", je to **nezměřeno**. Mezi nimi zůstávají i 2 z 3 policy
+typu `UPDATE USING (true)` bez `WITH CHECK` (`ticket_transfers`,
+`ticket_alerts`) — třetí (`seat_upgrades`) se změřit podařilo a odepírá.
+
+## §35 🔴 DEPLOY BLOCKER: `base64url` neexistuje v PostgreSQL 17
+
+Odhaleno mimochodem, při seedu — žádný z našich nástrojů to nehledal.
+
+```
+server_version : 17.10        encode('abc','base64url') → 22023 unrecognized encoding
+```
+
+`base64url` přibyl až v **PostgreSQL 18**. Tři sloupce ho mají v `DEFAULT`:
+
+```
+marketing.ticket_alerts.token          = encode(gen_random_bytes(16),'base64url')
+orders.party_split_sessions.share_token = encode(gen_random_bytes(18),'base64url')
+orders.ticket_transfers.transfer_token  = encode(gen_random_bytes(24),'base64url')
+```
+
+A aplikace ten token **nedodává** — spoléhá na default a čte ho zpátky:
+
+```
+api/events/[id]/alert/route.ts:38          INSERT … (email, event_id, user_id, alert_type) … RETURNING token
+api/my/tickets/[ticketId]/transfer:102     INSERT … (ticket_id, from_user_id, to_email) … RETURNING token
+api/checkout/party-split/route.ts:105      INSERT INTO orders.party_split_sessions …
+```
+
+🔴 Takže **tři zákaznické cesty dnes na produkci spadnou na 500**: hlídací pes
+na lístky, převod lístku a rozdělení platby ve skupině. Není to RLS ani grant —
+je to verze Postgresu. **NEOPRAVENO.**
+
+## §36 Pokrytí nástrojů: co který vidí a co nevidí ANI JEDEN
+
+Tři nástroje, tři různé vrstvy. Žádný nevidí to, co ostatní — a proto „zelený"
+kterýkoli z nich nikdy neznamená „v pořádku".
+
+| nástroj | vrstva | vidí | NEVIDÍ |
+|---|---|---|---|
+| `schema-drift-guard` | parse | `42703`, `42P01` — sloupec/tabulka neexistuje | cokoli, co se vyhodnotí až při běhu |
+| `schema-reality-scan` | schéma | `23502`, `42P10`, `23514`, chybějící granty | RLS, data, defaulty, dynamické SQL |
+| live sada | běh | RLS, GUC kontext, skutečné cesty | jen 30 testů — zbytek systému mimo |
+| `rls-policy-census` + `rls-isolation-test` | RLS | tvar policy, tenant izolace | 25 z 58 vzorců (seed neprošel) |
+
+**Doloženo tím, jak se nálezy nepřekrývaly:** grantovou vrstvu (§33) našel jen
+sken, RLS vrstvu (§31, §34) jen běh, a `base64url` (§35) **nenašel ani jeden** —
+vypadlo to při seedu testu, který hledal něco úplně jiného.
+
+### Co nevidí ANI JEDEN nástroj
+
+- **Dynamicky skládané SQL** — 135 dotazů. Extraktor vidí jen `head` před
+  prvním `${…}`. Nezkontrolované, nezměřené, ani jednou.
+- **`42P08` / nesoulad typů parametrů** — nikdo netestuje typy `$1..$n`.
+- **WARNING místo ERROR** — `GRANT` na cizí objekt vrátí WARNING a `ON_ERROR_STOP=1`
+  ho NEchytí (§27). Tichý „úspěch" je nejhorší třída.
+- **Oprávnění na úrovni SLOUPCŮ** — všechno měříme na úrovni tabulky.
+  `GRANT SELECT (col)` by nikdo nezaznamenal.
+- **Verze Postgresu vs. použité funkce** — přesně `base64url` (§35).
+  Nikdo neporovnává, co schéma volá, s tím, co server umí.
+- **Defaulty a generované sloupce** — sken je nevyhodnocuje; vybuchnou až při
+  `INSERT` (a §35 ukazuje, že to není teorie).

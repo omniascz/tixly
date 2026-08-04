@@ -1114,3 +1114,74 @@ tohle je podklad, ne provedení. **NEOPRAVENO.**
 `\unrestrict`, řádky 5 a 44985). Přes SQL driver → `42601` a **neaplikuje se
 vůbec**. Deploy runner musí použít `psql`, nebo je odfiltrovat.
 Viz FINDINGS §33.
+
+---
+
+## 📊 VERDIKT RLS (2026-08-04): 64 vzorců, změřeno 33, nezměřeno 25
+
+596 policies = **64 distinktních vzorců**. Testovalo se 58 reprezentativních
+tabulek (jedna na vzorec + všech 12 `USING (true)`):
+
+| verdikt | počet | význam |
+|---|---|---|
+| 🟢 účinných | **14** | tenant vidí vlastní, cizí ne |
+| 🔴 děravých | **7** | tenant vidí i cizí řádek |
+| ⛔ odepírá vše | **12** | aplikace nedosáhne ani na vlastní data |
+| ⚪ neměřeno | **25** | seed neprošel FK/CHECK řetězem |
+
+**Účinných je 14 z 58 = 24 %.** Zbytek je buď rozbitý (19), nebo neznámý (25).
+Detail ve FINDINGS §34.
+
+## 🔴 FRONT 1: `identity.users` je čitelná celá, pro každého
+
+`p_users_select` = `PERMISSIVE SELECT USING (true)`. Permissive policies se
+OR-ují, takže tahle přebije obě zbývající. Každé připojení s jakýmkoli GUC
+přečte všechny uživatele včetně `email`, `phone`, `password_hash`,
+`birth_year`, `city`, `postal_code`, `stripe_customer_id`.
+
+Změřeno (tenant A viděl řádky tenanta B), ne odvozeno z definice.
+Zbylých 6 děravých jsou `SELECT USING (true)` nad číselníky, kde je veřejné
+čtení pravděpodobně záměr — ale nikde to není napsané.
+
+## 🔴 FRONT 2: name-drift GUC — 42 policies čte, co nikdo nenastaví
+
+Aplikace nastavuje `app.current_promoter_id`, `app.current_user_id`,
+`app.is_platform_admin`, `app.role`. Policies ale čtou i **7 dalších**:
+`app.promoter_id`, `app.user_id`, `app.is_admin`, `app.platform_admin`,
+`app.is_service`, `app.bypass_rls`, `app.use_service_role`.
+
+Není to bezpečnostní díra (fail-closed), ale **funkční**: 6 z 12 tabulek, kde
+aplikace nevidí ani vlastní data, sedí přesně na tenhle rozpor.
+
+⚠️ A jedna podtřída je horší než mrtvý kód: `(current_setting('app.promoter_id',
+true))::uuid`. Nenastavené GUC dá `NULL` (v pořádku), ale **prázdný řetězec**
+— doložený stav po `RESET` — dá `''::uuid` → **22P02 a dotaz spadne**.
+
+Rozhodnout se musí jedním směrem: buď přejmenovat policies na GUC, které
+aplikace nastavuje, nebo `rls-pool.ts` doplnit o aliasy. **NEOPRAVENO.**
+
+## 🔴 FRONT 3 (DEPLOY BLOCKER): `base64url` neexistuje v PostgreSQL 17
+
+Produkce běží na **17.10**; `base64url` přibyl až v 18. Tři sloupce ho mají
+v `DEFAULT` a aplikace ten token nedodává — spoléhá na něj a čte ho zpátky:
+
+```
+marketing.ticket_alerts.token           ← api/events/[id]/alert
+orders.ticket_transfers.transfer_token  ← api/my/tickets/[ticketId]/transfer
+orders.party_split_sessions.share_token ← api/checkout/party-split
+```
+
+**Tři zákaznické cesty dnes spadnou na 500** (hlídací pes, převod lístku,
+rozdělení platby). Oprava je buď `encode(…, 'base64')` + úprava znaků, nebo
+generovat token v aplikaci. **NEOPRAVENO.**
+
+Nenašel to žádný z našich nástrojů — vypadlo to při seedu testu, který hledal
+něco jiného. Viz FINDINGS §36 (pokrytí nástrojů).
+
+## ⚠️ DEPLOY: baseline nelze pustit přes SQL driver
+
+`000_baseline_20260730.sql` nese 2 psql meta-příkazy (`\restrict` /
+`\unrestrict`, ř. 5 a 44985). Přes node-pg vrátí `42601` a **neaplikuje se
+vůbec** — ověřeno reálným během, ne odhadem. Runner musí být `psql`, nebo je
+odfiltrovat (`scripts/baseline-clone.mjs` to dělá). Po odfiltrování projde
+baseline za 5,6 s a globals za 0,1 s.
