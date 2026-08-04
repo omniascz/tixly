@@ -93,7 +93,7 @@ Nic z toho **není na produkci**. Pořadí je závazné.
 | 450 | `450_tickets_dedup_unique.sql` | unique index na lístcích | |
 | 451 | `451_orders_payment_provider_pos.sql` | rozšíření CHECK na `payment_provider` | |
 | 452 | `452_tracking_events_provider_tiktok.sql` | rozšíření CHECK na `provider` | |
-| 453 | `453_users_select_scoped.sql` | `p_users_select` → 3 policies podle vztahu (self / promotér / buyer) | 🔴 **POZASTAVENO (výkon)** — správnost OK (§42), ale výpis 200 zákazníků u promotéra s 30k zákazníky trvá 18,6 s a žádný index to nespraví, FINDINGS §45 |
+| 453 | `453_users_select_scoped.sql` | `p_users_select` → 3 policies podle vztahu (self / promotér / buyer) | ✅ **ODBLOKOVÁNO** — výkon vyřešen `SECURITY DEFINER` (18,6 s → 62 ms na provozních cestách), FINDINGS §48; správnost §42 |
 | 454 | `454_rls_cast_nullif_fix.sql` | 4 policies: přímý cast GUC → `app_current_user_id()` | opravuje 22P02/500, RED→GREEN doloženo, FINDINGS §39 |
 | 455 | `455_rls_namedrift_identity.sql` | 20 policies: `app.promoter_id`/`app.user_id` → `app_*()` helpery | jen jména IDENTITY; příznaky oprávnění ZÁMĚRNĚ neřeší, FINDINGS §44 |
 
@@ -119,3 +119,28 @@ Tři sloupce ho mají v `DEFAULT` (`marketing.ticket_alerts.token`,
 `orders.ticket_transfers.transfer_token`,
 `orders.party_split_sessions.share_token`) a aplikace token nedodává.
 Viz FINDINGS §35.
+
+---
+
+## 🚦 POŘADÍ NASAZENÍ (závazné)
+
+1. **RLS gate v CI musí existovat a být self-checknutý** — `rls-verify.mjs`
+   + `rls-snapshot.json` + `.github/workflows/rls-gate.yml`
+2. **Teprve pak** se smí nasazovat stav bez `BUNDLE_340-348_prod.sql`
+
+Důvod: BUNDLE byl dosud jediné, co drift RLS vracelo zpět — pouštěl se
+opakovaně a přepisoval, co se rozešlo. Baseline se aplikuje **jednou**, takže
+ta samoopravná vlastnost mizí. Odstranit BUNDLE dřív, než gate funguje, by
+znamenalo zůstat bez obojího.
+
+**Stav BUNDLE:** už NENÍ v deploy cestě — leží v `migrations/archive/` a
+v žádném workflow se nepouští (ověřeno grepem: jediné zmínky jsou
+`FINDINGS_SCHEMA_REALITY.md` a poznámka v `db/DEPLOY-RUNBOOK.md:68`, že
+340–348 jsou na produkci nasazené z dřívějška). Krok 2 je tedy splněný —
+podmínkou zůstává krok 1.
+
+**Po každé migraci, která mění RLS, se musí přegenerovat snapshot:**
+```bash
+node scripts/rls-verify.mjs --snapshot --url="<klon s baseline+453..455>"
+git add nextjs-boilerplate/rls-snapshot.json
+```

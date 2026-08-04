@@ -1,0 +1,70 @@
+name: RLS Gate
+
+# ── Proč tenhle workflow existuje ────────────────────────────────────────────
+# `BUNDLE_340-348_prod.sql` byl dosud jediné, co drift RLS vracelo zpět —
+# pouštěl se opakovaně a přepisoval, co se rozešlo. Baseline se aplikuje JEDNOU,
+# takže tahle samoopravná vlastnost zmizí. Bez tohohle gate by se drift projevil
+# až tím, že aplikace přestane vidět data (nebo je začne vidět všem).
+#
+# Gate porovnává živou DB proti `rls-snapshot.json`, který je vygenerovaný
+# z MIGRACÍ, ne z produkce (jinak by ověřoval realitu proti realitě).
+#
+# Čím se liší od ostatních dvou kontrol — viz .github/workflows/README.md.
+
+on:
+  # 1) noční kontrola produkce — chytí drift, který vznikl mimo deploy
+  schedule:
+    - cron: '17 2 * * *'
+  # 2) volatelné z deploy.yml jako TVRDÁ podmínka před nasazením
+  workflow_call:
+    inputs:
+      target:
+        description: 'popis cíle (jen do logu)'
+        required: false
+        type: string
+    secrets:
+      DATABASE_URL:
+        required: true
+  # 3) na změnu čehokoli, co gate nebo očekávaný stav definuje
+  pull_request:
+    paths:
+      - 'migrations/**'
+      - 'nextjs-boilerplate/rls-snapshot.json'
+      - 'nextjs-boilerplate/scripts/rls-verify.mjs'
+      - '.github/workflows/rls-gate.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: rls-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: RLS verify (policies vs snapshot)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps
+        working-directory: nextjs-boilerplate
+        run: npm ci --no-audit --no-fund
+
+      - name: RLS gate
+        working-directory: nextjs-boilerplate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/rls-verify.mjs
+
+      # Sken je DRAHÝ (staví klon), proto jen v noci — ne před každým deployem.
+      - name: Schema reality scan (jen noční běh)
+        if: github.event_name == 'schedule'
+        working-directory: nextjs-boilerplate
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+        run: node scripts/schema-reality-scan.mjs --ephemeral

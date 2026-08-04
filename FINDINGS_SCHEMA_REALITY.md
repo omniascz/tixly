@@ -2412,3 +2412,74 @@ odstranil, tyhle cesty zpomalí jako první.
 🔎 Metoda hledání je hrubá — soubory, kde se `identity.users` a
 `DISTINCT`/`GROUP BY` vyskytnou do 25 řádků od sebe. Falešně pozitivní i
 negativní nálezy jsou možné; nešlo o přesný výčet, ale o řádovou představu.
+
+---
+
+## §58 ✅ RLS GATE: drift se konečně chytá strojově
+
+`BUNDLE_340-348_prod.sql` byl dosud jediné, co drift RLS vracelo zpět — pouštěl
+se opakovaně a přepisoval, co se rozešlo. **Baseline se aplikuje jednou**, takže
+ta samoopravná vlastnost mizí. `scripts/rls-verify.mjs` ji nahrazuje detekcí:
+neopravuje, ale **zastaví deploy**.
+
+### Zdroj pravdy je snapshot z MIGRACÍ, ne z produkce
+
+`rls-snapshot.json` (598 policies, 411 tabulek s RLS, 2 helpery) se generuje
+z klonu, na kterém běžely `000_baseline` + `000_baseline_globals` + 453 + 454 +
+455. Kdyby se bral z produkce, gate by porovnával **realitu proti realitě** a
+jakýkoli drift by posvětil.
+
+### Co kontroluje
+
+```
+1. chybějící policy              5. policy na tabulce BEZ zapnutého RLS (mrtvá)
+2. přebývající policy            6. role jiná než {public}
+3. změněný USING / WITH CHECK    7. helpery app_can_see_user_as_* musí být
+4. tabulka s RLS a BEZ policy       SECURITY DEFINER + mít SET search_path
+```
+
+Bod 7 je regresní pojistka z §48: návrat helperu na `INVOKER` znamená **128×
+zpomalení na 21 cestách** (§57). Gate to zachytí dřív než produkce.
+
+### SELF-CHECK — podmínka, ne doplněk
+
+Podle §54 nemá gate váhu, dokud není doloženo, že nálezy své třídy najde.
+Na klon se vložily čtyři různé drifty najednou:
+
+```
+vloženo: DROP POLICY p_users_select_buyer
+         p_orders_scope USING → true
+         ALTER TABLE tickets.tickets DISABLE ROW LEVEL SECURITY
+         app_can_see_user_as_promoter → SECURITY INVOKER
+
+výsledek: 🔴 GATE SELHAL — 5 rozdílů, exit 1
+  CHYBĚJÍCÍ POLICY (1)            identity.users|p_users_select_buyer
+  ZMĚNĚNÝ USING (1)               orders.orders|p_orders_scope  (… → true)
+  POLICY BEZ ENABLE RLS (1)       tickets.tickets
+  VYPNUTÉ RLS oproti snapshotu(1) tickets.tickets
+  HELPER NENÍ SECURITY DEFINER(1) app_can_see_user_as_promoter
+```
+
+✅ **Všechny čtyři vložené drifty nalezeny**, exit kód 1. Na nezměněné DB gate
+prochází (598/598 policies, 411/411 tabulek, exit 0).
+
+### Zapojení do CI
+
+```
+schema-drift-guard  každý commit    parse       (42703, 42P01)
+rls-verify          PŘED DEPLOYEM   RLS         tvrdá podmínka, deploy.yml needs
+rls-verify + sken   nightly 02:17   RLS + schéma
+```
+
+`deploy.yml` má nově job `rls-gate` a `migrate` na něm závisí
+(`needs: [deploy, rls-gate]`) — bez průchodu gate se migrace nepustí.
+Rozdíly mezi třemi kontrolami a jejich slepé skvrny jsou popsané
+v `.github/workflows/README.md`, aby je příště nikdo nezaměnil.
+
+### BUNDLE
+
+Ověřeno grepem: `BUNDLE_340-348_prod.sql` **už není v deploy cestě** — leží
+v `migrations/archive/` a v žádném workflow se nepouští. Jediné zmínky jsou
+tenhle dokument a poznámka v `db/DEPLOY-RUNBOOK.md:68`, že 340–348 jsou na
+produkci nasazené z dřívějška. Podmínka „nejdřív gate, pak bez BUNDLE" je tedy
+splněná z obou stran.

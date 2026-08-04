@@ -68,10 +68,22 @@ jobs:
   # ---------------------------------------------------------------------------
   # DB migrace (jen pro main → produkce)
   # ---------------------------------------------------------------------------
+  # TVRDÁ PODMÍNKA: bez průchodu RLS gate se migrace nepouští.
+  # BUNDLE_340-348_prod.sql byl dosud jediné, co drift RLS vracelo zpět;
+  # baseline se aplikuje jednou, takže tuhle roli přebírá gate.
+  # Viz .github/workflows/README.md a FINDINGS §58.
+  rls-gate:
+    name: RLS gate (před migracemi)
+    needs: deploy
+    if: github.ref_name == 'main'
+    uses: ./.github/workflows/rls-gate.yml
+    secrets:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
   migrate:
     name: DB migrace (produkce)
     runs-on: ubuntu-latest
-    needs: deploy
+    needs: [deploy, rls-gate]
     if: github.ref_name == 'main'
     environment: production
 
