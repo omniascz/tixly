@@ -60,34 +60,49 @@ function fnsIn(expr) {
   return [...out];
 }
 
-/** Rekurzivně: tabulky dosažitelné z výrazu, včetně přes funkce. */
-function reach(expr, depth = 0, seen = new Set()) {
-  const direct = tablesIn(expr).map((t) => ({ t, via: 'přímo' }));
-  if (depth > 3) return direct;
-  const out = [...direct];
+/**
+ * Rekurzivně: tabulky dosažitelné z výrazu, VČETNĚ přes volané funkce.
+ *
+ * Do SECURITY DEFINER funkcí se taky vstupuje — jen se jejich zásahy označí
+ * `mitigated`, protože vnořenou policy nespustí. Dřívější verze je přeskakovala
+ * úplně, takže policy sahající na RLS tabulku VÝHRADNĚ přes funkci nikdy
+ * nedorazila do `findings` a čítače o ní strukturálně nemohly vědět.
+ */
+function reach(expr, depth = 0, seen = new Set(), mitigated = false, via = 'přímo') {
+  const out = tablesIn(expr).map((t) => ({ t, via, mitigated }));
+  if (depth > 4) return out;
   for (const name of fnsIn(expr)) {
     const f = fnByName.get(name);
     if (!f || seen.has(f.fqn)) continue;
     seen.add(f.fqn);
-    if (f.secdef) { out.push({ t: null, secdef: f.fqn }); continue; } // neprovádí vnořenou policy
-    for (const r of reach(f.def, depth + 1, seen)) out.push({ ...r, via: `přes ${f.nm}()` });
+    const label = via === 'přímo' ? `přes ${f.nm}()` : `${via}→${f.nm}()`;
+    for (const r of reach(f.def, depth + 1, seen, mitigated || f.secdef, label)) out.push(r);
   }
   return out;
 }
 
 const findings = [];
+let viaFnCount = 0, secdefCount = 0;
 for (const p of pol) {
   const expr = `${p.qual || ''} ${p.with_check || ''}`;
   const src = `${p.sch}.${p.tbl}`;
-  const hits = reach(expr).filter((h) => h.t && rlsOn.has(h.t) && h.t !== src);
-  const secdefs = reach(expr).filter((h) => h.secdef).map((h) => h.secdef);
-  if (!hits.length) continue;
-  const uniq = [...new Map(hits.map((h) => [h.t, h])).values()];
+  const all = reach(expr).filter((h) => h.t && rlsOn.has(h.t) && h.t !== src);
+  if (!all.length) continue;
+  // per tabulka: nejlepší případ je „mitigated", ale hlásíme obojí zvlášť
+  const live = [...new Map(all.filter((h) => !h.mitigated).map((h) => [h.t, h])).values()];
+  const mit = [...new Map(all.filter((h) => h.mitigated).map((h) => [h.t, h])).values()]
+    .filter((m) => !live.some((l) => l.t === m.t));
+  if (all.some((h) => h.via !== 'přímo')) viaFnCount++;
+  if (mit.length) secdefCount++;
+  if (!live.length) { // vše ošetřeno SECURITY DEFINER
+    findings.push({ src, pol: p.pol, cmd: p.cmd, targets: [], mitigatedTargets: mit.map((m) => ({ t: m.t, via: m.via })), maxRows: 0, risk: 0 });
+    continue;
+  }
   findings.push({
     src, pol: p.pol, cmd: p.cmd,
-    targets: uniq.map((h) => ({ t: h.t, via: h.via, rows: sizes[h.t] ?? 0 })),
-    secdefs: [...new Set(secdefs)],
-    maxRows: Math.max(...uniq.map((h) => sizes[h.t] ?? 0), 0),
+    targets: live.map((h) => ({ t: h.t, via: h.via, rows: sizes[h.t] ?? 0 })),
+    mitigatedTargets: mit.map((m) => ({ t: m.t, via: m.via })),
+    maxRows: Math.max(...live.map((h) => sizes[h.t] ?? 0), 0),
   });
 }
 
@@ -98,24 +113,25 @@ const VOLUME = {
   'identity.users': 3, 'resale.resale_listings': 2, 'platform.promoter_members': 1,
 };
 const vol = (t) => VOLUME[t] ?? 2;
-for (const f of findings) f.risk = Math.max(...f.targets.map((x) => vol(x.t))) * vol(f.src);
-findings.sort((a, b) => b.risk - a.risk || a.src.localeCompare(b.src));
+const live = findings.filter((f) => f.targets.length);
+for (const f of live) f.risk = Math.max(...f.targets.map((x) => vol(x.t))) * vol(f.src);
+live.sort((a, b) => b.risk - a.risk || a.src.localeCompare(b.src));
 
 const byTarget = {};
-for (const f of findings) for (const t of f.targets) byTarget[t.t] = (byTarget[t.t] ?? 0) + 1;
+for (const f of live) for (const t of f.targets) byTarget[t.t] = (byTarget[t.t] ?? 0) + 1;
 
 console.log('═══ VNOŘENÉ RLS ═══');
 console.log(`policies celkem                       : ${pol.length}`);
 console.log(`tabulek se zapnutým RLS               : ${rlsOn.size}`);
-console.log(`🔴 policies s vnořeným RLS            : ${findings.length}`);
-console.log(`   z toho přes funkci (nepřímo)       : ${findings.filter((f) => f.targets.some((t) => t.via !== 'přímo')).length}`);
-console.log(`   policies volající SECURITY DEFINER : ${findings.filter((f) => f.secdefs.length).length}`);
+console.log(`🔴 policies s vnořeným RLS            : ${live.length}  (+ ${findings.length - live.length} plně ošetřených)`);
+console.log(`   z toho zásah PŘES FUNKCI           : ${viaFnCount}`);
+console.log(`   ošetřeno SECURITY DEFINER          : ${secdefCount}`);
 console.log('\nnejčastější CÍLOVÉ tabulky (kolik policies na ně sahá):');
 Object.entries(byTarget).sort((a, b) => b[1] - a[1]).slice(0, 15)
   .forEach(([t, n]) => console.log(`   ${String(n).padStart(3)}×  ${t}${VOLUME[t] >= 4 ? '   ⚠️ velkoobjemová' : ''}`));
 
 console.log('\n═══ TOP 20 PODLE RIZIKA ═══');
-findings.slice(0, 20).forEach((f, i) =>
+live.slice(0, 20).forEach((f, i) =>
   console.log(`${String(i + 1).padStart(3)}. ${f.src}.${f.pol} [${f.cmd}]\n      → ${f.targets.map((t) => `${t.t} (${t.via})`).join(', ')}`));
 
 if (jsonOut) writeFileSync(jsonOut, JSON.stringify({ total: pol.length, nested: findings.length, byTarget, findings }, null, 2));

@@ -2189,3 +2189,95 @@ výsledek zůstává omezený tenantem.
 - bez `search_path`
 
 Všechny čtyři podmínky ověřuj **měřením** (cizí tenant → `false`), ne čtením.
+
+---
+
+## §52 Scanner opraven a DOLOŽEN; čísla 173/54 se nezměnila
+
+Předchozí verze počítala „přes funkci" a „SECURITY DEFINER" nad polem
+`findings`, kam se policy dostala jen při **přímém** zásahu — policy sahající
+na RLS tabulku výhradně přes funkci tam nikdy nedorazila. Oprava: `reach()`
+vstupuje i do `SECURITY DEFINER` funkcí a jejich zásahy jen **označí**
+`mitigated` místo aby je zahodila.
+
+### Self-check v obou směrech (povinný, ne volitelný)
+
+| stav | vnořené RLS | přes funkci | ošetřeno SECDEF | `p_users_select_promoter` |
+|---|---|---|---|---|
+| baseline (bez 453) | 173 | 0 | 0 | — |
+| + 453 (`SECURITY DEFINER`) | 173 **(+1 plně ošetřená)** | **1** | **1** | nalezena, živé cíle `[]` |
+| + 453 přepnuto na `INVOKER` | **174** | **1** | 0 | nalezena, živé: `orders.orders (přes app_can_see_user_as_promoter())` + 4 další |
+
+Scanner tedy prokazatelně **umí** najít nález té třídy a umí ho i správně
+odlišit podle `SECURITY DEFINER`. Teprve teď má „0 přes funkci" v baseline
+váhu — je to doložená nula, ne nezměřená.
+
+🔧 **Čísla se nezměnila: pořád 173 s vnořeným RLS, 54 nad `orders.orders`.**
+V baseline schématu žádná policy nesahá na RLS tabulku přes funkci. Dolní odhad
+z §50 byl tedy náhodou správný — ale nebyl podložený.
+
+## §53 Dopad zbývajících: 128× byla VÝJIMKA, ne běžná hodnota
+
+| vzorec | zdroj (řádků) | cíl (řádků) | s RLS | bez | násobek |
+|---|---|---|---|---|---|
+| `identity.users` → `orders.orders` | 100k kandidátů | 230k | 46 279 ms | 361 ms | **128×** |
+| `orders.order_items` → `orders.orders` | 200k | 200k | 224 ms | 166 ms | **1,4×** |
+| `orders.orders` → `catalog.events` | 230k | 400 | 27 ms | 26 ms | **1,1×** |
+| `tickets.tickets` → `catalog.events` | 300k | 400 | 1 ms | 1 ms | **1,2×** |
+
+🎯 **Rozhodující není vnoření samo, ale TVAR predikátu.**
+`order_items` má 200 000 kandidátů a cílí na stejně velkou `orders` — a stojí
+1,4×. `identity.users` stálo 128×, protože jeho policy je `EXISTS` s **joinem**
+(`orders` → `events`) vyhodnocovaný pro každého kandidáta zvlášť, navíc
+v dotazu s `DISTINCT`+`ORDER BY`, který si vynutil všech 31 000 vyhodnocení.
+Vnořené RLS je zesilovač, ne příčina.
+
+### VERDIKT 2c
+
+```
+změřeno reprezentantů : 4  (z toho 1 z rizikové skupiny 54)
+> 5× (reálný problém) : 1  — identity.users, UŽ OPRAVENÁ
+< 2× (šum)            : 3
+nezměřeno             : 50 z 53 zbývajících
+```
+
+**Z toho, co je změřené, je 128× výjimka.** Netvrdím, že zbylých 50 je
+v pořádku — jen že vzorek nepodporuje domněnku plošného problému. Napovědou pro
+prioritizaci je tvar: policy s `EXISTS` obsahujícím **join** nad velkou tabulkou
+je podezřelá, prostý `IN (SELECT …)` nad indexem není.
+
+## §54 Metodické pravidlo: nula z nástroje není nález, dokud není doložená
+
+**„Nula z nástroje neznamená nic, dokud není doloženo, že nástroj nálezy té
+třídy umí najít."**
+
+Není to obecná opatrnost — je to zkušenost z tohohle projektu. Pokaždé šlo
+o nulu nebo zelenou, která vypadala jako výsledek, a byla to jen slepota:
+
+| nástroj / měření | hlásilo | čím byl slepý | jak se to provalilo |
+|---|---|---|---|
+| `schema-drift-guard` | 0, „pokrytí 94,7 %" | parse-only: nevidí `NOT NULL`, `ON CONFLICT`, `CHECK` | 9 z 11 rizikových INSERTů neslo skrytý blocker |
+| `schema-reality-scan` | 0 v dané třídě | dynamické SQL (135 dotazů), `42P08`, defaulty | `base64url` (§35) nenašel žádný nástroj |
+| sken pod ownerem | „vše prošlo" | `BYPASSRLS` — celá vrstva oprávnění | pod `tixly_app` +6 nálezů (§33) |
+| live sada | 30/30 zelených | jen 30 cest; RLS mimo dohled | pod `tixly_app` 6 pádů (§31) |
+| výkon 453 | 2 body křivky | mezi body se neměřilo | §45 „O(kandidátů)" vyvráceno §46 |
+| pokrytí 453 | 1 tvar JOINu | dalších 6 tvarů | §37 „vše drží" vyvráceno §40 |
+| RLS izolace | 58 vzorců | jen promotérský kontext | buyer našel rozbité sociální funkce (§43) |
+| `rls-nested-scan` | „přes funkci: 0" | čítač nad `findings`, kam nepřímé nedorazí | self-check §52 |
+
+### Jak se slepota testuje: self-check s vloženým známým nálezem
+
+Ke každému nástroji patří test, který mu **podstrčí nález té třídy, kterou má
+hledat**, a ověří, že ho najde. Bez toho je nula jen mlčení.
+
+| nástroj | self-check |
+|---|---|
+| `rls-nested-scan` | přepnout helper na `INVOKER` → musí přibýt živý nález (§52) |
+| `schema-reality-scan` | pustit pod `tixly_app` i pod ownerem → rozdíl je míra slepoty (§33) |
+| live sada | `LIVE_AS_APP_ROLE=1` → musí spadnout, co pod ownerem prošlo (§31) |
+| izolace RLS | seedovat CIZÍ řádek → musí zmizet; a VLASTNÍ → musí zůstat (§42) |
+| výkonové měření | aspoň 3 body křivky, ne 2; a měnit jednu proměnnou (§48) |
+| `gen-baseline-globals` | pojistka na podkročení počtů (chytila mou chybu v regexu) |
+
+Pravidlo do budoucna: **než zapíšu „0 nálezů", musím být schopen ukázat běh,
+ve kterém týž nástroj nad upraveným vstupem vrátí ≥ 1.**
