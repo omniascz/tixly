@@ -1893,3 +1893,90 @@ Rozhodnout se to musí vědomě — je to ústupek, ne úklid.
   Pro produkci to znamená, že objem auditu roste stejně rychle jako data.
 - Neon projekt má **512 MB strop** — větší objemová měření vyžadují seed
   s vypnutými audit triggery (`DISABLE TRIGGER USER`).
+
+---
+
+## §46 Service-kontext návrh OBSTÁL; ale křivka VYVRACÍ moji příčinu z §45
+
+### A) Předpoklad service-kontextu ověřen — 0 rout bere promotéra z parametru
+
+61 admin/platform rout čte `identity.users`. Roztříděno podle autorizačního
+obalu (ne podle textu dotazu — první pokus přes regex měl falešné negativy):
+
+```
+PROMOTER (runAsActivePromoter / runAsPromoter)   46
+PLATFORM (runAsPlatformAdmin / …)                 1
+bez rozpoznaného obalu                            5
+```
+
+🟢 **Ani jedna routa nebere promotéra z parametru requestu.** Grep na
+`searchParams.get('promoter')`, `params.promoterId`, `body.promoter_id`
+nevrátil nic. To byla nejhorší varianta (podvržení ID) a nenastala.
+
+Pět rout bez obalu prověřeno ručně a všechny jsou v pořádku:
+- `orders/route.ts`, `orders/export/route.ts` — `promoterId` se odvozuje
+  z `getPromoterIdForUser(x-user-id)` a padá na 403 „Not a promoter member";
+  pak `runWithPromoterContext(promoterId)`. Ze session, ne z parametru.
+- `kyc/aml-check`, `payouts/execute` — explicitní kontrola `is_platform_admin`
+- `2fa/setup` — `runAsUser`, self-service, není výpis
+
+🔧 **Korekce dvou vlastních verdiktů z prvního skenu:** `resale-guarantee`
+jsem označil za nescopující — je to `runAsPlatformAdmin`, tedy platformní
+routa, která má vidět napříč tenanty **záměrně**. A `reports/pohoda` scopuje
+přes `WHERE p.id = $1`, jen jiným tvarem, než hledal můj regex.
+
+**Verdikt 1d: 46 z 46 promotérských rout scopuje, 0 bere promotéra
+z parametru.** Předpoklad service-kontextového návrhu tedy platí.
+
+### B) 🔧 KŘIVKA NESEDÍ S §45 — moje vysvětlení „O(kandidátů)" NEPLATÍ
+
+Doměřeno 500 / 2 000 / 5 000 / 10 000 / 20 000 zákazníků, stránka 200 řádků:
+
+```
+zákazníků │ stránka 200 │ ms na zákazníka
+      500 │       34 ms │ 0,067
+    2 000 │       31 ms │ 0,015
+    5 000 │       32 ms │ 0,006
+   10 000 │       32 ms │ 0,003
+   20 000 │       37 ms │ 0,002
+```
+
+🔴 **Křivka je PLOCHÁ.** Mezi 500 a 20 000 zákazníky se čas nezměnil.
+To přímo odporuje závěru §45, kde jsem z bodů 500 → 130 ms a 30 000 → 18 643 ms
+odvodil složitost O(kandidátů). **Ten závěr byl špatný** — počet zákazníků
+sám o sobě cenu neurčuje.
+
+Rozdíl konfigurací: §45 mělo 100 000 uživatelů, 200 000 objednávek a
+**300 000 lístků**; křivka běžela nad 30 000 uživateli a **bez jediného lístku**
+a bez verified-fan. Podezření tedy padá na větev přes `tickets` (případně
+`verified_fan`), ne na počet zákazníků.
+
+⚠️ **Ověřit se to nepodařilo.** Pokus doseedovat lístky do stejného klonu
+skončil na `08P01 invalid message format` a kontext došel dřív, než jsem to
+odladil. **Skutečný původce těch 18,6 s je tedy NEZNÁMÝ.**
+
+Co z toho plyne prakticky: **453 zůstává pozastavená**, ale důvod je
+„neobjasněný výkonový propad v konfiguraci s lístky", ne „O(kandidátů)".
+Další krok je zopakovat §45 a přidávat jednu tabulku po druhé, dokud se
+propad neobjeví.
+
+## §47 ⚠️ Otevřené riziko: `audit.audit_log` roste bez retence
+
+Zjištěno při seedu — nehledal jsem to.
+
+- Trigger `audit_trigger_func()` visí na **`orders.orders`, `tickets.tickets`,
+  `resale.resale_listings`** (`AFTER INSERT OR UPDATE OR DELETE`), tedy na
+  třech nejobjemnějších tabulkách systému.
+- Zapisuje **celé řádky, ne diff**: `to_jsonb(NEW)` při INSERT, `to_jsonb(OLD)`
+  **i** `to_jsonb(NEW)` při UPDATE, `to_jsonb(OLD)` při DELETE. Jeden UPDATE
+  objednávky tedy uloží dvě kompletní kopie řádku.
+- **Žádná retence, archivace ani partitioning nenalezeny** — v migracích ani
+  v `api/cron/`. Grep na `DELETE FROM audit.audit_log` nevrací nic.
+
+Doloženo v praxi: hromadný seed 200 000 objednávek + 300 000 lístků vyčerpal
+strop Neon projektu **512 MB** (`53100 could not extend file because project
+size limit has been exceeded`) — a to výhradně kvůli auditním řádkům; s
+`DISABLE TRIGGER USER` prošel tentýž seed bez potíží.
+
+🔴 Objem auditu roste **rychleji než data samotná** (UPDATE = 2× řádek).
+Bez retence to na produkci narazí na strop taky, jen později. **NEOPRAVENO.**
