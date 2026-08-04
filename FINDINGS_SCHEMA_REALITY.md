@@ -1980,3 +1980,102 @@ size limit has been exceeded`) — a to výhradně kvůli auditním řádkům; s
 
 🔴 Objem auditu roste **rychleji než data samotná** (UPDATE = 2× řádek).
 Bez retence to na produkci narazí na strop taky, jen později. **NEOPRAVENO.**
+
+---
+
+## §48 🎯 PROPAD IZOLOVÁN: vnořené RLS, ne lístky a ne počet zákazníků
+
+Přírůstkový seed, po každém kroku tentýž dotaz (výpis 200 zákazníků,
+velký promotér s 30 000 zákazníky, vše pod 453):
+
+```
+1. users + objednávky velkého promotéra      361 ms
+2. + rozprostřené objednávky (230k celkem)  46 279 ms   ← 128× SKOK
+3. + lístky (300k)                          49 795 ms   (1,1×)
+4. + verified-fan                           48 645 ms   (1,0×)
+5. + přátelství (50k)                       47 851 ms   (1,0×)
+```
+
+🔴 **Viníkem je krok 2 — objem `orders.orders`. Lístky s tím nemají nic
+společného** (1,1×), stejně jako verified-fan a přátelství. Moje podezření
+z §46 bylo mimo.
+
+### Mechanismus: policy uvnitř policy
+
+`EXPLAIN` po kroku 3 ukazuje jádro věci:
+
+```
+Index Scan users loops=31000 rows=1 shared_hit=467142
+   filter=(COALESCE(NULLIF(current_setting('app.role'…
+Bitmap Heap Scan orders loops=2 rows=15500
+   filter=(COALESCE(NULLIF(current_setting('app.is_platform_admin'…
+```
+
+`orders.orders` má **vlastní RLS policy**. Vnitřní `EXISTS` v
+`app_can_see_user_as_promoter()` na ni sahá, takže se pro **každého** z 31 000
+kandidátů na `users` vyhodnotí ještě policy nad `orders`. To jsou **vnořené
+RLS** — a jejich cena roste s objemem CIZÍ tabulky, ne s počtem zákazníků.
+
+Tím se vysvětluje i to, proč byla křivka v §46 plochá: tam měla `orders` jen
+objednávky velkého promotéra. Nešlo o počet kandidátů, ale o to, přes kolik
+řádků musí projít vnořená policy.
+
+### Oprava: `SECURITY DEFINER` — 20×
+
+```
+INVOKER (dnešní 453)                       54 675 ms
+SECURITY DEFINER                            2 753 ms   ← 20×
++ orders(user_id,event_id)                  2 812 ms   (indexy už nepřidají nic)
++ tickets(owner_id,order_id), vfr(…)        2 859 ms
+```
+
+Funkce si tenanta omezuje **sama** (`promoter_id = app_current_promoter_id()`),
+takže obejití RLS nad `orders` nic nezpřístupní navíc. Ověřeno měřením:
+promotér vidí **35 303 ze 100 000** uživatelů = 30 350 vlastních zákazníků
++ držitelé lístků (dárky) + tým + verified-fan. Izolace drží.
+
+Do migrace doplněn i `SET search_path = pg_catalog, public` — u
+`SECURITY DEFINER` je to povinnost, jinak lze funkci podstrčit vlastní schéma.
+
+**Indexy nepřidaly nic.** Po odstranění vnořených RLS je zbytek už optimální.
+
+### Zbytkových 2,8 s je JINÁ věc — a týká se jediného tvaru dotazu
+
+Po opravě pod stejnými daty:
+
+```
+scanner přes tickets            62 ms  🟢
+orders JOIN, LIMIT 100          57 ms  🟢
+výpis DISTINCT + ORDER BY 200  2 812 ms  🔴
+```
+
+Běžné cesty jsou v pořádku. Drahý zůstal **jen** tvar
+`SELECT DISTINCT … ORDER BY u.id LIMIT 200`: `DISTINCT` a `ORDER BY` musí
+vyhodnotit policy pro všech 30 000 kandidátů, teprve pak se uplatní `LIMIT`.
+**Tady** O(kandidátů) skutečně platí — ale jen pro tenhle jeden tvar, ne
+plošně, jak jsem tvrdil v §45.
+
+### 🔧 Rekapitulace mých vlastních chyb v této linii
+
+| kde | tvrzení | co se ukázalo |
+|---|---|---|
+| §45 | „O(kandidátů), index nepomůže" | plošně **špatně** — 128× skok dělala vnořená RLS |
+| §46 | „podezření padá na větev přes `tickets`" | **špatně** — lístky přidaly 1,1 % |
+| §48 | vnořené RLS nad `orders` | **potvrzeno** plánem i opravou (20×) |
+
+Platí jen zúžená verze: O(kandidátů) je reálné pro `DISTINCT`+`ORDER BY` výpis.
+
+## §49 VERDIKT 453: nasaditelná pro provozní cesty, výpis potřebuje rozhodnutí
+
+🟢 **Nasaditelná** — se `SECURITY DEFINER` helpery. Scanner 62 ms,
+`orders` JOIN 57 ms, správnost i izolace ověřené (§42, §48).
+
+🟡 **Jedna výhrada:** výpis zákazníků velkého promotéra (30k, `DISTINCT` +
+`ORDER BY` + stránka 200) stojí **2,8 s**. Není to blokátor nasazení policy,
+je to vlastnost jednoho tvaru dotazu. Možnosti (NEROZHODNUTO):
+- stránkovat keyset místo `DISTINCT`+`OFFSET`
+- výpis číst pod service kontextem (dotaz si promotéra scopuje sám — ověřeno
+  v §46, 46/46 rout scopuje a 0 bere promotéra z parametru)
+- nebo 2,8 s u největších promotérů akceptovat
+
+`SECURITY DEFINER` je v migraci 453 **aplikován**. Přeměřeno.

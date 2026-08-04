@@ -38,8 +38,23 @@ BEGIN;
 -- ── 1) promotérský vztah ─────────────────────────────────────────────────────
 -- zákazník (orders) │ člen týmu │ držitel lístku (i dárek/transfer) │
 -- registrovaný verified-fan (ten objednávku ze své podstaty ještě nemá)
+-- ⚠️ SECURITY DEFINER je tu VÝKONOVÁ NUTNOST, ne pohodlí.
+-- Vnitřní EXISTS sahá na `orders.orders`, která má vlastní RLS policy. Pod
+-- INVOKER se tedy pro KAŽDÉHO kandidáta na `users` vyhodnotí ještě policy nad
+-- `orders` — vnořené RLS. Změřeno (FINDINGS §48): 361 ms nad malou `orders`,
+-- 46 279 ms po naplnění na 230k řádků, tedy 128× jen z objemu CIZÍ tabulky.
+-- SECURITY DEFINER to srazí na 2 753 ms (20×).
+--
+-- Bezpečné to je proto, že funkce si tenanta omezuje SAMA
+-- (`promoter_id = app_current_promoter_id()`); obcházení RLS nad `orders` tedy
+-- nic nezpřístupní navíc. Ověřeno měřením izolace: promotér vidí 35 303 ze
+-- 100 000 uživatelů = jeho zákazníci + držitelé lístků + tým + verified-fan.
+--
+-- `SET search_path` je u SECURITY DEFINER povinný — bez něj by šlo funkci
+-- podstrčit vlastní `orders`/`catalog` schéma přes search_path volajícího.
 CREATE OR REPLACE FUNCTION public.app_can_see_user_as_promoter(target uuid)
-RETURNS boolean LANGUAGE sql STABLE AS $$
+RETURNS boolean LANGUAGE sql STABLE
+SECURITY DEFINER SET search_path = pg_catalog, public AS $$
   SELECT public.app_current_promoter_id() IS NOT NULL AND (
     EXISTS (SELECT 1 FROM orders.orders o
             JOIN catalog.events e ON e.id = o.event_id
@@ -59,8 +74,12 @@ $$;
 -- ── 2) sociální vztah ────────────────────────────────────────────────────────
 -- `friendships` je symetrická (user_a/user_b), `friend_requests` směrová —
 -- proto obě strany explicitně.
+-- SECURITY DEFINER ze stejného důvodu (viz výše) — `social_graph.*` má taky
+-- vlastní RLS. Funkce se omezuje na `app_current_user_id()`, takže nezpřístupní
+-- nic nad rámec vlastního sociálního grafu.
 CREATE OR REPLACE FUNCTION public.app_can_see_user_as_buyer(target uuid)
-RETURNS boolean LANGUAGE sql STABLE AS $$
+RETURNS boolean LANGUAGE sql STABLE
+SECURITY DEFINER SET search_path = pg_catalog, public AS $$
   SELECT public.app_current_user_id() IS NOT NULL AND (
     EXISTS (SELECT 1 FROM social_graph.friendships f
             WHERE (f.user_a = public.app_current_user_id() AND f.user_b = target)
