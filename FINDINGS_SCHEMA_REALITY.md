@@ -1819,3 +1819,77 @@ Sonda pokrývá **3 z 20** převedených policies (u zbylých by seed vyžadoval
 delší FK/CHECK řetěz). Že se převod povedl textově u všech 20, je ověřené
 (0 přeskočených, žádný starý GUC v SQL); že se **chování** změnilo správně
 u všech 20, ověřené **není**.
+
+---
+
+## §45 🔴 VÝKON 453 NA OBJEMU: nasadit NELZE, a žádný index to nespraví
+
+Objem: **100 000 uživatelů, 200 000 objednávek, 300 000 lístků, 400 akcí,
+200 promotérů**, tým + verified-fan + 50 000 přátelství. Data rozprostřená
+přes stovky promotérů, ne pod jedním — jinak by plánovač viděl jiné
+statistiky než produkce.
+
+### Malý promotér (500 zákazníků) — přijatelné
+
+| dotaz | BASE | 453 | |
+|---|---|---|---|
+| orders JOIN (63 sites), LIMIT 100 | 0,9 ms | 19,2 ms | 22× |
+| výpis zákazníků (stránka 200) | 9,9 ms | 129,7 ms | 13× |
+| scanner přes tickets | 1,9 ms | 19,9 ms | 10× |
+| buyer: seznam přátel | 0,4 ms | 5,8 ms | 14× |
+
+Násobek je vysoký, absolutní čísla ještě snesitelná. `Seq Scan` se objevuje
+jen na `catalog.events` (400 řádků, `loops=1`) a je tam **i v BASE** — není
+způsobený policy.
+
+### 🔴 Velký promotér (30 000 zákazníků) — blokátor
+
+```
+stránka 200 zákazníků : 18 643 ms
+export všech          : 18 330 ms
+```
+
+**Stránkovaný výpis stojí stejně jako export všeho.** To je jádro problému:
+`DISTINCT` + `ORDER BY` donutí vyhodnotit policy pro **všech 30 000** kandidátů,
+teprve pak se uplatní `LIMIT 200`. Stránkování tu nešetří nic.
+
+### Žádný index to nespraví — zkoušeno
+
+| varianta | čas |
+|---|---|
+| bez nového indexu | 18 177 ms |
+| `+ orders(user_id, event_id)` | **3 689 ms** |
+| `+ events(id, promoter_id)` | 3 873 ms (beze změny) |
+| denormalizace `orders.promoter_id` + `orders(user_id, promoter_id)` | **2 925 ms** |
+
+Nejlepší varianta — přidat `promoter_id` přímo na `orders`, aby `EXISTS` byl
+JEDNA sonda do indexu bez joinu — dá **2,9 s**. Pořád o dva řády víc, než
+snese načtení stránky.
+
+🔴 **Není to chybějící index, je to složitost O(kandidátů).** 2,9 s / 30 000
+řádků ≈ 0,1 ms na řádek — to už JE rychlost indexu. Problém je, že se policy
+vyhodnocuje 30 000×. RLS to z principu neumí obejít.
+
+Izolace přitom drží: promotér vidí 30 000 ze 100 000 uživatelů, tedy přesně
+své zákazníky.
+
+### VERDIKT: 453 zpět POZASTAVENA
+
+Nasaditelná je pro cesty, kde je kandidátů málo (buyer sociální dotazy,
+scanner na jeden lístek, detail zákazníka). **Není** nasaditelná pro
+administrátorské VÝPISY nad velkým promotérem.
+
+**Návrh (NEAPLIKOVÁN):** výpisy zákazníků nemají na RLS stát. Dotaz si sám
+scopuje promotéra (`WHERE e.promoter_id = $1`), takže RLS tam nefiltruje —
+jen znovu ověřuje, co dotaz už udělal, a platí za to plnou cenou. Ty cesty
+patří pod **service kontext**, kde je RLS pojistka, ne filtr. 453 pak zůstane
+tam, kde skutečně chrání: buyer cesty a jednotlivé lookupy.
+Rozhodnout se to musí vědomě — je to ústupek, ne úklid.
+
+### Vedlejší nálezy
+
+- **`audit_trigger_func` píše do `audit.audit_log` na každý INSERT.** Při
+  hromadném seedu to vyčerpalo **strop Neon projektu 512 MB** (`53100`).
+  Pro produkci to znamená, že objem auditu roste stejně rychle jako data.
+- Neon projekt má **512 MB strop** — větší objemová měření vyžadují seed
+  s vypnutými audit triggery (`DISABLE TRIGGER USER`).

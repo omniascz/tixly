@@ -1394,3 +1394,50 @@ tenantem), příznak oprávnění dává **plošný bypass**.
 
 **Zbývá rozhodnout:** jestli mají ty branche vůbec ožít, a pokud ano, pod
 jakým jménem. To je produktové/bezpečnostní rozhodnutí, ne oprava driftu.
+
+---
+
+## 🔴 453 ZPĚT POZASTAVENA — výkon na objemu (FINDINGS §45)
+
+Správnost je hotová (§42: 0 rozbitých cest, 0 úniků v obou kontextech).
+Blokuje **výkon**, změřený na 100k users / 200k orders / 300k tickets
+rozprostřených přes 200 promotérů.
+
+```
+promotér s 500 zákazníky   : stránka 200 = 130 ms   (13× proti BASE) — snesitelné
+promotér s 30 000 zákazníky: stránka 200 = 18 643 ms 🔴
+                             export všech = 18 330 ms
+```
+
+**Stránkování nešetří nic** — `DISTINCT`+`ORDER BY` vynutí vyhodnocení policy
+pro všech 30 000 kandidátů, teprve pak se uplatní `LIMIT 200`.
+
+### Žádný index to nespraví
+
+```
+bez indexu                                    18 177 ms
++ orders(user_id,event_id)                     3 689 ms
++ events(id,promoter_id)                       3 873 ms (nic)
+denormalizace orders.promoter_id + index       2 925 ms   ← nejlepší
+```
+
+2,9 s / 30 000 řádků ≈ 0,1 ms na řádek — **to už je rychlost indexu**.
+Problém není chybějící index, ale že se policy vyhodnotí 30 000×.
+Složitost O(kandidátů); RLS to z principu neobejde.
+
+### Návrh (NEAPLIKOVÁN, je to vědomý ústupek)
+
+Administrátorské **výpisy** nemají na RLS stát. Dotaz si promotéra scopuje sám
+(`WHERE e.promoter_id = $1`), takže RLS tam nefiltruje — jen znovu ověřuje, co
+dotaz už udělal, a platí plnou cenu. Ty cesty patří pod **service kontext**,
+kde je RLS pojistka, ne filtr.
+
+453 pak zůstane tam, kde skutečně chrání a kandidátů je málo: buyer sociální
+dotazy, scanner na jeden lístek, detail zákazníka.
+
+## ⚠️ Vedlejší: audit trigger a strop Neonu
+
+`audit_trigger_func` zapisuje do `audit.audit_log` na **každý INSERT**.
+Při hromadném seedu vyčerpal strop Neon projektu **512 MB** (`53100`).
+Pro produkci: objem auditu roste stejně rychle jako data samotná.
+Objemová měření vyžadují seed s `DISABLE TRIGGER USER`.
