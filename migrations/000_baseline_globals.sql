@@ -14,18 +14,19 @@
 --    ho vyčíst nelze. Při deployi vygenerovat, uložit do env a nastavit
 --    samostatně: ALTER ROLE tixly_app WITH PASSWORD '<z env>';
 --
--- Granty jsou PER TABULKU, ne `ON ALL TABLES IN SCHEMA`. Důvod: 7 tabulek
--- (communications.broadcasts, .emergency_announcements, .announcement_responses,
--- brands.advertisers, .campaigns, .event_partnerships, .impressions) dnes
--- grant NEMÁ. `ON ALL TABLES` by jim ho přidal = rozšíření oprávnění.
+-- ⚠️ NEGENERUJE SE Z PRODUKČNÍCH ACL. Původní verze vznikla opsáním
+--    `nspacl`/`relacl` z produkce, a právě proto v ní CHYBĚLA schémata
+--    `communications` a `brands` — na produkci grant nemají. Aplikace na
+--    ně pod `tixly_app` padala na 42501 (FINDINGS §26, §33). Generátor
+--    proto vyjadřuje ZÁMĚR: grant na všechna uživatelská schémata.
 --
--- POZN.: granty na PostGIS pohledy (geography_columns, geometry_columns,
--- spatial_ref_sys) jsou ZÁMĚRNĚ VYNECHANÉ. Ty objekty vlastní cloud_admin
--- a patří extensioně (pg_depend deptype=e), takže neondb_owner na ně grant
--- udělit NEMŮŽE — Postgres vrátí WARNING "no privileges were granted",
--- NE error, takže to ani ON_ERROR_STOP=1 nechytí.
+-- POZN.: granty na objekty vlastněné extensionou (pg_depend deptype=e,
+-- typicky PostGIS: geography_columns, geometry_columns, spatial_ref_sys)
+-- jsou ZÁMĚRNĚ VYNECHANÉ. Vlastní je cloud_admin, neondb_owner na ně
+-- grant udělit NEMŮŽE a Postgres vrátí WARNING „no privileges were
+-- granted", NE error — takže to nechytí ani ON_ERROR_STOP=1.
 --
--- Vygenerováno z br-rough-paper-alom0zky 2026-07-30.
+-- Vygenerováno skriptem scripts/gen-baseline-globals.mjs.
 --
 
 -- ── role ─────────────────────────────────────────────────────────────
@@ -38,7 +39,7 @@ END $$;
 -- ── členství ─────────────────────────────────────────────────────────
 GRANT tixly_app TO neondb_owner;
 
--- ── USAGE na schématech (78) ──────────────────────────
+-- ── USAGE na schématech (80) ──────────────────────────
 GRANT USAGE ON SCHEMA "accessibility" TO tixly_app;
 GRANT USAGE ON SCHEMA "accreditation" TO tixly_app;
 GRANT USAGE ON SCHEMA "ads" TO tixly_app;
@@ -53,12 +54,14 @@ GRANT USAGE ON SCHEMA "b2b" TO tixly_app;
 GRANT USAGE ON SCHEMA "b2b_orders" TO tixly_app;
 GRANT USAGE ON SCHEMA "benefit_payments" TO tixly_app;
 GRANT USAGE ON SCHEMA "blacklist" TO tixly_app;
+GRANT USAGE ON SCHEMA "brands" TO tixly_app;
 GRANT USAGE ON SCHEMA "catalog" TO tixly_app;
 GRANT USAGE ON SCHEMA "channels" TO tixly_app;
 GRANT USAGE ON SCHEMA "charity" TO tixly_app;
 GRANT USAGE ON SCHEMA "checkout" TO tixly_app;
 GRANT USAGE ON SCHEMA "collab" TO tixly_app;
 GRANT USAGE ON SCHEMA "comms" TO tixly_app;
+GRANT USAGE ON SCHEMA "communications" TO tixly_app;
 GRANT USAGE ON SCHEMA "compliance" TO tixly_app;
 GRANT USAGE ON SCHEMA "conference" TO tixly_app;
 GRANT USAGE ON SCHEMA "cross_scanner" TO tixly_app;
@@ -118,7 +121,7 @@ GRANT USAGE ON SCHEMA "verified_fan" TO tixly_app;
 GRANT USAGE ON SCHEMA "virtual_venue" TO tixly_app;
 GRANT USAGE ON SCHEMA "waiting_room" TO tixly_app;
 
--- ── granty PER TABULKU (600) ─────────────────────────────
+-- ── granty per tabulku (605) ──────────────────────────
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "accessibility"."accessible_seats" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "accessibility"."accommodations" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "accessibility"."companion_pairs" TO tixly_app;
@@ -170,6 +173,10 @@ GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "be
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "benefit_payments"."providers" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "blacklist"."appeals" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "blacklist"."blacklist_entries" TO tixly_app;
+GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "brands"."advertisers" TO tixly_app;
+GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "brands"."campaigns" TO tixly_app;
+GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "brands"."event_partnerships" TO tixly_app;
+GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "brands"."impressions" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "catalog"."ab_price_assignments" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "catalog"."ab_price_tests" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "catalog"."access_code_ticket_types" TO tixly_app;
@@ -216,6 +223,7 @@ GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "ca
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "catalog"."lottery_entries" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "catalog"."member_pricing_rules" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "catalog"."moderation_blocklist" TO tixly_app;
+GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "catalog"."mv_event_inventory_status" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "catalog"."parking_offers" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "catalog"."payment_plans" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "catalog"."pricing_rules" TO tixly_app;
@@ -260,6 +268,9 @@ GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "co
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "collab"."change_requests" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "collab"."event_collaborators" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "comms"."fan_communication_templates" TO tixly_app;
+GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "communications"."announcement_responses" TO tixly_app;
+GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "communications"."broadcasts" TO tixly_app;
+GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "communications"."emergency_announcements" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "compliance"."aml_checks" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "compliance"."cookie_consent_log" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "compliance"."dsa_reports" TO tixly_app;
@@ -717,7 +728,7 @@ GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "wa
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "waiting_room"."queue_entries" TO tixly_app;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "waiting_room"."queues" TO tixly_app;
 
--- ── sekvence (15) — reálná práva rwU = SELECT,UPDATE,USAGE ──
+-- ── granty na sekvence (15) ──────────────────────────
 GRANT SELECT, UPDATE, USAGE ON SEQUENCE "audit"."audit_log_id_seq" TO tixly_app;
 GRANT SELECT, UPDATE, USAGE ON SEQUENCE "b2b"."api_rate_limit_log_id_seq" TO tixly_app;
 GRANT SELECT, UPDATE, USAGE ON SEQUENCE "b2b"."webhook_deliveries_id_seq" TO tixly_app;
@@ -734,26 +745,7 @@ GRANT SELECT, UPDATE, USAGE ON SEQUENCE "revenue"."sales_stream_id_seq" TO tixly
 GRANT SELECT, UPDATE, USAGE ON SEQUENCE "risk"."velocity_limits_id_seq" TO tixly_app;
 GRANT SELECT, UPDATE, USAGE ON SEQUENCE "tickets"."scan_logs_id_seq" TO tixly_app;
 
--- ── funkce s explicitním grantem (17) ─────────────────────
-GRANT EXECUTE ON FUNCTION "identity"."anonymize_user"(p_user_id uuid) TO tixly_app;
-GRANT EXECUTE ON FUNCTION "identity"."move_password_to_secrets"() TO tixly_app;
-GRANT EXECUTE ON FUNCTION "identity"."set_updated_at"() TO tixly_app;
-GRANT EXECUTE ON FUNCTION "identity"."sync_user_name"() TO tixly_app;
-GRANT EXECUTE ON FUNCTION "marketing"."check_otp_rate_limit"(p_phone text) TO tixly_app;
-GRANT EXECUTE ON FUNCTION "marketing"."cleanup_expired_spotify_oauth"() TO tixly_app;
-GRANT EXECUTE ON FUNCTION "platform"."set_default_currency_for_country"() TO tixly_app;
-GRANT EXECUTE ON FUNCTION "public"."app_current_promoter_id"() TO tixly_app;
-GRANT EXECUTE ON FUNCTION "public"."app_current_user_id"() TO tixly_app;
-GRANT EXECUTE ON FUNCTION "public"."app_is_platform_admin"() TO tixly_app;
-GRANT EXECUTE ON FUNCTION "public"."app_is_service"() TO tixly_app;
-GRANT EXECUTE ON FUNCTION "public"."audit_log_immutable"() TO tixly_app;
-GRANT EXECUTE ON FUNCTION "public"."audit_trigger_func"() TO tixly_app;
-GRANT EXECUTE ON FUNCTION "public"."payment_events_immutable"() TO tixly_app;
-GRANT EXECUTE ON FUNCTION "public"."scan_logs_immutable"() TO tixly_app;
-GRANT EXECUTE ON FUNCTION "public"."set_updated_at"() TO tixly_app;
-GRANT EXECUTE ON FUNCTION "resale"."enforce_listing_expiry_24h"() TO tixly_app;
-
--- ── default privileges (234) ──────────────────────────────
+-- ── default privileges (240) ──────────────────────────
 ALTER DEFAULT PRIVILEGES IN SCHEMA "accessibility" GRANT SELECT, UPDATE, USAGE ON SEQUENCES TO tixly_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA "accessibility" GRANT EXECUTE ON FUNCTIONS TO tixly_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA "accessibility" GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON TABLES TO tixly_app;
@@ -796,6 +788,9 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA "benefit_payments" GRANT SELECT, INSERT, UPDA
 ALTER DEFAULT PRIVILEGES IN SCHEMA "blacklist" GRANT SELECT, UPDATE, USAGE ON SEQUENCES TO tixly_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA "blacklist" GRANT EXECUTE ON FUNCTIONS TO tixly_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA "blacklist" GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON TABLES TO tixly_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA "brands" GRANT SELECT, UPDATE, USAGE ON SEQUENCES TO tixly_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA "brands" GRANT EXECUTE ON FUNCTIONS TO tixly_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA "brands" GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON TABLES TO tixly_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA "catalog" GRANT SELECT, UPDATE, USAGE ON SEQUENCES TO tixly_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA "catalog" GRANT EXECUTE ON FUNCTIONS TO tixly_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA "catalog" GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON TABLES TO tixly_app;
@@ -814,6 +809,9 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA "collab" GRANT SELECT, INSERT, UPDATE, DELETE
 ALTER DEFAULT PRIVILEGES IN SCHEMA "comms" GRANT SELECT, UPDATE, USAGE ON SEQUENCES TO tixly_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA "comms" GRANT EXECUTE ON FUNCTIONS TO tixly_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA "comms" GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON TABLES TO tixly_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA "communications" GRANT SELECT, UPDATE, USAGE ON SEQUENCES TO tixly_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA "communications" GRANT EXECUTE ON FUNCTIONS TO tixly_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA "communications" GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON TABLES TO tixly_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA "compliance" GRANT SELECT, UPDATE, USAGE ON SEQUENCES TO tixly_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA "compliance" GRANT EXECUTE ON FUNCTIONS TO tixly_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA "compliance" GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON TABLES TO tixly_app;
