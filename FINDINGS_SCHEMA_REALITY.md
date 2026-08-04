@@ -2079,3 +2079,113 @@ je to vlastnost jednoho tvaru dotazu. Možnosti (NEROZHODNUTO):
 - nebo 2,8 s u největších promotérů akceptovat
 
 `SECURITY DEFINER` je v migraci 453 **aplikován**. Přeměřeno.
+
+---
+
+## §50 Vnořené RLS: 173 z 596 policies — ale drahé je jen 54 z nich
+
+453 **nebyla výjimka, je to vzor.** `scripts/rls-nested-scan.mjs` prošel katalog:
+
+```
+policies celkem                    596
+tabulek se zapnutým RLS            411
+🔴 policies s vnořeným RLS         173   (29 %)
+   zdrojových tabulek              167
+```
+
+Cílové tabulky (na kolik policies vnořeně sahá):
+
+```
+153×  catalog.events              (malá)
+ 54×  orders.orders               ⚠️ VELKOOBJEMOVÁ
+  7×  platform.promoter_members
+  2×  platform.promoters, catalog.venues, conference.exhibitors
+  1×  identity.users, marketing.loyalty_accounts, platform.payouts, …
+```
+
+### 🎯 Cena vnořeného RLS závisí na VELIKOSTI CÍLOVÉ tabulky, ne na počtu policies
+
+Změřeno na klonu se 100 000 uživateli a **230 000 objednávkami**, tentýž dotaz
+s RLS na cílové tabulce zapnutým a vypnutým:
+
+| vzorec | s RLS | bez RLS | násobek |
+|---|---|---|---|
+| `orders.orders` → `catalog.events` | 27 ms | 26 ms | **1,1×** |
+| `tickets.tickets` → `catalog.events` | 1 ms | 1 ms | **1,2×** |
+| `identity.users` → `orders.orders` (§48) | 46 279 ms | 361 ms | **128×** |
+
+🟢 **Vnoření nad `catalog.events` je prakticky zdarma** — `events` je malá
+(stovky až tisíce řádků), takže vnořená policy proběhne bez měřitelného dopadu.
+Těch 153 policies tedy **není problém**.
+
+🔴 **Drahé je vnoření nad `orders.orders`** — 230k řádků, a právě to dělalo
+těch 128× u `identity.users`.
+
+### VERDIKT ČÍSLEM
+
+```
+173 policies má vnořené RLS
+ 54 z nich míří na orders.orders  ← jediná rizikováskupina
+100 míří výhradně na catalog.events (změřeno 1,1× = zanedbatelné)
+```
+
+**Rizikových je 54, ne 173.** A z nich je jedna (`identity.users`) už opravená
+`SECURITY DEFINER`. Zbývá **53 policies** nad velkou tabulkou, u kterých se
+násobič projeví teprve až `orders` naroste.
+
+⚠️ Násobek 128× byl naměřen na dotazu, který vyhodnocoval policy pro 31 000
+kandidátů. U policies s málo kandidáty bude dopad menší — konkrétní číslo pro
+těch 53 **NEZMĚŘENO**, měřeny byly tři reprezentanty.
+
+### 🔧 Chyba v mém vlastním scanneru — „0 nepřímých" NEPLATÍ
+
+Skript hlásí „z toho přes funkci: 0" a „policies volající SECURITY DEFINER: 0".
+Self-check to vyvrátil: po aplikaci 453 (kde `p_users_select_promoter` volá
+`app_can_see_user_as_promoter()`) hlásil pořád nuly.
+
+Příčina: oba čítače počítám nad polem `findings`, do kterého se policy dostane
+jen tehdy, když má aspoň jeden **přímý** zásah na RLS tabulku. Policy, která
+sahá na tabulky *výhradně přes funkci*, se do `findings` nedostane vůbec,
+takže ji čítač strukturálně nemůže vidět.
+
+🔴 **Číslo 173 je proto DOLNÍ ODHAD.** Policies, které se k RLS tabulce
+dostávají jen přes volanou funkci, v něm nejsou. Kolik jich je, **NEVÍM** —
+oprava scanneru je první krok příště.
+
+## §51 Pravidlo pro `SECURITY DEFINER` v RLS policies
+
+`SECURITY DEFINER` je jediný způsob, jak vnořené RLS odstranit (indexy nepomohly,
+§48). Zároveň je to obcházení RLS, takže potřebuje pravidlo.
+
+### Ověřeno měřením, ne úvahou
+
+Test: uživatel, který nakoupil **výhradně** u promotéra B; dívá se promotér A.
+
+```
+zákazník POUZE promotéra B : viditelný=0   app_can_see_user_as_promoter()=false   ✅
+vlastní zákazník           : viditelný=1                                          ✅
+uživatelů, kde funkce=true BEZ objednávky u A: 0
+```
+
+`SECURITY DEFINER` v 453 tedy **neuniká** — obchází RLS nad `orders`, ale
+výsledek zůstává omezený tenantem.
+
+### Kdy je bezpečné
+
+1. **Funkce si scopuje tenanta SAMA** z GUC (`app_current_promoter_id()`,
+   `app_current_user_id()`), ne z parametru od volajícího. Parametr smí být
+   jen *cíl* dotazu (`target`), nikdy *identita*.
+2. **`SET search_path = pg_catalog, public`** — jinak lze funkci podstrčit
+   vlastní schéma se stejně pojmenovanými tabulkami.
+3. **Funkce vrací `boolean`, ne data.** Nesmí být kanálem, kterým by se dal
+   z cizí tabulky vytáhnout obsah.
+4. **Tělo neobsahuje nic dynamického** (`EXECUTE`, konkatenace SQL).
+
+### Kdy NE
+
+- identita přichází parametrem → volající si ji zvolí sám
+- funkce vrací řádky/sloupce z chráněné tabulky
+- scoping závisí na tabulce, kterou právě obchází (kruhová logika)
+- bez `search_path`
+
+Všechny čtyři podmínky ověřuj **měřením** (cizí tenant → `false`), ne čtením.
