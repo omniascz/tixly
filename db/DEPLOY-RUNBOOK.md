@@ -114,3 +114,198 @@ Není součástí tohoto deployu — deploy jen dostane kód+policy na prod, fli
 Reálné platby (GoPay/ComGate klíče), e-maily (Resend doména), vlastní doména,
 firma/IČO/účet. Do té doby prod běží s mock platbami — ideální pro interní testování
 a dogfooding na živé URL.
+
+---
+
+# ⭐ RUNBOOK PRVNÍHO NASAZENÍ (od nuly, ručně)
+
+**Kdo to čte:** člověk, který u předchozí práce nebyl.
+
+**Proč ručně:** CI nikdy nic nenasadilo — v repu **nejsou žádné GitHub secrets**
+(ověřeno `gh secret list`, prázdné i pro všechna prostředí), takže každý
+plánovaný běh týdny selhává. První nasazení je proto ruční; CI se aktivuje
+až v kroku 7.
+
+**Předpoklady:** `psql` (klient 17+), `node` 22+, přístup k Neon projektu.
+
+---
+
+## KROK 0 — Rozhodnout, pod jakou rolí poběží aplikace
+
+🔴 **`DATABASE_URL` musí používat roli `tixly_app`, NE `neondb_owner`.**
+
+`tixly_app` je jediná role s `BYPASSRLS = false`. Pod `neondb_owner` je všech
+598 RLS policies **inertních** — existují, ale nikdy se nevyhodnotí, takže
+izolace tenantů fakticky neplatí.
+
+*Ověření* (po kroku 3):
+
+```sql
+SELECT rolname, rolbypassrls FROM pg_roles
+WHERE rolname IN ('tixly_app','neondb_owner');
+-- tixly_app musí mít rolbypassrls = false
+```
+
+---
+
+## KROK 1 — Záloha (pokud DB není prázdná)
+
+```bash
+pg_dump "$ADMIN_URL" --no-owner --no-privileges -Fc -f pre-deploy-$(date +%F).dump
+```
+
+*Ověření:* soubor existuje a `pg_restore -l` ho přečte.
+
+---
+
+## KROK 2 — Aplikovat migrace runnerem
+
+⚠️ **Musí to být `psql`, ne node.** `000_baseline_20260730.sql` je výstup
+`pg_dump 17` a nese psql meta-příkazy; přes SQL driver vrátí `42601`
+a **neaplikuje se vůbec** (FINDINGS §33).
+
+```bash
+# krok 2 jede jako OWNER, ne jako tixly_app
+export DATABASE_URL="postgresql://neondb_owner:...@.../neondb"
+./scripts/run-migrations.sh
+```
+
+Runner drží pořadí sám (abecední) a je idempotentní:
+
+| # | soubor | co dělá |
+|---|---|---|
+| 0a | `000_baseline_20260730.sql` | celé schéma — 81 schémat, 600 tabulek, 596 policies |
+| 0b | `000_baseline_globals.sql` | role `tixly_app`, granty, default privileges |
+| 450 | `450_tickets_dedup_unique.sql` | unique index na lístcích |
+| 451 | `451_orders_payment_provider_pos.sql` | rozšíření CHECK `payment_provider` |
+| 452 | `452_tracking_events_provider_tiktok.sql` | rozšíření CHECK `provider` |
+| 453 | `453_users_select_scoped.sql` | `p_users_select` → 3 policies podle vztahu |
+| 454 | `454_rls_cast_nullif_fix.sql` | 4 policies: přímý cast GUC → helper |
+| 455 | `455_rls_namedrift_identity.sql` | 20 policies: name-drift → `app_*()` |
+
+*Ověření:* runner vypíše `Aplikováno: 8 / Selhalo: 0 / Warningů: 0`.
+
+🔴 **`Warningů: > 0` NENÍ v pořádku.** `ON_ERROR_STOP` warningy nechytá —
+`GRANT` na objekt vlastněný extensionou vrátí `WARNING` a psql skončí kódem 0,
+takže migrace „projde", aniž nastal efekt (§27, §29). Pak nepokračuj a přečti je.
+
+*Ověření stavem, ne exit kódem:*
+
+```sql
+SELECT count(*) FROM pg_policies;                    -- očekáváno 598
+SELECT count(*) FROM pg_class WHERE relrowsecurity;  -- očekáváno 411
+```
+
+---
+
+## KROK 3 — Heslo pro `tixly_app`
+
+Heslo **není a nesmí být v repu** — z `pg_roles` se vyčíst nedá, generuje se
+při nasazení.
+
+```bash
+NEWPW="$(openssl rand -base64 24)"
+psql "$DATABASE_URL" -c "ALTER ROLE tixly_app WITH PASSWORD '$NEWPW'"
+echo "$NEWPW"   # ulož do správce hesel a do GitHub secrets (krok 7)
+```
+
+*Ověření:* přihlášení pod novou rolí projde a **vidí míň** než owner:
+
+```bash
+psql "postgresql://tixly_app:$NEWPW@.../neondb" -c "SELECT current_user"
+```
+
+---
+
+## KROK 4 — Nakreslit čáru v evidenci migrací
+
+```bash
+psql "$DATABASE_URL" -f scripts/reset-migration-ledger.sql
+```
+
+Proč: evidence `public.schema_migrations` má z historie 245 řádků a končí na
+`339_...`, zatímco schéma je reálně u ~449 — migrace 340–449 se aplikovaly,
+aniž se zapsaly (stará CI smyčka do evidence nezapisovala, §17). Rekonstruovat
+je zpětně by byla fikce; baseline je snapshot skutečného stavu a evidence
+začíná od něj.
+
+⚠️ Skript **není migrace** a leží schválně v `scripts/`, aby ho nechytil žádný
+`migrations/*.sql` glob.
+
+*Ověření:*
+
+```sql
+SELECT count(*) FROM public.schema_migrations;   -- řádově jednotky, ne 245
+```
+
+---
+
+## KROK 5 — Ověřit RLS proti očekávanému stavu
+
+```bash
+cd nextjs-boilerplate && npm ci
+DATABASE_URL="postgresql://tixly_app:...@.../neondb" node scripts/rls-verify.mjs
+```
+
+*Ověření:* `GATE PROŠEL — žádný drift`, exit 0. Při selhání vypíše konkrétní
+rozdíly (chybějící/přebývající/změněná policy, vypnuté RLS, role ≠ `{public}`,
+helper bez `SECURITY DEFINER`).
+
+🔴 **Tenhle krok nahrazuje `BUNDLE_340-348_prod.sql`.** Ten byl dřív jediné, co
+drift RLS vracelo zpět — pouštěl se opakovaně a přepisoval, co se rozešlo.
+Baseline se aplikuje jednou, takže tu roli přebírá tahle kontrola. BUNDLE už
+v deploy cestě není (leží v `migrations/archive/`, žádný workflow ho nepouští).
+
+---
+
+## KROK 6 — Přepnout `DATABASE_URL` aplikace na `tixly_app`
+
+Ve Vercelu (Production): `DATABASE_URL` = connection string **role `tixly_app`**
+s heslem z kroku 3.
+
+*Ověření:* aplikace naběhne a promotér vidí **jen svoje** data:
+
+```sql
+-- pod tixly_app s kontextem promotéra musí vyjít MÉNĚ než celkový počet
+SET app.current_promoter_id = '<id>'; SET app.role = 'promoter';
+SELECT count(*) FROM identity.users;
+```
+
+---
+
+## KROK 7 — Teprve teď zapnout CI gate
+
+GitHub → Settings → Secrets → Actions:
+
+| secret | hodnota | pro co |
+|---|---|---|
+| `DATABASE_URL` | connection string role **`tixly_app`** | `rls-gate`, `migrate` |
+| `NEON_API_KEY` | Neon API klíč | noční sken, `snapshot-drift` |
+
+Dokud `DATABASE_URL` neexistuje, `rls-gate` se **hlasitě přeskočí**
+(`::warning` + zápis do job summary) — neblokuje deploy, ale ani nekontroluje.
+Jakmile secret vznikne, aktivuje se sám, bez dalšího zásahu.
+
+*Ověření:* `Actions → RLS Gate → Run workflow` musí skončit zeleně a **bez**
+varování „RLS gate PŘESKOČEN".
+
+⚠️ Zkontroluj taky, že `deploy.yml` má `environment:` shodné se skutečným
+názvem prostředí — v repu existují `Production`, `Production – nextjs-boilerplate`
+a `Production – tixly`, zatímco workflow uvádí `production`. **NEOVĚŘENO.**
+
+---
+
+## Po každé další migraci, která mění RLS
+
+```bash
+node scripts/rls-verify.mjs --snapshot --url="<klon s migracemi>"
+git add nextjs-boilerplate/rls-snapshot.json
+```
+
+Jinak spadne job `snapshot-drift` s výzvou snapshot přegenerovat.
+
+## Poznámka: „capacity backfill"
+
+V `migrations/` **žádná capacity-backfill migrace není** (ověřeno výpisem
+adresáře). Do pořadí výše ji nezařazuji, protože neexistuje — jde buď o krok,
+který ještě nevznikl, nebo o práci mimo tenhle adresář.
