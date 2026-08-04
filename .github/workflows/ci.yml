@@ -139,6 +139,11 @@ jobs:
         with:
           node-version: '20'
 
+      # psql tu chybel — kroky nize ho volaji a maji `|| true`, takze
+      # bez nej TISE NEDELALY NIC misto aby spadly (FINDINGS 61).
+      - name: Install postgresql-client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
       - name: Apply migrations
         run: |
           # Aplikuj vše do 274 (nejnovější)

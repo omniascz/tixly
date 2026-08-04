@@ -52,17 +52,35 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install deps
         working-directory: nextjs-boilerplate
         run: npm ci --no-audit --no-fund
 
+      # Repo zatim NEMA zadne secrets (overeno `gh secret list`), takze by gate
+      # spadl na chybejici DATABASE_URL a blokoval deploy natrvalo. Preskoci se
+      # tedy sam — ale HLASITE, aby se z docasneho stavu nestal trvaly.
+      # Az secret vznikne, gate se aktivuje bez dalsiho zasahu.
       - name: RLS gate
         working-directory: nextjs-boilerplate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: node scripts/rls-verify.mjs
+        run: |
+          if [ -z "${DATABASE_URL:-}" ]; then
+            echo "::warning title=RLS gate PRESKOCEN::chybi secret DATABASE_URL — RLS drift se NEKONTROLUJE"
+            {
+              echo "### ⚠️ RLS gate PŘESKOČEN"
+              echo ""
+              echo "Chybí secret \`DATABASE_URL\` → drift RLS se **nekontroluje**."
+              echo "Dokud secret nevznikne, nasazuje se bez pojistky, kterou dřív"
+              echo "suploval \`BUNDLE_340-348_prod.sql\`."
+              echo ""
+              echo "Nastav: Settings → Secrets → Actions → \`DATABASE_URL\` (role **tixly_app**)"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          node scripts/rls-verify.mjs
 
       # Sken je DRAHÝ (staví klon), proto jen v noci — ne před každým deployem.
       - name: Schema reality scan (jen noční běh)
@@ -70,7 +88,12 @@ jobs:
         working-directory: nextjs-boilerplate
         env:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
-        run: node scripts/schema-reality-scan.mjs --ephemeral
+        run: |
+          if [ -z "${NEON_API_KEY:-}" ]; then
+            echo "::warning title=Sken PRESKOCEN::chybi secret NEON_API_KEY"
+            exit 0
+          fi
+          node scripts/schema-reality-scan.mjs --ephemeral
 
   # Snapshot musel dosud clovek pregenerovat rucne po kazde migraci menici RLS.
   # Rucni krok, na ktery se zapomene, je tataz trida jako capacity_remaining —
@@ -85,6 +108,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      # Job vola psql (aplikuje 453/454/455 na klon) — ubuntu-latest ho NEMA.
+      # Bez tohohle kroku job spadne na `psql: command not found`.
+      - name: Install postgresql-client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
       - name: Install deps
         working-directory: nextjs-boilerplate
         run: npm ci --no-audit --no-fund
@@ -95,6 +123,10 @@ jobs:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
         run: |
           set -euo pipefail
+          if [ -z "${NEON_API_KEY:-}" ]; then
+            echo "::warning title=Snapshot-drift PRESKOCEN::chybi secret NEON_API_KEY"
+            exit 0
+          fi
           node scripts/baseline-clone.mjs /tmp/clone.json
           node -e "
             const {execSync}=require('child_process');
