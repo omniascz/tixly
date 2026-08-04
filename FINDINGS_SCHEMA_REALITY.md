@@ -1036,8 +1036,16 @@ Doloženo: `communications.broadcasts` a `brands.advertisers` jsou pod
 `tixly_app` nedostupné (`42501 permission denied for schema`), a **žádné**
 z našich měření to nezachytilo (§26).
 
-**Rozsah: neznámý.** Nepřeměřováno. Otevřené riziko — správně by se sken
-i live testy měly pouštět pod `tixly_app` s GUC kontextem, ne pod ownerem.
+**Rozsah: ZMĚŘEN** (2026-08-04). Obě vrstvy přeměřeny pod `tixly_app`:
+
+| vrstva | nástroj | zkreslení | stav |
+|---|---|---|---|
+| granty | schema-reality-scan (§33) | +6 nálezů, 140 → 146 = **0,25 % dotazů** | 🟢 uzavřeno |
+| RLS | live sada (§31) | **6 z 30 testů = 20 %** | 🔴 otevřeno |
+
+Vrstvy se **nepřekrývají** — live sada nechytila ani jeden grantový pád, sken
+ani jeden RLS pád. Grantová vrstva je tím vyčerpaná (mimo `communications`
+a `brands` nechybí jediný grant). RLS zůstává změřená jen na 30 testech.
 
 ---
 
@@ -1075,10 +1083,15 @@ kontextu. Rozdíl mezi nimi je ta hranice, kterou je potřeba pochopit.
 
 ### Co tohle číslo NEPOKRÝVÁ
 
-20 % je zkreslení **live sady**, ne celého systému. Sken (`schema-reality-scan`)
-pod `tixly_app` spuštěný **nebyl** — `information_schema` filtruje podle
-oprávnění, takže by pod app rolí viděl méně objektů a výsledek by nebyl
-srovnatelný. Skutečné zkreslení napříč všemi 135 nálezy je **neznámé**.
+20 % je zkreslení **live sady**, ne celého systému.
+
+> ⚠️ **KOREKCE (§33, 2026-08-04):** původně tu stálo, že sken pod `tixly_app`
+> spustit nelze, protože `information_schema` filtruje podle oprávnění.
+> **To je vyvrácené** — sken introspektuje přes `pg_catalog`, obě role vidí
+> 600 tabulek a běhy srovnatelné jsou. Sken byl spuštěn a dal **+6 nálezů**
+> (140 → 146), všechny třídy T0 a všechny na `communications`/`brands`.
+> Skutečné zkreslení je tedy: granty **uzavřené**, RLS **stále neznámé**
+> za hranicí 30 live testů.
 
 ## §32 `communications` a `brands`: 13 route souborů na mrtvých schématech
 
@@ -1100,3 +1113,70 @@ Obě schémata nemají pro `tixly_app` ani `USAGE` (§26). Kód, který na nich 
 - **vypnout je vzorem foyer** (UI flag + backend guard) — pokud jsou mrtvé
 
 13 route souborů je dost na to, aby to nebylo triviální ani jedním směrem.
+
+---
+
+## §33 SKEN pod `tixly_app` ZMĚŘEN: +6 nálezů třídy T0, grantová vrstva UZAVŘENA
+
+§31 tvrdilo, že sken pod aplikační rolí spustit nelze, protože
+`information_schema` filtruje podle oprávnění → „výsledek by nebyl srovnatelný".
+**To tvrzení je vyvrácené.** Sken introspektuje přes `pg_catalog`, ne přes
+`information_schema`, takže obě role vidí tentýž počet tabulek a běhy
+srovnatelné JSOU:
+
+```
+klon: 000_baseline_20260730.sql + 000_baseline_globals.sql do PRÁZDNÉ databáze
+      → 81 schémat | 600 tabulek | 596 policies
+
+neondb_owner : schéma 600 tabulek | T0=2 T1=41 T2=20 T3=6 T4=59 T5=12 → 140
+tixly_app+GUC: schéma 600 tabulek | T0=8 T1=41 T2=20 T3=6 T4=59 T5=12 → 146
+```
+
+**Delta: +6, výhradně v T0. Nic nezmizelo** (0 nálezů ubylo), ostatní třídy
+jsou identické do jednoho kusu.
+
+### Nová třída: „tabulka existuje, ale aplikační role ji nevidí"
+
+Všech 6 nových T0 je sken hlásí jako `42P01 tabulku nelze najít` — ale ony
+existují. Pod `tixly_app` jen nejsou v dohledu, protože schéma nemá `USAGE`:
+
+```
+src/app/api/admin/broadcasts/route.ts:85                     communications.broadcasts
+src/app/api/admin/events/[id]/emergency/route.ts:108         communications.emergency_announcements
+src/app/api/brand-connect/track/route.ts:28                  brands.impressions
+src/app/api/platform/brand-connect/advertisers/route.ts:43   brands.advertisers
+src/app/api/platform/brand-connect/campaigns/route.ts:54     brands.campaigns
+src/app/api/platform/brand-connect/campaigns/[id]/match:106  brands.event_partnerships
+```
+
+Sken tedy **nezávisle znovuobjevil §26** — a poprvé ho ukázal jako nálezy
+v kódu, ne jako ruční sondu.
+
+### Grantová vrstva je tím UZAVŘENÁ (na rozdíl od RLS)
+
+Ověřeno dotazem na katalog, ne odhadem:
+
+```
+schémat bez USAGE pro tixly_app                        : 2  (communications, brands)
+tabulek v nich                                         : 7  (3 + 4)
+tabulek bez SELECT ve VŠECH ostatních schématech       : 0
+app vidí sloupců v communications/brands (info_schema) : 0
+app vidí tabulek celkem (information_schema)           : 791
+```
+
+🟢 **Mimo ta dvě schémata nechybí `tixly_app` ani jeden grant.** „7 tabulek bez
+grantu" z §26 není vzorek většího problému — je to problém celý. Grantová
+vrstva už není otevřené riziko, je změřená a ohraničená.
+
+🔴 **RLS vrstva ohraničená NENÍ.** Sken je statický a o RLS neříká nic (píše to
+sám ve FALSE NEGATIVES). Jediné, co RLS měří, je live sada — 30 testů.
+Za jejich hranicí zůstává 596 policies nezměřených.
+
+### Vedlejší nález: baseline se přes `node-pg` neaplikuje
+
+`000_baseline_20260730.sql` obsahuje 2 psql meta-příkazy z `pg_dump` 17
+(`\restrict` / `\unrestrict`, řádky 5 a 44985). Přes SQL driver dají
+`42601 syntax error at or near "\"` a **celý baseline se neaplikuje**.
+Buď `psql`, nebo je runner musí odfiltrovat. Po odfiltrování baseline projde
+čistě (5,6 s) a globals na něj navážou (0,1 s) — recept je funkční, ale
+**není spustitelný „jak leží"**.

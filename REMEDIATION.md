@@ -1053,3 +1053,64 @@ Pod `neondb_owner` to nikdy nebylo vidět. **NEOPRAVENO.**
 Obě schémata jsou pro `tixly_app` zavřená (ani `USAGE`). Stojí na nich
 **13 route souborů** (5 + 8, výčet ve FINDINGS §32). Buď udělit granty, nebo
 vypnout vzorem foyer. Bez rozhodnutí jsou to mrtvé cesty, které vypadají živě.
+
+---
+
+## 📊 VERDIKT: kolik „ověřených" cest padne pod `tixly_app`
+
+Změřeno 2026-08-04 na klonu z `000_baseline` + `000_baseline_globals`.
+Dvě NEZÁVISLÉ vrstvy, dvě různá čísla — a **nepřekrývají se**:
+
+| vrstva | nástroj | výsledek | stav |
+|---|---|---|---|
+| **granty** | schema-reality-scan | **+6 nálezů** (140 → 146), 6 z 2365 statických dotazů = **0,25 %** | 🟢 UZAVŘENO |
+| **RLS** | live sada | **6 z 30 testů = 20 %** | 🔴 OTEVŘENO |
+
+Že se nepřekrývají, je podstatné: live sada nechytila ani jeden ze 6 grantových
+pádů, sken nechytil ani jeden z 6 RLS pádů. Každá vrstva potřebuje svůj nástroj.
+
+**Konkrétní cesty, které se pod produkční rolí rozpadnou:**
+- **13 route souborů** (1179 LOC) na `communications` / `brands` → `42501`
+- **guest-create helper** — 7 přepojených call-sites + 18 nepřepojených kopií → RLS `USING`
+
+**Co číslo NEPOKRÝVÁ:** 20 % je zkreslení live sady (30 testů), ne systému.
+Grantová vrstva je změřená celá (katalog je konečný a prohledal se celý).
+RLS vrstva ne — 596 policies za hranicí 30 testů zůstává **NEZMĚŘENÝCH**.
+
+## ✅ PODKLAD K ROZHODNUTÍ: `communications` a `brands` → UDĚLIT GRANTY
+
+Otázka zněla „živé subsystémy, nebo mrtvé foyer?". Grep odpovídá jednoznačně:
+**jsou zapojené na všech třech koncích** — API, UI i navigace.
+
+```
+13 API route souborů, 1179 LOC, 51 zásahů na schémata
+```
+
+**Vlastní UI stránky (ne orphany):**
+- `src/app/admin/broadcasts/page.tsx` + `new/page.tsx` — plný CRUD + preview + send
+- `src/app/platform/brand-connect/page.tsx` — CRUD kampaní i advertiserů, match
+- `src/app/admin/events/[id]/emergency/page.tsx` — nouzové oznámení
+
+**Odkazy v navigaci (tedy dosažitelné klikáním):**
+- `components/admin/Sidebar.tsx:113` → „Broadcasty"
+- `components/admin/Sidebar.tsx:121` → „Brand Connect"
+- `components/platform/PlatformSidebar.tsx:23` → „Brand Connect"
+- `admin/events/[id]/EventDetailNav.tsx:76` → „Nouzové oznámení"
+
+🔴 **A jedna cesta je ZÁKAZNICKÁ, ne adminská:**
+`BrandConnectBanner` se vykresluje na potvrzení objednávky
+(`[locale]/order-confirmation/[orderId]/page.tsx:399`) a volá
+`/api/brand-connect/event/[id]` + `/track`. Pod produkční rolí to znamená
+selhání ve **flow po zaplacení**, ne v administraci.
+
+**Doporučení: udělit granty.** Vypnout vzorem foyer by znamenalo odstranit
+4 položky z navigace, 3 UI stránky a banner z potvrzení objednávky — to není
+úklid mrtvého kódu, to je odebrání funkčnosti. Rozhodnutí je ale produktové;
+tohle je podklad, ne provedení. **NEOPRAVENO.**
+
+## ⚠️ Baseline není spustitelný „jak leží"
+
+`000_baseline_20260730.sql` nese 2 psql meta-příkazy (`\restrict` /
+`\unrestrict`, řádky 5 a 44985). Přes SQL driver → `42601` a **neaplikuje se
+vůbec**. Deploy runner musí použít `psql`, nebo je odfiltrovat.
+Viz FINDINGS §33.

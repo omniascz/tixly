@@ -88,15 +88,27 @@ async function createBranch() {
 }
 
 async function connect(branchId) {
-  const { uri } = await neon(
-    `/projects/${PROJECT}/connection_uri?branch_id=${branchId}` +
-      `&role_name=${ROLE}&database_name=${DB_NAME}&pooled=false`,
-  );
+  // `SCAN_URI` obchází Neon connection_uri API. Nutné pro roli `tixly_app`:
+  // ta vzniká SQL příkazem v globals, control plane o ní neví a API by na ni
+  // URI nevydalo. Viz FINDINGS §30 — sken pod aplikační rolí.
+  let uri = process.env.SCAN_URI;
+  if (!uri) {
+    ({ uri } = await neon(
+      `/projects/${PROJECT}/connection_uri?branch_id=${branchId}` +
+        `&role_name=${ROLE}&database_name=${DB_NAME}&pooled=false`,
+    ));
+  }
   let lastErr;
   for (let i = 0; i < 5; i++) {
     const c = new pg.Client({ connectionString: uri, connectionTimeoutMillis: 30_000 });
     try {
       await c.connect();
+      // GUC kontext jako v rls-pool.ts:145-154 (tam SET LOCAL v transakci).
+      if (process.env.SCAN_GUC === '1') {
+        await c.query(`SET app.role = 'promoter'`);
+        await c.query(`SET app.current_promoter_id = '00000000-0000-0000-0000-000000000001'`);
+        await c.query(`SET app.current_user_id = '00000000-0000-0000-0000-000000000002'`);
+      }
       return c;
     } catch (e) {
       lastErr = e;
