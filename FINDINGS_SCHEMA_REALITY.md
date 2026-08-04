@@ -2281,3 +2281,56 @@ hledat**, a ověří, že ho najde. Bez toho je nula jen mlčení.
 
 Pravidlo do budoucna: **než zapíšu „0 nálezů", musím být schopen ukázat běh,
 ve kterém týž nástroj nad upraveným vstupem vrátí ≥ 1.**
+
+---
+
+## §55 🔴 Klasifikace 53 policies podle tvaru: NEDOKONČENO, výstupu nevěřit
+
+Zadání znělo roztřídit zbývající policies na DRAHÉ / LEVNÉ podle tvaru
+predikátu a klasifikaci validovat proti dvěma změřeným případům
+(`identity.users` = 128× → DRAHÝ, `orders.order_items` = 1,4× → LEVNÝ).
+
+**Validace neprošla, dvakrát. Klasifikaci proto nezveřejňuji.**
+
+### Pokus 1: „`EXISTS` s JOINem přes 2+ tabulky = DRAHÝ"
+
+```
+celkem 64   DRAHÝ 60   LEVNÝ 4   NEJASNÝ 0
+identity.users.p_users_select_promoter → DRAHÝ  ✅ sedí
+orders.order_items.p_order_items_scope → DRAHÝ  🔴 NESEDÍ (změřeno 1,4×)
+```
+
+Pravidlo je **vyvrácené**: `order_items` má uvnitř poddotazu join
+(`orders JOIN events`) a přesto stojí 1,4×. Přítomnost JOINu tedy cenu neurčuje.
+
+### Pokus 2: „korelace na PRIMÁRNÍ KLÍČ = LEVNÝ"
+
+Hypotéza vypadala dobře a odpovídá datům:
+
+```
+LEVNÝ  o_.id = conversions.order_id          → PK lookup, 1 řádek na kandidáta
+DRAHÝ  o.user_id = target                    → neunikátní sloupec, N řádků
+```
+
+Přesně tím se ty dva změřené případy liší: `order_items` se koreluje na
+`orders.id` (PK), `identity.users` na `orders.user_id` (neunikátní).
+
+Jenže implementace vrátila **všech 64 jako NEJASNÝCH**, přestože tytéž regexy
+nad tímtéž řetězcem samostatně vracejí `pkCorr=true, nonPk=true`. Chybu ve
+skriptu se mi v rámci kontextu nepodařilo najít.
+
+### Proč to nezveřejňuji jako výsledek
+
+Podle pravidla z §54: **výstup nástroje nemá váhu, dokud nástroj neprojde
+self-checkem.** Tenhle jím neprošel — takže „60 drahých" z pokusu 1 je číslo,
+které bych jinak zapsal jako verdikt, a bylo by špatně. Skript je v repu
+označený `🔴 NEDOKONČENO — VÝSTUPU NEVĚŘIT`.
+
+### Co z toho platí
+
+🟢 **Hypotéza o korelaci je stále nejlepší vysvětlení** a je konzistentní se
+všemi čtyřmi změřenými body (§53). Není ale ověřená napříč 53 policies.
+
+**Další krok:** opravit skript (debug proč `verdict` nezůstává přiřazený),
+znovu spustit validaci, a teprve po jejím průchodu klasifikaci zapsat.
+Do té doby je rozdělení 53 policies **NEZNÁMÉ** — ne „60 drahých".
