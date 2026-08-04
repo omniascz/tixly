@@ -2764,3 +2764,60 @@ Grep celého repa (bez `node_modules`): mimo `src/` jen dokumentace
 `rls-gate.yml`. **Žádný mobilní klient (`mobile/`, `mobile-promoter/`) ani
 embed widget to pole nekonzumuje**, takže dva `wl/` aliasy jsou veřejný
 kontrakt bez známého konzumenta v tomhle repu.
+
+---
+
+## §66 Party-split peel pokračuje: vrstvy 6 a 7 — a sedmá je systémová
+
+Dekrement inventáře byl opravený a `tsc`-čistý, ale **nikdy neběžel**. Živý běh
+přes skutečný handler odhalil dvě další vrstvy pod těmi pěti uzavřenými.
+
+### Vrstva 6 — `orders.user_id` chyběl v INSERTu ✅ opraveno
+
+```
+500 {"error":"INTERNAL","message":"null value in column \"user_id\"
+     of relation \"orders\" violates not-null constraint"}
+```
+
+INSERT do `orders.orders` v `[token]/route.ts` nedodával `user_id`, který je
+`NOT NULL`. Plátce je znám jen e-mailem, takže se použil **týž sdílený helper
+jako v hlavním checkoutu** (`createOrGetGuestUser`, `route.ts:898`) — nezakládá
+se vlastní cesta k vytvoření uživatele.
+
+### 🔴 Vrstva 7 — mock platební brána porušuje CHECK. NEOPRAVENO.
+
+```
+500 {"error":"INTERNAL","message":"new row for relation \"orders\" violates
+     check constraint \"orders_payment_provider_check\""}
+```
+
+`src/lib/payment/provider.ts` vrací v mock režimu
+`provider: 'mock-gopay'` (a `'mock-wero'`, `'mock-przelewy24'`), ale
+`orders_payment_provider_check` povoluje `mock`, `gopay`, `comgate`, … —
+**prefixované varianty v seznamu nejsou**.
+
+⚠️ **Není to bug party-splitu.** Hlavní checkout ukládá `payment.provider`
+stejným způsobem (`checkout/route.ts:1635`), takže se to týká **každé
+objednávky zakládané v mock režimu**. Řešení jsou dvě a je to rozhodnutí,
+ne oprava naslepo:
+- rozšířit CHECK o `mock-*` varianty, nebo
+- normalizovat provider před zápisem (`mock-gopay` → `gopay`, plus zvlášť
+  příznak, že šlo o mock)
+
+Dokud se nerozhodne, **dekrement inventáře se nedá změřit** — objednávka
+nevznikne a k `UPDATE remaining_qty` se běh nedostane.
+
+### Stav party-split peelu
+
+| # | vrstva | stav |
+|---|---|---|
+| 1 | `share_token` DEFAULT base64url | ✅ mig 456 |
+| 2 | `tt.capacity_remaining` | ✅ §63 |
+| 3 | `tt.price_halire` | ✅ §63 |
+| 4 | dekrement na starém jménu | ✅ §63 |
+| 5 | `tt.status` → `e.status = 'published'` | ✅ §65 |
+| 6 | `orders.user_id` chybí | ✅ §66 |
+| 7 | `mock-gopay` vs CHECK | 🔴 **rozhodnutí** |
+
+Test dekrementu je `it.skip` s popisem, co tam patří, až se vrstva 7 vyřeší.
+Zbylé 3 testy (create 201, capacity 409, alert 200) procházejí.

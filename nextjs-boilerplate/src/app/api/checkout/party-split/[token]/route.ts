@@ -26,6 +26,7 @@ import { z } from 'zod';
 import { randomUUID } from 'crypto';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { createPayment } from '@/lib/payment/provider';
+import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 
 export const dynamic = 'force-dynamic';
 
@@ -203,16 +204,26 @@ export async function POST(
         appUrl,
       });
 
+      // orders.user_id je NOT NULL a INSERT ho nedodaval -> 23502 (sesta vrstva
+      // peelu, zmerena zivym behem). Platce je znamy jen e-mailem, takze se
+      // pouzije tyz sdileny helper jako v hlavnim checkoutu (route.ts:898) —
+      // nezaklada se tu vlastni cesta k vytvoreni uzivatele.
+      const payerUserId = await createOrGetGuestUser(client, {
+        email: body.payerEmail,
+        name: body.payerName ?? undefined,
+      });
+
       await client.query(
         `INSERT INTO orders.orders
-           (id, event_id, status, total_amount, currency, locale,
+           (id, event_id, user_id, status, total_amount, currency, locale,
             gopay_payment_id, payment_provider, idempotency_key,
             expires_at, created_at, updated_at)
-         VALUES ($1, $2, 'pending', $3, $4, $5, $6, $7, $8,
+         VALUES ($1, $2, $3, 'pending', $4, $5, $6, $7, $8, $9,
                  NOW() + INTERVAL '30 minutes', NOW(), NOW())`,
         [
           orderId,
           session.event_id,
+          payerUserId,
           session.per_slot_amount,
           session.currency,
           body.locale,

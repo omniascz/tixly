@@ -107,4 +107,50 @@ d('party-split přes skutečné handlery', () => {
       expect(body.token).toMatch(/^[A-Za-z0-9_-]+$/); // URL-safe, base64url z Node
     }
   }, 120_000);
+
+  // 🔴 BLOCKER 7 (systemovy, FINDINGS 66): mock platebni brana vraci
+  // provider 'mock-gopay' / 'mock-wero' / 'mock-przelewy24', ale
+  // orders_payment_provider_check povoluje 'mock', 'gopay', … — NE tyhle
+  // prefixovane varianty. Objednavku tedy v mock rezimu nelze zalozit
+  // a dekrement se k slovu nedostane. Tyka se i hlavniho checkoutu, ktery
+  // uklada payment.provider stejne. Bud rozsirit CHECK, nebo provider
+  // normalizovat — rozhodnuti, ne oprava naslepo.
+  it.skip('[token] POST prijme slot a dekrementuje remaining_qty PRESNE o 1', async () => {
+    // 1) zaloz session pres realny handler
+    const { POST: create } = await import('@/app/api/checkout/party-split/route');
+    const cres = await create(new Request('http://localhost:3000/api/checkout/party-split', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-user-id': ids.user },
+      body: JSON.stringify({
+        eventId: ids.event, ticketTypeId: ids.ticketType, totalSlots: 3,
+        organizerEmail: `dec_${randomUUID().slice(0, 6)}@t.cz`, organizerName: 'Dec',
+      }),
+    }) as never);
+    const created = await cres.json();
+    expect(cres.status).toBe(201);
+    const token = created.shareToken as string;
+
+    const before = (await clone.pool.query<{ remaining_qty: number }>(
+      `SELECT remaining_qty FROM catalog.ticket_types WHERE id = $1`, [ids.ticketType])).rows[0].remaining_qty;
+
+    // 2) prijmi slot pres realny handler
+    const { POST: pay } = await import('@/app/api/checkout/party-split/[token]/route');
+    const pres = await pay(new Request(`http://localhost:3000/api/party/${token}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        payerEmail: `payer_${randomUUID().slice(0, 6)}@t.cz`, payerName: 'Payer',
+        paymentMethod: 'gopay', locale: 'cs',
+      }),
+    }) as never, { params: { token } } as never);
+    const paid = await pres.json();
+    console.log('[party-split pay]', pres.status, JSON.stringify(paid).slice(0, 220));
+
+    const after = (await clone.pool.query<{ remaining_qty: number }>(
+      `SELECT remaining_qty FROM catalog.ticket_types WHERE id = $1`, [ids.ticketType])).rows[0].remaining_qty;
+    console.log('[remaining_qty]', before, '->', after);
+
+    expect(pres.status).toBeLessThan(500);
+    expect(Number(before) - Number(after)).toBe(1);   // presne o 1, ne 0 a ne 2
+  }, 180_000);
 });
