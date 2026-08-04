@@ -2483,3 +2483,93 @@ v `migrations/archive/` a v žádném workflow se nepouští. Jediné zmínky js
 tenhle dokument a poznámka v `db/DEPLOY-RUNBOOK.md:68`, že 340–348 jsou na
 produkci nasazené z dřívějška. Podmínka „nejdřív gate, pak bez BUNDLE" je tedy
 splněná z obou stran.
+
+---
+
+## §59 Deploy cesta: runner ověřen reálným během — a měl blokující vadu
+
+`deploy.yml` dosud pouštěl holou smyčku `for m in migrations/*.sql; do psql -f`
+— bez `ON_ERROR_STOP`, bez evidence, bez zastavení při chybě. Nahrazeno
+`scripts/run-migrations.sh`. Ověřeno **skutečným během** proti prázdné databázi
+(psql v kontejneru `postgres:17`, protože lokálně psql není).
+
+### 🔴 Nález: runner na prázdné DB SELHAL — kolize evidence
+
+```
+▶  000_baseline_20260730.sql
+❌ psql:migrations/000_baseline_20260730.sql:12023:
+   ERROR: relation "schema_migrations" already exists
+```
+
+Runner si evidenci `public.schema_migrations` **předvytvářel**, jenže tutéž
+tabulku vytváří i baseline (`000_baseline_20260730.sql:12020` — je součástí
+dumpu schématu). Na prázdné DB tedy baseline spadl na vlastní evidenci.
+
+Na produkci se to neprojevilo, protože tam tabulka existuje z dřívějška a
+baseline se nikdy nepouštěl. **Projevilo by se to při prvním čistém nasazení** —
+tedy přesně v situaci, kvůli které baseline vznikl.
+
+**Oprava:** evidence se nezakládá dopředu. Dokud tabulka neexistuje, runner se
+chová, jako by nebylo aplikováno nic; založí ji baseline sám a zápis se doplní
+až po prvním úspěšném souboru (`ensure_ledger` + `ON CONFLICT DO NOTHING`).
+
+### Doložení po opravě
+
+| bod | výsledek |
+|---|---|
+| **1a** baseline přes psql | ✅ **8 migrací aplikováno, 0 selhalo, 0 warningů** — `\restrict` psql zvládl |
+| **1c** idempotence (2. běh) | ✅ **0 aplikováno, 8 přeskočeno, 0 selhalo** |
+| **1d** vadná migrace | ✅ **exit 1**, zastavil na 456, **457 vůbec nezkusil**; ani `tmp_broken`, ani `tmp_after_broken` nevznikly; v evidenci 0 záznamů |
+
+### 1b) WARNING není ERROR — runner je teď vypisuje
+
+`ON_ERROR_STOP` warningy nechytá: `GRANT` na objekt vlastněný extensionou vrátí
+`WARNING: no privileges were granted` a psql skončí kódem 0 (§27, §29).
+Runner je proto vypisuje vždy, počítá je a na konci upozorní, že **exit 0
+neznamená, že efekt nastal**. Ověření je porovnání schématu — proto `deploy.yml`
+pouští `rls-verify` i **po** migracích, ne jen před nimi.
+
+## §60 Snapshot bez ručního kroku + stav CI
+
+### Snapshot hlídá BUILD, ne deploy
+
+`rls-snapshot.json` se dosud musel po každé migraci měnící RLS přegenerovat
+ručně. Nový job `snapshot-drift` postaví klon z migrací, vygeneruje snapshot a
+porovná ho s commitnutou verzí.
+
+**Self-check (obousměrný):**
+```
+A) snapshot z DB po runneru vs commitnutý → ✅ SHODUJE SE (598 policies)
+B) po změně policy bez přegenerování      → ✅ LIŠÍ SE → build spadne
+```
+
+### 🔴 CI dnes NEMŮŽE běžet: nejsou žádné secrets
+
+Ověřeno přes `gh` (účet `omniascz`, scope `repo`):
+
+```
+gh secret list                     → prázdné
+gh secret list --env production    → prázdné
+environments: Preview, Production, "Production – nextjs-boilerplate",
+              "Production – tixly", schema-drift  → všechny bez secrets
+```
+
+A历史 to potvrzuje: **každý plánovaný běh selhal** — `Security` i
+`Database backup to S3`, opakovaně od července.
+
+Důsledky, které je potřeba vyřešit **dřív**, než se na gate spolehne:
+- `DATABASE_URL` neexistuje → `rls-gate` i `migrate` v `deploy.yml` spadnou
+- `NEON_API_KEY` neexistuje → noční sken i `snapshot-drift` spadnou
+- `deploy.yml` používá `environment: production`, ale prostředí se jmenuje
+  `Production` (a existují dvě další „Production – …") — **k ověření**
+
+⚠️ **Gate je tedy zatím tvrdá podmínka, kterou nelze splnit.** Dokud secrets
+nevzniknou, blokoval by deploy natrvalo. To není chyba gate, ale stav CI —
+ale je to důvod, proč `rls-gate` nezapínat do `deploy.yml` na produkci dřív,
+než `DATABASE_URL` existuje.
+
+### actionlint
+
+Workflows prošly (`exit 0`). Jedna reálná chyba opravena: `secrets.NEON_API_KEY`
+nebyl deklarovaný v `workflow_call.secrets`, takže by při volání z `deploy.yml`
+nebyl dostupný — actionlint to zachytil dřív, než by to shodilo běh.

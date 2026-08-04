@@ -39,24 +39,34 @@ if ! psql "$DATABASE_URL" -c "SELECT version();" >/dev/null 2>&1; then
 fi
 echo "✓ DB connected"
 
-# Vytvoř tracking tabulku pokud chybí
-psql "$DATABASE_URL" <<'SQL' >/dev/null
-CREATE TABLE IF NOT EXISTS public.schema_migrations (
-  filename TEXT PRIMARY KEY,
-  applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-SQL
+# ⚠️ Evidenci NEVYTVÁŘÍME dopředu. `000_baseline` obsahuje vlastní
+# `CREATE TABLE public.schema_migrations` (je součástí dumpu schématu), takže
+# předvytvořená tabulka mu na PRÁZDNÉ DB shodí celou migraci:
+#   ERROR: relation "schema_migrations" already exists
+# Dokud tabulka neexistuje, chováme se, jako by nebylo aplikováno nic; založí
+# ji baseline sám a evidenci pak doplníme až po prvním úspěšném souboru.
+ledger_exists() {
+  [ "$(psql "$DATABASE_URL" -tAc "SELECT to_regclass('public.schema_migrations') IS NOT NULL")" = "t" ]
+}
+ensure_ledger() {
+  psql "$DATABASE_URL" -c "CREATE TABLE IF NOT EXISTS public.schema_migrations (filename TEXT PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW())" >/dev/null
+}
 
 APPLIED=0
 SKIPPED=0
 FAILED=0
+WARNED=0
 
 # Run all .sql files in sorted order
 for file in $(ls -1 "$MIGRATIONS_DIR"/*.sql | sort); do
   basename=$(basename "$file")
 
   # Skip pokud už aplikováno
-  already=$(psql "$DATABASE_URL" -tAc "SELECT COUNT(*) FROM public.schema_migrations WHERE filename = '$basename'")
+  if ledger_exists; then
+    already=$(psql "$DATABASE_URL" -tAc "SELECT COUNT(*) FROM public.schema_migrations WHERE filename = '$basename'")
+  else
+    already=0
+  fi
   if [ "$already" -ge "1" ]; then
     echo "⏭  $basename (už aplikováno)"
     SKIPPED=$((SKIPPED + 1))
@@ -65,7 +75,18 @@ for file in $(ls -1 "$MIGRATIONS_DIR"/*.sql | sort); do
 
   echo "▶  $basename"
   if psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file" >/tmp/migration-out.log 2>&1; then
-    psql "$DATABASE_URL" -c "INSERT INTO public.schema_migrations (filename) VALUES ('$basename')" >/dev/null
+    # ON_ERROR_STOP warningy NECHYTA. GRANT na objekt vlastneny extensionou
+    # vrati "WARNING: no privileges were granted" a psql skonci s kodem 0 —
+    # migrace tedy "projde", aniz by nastal efekt (FINDINGS 27, 29).
+    # Warningy proto vypisujeme vzdy, ne jen pri selhani.
+    if grep -qiE '^WARNING' /tmp/migration-out.log; then
+      W=$(grep -ciE '^WARNING' /tmp/migration-out.log || true)
+      WARNED=$((WARNED + W))
+      echo "!! $basename — $W warningu (exit 0, ale efekt NEMUSEL nastat):"
+      grep -iE '^WARNING' /tmp/migration-out.log | head -10 | sed 's/^/      /'
+    fi
+    ensure_ledger
+    psql "$DATABASE_URL" -c "INSERT INTO public.schema_migrations (filename) VALUES ('$basename') ON CONFLICT DO NOTHING" >/dev/null
     APPLIED=$((APPLIED + 1))
     echo "✓  $basename"
   else
@@ -83,10 +104,19 @@ echo "════════════════════════�
 echo " Aplikováno:  $APPLIED"
 echo " Přeskočeno:  $SKIPPED (už bylo)"
 echo " Selhalo:     $FAILED"
+echo " Warningu:    $WARNED"
 echo "═══════════════════════════════════════"
 
 if [ "$APPLIED" -gt "0" ]; then
   echo ""
   echo "✓ Hotovo. Ověř /api/health endpoint:"
   echo "  curl https://<your-domain>/api/health | jq"
+fi
+
+# Exit kod psql NENI dukaz, ze efekt nastal. Overeni je porovnani schematu —
+# to dela rls-verify (RLS vrstva) a schema-reality-scan (schema a granty).
+if [ "$WARNED" -gt "0" ]; then
+  echo ""
+  echo "!! Probehly warningy. Exit kod 0 NEZNAMENA, ze efekt nastal."
+  echo "   Over stav: node nextjs-boilerplate/scripts/rls-verify.mjs"
 fi

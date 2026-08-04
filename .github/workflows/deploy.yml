@@ -94,11 +94,21 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Spustit migrace
-        run: |
-          for migration in migrations/*.sql; do
-            echo "Aplikuji: $migration"
-            psql "$DATABASE_URL" -f "$migration"
-          done
+      # Hola smycka `psql -f` nemela ON_ERROR_STOP, evidenci ani zastaveni pri
+      # chybe — pokracovala dal a hlasila uspech. Runner ma vsechno tri.
+      # MUSI to byt psql, ne node-pg: 000_baseline nese psql meta-prikazy
+      # (pg_dump 17), pres SQL driver da 42601 a NEAPLIKUJE SE (FINDINGS 33).
+      - name: Install postgresql-client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Spustit migrace (runner s ON_ERROR_STOP + evidenci)
+        run: ./scripts/run-migrations.sh
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      # Exit kod migraci neni dukaz, ze efekt nastal (warningy 27/29).
+      - name: Overit RLS po migracich
+        working-directory: nextjs-boilerplate
+        run: npm ci --no-audit --no-fund && node scripts/rls-verify.mjs
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

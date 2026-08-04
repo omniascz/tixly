@@ -25,6 +25,9 @@ on:
     secrets:
       DATABASE_URL:
         required: true
+      NEON_API_KEY:
+        # volitelny — potrebuje ho jen nocni sken, ne pre-deploy gate
+        required: false
   # 3) na změnu čehokoli, co gate nebo očekávaný stav definuje
   pull_request:
     paths:
@@ -68,3 +71,43 @@ jobs:
         env:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
         run: node scripts/schema-reality-scan.mjs --ephemeral
+
+  # Snapshot musel dosud clovek pregenerovat rucne po kazde migraci menici RLS.
+  # Rucni krok, na ktery se zapomene, je tataz trida jako capacity_remaining —
+  # proto to hlida BUILD (ne deploy): postavi klon z migraci, vygeneruje
+  # snapshot a porovna s commitnutou verzi.
+  snapshot-drift:
+    name: Snapshot je aktualni vuci migracim
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install deps
+        working-directory: nextjs-boilerplate
+        run: npm ci --no-audit --no-fund
+
+      - name: Postavit klon z migraci a porovnat snapshot
+        working-directory: nextjs-boilerplate
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+        run: |
+          set -euo pipefail
+          node scripts/baseline-clone.mjs /tmp/clone.json
+          node -e "
+            const {execSync}=require('child_process');
+            const c=require('/tmp/clone.json');
+            for (const f of ['453_users_select_scoped.sql','454_rls_cast_nullif_fix.sql','455_rls_namedrift_identity.sql'])
+              execSync('psql \"'+c.ownerUri+'\" -v ON_ERROR_STOP=1 -f ../migrations/'+f,{stdio:'inherit'});
+          "
+          node scripts/rls-verify.mjs --snapshot             --url="$(node -e "console.log(require('/tmp/clone.json').ownerUri)")"             --snapshot-file=/tmp/expected.json
+          node -e "
+            const a=require('/tmp/expected.json'), b=require('./rls-snapshot.json');
+            const k=o=>JSON.stringify({p:o.policies,r:o.rlsTables,h:o.helpers});
+            if (k(a)===k(b)) { console.log('snapshot je aktualni'); process.exit(0); }
+            console.error('rls-snapshot.json ZAOSTAVA za migracemi.');
+            console.error('Pregeneruj:  node scripts/rls-verify.mjs --snapshot --url=<klon>');
+            process.exit(1);
+          "
