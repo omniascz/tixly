@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 /**
  * POST /api/my/tickets/[ticketId]/transfer
  *
@@ -60,9 +61,9 @@ export async function POST(
 
     // Verify ownership + ticket valid
     const ticketRes = await client.query<{
-      id: string; status: string; transfer_count: number; event_date: string;
+      id: string; status: string; transfer_count: number; order_id: string; event_date: string;
     }>(
-      `SELECT tt.id, tt.status, tt.transfer_count, et.date_start AS event_date
+      `SELECT tt.id, tt.status, tt.transfer_count, tt.order_id, et.date_start AS event_date
          FROM tickets.tickets tt
          JOIN orders.orders o ON o.id = tt.order_id
          JOIN catalog.events et ON et.id = o.event_id
@@ -98,10 +99,14 @@ export async function POST(
     );
 
     // Create transfer record
-    const transferRes = await client.query<{ token: string }>(
-      `INSERT INTO orders.ticket_transfers (ticket_id, from_user_id, to_email)
-       VALUES ($1,$2,$3) RETURNING token`,
-      [params.ticketId, userId, toEmail],
+    // Tri vrstvy najednou (PEEL):
+    //  1. transfer_token mel DEFAULT encode(…, 'base64url') → 22023 (mig 456)
+    //  2. order_id je NOT NULL a INSERT ho nedodaval → 23502
+    //  3. sloupec se jmenuje transfer_token, kod cetl `RETURNING token` → 42703
+    const transferRes = await client.query<{ transfer_token: string }>(
+      `INSERT INTO orders.ticket_transfers (ticket_id, order_id, from_user_id, to_email, transfer_token)
+       VALUES ($1,$2,$3,$4,$5) RETURNING transfer_token`,
+      [params.ticketId, ticket.order_id, userId, toEmail, randomBytes(24).toString('base64url')],
     );
 
     // Mark ticket as pending transfer
@@ -113,7 +118,7 @@ export async function POST(
     await client.query('COMMIT');
 
     return NextResponse.json({
-      token: transferRes.rows[0].token,
+      token: transferRes.rows[0].transfer_token,
       toEmail,
       fromEmail: fromUserRes.rows[0]?.email,
       expiresIn: '72h',

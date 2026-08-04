@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 /**
  * POST /api/events/[id]/alert — "Upozorni mě" přihlášení
  * DELETE /api/events/[id]/alert?token=xxx — odhlášení (unsubscribe)
@@ -34,12 +35,17 @@ export async function POST(
     );
     if (ev.rowCount === 0) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
 
+    // Token generuje aplikace, ne DB. Sloupcový DEFAULT byl
+    // `encode(…, 'base64url')`, což nefunguje na zadne vydane verzi Postgresu
+    // (pribylo az v PG 19, ta nevysla) — kazdy INSERT koncil na 22023.
+    // Migrace 456 DEFAULT rusi, delku 16 B zachovavame.
+    const alertToken = randomBytes(16).toString('base64url');
     const r = await client.query<{ token: string }>(
-      `INSERT INTO marketing.ticket_alerts (email, event_id, user_id, alert_type)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO marketing.ticket_alerts (email, event_id, user_id, alert_type, token)
+       VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (email, event_id, alert_type) DO UPDATE SET cancelled_at = NULL
        RETURNING token`,
-      [email, params.id, userId ?? null, alertType],
+      [email, params.id, userId ?? null, alertType, alertToken],
     );
 
     return NextResponse.json({ token: r.rows[0].token, eventTitle: ev.rows[0].title });

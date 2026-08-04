@@ -2573,3 +2573,85 @@ než `DATABASE_URL` existuje.
 Workflows prošly (`exit 0`). Jedna reálná chyba opravena: `secrets.NEON_API_KEY`
 nebyl deklarovaný v `workflow_call.secrets`, takže by při volání z `deploy.yml`
 nebyl dostupný — actionlint to zachytil dřív, než by to shodilo běh.
+
+---
+
+## §61 „capacity backfill" nikdy nebyl migrace — a půlka práce chybí v kódu
+
+V deploy-orderu se dlouho vedl krok „capacity backfill". Dohledáno
+(`git log -S capacity_remaining`, archiv migrací, REMEDIATION):
+
+**Verdikt jednou větou:** žádná capacity-backfill migrace nikdy neexistovala —
+šlo o rename `capacity_remaining` → `remaining_qty` ve WRITE cestě
+(REMEDIATION §6: „UPDATE dekrement INVENTÁŘE, třída jako oversell"), který je
+v DB **hotový**, ale v kódu **ne**.
+
+```
+000_baseline: remaining_qty 21× | capacity_remaining 0×      ← DB hotová
+src/**.ts:    capacity_remaining v 5 souborech                ← kód NE
+```
+
+🔴 Nejcitlivější zbytek je dekrement inventáře:
+`checkout/party-split/[token]/route.ts:233` — `SET capacity_remaining =
+capacity_remaining - 1`. Dnes padá na `42703`. Je to přesně ta cesta, kterou
+REMEDIATION označila za „vlastní pozornost, ne dávka".
+
+Deploy-order opraven: capacity do pořadí migrací nepatří, je to práce v kódu.
+
+## §62 Tři mrtvé tabulky oživeny: token generuje aplikace, ne DB
+
+`base64url` v `encode()` přibyl až v **PostgreSQL 19**, která nevyšla — výraz
+nefunguje na žádné existující verzi (§35). Tři sloupce ho měly v `DEFAULT`,
+takže do jejich tabulek **nešlo vložit řádek**:
+
+```
+marketing.ticket_alerts.token            (16 B)  → hlídací pes na lístky
+orders.party_split_sessions.share_token  (18 B)  → rozdělení platby ve skupině
+orders.ticket_transfers.transfer_token   (24 B)  → P2P převod lístku
+```
+
+**Řešení:** migrace 456 ruší `DEFAULT`, token generuje Node
+(`randomBytes(n).toString('base64url')` — táž abeceda, táž délka).
+`encode(…,'base64')` by nešlo: dává `+`, `/`, `=`, a všechny tři tokeny jdou
+do URL.
+
+### PEEL — u `ticket_transfers` byly vrstvy TŘI, ne jedna
+
+| # | vrstva | chyba |
+|---|---|---|
+| 1 | `transfer_token` má `DEFAULT encode(…,'base64url')` | `22023` |
+| 2 | `order_id` je `NOT NULL`, INSERT ho **nedodával** | `23502` |
+| 3 | sloupec je `transfer_token`, kód četl `RETURNING token` | `42703` |
+
+Vrstvy 2 a 3 byly dosud **neznámé** — vypadly až při čtení schématu, protože
+vrstva 1 je zastiňovala. `order_id` se bere z už načteného lístku
+(`SELECT … tt.order_id` doplněno do ověření vlastnictví, žádný dotaz navíc).
+
+U `ticket_alerts` a `party_split_sessions` byla vrstva jediná.
+
+### Doložení na klonu
+
+```
+✅ ticket_alerts        token=… (22 zn.) URL-safe=ano
+✅ party_split_sessions token=… (24 zn.) URL-safe=ano
+✅ ticket_transfers     token=… (32 zn.) URL-safe=ano
+═══ 3/3 cest PROŠLO ═══        (npx tsc --noEmit: 0 chyb)
+```
+
+🔧 **Pozor na to, co test NEDOKAZUJE.** Cesty prošly i **před** migrací 456 —
+když token dodá aplikace, `DEFAULT` se nikdy nevyhodnotí. Migrace tedy není
+pro opravu nutná; je to **odminování**: bez ní by první budoucí `INSERT`, který
+token vynechá, znovu spadl na `22023`. Po ní dostane `23502`, tedy hlasitou
+chybu se jménem sloupce. Ověřeno: starý tvar INSERTu (bez tokenu) po 456 vrací
+`23502 null value in column "token"`.
+
+Původní stav `22023` je doložený z dřívějška (§35 a pád seedu ve
+`test-453-volume`), v tomhle běhu se ho na čerstvém klonu reprodukovat
+nepodařilo — klon se zřejmě nepřestavěl.
+
+### Co zůstává rozbité na týchž cestách
+
+🔴 `party-split` **není opravený celý**: `checkout/party-split/route.ts` a
+`[token]/route.ts` čtou `capacity_remaining`, sloupec, který v DB neexistuje
+(§61). Token už vznikne, ale cesta spadne o krok dál na `42703`.
+Je to jiná oprava (rename v kódu), proto zvlášť.

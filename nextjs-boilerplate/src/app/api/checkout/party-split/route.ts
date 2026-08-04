@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 /**
  * POST /api/checkout/party-split
  *
@@ -102,10 +103,11 @@ export async function POST(req: NextRequest): Promise<Response> {
       share_token: string;
       expires_at: string;
     }>(
+      // share_token generuje aplikace — DB DEFAULT byl base64url (viz mig 456)
       `INSERT INTO orders.party_split_sessions
          (event_id, ticket_type_id, organizer_user_id, organizer_email, organizer_name,
-          total_slots, per_slot_amount, currency)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          total_slots, per_slot_amount, currency, share_token)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id, share_token, expires_at`,
       [
         body.eventId,
@@ -116,6 +118,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         body.totalSlots,
         tt.price_halire,
         tt.currency,
+        randomBytes(18).toString('base64url'),
       ],
     );
 
