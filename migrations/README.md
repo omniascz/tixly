@@ -94,6 +94,7 @@ Nic z toho **není na produkci**. Pořadí je závazné.
 | 451 | `451_orders_payment_provider_pos.sql` | rozšíření CHECK na `payment_provider` | |
 | 452 | `452_tracking_events_provider_tiktok.sql` | rozšíření CHECK na `provider` | |
 | 453 | `453_users_select_scoped.sql` | zúžení `p_users_select` z `USING (true)` | RED→GREEN doloženo, FINDINGS §37 |
+| 454 | `454_rls_cast_nullif_fix.sql` | 4 policies: přímý cast GUC → `app_current_user_id()` | opravuje 22P02/500, RED→GREEN doloženo, FINDINGS §39 |
 
 ### ⚠️ Baseline nelze pustit přes SQL driver
 

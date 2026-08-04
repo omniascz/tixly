@@ -1477,3 +1477,30 @@ Proč zrovna ony: **obcházejí helper.** `app_current_user_id()` dělá
 `app.is_service = 'true'`…) — nikdy nesedí, tedy mrtvé, ale bezpečné.
 
 **NEOPRAVENO** — na tomhle kroku mělo být jen zmapování.
+
+---
+
+## §39 Migrace 454: přímý cast GUC → 22P02 potvrzeno i po `RESET`
+
+Čtyři policies castovaly `app.current_user_id` napřímo, bez `NULLIF`.
+Migrace je převádí na `public.app_current_user_id()` (kanonický tvar od mig 285).
+
+Sondy pod `tixly_app`, tři stavy GUC:
+
+| tabulka | prázdný | po `RESET` | platné UUID |
+|---|---|---|---|
+| **RED** `catalog.scanner_devices` | 🔴 22P02 | 🔴 22P02 | ✅ OK |
+| **RED** `identity.oauth_accounts` | 🔴 22P02 | 🔴 22P02 | ✅ OK |
+| **RED** `lineups.artist_follows` | 🔴 22P02 | 🔴 22P02 | ✅ OK |
+| **GREEN** všechny tři | ✅ OK | ✅ OK | ✅ OK |
+
+🔴 **Podstatné je, že padá i po `RESET`** — ne jen po umělém `SET … = ''`.
+`RESET` je přesně to, co dělá pool při vracení spojení, takže to není
+laboratorní stav, ale běžný provoz. Fail-closed to nikdy nebylo.
+
+⚠️ **Co 454 ZÁMĚRNĚ nedělá:** `oauth_accounts_own` a `artist_follows_own` čtou
+v téže policy i `current_setting('app.is_service')` — name-drift jméno (§38).
+Nahradit ho za `app_is_service()` by **aktivovalo dosud mrtvou větev**, tedy
+rozšířilo přístup. To je jiné rozhodnutí než oprava pádu a patří do migrace
+na 39 name-drift policies. 454 mění pouze tvar castu; množina viditelných
+řádků se pro platné UUID nemění.
