@@ -67,10 +67,12 @@ export async function POST(req: NextRequest): Promise<Response> {
     const ttRes = await db().query<{
       price_halire: number;
       currency: string;
-      capacity_remaining: number;
+      remaining_qty: number;
       event_title: string;
     }>(
-      `SELECT tt.price_halire, tt.currency, tt.capacity_remaining, pr.title AS event_title
+      // PEEL: `capacity_remaining` -> `remaining_qty` a `price_halire` ->
+      // `base_price`. Ani jeden z puvodnich sloupcu v DB neexistuje (42703).
+      `SELECT tt.base_price AS price_halire, e.currency, tt.remaining_qty, pr.title AS event_title
        FROM catalog.ticket_types tt
        JOIN catalog.events e ON e.id = tt.event_id
        JOIN catalog.productions pr ON pr.id = e.production_id
@@ -83,9 +85,9 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     const tt = ttRes.rows[0];
-    if (tt.capacity_remaining < body.totalSlots) {
+    if (tt.remaining_qty < body.totalSlots) {
       return NextResponse.json(
-        { error: 'INSUFFICIENT_CAPACITY', available: tt.capacity_remaining },
+        { error: 'INSUFFICIENT_CAPACITY', available: tt.remaining_qty },
         { status: 409 },
       );
     }

@@ -2655,3 +2655,58 @@ nepodařilo — klon se zřejmě nepřestavěl.
 `[token]/route.ts` čtou `capacity_remaining`, sloupec, který v DB neexistuje
 (§61). Token už vznikne, ale cesta spadne o krok dál na `42703`.
 Je to jiná oprava (rename v kódu), proto zvlášť.
+
+---
+
+## §63 Rename `capacity_remaining` dokončen v kódu — 3 rozbité, 2 falešně pozitivní
+
+Z 5 souborů byly **skutečně rozbité 3**. Zbylé dva používají
+`capacity_remaining` jako **název pole ve veřejném API**, mapovaný z
+`remaining_qty` (`v1/wl/events:99`, `v1/wl/orders:107`) — kontrakt, nesaháno.
+
+**Sémantika ověřena, rename je 1:1:** `remaining_qty` je počet zbývajících
+míst — `CHECK (remaining_qty >= 0)`, `CHECK (remaining_qty <= total_qty)`,
+jinde se dekrementuje `- 1` a při refundu inkrementuje. Žádná změna významu.
+
+⚠️ **Concurrency (neopravováno):** dekrement nemá `WHERE remaining_qty > 0`
+ani `RETURNING`. Proti zápornému stavu chrání CHECK, takže překročení dá
+`23514` a transakce se vrátí — **fail-closed, ne oversell**. Explicitní
+pojistka je samostatná změna.
+
+## §64 🔴 BLOCKER: `ticket_types.status` neexistuje — party-split nedojet
+
+Peel u party-split neměl jednu vrstvu, ale **pět**:
+
+```
+1. share_token DEFAULT encode(…,'base64url')  → 22023   ✅ mig 456
+2. tt.capacity_remaining → remaining_qty      → 42703   ✅ §63
+3. tt.price_halire → base_price               → 42703   ✅ §63
+4. dekrement na témže starém jménu            → 42703   ✅ §63
+5. tt.status = 'on_sale'                      → 42703   🔴 BLOCKER
+```
+
+`catalog.ticket_types` **nemá sloupec `status`**. Má `visibility`
+(`public` / `hidden` / `access_code`) a `presale_starts_at` / `presale_ends_at`
+— žádný `sales_start_at`, žádný stav prodeje.
+
+**Čím se má `status = 'on_sale'` nahradit, ze schématu odvodit nejde.**
+`visibility = 'public'` je viditelnost, ne stav prodeje; presale okna jsou
+něco jiného. Je to produktové rozhodnutí a nevymýšlím ho.
+
+Party-split proto **není dojetý do PROŠLO** — vrstvy 1–4 jsou opravené,
+pátá čeká na rozhodnutí.
+
+### Ověření přes skutečné handlery (ne jen SQL)
+
+`tests/party-split.live.test.ts` volá route handlery jako funkce:
+
+```
+✅ POST /api/events/[id]/alert — reálný handler, token z Node, URL-safe,
+   řádek vložen (dřív 22023)
+⏭️ party-split (2 testy) — VYPNUTÉ
+```
+
+🔧 Testy party-split jsem vypnul, protože **nevím, co handler vrací**.
+Čekal jsem 500 kvůli blockeru 5, ale vrátil jiný kód a už jsem ho nezměřil —
+došel kontext. Nechat je s tvrzením, které jsem neověřil, by bylo horší než
+je vypnout. V souboru je to označené včetně toho, co tam patří po opravě.

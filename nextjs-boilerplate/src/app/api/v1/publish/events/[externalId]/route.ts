@@ -121,10 +121,12 @@ export async function PUT(
         const ttUpdates: string[] = [];
         const ttValues: unknown[] = [eventId];
         if (tt.availableCount !== undefined) {
-          ttUpdates.push(`capacity_remaining = LEAST(capacity_remaining, $${ttValues.push(tt.availableCount)})`);
+          // `capacity_remaining` v DB neexistuje — sloupec je `remaining_qty`
+          ttUpdates.push(`remaining_qty = LEAST(remaining_qty, $${ttValues.push(tt.availableCount)})`);
         }
         if (tt.price !== undefined) {
-          ttUpdates.push(`price_halire = $${ttValues.push(tt.price)}`);
+          // stejne tak `price_halire` — sloupec je `base_price`
+          ttUpdates.push(`base_price = $${ttValues.push(tt.price)}`);
         }
         if (tt.status) {
           ttUpdates.push(`status = $${ttValues.push(tt.status)}`);

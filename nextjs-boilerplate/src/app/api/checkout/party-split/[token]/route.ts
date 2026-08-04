@@ -228,9 +228,16 @@ export async function POST(
         [slot.id, orderId],
       );
 
+      // Sloupec se jmenuje `remaining_qty` — `capacity_remaining` v DB
+      // NEEXISTUJE (rename probehl v DB, ne v kodu; FINDINGS 61), takze tenhle
+      // dekrement inventare dosud koncil na 42703.
+      // ⚠️ Bez `WHERE remaining_qty > 0`: proti zapornemu stavu chrani CHECK
+      // `ticket_types_remaining_qty_check (remaining_qty >= 0)`, takze prekroceni
+      // da 23514 a transakce se vrati — fail-closed, ne oversell. Doplneni
+      // explicitni pojistky je samostatna zmena (FINDINGS 63).
       await client.query(
         `UPDATE catalog.ticket_types
-         SET capacity_remaining = capacity_remaining - 1, updated_at = NOW()
+         SET remaining_qty = remaining_qty - 1, updated_at = NOW()
          WHERE id = $1`,
         [session.ticket_type_id],
       );
