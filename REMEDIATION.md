@@ -1363,3 +1363,34 @@ celý), jen 23 je LEFT (degradace). „RLS zabralo" proto nesmí být čteno jak
 „nic se nerozbilo".
 
 **Pravidlo pro další měření:** každá sonda musí běžet v obou kontextech.
+
+---
+
+## ✅ FRONT 2 ČÁSTEČNĚ ŘEŠEN: migrace 455 (FINDINGS §44)
+
+Vygenerována z katalogu (`scripts/gen-455-namedrift.mjs`), ne psaná ručně.
+**20 policies** převedeno na kanonické helpery, 0 přeskočeno:
+
+```
+app.promoter_id → public.app_current_promoter_id()
+app.user_id     → public.app_current_user_id()
+```
+
+RED→GREEN v obou kontextech: `wero_payments` (promotér) 0→1,
+`event_sponsors` (promotér) 0→1, `magic_link_tokens` (buyer) 0→1.
+**Opraveno 3, úniků 0** — vlastní řádek se zpřístupnil, cizí zůstal skrytý.
+Vedlejší efekt: mizí i past 22P02, helpery dělají `NULLIF`.
+
+### ⚠️ Zbylých 19 policies ZÁMĚRNĚ neřešeno
+
+`app.bypass_rls`, `app.use_service_role`, `app.is_service`, `app.is_admin`,
+`app.platform_admin` — všech pět je **příznak zvýšení oprávnění, ne identita**.
+Zadání lockovalo jen `is_service`; rozšířil jsem to na všech pět, protože jsou
+táž kategorie. Napojit je na `app_is_service()` / `app_is_platform_admin()` by
+aktivovalo dosud mrtvou větev = rozšíření přístupu.
+
+Dělicí čára: jméno identity vrací přístup k **vlastním** datům (omezeno
+tenantem), příznak oprávnění dává **plošný bypass**.
+
+**Zbývá rozhodnout:** jestli mají ty branche vůbec ožít, a pokud ano, pod
+jakým jménem. To je produktové/bezpečnostní rozhodnutí, ne oprava driftu.

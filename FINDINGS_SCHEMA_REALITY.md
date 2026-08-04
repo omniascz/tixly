@@ -1759,3 +1759,63 @@ je rozdíl mezi skrytím a smazáním z pohledu UI nulový.
 
 **Důsledek pro každé další měření:** každá sonda musí běžet v OBOU kontextech,
 jinak měří jen polovinu. Skript `test-453-split.mjs` je tak psaný.
+
+---
+
+## §44 Migrace 455: name-drift jen u jmen IDENTITY — 20 policies, RED→GREEN
+
+Migrace je **vygenerovaná z katalogu** (`scripts/gen-455-namedrift.mjs`),
+ne psaná ručně: skript najde policies čtoucí `app.promoter_id` / `app.user_id`,
+nahradí výraz kanonickým helperem a vypíše `DROP`/`CREATE POLICY` se zachovaným
+`PERMISSIVE`/`RESTRICTIVE`, příkazem i rolemi. Nalezeno **20**, převedeno 20,
+přeskočeno 0.
+
+```
+app.promoter_id → public.app_current_promoter_id()
+app.user_id     → public.app_current_user_id()
+```
+
+### ⚠️ Proč jen 20 z 39
+
+Zbylých 19 policies čte `app.bypass_rls`, `app.use_service_role`,
+`app.is_service`, `app.is_admin`, `app.platform_admin`. **Nepřevádím ani jedno**
+— a nejen `is_service`, jak znělo zadání. Všech pět je totiž táž kategorie:
+**příznak zvýšení oprávnění, ne identita.** Dnes jsou mrtvé, protože je nikdo
+nenastaví; napojit je na `app_is_service()` / `app_is_platform_admin()` by
+**aktivovalo dosud mrtvou větev**, tedy rozšířilo přístup.
+
+Dělicí čára je v ohraničení:
+- jméno **identity** → vrací přístup k **vlastním** datům, omezeno tenantem
+- příznak **oprávnění** → dává **plošný bypass**
+
+Proto do 455 patří jen ta první skupina. Druhá potřebuje vlastní rozhodnutí
+a vlastní měření.
+
+### Vedlejší efekt: mizí past 22P02
+
+Helpery dělají `NULLIF(current_setting(…), '')::uuid`, takže převod zároveň
+odstraňuje přímé casty (§39) u všech 20 policies.
+
+### RED→GREEN (klon z baseline, obě dimenze podle §43)
+
+Cílem jsou tabulky, kde aplikace dnes **nevidí ani vlastní data**.
+Každá obsahuje 2 řádky — vlastní a cizí:
+
+| tabulka | kontext | před | po |
+|---|---|---|---|
+| `payments.wero_payments` | promotér | 0 | **1** ✅ |
+| `catalog.event_sponsors` | promotér | 0 | **1** ✅ |
+| `identity.magic_link_tokens` | buyer | 0 | **1** ✅ |
+
+**opraveno 3, úniků 0** — vlastní řádek se zpřístupnil, cizí zůstal skrytý.
+
+`wero_payments` je dobrá kontrola generátoru: `promoter_id` je tam **`text`,
+ne `uuid`**, takže policy porovnávala textově — a generátor správně vyrobil
+`(public.app_current_promoter_id())::text`, ne holý helper.
+
+### Co NENÍ ověřeno
+
+Sonda pokrývá **3 z 20** převedených policies (u zbylých by seed vyžadoval
+delší FK/CHECK řetěz). Že se převod povedl textově u všech 20, je ověřené
+(0 přeskočených, žádný starý GUC v SQL); že se **chování** změnilo správně
+u všech 20, ověřené **není**.

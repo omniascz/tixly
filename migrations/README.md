@@ -95,6 +95,7 @@ Nic z toho **není na produkci**. Pořadí je závazné.
 | 452 | `452_tracking_events_provider_tiktok.sql` | rozšíření CHECK na `provider` | |
 | 453 | `453_users_select_scoped.sql` | `p_users_select` → 3 policies podle vztahu (self / promotér / buyer) | ✅ odpozastaveno: 0 rozbitých cest, 0 úniků v obou kontextech, FINDINGS §42 |
 | 454 | `454_rls_cast_nullif_fix.sql` | 4 policies: přímý cast GUC → `app_current_user_id()` | opravuje 22P02/500, RED→GREEN doloženo, FINDINGS §39 |
+| 455 | `455_rls_namedrift_identity.sql` | 20 policies: `app.promoter_id`/`app.user_id` → `app_*()` helpery | jen jména IDENTITY; příznaky oprávnění ZÁMĚRNĚ neřeší, FINDINGS §44 |
 
 ### ⚠️ Baseline nelze pustit přes SQL driver
 
