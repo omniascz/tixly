@@ -2334,3 +2334,81 @@ všemi čtyřmi změřenými body (§53). Není ale ověřená napříč 53 poli
 **Další krok:** opravit skript (debug proč `verdict` nezůstává přiřazený),
 znovu spustit validaci, a teprve po jejím průchodu klasifikaci zapsat.
 Do té doby je rozdělení 53 policies **NEZNÁMÉ** — ne „60 drahých".
+
+---
+
+## §56 ✅ Klasifikace DOKONČENA: drahá je JEDNA policy z 64 — a je opravená
+
+Předchozí pokus (§55) neprošel self-checkem. Rozdíl: rozhodnutí se už nedělá
+regexem nad textem, ale **dotazem do katalogu** — `pg_index.indisunique` řekne,
+jestli je korelovaný sloupec krytý unique indexem. Chytí to i případy, kde by
+heuristika „jmenuje se `id`" selhala.
+
+```
+unikátní sloupce orders.orders: id, stripe_payment_intent_id,
+                                idempotency_key, gift_redeem_token
+```
+
+### SELF-CHECK — teprve po jeho průchodu čísla zveřejňuji
+
+```
+identity.users.p_users_select_promoter → DRAHÝ (měřeno 128×)  ✅
+    korelace jen na NEUNIKÁTNÍ sloupce (user_id) → N řádků na kandidáta
+orders.order_items.p_order_items_scope → LEVNÝ (měřeno 1,4×)  ✅
+    korelace na UNIKÁTNÍ sloupec (id) → 1 řádek na kandidáta
+```
+
+Klasifikace tedy reprodukuje oba nezávisle změřené body.
+
+### VERDIKT ČÍSLEM
+
+```
+celkem 64   🔴 DRAHÝ 1   🟢 LEVNÝ 62   ⚪ NEJASNÝ 1
+```
+
+🟢 **Jediná DRAHÁ policy je `identity.users.p_users_select_promoter` — a ta už
+je opravená** (`SECURITY DEFINER`, §48). Neopravených drahých je **nula**.
+
+Zbylých 62 se koreluje na `orders.id`, tedy primární klíč: jeden řádek na
+kandidáta, join uvnitř poddotazu proběhne nad jedním řádkem. Proto stály 1,1–1,4×
+i nad 230 000 objednávkami.
+
+⚪ **1 NEJASNÁ:** `orders.transit_passes.transit_passes_buyer_owns` — v poddotazu
+se nenašla rovnostní korelace na `orders`. Nezměřeno.
+
+### Proč vyšla čísla tak jinak než v §55
+
+První pokus (JOIN = drahý) dal 60 drahých, druhý (regexová korelace) 0.
+Správná odpověď je 1. Rozdíl mezi „60" a „1" je celý rozsah plánované práce —
+a jediné, co ho odhalilo, byl self-check proti dvěma změřeným bodům.
+
+## §57 Průnik obou zesilovačů: konečný seznam rizikových cest
+
+128× vzniklo **součinem**: drahý predikát × dotaz vyhodnocující policy pro
+všechny kandidáty. Samotný drahý predikát nad malým výběrem je levný.
+
+Protože drahá policy je právě jedna (`identity.users`), stačí najít dotazy
+s `DISTINCT` / `GROUP BY` nad `identity.users`. Průnik je **21 souborů**:
+
+```
+admin/backstage/notify           admin/events/[id]/broadcast
+admin/broadcasts/[id]/preview    admin/events/[id]/comps
+admin/broadcasts/[id]/send       admin/events/[id]/demographics
+admin/chargebacks                admin/events/[id]/reschedule
+admin/crm/rfm/compute            admin/events/[id]/verified-fan
+admin/customers                  admin/sms-campaigns
+admin/customers/export           buyer/recommendations
+                                 internal/cron/daily-stats
+lib/reports/reports-extra-1      lib/reports/reports-finance
+lib/reports/reports-extra-3      lib/reports/reports-operace
+lib/reports/reports-platform     lib/reports/reports-zakaznici
+```
+
+⚠️ **Po opravě z §48 (`SECURITY DEFINER`) je tenhle seznam už jen teoretický** —
+drahá větev je neutralizovaná, takže se násobiče není s čím sečíst. Seznam má
+smysl jako **regresní kontrola**: kdyby někdo `SECURITY DEFINER` z helperu
+odstranil, tyhle cesty zpomalí jako první.
+
+🔎 Metoda hledání je hrubá — soubory, kde se `identity.users` a
+`DISTINCT`/`GROUP BY` vyskytnou do 25 řádků od sebe. Falešně pozitivní i
+negativní nálezy jsou možné; nešlo o přesný výčet, ale o řádovou představu.
