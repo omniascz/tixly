@@ -79,3 +79,41 @@ verified_fan.*  — configs, registrations [NEW]
 - `season-passes`: tabulky v `season-passes/migrations/001_season_passes.sql` — zkontrolovat konzistenci
 - `gift-vouchers`: tabulky v `gift_vouchers` schema — bez migrace v `/migrations/`
 - `withTenantContext`: 11 modulů má noop stub — nahradit `@tixly/rls-multitenancy` před production deployem
+
+---
+
+## 🚀 POŘADÍ NASAZENÍ — nenasazené migrace (stav 2026-08-04)
+
+Nic z toho **není na produkci**. Pořadí je závazné.
+
+| # | soubor | co dělá | pozn. |
+|---|---|---|---|
+| 0a | `000_baseline_20260730.sql` | celé schéma (81 schémat, 600 tabulek, 596 policies) | ⚠️ viz `\restrict` níže |
+| 0b | `000_baseline_globals.sql` | role `tixly_app`, granty, default privileges | POVINNĚ až po 0a |
+| 450 | `450_tickets_dedup_unique.sql` | unique index na lístcích | |
+| 451 | `451_orders_payment_provider_pos.sql` | rozšíření CHECK na `payment_provider` | |
+| 452 | `452_tracking_events_provider_tiktok.sql` | rozšíření CHECK na `provider` | |
+| 453 | `453_users_select_scoped.sql` | zúžení `p_users_select` z `USING (true)` | RED→GREEN doloženo, FINDINGS §37 |
+
+### ⚠️ Baseline nelze pustit přes SQL driver
+
+`000_baseline_20260730.sql` nese 2 psql meta-příkazy (`\restrict` /
+`\unrestrict`, ř. 5 a 44985). Přes `node-pg` vrátí `42601` a **neaplikuje se
+vůbec**. Runner musí být `psql`, nebo je odfiltrovat —
+`nextjs-boilerplate/scripts/baseline-clone.mjs` to dělá.
+
+### 🔒 Ruční krok (Vercel)
+
+Produkční `DATABASE_URL` **musí** používat roli `tixly_app`, ne `neondb_owner`.
+`tixly_app` je jediná role s `BYPASSRLS = false`; pod ownerem je všech 596
+policies inertních. Heslo se z `pg_roles` vyčíst nedá — generuje se a ukládá
+do env: `ALTER ROLE tixly_app WITH PASSWORD '<z env>';`
+
+### 🔴 Blokuje nasazení nezávisle na migracích
+
+`base64url` v `encode()` přibyl až v **PostgreSQL 19** (commit `e1d91718`),
+která **zatím nevyšla** → výraz nefunguje na žádné existující verzi.
+Tři sloupce ho mají v `DEFAULT` (`marketing.ticket_alerts.token`,
+`orders.ticket_transfers.transfer_token`,
+`orders.party_split_sessions.share_token`) a aplikace token nedodává.
+Viz FINDINGS §35.

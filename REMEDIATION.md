@@ -1136,10 +1136,16 @@ Detail ve FINDINGS §34.
 
 `p_users_select` = `PERMISSIVE SELECT USING (true)`. Permissive policies se
 OR-ují, takže tahle přebije obě zbývající. Každé připojení s jakýmkoli GUC
-přečte všechny uživatele včetně `email`, `phone`, `password_hash`,
-`birth_year`, `city`, `postal_code`, `stripe_customer_id`.
+přečte všechny uživatele: `email`, `phone`, `name`, `birth_year`, `gender`,
+`country_code`, `city`, `postal_code`, `stripe_customer_id`.
+
+🔧 **KOREKCE:** `password_hash` mezi nimi NENÍ — mig 335 ho přesunula do
+`identity.user_secrets` (striktní policy, změřená jako účinná) a trigger
+`trg_move_password` sloupec v `users` vynuluje. Únik je PII, ne přihlašovací
+údaje. Moje první formulace to nadsadila.
 
 Změřeno (tenant A viděl řádky tenanta B), ne odvozeno z definice.
+✅ **ŘEŠENO migrací 453** (RED→GREEN doloženo, viz FINDINGS §37) — nenasazeno.
 Zbylých 6 děravých jsou `SELECT USING (true)` nad číselníky, kde je veřejné
 čtení pravděpodobně záměr — ale nikde to není napsané.
 
@@ -1160,9 +1166,11 @@ true))::uuid`. Nenastavené GUC dá `NULL` (v pořádku), ale **prázdný řetě
 Rozhodnout se musí jedním směrem: buď přejmenovat policies na GUC, které
 aplikace nastavuje, nebo `rls-pool.ts` doplnit o aliasy. **NEOPRAVENO.**
 
-## 🔴 FRONT 3 (DEPLOY BLOCKER): `base64url` neexistuje v PostgreSQL 17
+## 🔴 FRONT 3 (DEPLOY BLOCKER): `base64url` nefunguje na žádné vydané verzi PG
 
-Produkce běží na **17.10**; `base64url` přibyl až v 18. Tři sloupce ho mají
+Produkce běží na **17.10**; `base64url` v `encode()` přibyl až v **PostgreSQL 19**
+(commit `e1d91718`), která **zatím nevyšla** — ten výraz tedy nefunguje na žádné
+existující verzi Postgresu, není to otázka upgradu. Tři sloupce ho mají
 v `DEFAULT` a aplikace ten token nedodává — spoléhá na něj a čte ho zpátky:
 
 ```

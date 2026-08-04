@@ -1258,14 +1258,29 @@ Pět je `SELECT USING (true)` nad číselníky, kde je veřejné čtení nejspí
 🔴 **`identity.users` je jiná liga.** Policy `p_users_select` je
 `PERMISSIVE SELECT USING (true)` — a protože se permissive policies OR-ují,
 přebije obojí zbývající policy. Každé připojení s jakýmkoli GUC kontextem
-přečte **všechny řádky**, včetně sloupců:
+přečte **všechny řádky**.
+
+> 🔧 **KOREKCE vlastního tvrzení:** původně jsem sem napsal, že uniká i
+> `password_hash`. **To bylo ŠPATNĚ.** Migrace 335 (commit `5caf7c0`) hash
+> přesunula do `identity.user_secrets` s vlastní striktní policy
+> `p_user_secrets_scope`, kterou můj vlastní test izolace změřil jako
+> **ÚČINNOU**, a trigger `trg_move_password` sloupec v `users` po každém zápisu
+> vynuluje (ověřeno na klonu: `user_secrets=1`, `users.password_hash=NULL`).
+> Login proto JOINuje `user_secrets`. Sloupec v `users` existuje, ale je prázdný.
+
+Uniká tedy **PII, ne přihlašovací údaje**:
 
 ```
-email, phone, name, password_hash, birth_year, gender, country_code,
-city, postal_code, stripe_customer_id
+email, phone, name, birth_year, gender, country_code, city, postal_code,
+stripe_customer_id
 ```
 
-Změřeno, ne odvozeno: tenant A viděl řádky tenanta B. **NEOPRAVENO.**
+Změřeno, ne odvozeno: tenant A viděl řádky tenanta B.
+
+**A NEBYL to omyl.** `USING (true)` zavedla mig 335 vědomě: „identity.users měla
+RLS=off, protože 91 routes JOINuje users kvůli jménu/emailu. Naivní restriktivní
+RLS by je rozbila." Dnes je těch JOINů **126 ve 149 souborech** — tlak je větší,
+ne menší. Proto se to nedá jen smazat; viz migrace 453 (§37).
 
 ### Co číslo NEPOKRÝVÁ
 
@@ -1275,7 +1290,7 @@ Není to „v pořádku", je to **nezměřeno**. Mezi nimi zůstávají i 2 z 3 
 typu `UPDATE USING (true)` bez `WITH CHECK` (`ticket_transfers`,
 `ticket_alerts`) — třetí (`seat_upgrades`) se změřit podařilo a odepírá.
 
-## §35 🔴 DEPLOY BLOCKER: `base64url` neexistuje v PostgreSQL 17
+## §35 🔴 DEPLOY BLOCKER: `base64url` nefunguje na ŽÁDNÉ vydané verzi Postgresu
 
 Odhaleno mimochodem, při seedu — žádný z našich nástrojů to nehledal.
 
@@ -1283,7 +1298,11 @@ Odhaleno mimochodem, při seedu — žádný z našich nástrojů to nehledal.
 server_version : 17.10        encode('abc','base64url') → 22023 unrecognized encoding
 ```
 
-`base64url` přibyl až v **PostgreSQL 18**. Tři sloupce ho mají v `DEFAULT`:
+`base64url` v `encode()` přibyl až v **PostgreSQL 19** (commit `e1d91718`) —
+a ta **zatím nevyšla**. Není to tedy „stará větev Neonu": ten výraz nefunguje
+**nikde, na žádné existující verzi Postgresu**. Shodně s korekcí u §-ticket
+transfers výše; moje první formulace „od PG 18" byla ŠPATNĚ.
+Tři sloupce ho mají v `DEFAULT`:
 
 ```
 marketing.ticket_alerts.token          = encode(gen_random_bytes(16),'base64url')
@@ -1332,3 +1351,43 @@ vypadlo to při seedu testu, který hledal něco úplně jiného.
   Nikdo neporovnává, co schéma volá, s tím, co server umí.
 - **Defaulty a generované sloupce** — sken je nevyhodnocuje; vybuchnou až při
   `INSERT` (a §35 ukazuje, že to není teorie).
+
+---
+
+## §37 Migrace 453: `p_users_select` zúžena — RED→GREEN doloženo
+
+Náhrada `USING (true)` za pět větví (vlastní řádek + service/admin + obchodní
+vztah). Test `scripts/test-453-users-select.mjs` na klonu z baseline,
+připojení jako `tixly_app`:
+
+| sonda | RED (dnes) | GREEN (453) |
+|---|---|---|
+| promotér A vidí řádek tenanta B | 1 🔴 ÚNIK | **0 ✅** |
+| promotér A vidí cizího člověka | 1 🔴 ÚNIK | **0 ✅** |
+| promotér A vidí svého zákazníka | 1 ✅ | **1 ✅** |
+| promotér A vidí člena svého týmu | 1 ✅ | **1 ✅** |
+| admin JOIN (tvar ze 126 rout) | 1 ✅ | **1 ✅** |
+| login (service + `user_secrets`) | 1 ✅ | **1 ✅** |
+| guest-create `ON CONFLICT` | OK ✅ | **OK ✅** |
+| buyer vidí vlastní řádek | 1 ✅ | **1 ✅** |
+
+Únik se zavřel a **žádná z 6 legitimních cest se nerozbila**.
+
+⚠️ Dvě věci, které tenhle test NEDOKAZUJE:
+- **Výkon.** Policy má dvě `EXISTS` větve nad `orders`→`events` a vyhodnocuje se
+  na každý řádek. Klon je prázdný, takže se to tu nezměří. Před nasazením
+  `EXPLAIN` na největším promotérovi.
+- **Že 126 JOIN sites je pokryto.** Test ověřil JEDEN tvar JOINu, ten nejčastější.
+  Zbylých 125 míst může číst `users` i jinudy (např. přes `tickets` bez
+  `orders`, nebo u uživatelů bez objednávky). To je **NEZMĚŘENO**.
+
+### Chyby v mém vlastním testu (než dal správný výsledek)
+
+Dvě kola falešně červené, obě moje:
+1. `catalog.venues.city` je `NOT NULL` → seed spadl → chyběl řetěz
+   `venue→event→order`, takže větev „zákazník promotéra" neměla co najít.
+   Vypadalo to jako rozbitá policy, byl to rozbitý seed.
+2. `ON CONFLICT (email)` → `42P10`. Arbiter je **částečný** index
+   `uq_identity_users_email_active … WHERE anonymized_at IS NULL` a predikát
+   se musí zopakovat — přesně jak to dělá `guest-user.ts:133`. Kdybych se
+   nepodíval do kódu, hlásil bych „453 rozbila guest-create".
