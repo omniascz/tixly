@@ -1278,3 +1278,46 @@ tiše se vyprázdní. Vyžaduje projít těch 5 rout; od stolu to rozhodnout nej
 
 **Pořadí prací:** projít 5 e-mailových rout → rozhodnout o šesté větvi →
 `EXPLAIN` na datech → teprve pak nasazovat 453.
+
+---
+
+## 🔴 453 ZŮSTÁVÁ POZASTAVENÁ i se šestou větví (FINDINGS §41)
+
+Doměřeno na naplněném klonu (10k users / 50k orders / 100k tickets).
+
+**Šestá větev (tickets) funguje** — vrací cestu přes lístky (0 → 2), izolaci
+nerozbíjí. **Výkon není problém:** všechny EXISTS větve jdou přes index,
+jediný seq scan je na `promoter_members` s `loops=0`, tedy nevykonaný.
+`453+6` = 4,3 ms na 100 řádků, 26,5 ms na plný výpis 200 zákazníků.
+Žádný nový index netřeba.
+
+### Co brání nasazení: dva INNER JOINy
+
+Poměr napříč 126 sites: **103 INNER vs 23 LEFT**. LEFT = degradace (prázdné
+jméno), INNER = řádek zmizí celý.
+
+**1. Sociální funkce pod BUYER kontextem.** Všechna dřívější měření běžela pod
+promotérem. Pod kupujícím má 453 jedinou použitelnou větev — vlastní řádek.
+Změřeno: vlastní 1, kamarád **0**. Rozbije to (vše INNER):
+`api/social/friends`, `api/social/friend-requests` (from + to),
+`api/events/[id]/social-context`. Seznam přátel by obsahoval jen vás.
+
+**2. `admin/events/[id]/verified-fan`** — INNER JOIN na `vfr.user_id`.
+Fanoušek, který u promotéra ještě nekoupil, vypadne. To je přitom smysl
+verified-fan: přihlášky před prodejem.
+
+### Planý poplach: 2 ze 4 ztrát z §40
+
+5 e-mailových rout přečteno. `admin/customers`, `customers/export`,
+`broadcasts/send` používají **LEFT JOIN** nad `promoter_contacts` /
+`newsletter_subscribers` → řádek zůstane, jen se nedoplní `user_id`.
+`admin/staff` a `admin/team` jdou přes `promoter_members` → kryto větví „tým".
+Takže „přímo podle id" a „podle e-mailu" **blokátory nejsou**.
+
+### Pořadí prací (aktualizováno)
+
+1. Vlastní větev pro sociální vztah (přátelství / žádost) — je to jiný vztah
+   než tenant scoping, plošné rozšíření 453 by díru zvětšilo
+2. Rozhodnout verified-fan (větev, nebo přepsat na LEFT JOIN)
+3. Teprve pak 453 + šestá větev nasadit
+4. `EXPLAIN` ještě jednou na promotérovi řádu 100k zákazníků (změřeno jen 200)

@@ -1578,3 +1578,89 @@ drží ten tvar, který jsem seedoval — ne že všech 63 rout v kategorii `ord
 čte přes `orders`. Zbývá i **výkon** (stále neměřený) a 3 cesty, které mají
 sites, ale nedostaly vlastní sondu (resale protistrany, `friend_id`,
 feature tabulky typu waitlist/verified_fan).
+
+---
+
+## §41 453 na NAPLNĚNÉM klonu: šestá větev funguje, ale 453 nasadit NELZE
+
+Data: **10 000 uživatelů, 50 000 objednávek, 100 000 lístků, 100 akcí,
+50 promotérů** (každý 5. lístek je záměrně dárek — vlastník ≠ objednavatel).
+
+### Cesty (promotérský kontext)
+
+| cesta | BASE | 453 | 453+6 |
+|---|---|---|---|
+| orders (63 sites) | 5 | 5 | **5 ✅** |
+| tickets (14 sites) | 2 | **0 🔴** | **2 ✅** |
+| tým (11 sites) | 1 | 1 | **1 ✅** |
+| přímo podle id | 1 | 0 | 0 |
+| friend_id | 1 | 0 | 0 |
+| waitlist / verified_fan | 1 | 0 | 0 |
+| resale protistrana | 1 | 0 | 0 |
+| 🔒 cizí tenant | 1 | **0 ✅** | **0 ✅** |
+
+**Šestá větev dělá přesně to, co měla:** vrací cestu přes `tickets` a izolaci
+nerozbíjí.
+
+### Výkon — EXISTS větve jdou přes index, žádný seq scan
+
+```
+EXPLAIN (ANALYZE), 100 řádků:  BASE 0,5 ms → 453 2,3 ms (4,6×) → 453+6 4,3 ms (8,7×)
+plný výpis zákazníků (200 distinct): 26,5 ms
+uzly: 8× Index Scan (events), 2× Index Scan (orders), 1× Index Scan (tickets),
+      1× Index Scan (users), Bitmap Heap/Index Scan (orders)
+SEQ SCAN: jediný na promoter_members — a s loops=0, tedy NIKDY nevykonaný
+```
+
+🟢 **Žádný index chybět nemusí.** Násobek 8,7× zní hrozivě, ale absolutní čísla
+jsou malá a všechny větve jsou index-backed. ⚠️ Měřeno na promotérovi s ~200
+zákazníky; u promotéra se 100 000 zákazníky to poroste lineárně (cena je
+per-row index lookup), ale **to jsem NEZMĚŘIL**.
+
+### 🔴 VERDIKT: NE. Dva konkrétní blokátory, oba INNER JOIN
+
+Poměr napříč 126 sites: **103 INNER JOIN vs 23 LEFT JOIN**. U LEFT JOINu řádek
+přežije a jen se vyprázdní jméno (degradace). U INNER JOINu **řádek zmizí celý**.
+
+**1. Sociální funkce v BUYER kontextu — tohle je horší než všechno ostatní.**
+Všechna dosavadní měření běžela pod promotérem. Pod kupujícím má 453 jedinou
+použitelnou větev — `id = app_current_user_id()`, tedy **vlastní řádek**.
+Změřeno:
+
+```
+BUYER kontext (app.current_user_id, bez promotéra):
+  vlastní řádek   : 1
+  řádek kamaráda  : 0   → INNER JOIN vrátí 0 řádků → jméno ZMIZÍ
+```
+
+Dotčené (všechny INNER):
+`api/social/friends`, `api/social/friend-requests` (2× — `from_user_id`,
+`to_user_id`), `api/events/[id]/social-context` (`mf.friend_id`).
+Po 453 by **seznam přátel obsahoval jen vás**.
+
+**2. `admin/events/[id]/verified-fan`** — `JOIN identity.users u ON u.id = vfr.user_id`,
+INNER. Registrovaný fanoušek, který u promotéra ještě nic nekoupil, z výpisu
+vypadne. To je přitom celý smysl verified-fan: přihlášky PŘED prodejem.
+
+### Co naopak blokátor NENÍ (doměřeno k §40)
+
+**5 e-mailových rout pod `runAsActivePromoter`** — přečteno, verdikt per routa:
+
+| routa | základ dotazu | cílí i na bezobjednávkové? | dopad 453 |
+|---|---|---|---|
+| `admin/customers` | `platform.promoter_contacts` **LEFT JOIN** users | **ANO** (importované kontakty) | degradace: `user_id` → NULL, řádek zůstane |
+| `admin/customers/export` | tentýž tvar | **ANO** | degradace |
+| `admin/broadcasts/[id]/send` | `promoter_contacts` + `newsletter_subscribers` **LEFT JOIN** | **ANO** | degradace; rozesílka jede z `pc.email`, ne z `u` |
+| `admin/staff` | `promoter_members` **INNER JOIN** | NE | ✅ kryto větví „tým" |
+| `admin/team` | `promoter_members` + `team_invites.invited_by_user_id` | NE | ✅ kryto, kromě zvatele, který už v týmu není |
+
+Takže **2 ze 4 ztrát z §40 byly planý poplach**: `přímo podle id` i `podle
+e-mailu` jsou v těchhle routách LEFT JOIN, takže řádek nezmizí, jen se
+nedoplní. Skutečné blokátory jsou jinde — v sociálních funkcích a verified-fan.
+
+### Návrh dalšího kroku (NEAPLIKOVÁN)
+
+Sociální cesta potřebuje vlastní větev, ne rozšíření promotérské: „vidím
+uživatele, se kterým mám potvrzené přátelství / čekající žádost".
+To je jiný vztah než tenant scoping a měl by se řešit samostatně —
+plošné rozšíření 453 by díru jen zvětšilo.
