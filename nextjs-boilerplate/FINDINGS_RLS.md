@@ -747,3 +747,137 @@ Nízké u varianty A (nic se neotevírá, jen zavírá), střední u B — zaved
 nového GUC se dotkne poolu i tokenové cesty a chyba by zavřela B2B portál
 úplně. V obou případech platí, že se **nesmí zapnout RLS bez policy** —
 to je tichý deny (§91).
+
+---
+
+## §110 FK místo jmen — VERDIKT: 3 nesoulady, 2 z nich v policies
+
+Nový nástroj `scripts/fk-name-vs-target.mjs` čte `pg_constraint` a pro každý
+sloupec s tenant-jménem porovná **očekávaný** cíl se **skutečným** `confrelid`.
+
+```
+sloupcu s tenant-jmenem: 553
+  FK sedi s ocekavanim : 292
+  FK MIRI JINAM        :   3
+  BEZ FK (nelze overit): 258
+```
+
+### b) Tři nesoulady
+
+```
+b2b_orders.dunning_log.order_id        -> b2b_orders.invoice_orders  (cekano orders.orders)  V POLICY: p_rls_dunning_log
+b2b_orders.order_reservations.order_id -> b2b_orders.invoice_orders  (cekano orders.orders)  V POLICY: p_rls_order_reservations
+platform.b2b_transactions.user_id      -> platform.b2b_account_users (cekano identity.users) (v zadne policy)
+```
+
+**Dva z nich jsou v policy — a obě policy korelují proti špatné tabulce:**
+
+```sql
+p_rls_dunning_log: … OR EXISTS (SELECT 1 FROM orders.orders o_
+                                 WHERE o_.id = dunning_log.order_id AND …)
+```
+
+`dunning_log.order_id` je ale klíč do `b2b_orders.invoice_orders`. Prostory ID
+se nepotkávají, takže `EXISTS` neplatí nikdy a policy se smrskne na
+`app_is_platform_admin() OR app_is_service()`.
+
+**Změřeno, ne odvozeno** — naseedovaná faktura + řádek dunning logu:
+
+```
+ owner (bypassrls) vidi dunning_log: 1
+ promoter (vlastnik faktury)  vidi: 0
+ user (kupujici)              vidi: 0
+ servisni                     vidi: 1
+```
+
+🟡 **Je to mrtvá větev, ne tichá díra.** Selhává **fail-closed**: promotér, který
+fakturu vystavil, na svůj vlastní dunning log nevidí. Není to únik — je to
+nedostupná funkce. Táž třída jako mrtvá anonymní větev v §102, jen jiná příčina
+(špatná cílová tabulka místo špatného GUC jména).
+
+### c) 19 tabulek z 461: **0 nesouladů**
+
+```
+17× FK OK   (z toho 6 s změřenou izolací)
+ 2× BEZ FK — analytics.yield_rules.promoter_id, orders.phone_orders.promoter_id
+ 0× FK MIRI JINAM
+```
+
+Policies z 461 tedy nestojí na špatném předpokladu. U dvou tabulek se cíl
+ověřit nedá, protože FK chybí — tam platí jen to, že sloupec je `uuid NOT NULL`
+a izolace se u nich **neměřila**.
+
+### d) 258 sloupců BEZ FK — větší třída než nesoulady
+
+```
+celkem 258, z toho V POLICIES 191
+```
+
+**To je vlastní riziko a je řádově větší než tři nalezené nesoulady.** U 191
+sloupců, na kterých stojí nějaká policy, se z katalogu nedá ověřit, že míří tam,
+kam si policy myslí. Kdyby některý mířil jinam, projeví se to buď mrtvou větví
+(jako výše), nebo — pokud by prostory ID kolidovaly — tichou dírou.
+
+Neměřil jsem to; ověřit se to dá jen pozorováním dat nebo čtením zapisujícího
+kódu, tabulku po tabulce. **NEVÍM**, kolik z těch 191 je v pořádku.
+
+### e) VERDIKT ČÍSLEM
+
+**3 nesoulady, 2 z nich v policies** (obě změřeny jako mrtvé větve, fail-closed).
+K tomu **258 sloupců bez FK, z toho 191 v policies** — neověřitelných.
+
+## §111 ✅ Migrace 463 (b2b, varianta A) + obalení 6 rout + R-16
+
+### RED→GREEN
+
+```
+RED (bez 463)
+ promoter (cizi kontext)    accounts=1  transactions=1  account_users=1
+ user (cizi kontext)        accounts=1  transactions=1  account_users=1
+ anonym (bez GUC)           accounts=1  transactions=1  account_users=1
+
+GREEN (s 463)
+ promoter (cizi kontext)    accounts=0  transactions=0  account_users=0
+ user (cizi kontext)        accounts=0  transactions=0  account_users=0
+ anonym (bez GUC)           accounts=0  transactions=0  account_users=0
+ platform admin             accounts=2  transactions=2  account_users=2
+ servisni                   accounts=2  transactions=2  account_users=2
+```
+
+### 🔴 c) `admin/b2b` kontextem obalená NEBYLA — 463 by ho zavřela
+
+Změřeno čtením kódu: `admin/b2b/*` volá **holé** `requirePlatformAdmin(req)`,
+které ověří token, ale **GUC nenastaví**. Kontext nastavuje až
+`runAsPlatformAdmin` (`platform-auth.ts:55`), který tyhle routy nepoužívají.
+
+Bez obalení by 463 správu B2B účtů zavřela: `app.is_platform_admin` by nebylo
+nastavené a větev by neplatila. Obaleno proto **všech 6 b2b rout** ve stejném
+commitu — 3 admin (`runWithPlatformAdminContext`), 3 portálové
+(`runWithServiceContext`, scoping zůstává na `session.b2bAccountId`). `tsc` 0.
+
+⚠️ 463 **nepřidává izolaci mezi firmami** — jen zavírá tabulky před kontexty,
+které o nich nemají vědět. Skutečnou izolaci dá až varianta B (R-17).
+
+### R-16: `ensureCollectionOwner` zúžena
+
+```
+RED  stary tvar  zapis do SDILENE: POVOLEN 🔴   do VLASTNI: povolen ✅
+GREEN novy tvar  zapis do SDILENE: odmitnut ✅  do VLASTNI: povolen ✅
+```
+
+### Live sada: 5 z 53, ale flakinessa z R-15 trvá
+
+```
+5 failed | 47 passed | 1 skipped (53)
+```
+
+`public-routes` selhal **pokaždé na jiném testu** (tentokrát `discover min_price`
++ `artists/[slug]`, při opakování `alert: prihlaseny uzivatel`) — potvrzuje R-15.
+
+`checkout-guest` naopak selhal **dvakrát na témž testu** (`velká písmena
+v e-mailu nevytvoří druhého uživatele`), takže tenhle vypadá deterministicky.
+Patří do téže rodiny jako pád `dedup: druhá objednávka`, který jsem změřil
+**před** 461 i před 462 — tedy **předchází všem třem migracím tohoto i minulých
+kol**. Příčinu jsem nehledal, došel kontext.
+
+`rls-snapshot.json`: **621 → 624 policies, 433 → 436 tabulek.** Gate prošel.

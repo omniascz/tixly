@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requirePlatformAdmin } from '@/lib/platform-auth';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithPlatformAdminContext } from '@/lib/db/rls-pool';
 
 const createSchema = z.object({
   companyName: z.string().min(1).max(200),
@@ -18,7 +18,7 @@ const patchSchema = z.object({
   monthlyLimitHalire: z.number().int().positive().nullable().optional(),
 });
 
-export async function GET(req: NextRequest): Promise<Response> {
+async function GETImpl(req: NextRequest): Promise<Response> {
   const admin = await requirePlatformAdmin(req);
   if (!admin) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
 
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   return NextResponse.json({ accounts: rows.rows });
 }
 
-export async function POST(req: NextRequest): Promise<Response> {
+async function POSTImpl(req: NextRequest): Promise<Response> {
   const admin = await requirePlatformAdmin(req);
   if (!admin) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
 
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   return NextResponse.json({ account: res.rows[0] }, { status: 201 });
 }
 
-export async function PATCH(req: NextRequest): Promise<Response> {
+async function PATCHImpl(req: NextRequest): Promise<Response> {
   const admin = await requirePlatformAdmin(req);
   if (!admin) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
 
@@ -98,4 +98,22 @@ export async function PATCH(req: NextRequest): Promise<Response> {
   if (res.rowCount === 0) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
 
   return NextResponse.json({ account: res.rows[0] });
+}
+
+// Obaleno kontextem platform admina (FINDINGS 110 / migrace 463).
+// requirePlatformAdmin OVERUJE, ale GUC NENASTAVUJE — to dela az
+// runAsPlatformAdmin (platform-auth.ts:55). Bez tohohle obaleni by 463
+// spravu B2B uctu zavrela: app.is_platform_admin by nebylo nastavene
+// a vetev app_is_platform_admin() by neplatila. Zmereno, ne odhadnuto.
+
+export async function GET(...a: Parameters<typeof GETImpl>): Promise<Response> {
+  return runWithPlatformAdminContext(() => GETImpl(...a));
+}
+
+export async function POST(...a: Parameters<typeof POSTImpl>): Promise<Response> {
+  return runWithPlatformAdminContext(() => POSTImpl(...a));
+}
+
+export async function PATCH(...a: Parameters<typeof PATCHImpl>): Promise<Response> {
+  return runWithPlatformAdminContext(() => PATCHImpl(...a));
 }

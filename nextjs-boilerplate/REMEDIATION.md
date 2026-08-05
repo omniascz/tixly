@@ -93,3 +93,37 @@ RLS. Identita B2B uživatele NENÍ `app.current_user_id` — autorizace jde pře
 **A** = jen servisní větev (nic se neizoluje navíc, jen zavře cizí kontexty).
 **B** = nové GUC `app.b2b_account_id` + helper → skutečná izolace, ale dotkne se
 `rls-pool` i tokenové cesty.
+
+## R-17 ⏭️ TIKET: b2b varianta B — `app.b2b_account_id` + DEFINER helper
+
+463 (varianta A) zavřela b2b trojici před cizími kontexty, ale **izolaci mezi
+firmami nezavedla** — ta zůstává na aplikačním scopingu (`session.b2bAccountId`
+z `verifyB2BToken`). Zapomenutý `WHERE account_id` v budoucí routě = firma A vidí
+transakce firmy B, a databáze to nezachytí. Je to týž vzorec, kvůli kterému
+vznikla 461: aplikační `WHERE` jako jediná vrstva.
+
+Co by B obnášelo:
+1. `rls-pool`: nový kontext `runWithB2BContext(accountId, …)` → `SET app.b2b_account_id`.
+2. `verifyB2BToken` → routy obalit tímhle kontextem místo servisního.
+3. Helper `app_current_b2b_account_id()` — `SECURITY DEFINER`,
+   `SET search_path = pg_catalog, public`, vrací uuid (§51).
+4. Policies: `account_id = public.app_current_b2b_account_id()` jako další větev.
+
+Riziko střední: dotkne se poolu i tokenové cesty; chyba zavře B2B portál úplně.
+Podmínka nasazení: izolační test firma A vs firma B, jinak migrace jen mění tvar.
+
+## R-18 🟡 Dvě policy korelují proti špatné tabulce — mrtvé, ne děravé (§110)
+
+`p_rls_dunning_log` a `p_rls_order_reservations` dělají
+`EXISTS (… FROM orders.orders o_ WHERE o_.id = <tbl>.order_id …)`, ale
+`order_id` je FK do `b2b_orders.invoice_orders`. Změřeno: promotér, který
+fakturu vystavil, na svůj dunning log **nevidí** (0 řádků); vidí jen
+platform admin a servis. Fail-closed — nedostupná funkce, ne únik.
+Oprava = přepsat korelaci na `b2b_orders.invoice_orders`.
+
+## R-19 ⚠️ 191 sloupců v policies BEZ cizího klíče — neověřitelné (§110)
+
+258 sloupců s tenant-jménem nemá FK; 191 z nich se objevuje v nějaké policy.
+U těch se z katalogu **nedá** ověřit, že míří tam, kam si policy myslí.
+Kdyby mířil jinam: mrtvá větev (jako R-18), nebo — při kolizi ID prostorů —
+tichá díra. Ověřit jde jen čtením zapisujícího kódu, tabulku po tabulce.

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 function getSecretKey(): Uint8Array {
   let secret = process.env.JWT_SECRET;
@@ -31,7 +31,7 @@ async function verifyB2BToken(req: NextRequest): Promise<{
   }
 }
 
-export async function GET(req: NextRequest): Promise<Response> {
+async function GETImpl(req: NextRequest): Promise<Response> {
   const session = await verifyB2BToken(req);
   if (!session) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
 
@@ -96,4 +96,13 @@ export async function GET(req: NextRequest): Promise<Response> {
     users,
     isAdmin: session.isAdmin,
   });
+}
+
+// Obaleno servisnim kontextem (FINDINGS 110 / migrace 463).
+// B2B identita neni app.current_user_id — autorizace jde pres verifyB2BToken
+// a scoping podle session.b2bAccountId zustava v route. Servisni kontext
+// drzi rozhodnuti v aplikaci, kde je videt (vzorec 94).
+
+export async function GET(...a: Parameters<typeof GETImpl>): Promise<Response> {
+  return runWithServiceContext(() => GETImpl(...a));
 }

@@ -15,10 +15,15 @@ const postSchema = z.object({
   displayOrder: z.number().int().min(0).max(1000).optional(),
 });
 
+// R-16 / FINDINGS 111: tahle funkce je ZAPISOVA straz pro POST, ne jen ctecka.
+// Drive prijimala i kolekce s promoter_id IS NULL, takze kterykoli promoter mohl
+// pridavat akce do SDILENE kolekce vsem ostatnim. Tyz tvar jako films/sport_teams
+// pred migraci 462 — a stejne rozhodnuti: sdilene polozky spravuje platform admin.
+// Cteni sdilenych kolekci jinde (admin/collections:31) zustava beze zmeny.
 async function ensureCollectionOwner(collectionId: string, promoterId: string): Promise<boolean> {
   const r = await db().query(
     `SELECT 1 FROM catalog.event_collections
-      WHERE id = $1 AND (promoter_id = $2 OR promoter_id IS NULL)`,
+      WHERE id = $1 AND promoter_id = $2`,
     [collectionId, promoterId],
   );
   return r.rows.length > 0;

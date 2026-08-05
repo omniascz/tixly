@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requirePlatformAdmin } from '@/lib/platform-auth';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithPlatformAdminContext } from '@/lib/db/rls-pool';
 
 const schema = z.object({
   amountHalire: z.number().int().positive(),
   note: z.string().max(500).optional(),
 });
 
-export async function POST(
+async function POSTImpl(
   req: NextRequest,
   { params }: { params: Promise<{ accountId: string }> },
 ): Promise<Response> {
@@ -62,4 +62,14 @@ export async function POST(
   } finally {
     client.release();
   }
+}
+
+// Obaleno kontextem platform admina (FINDINGS 110 / migrace 463).
+// requirePlatformAdmin OVERUJE, ale GUC NENASTAVUJE — to dela az
+// runAsPlatformAdmin (platform-auth.ts:55). Bez tohohle obaleni by 463
+// spravu B2B uctu zavrela: app.is_platform_admin by nebylo nastavene
+// a vetev app_is_platform_admin() by neplatila. Zmereno, ne odhadnuto.
+
+export async function POST(...a: Parameters<typeof POSTImpl>): Promise<Response> {
+  return runWithPlatformAdminContext(() => POSTImpl(...a));
 }

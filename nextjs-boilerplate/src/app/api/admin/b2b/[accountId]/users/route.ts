@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requirePlatformAdmin } from '@/lib/platform-auth';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithPlatformAdminContext } from '@/lib/db/rls-pool';
 
 const addSchema = z.object({
   email: z.string().email(),
@@ -14,7 +14,7 @@ const deleteSchema = z.object({
   userId: z.string().uuid(),
 });
 
-export async function GET(
+async function GETImpl(
   req: NextRequest,
   { params }: { params: Promise<{ accountId: string }> },
 ): Promise<Response> {
@@ -34,7 +34,7 @@ export async function GET(
   return NextResponse.json({ users: res.rows });
 }
 
-export async function POST(
+async function POSTImpl(
   req: NextRequest,
   { params }: { params: Promise<{ accountId: string }> },
 ): Promise<Response> {
@@ -64,7 +64,7 @@ export async function POST(
   return NextResponse.json({ user: row }, { status: 201 });
 }
 
-export async function DELETE(
+async function DELETEImpl(
   req: NextRequest,
   { params }: { params: Promise<{ accountId: string }> },
 ): Promise<Response> {
@@ -87,4 +87,22 @@ export async function DELETE(
   if (res.rowCount === 0) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
 
   return NextResponse.json({ ok: true });
+}
+
+// Obaleno kontextem platform admina (FINDINGS 110 / migrace 463).
+// requirePlatformAdmin OVERUJE, ale GUC NENASTAVUJE — to dela az
+// runAsPlatformAdmin (platform-auth.ts:55). Bez tohohle obaleni by 463
+// spravu B2B uctu zavrela: app.is_platform_admin by nebylo nastavene
+// a vetev app_is_platform_admin() by neplatila. Zmereno, ne odhadnuto.
+
+export async function GET(...a: Parameters<typeof GETImpl>): Promise<Response> {
+  return runWithPlatformAdminContext(() => GETImpl(...a));
+}
+
+export async function POST(...a: Parameters<typeof POSTImpl>): Promise<Response> {
+  return runWithPlatformAdminContext(() => POSTImpl(...a));
+}
+
+export async function DELETE(...a: Parameters<typeof DELETEImpl>): Promise<Response> {
+  return runWithPlatformAdminContext(() => DELETEImpl(...a));
 }

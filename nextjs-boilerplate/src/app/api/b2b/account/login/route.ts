@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { SignJWT } from 'jose';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 function getSecretKey(): Uint8Array {
   let secret = process.env.JWT_SECRET;
@@ -18,7 +18,7 @@ const schema = z.object({
   inviteToken: z.string().min(10),
 });
 
-export async function POST(req: NextRequest): Promise<Response> {
+async function POSTImpl(req: NextRequest): Promise<Response> {
   const body: unknown = await req.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
@@ -80,4 +80,13 @@ export async function POST(req: NextRequest): Promise<Response> {
   } finally {
     client.release();
   }
+}
+
+// Obaleno servisnim kontextem (FINDINGS 110 / migrace 463).
+// B2B identita neni app.current_user_id — autorizace jde pres verifyB2BToken
+// a scoping podle session.b2bAccountId zustava v route. Servisni kontext
+// drzi rozhodnuti v aplikaci, kde je videt (vzorec 94).
+
+export async function POST(...a: Parameters<typeof POSTImpl>): Promise<Response> {
+  return runWithServiceContext(() => POSTImpl(...a));
 }

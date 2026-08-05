@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 const schema = z.object({
   accountCode: z.string().min(4).max(20),
   email: z.string().email().optional(),
 });
 
-export async function POST(req: NextRequest): Promise<Response> {
+async function POSTImpl(req: NextRequest): Promise<Response> {
   const body: unknown = await req.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
@@ -49,4 +49,13 @@ export async function POST(req: NextRequest): Promise<Response> {
     companyName: account.company_name,
     balanceHalire: parseInt(account.credit_balance_halire, 10),
   });
+}
+
+// Obaleno servisnim kontextem (FINDINGS 110 / migrace 463).
+// B2B identita neni app.current_user_id — autorizace jde pres verifyB2BToken
+// a scoping podle session.b2bAccountId zustava v route. Servisni kontext
+// drzi rozhodnuti v aplikaci, kde je videt (vzorec 94).
+
+export async function POST(...a: Parameters<typeof POSTImpl>): Promise<Response> {
+  return runWithServiceContext(() => POSTImpl(...a));
 }
