@@ -3080,3 +3080,90 @@ Nově se chytá **výhradně `42P01`** (undefined_table), cokoli jiného propagu
 
 Prostřední řádek je jádro věci: **před opravou by tenhle případ vrátil
 `{ok:true, purged:0}`** a vypadal by jako úspěšný běh nad prázdnou tabulkou.
+
+---
+
+## §76 updated_at plošně: 0 nálezů — a tentokrát je to doložená nula
+
+`scripts/audit-auto-columns.mjs` porovnává baseline (581 tabulek) proti zápisům
+v kódu. Hledá dvě formy, protože §71 ukázalo, že jedna nestačí:
+
+- `UPDATE … SET updated_at = NOW()`
+- `INSERT INTO … (…, updated_at, …) VALUES` — kde sloupec a hodnota **nesousedí**
+
+```
+tabulek v baseline: 581
+  bez updated_at: 447 / 581
+  bez created_at: 160 / 581
+
+ZÁPIS DO NEEXISTUJÍCÍHO SLOUPCE: 0
+```
+
+### Self-check (podmínka, ne doplněk — §54)
+
+Do `src/` jsem dočasně vložil soubor s oběma vadnými tvary nad
+`catalog.ticket_types` (tabulka bez `updated_at`):
+
+```
+catalog.ticket_types  updated_at  SET          src/_audit_selfcheck/probe.ts:2
+catalog.ticket_types  updated_at  INSERT-cols  src/_audit_selfcheck/probe.ts:3
+```
+
+Auditor našel **obě formy**, pak byl probe smazán. Nula v reálném kódu tedy
+znamená, že mé dvě opravy (party-split §66, publish/events §74) pokryly
+všechny výskyty — ne že nástroj mlčí.
+
+## §77 🔴 KOREKCE §65/§70: party-split se měřil pod BYPASSRLS, ne pod produkční rolí
+
+Diagnostika `42501` z `attackE` (§73) nenašla chybějící grant, ale tohle:
+
+```
+42501  new row violates row-level security policy for table "party_split_sessions"
+```
+
+**Je to RLS, ne grant** — proto globals vypadaly kompletní a proto se to
+v §73 nedalo dohledat porovnáním s `000_baseline_globals.sql`.
+
+### Proč to live testy nechytily
+
+```
+tests/helpers/live-fixture.ts:36   const ROLE = 'neondb_owner';
+tests/helpers/live-fixture.ts:105  if (process.env.LIVE_AS_APP_ROLE === '1') → tixly_app
+```
+
+Live fixture připojuje handlery **jako owner** (BYPASSRLS), pokud se
+`LIVE_AS_APP_ROLE=1` nenastaví. Harness naopak jede pod `tixly_app`, kde RLS
+platí. **Moje „party-split PROŠLO" z §65 a §70 tedy měřilo cestu pod rolí,
+která RLS obchází** — neprokazuje, že funguje v produkci.
+
+Je to přesně třída §30/§31, kterou jsem sám zapsal, a přesto jsem do ní znovu
+spadl: měřil jsem pod ownerem a hlásil to jako hotovo.
+
+### Co konkrétně brání
+
+```sql
+CREATE POLICY party_split_sessions_owner ON orders.party_split_sessions
+  USING (((organizer_user_id)::text = current_setting('app.current_user_id', true)));
+```
+
+Jediná zapisovatelná policy porovnává `organizer_user_id` s
+`app.current_user_id`. Jenže `checkout/party-split/route.ts:65` běží
+v `runWithServiceContext` — ten nastavuje `app.role`, **ne**
+`app.current_user_id`. GUC je prázdný → porovnání neplatí → `INSERT` odmítnut.
+
+Policy navíc nemá `WITH CHECK`, takže se pro INSERT použije `USING`, a nemá
+ani servisní/administrátorskou větev (`app_is_service()` / `app_is_platform_admin()`),
+kterou má většina ostatních policies.
+
+### Možnosti (NEROZHODNUTO, neopravuji)
+
+1. route zabalit do kontextu, který nastaví `app.current_user_id` na organizátora
+2. policy doplnit o servisní větev (`app_is_service()`), jako to má zbytek schématu
+3. obojí
+
+Rozhodnutí patří k tomu, jestli má být zakládání session servisní operace, nebo
+uživatelská — to je návrh, ne oprava naslepo.
+
+⚠️ **Dokud se nerozhodne, zůstává neměřené i to, co §70 hlásilo jako změřené.**
+Oversell na slotech pod produkční rolí neznáme; sekvenční průchod pod ownerem
+o produkci nevypovídá.
