@@ -2896,3 +2896,58 @@ se dvakrát". Idempotence opakovaného přijetí změřena NEBYLA.
 🔧 **Dvakrát jsem si sám shodil běh backticky v SQL komentáři uvnitř template
 literalu** (`` `updated_at` `` ukončil řetězec → esbuild „Expected )"). Podruhé
 už jsem to měl vědět.
+
+---
+
+## §69 Tři hodnoty v 457 OVĚŘENY — kód je zapisuje, můj grep je minul
+
+Označil jsem `box_office`, `walkin`, `partner_pos` za „vzaté ze zamčeného
+rozhodnutí, ne z vlastního grepu". **Byla to chyba hledání, ne chyba
+rozhodnutí.** Všechny tři se dnes zapisují:
+
+```
+box_office    admin/events/[id]/box-office/sell/route.ts:93
+              VALUES ($1,$2,'paid',$3,$4,'box_office',true,$5,gen_random_uuid())
+walkin        admin/events/[id]/waitlist/[entryId]/route.ts:93
+              VALUES … $6, 'walkin', $7
+partner_pos   partner/sales/route.ts:109
+              VALUES … $6, 'partner_pos', $7
+```
+
+🔧 **Proč je předchozí grep minul:** hledal jsem vzor `payment_provider = 'x'`,
+jenže tyhle zápisy jsou **poziční literály uvnitř víceřádkové `VALUES`** —
+název sloupce je o pár řádků výš v seznamu sloupců, hodnota dole mezi
+parametry. Textově spolu nesousedí.
+
+**Verdikt per hodnota: všechny tři „zapisuje dnes kód".** 457 zůstává beze
+změny; nic se z ní nevyndává.
+
+### Ověřeno na klonu (definicí constraintu, ne INSERTem)
+
+Po 457 obsahuje `orders_payment_provider_check` všech 9 hodnot, které kód
+zapisuje (`box_office`, `walkin`, `partner_pos`, `mollie`, `paypal`,
+`b2b_credit`, `gopay`, `kiosk_card`, `reseller_cash`) a **neobsahuje**
+`mock-gopay` ani `mock-wero`.
+
+⚠️ Test kontroluje `pg_get_constraintdef`, ne pokusný `INSERT`. První verze
+zkoušela vkládat řádky a spadla na `audit_log` — audit trigger nad `orders`
+má vlastní omezení a zastínil by měřený výsledek. (Vedlejší nález: přímý
+`INSERT` do `orders` mimo aplikační kontext neprojde kvůli auditu.)
+
+## §70 ✅ Opakované přijetí slotu: dekrement přesně 1× na slot
+
+Druhá polovina předchozího zadání, dosud neměřená:
+
+```
+[opakovane] 200 slot 0 | 200 slot 1 | remaining 99 -> 98 -> 97
+```
+
+Dva po sobě jdoucí požadavky na tentýž `share_token` dostaly **různé sloty**
+(0 a 1) a každý snížil zásobu **přesně o 1**. Žádný dvojitý dekrement téhož
+slotu.
+
+Drží to `FOR UPDATE SKIP LOCKED` nad `party_split_slots` — každý běh si
+zamkne jiný volný slot. Testováno sekvenčně; **souběžné** přijetí (dvě
+připojení naráz) měřeno NEBYLO.
+
+Sada `party-split.live.test.ts`: **6/6 prošlo.**

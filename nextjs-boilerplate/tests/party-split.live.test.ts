@@ -147,4 +147,58 @@ d('party-split přes skutečné handlery', () => {
     expect(pres.status).toBeLessThan(500);
     expect(Number(before) - Number(after)).toBe(1);   // presne o 1, ne 0 a ne 2
   }, 180_000);
+
+  it('CHECK po 457 obsahuje vsechny hodnoty, ktere kod zapisuje', async () => {
+    // Testujeme DEFINICI constraintu, ne INSERT — primy INSERT do orders
+    // spousti audit trigger, ktery ma vlastni omezeni a zastinil by vysledek.
+    // Pozicni literaly ve VALUES: box-office/sell:93, waitlist/[entryId]:93,
+    // partner/sales:109 — proto je grep na `payment_provider = 'x'` minul.
+    const def = (await clone.pool.query<{ d: string }>(
+      `SELECT pg_get_constraintdef(oid) d FROM pg_constraint
+       WHERE conname = 'orders_payment_provider_check'`)).rows[0].d;
+    for (const v of ['box_office', 'walkin', 'partner_pos', 'mollie', 'paypal',
+                     'b2b_credit', 'gopay', 'kiosk_card', 'reseller_cash']) {
+      expect(def).toContain(`'${v}'`);
+    }
+    // mock-* jsou artefakt dev brany — do produkcniho CHECKu NEPATRI
+    expect(def).not.toContain('mock-gopay');
+    expect(def).not.toContain('mock-wero');
+  }, 120_000);
+
+  it('opakovane prijeti: druhy platce dostane JINY slot, dekrement presne 1x', async () => {
+    const { POST: create } = await import('@/app/api/checkout/party-split/route');
+    const cres = await create(new Request('http://localhost:3000/api/checkout/party-split', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-user-id': ids.user },
+      body: JSON.stringify({
+        eventId: ids.event, ticketTypeId: ids.ticketType, totalSlots: 3,
+        organizerEmail: `rep_${randomUUID().slice(0, 6)}@t.cz`, organizerName: 'Rep',
+      }),
+    }) as never);
+    const token = (await cres.json()).shareToken as string;
+
+    const q = `SELECT remaining_qty FROM catalog.ticket_types WHERE id = $1`;
+    const before = Number((await clone.pool.query<{ remaining_qty: number }>(q, [ids.ticketType])).rows[0].remaining_qty);
+
+    const { POST: pay } = await import('@/app/api/checkout/party-split/[token]/route');
+    const call = () => pay(new Request(`http://localhost:3000/api/party/${token}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        payerEmail: `p_${randomUUID().slice(0, 8)}@t.cz`, payerName: 'P',
+        paymentMethod: 'gopay', locale: 'cs',
+      }),
+    }) as never, { params: { token } } as never);
+
+    const r1 = await call(); const b1 = await r1.json();
+    const mid = Number((await clone.pool.query<{ remaining_qty: number }>(q, [ids.ticketType])).rows[0].remaining_qty);
+    const r2 = await call(); const b2 = await r2.json();
+    const after = Number((await clone.pool.query<{ remaining_qty: number }>(q, [ids.ticketType])).rows[0].remaining_qty);
+    console.log('[opakovane]', r1.status, 'slot', b1.slotIndex, '|', r2.status, 'slot', b2.slotIndex,
+                '| remaining', before, '->', mid, '->', after);
+
+    expect(before - mid).toBe(1);      // prvni prijeti: presne 1
+    expect(mid - after).toBe(1);       // druhe prijeti: dalsi slot, zase presne 1
+    expect(b2.slotIndex).not.toBe(b1.slotIndex);  // NE tyz slot dvakrat
+  }, 180_000);
 });
