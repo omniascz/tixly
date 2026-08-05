@@ -3737,3 +3737,55 @@ to, že ty tabulky stojí mimo celý model izolace — do počtu 411 tabulek s R
 + ověření už nezbyl kontext. Oprava je u každé stejná: obalit do kontextu podle
 toho, čí data to jsou — veřejné routy potřebují buď servisní kontext, nebo
 `USING (true)` větev v policy (to je produktové rozhodnutí, ne úklid).
+
+---
+
+## §92 ✅ Veřejné routy opraveny servisním kontextem (2 z 11)
+
+`discover` a `artists/[slug]` nikoho neautentizují, takže GUC nemají z čeho
+vzít — pod `tixly_app` jim RLS odfiltrovalo všechno a vracely prázdno komukoli.
+
+**Zamčené rozhodnutí: servisní kontext, ne `USING (true)`.** Důvod je v tom,
+co ta dvě řešení otevírají: `USING (true)` otevře tabulku **všem** cestám bez
+GUC, zatímco `runWithServiceContext` drží rozhodnutí „tohle je veřejné"
+v aplikaci, kde je vidět v kódu routy.
+
+### Cena té volby: RLS už nefiltruje, musí filtrovat dotaz
+
+Pod servisní rolí by routy viděly i **nepublikované akce a skryté typy lístků**.
+Ověřeno, že filtrují samy:
+
+- `e.status = 'published'` — obě routy to už měly (vzorec z §65)
+- `tt.visibility = 'public'` — **chybělo**, doplněno do 4 cenových poddotazů
+  v `discover`. Skrytý typ lístku by jinak protekl do `min_price_halire`
+  a `max_price_halire`, tedy do veřejného výpisu cen.
+
+### RED→GREEN pod `tixly_app` (4/4)
+
+Seed: publikovaná i draft akce, veřejný typ za 50 000 a skrytý za 1:
+
+```
+[discover] 200, akcí: 1
+  ✅ vrací publikovanou akci     (dřív prázdno)
+  ✅ NEvrací draft akci
+  ✅ min_price_halire = 50000    (ne 1 → skrytý typ neprosákl)
+[artists]  200                   (dřív 404 z prázdného výsledku)
+```
+
+Ten třetí případ je pointa: kdybych jen obalil routu kontextem a nedoplnil
+`visibility`, test by prošel na „vrací data" a **tiše by zveřejnil ceny
+skrytých typů**.
+
+## §93 Stav oprav: 2 z 11
+
+```
+✅ opraveno a ověřeno   2   discover, artists/[slug]  (veřejné prodejní cesty)
+⚪ zbývá                9   my/* ×3, tickets/transfer/[token], platform/postal ×2,
+                            platform/artists, internal/cron ×2
+```
+
+Zbylých 9 má jasně určený kontext podle toho, čí data to jsou (`my/*` →
+uživatelský, `platform/*` → platform admin, `cron` → servisní), ale
+**neopravoval jsem je** — na RED→GREEN a izolační ověření u každé nezbyl
+kontext. Body 3 (doměřit 3 zbývající routy) a 4 (RLS na `editorial_articles`
+a `b2b_accounts`) jsem nezačal.
