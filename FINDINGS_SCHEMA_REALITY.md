@@ -2821,3 +2821,78 @@ nevznikne a k `UPDATE remaining_qty` se běh nedostane.
 
 Test dekrementu je `it.skip` s popisem, co tam patří, až se vrstva 7 vyřeší.
 Zbylé 3 testy (create 201, capacity 409, alert 200) procházejí.
+
+---
+
+## §67 Vrstva 7 NENÍ regrese — party-split se odchýlil od zavedeného vzorce
+
+### Rekapitulace vrstev 6–8 (měřeno, ne z paměti)
+
+Všechny tři na cestě `POST /api/checkout/party-split/[token]` (přijetí slotu),
+přes skutečný handler:
+
+| # | naměřeno | SQLSTATE |
+|---|---|---|
+| 6 | `null value in column "user_id" of relation "orders" violates not-null constraint` | 23502 |
+| 7 | `new row for relation "orders" violates check constraint "orders_payment_provider_check"` | 23514 |
+| 8 | `column "updated_at" of relation "ticket_types" does not exist` | 42703 |
+
+### Proč hlavní checkout nepadá — a party-split ano
+
+```
+checkout/route.ts:1660      input.paymentMethod      ← metoda zvolená UŽIVATELEM
+party-split/[token]:~215    payment.provider         ← hodnota vrácená BRÁNOU
+```
+
+`lib/payment/provider.ts` vrací v mock režimu `mock-gopay`, `mock-wero`,
+`mock-przelewy24`. Hlavní checkout je nikdy neuloží, protože ukládá metodu,
+ne odpověď brány. **Party-split ukládal odpověď brány — a tím si tu hodnotu
+zanesl do `orders`.**
+
+🟢 **VERDIKT: není to regrese ani dávno existující stav CHECKu.** Je to odchylka
+party-splitu od vzorce, který hlavní checkout používá. Opraveno v kódu
+(ukládá se `body.paymentMethod`), **`mock-*` do produkčního CHECKu nepatří**.
+
+### Co CHECK naopak legitimně postrádal → migrace 457
+
+Hodnoty, které kód reálně zapisuje a CHECK (ani po 451) nepovoloval:
+
+| hodnota | kde se zapisuje | v CHECKu? |
+|---|---|---|
+| `b2b_credit` | `checkout/route.ts:2118`, `:2245` | ❌ → 457 |
+| `mollie` | `party-split/[token]:121` (enum metod) | ❌ → 457 |
+| `paypal` | tamtéž | ❌ → 457 |
+| `box_office` | pokladna (T-BOXOFFICE-RESTORE) | ❌ → 457 |
+| `walkin` | prodej na místě (T-WAITLIST-PROVIDER) | ❌ → 457 |
+| `partner_pos` | `partner/sales` | ❌ → 457 |
+| `mock-gopay`, `mock-wero`, `mock-przelewy24` | mock brána, dev | ❌ **záměrně NE** |
+
+⚠️ **Kanály se ROZLIŠUJÍ, nesjednocují.** `reports-prodeje.ts:123` staví
+dimenzi reportu přímo z `payment_provider` — jedna společná hodnota by
+historii slila a už by nešla rozdělit.
+
+## §68 ✅ Dekrement inventáře ZMĚŘEN: `remaining_qty` 100 → 99
+
+Vrstva 8 (`ticket_types.updated_at` neexistuje — nezaměňovat s
+`dynamic_price_updated_at`, které zůstává; REMEDIATION §6) byla poslední.
+
+```
+[party-split pay]  200  {"ok":true,"orderId":"20ff253f-…","slotIndex":0,"amount":50000}
+[remaining_qty]    100 -> 99
+Tests 4 passed (4)
+```
+
+**Dekrement inventáře — třída oversell — poprvé skutečně proběhl** a snížil
+zásobu přesně o 1. Celý peel party-split má **8 vrstev**, všechny uzavřené:
+
+```
+1 base64url DEFAULT   2 capacity_remaining   3 price_halire   4 dekrement na starém jménu
+5 tt.status           6 orders.user_id       7 mock-gopay     8 ticket_types.updated_at
+```
+
+⚠️ **Neověřeno:** druhá polovina zadání — „přijmi slot znovu → nedekrementuje
+se dvakrát". Idempotence opakovaného přijetí změřena NEBYLA.
+
+🔧 **Dvakrát jsem si sám shodil běh backticky v SQL komentáři uvnitř template
+literalu** (`` `updated_at` `` ukončil řetězec → esbuild „Expected )"). Podruhé
+už jsem to měl vědět.

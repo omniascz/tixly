@@ -228,7 +228,12 @@ export async function POST(
           session.currency,
           body.locale,
           payment.paymentId,
-          payment.provider,
+          // Ukladame METODU zvolenou uzivatelem, ne hodnotu, kterou vratila
+          // brana. Mock brana vraci 'mock-gopay' / 'mock-wero' /
+          // 'mock-przelewy24', coz orders_payment_provider_check nepovoluje
+          // (23514) — a spravne, je to artefakt dev prostredi, ne prodejni
+          // kanal. Hlavni checkout to dela stejne (route.ts: input.paymentMethod).
+          body.paymentMethod,
           randomUUID(),
         ],
       );
@@ -248,7 +253,9 @@ export async function POST(
       // explicitni pojistky je samostatna zmena (FINDINGS 63).
       await client.query(
         `UPDATE catalog.ticket_types
-         SET remaining_qty = remaining_qty - 1, updated_at = NOW()
+         -- updated_at na ticket_types NEEXISTUJE (odstraneno; nezamenovat
+         -- s dynamic_price_updated_at, ktere zustava) — REMEDIATION 6.
+         SET remaining_qty = remaining_qty - 1
          WHERE id = $1`,
         [session.ticket_type_id],
       );

@@ -28,7 +28,8 @@ d('party-split přes skutečné handlery', () => {
   beforeAll(async () => {
     clone = await createLiveClone('party-split', {
       migrations: ['450_tickets_dedup_unique.sql', '451_orders_payment_provider_pos.sql',
-                   '452_tracking_events_provider_tiktok.sql', '456_drop_base64url_defaults.sql'],
+                   '452_tracking_events_provider_tiktok.sql', '456_drop_base64url_defaults.sql',
+                   '457_orders_payment_provider_channels.sql'],
     });
     const q = (s: string, p: unknown[] = []) => clone.pool.query(s, p);
     await q(`INSERT INTO identity.users (id,email,name,gdpr_consent_at) VALUES ($1,$2,'U',now())`,
@@ -108,14 +109,7 @@ d('party-split přes skutečné handlery', () => {
     }
   }, 120_000);
 
-  // 🔴 BLOCKER 7 (systemovy, FINDINGS 66): mock platebni brana vraci
-  // provider 'mock-gopay' / 'mock-wero' / 'mock-przelewy24', ale
-  // orders_payment_provider_check povoluje 'mock', 'gopay', … — NE tyhle
-  // prefixovane varianty. Objednavku tedy v mock rezimu nelze zalozit
-  // a dekrement se k slovu nedostane. Tyka se i hlavniho checkoutu, ktery
-  // uklada payment.provider stejne. Bud rozsirit CHECK, nebo provider
-  // normalizovat — rozhodnuti, ne oprava naslepo.
-  it.skip('[token] POST prijme slot a dekrementuje remaining_qty PRESNE o 1', async () => {
+  it('[token] POST prijme slot a dekrementuje remaining_qty PRESNE o 1', async () => {
     // 1) zaloz session pres realny handler
     const { POST: create } = await import('@/app/api/checkout/party-split/route');
     const cres = await create(new Request('http://localhost:3000/api/checkout/party-split', {
