@@ -132,7 +132,9 @@ export async function PUT(
           ttUpdates.push(`status = $${ttValues.push(tt.status)}`);
         }
         if (ttUpdates.length > 0) {
-          ttUpdates.push('updated_at = NOW()');
+          // ticket_types NEMA sloupec updated_at (odstraneno; nezamenovat
+          // s dynamic_price_updated_at, ktere zustava) — REMEDIATION 6.
+          // catalog.events ho MA, proto radek 92 zustava beze zmeny.
           await db().query(
             `UPDATE catalog.ticket_types SET ${ttUpdates.join(', ')}
              WHERE event_id = $1 AND name = $${ttValues.push(tt.externalId)}`,

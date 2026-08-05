@@ -38,9 +38,26 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
     return NextResponse.json({ ok: true, purged: Number(r.rows[0]?.count ?? 0) });
   } catch (err) {
-    // Tabulka neexistuje → migration neaplikována; vrať 200 ať cron nepadá
-    console.warn('[consent-log-purge] skip:', err);
-    return NextResponse.json({ ok: true, purged: 0, note: 'table missing or other error' });
+    // Puvodni catch polykal COKOLI a vracel {ok:true, purged:0} — to je
+    // NEROZLISITELNE od poctiveho smazani nuly radku. GDPR purge tak mohl
+    // tiche prestat fungovat a nikdo by se to nedozvedel.
+    //
+    // Komentar tu drive tvrdil "tabulka neexistuje, migrace neaplikovana".
+    // Zmereno: compliance.cookie_consent_log EXISTUJE a DELETE nad ni projde,
+    // takze ta premisa byla nepravdiva.
+    //
+    // Chytame proto VYHRADNE 42P01 (undefined_table) — jediny pripad, kdy je
+    // preskoceni legitimni. Cokoli jineho propaguje 500, at je to videt.
+    const code = (err as { code?: string }).code;
+    if (code === '42P01') {
+      console.warn('[consent-log-purge] tabulka neexistuje, preskakuji:', code);
+      return NextResponse.json({ ok: true, purged: 0, skipped: 'table_missing' });
+    }
+    console.error('[consent-log-purge] SELHALO:', err);
+    return NextResponse.json(
+      { ok: false, purged: 0, error: 'PURGE_FAILED', code: code ?? null },
+      { status: 500 },
+    );
   }
 
   });

@@ -3023,3 +3023,60 @@ v cestě party-splitu.
 
 ⚠️ **Oversell na party-split slotech tedy zůstává NEZMĚŘENÝ.** Sekvenčně drží
 (§70), pod souběhem to nevíme.
+
+---
+
+## §74 v1/publish/events DOJETO — moje oprava byla neúplná
+
+Cesta visela pět kol s poznámkou "ověřeno jen tsc". Živý běh přes skutečný
+handler ukázal, že **oprava byla neúplná**: kromě `capacity_remaining` a
+`price_halire` tentýž `UPDATE` nastavoval i `updated_at`, který na
+`ticket_types` neexistuje (řádek 135).
+
+```
+42703 column "updated_at" of relation "ticket_types" does not exist
+```
+
+Je to **táž vrstva 8 jako u party-splitu** (§66) — jen v jiném souboru. Kdybych
+publish/events doměřil hned, našel bych ji o čtyři kola dřív. `tsc` na to slepý
+je, protože SQL je pro něj řetězec.
+
+⚠️ `catalog.events.updated_at` naopak **existuje**, takže řádek 92 zůstává —
+není to plošné odstranění.
+
+**Po opravě (změřeno):**
+```
+[publish PUT]   200  {"ok":true,"eventId":"1baa2a82-…"}
+[ticket_type]   { base_price: 33000, remaining_qty: 42 }
+```
+`base_price` zapsán, `remaining_qty` = `LEAST(100, 42)` = 42. Test 1/1.
+
+### Čtyři vrstvy, než se handler vůbec rozeběhl (seed, ne kód)
+
+`b2b.api_keys.token_prefix` je NOT NULL → `api_keys_environment_check` povoluje
+jen `test`/`live` (ne `production`) → `TOKEN_REGEX = /^tick_(test|live)_[a-f0-9]{32,64}$/`
+→ `tickets` je pole, ne objekt. Všechno moje chyby v testu, ale stojí za zápis:
+**B2B cesta má čtyři nezávislé kontrakty, které musí sedět, než se dotkne SQL.**
+
+## §75 ✅ C1: GDPR purge už nemlčí
+
+`consent-log-purge:30` polykal v `catch` **cokoli** a vracel
+`{ok: true, purged: 0}` — nerozlišitelné od poctivého smazání nuly řádků.
+Purge mohl tiše přestat fungovat a nikdo by se to nedozvěděl.
+
+🔧 **Komentář na řádku 41 tvrdil "tabulka neexistuje, migrace neaplikována".
+Změřeno: `compliance.cookie_consent_log` EXISTUJE a `DELETE` nad ní projde.**
+Premisa byla nepravdivá; komentář nahrazen.
+
+Nově se chytá **výhradně `42P01`** (undefined_table), cokoli jiného propaguje
+500 s `ok: false` a kódem.
+
+**Live test, 4/4:**
+```
+[purge]        200  {"ok":true,"purged":3}                                  ← smazal, co měl
+[purge 42703]  500  {"ok":false,"purged":0,"error":"PURGE_FAILED","code":"42703"}
+[purge 42P01]  200  {"ok":true,"purged":0,"skipped":"table_missing"}
+```
+
+Prostřední řádek je jádro věci: **před opravou by tenhle případ vrátil
+`{ok:true, purged:0}`** a vypadal by jako úspěšný běh nad prázdnou tabulkou.
