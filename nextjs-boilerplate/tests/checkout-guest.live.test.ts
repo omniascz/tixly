@@ -18,6 +18,8 @@ import type { NextRequest } from 'next/server';
 import { Pool } from 'pg';
 import { readFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
+import { readdirSync } from 'fs';
+import { join } from 'path';
 
 const NEON_API = 'https://console.neon.tech/api/v2';
 const PROJECT = 'fragrant-wildflower-75132205';
@@ -26,11 +28,12 @@ const DB_NAME = 'neondb';
 const ROLE = 'neondb_owner';
 
 /** Migrace, které ještě NEJSOU na produkci — klon je bez nich, checkout je potřebuje. */
-const PENDING_MIGRATIONS = [
-  '450_tickets_dedup_unique.sql',
-  '451_orders_payment_provider_pos.sql',
-  '452_tracking_events_provider_tiktok.sql',
-];
+// Migrace se ctou z disku — vlastni kopie seznamu znamenala, ze se tu
+// nikdy neaplikovaly 453-459 a testy merily schema o devet migraci pozadu
+// (FINDINGS 82: nastroj s kopii reality meri vedle).
+const PENDING_MIGRATIONS = readdirSync(join('..', 'migrations'))
+  .filter((f) => /^\d{3}_.*\.sql$/.test(f) && !f.startsWith('000_'))
+  .sort();
 
 const apiKey = process.env.NEON_API_KEY;
 

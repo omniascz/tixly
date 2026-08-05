@@ -3322,3 +3322,71 @@ Bez té kontroly by oprava mohla tabulku jen otevřít. `party_split_sessions_pu
 (SELECT nad `status='open'`) zůstal beze změny — sdílení odkazu je smysl featury.
 
 `rls-snapshot.json` přegenerován: **599 policies** (bylo 598), gate prochází.
+
+---
+
+## §82 🕶️ Nástroj, který si drží kopii reality, měří vedle — počtvrté
+
+Potřetí a počtvrté táž třída. Pokaždé nástroj obsahoval **zadrátovanou kopii**
+něčeho, co se mělo zjistit z reality:
+
+| # | co bylo zadrátované | důsledek | kde |
+|---|---|---|---|
+| 1 | role `neondb_owner` v `live-fixture` | RLS se neměřilo vůbec; sada hlásila PROŠLO u cest, které pod produkční rolí padají | §77 |
+| 2 | seznam migrací 450–452 ve `live-fixture` | testovalo se schéma o pět migrací pozadu | §80 |
+| 3 | seznam migrací v `createLiveClone(…, { migrations })` u tří testů | discovery z bodu 2 přebit; migrace 458 se neaplikovala | §80 |
+| 4 | **vlastní `const PENDING_MIGRATIONS`** v `admin-guest` a `checkout-guest` | tyhle dva testy migrace 453–459 **nikdy neaplikovaly** | tady |
+
+Čtvrtý případ je nejzáludnější: oba testy si ten seznam **deklarovaly samy**,
+takže oprava fixture (bod 2) i odstranění explicitních parametrů (bod 3) je
+minuly. Grep na `migrations:` je nenašel, protože se jmenoval jinak.
+
+### Proč je to nebezpečnější než obyčejný bug
+
+**RED vypadá jako nález a GREEN jako důkaz.** V tomhle případě jsem napsal
+migraci 459, pustil test, dostal RED — a hodinu hledal chybu v policy, která
+byla správná. Migrace se prostě neaplikovala. Opačný směr je horší: GREEN nad
+zastaralým schématem vypadá jako ověřená cesta.
+
+**Pravidlo:** nástroj nesmí obsahovat seznam toho, co se dá zjistit z disku
+nebo z katalogu. Když seznam mít musí (např. výběr podmnožiny), musí být
+u něj napsáno, proti čemu se ověřuje, že je úplný.
+
+Zbylé zadrátované seznamy po opravě: `grep` na `PENDING_MIGRATIONS = [`,
+`const MIGRATIONS = [` a `'45x_'` v `tests/` a `scripts/` už nevrací nic.
+
+## §83 ⚪ Migrace 459: posunula chybu, NEOPRAVILA cestu
+
+`identity.users` po 453 má pět policies:
+
+```
+p_users_promoter_insert   FOR INSERT  WITH CHECK (app_current_promoter_id() IS NOT NULL)
+p_users_write             FOR ALL     USING/CHECK (service OR platform_admin OR id = current_user)
+p_users_select_self       FOR SELECT  service OR platform_admin OR vlastní řádek
+p_users_select_promoter   FOR SELECT  app_can_see_user_as_promoter(id)
+p_users_select_buyer      FOR SELECT  app_can_see_user_as_buyer(id)
+```
+
+**Servisní větev tam je** (`p_users_write`), ale admin cesty běží
+v `runAsActivePromoter` → `app.role='promoter'`, takže `app_is_service()` je
+false. Promotér smí guesta **vložit**, ale `ON CONFLICT DO UPDATE` potřebuje
+projít i UPDATE vrstvou, kde promotérská větev chyběla — asymetrie.
+
+Migrace 459 přidala `p_users_promoter_upsert FOR UPDATE`. Efekt (změřeno):
+
+```
+před 459:  new row violates row-level security policy (USING expression) for table "users"
+po   459:  new row violates row-level security policy for table "users"
+```
+
+Zmizelo `(USING expression)` → **UPDATE větev už prochází**, padá to o vrstvu
+dál na `WITH CHECK`. Kterou konkrétně, jsem **nedohledal** — došel kontext.
+
+⚠️ Hypotéza (NEOVĚŘENÁ): `ON CONFLICT DO UPDATE` vyžaduje, aby byl konfliktní
+řádek **viditelný přes SELECT policy**. Po 453 ale promotér cizího uživatele
+nevidí — a konfliktní řádek je typicky zákazník jiného promotéra. Pak by se
+oprava nedala udělat bez sáhnutí na čtení, což je přesně ta ochrana, kterou
+453 zaváděla. To by z toho dělalo **návrhové rozhodnutí, ne doplnění větve.**
+
+Migrace 459 je v repu, **nenasazená a nedokončená** — sama o sobě cestu
+neopraví. Zbývajících 5 pádů live sady drží tenhle jeden blocker.
