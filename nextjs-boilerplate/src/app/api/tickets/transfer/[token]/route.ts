@@ -3,9 +3,9 @@
  * POST /api/tickets/transfer/[token] — accept přesunu (příjemce)
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext, runWithUserContext } from '@/lib/db/rls-pool';
 
-export async function GET(
+async function GETImpl(
   _req: NextRequest,
   { params }: { params: { token: string } },
 ): Promise<Response> {
@@ -44,7 +44,7 @@ export async function GET(
   }
 }
 
-export async function POST(
+async function POSTImpl(
   req: NextRequest,
   { params }: { params: { token: string } },
 ): Promise<Response> {
@@ -113,4 +113,20 @@ export async function POST(
   } finally {
     client.release();
   }
+}
+
+// Obaleno kontextem podle vlastnictvi dat (FINDINGS 96):
+//  - GET je verejny (nahled prevodu podle tokenu, prijemce jeste neni prihlasen)
+//    -> SERVISNI kontext, ne USING (true) v policy. Route si filtruje sama tokenem.
+//  - POST prevod prijima prihlaseny uzivatel -> kontext toho uzivatele.
+type TCtx = { params: { token: string } };
+
+export async function GET(req: NextRequest, ctx: TCtx): Promise<Response> {
+  return runWithServiceContext(() => GETImpl(req, ctx));
+}
+
+export async function POST(req: NextRequest, ctx: TCtx): Promise<Response> {
+  const uid = req.headers.get('x-user-id');
+  if (!uid) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  return runWithUserContext(uid, () => POSTImpl(req, ctx));
 }

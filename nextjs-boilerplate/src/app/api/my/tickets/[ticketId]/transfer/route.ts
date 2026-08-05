@@ -7,9 +7,9 @@ import { randomBytes } from 'crypto';
  * Vrací token, který příjemce použije na /transfer/[token]
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithUserContext } from '@/lib/db/rls-pool';
 
-export async function GET(
+async function GETImpl(
   req: NextRequest,
   { params }: { params: { ticketId: string } },
 ): Promise<Response> {
@@ -38,7 +38,7 @@ export async function GET(
   }
 }
 
-export async function POST(
+async function POSTImpl(
   req: NextRequest,
   { params }: { params: { ticketId: string } },
 ): Promise<Response> {
@@ -132,7 +132,7 @@ export async function POST(
   }
 }
 
-export async function DELETE(
+async function DELETEImpl(
   req: NextRequest,
   { params }: { params: { ticketId: string } },
 ): Promise<Response> {
@@ -165,3 +165,20 @@ export async function DELETE(
     client.release();
   }
 }
+
+// Obaleno kontextem vlastnika (FINDINGS 96): tabulky ticket_transfers/tickets maji
+// RLS vazanou na app.current_user_id; bez GUC pod tixly_app nevidi route nic.
+// Handlery jsou obalene KAZDY ZVLAST — jeden spolecny wrapper by tu nesel,
+// protoze userId se cte az uvnitr z hlavicky.
+type Ctx = { params: { ticketId: string } };
+const withUser = (
+  impl: (r: NextRequest, c: Ctx) => Promise<Response>,
+) => async (req: NextRequest, ctx: Ctx): Promise<Response> => {
+  const uid = req.headers.get('x-user-id');
+  if (!uid) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  return runWithUserContext(uid, () => impl(req, ctx));
+};
+
+export const GET = withUser(GETImpl);
+export const POST = withUser(POSTImpl);
+export const DELETE = withUser(DELETEImpl);
