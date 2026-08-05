@@ -84,9 +84,13 @@ export async function PATCH(
     fields.push(`updated_at=NOW()`);
     values.push(params.id, ctx.promoterId);
 
+    // Globalni polozku (promoter_id IS NULL) spravuje POUZE platform admin.
+    // Drive tu byla vetev OR promoter_id IS NULL, takze kterykoli promoter mohl
+    // prepsat sdileny ciselnik vsem ostatnim — DELETE to nikdy nedovolil.
+    // Migrace 462 tutez hranici zavadi i v RLS (WITH CHECK bez IS NULL).
     const r = await db().query(
       `UPDATE catalog.sport_teams SET ${fields.join(',')}
-       WHERE id = $${i} AND (promoter_id = $${i + 1} OR promoter_id IS NULL)
+       WHERE id = $${i} AND promoter_id = $${i + 1}
        RETURNING *`,
       values,
     );

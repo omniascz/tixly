@@ -838,6 +838,15 @@
    "wcheck": ""
   },
   {
+   "tbl": "catalog.films",
+   "pol": "p_films_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()) OR (promoter_id IS NULL))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
+  },
+  {
    "tbl": "catalog.hospitality_packages",
    "pol": "p_rls_hospitality_packages",
    "cmd": "ALL",
@@ -1052,6 +1061,15 @@
    "roles": "{public}",
    "qual": "(current_setting('app.is_platform_admin'::text, true) = 'true'::text)",
    "wcheck": ""
+  },
+  {
+   "tbl": "catalog.sport_teams",
+   "pol": "p_sport_teams_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()) OR (promoter_id IS NULL))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
   },
   {
    "tbl": "catalog.superfan_experiences",
@@ -1628,6 +1646,15 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()))",
    "wcheck": ""
+  },
+  {
+   "tbl": "identity.eudi_verifications",
+   "pol": "p_eudi_verifications_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR ((user_id IS NOT NULL) AND (user_id = app_current_user_id())))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR ((user_id IS NOT NULL) AND (user_id = app_current_user_id())))"
   },
   {
    "tbl": "identity.fan_profiles",
@@ -5926,7 +5953,7 @@
   },
   {
    "tbl": "catalog.films",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.flex_pass_settings",
@@ -6026,7 +6053,7 @@
   },
   {
    "tbl": "catalog.sport_teams",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.superfan_experiences",
@@ -6318,7 +6345,7 @@
   },
   {
    "tbl": "identity.eudi_verifications",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "identity.fan_profiles",
@@ -7977,5 +8004,5 @@
    "cfg": "search_path=pg_catalog, public"
   }
  ],
- "generatedFrom": "migrations: 000_baseline_20260730.sql + 000_baseline_globals.sql + 450_tickets_dedup_unique.sql + 451_orders_payment_provider_pos.sql + 452_tracking_events_provider_tiktok.sql + 453_users_select_scoped.sql + 454_rls_cast_nullif_fix.sql + 455_rls_namedrift_identity.sql + 456_drop_base64url_defaults.sql + 457_orders_payment_provider_channels.sql + 458_party_split_rls_service_branch.sql + 459_users_promoter_upsert.sql + 460_ticket_alerts_service_branch.sql + 461_mechanical_rls.sql"
+ "generatedFrom": "migrations: 000_baseline_20260730.sql + 000_baseline_globals.sql + 450_tickets_dedup_unique.sql + 451_orders_payment_provider_pos.sql + 452_tracking_events_provider_tiktok.sql + 453_users_select_scoped.sql + 454_rls_cast_nullif_fix.sql + 455_rls_namedrift_identity.sql + 456_drop_base64url_defaults.sql + 457_orders_payment_provider_channels.sql + 458_party_split_rls_service_branch.sql + 459_users_promoter_upsert.sql + 460_ticket_alerts_service_branch.sql + 461_mechanical_rls.sql + 462_shared_catalog_and_eudi_rls.sql"
 }

@@ -71,3 +71,25 @@ dostalo RLS + `p_*_scope`. Izolace ověřena, 0 rozbitých testů, gate prošel.
 | `platform.b2b_transactions` | `b2b_accounts` nemá `promoter_id` — tenant je firma, ne promotér. Řešit jako trojici s `b2b_account_users` + `SECURITY DEFINER` helper (§53 platí). |
 | `identity.eudi_verifications` | zápis je anonymní (`user_id` se nevyplňuje), filtrace tokenem → servisní větev jako §94. Má mít uživatel vlastní pohled? Dnes žádná routa taková není. |
 | `marketing.fan_bonus_issued` | `user_id` NULLABLE — bonus pro hosta bez účtu, nebo nedodělek? |
+
+## R-15 ⚠️ Live sada je FLAKY — vyřešit dřív, než se použije jako brána (§108)
+
+6 běhů `public-routes` se stejným kódem: 2 pády, **pokaždé jiný test**
+(`alert: prihlaseny uzivatel`, `discover … min_price`), při opakování projdou.
+Regrese z policy by padala deterministicky a na témž testu. Dokud se to
+nevyřeší, „X ze Y padlo" není spolehlivé referenční číslo.
+
+## R-16 `admin/collections/[id]/events` — zápisová stráž přijímá sdílené (§108)
+
+`ensureCollectionOwner` pouští POST i na kolekce s `promoter_id IS NULL`.
+Táž třída jako films/sport_teams; tabulka `catalog.event_collections` je mimo
+462. Rozhodnout stejně jako u číselníku a opravit kód + policy naráz.
+
+## R-17 b2b trojice — čeká na rozhodnutí A vs B (§109)
+
+Celá trojice (`b2b_accounts`, `b2b_transactions`, `b2b_account_users`) je mimo
+RLS. Identita B2B uživatele NENÍ `app.current_user_id` — autorizace jde přes
+`verifyB2BToken` → `session.b2bAccountId`.
+**A** = jen servisní větev (nic se neizoluje navíc, jen zavře cizí kontexty).
+**B** = nové GUC `app.b2b_account_id` + helper → skutečná izolace, ale dotkne se
+`rls-pool` i tokenové cesty.

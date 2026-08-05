@@ -101,6 +101,7 @@ Nic z toho **není na produkci**. Pořadí je závazné.
 | 457 | `457_orders_payment_provider_channels.sql` | CHECK `payment_provider` + `mollie`, `paypal`, `b2b_credit`, `box_office`, `walkin`, `partner_pos` | kanály se ROZLIŠUJÍ (reporting), `mock-*` ZÁMĚRNĚ ne — to je oprava kódu, FINDINGS §67 |
 | 460 | `460_ticket_alerts_service_branch.sql` | `ticket_alerts_select` dostane `app_is_service()` | anonymní hlídací pes; tvar `IS NULL` ZAMÍTNUT měřením (otevřel by tabulku všem), FINDINGS §103–104 |
 | 461 | `461_mechanical_rls.sql` | RLS + `p_*_scope` na 19 tabulek s přímým tenant sloupcem | GENEROVANÁ (`scripts/gen-461-mechanical-rls.mjs`) — needituj ručně; izolace RED→GREEN na 6 reprezentantech, 0 rozbitých testů, FINDINGS §106 |
+| 462 | `462_shared_catalog_and_eudi_rls.sql` | `films`/`sport_teams` (čtení sdílené, zápis vlastní) + `eudi_verifications` servisní | nasadit SPOLU s opravou `admin/films/[id]` a `admin/sport-teams/[id]` — bez ní by aplikace a policy říkaly různé věci, FINDINGS §108 |
 
 ### ⚠️ „capacity backfill" — v pořadí NENÍ a nemá být
 

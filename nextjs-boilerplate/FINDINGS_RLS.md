@@ -607,3 +607,143 @@ už v servisním kontextu, takže ta strana je připravená.
 Zbývá rozhodnout, jestli má mít **uživatel** vlastní pohled na svá ověření
 (dnes žádná routa taková není). Pokud ne, stačí servisní větev a je to
 mechanické.
+
+---
+
+## §108 ✅ Migrace 462: sdílený číselník + eudi
+
+### RED→GREEN pod `tixly_app`, obě fáze na témž klonu
+
+```
+RED (bez 462)
+ catalog.films        vidi: global=1 vlastni=1 CIZI=1 | UPDATE globalni: ZMENIL 🔴
+ catalog.sport_teams  vidi: global=1 vlastni=1 CIZI=1 | UPDATE globalni: ZMENIL 🔴
+ identity.eudi_verifications  anonymni(servisni) zapis: OK | cizi user vidi: 1 🔴
+
+GREEN (s 462)
+ catalog.films        vidi: global=1 vlastni=1 CIZI=0 | UPDATE globalni: odmitnut ✅ (42501)
+ catalog.sport_teams  vidi: global=1 vlastni=1 CIZI=0 | UPDATE globalni: odmitnut ✅ (42501)
+ identity.eudi_verifications  anonymni(servisni) zapis: OK ✅ | cizi user vidi: 0 ✅
+```
+
+Všechny čtyři podmínky ze zadání splněny na všech třech tabulkách. `USING` je
+záměrně širší než `WITH CHECK` — promotér globální položku vidí, ale nezmění.
+
+### Kód opraven spolu s policy
+
+`admin/films/[id]:87` a `admin/sport-teams/[id]:89` pouštěly UPDATE i na řádky
+s `promoter_id IS NULL`, zatímco DELETE (ř. 107/109) jen na vlastní. Zúženo na
+`promoter_id = $…`, aby aplikace a RLS říkaly totéž. `tsc` exit 0.
+
+⚠️ **Počtvrté jsem si shodil běh neescapovaným backtickem** — komentář uvnitř
+SQL v template literalu obsahoval `` `OR promoter_id IS NULL` `` a ukončil
+řetězec (TS1005). Komentář patří **nad** volání `db().query`, ne do SQL.
+
+### 🔎 Týž tvar jinde — NEOPRAVENO, mimo zadání
+
+`admin/collections/[id]/events/route.ts:18` má funkci `ensureCollectionOwner`,
+která se jmenuje „owner", ale přijímá i `promoter_id IS NULL` — a používá se
+jako **zápisová** stráž pro POST. Táž třída jako films/sport_teams, jiná tabulka
+(`catalog.event_collections`, mimo 462). Zbylé výskyty vzoru
+(`channel-prices`, `support-faq`, `insurance-plans`, `support-chat`) jsou
+**čtecí**, ty jsou v pořádku. `venues/[venueId]/seating-chart` má v hlavičce
+napsané „Sdílené sály edituje pouze platform admin" — tedy správné pravidlo
+už někde formulované bylo.
+
+### ⚠️ Live sada: 3 padlé z 53, ale sada je FLAKY
+
+```
+s 462:  3 failed | 49 passed | 1 skipped (53)
+```
+
+Dva pády jsou známé zastaralé aserce (`waitlist`, `box-office`). Třetí se
+**mezi běhy mění** — jednou `alert: prihlaseny uzivatel`, jindy
+`discover NEpropusti cenu skryteho typu`, jindy žádný:
+
+```
+6 běhů public-routes s 462 → 2 pády, pokaždé JINÝ test
+1 běh bez 462             → 10/10
+opakování téhož testu     → [alert user] status 200, token vrácen
+```
+
+**NEVÍM, jestli 462 s tou flakinessou souvisí.** Proti souvislosti mluví, že
+regrese z policy by padala deterministicky a na témž testu; tady padá pokaždé
+jinde a při opakování projde. Pro souvislost nemluví nic měřeného — jeden čistý
+běh bez 462 na rozhodnutí nestačí. **Flakinessa live sady je samostatný
+nevyřešený problém**, který se tímhle kolem odhalil a měl by se řešit dřív,
+než se sada použije jako brána.
+
+`rls-snapshot.json`: **618 → 621 policies, 430 → 433 tabulek.** Gate prošel.
+
+## §109 Podklad k b2b trojici — dvě opravy mých dřívějších tvrzení
+
+### 🔧 Oprava 1: `b2b_account_users` policy NEMÁ
+
+V §107 jsem napsal „ta jediná z trojice policy má — 1". **Špatně.** To číslo
+pocházelo z `grep -c 'ON platform.b2b_account_users'`, který napočítal řádek
+`CREATE INDEX idx_b2b_users_account ON platform.b2b_account_users …`.
+Cílený grep na `CREATE POLICY` nevrací pro tuhle tabulku nic.
+
+**Mimo RLS stojí celá trojice, ne dvě ze tří.**
+
+### 🔧 Oprava 2: `b2b_transactions.user_id` NEUKAZUJE na `identity.users`
+
+`b2b/account/route.ts:73`:
+
+```sql
+LEFT JOIN platform.b2b_account_users bau ON bau.id = bt.user_id
+```
+
+`b2b_transactions.user_id` je cizí klíč do **`b2b_account_users`**, ne do
+`identity.users`. `b2b_account_users` navíc **žádný `user_id` nemá** — má
+`email` a `name`. B2B uživatel tedy není platformový uživatel; je to záznam
+u firmy, klíčovaný e-mailem.
+
+Tím padá heuristika, kterou stála klasifikace v §100: sloupec jménem `user_id`
+nemusí mířit na `identity.users`. Ostatních 19 tabulek z 461 to neohrožuje —
+u těch byl helper ověřen měřením izolace — ale je to **třída chyby, kterou můj
+katalogový sken najít neuměl**, protože se díval na jména sloupců, ne na cizí
+klíče.
+
+### a) Jak se dnes určuje, kdo smí vidět účet firmy
+
+**Ne přes `b2b_account_users`.** `b2b/account/route.ts` používá vlastní token:
+
+```
+const session = await verifyB2BToken(req);   // Bearer token
+… [session.b2bAccountId]
+```
+
+Autorizace tedy proběhne **v aplikaci** a do dotazu vstupuje `b2bAccountId`
+z ověřeného tokenu. `admin/b2b/*` je jiná cesta — `requirePlatformAdmin`.
+
+### b) Návrh pro trojici
+
+Protože identita B2B uživatele **není** `app.current_user_id`, korelace přes
+`b2b_account_users` by neměla z čeho vyjít. Nabízejí se dvě cesty:
+
+| varianta | tvar | cena |
+|---|---|---|
+| **A — servisní** (doporučuji) | všechny tři tabulky dostanou `app_is_platform_admin() OR app_is_service()`; routy běží v servisním kontextu a scopují se `session.b2bAccountId` z ověřeného tokenu | žádná; §53 se netýká, protože není korelace |
+| **B — nové GUC** | zavést `app.b2b_account_id`, helper `app_current_b2b_account_id()` a policy `account_id = app_current_b2b_account_id()` | nutná změna `rls-pool` + `verifyB2BToken`; teprve tohle by dalo RLS skutečnou vrstvu |
+
+Varianta A **nepřidá vrstvu izolace** — jen tabulky zavře před kontexty, které
+o nich nemají vědět. Varianta B je jediná, která by dala totéž, co má zbytek
+schématu. Který z těch dvou cílů se sleduje, **je rozhodnutí, ne technikálie.**
+
+Helper by v obou případech musel splňovat §51: `SECURITY DEFINER`,
+`SET search_path = pg_catalog, public`, vrací `boolean`, scopuje se sám z GUC.
+
+### c) `admin/b2b` pod `requirePlatformAdmin` — projde
+
+Ověřeno čtením: routa volá `requirePlatformAdmin(req)`. Pokud běží
+v `runWithPlatformAdminContext` (nastaví `app.is_platform_admin='true'`), projde
+větví `app_is_platform_admin()` v obou variantách. **NEZMĚŘENO** — jestli je ta
+routa tím kontextem obalená, jsem v tomhle kole neověřoval.
+
+### d) Riziko
+
+Nízké u varianty A (nic se neotevírá, jen zavírá), střední u B — zavedení
+nového GUC se dotkne poolu i tokenové cesty a chyba by zavřela B2B portál
+úplně. V obou případech platí, že se **nesmí zapnout RLS bez policy** —
+to je tichý deny (§91).
