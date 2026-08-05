@@ -3789,3 +3789,60 @@ uživatelský, `platform/*` → platform admin, `cron` → servisní), ale
 **neopravoval jsem je** — na RED→GREEN a izolační ověření u každé nezbyl
 kontext. Body 3 (doměřit 3 zbývající routy) a 4 (RLS na `editorial_articles`
 a `b2b_accounts`) jsem nezačal.
+
+---
+
+## §94 Veřejné routy s `USING (true)`: únik NENÍ, filtrují si samy
+
+Podezření z minulého kola, že fungují „jen náhodou", se **nepotvrdilo**.
+Všechny tři mají filtr v dotazu:
+
+```
+postal-fees              WHERE active = true
+carbon-offset-settings   WHERE active = true
+events/travel-packages   p.active AND h.active AND r.active + kontrola kapacity
+```
+
+`USING (true)` na těch tabulkách tedy zakrývá RLS, ale **nezakrývá chybějící
+filtr** — ten tam je. Neopravováno, ani není co.
+
+⚠️ Jedna drobnost k zapsání: `events/[id]/travel-packages` filtruje `active`,
+ale **neověřuje, že akce je publikovaná**. Kdo uhodne id draft akce, uvidí
+její travel packages. Nízká závažnost (vyžaduje znalost UUID), **NEOPRAVENO**.
+
+## §95 Stav oprav: 2 ověřené + 7 obalených, 2 vrácené
+
+| stav | počet | routy |
+|---|---|---|
+| ✅ opraveno a **ověřeno** | 2 | `discover`, `artists/[slug]` (§92) |
+| 🟡 obaleno, `tsc` čistý, **cesta NEDOLOŽENA** | 7 | `my/orders/upgrade`, `my/orders/upgrade-options`, `platform/postal` ×2, `platform/artists`, `internal/cron` ×2 |
+| ⚪ vráceno (transformace selhala) | 2 | `my/tickets/[ticketId]/transfer`, `tickets/transfer/[token]` |
+
+Kontext přiřazen podle vlastnictví dat: `my/*` → `runWithUserContext(userId)`,
+`platform/*` → `runWithPlatformAdminContext`, `cron` → `runWithServiceContext`.
+
+### 🔧 Proč jen „obaleno" a ne „opraveno"
+
+Zkusil jsem doložit `my/orders/[id]/upgrade-options` živě:
+
+```
+vlastník    404 NOT_FOUND
+CIZÍ user   404 NOT_FOUND
+```
+
+**Izolace drží, ale pozitivní cesta neprošla** — vlastník dostal taky 404.
+Můj seed (objednávka bez lístků) na tu routu nestačí; potřebuje víc řetězu.
+Nedoložil jsem tedy, že oprava cestu skutečně zprovoznila — jen že `tsc`
+prochází a že cizí uživatel nic nevidí.
+
+**Je to slabší tvrzení než u §92** a záměrně to takhle píšu: obalení kontextem
+je nutná podmínka, ne důkaz funkčnosti. Stejnou chybu jsem v téhle linii
+udělal dvakrát (§88 diagnóza, §84 hypotéza) — tentokrát to raději přiznám
+předem, než abych psal „opraveno 9".
+
+### Dvě vrácené
+
+`my/tickets/[ticketId]/transfer` a `tickets/transfer/[token]` mají víc
+exportovaných handlerů (GET i POST), takže moje mechanická transformace
+(najdi `db().connect()`, odsaď zbytek souboru, uzavři) uzavřela závorky
+špatně → `TS1005`. Vráceny přes `git checkout`, zůstávají rozbité.

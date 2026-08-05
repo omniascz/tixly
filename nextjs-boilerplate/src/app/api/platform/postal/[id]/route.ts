@@ -2,7 +2,7 @@
  * PATCH /api/platform/postal/[id] — update delivery status
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithPlatformAdminContext } from '@/lib/db/rls-pool';
 import { requirePlatformAdmin } from '@/lib/platform-auth';
 
 export async function PATCH(
@@ -22,23 +22,27 @@ export async function PATCH(
     return NextResponse.json({ error: 'INVALID_STATUS' }, { status: 422 });
   }
 
-  const client = await db().connect();
-  try {
-    await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
-    await client.query(
-      `UPDATE orders.postal_deliveries
-          SET status = COALESCE($1, status),
-              tracking_number = COALESCE($2, tracking_number),
-              carrier = COALESCE($3, carrier),
-              dispatched_at = CASE WHEN $1='dispatched' AND dispatched_at IS NULL THEN now() ELSE dispatched_at END,
-              updated_at = now()
-        WHERE id = $4`,
-      [body.status ?? null, body.trackingNumber ?? null, body.carrier ?? null, params.id],
-    );
-    await client.query('COMMIT');
-    return NextResponse.json({ updated: true });
-  } finally {
-    client.release();
-  }
+  // Platformni data — bez app.is_platform_admin RLS odfiltruje vse.
+  // POZOR: pod admin kontextem RLS uz nefiltruje podle tenanta, filtruje dotaz.
+  return runWithPlatformAdminContext(async () => {
+    const client = await db().connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+      await client.query(
+        `UPDATE orders.postal_deliveries
+            SET status = COALESCE($1, status),
+                tracking_number = COALESCE($2, tracking_number),
+                carrier = COALESCE($3, carrier),
+                dispatched_at = CASE WHEN $1='dispatched' AND dispatched_at IS NULL THEN now() ELSE dispatched_at END,
+                updated_at = now()
+          WHERE id = $4`,
+        [body.status ?? null, body.trackingNumber ?? null, body.carrier ?? null, params.id],
+      );
+      await client.query('COMMIT');
+      return NextResponse.json({ updated: true });
+    } finally {
+      client.release();
+    }
+  });
 }
