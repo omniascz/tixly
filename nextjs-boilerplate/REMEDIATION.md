@@ -72,7 +72,19 @@ dostalo RLS + `p_*_scope`. Izolace ověřena, 0 rozbitých testů, gate prošel.
 | `identity.eudi_verifications` | zápis je anonymní (`user_id` se nevyplňuje), filtrace tokenem → servisní větev jako §94. Má mít uživatel vlastní pohled? Dnes žádná routa taková není. |
 | `marketing.fan_bonus_issued` | `user_id` NULLABLE — bonus pro hosta bez účtu, nebo nedodělek? |
 
-## R-15 🔴 Live sada je FLAKY — NEVYŘEŠENO; je to ZÁVOD, ne špinavý stav (§113)
+## R-15 🟡 POTVRZENO: závod o návrat spojení do poolu (§114–115)
+
+Doloženo maticí: `max=1` → 0 pádů z 50; `max=2/5/20` → 3–5 z 50. Práh, ne
+gradient. `afterEach` 50 ms → 0 z 40. Závod je ve vracení spojení, ne v routě.
+
+**Oprava `await release()` je mimo rozsah: 218 call sites ve 180 souborech.**
+
+**Navržený tvar bez změn call sites:** přesunout čištění GUC z `release()`
+(fire-and-forget) do `connect()` (awaitovaná cesta) — `connect()` by vždy
+nastavil všechny čtyři GUC, z kontextu nebo na prázdno.
+NEIMPLEMENTOVÁNO. Podmínka nasazení: 5 shodných běhů bez diagnostiky, `max=10`.
+
+### Starší zápis (§113)
 
 **Hypotéza o špinavém spojení VYVRÁCENA:** špinavá spojení existují (3 ze 7 běhů),
 ale RESET neselhal nikdy a **každý běh se špínou prošel** — korelace není.

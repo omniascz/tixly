@@ -1049,3 +1049,107 @@ neviditelné, což je vada bez ohledu na R-15.
 
 **R-18 nezpracováno** — bylo v zadání podmíněné spolehlivou sadou, ta spolehlivá
 není.
+
+---
+
+## §114 R-15 POTVRZENO ČÍSLY: závod o návrat spojení do poolu
+
+### 1a) Velikost poolu
+
+`rls-pool.ts:52` → `max: Number(process.env.PG_POOL_MAX ?? 10)`.
+Testovací prostředí to nepřepisuje, takže platí **10**.
+
+### 1b) Matice — 20 běhů `public-routes` (10 testů), bez diagnostiky
+
+```
+max=1  :  0 0 0 0 0   → 0 padu / 50 testu
+max=2  :  0 2 1 1 1   → 5
+max=5  :  1 0 1 1 1   → 4
+max=20 :  0 1 0 0 2   → 3
+```
+
+**Není to gradient, je to práh.** Jedno spojení = nula pádů. Dvě a víc = pády
+v podobné četnosti (3–5 z 50) bez ohledu na to, jestli jsou dvě, pět nebo dvacet.
+
+To dává smysl přesně u tohohle závodu: **při `max=1` pool nemůže spojení vydat
+dřív, než doběhne `originalRelease`** — tedy dokud se nedokončí RESET. Serializace
+je vynucená. Od dvou spojení nahoru už může být další test obsloužen jiným
+spojením, zatímco návrat prvního ještě neproběhl.
+
+### 1c) 50 ms v `afterEach` — pády zmizí
+
+```
+max=10 (default) + afterEach 50ms:  0 0 0 0   → 0 padu / 40 testu
+```
+
+### 1d) VERDIKT: **ano, je to závod o spojení v poolu**
+
+Čtyři nezávislé zásahy, každý jen posouvá časování a nemění logiku, a **každý
+symptom odstraní**:
+
+| zásah | běhů | pádů |
+|---|---|---|
+| `max=1` (vynucená serializace) | 5 | **0** |
+| `afterEach` 50 ms | 4 | **0** |
+| diagnostický round-trip při akvizici (§113) | 7 | **0** |
+| — bez zásahu, `max=10` | 12 | 3–5 z 50 |
+
+Závod je tedy **ve vracení spojení, ne uvnitř routy**. Kdyby šlo o timing uvnitř
+handleru, `max=1` by nepomohl.
+
+⚠️ Co tím **není** vysvětleno: proč se pád projeví jako „dotaz nevrátil data".
+Zděděné GUC to podle §113 nejsou (diagnostika špínu viděla v bězích, které
+prošly). **NEVÍM**, jakým mechanismem se nedokončený návrat spojení promítne do
+prázdného výsledku.
+
+## §115 Oprava přes `await release()` je mimo rozsah — 218 call sites
+
+### 2a) Rozsah
+
+```
+celkem call sites .release() :  218
+z toho ve finally blocích    :  215
+souborů                      :  180
+dnes awaitovaných            :    0
+```
+
+`finally { client.release(); }` je synchronní ve 215 z 218 případů. Udělat
+`release()` awaitable znamená sáhnout na **180 souborů** produkční cesty.
+
+### 2c) NEDĚLÁM TO — a navrhuju jiný tvar, který call sites nepotřebuje
+
+Podle zadání se produkční cesta kvůli flaky testům bez rozvahy měnit nebude.
+Návrh, který má **nula změn na call sites**:
+
+**Přesunout čištění GUC z `release()` do `connect()`.**
+
+Dnes: `connect()` nastaví jen ty GUC, které jsou v kontextu, a ostatní **nečistí**;
+úklid se dělá až při `release()`, asynchronně a mimo dohled volajícího.
+
+Navrhovaný tvar: `connect()` na začátku **vždy** nastaví všechny čtyři GUC —
+z kontextu, nebo na prázdno — a `release()` se nechá být obyčejný. Volající
+`connect()` už dnes awaituje, takže je úklid deterministicky hotový dřív, než
+kdokoli vydá první dotaz. Asynchronní ocas zmizí.
+
+| | dnes | návrh |
+|---|---|---|
+| kdy se čistí | při release, fire-and-forget | při acquire, v awaitované cestě |
+| změny call sites | — | **0** |
+| cena | — | 1 round-trip na akvizici s kontextem (dá se sloučit do jednoho `SET` příkazu) |
+
+⚠️ **Neimplementováno a neověřeno.** Že tři jiné časovací zásahy symptom
+odstraní, **není důkaz**, že tenhle ho odstraní taky — diagnostika ze §113 GUC
+jen četla, nečistila, a přesto pomohla. Než se to nasadí, musí projít pět
+shodných běhů BEZ diagnostiky a s `max=10`. Došel mi kontext, než jsem to mohl
+udělat.
+
+### Stav bodů zadání
+
+| bod | stav |
+|---|---|
+| 1a–1d | ✅ splněno, verdikt doložen čísly |
+| 2a | ✅ 218 call sites / 180 souborů |
+| 2b | ❌ oprava neprovedena → 5 běhů nedoloženo |
+| 2c | ✅ návrh + rozsah napsán |
+| 3 | ⏭️ neprovedeno — závod V POOLU JE, takže podmínka „pokud závod není v poolu" neplatí |
+| R-18 | ⏭️ pořád čeká na spolehlivou sadu |
