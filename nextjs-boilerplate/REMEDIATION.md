@@ -57,3 +57,17 @@ korelace → §53 se netýká), 2 SLOŽITÉ (`b2b_transactions` až po `b2b_acco
 `eudi_verifications`), 2 NEJASNÉ (`films`/`sport_teams` NULL `promoter_id` =
 sdílený číselník? — **produktové rozhodnutí**; `fan_bonus_issued`).
 7 z 24 v horké cestě, z toho 5 mechanických → cena fakticky nula.
+
+## R-12 ČÁSTEČNĚ VYŘEŠENO — migrace 461 (§106)
+
+19 mechanických tabulek (ne 20 — `fan_bonus_issued` má NULLABLE `user_id`)
+dostalo RLS + `p_*_scope`. Izolace ověřena, 0 rozbitých testů, gate prošel.
+
+**Zbývá 5 a všech 5 čeká na ROZHODNUTÍ, ne na kód (§107):**
+
+| tabulka | otevřená otázka |
+|---|---|
+| `catalog.films`, `catalog.sport_teams` | sdílený číselník je doložený záměr (`promoter_id IS NULL OR = $1`). Ale UPDATE dnes dovoluje **komukoli editovat globální film**, DELETE ne. Je ta editace chyba, nebo funkce? |
+| `platform.b2b_transactions` | `b2b_accounts` nemá `promoter_id` — tenant je firma, ne promotér. Řešit jako trojici s `b2b_account_users` + `SECURITY DEFINER` helper (§53 platí). |
+| `identity.eudi_verifications` | zápis je anonymní (`user_id` se nevyplňuje), filtrace tokenem → servisní větev jako §94. Má mít uživatel vlastní pohled? Dnes žádná routa taková není. |
+| `marketing.fan_bonus_issued` | `user_id` NULLABLE — bonus pro hosta bez účtu, nebo nedodělek? |

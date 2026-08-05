@@ -435,3 +435,175 @@ Opraveno na čtení z `migrations/`. Nová hodnota:
 ```
 migrations: 000_baseline_20260730.sql + 000_baseline_globals.sql + 450_… + … + 460_…
 ```
+
+---
+
+## §106 ✅ Migrace 461: RLS na 19 mechanických tabulek (ne 20)
+
+### Generátor našel chybu v mém vlastním čísle
+
+§100 tvrdil **20 mechanických**. Generátor při ověřování proti katalogu jednu
+odmítl:
+
+```
+NEGENERUJI — 1 tabulek neproslo overenim:
+  • marketing.fan_bonus_issued.user_id: je NULLABLE — radky s NULL by neprosly zadnou vetvi
+```
+
+`marketing.fan_bonus_issued` patří mezi **NEJASNÉ**, ne mechanické — v §100
+jsem ji vypsal správně v obou seznamech a pak špatně sečetl. Platí
+**16 + 3 = 19**, nejasných je 5 (ne 4). Odhalil to nástroj ověřující proti
+katalogu, ne čtení dokumentu — což je přesně důvod, proč se migrace generuje.
+
+### Self-check generátoru (1b)
+
+Podmínkou publikace, ne doplňkem. Do vstupu se vloží `identity.users`
+deklarovaná se sloupcem `promoter_id`, který na ní není:
+
+```
+[selfcheck] vlozen spatny vstup: identity.users deklarovany se sloupcem promoter_id
+  ODMITNUTO: identity.users: sloupec promoter_id NEEXISTUJE
+[selfcheck] PROSEL — generator spatny vstup zachytil
+```
+
+Generátor ověřuje pět podmínek: tabulka existuje, sloupec existuje, je `uuid`,
+je `NOT NULL`, tabulka dnes nemá policy. Selže-li kterákoli, **nenapíše nic**.
+
+### FORCE ROW LEVEL SECURITY — záměrně NE
+
+Zvažováno a zamítnuto. `FORCE` podrobuje RLS **vlastníka** tabulky. Aplikace se
+připojuje jako `tixly_app`, který vlastníkem není, takže se ho RLS týká i bez
+`FORCE`. Baseline nemá `FORCE` ani na jedné z 600 tabulek — zavést ho tady by
+19 tabulek odlišilo od zbytku a podrobilo RLS i migrační skripty běžící pod
+ownerem.
+
+### 1c) Izolace RED→GREEN, 6 reprezentantů
+
+RED je měření ze §96 stejnou metodou před migrací
+(`catalog.productions vlastni=1 CIZI=1 🔴 UNIK`). Po 461:
+
+```
+ catalog.productions              vlastni=1 CIZI=0  ✅ IZOLOVANO
+ platform.promoter_contacts       vlastni=1 CIZI=0  ✅ IZOLOVANO
+ orders.guestlist_entries         vlastni=1 CIZI=0  ✅ IZOLOVANO
+ communications.broadcasts        vlastni=1 CIZI=0  ✅ IZOLOVANO
+ orders.school_bookings           vlastni=1 CIZI=0  ✅ IZOLOVANO
+ identity.fan_profiles            vlastni=1 CIZI=0  ✅ IZOLOVANO
+```
+
+Zastoupeny obě skupiny (5× `promoter_id`, 1× `user_id`) i všechna dotčená
+schémata kromě `analytics`/`pricing`/`brands`, kde seed narazil na povinné
+sloupce a **nezměřil jsem je** — u těch platí jen katalogové ověření.
+
+### 1d) Kolik testů 461 rozbila: **0**
+
+```
+po 461:  Tests  3 failed | 49 passed | 1 skipped  (53)
+```
+
+Všechny tři pády jsou **starší než 461** — ověřeno tím, že jsem migraci
+dočasně odebral a pustil dotčenou sadu znovu:
+
+```
+bez 461: checkout-guest  1 failed | 3 passed   ← týž pád
+```
+
+| pád | povaha |
+|---|---|
+| `waitlist` — čeká `23514`, dostane `undefined` | zastaralá aserce (457 CHECK opravila) |
+| `box-office` — čeká ≥500, dostane 404 | zastaralá aserce |
+| `checkout-guest` dedup — 500 | **skutečná, předchází 461** |
+
+Žádná routa tedy na těch 19 tabulkách neběžela bez kontextu — což dává smysl:
+všechny čtoucí routy si `WHERE promoter_id` psaly samy (§96), takže kontext
+měly nastavený.
+
+`rls-snapshot.json`: **599 → 618 policies, 411 → 430 tabulek s RLS.** Gate prošel.
+
+## §107 Podklad k rozhodnutí o zbylých 5
+
+### a) `catalog.films`, `catalog.sport_teams` — sdílený číselník je ZÁMĚR, doložený kódem
+
+Nemusí se hádat. `admin/films/route.ts:19`:
+
+```sql
+WHERE promoter_id = $1 OR promoter_id IS NULL
+```
+
+`promoter_id IS NULL` = **globální film viditelný všem promotérům**; promotér
+si vedle toho smí založit vlastní. Totéž `admin/sport-teams`. Veřejné routy
+(`cinema/films/[id]`, `sports/teams/[id]`) nefiltrují promotéra vůbec, jen
+`status='active'`.
+
+🔴 **Co se přitom našlo: zápis je širší než smazání.** `admin/films/[id]`:
+
+```
+řádek  87 (UPDATE): WHERE id = $… AND (promoter_id = $… OR promoter_id IS NULL)
+řádek 107 (DELETE): WHERE id = $1  AND promoter_id = $2
+```
+
+**Kterýkoli promotér smí editovat globální film**, ale smazat ho smí jen
+vlastník. Asymetrie, kterou dnes nedrží nic — a policy ji zviditelní.
+
+Co by policy musela umět:
+
+```sql
+-- ČTENÍ: sdílené + vlastní
+USING (app_is_platform_admin() OR app_is_service()
+       OR promoter_id IS NULL OR promoter_id = app_current_promoter_id())
+-- ZÁPIS: jen vlastní (NULL řádky patří platformě)
+WITH CHECK (app_is_platform_admin() OR app_is_service()
+            OR promoter_id = app_current_promoter_id())
+```
+
+⚠️ Takový `WITH CHECK` **rozbije dnešní chování** na řádku 87. Buď je editace
+globálních filmů promotérem chyba (pak to policy opraví), nebo funkce (pak
+musí `WITH CHECK` obsahovat i `IS NULL` a globální číselník je zapisovatelný
+komukoli). **NEVÍM které** — z kódu se to nedá odvodit, je to produktové
+rozhodnutí. Bez něj migraci psát nejde.
+
+Kolik NULL řádků reálně existuje: **NEZMĚŘENO** — produkční větev je prázdná
+a na klonu je jen to, co naseeduju.
+
+### b) `platform.b2b_transactions` — tenant tam možná vůbec není promotér
+
+`platform.b2b_accounts` **nemá `promoter_id`** ani žádný jiný promotérský
+sloupec: `company_name`, `ico`, `dic`, `contact_email`, `credit_balance_halire`,
+`account_code`. Je to **platformový** B2B účet, ne promotérův.
+
+Tenantem je tedy firma, a vazba na člověka vede přes `platform.b2b_account_users`
+(ta jediná z trojice **policy má** — 1).
+
+Co by obnášelo řešit to jako dvojici:
+1. Nejdřív `b2b_accounts`: policy `EXISTS (SELECT 1 FROM b2b_account_users bau
+   WHERE bau.account_id = id AND bau.user_id = app_current_user_id())`.
+   Tady §53 platí — korelace na neunikátní `account_id`.
+2. Teprve pak `b2b_transactions` přes `account_id` → `b2b_accounts`.
+   Vnořené RLS: policy nad `b2b_transactions` sáhne na `b2b_accounts`, která už
+   RLS má. Vyplatí se `SECURITY DEFINER` helper `app_can_see_b2b_account(uuid)`
+   stejně jako u 453.
+3. `admin/b2b/*` běží pod `requirePlatformAdmin` — ten musí projít větví
+   `app_is_platform_admin()`, jinak se rozbije správa účtů.
+
+**Otevřená otázka:** je B2B účet vázaný i na promotéra (kdo vidí transakce
+za nákupy na akcích promotéra X?), nebo je čistě platformový? Z katalogu vyplývá
+druhé. **NEVÍM**, jestli to odpovídá záměru.
+
+### c) `identity.eudi_verifications` — kontext je anonymní, jako u §94
+
+`eudi/presentation-request/route.ts:59` zakládá řádek sloupci
+`(request_id, event_id, order_id, status)` — **`user_id` se při založení
+nevyplňuje vůbec.** `eudi/verify` pak řádek dohledává podle `request_id`, tedy
+podle tokenu.
+
+Je to týž tvar jako veřejné routy ze §94: **cesta začíná bez přihlášení
+a filtruje se sama tokenem.** Odpovídající řešení je tedy servisní kontext
++ větev `app_is_service()`, ne uživatelská větev — uživatelská by nefungovala,
+protože v okamžiku zápisu žádný uživatel neexistuje.
+
+`checkout/route.ts:424` řádek čte (`SELECT 1 FROM identity.eudi_verifications`)
+už v servisním kontextu, takže ta strana je připravená.
+
+Zbývá rozhodnout, jestli má mít **uživatel** vlastní pohled na svá ověření
+(dnes žádná routa taková není). Pokud ne, stačí servisní větev a je to
+mechanické.

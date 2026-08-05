@@ -172,6 +172,15 @@
    "wcheck": ""
   },
   {
+   "tbl": "analytics.yield_rules",
+   "pol": "p_yield_rules_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
+  },
+  {
    "tbl": "attribution.conversions",
    "pol": "p_scope",
    "cmd": "ALL",
@@ -433,6 +442,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "brands.event_partnerships",
+   "pol": "p_event_partnerships_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
+  },
+  {
    "tbl": "catalog.access_codes",
    "pol": "p_access_codes_promoter",
    "cmd": "ALL",
@@ -647,6 +665,15 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e_\n  WHERE ((e_.id = event_programs.event_id) AND (e_.promoter_id = app_current_promoter_id())))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "catalog.event_reschedules",
+   "pol": "p_event_reschedules_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
   },
   {
    "tbl": "catalog.event_seat_view_photos",
@@ -892,6 +919,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "catalog.productions",
+   "pol": "p_productions_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
+  },
+  {
    "tbl": "catalog.rfid_access_log",
    "pol": "rfid_access_log_svc",
    "cmd": "ALL",
@@ -971,6 +1007,15 @@
    "roles": "{public}",
    "qual": "(current_setting('app.bypass_rls'::text, true) = 'true'::text)",
    "wcheck": ""
+  },
+  {
+   "tbl": "catalog.season_pass_products",
+   "pol": "p_season_pass_products_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
   },
   {
    "tbl": "catalog.seat_view_photos",
@@ -1232,6 +1277,24 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "communications.broadcasts",
+   "pol": "p_broadcasts_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
+  },
+  {
+   "tbl": "communications.emergency_announcements",
+   "pol": "p_emergency_announcements_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
   },
   {
    "tbl": "compliance.aml_checks",
@@ -1565,6 +1628,15 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()))",
    "wcheck": ""
+  },
+  {
+   "tbl": "identity.fan_profiles",
+   "pol": "p_fan_profiles_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()))"
   },
   {
    "tbl": "identity.gdpr_requests",
@@ -2494,6 +2566,15 @@
    "wcheck": ""
   },
   {
+   "tbl": "notifications.push_sent_log",
+   "pol": "p_push_sent_log_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()))"
+  },
+  {
    "tbl": "notifications.push_subscriptions",
    "pol": "p_rls_push_subscriptions",
    "cmd": "ALL",
@@ -2629,6 +2710,15 @@
    "wcheck": ""
   },
   {
+   "tbl": "orders.guestlist_entries",
+   "pol": "p_guestlist_entries_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
+  },
+  {
    "tbl": "orders.hospitality_inquiries",
    "pol": "p_scope",
    "cmd": "ALL",
@@ -2681,6 +2771,15 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "orders.lottery_campaigns",
+   "pol": "p_lottery_campaigns_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
   },
   {
    "tbl": "orders.order_currencies",
@@ -2791,6 +2890,15 @@
    "wcheck": ""
   },
   {
+   "tbl": "orders.phone_orders",
+   "pol": "p_phone_orders_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
+  },
+  {
    "tbl": "orders.postal_deliveries",
    "pol": "postal_deliveries_admin",
    "cmd": "UPDATE",
@@ -2816,6 +2924,15 @@
    "roles": "{public}",
    "qual": "",
    "wcheck": "true"
+  },
+  {
+   "tbl": "orders.press_accreditations",
+   "pol": "p_press_accreditations_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
   },
   {
    "tbl": "orders.refund_requests",
@@ -2861,6 +2978,15 @@
    "roles": "{public}",
    "qual": "(current_setting('app.bypass_rls'::text, true) = 'on'::text)",
    "wcheck": ""
+  },
+  {
+   "tbl": "orders.school_bookings",
+   "pol": "p_school_bookings_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
   },
   {
    "tbl": "orders.seat_upgrades",
@@ -3061,6 +3187,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "platform.agent_mandates",
+   "pol": "p_agent_mandates_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()))"
+  },
+  {
    "tbl": "platform.api_keys",
    "pol": "p_api_keys_tenant",
    "cmd": "ALL",
@@ -3196,6 +3331,15 @@
    "wcheck": ""
   },
   {
+   "tbl": "platform.import_jobs",
+   "pol": "p_import_jobs_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
+  },
+  {
    "tbl": "platform.member_group_users",
    "pol": "p_rls_member_group_users",
    "cmd": "ALL",
@@ -3322,6 +3466,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "platform.promoter_contacts",
+   "pol": "p_promoter_contacts_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
+  },
+  {
    "tbl": "platform.promoter_documents",
    "pol": "p_promoter_documents_tenant",
    "cmd": "ALL",
@@ -3374,6 +3527,15 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR (promoter_id = app_current_promoter_id()))",
    "wcheck": ""
+  },
+  {
+   "tbl": "platform.promoter_onboarding",
+   "pol": "p_promoter_onboarding_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
   },
   {
    "tbl": "platform.promoters",
@@ -3554,6 +3716,15 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "pricing.dynamic_pricing_rules",
+   "pol": "p_dynamic_pricing_rules_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
   },
   {
    "tbl": "pricing.organizer_pricing_config",
@@ -5475,7 +5646,7 @@
   },
   {
    "tbl": "analytics.yield_rules",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "attribution.conversions",
@@ -5603,7 +5774,7 @@
   },
   {
    "tbl": "brands.event_partnerships",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "brands.impressions",
@@ -5711,7 +5882,7 @@
   },
   {
    "tbl": "catalog.event_reschedules",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.event_seat_view_photos",
@@ -5811,7 +5982,7 @@
   },
   {
    "tbl": "catalog.productions",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.program_cast_entries",
@@ -5843,7 +6014,7 @@
   },
   {
    "tbl": "catalog.season_pass_products",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.seat_view_photos",
@@ -5963,11 +6134,11 @@
   },
   {
    "tbl": "communications.broadcasts",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "communications.emergency_announcements",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "compliance.aml_checks",
@@ -6151,7 +6322,7 @@
   },
   {
    "tbl": "identity.fan_profiles",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "identity.gdpr_requests",
@@ -6499,7 +6670,7 @@
   },
   {
    "tbl": "notifications.push_sent_log",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "notifications.push_subscriptions",
@@ -6559,7 +6730,7 @@
   },
   {
    "tbl": "orders.guestlist_entries",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "orders.hospitality_inquiries",
@@ -6575,7 +6746,7 @@
   },
   {
    "tbl": "orders.lottery_campaigns",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "orders.lottery_entries",
@@ -6627,7 +6798,7 @@
   },
   {
    "tbl": "orders.phone_orders",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "orders.postal_deliveries",
@@ -6635,7 +6806,7 @@
   },
   {
    "tbl": "orders.press_accreditations",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "orders.program_purchases",
@@ -6663,7 +6834,7 @@
   },
   {
    "tbl": "orders.school_bookings",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "orders.season_pass_uses",
@@ -6747,7 +6918,7 @@
   },
   {
    "tbl": "platform.agent_mandates",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "platform.api_key_audit_log",
@@ -6823,7 +6994,7 @@
   },
   {
    "tbl": "platform.import_jobs",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "platform.incident_updates",
@@ -6871,7 +7042,7 @@
   },
   {
    "tbl": "platform.promoter_contacts",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "platform.promoter_documents",
@@ -6887,7 +7058,7 @@
   },
   {
    "tbl": "platform.promoter_onboarding",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "platform.promoters",
@@ -6975,7 +7146,7 @@
   },
   {
    "tbl": "pricing.dynamic_pricing_rules",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "pricing.organizer_pricing_config",
@@ -7806,5 +7977,5 @@
    "cfg": "search_path=pg_catalog, public"
   }
  ],
- "generatedFrom": "migrations: 000_baseline_20260730.sql + 000_baseline_globals.sql + 450_tickets_dedup_unique.sql + 451_orders_payment_provider_pos.sql + 452_tracking_events_provider_tiktok.sql + 453_users_select_scoped.sql + 454_rls_cast_nullif_fix.sql + 455_rls_namedrift_identity.sql + 456_drop_base64url_defaults.sql + 457_orders_payment_provider_channels.sql + 458_party_split_rls_service_branch.sql + 459_users_promoter_upsert.sql + 460_ticket_alerts_service_branch.sql"
+ "generatedFrom": "migrations: 000_baseline_20260730.sql + 000_baseline_globals.sql + 450_tickets_dedup_unique.sql + 451_orders_payment_provider_pos.sql + 452_tracking_events_provider_tiktok.sql + 453_users_select_scoped.sql + 454_rls_cast_nullif_fix.sql + 455_rls_namedrift_identity.sql + 456_drop_base64url_defaults.sql + 457_orders_payment_provider_channels.sql + 458_party_split_rls_service_branch.sql + 459_users_promoter_upsert.sql + 460_ticket_alerts_service_branch.sql + 461_mechanical_rls.sql"
 }
