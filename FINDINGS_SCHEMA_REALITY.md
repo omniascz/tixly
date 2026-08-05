@@ -3390,3 +3390,50 @@ oprava nedala udělat bez sáhnutí na čtení, což je přesně ta ochrana, kte
 
 Migrace 459 je v repu, **nenasazená a nedokončená** — sama o sobě cestu
 neopraví. Zbývajících 5 pádů live sady drží tenhle jeden blocker.
+
+---
+
+## §84 🔧 Hypotéza o viditelnosti VYVRÁCENA — a příčina je jinde, než jsem myslel
+
+§83 nabídlo hypotézu: `ON CONFLICT DO UPDATE` prý vyžaduje, aby byl konfliktní
+řádek viditelný přes SELECT policy, kterou 453 promotérovi vzala. **Neplatí.**
+
+Izolovaný test na klonu, promotérský kontext pod `tixly_app`, obě migrace
+453 i 459 aplikované:
+
+```
+VLASTNÍ zákazník   viditelný=1   upsert → 42501 new row violates row-level security policy
+CIZÍ    zákazník   viditelný=0   upsert → 42501 new row violates row-level security policy
+```
+
+**Padá i ten viditelný.** Viditelnost tedy diskriminátor není a doplňování
+SELECT větví by nepomohlo. Kdybych podle té hypotézy sáhl na čtení, oslabil
+bych 453 bez jakéhokoli užitku.
+
+### Co se tím naopak zúžilo
+
+| zjištění | jak |
+|---|---|
+| GUC se rozlišuje správně | `app_current_promoter_id()` vrací UUID, `app_is_service()` false |
+| **prostý `INSERT` PROCHÁZÍ** | tytéž sloupce, bez `ON CONFLICT` → OK |
+| selhává výhradně `ON CONFLICT DO UPDATE` | tentýž řádek, tentýž kontext |
+| všech 6 policies je **PERMISSIVE** | žádná `RESTRICTIVE`, takže se OR-ují |
+| UPDATE větev po 459 prochází | zmizelo `(USING expression)` z chybové hlášky |
+
+Zbývá tedy `WITH CHECK` v upsert cestě, přestože obě relevantní policies
+(`p_users_promoter_insert` CHECK a `p_users_promoter_upsert` CHECK) jsou
+splněné a permisivní. **Proč, NEVÍM** — došel kontext.
+
+⚠️ Zapisuji to jako otevřenou otázku, ne jako závěr. Předchozí hypotéza zněla
+věrohodně a byla špatná; druhá bez měření by byla stejně bezcenná.
+
+### Referenční číslo po opravě zadrátovaných seznamů
+
+```
+Tests  8 failed | 34 passed | 1 skipped  (43)
+```
+
+Bylo 7 (§80), ale to číslo pocházelo z běhu, kde `admin-guest` a
+`checkout-guest` jely proti schématu bez migrací 453–459. Po opravě jedou proti
+aktuálnímu a padá o jeden víc. **8 ze 43 je platné referenční číslo**; 7 bylo
+optimistické z téhož důvodu jako všechna dřívější čísla — nástroj měřil vedle.
