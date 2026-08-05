@@ -3437,3 +3437,69 @@ Bylo 7 (§80), ale to číslo pocházelo z běhu, kde `admin-guest` a
 `checkout-guest` jely proti schématu bez migrací 453–459. Po opravě jedou proti
 aktuálnímu a padá o jeden víc. **8 ze 43 je platné referenční číslo**; 7 bylo
 optimistické z téhož důvodu jako všechna dřívější čísla — nástroj měřil vedle.
+
+---
+
+## §85 Blokující policy nalezena EXPERIMENTEM: `p_users_write`
+
+Postgres v hlášce policy nejmenuje, tak jsem je na klonu uvolňoval po jedné
+(`ALTER POLICY … WITH CHECK (true)`) a po každém kroku zkusil upsert:
+
+```
+výchozí stav                            → 42501
+s VYPNUTÝMI triggery                    → 42501   (trigger to NENÍ)
+po uvolnění p_users_promoter_insert     → 42501
+po uvolnění p_users_promoter_upsert     → 42501
+po uvolnění p_users_write               → PROŠLO
+```
+
+**Odmítá `p_users_write`** (`FOR ALL`, `USING/CHECK = service OR platform_admin
+OR id = app_current_user_id()`). Triggery vyloučeny měřením, ne úvahou.
+
+⚠️ **Co tomu nerozumím:** všech šest policies je PERMISSIVE, takže by se měly
+OR-ovat — s uvolněnými dvěma promotérskými by `p_users_write` neměla stačit
+k odmítnutí. Chová se, jako by se aplikovala povinně. Vysvětlení **NEMÁM**
+a nebudu ho vymýšlet; test byl navíc kumulativní (uvolnění se nevracela), takže
+izoluje jen poslední krok.
+
+## §86 🎯 Vzorec rozhodl: zápis do `identity.users` je SERVISNÍ operace
+
+Nezávisle na příčině z §85 — jak to dělají ostatní zapisovatelé:
+
+```
+auth/register                    runWithServiceContext
+auth/register-promoter           runWithServiceContext
+lib/oauth/provider               runWithServiceContext
+buyer/cross-passes/purchase      runWithServiceContext
+buyer/modular-pass/checkout      runWithServiceContext
+buyer/resale/buy                 runWithServiceContext
+charity/claim/[token]            runWithServiceContext
+gift/redeem, gift/[token]        runWithServiceContext
+────────────────────────────────────────────────────────
+admin/import                     runAsActivePromoter   ← odchylka
+admin/orders/…/support-action    runAsActivePromoter   ← odchylka
+admin/pos/sale                   runAsActivePromoter   ← odchylka
+admin/reservations               runAsActivePromoter   ← odchylka
+```
+
+**Vzorec je jednoznačný, ne smíšený:** zápis do `identity.users` běží
+v servisním kontextu. Odchylka jsou výhradně admin routy — a to jsou přesně
+ty, které padají. `p_users_write` servisní větev **má**, takže pod servisním
+kontextem by upsert prošel bez jakéhokoli sahání na policies.
+
+### Návrh (NEAPLIKOVÁN)
+
+Fix patří do volajících rout / helperu, ne do schématu: `createOrGetGuestUser`
+má běžet v servisním kontextu jako všichni ostatní zapisovatelé. Tím odpadá
+i celý problém z §85 — migrace 459 by pak byla zbytečná.
+
+⚠️ **Není to jednořádková změna a proto ji nedělám naslepo.** Helper dostává
+`client` z transakce volajícího, která běží pod promotérským kontextem;
+přepnutí uprostřed transakce není triviální a **nesmí přetéct** do zbytku
+requestu — jinak by promotér ve zbytku cesty viděl všechno. Vyžaduje to buď
+vlastní servisní připojení jen pro ten úsek, nebo přesun guest-create před
+zahájení promotérské transakce.
+
+**Migrace 459 je tím pádem pravděpodobně slepá ulička** — řeší symptom
+(chybějící promotérská UPDATE větev) místo příčiny (route běží v jiném
+kontextu, než vzorec předepisuje).
