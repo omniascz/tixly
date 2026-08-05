@@ -2355,7 +2355,7 @@
    "cmd": "SELECT",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
-   "qual": "((current_setting('app.is_platform_admin'::text, true) = 'true'::text) OR ((user_id IS NOT NULL) AND ((user_id)::text = (app_current_user_id())::text)) OR ((app_current_user_id())::text = ''::text))",
+   "qual": "((current_setting('app.is_platform_admin'::text, true) = 'true'::text) OR app_is_service() OR ((user_id IS NOT NULL) AND ((user_id)::text = (app_current_user_id())::text)) OR ((app_current_user_id())::text = ''::text))",
    "wcheck": ""
   },
   {
@@ -7806,5 +7806,5 @@
    "cfg": "search_path=pg_catalog, public"
   }
  ],
- "generatedFrom": "migrations: 000_baseline + 000_baseline_globals + 453 + 454 + 455"
+ "generatedFrom": "migrations: 000_baseline_20260730.sql + 000_baseline_globals.sql + 450_tickets_dedup_unique.sql + 451_orders_payment_provider_pos.sql + 452_tracking_events_provider_tiktok.sql + 453_users_select_scoped.sql + 454_rls_cast_nullif_fix.sql + 455_rls_namedrift_identity.sql + 456_drop_base64url_defaults.sql + 457_orders_payment_provider_channels.sql + 458_party_split_rls_service_branch.sql + 459_users_promoter_upsert.sql + 460_ticket_alerts_service_branch.sql"
 }

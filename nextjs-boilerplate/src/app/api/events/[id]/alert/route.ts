@@ -4,9 +4,9 @@ import { randomBytes } from 'crypto';
  * DELETE /api/events/[id]/alert?token=xxx — odhlášení (unsubscribe)
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext, runWithUserContext } from '@/lib/db/rls-pool';
 
-export async function POST(
+async function POSTImpl(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
@@ -57,7 +57,7 @@ export async function POST(
   }
 }
 
-export async function DELETE(
+async function DELETEImpl(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
@@ -76,4 +76,30 @@ export async function DELETE(
   } finally {
     client.release();
   }
+}
+
+// ── Kontext (FINDINGS 102 / R-14) ────────────────────────────────────────────
+// Routa drive bezela na holem db().connect(): x-user-id se cetlo do promenne
+// a predalo jako SLOUPEC, ale do session GUC se nedostalo. Pod tixly_app proto
+// padal INSERT ... RETURNING token na 42501 — zapis prosel (ticket_alerts_insert
+// ma WITH CHECK (true)), ale SELECT policy nedovolila precist prave vlozeny
+// radek. Zmereno: bez RETURNING OK, s RETURNING 42501.
+//
+// Anonym jde SERVISNIM kontextem, ne policy vetvi na prazdny kontext. Vetev
+// `app_current_user_id() IS NULL` byla zmerena a otevira cele upozorneni vsem:
+// anonym pod ni videl 3 ze 3 radku vcetne 3 cizich e-mailu. Servisni kontext
+// drzi rozhodnuti v routе, kde je videt.
+type AlertCtx = { params: { id: string } };
+
+export async function POST(req: NextRequest, ctx: AlertCtx): Promise<Response> {
+  const uid = req.headers.get('x-user-id');
+  return uid
+    ? runWithUserContext(uid, () => POSTImpl(req, ctx))
+    : runWithServiceContext(() => POSTImpl(req, ctx));
+}
+
+// Odhlaseni chodi z e-mailu, prijemce neni prihlaseny — servisni kontext.
+// Routa se filtruje sama tokenem (WHERE token = $1 AND event_id = $2).
+export async function DELETE(req: NextRequest, ctx: AlertCtx): Promise<Response> {
+  return runWithServiceContext(() => DELETEImpl(req, ctx));
 }

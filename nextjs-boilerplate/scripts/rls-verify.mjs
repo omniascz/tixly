@@ -26,7 +26,7 @@
  *     --snapshot-file=<p>
  */
 import pg from 'pg';
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 
 const argv = process.argv.slice(2);
 const flag = (n) => argv.includes(`--${n}`);
@@ -67,7 +67,12 @@ if (flag('snapshot')) {
   const uri = opt('url') || process.env.DATABASE_URL;
   if (!uri) { console.error('chybí --url= nebo DATABASE_URL'); process.exit(2); }
   const snap = await collect(uri);
-  snap.generatedFrom = 'migrations: 000_baseline + 000_baseline_globals + 453 + 454 + 455';
+  // Seznam se cte z disku, ne z ruky. Zadratovany retezec tady lhal uz od 455:
+  // tvrdil "453 + 454 + 455", zatimco snapshot uz obsahoval i 456-459. Je to
+  // tataz trida jako FINDINGS 82 — nastroj, ktery si drzi kopii reality.
+  const migDir = new URL('../../migrations/', import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1');
+  const applied = readdirSync(migDir).filter((f) => /^\d{3}_.*\.sql$/.test(f)).sort();
+  snap.generatedFrom = `migrations: ${applied.join(' + ')}`;
   writeFileSync(SNAP, JSON.stringify(snap, null, 1));
   console.log(`[snapshot] ${snap.policies.length} policies, ` +
     `${snap.rlsTables.filter((t) => t.rls).length} tabulek s RLS, ` +

@@ -99,6 +99,7 @@ Nic z toho **není na produkci**. Pořadí je závazné.
 | 456 | `456_drop_base64url_defaults.sql` | zrušit `DEFAULT encode(…,'base64url')` na 3 tokenech | nasadit SPOLU s kódem, který token dodává, FINDINGS §62 |
 | 458 | `458_party_split_rls_service_branch.sql` | `party_split_*` dostane servisní větev + `WITH CHECK` | RED→GREEN 7/7 pod `tixly_app` vč. izolace, FINDINGS §80 |
 | 457 | `457_orders_payment_provider_channels.sql` | CHECK `payment_provider` + `mollie`, `paypal`, `b2b_credit`, `box_office`, `walkin`, `partner_pos` | kanály se ROZLIŠUJÍ (reporting), `mock-*` ZÁMĚRNĚ ne — to je oprava kódu, FINDINGS §67 |
+| 460 | `460_ticket_alerts_service_branch.sql` | `ticket_alerts_select` dostane `app_is_service()` | anonymní hlídací pes; tvar `IS NULL` ZAMÍTNUT měřením (otevřel by tabulku všem), FINDINGS §103–104 |
 
 ### ⚠️ „capacity backfill" — v pořadí NENÍ a nemá být
 

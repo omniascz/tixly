@@ -317,3 +317,121 @@ u veřejných rout ze §94. **NEOPRAVENO**, mimo zadání tohoto kola.
 
 Tím ze seznamu mizí všechny tři routy: 2 v pořádku, 1 rozbitá s doloženou
 příčinou a lokalizovanou fází.
+
+---
+
+## §102 🔧 455 nezabila nic — moje atribuce v §101 byla ŠPATNĚ
+
+### 1a/1c VERDIKT ČÍSLEM: **0 z 20**
+
+Prošel jsem všech 20 policies z 455 a hledal v **původním** tvaru test na
+prázdnotu kontextu (`= ''`, `IS NULL`, `COALESCE(…,'')`, `NULLIF`, default `''`
+v `current_setting`). Výsledek:
+
+```
+ticket_alerts_select :: prazdnotny_test=1
+zbylych 19           :: prazdnotny_test=0
+```
+
+**Jediná policy z 20 takovou větev vůbec má.** A 455 ji nezabila — byla mrtvá
+už předtím.
+
+### 1b: změřeno, tři tvary vedle sebe na jednom klonu
+
+```
+PUVODNI (baseline)   anonym=42501  prihlaseny=42501  cizi radky=0
+PO 455               anonym=42501  prihlaseny=OK     cizi radky=0
+NAVRH (IS NULL)      anonym=OK     prihlaseny=OK     cizi radky=0
+```
+
+Původní tvar byl `current_setting('app.user_id', true) = ''`. Aplikace ale
+nastavuje `app.current_user_id`, **ne** `app.user_id` — to je přesně ten
+name-drift, kvůli kterému 455 vznikla. `current_setting` na nenastavené GUC
+s `missing_ok = true` vrací **NULL**, a `NULL = ''` je NULL, ne true.
+Větev tedy neplatila nikdy.
+
+**455 tu větev nezabila. Udělala z náhodné mrtvoty strukturální** — a přitom
+**opravila přihlášeného uživatele** (42501 → OK). Byla to čistá výhra.
+
+🔧 Moje formulace v §101 („vedlejší škoda 455", „featura je mrtvá vinou 455")
+byla **nesprávná atribuce**. Funkce byla mrtvá od začátku, 455 se jí jen dotkla.
+Nález sám (anonymní hlídací pes nefunguje) platí dál.
+
+### 1d: co ta větev umožňovala
+
+Anonymní přihlášení k odběru „dej vědět, až budou lístky" — bez účtu, jen e-mail.
+Sloupec `user_id` je NULLABLE a routa posílá `userId ?? null`, takže **záměr
+je jednoznačný**. Pod `tixly_app` to ale nikdy nefungovalo.
+
+### 1e: mimo 455 — žádná další
+
+Sken všech 596 policies v baseline i všech migrací 45x na tentýž vzorec vrací
+**jediný zásah: `ticket_alerts_select`**. Jiná policy se na prázdný kontext
+neptá.
+
+## §103 ⛔ Navržený tvar `IS NULL` znovu otevírá únik — proto NE
+
+Zadání navrhovalo nahradit srovnání s `''` za `app_current_user_id() IS NULL`.
+Změřeno, než jsem to napsal:
+
+```
+v tabulce celkem (owner):        3 radku
+ANONYM pod navrhem `IS NULL` vidi: 3 radku / 3 cizich e-mailu
+```
+
+Pro anonyma je `app_current_user_id()` NULL, takže větev je `USING (true)` —
+tabulka se otevře **všem cestám bez kontextu**, ne jen tomu jednomu INSERTu.
+Je to týž problém, kvůli kterému je zamčeno „veřejné routy → servisní kontext,
+ne `USING (true)`".
+
+**Migrace 460 proto použila jiný tvar: `app_is_service()`.** Servisní kontext
+je dosažitelný výhradně z kódu aplikace, ne z HTTP.
+
+## §104 ✅ 460 + kontext v routě: anonym i přihlášený, bez over-exposure
+
+Oprava má dvě části a **ani jedna sama nestačí** — což se ukázalo měřením,
+ne rozvahou:
+
+1. **Routa** (`events/[id]/alert`) běžela na holém `db().connect()`; `x-user-id`
+   se předalo jako sloupec, do session GUC nikdy. Obaleno: přihlášený →
+   `runWithUserContext`, anonym → `runWithServiceContext`, DELETE (odhlášení
+   z e-mailu) → servisní.
+2. **Policy**: po obalení anonym **pořád padal**, protože `ticket_alerts_select`
+   žádnou servisní větev neměla. Migrace 460 ji doplnila.
+
+Mezikrok je poučný: po samotném obalení bylo `9 passed / 1 failed` — přihlášený
+prošel, anonym ne. Kdybych se spolehl na to, že „servisní kontext to vyřeší",
+nasadil bych polovinu opravy.
+
+```
+GREEN (10/10):
+  [alert anonym]     status 200
+  [alert user]       status 200
+  [alert leak-check] v tabulce: 2 | anonym vidi: 0
+```
+
+Poslední řádek je podmínka, ne ozdoba: čerstvé spojení pod `tixly_app` **bez
+jakéhokoli GUC** vidí nula řádků. Servisní kontext nepřežívá request a tabulka
+zůstává zavřená — přesně to, co tvar `IS NULL` porušoval.
+
+`rls-snapshot.json` přegenerován z klonu: 599 policies, 411 tabulek, gate prošel.
+
+## §105 🕶️ Pátý zadrátovaný seznam — tentokrát v samotném gate
+
+`rls-verify.mjs` psal do snapshotu:
+
+```js
+snap.generatedFrom = 'migrations: 000_baseline + 000_baseline_globals + 453 + 454 + 455';
+```
+
+Ten řetězec **lhal od migrace 456** — snapshot fakticky obsahoval i 456–460,
+ale hlásil se jako stav po 455. Nikoho to nerozbilo (gate porovnává policies,
+ne tenhle popisek), ale je to popáté táž třída ze §82: nástroj drží kopii
+něčeho, co je na disku. Kdyby někdo řešil drift podle popisku, hledal by
+příčinu o pět migrací vedle.
+
+Opraveno na čtení z `migrations/`. Nová hodnota:
+
+```
+migrations: 000_baseline_20260730.sql + 000_baseline_globals.sql + 450_… + … + 460_…
+```

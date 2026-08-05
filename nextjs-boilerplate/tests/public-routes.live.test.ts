@@ -170,15 +170,30 @@ d('verejne routy pod tixly_app', () => {
     return { status: res.status, body: (await res.text()).slice(0, 120) };
   };
 
-  it('alert: anonymni prihlaseni k hlidacimu psu', async () => {
+  it('alert: anonymni prihlaseni k hlidacimu psu (servisni kontext)', async () => {
     const out = await alert({ 'content-type': 'application/json' });
     console.log('[alert anonym]', out);
-    expect(out.status).toBeLessThan(500);
+    expect(out.status).toBe(200);
   }, 120_000);
 
-  it('alert: prihlaseny uzivatel', async () => {
+  it('alert: prihlaseny uzivatel (uzivatelsky kontext)', async () => {
     const out = await alert({ 'content-type': 'application/json', 'x-user-id': ids.user });
     console.log('[alert user]', out);
-    expect(out.status).toBeLessThan(500);
+    expect(out.status).toBe(200);
+  }, 120_000);
+
+  it('alert: servisni kontext NEzustava po requestu (anonym pak nevidi cizi)', async () => {
+    await alert({ 'content-type': 'application/json' });
+    // Cerstve spojeni pod tixly_app BEZ jakehokoli GUC = anonym.
+    // Servisni kontext routy nesmi prezit request.
+    const { Client } = await import('pg');
+    const anon = new Client({ connectionString: process.env.DATABASE_URL });
+    await anon.connect();
+    const r = await anon.query('SELECT count(*)::int AS n FROM marketing.ticket_alerts');
+    await anon.end();
+    const total = await clone.pool.query('SELECT count(*)::int AS n FROM marketing.ticket_alerts');
+    console.log('[alert leak-check] v tabulce:', total.rows[0].n, '| anonym vidi:', r.rows[0].n);
+    expect(total.rows[0].n).toBeGreaterThan(0);
+    expect(r.rows[0].n).toBe(0);
   }, 120_000);
 });

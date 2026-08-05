@@ -33,7 +33,14 @@ Jednořádková oprava: přidat `JOIN catalog.events e ON e.id = <event_id>
 AND e.status = 'published'`. Po §94 routa běží v servisním kontextu, takže
 ji RLS nepodrží.
 
-## R-14 🔴 `events/[id]/alert` — 500 pro všechny (§101)
+## R-14 ✅ VYŘEŠENO — `events/[id]/alert` (§102–104)
+
+Migrace **460** (servisní větev v `ticket_alerts_select`) + obalení routy
+kontextem. Anonym 200, přihlášený 200, anonymní spojení vidí 0 řádků.
+⚠️ Návrh `app_current_user_id() IS NULL` byl **zamítnut měřením** — otevřel by
+tabulku všem (3 ze 3 cizích e-mailů). Původní popis níže je historický.
+
+## R-14 (původní popis) 🔴 `events/[id]/alert` — 500 pro všechny (§101)
 
 Dvě příčiny, obě doložené:
 1. Routa nenastaví kontext → obalit `runWithUserContext` (přihlášený).
