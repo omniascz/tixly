@@ -72,7 +72,19 @@ dostalo RLS + `p_*_scope`. Izolace ověřena, 0 rozbitých testů, gate prošel.
 | `identity.eudi_verifications` | zápis je anonymní (`user_id` se nevyplňuje), filtrace tokenem → servisní větev jako §94. Má mít uživatel vlastní pohled? Dnes žádná routa taková není. |
 | `marketing.fan_bonus_issued` | `user_id` NULLABLE — bonus pro hosta bez účtu, nebo nedodělek? |
 
-## R-15 🔴 Live sada je FLAKY — NEVYŘEŠENO, příčina nenalezena (§108, §112)
+## R-15 🔴 Live sada je FLAKY — NEVYŘEŠENO; je to ZÁVOD, ne špinavý stav (§113)
+
+**Hypotéza o špinavém spojení VYVRÁCENA:** špinavá spojení existují (3 ze 7 běhů),
+ale RESET neselhal nikdy a **každý běh se špínou prošel** — korelace není.
+**Nové zjištění:** přidání jediného round-tripu mezi `pool.connect()` a první
+`SET` pády VYPNE (7 běhů 0 pádů vs 4 běhy bez něj → 2 padly). Podpis časovacího
+závodu. Konkrétní závod nelokalizován. Kandidát: `release()` se tváří synchronně,
+ale `originalRelease` běží až v `.finally()` po RESETu — volající pokračuje dřív,
+než je spojení vrácené. NEOVĚŘENO.
+Zásah do `release()` jsem neudělal: měnit semantiku vracení spojení v produkční
+cestě na základě vyvrácené hypotézy je horší než flakinessa.
+
+### Starší zápis (§108, §112)
 
 **Aktualizace po 8 běžích:** 5 z 8 běhů `public-routes` mělo aspoň jeden pád
 (0–2 z 10), pokaždé jinde. Flaky je i `checkout-guest`. Vyloučeno měřením:

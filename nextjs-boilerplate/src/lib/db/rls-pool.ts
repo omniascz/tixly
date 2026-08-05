@@ -175,6 +175,26 @@ class RlsAwarePool {
     const ctx = tenantStore.getStore();
     const client = await getRawPool().connect();
 
+    // ── DOCASNA DIAGNOSTIKA (RLS_POOL_DEBUG=1) — R-15 ────────────────────────
+    // Overuje hypotezu, ze se do poolu vraceji SPINAVA spojeni: reset GUC bezi
+    // fire-and-forget a jeho chyba se polyka. Kdyz spojeni pri akvizici uz nese
+    // cizi GUC, hypoteza plati.
+    if (process.env.RLS_POOL_DEBUG === '1') {
+      const d = await client.query(
+        "SELECT current_setting('app.current_user_id', true) AS u," +
+        " current_setting('app.current_promoter_id', true) AS p," +
+        " current_setting('app.role', true) AS r," +
+        " current_setting('app.is_platform_admin', true) AS a",
+      );
+      const g = d.rows[0] as Record<string, string | null>;
+      const dirty = Object.entries(g).filter(([, v]) => v !== null && v !== '');
+      if (dirty.length) {
+        console.warn('[RLS-DIRTY] spojeni z poolu nese GUC:',
+          JSON.stringify(Object.fromEntries(dirty)),
+          '| kontext teto akvizice:', JSON.stringify(ctx ?? null));
+      }
+    }
+
     if (ctx?.promoterId || ctx?.isPlatformAdmin || ctx?.currentUserId || ctx?.role) {
       // Set session-level (ne LOCAL) — bude reset-nuté při release
       if (ctx.promoterId) {
@@ -199,7 +219,14 @@ class RlsAwarePool {
           .query(
             'RESET app.current_promoter_id; RESET app.is_platform_admin; RESET app.current_user_id; RESET app.role;',
           )
-          .catch(() => undefined)
+          .catch((e: unknown) => {
+            // DOCASNA DIAGNOSTIKA — R-15. Drive: .catch(() => undefined),
+            // tedy selhani resetu bylo NEVIDITELNE.
+            if (process.env.RLS_POOL_DEBUG === '1') {
+              console.warn('[RLS-RESET-FAIL]', (e as { code?: string })?.code,
+                String((e as Error)?.message).slice(0, 90));
+            }
+          })
           .finally(() => originalRelease(err));
       }) as typeof originalRelease;
     }

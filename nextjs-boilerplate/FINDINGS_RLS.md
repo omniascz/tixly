@@ -970,3 +970,82 @@ Konkrétně: rozdíly o jeden až dva testy mezi běhy (7→5→3→5) **nemusel
 nic**. Co tím naopak zpochybněno NENÍ, jsou přímá měření izolace
 (`vlastni=1 CIZI=0`) a RED→GREEN dvojice — ty běžely proti klonu přímým SQL,
 mimo vitest, a opakovaly se shodně.
+
+---
+
+## §113 R-15: hypotéza o špinavém spojení PADÁ — je to časovací závod
+
+### 1a/1b) Instrumentace
+
+Do `rls-pool.ts` přidána diagnostika za `RLS_POOL_DEBUG=1`:
+při každé akvizici se přečtou všechny čtyři GUC a hlásí se nenulové;
+selhání RESETu se místo `.catch(() => undefined)` **zaloguje**.
+
+### 1c) VERDIKT: korelace NENÍ — hypotéza padá
+
+Sedm běhů `public-routes` s diagnostikou:
+
+```
+beh1: 0 failed   DIRTY=0  RESETFAIL=0
+beh2: 0 failed   DIRTY=0  RESETFAIL=0
+beh3: 0 failed   DIRTY=1  RESETFAIL=0
+beh4: 0 failed   DIRTY=1  RESETFAIL=0
+beh5: 0 failed   DIRTY=0  RESETFAIL=0
+beh6: 0 failed   DIRTY=1  RESETFAIL=0
+beh7: 0 failed   DIRTY=0  RESETFAIL=0
+```
+
+**Špinavá spojení skutečně existují** — ve třech z sedmi běhů:
+
+```
+[RLS-DIRTY] spojeni z poolu nese GUC: {"r":"system"}
+            | kontext teto akvizice: {"currentUserId":"d7052ed4-…","role":"user"}
+```
+
+**Ale RESET neselhal ani jednou** a — hlavně — **každý běh, ve kterém se špína
+objevila, PROŠEL celý.** Korelace „padající test má zděděné GUC" tedy
+**doložena není. Hypotéza padá** a říkám to.
+
+(Ta konkrétní špína je navíc neškodná: zděděné `app.role='system'` akvizice
+s kontextem hned přepíše na `'user'`. Nebezpečný by byl zděděný
+`app.current_user_id` u kontextu, který ten GUC nenastavuje — `connect()`
+totiž nastaví jen to, co má v kontextu, a ostatní **nečistí**.)
+
+### 🔬 Co ale instrumentace odhalila: přidání jednoho round-tripu pády VYPNE
+
+```
+S diagnostikou     (7 běhů):  0 pádů
+BEZ diagnostiky    (4 běhy):  2 běhy padly (2 a 1 pád)
+                              discover NEpropusti cenu … | alert: prihlaseny uzivatel
+```
+
+Diagnostika dělá jedinou věc navíc: **jeden `await client.query(...)` mezi
+`pool.connect()` a prvním `SET`**. To nemění logiku, jen posouvá časování —
+a flakinessa zmizí.
+
+**To je podpis časovacího závodu, ne špinavého stavu.** Kdyby šlo o zděděné
+GUC, diagnostika by jev jen zviditelnila, ne odstranila.
+
+Konkrétní závod jsem **nelokalizoval**. Nejsilnější kandidát zůstává tentýž
+kód, ale z jiného důvodu než hypotéza: `release()` je přepsaný tak, že se tváří
+synchronně, ale `originalRelease` se volá až v `.finally()` po dokončení RESETu.
+Volající tím pádem pokračuje dřív, než je spojení opravdu vrácené. **Neověřeno.**
+
+### 1d/1e) Oprava NEPROVEDENA, pět shodných běhů NEDOLOŽENO
+
+Bod d) zadání byl podmíněný potvrzením hypotézy („teprve po potvrzení oprav").
+Hypotéza potvrzená nebyla, takže jsem `release()` **neměnil** — změna semantiky
+vracení spojení je zásah do produkční cesty a dělat ji na základě vyvrácené
+hypotézy by bylo horší než flakinessa.
+
+Sedm shodných běhů mám **jen se zapnutou diagnostikou**, což není oprava, ale
+změna časování. Za doložení bodu e) to nevydávám.
+
+### Co zůstává
+
+Diagnostika je v repu **vypnutá** (`RLS_POOL_DEBUG` nenastavené) a stojí jeden
+round-trip jen když se zapne. Zůstává i zviditelnění selhání RESETu — dřív bylo
+neviditelné, což je vada bez ohledu na R-15.
+
+**R-18 nezpracováno** — bylo v zadání podmíněné spolehlivou sadou, ta spolehlivá
+není.
