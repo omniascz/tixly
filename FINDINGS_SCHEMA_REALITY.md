@@ -2951,3 +2951,75 @@ zamkne jiný volný slot. Testováno sekvenčně; **souběžné** přijetí (dv�
 připojení naráz) měřeno NEBYLO.
 
 Sada `party-split.live.test.ts`: **6/6 prošlo.**
+
+---
+
+## §71 🕶️ Nové slepé místo grepu: `INSERT … VALUES` rozpojuje sloupec a hodnotu
+
+Proč hledání `box_office` / `walkin` / `partner_pos` selhalo (§69), a proč to
+není jednorázový přehmat:
+
+```sql
+INSERT INTO orders.orders
+  (user_id, event_id, status, total_amount, currency, payment_provider,   ← název sloupce
+   …)
+VALUES ($1, $2, 'paid', $3, $4, 'box_office', …)                          ← hodnota, o 3 řádky níž
+```
+
+Název sloupce a jeho hodnota spolu **textově nesousedí** — jsou v jiných
+závorkách, oddělené parametry. Grep tvaru `sloupec = 'hodnota'` je na to
+**strukturálně slepý**, a přitom `INSERT … VALUES` je v tomhle repu
+nejběžnější forma zápisu.
+
+**Důsledek pro každé další hledání hodnot:** grepovat i samotný literál
+(`'box_office'`) bez názvu sloupce a teprve pak dohledat kontext. Hledání
+„kdo zapisuje do sloupce X" nelze postavit na jednom vzoru.
+
+Je to táž třída jako §54 (nula z nástroje není nález): můj grep vrátil 0
+a já to poprvé vydával za „hodnotu nikdo nezapisuje".
+
+## §72 Audit trigger blokuje přímý `INSERT` do `orders` mimo kontext aplikace
+
+Při testu migrace 457 jsem chtěl ověřit CHECK pokusnými `INSERT`y. Neprošly —
+ale ne kvůli `payment_provider`:
+
+```
+new row for relation "audit_log" violates …
+```
+
+`audit_trigger_func` visí na `orders.orders` (§47) a jeho zápis do
+`audit.audit_log` má vlastní omezení, které přímý INSERT mimo aplikační
+kontext nesplní. **Zastínilo by to měřený výsledek** — vypadalo by to, že
+CHECK odmítl hodnotu, přitom ji odmítl audit.
+
+Test proto kontroluje `pg_get_constraintdef`, ne pokusný zápis. Obecně:
+**pro ověření CHECKu čti definici, nezkoušej INSERT** — na `orders`,
+`tickets` a `resale_listings` (tabulky s audit triggerem) to nefunguje.
+
+## §73 ⚪ Souběžné přijetí slotu: NEZMĚŘENO (42501)
+
+Scénář `E) Party-split slot race` přidán do existujícího
+`concurrency-harness.ts` (ne vedle něj) podle vzoru `attackA`: 10 souběžných
+přijetí, 3 volné sloty, tally přes `AttackResult.statuses`.
+
+Invarianty, které měl ověřit:
+- počet `200` == počet volných slotů
+- žádný `slotIndex` dvakrát
+- `remaining_qty` klesne přesně o počet přijatých slotů
+
+**Nedoběhl.** Dvě překážky, první vyřešena, druhá ne:
+
+1. ✅ `404×10` — party-split create **INNER JOINuje `catalog.productions`**
+   (`pr.id = e.production_id`), takže akce bez produkce vrátí 404.
+   `seedScenario` produkci nezakládá; doplněno do `attackE`.
+   *(Vedlejší nález: party-split je nepoužitelný pro akci bez produkce.)*
+2. 🔴 `42501 permission denied` pod rolí `tixly_app` — nedohledáno, na které
+   objekt. Klon měl baseline + globals, takže granty by měly být kompletní;
+   příčina zůstává **NEZNÁMÁ**.
+
+`D) Double issuance` a `C) Seat double-sell` ve stejném běhu **DRŽÍ**
+(200×2 resp. 200×1 + 409×1), takže harness jako takový funguje — problém je
+v cestě party-splitu.
+
+⚠️ **Oversell na party-split slotech tedy zůstává NEZMĚŘENÝ.** Sekvenčně drží
+(§70), pod souběhem to nevíme.

@@ -211,6 +211,75 @@ export async function attackB(): Promise<AttackResult> {
   return { name: 'B) Purchase-limit race (§3.6)', verdict, detail, statuses: st };
 }
 
+// E) Party-split slot race: N souběžných přijetí na TÝŽ share_token, ale slotů
+//    je míň než požadavků. Sekvenční test (party-split.live.test.ts) oversell
+//    z principu nechytí — sloty se rozdávají pod `FOR UPDATE SKIP LOCKED`
+//    a ten se projeví teprve pod souběhem.
+//
+//    Invarianty:
+//      • počet 200 == počet volných slotů (ani víc, ani míň)
+//      • žádný slotIndex dvakrát
+//      • remaining_qty klesne PŘESNĚ o počet přijatých slotů
+export async function attackE(): Promise<AttackResult> {
+  const N = 10, SLOTS = 3;
+  const { eventId, ticketTypeId } = await seedScenario({ remainingQty: 100, totalQty: 100 });
+  // party-split create INNER JOINuje catalog.productions (pr.id = e.production_id),
+  // takže akce BEZ produkce vrátí 404 — seedScenario ji nezakládá.
+  const prod = (await admin.query(
+    `INSERT INTO catalog.productions (promoter_id, title) VALUES ($1,'Harness prod') RETURNING id`,
+    [PROMOTER])).rows[0];
+  await admin.query(`UPDATE catalog.events SET production_id = $1 WHERE id = $2`, [prod.id, eventId]);
+
+  // session se zakládá přes REÁLNÝ handler, ne INSERTem — ať platí táž cesta
+  const { POST: create } = await import('@/app/api/checkout/party-split/route');
+  const cres = await create(new Request('http://localhost:3000/api/checkout/party-split', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-user-id': PROMOTER },
+    body: JSON.stringify({
+      eventId, ticketTypeId, totalSlots: SLOTS,
+      organizerEmail: `ps-org-${Date.now()}@trackb.test`, organizerName: 'Org',
+    }),
+  }) as never);
+  const createdBody = await cres.json() as { shareToken?: string };
+  const token = createdBody.shareToken as string;
+  if (!token) {
+    return { name: 'E) Party-split slot race', verdict: 'NEMĚŘITELNÉ',
+      detail: `session se nezaložila: HTTP ${cres.status} ${JSON.stringify(createdBody).slice(0, 160)}`,
+      statuses: { [cres.status]: 1 } };
+  }
+
+  const before = await remainingQty(ticketTypeId);
+  const { POST: pay } = await import('@/app/api/checkout/party-split/[token]/route');
+  const results = await Promise.all(
+    Array.from({ length: N }, (_, i) =>
+      pay(new Request(`http://localhost:3000/api/party/${token}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          payerEmail: `ps-${i}-${Date.now()}@trackb.test`, payerName: `Payer ${i}`,
+          paymentMethod: 'gopay', locale: 'cs',
+        }),
+      }) as never, { params: { token } } as never)
+        .then(async (r) => ({ status: r.status, body: await r.json() as { slotIndex?: number } }))
+        .catch(() => ({ status: 599, body: {} as { slotIndex?: number } }))),
+  );
+  const after = await remainingQty(ticketTypeId);
+  const ok = results.filter((r) => r.status === 200);
+  const slotIdx = ok.map((r) => r.body.slotIndex).filter((x) => x !== undefined);
+  const uniqueSlots = new Set(slotIdx).size;
+  const drop = before - after;
+
+  const held = ok.length === SLOTS && uniqueSlots === ok.length && drop === ok.length;
+  return {
+    name: 'E) Party-split slot race',
+    verdict: held ? 'DRŽÍ' : 'PRŮSTŘEL',
+    detail: `${SLOTS} volných slotů, ${N} souběžných přijetí → 200×${ok.length} (čekáno ${SLOTS}), `
+      + `unikátních slotIndex=${uniqueSlots} (čekáno ${ok.length}, žádný dvakrát), `
+      + `remaining_qty ${before}→${after} (pokles ${drop}, čekáno ${ok.length})`,
+    statuses: tally(results.map((r) => r.status)),
+  };
+}
+
 // ── Golden-path volání pro D/C (order-completed, seat hold) ───────────────────
 async function callOrderCompleted(orderId: string): Promise<number> {
   const req = new NextRequest('http://localhost/api/internal/order-completed', {
@@ -311,6 +380,7 @@ async function main(): Promise<void> {
   const results: AttackResult[] = [];
   results.push(await attackD());
   results.push(await attackC());
+  results.push(await attackE());
 
   // POZOR: NEpřepisujeme FINDINGS_CONCURRENCY.md (obsahuje ručně psanou A/B/P1 analýzu).
   // D/C výsledky vypíšeme na stdout + uložíme JSON do scratchpadu; integraci do FINDINGS
