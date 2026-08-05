@@ -895,10 +895,16 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     // 2) Najdi/založ guest usera
-    const userId = await createOrGetGuestUser(client, {
+    const userId = await runWithServiceContext(() =>
+      // POZOR: `client` z db().connect() je SYROVE pripojeni — RlsAwarePool
+      // nastavuje GUC jen ve svem query(), takze pres `client` neni
+      // app.role vubec nastaveny a app_is_service() je false, i kdyz
+      // routa v servisnim kontextu bezi. Helper proto dostava db().
+      createOrGetGuestUser(db(), {
       email: input.buyerEmail,
       name: input.buyerName,
-    });
+      }),
+    );
 
     // Per-event purchase limit (mig 433) — max_tickets_per_buyer na events omezuje
     // celkový počet vstupenek napříč všemi ticket_types pro danou akci.

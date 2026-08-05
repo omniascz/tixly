@@ -3566,3 +3566,67 @@ které funguje nezávisle na tom, která z observací §84/§87 je přesná.
 
 Migrace 459 (promotérská UPDATE větev) je tím **potvrzená jako slepá ulička** —
 uvolnění `p_users_promoter_upsert` v tomhle testu nepomohlo vůbec.
+
+---
+
+## §88 ✅ Guest-create srovnán na vzorec: 8 pádů → 3, izolace ověřena
+
+### Skutečná příčina: `db().connect()` obchází nastavení GUC
+
+`checkout/route.ts` **už v servisním kontextu běžel** (`runWithServiceContext`
+na ř. 235) a přesto padal. Proč:
+
+```
+RlsAwarePool.query()   → otevře transakci a nastaví SET LOCAL app.role / app.current_*
+db().connect()         → vrátí SYROVÉ pg připojení — žádné GUC se nenastaví
+```
+
+Routy, které si berou `client = await db().connect()` a pak volají
+`client.query(...)`, tedy **běží bez jakéhokoli RLS kontextu**, i když je
+volající obalený `runWithServiceContext`. `app_is_service()` je tam false.
+
+To vysvětluje i to, proč `runAsActivePromoter` u admin cest „nestačil" —
+GUC se přes `client` vůbec nedostal do DB.
+
+### Oprava: helper dostává `db()`, ne `client`
+
+Ve všech 8 volajících (`comps`, `guestlist`, `press`, `accreditation`,
+`box-office/sell`, `waitlist`, `checkout`, `party-split/[token]`):
+
+```ts
+await runWithServiceContext(() => createOrGetGuestUser(db(), { … }))
+```
+
+`AsyncLocalStorage` kontext se po doběhnutí vrací sám, takže **do zbytku
+requestu nepřeteče**. Guest-create tím vypadává z transakce volajícího —
+osiřelý guest při selhání zbytku routy je menší problém než rozbitá cesta
+(vědomý ústupek).
+
+### Výsledek
+
+```
+před:  Tests  8 failed | 34 passed | 1 skipped  (43)
+po:    Tests  3 failed | 39 passed | 1 skipped  (43)
+```
+
+Zbylé 3 jsou **zastaralé aserce** — testy tvrdí, že bug pořád existuje:
+
+```
+waitlist    expected undefined to be '23514'      ← chyba UŽ NENÍ (mig 457)
+box-office  expected 404 to be >= 500             ← 500 UŽ NENÍ
+```
+
+### 🔒 IZOLACE OVĚŘENA (viselo čtyři kola)
+
+```
+promotér A:  vlastní zákazník=1 (čeká 1)   CIZÍ zákazník=0 (čeká 0)
+buyer:       vlastní řádek=1 (čeká 1)      CIZÍ člověk=0 (čeká 0)
+```
+
+Ochrana z 453 tedy **drží** — oprava se schématu vůbec nedotkla.
+
+### Migrace 459 = potvrzená slepá ulička
+
+Zakomentována a označena přímo v souboru. Řešila symptom (promotérská UPDATE
+větev) místo příčiny (chybějící GUC na syrovém připojení). Žádná změna RLS
+nebyla potřeba.

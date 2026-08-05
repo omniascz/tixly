@@ -7,7 +7,7 @@
  * Body: { sessionId, ticketTypeId, quantity, paymentType, cashTenderedHalire? }
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 import { runAsPromoter } from '@/lib/admin-auth';
 
@@ -80,11 +80,19 @@ export async function POST(
       // pořád přepíše jméno na účtu, i když patří registrovanému zákazníkovi.
       // Že je to takhle žádoucí, je samostatné produktové rozhodnutí; tenhle
       // refactor chování nemění.
-      const userId = await createOrGetGuestUser(client, {
+      const userId = await runWithServiceContext(() =>
+        // Zapis do identity.users je SERVISNI operace — 9 rout to tak dela,
+        // 4 admin routy byly odchylka (FINDINGS 86). Pod promoterskym
+        // kontextem pada SELECT faze upsertu (ON CONFLICT ... RETURNING
+        // potrebuje konfliktni radek precist) — FINDINGS 87.
+        // Vlastni servisni pripojeni: AsyncLocalStorage kontext se po
+        // dobehnuti vraci sam, takze do zbytku requestu NEPRETECE.
+        createOrGetGuestUser(db(), {
         email: buyerEmail,
         name: buyerName,
         onExisting: 'overwriteName',
-      });
+        }),
+      );
 
       const orderRes = await client.query<{ id: string }>(
         `INSERT INTO orders.orders

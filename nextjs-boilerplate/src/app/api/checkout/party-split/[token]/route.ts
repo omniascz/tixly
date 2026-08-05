@@ -208,10 +208,16 @@ export async function POST(
       // peelu, zmerena zivym behem). Platce je znamy jen e-mailem, takze se
       // pouzije tyz sdileny helper jako v hlavnim checkoutu (route.ts:898) —
       // nezaklada se tu vlastni cesta k vytvoreni uzivatele.
-      const payerUserId = await createOrGetGuestUser(client, {
+      const payerUserId = await runWithServiceContext(() =>
+        // POZOR: `client` z db().connect() je SYROVE pripojeni — RlsAwarePool
+        // nastavuje GUC jen ve svem query(), takze pres `client` neni
+        // app.role vubec nastaveny a app_is_service() je false, i kdyz
+        // routa v servisnim kontextu bezi. Helper proto dostava db().
+        createOrGetGuestUser(db(), {
         email: body.payerEmail,
         name: body.payerName ?? undefined,
-      });
+        }),
+      );
 
       await client.query(
         `INSERT INTO orders.orders

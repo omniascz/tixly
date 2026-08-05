@@ -1,4 +1,21 @@
 --
+-- 🔴 SLEPA ULICKA — NENASAZOVAT. Ponechano jako zaznam merenim vyvraceneho
+--    reseni (FINDINGS 87).
+--
+-- Tahle migrace pridavala promoterskou UPDATE vetev, protoze jsem si myslel,
+-- ze upsert pada na zapisove kontrole. NEPADAL. Nekumulativni bisect ukazal,
+-- ze blokuje SELECT faze (ON CONFLICT ... RETURNING potrebuje konfliktni radek
+-- precist) — uvolneni teto policy nepomohlo VUBEC, zatimco uvolneni kterekoli
+-- SELECT policy stacilo.
+--
+-- Skutecna oprava je v KODU, ne ve schematu: guest-create bezi v servisnim
+-- kontextu jako zbylych 9 zapisovatelu do identity.users (FINDINGS 88).
+-- Zadna zmena RLS neni potreba.
+--
+-- Puvodni obsah nize je ZAKOMENTOVANY.
+--
+
+--
 -- 459_users_promoter_upsert.sql — promotér smí dokončit guest upsert
 --
 -- ── Co je špatně ─────────────────────────────────────────────────────────────
@@ -34,12 +51,12 @@
 -- NENASAZENO NA PRODUKCI.
 --
 
-BEGIN;
+-- BEGIN;
 
-DROP POLICY IF EXISTS p_users_promoter_upsert ON identity.users;
-CREATE POLICY p_users_promoter_upsert ON identity.users
-  FOR UPDATE
-  USING (public.app_current_promoter_id() IS NOT NULL)
-  WITH CHECK (public.app_current_promoter_id() IS NOT NULL);
+-- DROP POLICY IF EXISTS p_users_promoter_upsert ON identity.users;
+-- CREATE POLICY p_users_promoter_upsert ON identity.users
+--   FOR UPDATE
+--   USING (public.app_current_promoter_id() IS NOT NULL)
+--   WITH CHECK (public.app_current_promoter_id() IS NOT NULL);
 
-COMMIT;
+-- COMMIT;

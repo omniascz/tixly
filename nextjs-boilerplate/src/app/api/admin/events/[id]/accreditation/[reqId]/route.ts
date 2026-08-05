@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
@@ -169,10 +169,18 @@ async function issueCompTicket(input: {
     const tt = ttRes.rows[0];
 
     // Find or create shadow user (anonymní akreditační účet)
-    const userId = await createOrGetGuestUser(client, {
+    const userId = await runWithServiceContext(() =>
+      // Zapis do identity.users je SERVISNI operace — 9 rout to tak dela,
+      // 4 admin routy byly odchylka (FINDINGS 86). Pod promoterskym
+      // kontextem pada SELECT faze upsertu (ON CONFLICT ... RETURNING
+      // potrebuje konfliktni radek precist) — FINDINGS 87.
+      // Vlastni servisni pripojeni: AsyncLocalStorage kontext se po
+      // dobehnuti vraci sam, takze do zbytku requestu NEPRETECE.
+      createOrGetGuestUser(db(), {
       email: input.applicantEmail,
       name: input.applicantName,
-    });
+      }),
+    );
 
     const orderId = randomUUID();
     await client.query(

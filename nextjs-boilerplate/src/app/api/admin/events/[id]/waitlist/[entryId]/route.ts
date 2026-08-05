@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 import { randomUUID } from 'crypto';
@@ -77,10 +77,18 @@ export async function PATCH(
 
     // Pozn.: tahle cesta běží v autocommitu (db(), bez BEGIN) — helper transakci
     // neotevírá, takže se chování nemění.
-    const userId = await createOrGetGuestUser(db(), {
+    const userId = await runWithServiceContext(() =>
+      // Zapis do identity.users je SERVISNI operace — 9 rout to tak dela,
+      // 4 admin routy byly odchylka (FINDINGS 86). Pod promoterskym
+      // kontextem pada SELECT faze upsertu (ON CONFLICT ... RETURNING
+      // potrebuje konfliktni radek precist) — FINDINGS 87.
+      // Vlastni servisni pripojeni: AsyncLocalStorage kontext se po
+      // dobehnuti vraci sam, takze do zbytku requestu NEPRETECE.
+      createOrGetGuestUser(db(), {
       email: entry.email,
       name: entry.name,
-    });
+      }),
+    );
 
     const orderId = randomUUID();
     await db().query(
