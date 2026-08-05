@@ -32,3 +32,21 @@ pro `tixly_app` uzavře úplně a routy začnou vracet prázdno (přesně §91).
 Jednořádková oprava: přidat `JOIN catalog.events e ON e.id = <event_id>
 AND e.status = 'published'`. Po §94 routa běží v servisním kontextu, takže
 ji RLS nepodrží.
+
+## R-14 🔴 `events/[id]/alert` — 500 pro všechny (§101)
+
+Dvě příčiny, obě doložené:
+1. Routa nenastaví kontext → obalit `runWithUserContext` (přihlášený).
+2. Anonymní větev `ticket_alerts_select` je po 455 mrtvá
+   (`(uuid)::text = ''` nikdy neplatí) → **potřebuje rozhodnutí**: servisní
+   kontext (vzorec §94), nebo policy větev na `user_id IS NULL`.
+
+Padá až na `RETURNING token`, ne na zápisu — `WITH CHECK (true)` prochází.
+
+## R-12 upřesnění rozsahu (§100)
+
+20 MECHANICKÝCH (přímý `promoter_id`/`user_id` NOT NULL, jedna migrace, žádná
+korelace → §53 se netýká), 2 SLOŽITÉ (`b2b_transactions` až po `b2b_accounts`,
+`eudi_verifications`), 2 NEJASNÉ (`films`/`sport_teams` NULL `promoter_id` =
+sdílený číselník? — **produktové rozhodnutí**; `fan_bonus_issued`).
+7 z 24 v horké cestě, z toho 5 mechanických → cena fakticky nula.

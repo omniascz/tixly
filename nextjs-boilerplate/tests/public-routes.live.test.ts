@@ -154,4 +154,31 @@ d('verejne routy pod tixly_app', () => {
     expect(out.status).toBe(200);
     expect(out.count).toBe(1);
   }, 120_000);
+
+  // ── domereni 3 zbylych rout: events/[id]/alert ────────────────────────────
+  // Katalog predpovida PAD: INSERT ma RETURNING token, takze plati SELECT
+  // policy ticket_alerts_select. Po 455 zni jeji treti vetev
+  //   (app_current_user_id())::text = ''
+  // coz je uuid — nikdy se nerovna prazdnemu retezci. Pro anonyma tedy
+  // neplati zadna vetev. Predpoved neni mereni; merim.
+  const alert = async (headers: Record<string, string>) => {
+    const { POST } = await import('@/app/api/events/[id]/alert/route');
+    const res = await POST(
+      new NextRequest(`http://localhost:3000/api/events/${ids.pubEvent}/alert`,
+        { method: 'POST', headers, body: JSON.stringify({ email: `al_${randomUUID().slice(0, 8)}@t.cz` }) }) as never,
+      { params: { id: ids.pubEvent } } as never);
+    return { status: res.status, body: (await res.text()).slice(0, 120) };
+  };
+
+  it('alert: anonymni prihlaseni k hlidacimu psu', async () => {
+    const out = await alert({ 'content-type': 'application/json' });
+    console.log('[alert anonym]', out);
+    expect(out.status).toBeLessThan(500);
+  }, 120_000);
+
+  it('alert: prihlaseny uzivatel', async () => {
+    const out = await alert({ 'content-type': 'application/json', 'x-user-id': ids.user });
+    console.log('[alert user]', out);
+    expect(out.status).toBeLessThan(500);
+  }, 120_000);
 });

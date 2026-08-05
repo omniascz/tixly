@@ -152,3 +152,168 @@ Na závěru to nic nemění — spíš ho zpřísňuje. Kdyby routa v servisním
 byla, RLS by ji nepodržela kvůli kontextu; takhle ji nepodrží kvůli tomu, že
 policies jsou otevřené. V obou případech byl ten `JOIN` jediná možná obrana,
 a chyběl.
+
+---
+
+## §100 R-12: rozpad 24 tabulek — 20 mechanických, 2 složité, 2 nejasné
+
+Sloupce vytažené z katalogu baseline, ne z paměti.
+
+### MECHANICKÉ — 20 tabulek, přímý sloupec, NOT NULL
+
+**Promotérské (16), přímý `promoter_id NOT NULL`:**
+`analytics.yield_rules`, `brands.event_partnerships`, `catalog.event_reschedules`,
+`catalog.productions`, `catalog.season_pass_products`, `communications.broadcasts`,
+`communications.emergency_announcements`, `orders.guestlist_entries`,
+`orders.lottery_campaigns`, `orders.phone_orders`, `orders.press_accreditations`,
+`orders.school_bookings`, `platform.import_jobs`, `platform.promoter_contacts`,
+`platform.promoter_onboarding`, `pricing.dynamic_pricing_rules`
+
+**Uživatelské (3), přímý `user_id NOT NULL`:**
+`identity.fan_profiles`, `notifications.push_sent_log`, `platform.agent_mandates`
+
+Několik z nich má i `event_id`, ale ten je **redundantní** — `promoter_id` je
+na řádku přímo, takže se přes akci JOINovat nemusí. To je klíčové: **žádná
+z těch 20 nepotřebuje korelovaný poddotaz**, takže se §53 (vnořené RLS, drahá
+korelace na neunikátní sloupec) **netýká vůbec**.
+
+Jeden příklad za všech 16 — zbytek je záměna jména tabulky:
+
+```sql
+ALTER TABLE catalog.productions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY p_productions_scope ON catalog.productions
+  FOR ALL
+  USING      (public.app_is_platform_admin() OR public.app_is_service()
+              OR promoter_id = public.app_current_promoter_id())
+  WITH CHECK (public.app_is_platform_admin() OR public.app_is_service()
+              OR promoter_id = public.app_current_promoter_id());
+```
+
+Tvar je doslova `p_orders_scope` ze §81. `app_is_service()` tam být **musí** —
+servisní cesty (checkout, cron, webhooky) na část těch tabulek sahají.
+
+### SLOŽITÉ — 2 tabulky, vazba přes JOIN
+
+| tabulka | vazba | proč složité |
+|---|---|---|
+| `platform.b2b_transactions` | `account_id` → `platform.b2b_accounts` | tenant není na řádku; **a `b2b_accounts` sama nemá RLS** — policy by korelovala do tabulky bez ochrany, což nic nezaručí. Musí se řešit jako dvojice, nejdřív rodič. |
+| `identity.eudi_verifications` | `user_id` **NULLABLE**, k tomu `event_id`, `order_id` | ověření identity běží i před přihlášením; `user_id IS NULL` řádky by žádná uživatelská větev nepustila. Potřebuje větev přes `order_id`, tj. korelaci do `orders.orders`. |
+
+Tady §53 platí: obě korelují na neunikátní sloupec (`account_id`, `order_id`).
+Ani jedna ale není v listingu s tisíci řádky — `b2b_transactions` se čte po
+jednom účtu, `eudi_verifications` po jedné objednávce. Odhad dopadu: malý.
+**Neměřeno.**
+
+### NEJASNÉ — 2 tabulky, není zřejmé, čí data to jsou
+
+| tabulka | proč nejasné |
+|---|---|
+| `catalog.films`, `catalog.sport_teams` | `promoter_id` je **NULLABLE**. To vypadá na sdílený číselník: film „Duna" nebo tým „Sparta" je jeden pro všechny promotéry, ale promotér si smí založit vlastní. Pak policy musí být `promoter_id IS NULL OR promoter_id = app_current_promoter_id()` — jenže tím se otevře zápis do sdílené části. **NEVÍM**, jestli je to záměr; z kódu se to nedá odvodit, řádky s NULL v seedu nejsou. Rozhodnutí je produktové. |
+| `marketing.fan_bonus_issued` | `user_id` **NULLABLE** + `order_id`, `event_id`. Buď bonus pro hosta bez účtu, nebo nedodělek. |
+
+### d) Dopad na výkon — kolik z 24 je v horkých cestách
+
+Grep přes `app/api/{checkout,scan,webhooks,internal}` a `lib`:
+
+```
+HORKA  analytics.yield_rules            (1)
+HORKA  catalog.productions              (3)
+HORKA  identity.eudi_verifications      (1)
+HORKA  marketing.fan_bonus_issued       (1)
+HORKA  notifications.push_sent_log      (1)
+HORKA  platform.b2b_transactions        (1)
+HORKA  pricing.dynamic_pricing_rules    (2)
+```
+
+**7 z 24 leží v horké cestě. Pět z nich je mechanických**, tzn. predikát je
+`promoter_id = app_current_promoter_id()` — rovnost na indexovaný sloupec,
+`app_current_promoter_id()` je `STABLE`, takže se vyhodnotí jednou na dotaz.
+Podle §53 rozhoduje kardinalita korelace; **tady žádná korelace není**, takže
+cena je fakticky nula. To je jiná situace než u 453, kde predikát sahal do
+čtyř dalších tabulek.
+
+Zbylé dvě horké (`eudi_verifications`, `b2b_transactions`) jsou právě ty
+složité — a obě se čtou po jednom klíči, ne v listingu.
+
+### Souhrn nákladu
+
+| kategorie | tabulek | práce | riziko výkonu |
+|---|---|---|---|
+| MECHANICKÉ | 20 | 1 migrace, 20× týž tvar + izolační test | žádné |
+| SLOŽITÉ | 2 | vlastní návrh; b2b až po `b2b_accounts` | malé, neměřeno |
+| NEJASNÉ | 2 | **produktové rozhodnutí, ne technické** | — |
+
+⚠️ Migrace **nenapsána** dle zadání. Co je potřeba rozhodnout dřív: NULL větev
+u `films`/`sport_teams` (sdílený číselník ano/ne) a jestli `b2b_accounts`
+(taky bez RLS) jde do téhož balíku.
+
+## §101 Doměření tří rout — dvě v pořádku, `alert` rozbitá
+
+### `health/db` ✅ — mimo dosah RLS
+
+Jediný dotaz je `SELECT 1`. Nesahá na tabulku, takže policies nemají co
+vyhodnotit. Pod `tixly_app` funguje z definice; nic k měření.
+
+### `platform/postal/[id]` ✅ — kontext sedí na policy
+
+Routa je obalená v `runWithPlatformAdminContext` (nastaví `app.is_platform_admin
+= 'true'`, `app.role = 'admin'`). Policy:
+
+```
+postal_deliveries_admin  FOR UPDATE  USING (current_setting('app.is_platform_admin', true) = 'true')
+```
+
+Větev existuje a kontext ji splňuje. `UPDATE` je bez `RETURNING`, takže se
+SELECT vrstva neuplatní. Katalogově uzavřeno.
+
+### `events/[id]/alert` 🔴 — 500 pro anonyma i pro přihlášeného
+
+```
+[alert anonym] { status: 500, body: '{"error":"INTERNAL"}' }
+[alert user]   { status: 500, body: '{"error":"INTERNAL"}' }
+```
+
+Příčina **izolována experimentem, ne odvozena.** Tři běhy proti klonu:
+
+```
+ANONYM (zadny GUC)                42501 new row violates RLS policy ... ticket_alerts
+USER bez kontextu (dnesni stav)   42501 new row violates RLS policy ... ticket_alerts
+USER s app.current_user_id        rowCount=1  token=ANO
+```
+
+a rozhodující dvojice, která ukazuje, **která fáze** padá:
+
+```
+anonym BEZ RETURNING    OK rowCount=1
+anonym S RETURNING      42501
+```
+
+**Vkládání projde. Padá `RETURNING token`** — SELECT policy nedovolí přečíst
+právě vložený řádek. `ticket_alerts_insert` má `WITH CHECK (true)`, takže
+zápisová vrstva nikdy problém nebyla.
+
+Dvě nezávislé příčiny, obě reálné:
+
+1. **Routa nikdy nenastaví kontext.** `x-user-id` se čte do proměnné v JS
+   a předá jako sloupec, ale do session GUC se nedostane — routa jede na
+   holém `db().connect()`. Proto padá i přihlášený uživatel.
+2. **Anonymní hlídací pes nemá po 455 žádnou větev.** Třetí větev
+   `ticket_alerts_select` zněla `current_setting('app.user_id','') = ''`
+   (pro anonyma pravda). Migrace 455 ji přepsala na
+   `(app_current_user_id())::text = ''` — a to je **uuid, které se prázdnému
+   řetězci nerovná nikdy**. Větev je mrtvá. Anonym s `user_id IS NULL`
+   neprojde ani druhou větví.
+
+Bod 2 je vedlejší škoda 455: ta migrace opravovala name-drift a přitom
+zavřela over-exposure, o které mluví `FINDINGS_RLS` §4C — jenže spolu s ní
+i legitimní anonymní cestu. **Není to regrese jen kosmetická: featura
+„dej mi vědět, až budou lístky" pro nepřihlášené návštěvníky je pod
+`tixly_app` mrtvá.**
+
+🔒 Oprava má dvě části a **jedna z nich je rozhodnutí, ne kód**: obalit routu
+kontextem uživatele je mechanické, ale co má platit pro anonyma — servisní
+kontext, nebo vlastní policy větev na `user_id IS NULL` — je táž otázka jako
+u veřejných rout ze §94. **NEOPRAVENO**, mimo zadání tohoto kola.
+
+Tím ze seznamu mizí všechny tři routy: 2 v pořádku, 1 rozbitá s doloženou
+příčinou a lokalizovanou fází.
