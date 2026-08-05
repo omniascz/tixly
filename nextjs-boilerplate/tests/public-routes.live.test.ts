@@ -21,6 +21,8 @@ const ids = {
   pubEvent: randomUUID(), draftEvent: randomUUID(),
   pubType: randomUUID(), hiddenType: randomUUID(),
   artist: randomUUID(),
+  hotel: randomUUID(), room: randomUUID(),
+  pubPkg: randomUUID(), draftPkg: randomUUID(),
 };
 const PUB_TITLE = `PUB-${ids.pubEvent.slice(0, 8)}`;
 const DRAFT_TITLE = `DRAFT-${ids.draftEvent.slice(0, 8)}`;
@@ -59,6 +61,22 @@ d('verejne routy pod tixly_app', () => {
              VALUES ($1,$2,$3,'Artist',$4)`,
       [ids.artist, ids.pubEvent, ids.promoter, ARTIST_SLUG])
       .catch((e) => console.log('artist seed:', e.code, e.message.slice(0, 80)));
+
+    // R-13: aktivni balicek na OBOU akcich — na publikovane i na draftu.
+    // Draft musi zustat neviditelny; vsechny ostatni filtry (active, kapacita)
+    // jsou schvalne splnene, aby rozhodoval vyhradne stav akce.
+    await q("INSERT INTO catalog.travel_hotels (id,name,city,stars) VALUES ($1,'Hotel','Praha',4)",
+      [ids.hotel]);
+    await q(`INSERT INTO catalog.travel_hotel_rooms (id,hotel_id,name,capacity,price_per_night_halire)
+             VALUES ($1,$2,'Dvouluzko',2,250000)`, [ids.room, ids.hotel]);
+    for (const [pkgId, evId] of [
+      [ids.pubPkg, ids.pubEvent], [ids.draftPkg, ids.draftEvent],
+    ] as const) {
+      await q(`INSERT INTO catalog.event_travel_packages
+                 (id,event_id,hotel_id,hotel_room_id,checkin_date,checkout_date,total_capacity)
+               VALUES ($1,$2,$3,$4,current_date+30,current_date+32,10)`,
+        [pkgId, evId, ids.hotel, ids.room]);
+    }
   }, 180_000);
 
   afterAll(async () => { await clone?.cleanup(); }, 120_000);
@@ -97,5 +115,43 @@ d('verejne routy pod tixly_app', () => {
       { params: { slug: ARTIST_SLUG } } as never);
     console.log('[artists]', res.status);
     expect(res.status).toBe(200);
+  }, 120_000);
+
+  // ── R-13 / FINDINGS 97 ────────────────────────────────────────────────────
+  const travel = async (eventId: string) => {
+    const { GET } = await import('@/app/api/events/[id]/travel-packages/route');
+    const res = await GET(
+      new NextRequest(`http://localhost:3000/api/events/${eventId}/travel-packages`) as never,
+      { params: { id: eventId } } as never);
+    const body = await res.json() as { packages?: unknown[] };
+    return { status: res.status, count: (body.packages ?? []).length };
+  };
+
+  it('RED: puvodni dotaz BEZ JOINu na events vydal balicek draft akce', async () => {
+    // Presna kopie WHERE z routy pred opravou — dokazuje, ze unik existoval
+    // a ze ho nezachytil zadny z ostatnich filtru.
+    const r = await clone.pool.query(
+      `SELECT p.id FROM catalog.event_travel_packages p
+         JOIN catalog.travel_hotels h ON h.id = p.hotel_id
+         JOIN catalog.travel_hotel_rooms r ON r.id = p.hotel_room_id
+        WHERE p.event_id = $1 AND p.active AND h.active AND r.active
+          AND (p.total_capacity = 0 OR p.reserved_count < p.total_capacity)`,
+      [ids.draftEvent]);
+    console.log('[R-13 RED] draft bez JOINu:', r.rowCount, 'radku');
+    expect(r.rowCount).toBe(1);
+  }, 120_000);
+
+  it('GREEN: routa NEvyda balicky draft akce', async () => {
+    const out = await travel(ids.draftEvent);
+    console.log('[R-13 GREEN draft]', out);
+    expect(out.status).toBe(200);
+    expect(out.count).toBe(0);
+  }, 120_000);
+
+  it('GREEN: routa porad vydava balicky publikovane akce', async () => {
+    const out = await travel(ids.pubEvent);
+    console.log('[R-13 GREEN pub]', out);
+    expect(out.status).toBe(200);
+    expect(out.count).toBe(1);
   }, 120_000);
 });

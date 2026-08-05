@@ -120,3 +120,35 @@ Ručně, každý handler zvlášť:
 ⚠️ Slovo je **obaleno, ne opraveno**: kontext je podle vlastnictví dat správný,
 ale pozitivní cesta těchhle rout **není předvedena**. Přibývají k sedmi
 z §95 — devět obalených bez důkazu funkčnosti.
+
+---
+
+## §99 ✅ R-13 opraveno: `events/travel-packages` vydávalo balíčky nezveřejněných akcí
+
+Doplněn `JOIN catalog.events e ON e.id = p.event_id AND e.status = 'published'` —
+týž tvar, jaký mají sousední routy `events/[id]/accreditation` a
+`events/[id]/calendar`.
+
+**RED→GREEN pod `tixly_app`, obě akce naseedované se stejným aktivním balíčkem**
+(kapacita 10, `active` všude true — aby rozhodoval výhradně stav akce):
+
+```
+[R-13 RED]         draft, puvodni dotaz bez JOINu : 1 radek   ← unik
+[R-13 GREEN draft] { status: 200, count: 0 }
+[R-13 GREEN pub]   { status: 200, count: 1 }
+Tests  7 passed (7)
+```
+
+RED není rekonstrukce z paměti — je to doslovná kopie původního `WHERE`
+pouštěná proti témuž klonu. Ukazuje, že žádný z ostatních filtrů (`p.active`,
+`h.active`, `r.active`, kapacita) únik nechytal.
+
+🔧 **Oprava mého tvrzení z §97.** Napsal jsem tam, že routa „po §94 běží
+v servisním kontextu". **Neběží** — §94 tyhle tři routy záměrně neobalil,
+protože se filtrují samy. Routa jede na obyčejném `db().connect()` a projde
+proto, že tabulky `catalog.travel_*` mají policy `USING (true)`.
+
+Na závěru to nic nemění — spíš ho zpřísňuje. Kdyby routa v servisním kontextu
+byla, RLS by ji nepodržela kvůli kontextu; takhle ji nepodrží kvůli tomu, že
+policies jsou otevřené. V obou případech byl ten `JOIN` jediná možná obrana,
+a chyběl.

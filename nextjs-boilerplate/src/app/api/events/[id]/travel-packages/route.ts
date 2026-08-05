@@ -3,6 +3,12 @@
  *
  * Veřejný endpoint — vrací dostupné hotelové balíčky pro daný event.
  * Buyer je zobrazí v checkout stránce v sekci "Ubytování".
+ *
+ * JOIN na catalog.events s e.status = 'published' je BEZPEČNOSTNÍ, ne kosmetický
+ * (FINDINGS 97 / R-13): tabulky travel_* mají policy USING (true), takže RLS tuhle
+ * routu nijak nedrží. Bez toho JOINu vydá uhodnuté UUID rozpracované akce její
+ * ceny, hotely a kapacity dřív, než je akce zveřejněná. Vzorec je týž jako
+ * u sousedních rout events/[id]/{accreditation,calendar}.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
@@ -59,6 +65,9 @@ export async function GET(
          COALESCE(p.price_per_night_override_halire, r.price_per_night_halire) AS price_per_night_halire,
          p.display_order
        FROM catalog.event_travel_packages p
+       JOIN catalog.events e
+         ON e.id = p.event_id
+        AND e.status = 'published'
        JOIN catalog.travel_hotels h ON h.id = p.hotel_id
        JOIN catalog.travel_hotel_rooms r ON r.id = p.hotel_room_id
        WHERE p.event_id = $1
