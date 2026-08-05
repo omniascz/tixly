@@ -2742,8 +2742,8 @@
    "cmd": "ALL",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
-   "qual": "((organizer_user_id)::text = current_setting('app.current_user_id'::text, true))",
-   "wcheck": ""
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (organizer_user_id = app_current_user_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (organizer_user_id = app_current_user_id()))"
   },
   {
    "tbl": "orders.party_split_sessions",
@@ -2762,6 +2762,15 @@
    "roles": "{public}",
    "qual": "(session_id IN ( SELECT party_split_sessions.id\n   FROM orders.party_split_sessions\n  WHERE ((party_split_sessions.organizer_user_id)::text = current_setting('app.current_user_id'::text, true))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "orders.party_split_slots",
+   "pol": "party_split_slots_write",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (session_id IN ( SELECT s.id\n   FROM orders.party_split_sessions s\n  WHERE (s.organizer_user_id = app_current_user_id()))))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (session_id IN ( SELECT s.id\n   FROM orders.party_split_sessions s\n  WHERE (s.organizer_user_id = app_current_user_id()))))"
   },
   {
    "tbl": "orders.payment_events",

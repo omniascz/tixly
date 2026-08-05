@@ -26,11 +26,7 @@ const ids = {
 
 d('party-split přes skutečné handlery', () => {
   beforeAll(async () => {
-    clone = await createLiveClone('party-split', {
-      migrations: ['450_tickets_dedup_unique.sql', '451_orders_payment_provider_pos.sql',
-                   '452_tracking_events_provider_tiktok.sql', '456_drop_base64url_defaults.sql',
-                   '457_orders_payment_provider_channels.sql'],
-    });
+    clone = await createLiveClone('party-split');
     const q = (s: string, p: unknown[] = []) => clone.pool.query(s, p);
     await q(`INSERT INTO identity.users (id,email,name,gdpr_consent_at) VALUES ($1,$2,'U',now())`,
       [ids.user, `ps_${ids.user.slice(0, 8)}@t.cz`]);
@@ -200,5 +196,51 @@ d('party-split přes skutečné handlery', () => {
     expect(before - mid).toBe(1);      // prvni prijeti: presne 1
     expect(mid - after).toBe(1);       // druhe prijeti: dalsi slot, zase presne 1
     expect(b2.slotIndex).not.toBe(b1.slotIndex);  // NE tyz slot dvakrat
+  }, 180_000);
+
+  it('IZOLACE: cizi uzivatel nevidi ani nezapise do cizi session', async () => {
+    // Bez teto kontroly by 458 mohla tabulku jen otevrit.
+    const { POST: create } = await import('@/app/api/checkout/party-split/route');
+    const r = await create(new Request('http://localhost:3000/api/checkout/party-split', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-user-id': ids.user },
+      body: JSON.stringify({
+        eventId: ids.event, ticketTypeId: ids.ticketType, totalSlots: 2,
+        organizerEmail: `iso_${randomUUID().slice(0, 6)}@t.cz`, organizerName: 'Iso',
+      }),
+    }) as never);
+    expect(r.status).toBe(201);
+    const sessionId = (await r.json()).sessionId as string;
+
+    // cizi uzivatel = jine app.current_user_id, BEZ servisniho kontextu
+    const stranger = randomUUID();
+    await clone.pool.query(
+      "INSERT INTO identity.users (id,email,name,gdpr_consent_at) VALUES ($1,$2,'S',now())",
+      [stranger, `str_${stranger.slice(0, 8)}@t.cz`]);
+
+    const { Pool } = await import('pg');
+    const appPool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const c = await appPool.connect();
+    try {
+      await c.query('BEGIN');
+      await c.query(`SET LOCAL app.current_user_id = '${stranger}'`);
+      await c.query("SET LOCAL app.role = 'buyer'");
+
+      // status='open' je verejne citelny zamerne (sdileni odkazu), takze
+      // izolaci merime na ZAPISU a na neverejnem stavu
+      const upd = await c.query(
+        "UPDATE orders.party_split_sessions SET status = 'cancelled' WHERE id = $1",
+        [sessionId]);
+      expect(upd.rowCount).toBe(0);          // cizi session NELZE zmenit
+
+      const ins = await c.query(
+        `INSERT INTO orders.party_split_slots (session_id, slot_index, status)
+         VALUES ($1, 99, 'pending') ON CONFLICT DO NOTHING`, [sessionId])
+        .then((x) => x.rowCount).catch(() => -1);
+      expect(ins).toBeLessThanOrEqual(0);    // cizi slot NELZE vlozit
+      await c.query('ROLLBACK');
+    } finally {
+      c.release(); await appPool.end();
+    }
   }, 180_000);
 });

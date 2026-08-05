@@ -27,6 +27,7 @@
 import { Pool } from 'pg';
 import { randomUUID } from 'crypto';
 import { readFile } from 'fs/promises';
+import { readdirSync } from 'fs';
 import { join } from 'path';
 
 const NEON_API = 'https://console.neon.tech/api/v2';
@@ -35,12 +36,26 @@ const PARENT_BRANCH = 'br-rough-paper-alom0zky';
 const DB_NAME = 'neondb';
 const ROLE = 'neondb_owner';
 
-/** Migrace, které ještě NEJSOU na produkci → klon je bez nich. */
-export const PENDING_MIGRATIONS = [
-  '450_tickets_dedup_unique.sql',
-  '451_orders_payment_provider_pos.sql',
-  '452_tracking_events_provider_tiktok.sql',
-];
+/**
+ * Migrace, které ještě NEJSOU na produkci → klon je bez nich.
+ *
+ * ⚠️ Seznam se čte z disku, NENÍ zadrátovaný. Dřív tu byl pevný výčet
+ * 450–452, takže po přidání 453–457 testovala sada schéma o pět migrací
+ * pozadu — nástroj měřil něco jiného, než co poběží. Táž třída jako pevně
+ * zadaná role `neondb_owner` (FINDINGS §77, §78): obojí tiše posunulo
+ * měřenou realitu vedle skutečné.
+ *
+ * Baseline a globals se přeskakují — klon se dělá z produkční větve, kde
+ * schéma už je; aplikují se jen migrace NAD ním.
+ */
+function discoverPendingMigrations(): string[] {
+  return readdirSync(join('..', 'migrations'))
+    .filter((f) => /^\d{3}_.*\.sql$/.test(f))   // 000_baseline* má prefix 000 → vypadne níž
+    .filter((f) => !f.startsWith('000_'))
+    .sort();
+}
+
+export const PENDING_MIGRATIONS: string[] = discoverPendingMigrations();
 
 export const hasNeonKey = Boolean(process.env.NEON_API_KEY);
 

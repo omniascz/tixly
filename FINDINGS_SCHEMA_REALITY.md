@@ -3245,3 +3245,80 @@ s explicitním `WITH CHECK`. Route pak může zůstat v service kontextu, jak je
 Alternativa (zabalit routu do uživatelského kontextu) by šla proti vzorci:
 zakládání session je servisní operace stejně jako zakládání objednávky, a
 `orders.orders` to řeší servisní větví.
+
+---
+
+## §80 Migrace 458 + druhý pevný seznam, který obcházel měření
+
+### 1a) Nejistota uzavřena: platí 9, ne 10
+
+Dřívějších „10 řádků FAIL" byl můj chybný grep (vzor chytal i řádek navíc).
+Čistý `grep "^ FAIL "` dává **9**, což souhlasí se souhrnem. Desátý pád
+neexistoval.
+
+### 1b) `PENDING_MIGRATIONS` čte disk — a našel se DRUHÝ pevný seznam
+
+Fixture měla zadrátovaný výčet 450–452, takže testovala schéma **o pět migrací
+pozadu**. Nově se čte z `migrations/` dynamicky, takže nový soubor nevyžaduje
+úpravu testu.
+
+🔧 **Jenže to nestačilo.** Tři testy (`party-split`, `publish-events`,
+`consent-purge`) si předávaly **vlastní** seznam přes `createLiveClone(…, { migrations: […] })`,
+který discovery přebil. Migrace 458 se proto neaplikovala a RED zůstal RED,
+i když migrace byla správná — hodinu jsem hledal chybu v policy, která tam
+nebyla.
+
+Je to potřetí táž třída: **pevně zadaná hodnota v nástroji tiše posune měřenou
+realitu vedle skutečné.** Napřed role (`neondb_owner`), pak seznam migrací ve
+fixture, teď seznam v jednotlivých testech. Explicitní seznamy odstraněny.
+
+### 1c) Nové referenční číslo: 7 ze 43
+
+```
+před 458:  Tests  9 failed | 32 passed | 1 skipped  (42)
+po  458:   Tests  7 failed | 35 passed | 1 skipped  (43)
+```
+
+Zbylých 7:
+
+| příčina | testů |
+|---|---|
+| `identity.users` guest-create helper (§31) | 5 |
+| `waitlist` — test čeká `23514`, dostane `42501` | 1 |
+| `box-office` — test čeká ≥500, dostane 404 | 1 |
+
+⚠️ Poslední dva **nejsou nové pády, ale zastaralé aserce**: migrace 457 CHECK
+opravila, takže cesta padá o vrstvu dál (na guest-create RLS) a test tvrdí
+špatnou příčinu. Skutečně rozbitá zůstává **jedna třída — guest-create helper.**
+
+## §81 ✅ 458: party-split pod produkční rolí, izolace ověřena
+
+`party_split_sessions` měla jedinou zapisovatelnou policy bez
+`app_is_service()` a bez `WITH CHECK`; `party_split_slots` neměla
+zapisovatelnou policy vůbec. Vzorec rozhodl: **355 policies v baseline
+servisní větev má** (`orders.orders` → `p_orders_scope`).
+
+Obě tabulky doplněny na tvar
+`app_is_platform_admin() OR app_is_service() OR <vlastník>` s explicitním
+`WITH CHECK`. Route zůstává v `runWithServiceContext` — zakládání session je
+servisní operace stejně jako zakládání objednávky.
+
+**RED→GREEN pod `tixly_app`:**
+
+```
+RED   4 failed   new row violates row-level security policy … party_split_sessions
+GREEN 7 passed   create 201 │ dekrement 100→99 │ opakované: slot 0, slot 1, 99→98→97
+```
+
+🔒 **Izolace ověřena, ne předpokládána.** Nový test pouští cizího uživatele
+(jiné `app.current_user_id`, bez servisního kontextu) proti cizí session:
+
+```
+UPDATE cizí session       → rowCount 0
+INSERT cizí slot          → odmítnut
+```
+
+Bez té kontroly by oprava mohla tabulku jen otevřít. `party_split_sessions_public_read`
+(SELECT nad `status='open'`) zůstal beze změny — sdílení odkazu je smysl featury.
+
+`rls-snapshot.json` přegenerován: **599 policies** (bylo 598), gate prochází.

@@ -22,7 +22,7 @@ const call = async () => {
 
 d('consent-log-purge', () => {
   beforeAll(async () => {
-    clone = await createLiveClone('consent-purge', { migrations: [] });
+    clone = await createLiveClone('consent-purge');
     process.env.INTERNAL_SERVICE_TOKEN = TOKEN;
   }, 180_000);
 

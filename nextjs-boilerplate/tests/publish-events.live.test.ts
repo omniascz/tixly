@@ -24,10 +24,7 @@ const ids = {
 
 d('v1/publish/events PUT pres skutecny handler', () => {
   beforeAll(async () => {
-    clone = await createLiveClone('publish-events', {
-      migrations: ['450_tickets_dedup_unique.sql', '451_orders_payment_provider_pos.sql',
-                   '452_tracking_events_provider_tiktok.sql'],
-    });
+    clone = await createLiveClone('publish-events');
     const q = (s: string, p: unknown[] = []) => clone.pool.query(s, p);
     await q('INSERT INTO identity.users (id,email,name,gdpr_consent_at) VALUES ($1,$2,$3,now())',
       [ids.user, `pe_${ids.user.slice(0, 8)}@t.cz`, 'U']);
