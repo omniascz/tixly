@@ -3503,3 +3503,66 @@ zahájení promotérské transakce.
 **Migrace 459 je tím pádem pravděpodobně slepá ulička** — řeší symptom
 (chybějící promotérská UPDATE větev) místo příčiny (route běží v jiném
 kontextu, než vzorec předepisuje).
+
+---
+
+## §87 Nekumulativní bisect: blokuje FÁZE ČTENÍ, ne zápisu
+
+Předchozí bisect (§85) uvolňoval policies kumulativně, takže izoloval jen
+poslední krok. Zopakováno **s vracením** každého kroku:
+
+```
+policy                     cmd     USING CHECK
+p_users_write              ALL     ano   ano
+p_users_promoter_insert    INSERT  ne    ano
+p_users_promoter_upsert    UPDATE  ano   ano
+p_users_select_self        SELECT  ano   ne
+p_users_select_promoter    SELECT  ano   ne
+p_users_select_buyer       SELECT  ano   ne
+
+fáze INSERT pokrývá: p_users_write, p_users_promoter_insert
+fáze UPDATE pokrývá: p_users_write, p_users_promoter_upsert
+```
+
+Výsledek (každá uvolněna SAMA, pak vrácena):
+
+```
+p_users_write            → PROŠLO
+p_users_select_buyer     → PROŠLO      ← !
+p_users_select_promoter  → PROŠLO      ← !
+p_users_select_self      → PROŠLO      ← !
+p_users_promoter_insert  → 42501
+p_users_promoter_upsert  → 42501
+```
+
+🎯 **Uvolnění KTERÉKOLI ze tří SELECT policies stačí.** Blokující fáze je tedy
+**viditelnost konfliktního řádku**, ne zápisová kontrola — `ON CONFLICT DO
+UPDATE … RETURNING id` potřebuje řádek přečíst. Uvolnění zápisových policies
+(`_insert`, `_upsert`) naopak nepomůže vůbec.
+
+Tím se zároveň vysvětluje §85: `p_users_write` má `FOR ALL`, takže jeho
+`USING` platí i pro SELECT — uvolněním se otevřelo čtení, ne zápis. Nebyla to
+tedy záhada s permisivním OR, jak jsem si myslel; jen jsem sledoval špatnou fázi.
+
+### 🔧 Rozpor s §84, který NEUMÍM vysvětlit
+
+§84 měřilo upsert nad uživatelem, který **byl** viditelný (`viditelný=1`), a
+přesto padl. Tenhle experiment říká, že viditelnost je právě ten diskriminátor.
+Obě měření nemůžou platit zároveň.
+
+Rozdíl v setupu: §84 mělo konfliktní řádek se vztahem k promotérovi (vlastní
+zákazník přes `orders`), §87 řádek bez jakéhokoli vztahu. **Která z těch dvou
+observací je správná, NEVÍM** — na rozřešení už nezbyl kontext. Nechávám
+obě zapsané, protože z nich plyne opačný závěr o tom, jestli jde věc opravit
+bez sáhnutí na 453.
+
+### Co z toho platí bez ohledu na ten rozpor
+
+Doporučení z §86 se **nemění a je jím spíš posílené**: pod servisním kontextem
+projde `p_users_select_self` (má větev `app_is_service()`) i `p_users_write`,
+takže obě fáze — čtení i zápis — jsou pokryté bez jakékoli změny schématu.
+Vzorec (9 rout servisně, 4 admin routy jako odchylka) tedy míří na řešení,
+které funguje nezávisle na tom, která z observací §84/§87 je přesná.
+
+Migrace 459 (promotérská UPDATE větev) je tím **potvrzená jako slepá ulička** —
+uvolnění `p_users_promoter_upsert` v tomhle testu nepomohlo vůbec.
