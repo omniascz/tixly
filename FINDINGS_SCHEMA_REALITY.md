@@ -3630,3 +3630,60 @@ Ochrana z 453 tedy **drží** — oprava se schématu vůbec nedotkla.
 Zakomentována a označena přímo v souboru. Řešila symptom (promotérská UPDATE
 větev) místo příčiny (chybějící GUC na syrovém připojení). Žádná změna RLS
 nebyla potřeba.
+
+---
+
+## §89 🔧 KOREKCE §88: `db().connect()` GUC NASTAVUJE. Moje diagnóza byla špatná.
+
+§88 tvrdilo, že `db().connect()` vrací syrové připojení bez GUC a že proto
+admin cesty běžely „bez kontextu". **Změřeno — neplatí:**
+
+```
+BEZ kontextu             role=null      prom=null    app_is_service()=false
+runWithServiceContext    role=system    prom=null    app_is_service()=true
+runWithPromoterContext   role=promoter  prom=<uuid>  app_is_service()=false
+```
+
+`RlsAwarePool.connect()` (`rls-pool.ts:174`) čte `tenantStore` a nastavuje
+session-level GUC, plus obaluje `release()` resetem. Funguje přesně tak,
+jak má.
+
+**Proč tedy oprava z §88 zabrala:** změnil jsem `createOrGetGuestUser(client, …)`
+na `runWithServiceContext(() => createOrGetGuestUser(db(), …))` — a účinná byla
+změna **kontextu** (promotér → service), ne typ připojení. Pod servisním
+kontextem projde SELECT fáze upsertu (§87). Připsal jsem správnou opravu
+špatné příčině.
+
+Premisa „176 rout jede bez kontextu" je tím **vyvrácená**.
+
+## §90 Rozsah bez kontextu: 25 ze 172 — a únik to není
+
+```
+rout používajících db().connect()      172
+z toho BEZ jakéhokoli runWith*Context   25
+```
+
+Co takové připojení reálně vidí (změřeno pod `tixly_app`, bez GUC):
+
+| tabulka | vidí | proč |
+|---|---|---|
+| `identity.users` | **0** | fail-closed — ochrana z 453 drží |
+| `orders.orders` | **0** | fail-closed |
+| `tickets.tickets` | **0** | fail-closed |
+| `orders.ticket_transfers` | **0** | fail-closed |
+| `platform.promoters` | 1 | záměrný `USING (true)` public read (§34) |
+| `catalog.travel_hotels` | 1 | záměrný `USING (true)` public read (§34) |
+
+🟢 **Únik to není.** Vidět jsou právě ty dvě tabulky, které mají `USING (true)`
+vědomě (veřejný katalog). Vše ostatní je fail-closed.
+
+🟡 **Opačný problém ale existuje:** část z těch 25 rout je user-scoped nebo
+platformních (`my/orders/[id]/upgrade`, `my/tickets/[ticketId]/transfer`,
+`platform/travel/hotels`, `platform/postal`, `admin/b2b/[accountId]/deposit`,
+`internal/cron/*`). Ty pod produkční rolí uvidí **prázdno** — tedy tiše
+nefunkční cesta, ne únik. Kolik z nich je tím reálně rozbitých, **NEZMĚŘENO**;
+většina veřejných (`discover`, `artists`, `editorial`, `postal-fees`,
+`carbon-offset-settings`) je v pořádku.
+
+**Neopravuji** — zadání bylo změřit rozsah a opravit jen prokázaný únik.
+Ten se nepotvrdil.
