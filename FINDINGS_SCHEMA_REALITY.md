@@ -3167,3 +3167,81 @@ uživatelská — to je návrh, ne oprava naslepo.
 ⚠️ **Dokud se nerozhodne, zůstává neměřené i to, co §70 hlásilo jako změřené.**
 Oversell na slotech pod produkční rolí neznáme; sekvenční průchod pod ownerem
 o produkci nevypovídá.
+
+---
+
+## §78 Default live sady otočen na `tixly_app` — a hned to chytilo 9 z 42
+
+Zápis do dokumentu tuhle chybu nezastavil (spadl jsem do ní podruhé, §77),
+takže obrana je nově v nástroji:
+
+```
+tests/helpers/live-fixture.ts   DEFAULT = tixly_app (RLS platí)
+                                LIVE_AS_OWNER=1 → owner, jen na výslovné vyžádání
+```
+
+Každý běh navíc hlásí roli:
+`[live-fixture] handlery běží jako: tixly_app (RLS platí)`
+
+Totéž v `admin-guest.live.test.ts` a `checkout-guest.live.test.ts`, které měly
+vlastní kopii toho přepínače (`LIVE_AS_APP_ROLE` už v repu není).
+
+### Self-check: co pod ownerem prošlo, musí teď spadnout
+
+`party-split.live.test.ts` — pod starým defaultem 6/6 PROŠLO, po otočení:
+
+```
+new row violates row-level security policy for table "party_split_sessions"  (42501)
+```
+
+Nástroj tedy chytá přesně tu třídu, kterou dokument nezastavil.
+
+### VERDIKT 2c: 9 z 42 testů padá pod produkční rolí
+
+```
+Test Files  2 failed | 6 passed | 1 skipped   (9)
+Tests       9 failed | 32 passed | 1 skipped  (42)
+```
+
+**~21 % dosud „ověřených" cest pod produkční rolí padá.**
+
+### Roztřídění pádů
+
+| příčina | testů | SQLSTATE | co to je |
+|---|---|---|---|
+| `party_split_sessions` bez servisní větve | 3 | 42501 | policy porovnává `app.current_user_id`, route běží v service kontextu |
+| `identity.users` guest-create helper | 5 | 42501 (USING) | známé z §31 — `ON CONFLICT DO UPDATE` neprojde `USING` |
+| `walkin` vs CHECK | 1 | 23514 | **už opraveno migrací 457**, fixture ji ale neaplikuje |
+| `box_office` chybí `expires_at` | 1 | 23502 | T-BOXOFFICE-EXPIRES, neopraveno |
+
+⚠️ Jeden z devíti pádů je artefakt fixture: `PENDING_MIGRATIONS` aplikuje jen
+450–452, takže 456/457 na klonu nejsou. Po jejich doplnění by `walkin` prošel.
+
+**Neopravuji** — zadání bylo změřit rozsah.
+
+## §79 Návrh k `party_split_sessions`: chybí servisní větev (vzorec, ne úvaha)
+
+Jak to řeší tabulky, které fungují:
+
+```
+policies s app_is_service() v baseline:  355
+
+orders.orders → p_orders_scope:
+  USING (app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()) OR EXISTS (…))
+
+orders.party_split_sessions → party_split_sessions_owner:
+  USING (organizer_user_id::text = current_setting('app.current_user_id', true))
+  ← žádný platform_admin, žádný service, žádný WITH CHECK
+```
+
+`party_split_sessions` je **výjimka, ne pravidlo**. 355 policies servisní větev
+má; tahle ne. A `party_split_slots` má dokonce **jen `FOR SELECT` policy** —
+zapisovatelnou nemá vůbec.
+
+**Návrh (NEAPLIKOVÁN):** doplnit policies do tvaru, který používá zbytek
+schématu — `app_is_platform_admin() OR app_is_service() OR <vlastnictví>`,
+s explicitním `WITH CHECK`. Route pak může zůstat v service kontextu, jak je.
+
+Alternativa (zabalit routu do uživatelského kontextu) by šla proti vzorci:
+zakládání session je servisní operace stejně jako zakládání objednávky, a
+`orders.orders` to řeší servisní větví.

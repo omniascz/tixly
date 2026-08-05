@@ -103,13 +103,16 @@ describe.skipIf(!apiKey)('checkout — guest-create (live, celá cesta)', () => 
 
     pool = new Pool({ connectionString: uri, max: 4 });
 
-    // LIVE_AS_APP_ROLE=1 → handlery jedou jako tixly_app (BYPASSRLS=false),
-    // tedy pod rolí, kterou má používat produkce. Default = neondb_owner.
-    if (process.env.LIVE_AS_APP_ROLE === '1') {
+    // Handlery jedou jako `tixly_app` (BYPASSRLS=false), tedy pod rolí, kterou
+    // má používat produkce. `LIVE_AS_OWNER=1` to přepne na ownera — jen tam,
+    // kde test měří něco jiného než oprávnění. Default se otočil, protože
+    // owner RLS míjí a sada tím hlásila falešná PROŠLO (FINDINGS §77).
+    if (process.env.LIVE_AS_OWNER !== '1') {
       const pw = `LiveTest_${randomUUID().slice(0, 12)}`;
       await pool.query(`ALTER ROLE tixly_app WITH PASSWORD '${pw}'`);
       process.env.DATABASE_URL = uri.replace(/\/\/[^@]+@/, `//tixly_app:${pw}@`);
     }
+    console.log(`[live] role: ${process.env.LIVE_AS_OWNER === '1' ? 'neondb_owner (RLS SE NEMĚŘÍ)' : 'tixly_app'}`);
     for (const m of PENDING_MIGRATIONS) {
       await pool.query(await readFile(`../migrations/${m}`, 'utf8'));
     }

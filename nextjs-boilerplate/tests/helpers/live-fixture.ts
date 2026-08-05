@@ -95,20 +95,27 @@ export async function createLiveClone(
   // Seed a asserty jdou VŽDY přes owner pool (ground truth, bypassrls).
   const pool = new Pool({ connectionString: uri, max: 6 });
 
-  // `LIVE_AS_APP_ROLE=1` → route handlery se připojí jako `tixly_app`
-  // (BYPASSRLS=false), tedy pod rolí, kterou má používat produkce.
-  // Default zůstává `neondb_owner`, aby se stávající sada nechovala jinak.
+  // ── POD JAKOU ROLÍ BĚŽÍ HANDLERY ──────────────────────────────────────────
+  // DEFAULT je `tixly_app` (BYPASSRLS=false) — tedy role, kterou má používat
+  // produkce. Owner jen na výslovné vyžádání přes `LIVE_AS_OWNER=1`.
   //
-  // Proč to existuje: všechna dosavadní měření běžela jako owner, který
-  // granty nepotřebuje a RLS ho míjí → výsledky byly systematicky
-  // optimistické o celou vrstvu oprávnění (FINDINGS §30).
-  if (process.env.LIVE_AS_APP_ROLE === '1') {
+  // Proč se to otočilo: dřív byl default `neondb_owner`, který RLS MÍJÍ.
+  // Live sada tím systematicky hlásila „PROŠLO" u cest, které pod produkční
+  // rolí padají na 42501 — a stalo se to dvakrát (FINDINGS §31, §77).
+  // Zápis do dokumentu to nezastavil, takže obrana patří sem, do nástroje.
+  //
+  // `LIVE_AS_OWNER=1` je legitimní jen tam, kde test měří něco JINÉHO než
+  // oprávnění a RLS by mu stálo v cestě — a musí být u toho napsáno proč.
+  const asOwner = process.env.LIVE_AS_OWNER === '1';
+  if (asOwner) {
+    process.env.DATABASE_URL = uri;
+  } else {
     const pw = `LiveTest_${randomUUID().slice(0, 12)}`;
     await pool.query(`ALTER ROLE tixly_app WITH PASSWORD '${pw}'`);
     process.env.DATABASE_URL = uri.replace(/\/\/[^@]+@/, `//tixly_app:${pw}@`);
-  } else {
-    process.env.DATABASE_URL = uri;
   }
+  // Hlasitě, ať se z toho nestane tichý předpoklad jako minule.
+  console.log(`[live-fixture] handlery běží jako: ${asOwner ? 'neondb_owner (BYPASSRLS — RLS SE NEMĚŘÍ)' : 'tixly_app (RLS platí)'}`);
 
   for (const file of opts.migrations ?? PENDING_MIGRATIONS) {
     // `../migrations` — migrace se archivačním commitem `fc95cb2` sloučily do
