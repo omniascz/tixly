@@ -72,7 +72,20 @@ dostalo RLS + `p_*_scope`. Izolace ověřena, 0 rozbitých testů, gate prošel.
 | `identity.eudi_verifications` | zápis je anonymní (`user_id` se nevyplňuje), filtrace tokenem → servisní větev jako §94. Má mít uživatel vlastní pohled? Dnes žádná routa taková není. |
 | `marketing.fan_bonus_issued` | `user_id` NULLABLE — bonus pro hosta bez účtu, nebo nedodělek? |
 
-## R-15 ⚠️ Live sada je FLAKY — vyřešit dřív, než se použije jako brána (§108)
+## R-15 🔴 Live sada je FLAKY — NEVYŘEŠENO, příčina nenalezena (§108, §112)
+
+**Aktualizace po 8 běžích:** 5 z 8 běhů `public-routes` mělo aspoň jeden pád
+(0–2 z 10), pokaždé jinde. Flaky je i `checkout-guest`. Vyloučeno měřením:
+souběh souborů/testů, rate limit, přežívající servisní kontext.
+NEOVĚŘENO: závislost na pořadí (`--sequence.shuffle`).
+**Nejsilnější podezřelý** (hypotéza, neměřeno): `rls-pool.ts:193` vrací
+spojení do poolu s RESET GUC běžícím fire-and-forget a chybou spolknutou
+`.catch(() => undefined)` — špinavé spojení by dalšímu testu podstrčilo cizí
+`app.current_user_id`.
+Ověření: číst `current_setting('app.current_user_id', true)` při akvizici
+a hlásit každý nenulový výskyt.
+
+### Původní zápis (§108)
 
 6 běhů `public-routes` se stejným kódem: 2 pády, **pokaždé jiný test**
 (`alert: prihlaseny uzivatel`, `discover … min_price`), při opakování projdou.

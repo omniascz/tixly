@@ -881,3 +881,92 @@ Patří do téže rodiny jako pád `dedup: druhá objednávka`, který jsem změ
 kol**. Příčinu jsem nehledal, došel kontext.
 
 `rls-snapshot.json`: **621 → 624 policies, 433 → 436 tabulek.** Gate prošel.
+
+---
+
+## §112 R-15: flakinessa změřena, příčina NENALEZENA — a je širší, než jsem tvrdil
+
+### a) Deset běhů
+
+`public-routes` (10 testů), pětkrát po sobě, beze změny kódu:
+
+```
+beh1: 1 failed |  9 passed
+beh2: 2 failed |  8 passed
+beh3: 1 failed |  9 passed
+beh4: 1 failed |  9 passed
+beh5: 0 failed | 10 passed
+```
+
+Tři další běhy: 1 failed, 0 failed, 0 failed. Celkem tedy **5 z 8 běhů mělo
+aspoň jeden pád**, počet 0–2. **Není to náhodné v tom smyslu, že by šlo o šum
+měření — je to nedeterministický běh nad deterministickým vstupem.**
+
+Doprovodná čísla jsou přitom pokaždé stejná:
+
+```
+[discover] 200 akci: 1     (ve všech zachycených bězích)
+[artists]  200             (ve všech zachycených bězích)
+```
+
+Takže `discover` i `artists` vracejí data spolehlivě; padají jiné testy téhož
+souboru a mezi běhy se střídají.
+
+### 🔧 Oprava mého tvrzení z §111: flaky je i `checkout-guest`
+
+Napsal jsem, že `velká písmena v e-mailu` selhalo „dvakrát na témž testu, takže
+vypadá deterministicky". **Třetí běh dal `4 passed (4)`.** Dvě opakování nestačí
+na závěr o determinismu — to byl můj chybný úsudek, ne vlastnost kódu.
+
+Tím padá i premisa, ze které jsem měl vyjít v tomhle kole: *„padá stabilně,
+předchází 461/462/463 — je to skutečný bug"*. **Není doloženo, že jde
+o samostatný bug.** Může to být tentýž jev jako u `public-routes`.
+
+Helper `createOrGetGuestUser` přitom e-mail **normalizuje správně**
+(`guest-user.ts:118` → `input.email.trim().toLowerCase()`), takže hypotéza
+z bodu 2c (guest se hledá podle nenormalizovaného e-mailu) **neplatí** —
+ověřeno čtením, ne odhadem.
+
+### b) Co jsem vyloučil měřením nebo čtením
+
+| hypotéza | výsledek |
+|---|---|
+| souběh souborů | vyloučeno — `vitest.live.config.ts` má `fileParallelism: false` |
+| souběh testů v souboru | vyloučeno — žádný `it.concurrent`, výchozí režim je sekvenční |
+| rate limit na routách | vyloučeno — `discover`, `artists/[slug]`, `events/[id]/alert` žádný nemají (grep) |
+| servisní kontext přežívá request | proti mluví `[alert leak-check]`, který **v každém běhu** hlásí `anonym vidi: 0` |
+| závislost na pořadí | **NEOVĚŘENO** — `--sequence.shuffle` jsem nespustil, došel kontext |
+
+### c) Nejsilnější zbývající podezřelý — NEOVĚŘENO
+
+`rls-pool.ts:193–204` přepisuje `client.release()` tak, že RESET GUC běží
+**fire-and-forget** a případné selhání se **tiše polkne**:
+
+```js
+void client.query('RESET app.current_promoter_id; RESET app.is_platform_admin; …')
+  .catch(() => undefined)
+  .finally(() => originalRelease(err));
+```
+
+Nad tím `statement_timeout: 15000`. Kdyby RESET selhal (timeout, přerušené
+spojení), vrátí se spojení do poolu **špinavé** a nikdo se to nedozví — další
+test by zdědil cizí `app.current_user_id` a RLS by mu odfiltrovala řádky.
+Odpovídá to tvaru pádů („čekal jsem data, nedostal jsem nic") i jejich
+nahodilosti (záleží, které spojení z poolu se trefí).
+
+**Je to hypotéza, ne nález.** Neměřil jsem ji. Ověřila by se tak, že se při
+akvizici spojení přečte `current_setting('app.current_user_id', true)` a hlásí
+se každý nenulový výskyt.
+
+### d) 5 běhů se stejným výsledkem: NEDOLOŽENO
+
+Zadání chtělo doložit pět shodných běhů po opravě. **Opravu jsem nenašel**,
+takže tenhle bod plním záporně: pět běhů shodných NENÍ a předstírat to nebudu.
+
+### Co z toho plyne pro dřívější čísla
+
+Všechna „X ze Y padlo" z posledních kol jsou **měřená s touhle nejistotou**.
+Konkrétně: rozdíly o jeden až dva testy mezi běhy (7→5→3→5) **nemusely znamenat
+nic**. Co tím naopak zpochybněno NENÍ, jsou přímá měření izolace
+(`vlastni=1 CIZI=0`) a RED→GREEN dvojice — ty běžely proti klonu přímým SQL,
+mimo vitest, a opakovaly se shodně.
