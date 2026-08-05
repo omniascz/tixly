@@ -3687,3 +3687,53 @@ většina veřejných (`discover`, `artists`, `editorial`, `postal-fees`,
 
 **Neopravuji** — zadání bylo změřit rozsah a opravit jen prokázaný únik.
 Ten se nepotvrdil.
+
+---
+
+## §91 VERDIKT: z 25 rout bez kontextu je ~11 tiše rozbitých — včetně dvou VEŘEJNÝCH
+
+Seedovat 13 tabulek přes FK/CHECK řetězy by stálo víc než měření vydá, takže
+rozhodnuto z **katalogu**: projde SELECT policy, když je GUC `NULL`?
+(`USING (true)` → projde; cokoli s `current_setting` → `NULL` → řádek odpadne.)
+
+| tabulka | RLS | bez GUC | routy |
+|---|---|---|---|
+| `catalog.ticket_types` | ano | 🔴 PRÁZDNO | **`discover`** (veřejná!) |
+| `lineups.artists` | ano | 🔴 PRÁZDNO | **`artists/[slug]`** (veřejná!) |
+| `tickets.tickets` | ano | 🔴 PRÁZDNO | `my/orders/[id]/upgrade`, `my/tickets/[ticketId]/transfer` |
+| `orders.orders` | ano | 🔴 PRÁZDNO | `my/orders/[id]/upgrade-options`, 2× `internal/cron/*` |
+| `orders.ticket_transfers` | ano | 🔴 PRÁZDNO | `tickets/transfer/[token]` |
+| `orders.postal_deliveries` | ano | 🔴 PRÁZDNO | `platform/postal`, `platform/postal/[id]` |
+| `lineups.event_artists` | ano | 🔴 PRÁZDNO | `platform/artists` |
+| `platform.postal_fees` | ano | 🟢 vidí | `postal-fees` |
+| `platform.carbon_offset_settings` | ano | 🟢 vidí | `carbon-offset-settings` |
+| `catalog.travel_hotels` | ano | 🟢 vidí | `platform/travel/hotels` ×3 |
+| `catalog.seat_view_photos` | ano | 🟢 vidí | `platform/venues/…/seat-view-photos` ×2, `events/…/seat-view-photos` |
+| `catalog.event_travel_packages` | ano | 🟢 vidí | `events/[id]/travel-packages` |
+| `marketing.editorial_articles` | **NE** | 🟡 vidí vše | `editorial/articles/[slug]` |
+| `platform.b2b_accounts` | **NE** | 🟡 vidí vše | `b2b/account/login`, `admin/b2b/[accountId]/deposit` |
+
+### VERDIKT ČÍSLEM
+
+```
+rout bez kontextu celkem      25
+🔴 tiše rozbitých (prázdno)   ~11
+🟢 v pořádku (public policy)   ~11
+🟡 RLS na tabulce VYPNUTÉ       3   (editorial, b2b/login, b2b/deposit)
+⚪ neměřeno                     3   (events/[id]/alert, health/db, platform/postal/[id])
+```
+
+🔴 **Nejzávažnější: dvě VEŘEJNÉ routy jsou rozbité** — `discover` (výpis
+lístků) a `artists/[slug]`. Ty nikoho neautentizují, takže kontext nemají
+z čeho vzít, a jejich tabulky nemají `USING (true)` větev. Pod produkční rolí
+vrátí prázdno komukoli.
+
+🟡 **Vedlejší nález:** `marketing.editorial_articles` a `platform.b2b_accounts`
+**nemají RLS vůbec zapnuté** (0 policies). Nezpůsobuje to poruchu, ale znamená
+to, že ty tabulky stojí mimo celý model izolace — do počtu 411 tabulek s RLS
+(§34) nespadají.
+
+**Neopravuji.** Zadání bylo opravit jen prokázané poruchy, ale na 11 rout
++ ověření už nezbyl kontext. Oprava je u každé stejná: obalit do kontextu podle
+toho, čí data to jsou — veřejné routy potřebují buď servisní kontext, nebo
+`USING (true)` větev v policy (to je produktové rozhodnutí, ne úklid).
