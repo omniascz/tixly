@@ -1482,3 +1482,67 @@ ze by ta cisla stejne nic neukazala. **R-18 zustava na rade.**
 
 Ktera z nich, **NEVIM** — rozhoduje se mezi cenou round-tripu a rozsahem zmeny
 v call sites, a to je rozhodnuti, ne technikalie.
+
+---
+
+## §121 Varianta 3 implementovana — a MERENIM VYVRACENA
+
+### Co je hotovo
+
+`connect()` uz nenastavuje GUC po jednom. `applyGucs()` posle **jeden dotaz**,
+ktery vsechny ctyri nastavi, **v temz dotazu je precte zpatky** a vrati
+`pg_backend_pid()`. Kdyz se prectene hodnoty nesejdou s kontextem, spojeni se
+zahodi (`client.release(true)`) a zkusi se jine; po treti neuspesne akvizici
+se vyhodi **chyba**, ne prazdno.
+
+- **1c** — nenastavene GUC se posilaji jako `''`, ne vynechavaji. Overeno
+  ve schematu: `app_current_user_id()` je
+  `SELECT NULLIF(current_setting('app.current_user_id', true), '')::uuid`,
+  takze `''` da NULL a zadne 22P02.
+- **1d** — `RlsAwarePool.query()` (transakcni cesta) **nezmenena**.
+- **1e** — round-trip **nepribyl**: driv 1 dotaz na kazdy GUC v kontextu (1–4),
+  ted vzdy 1. U servisniho kontextu je to 1 → 1, u uzivatelskeho 2 → 1.
+  ⚠️ Je to tedy **snizeni**, ne shoda — a i snizeni meni casovani, takze zelena
+  sada by sama o sobe nebyla dukazem.
+
+### 2a) Pet behu — NESHODNYCH
+
+```
+9 passed | 9 passed | 9 passed | 10 passed | 10 passed
+```
+
+„9 passed" z deseti znamena **jeden pad**. Tri z peti behu tedy padly.
+Kontrolni beh s diagnostikou:
+
+```
+beh1: 1 failed | MISMATCH=0 | pad: alert: prihlaseny uzivatel
+beh2: 1 failed | MISMATCH=0 | pad: alert: prihlaseny uzivatel
+beh3: 0 failed | MISMATCH=0
+```
+
+### VERDIKT: oprava neresi R-15, a je jasne proc
+
+**`MISMATCH=0` — kontrola nezabrala ani jednou.** GUC jsou pri akvizici
+nastavene spravne; **zamena spojeni nastava az POTOM**, mezi navratem
+`connect()` a dotazem, ktery routa posle.
+
+To odpovida mereni ze §117: `setPid=778`, `queryPid=781`. Servisni kontext
+nastavuje jediny GUC, takze mezi jeho nastavenim a dotazem **neni zadny dalsi
+krok, do ktereho by sla kontrola vlozit**. Overeni pri akvizici principialne
+nemuze chytit neco, co se stane po ni.
+
+**Varianta 3 na urovni poolu je tim vyvracena.** Kontrola musi byt v temz
+round-tripu jako dotaz volajiciho, ne pred nim — jinak vzdy zbyde okno.
+
+**2b a 2c NEDOLOZENY**: celou sadu 3x jsem nepoustel a vynucenou zamenu
+nepredvadel, protoze by se dokladala oprava, o ktere je zmereno, ze nefunguje.
+
+### Co ta zmena PRESTO zavira (jina dira, ne R-15)
+
+Driv `connect()` nastavil **jen ty GUC, ktere byly v kontextu**, a ostatni
+nechal byt. Spojeni s cizim zbytkem (§113 videla `app.role='system'`) tedy
+mohlo do noveho kontextu propasovat cizi hodnotu, kterou ten kontext neprepisuje.
+Ted se **vzdy nastavuji vsechny ctyri** — zbytek po predchozim drziteli uz
+propadnout nemuze. To je realne zuzeni, jen neresi flakinessu.
+
+**R-18 zustava na rade.**

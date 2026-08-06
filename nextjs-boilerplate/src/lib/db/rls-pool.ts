@@ -133,19 +133,38 @@ export function runWithUserContext<T>(
  */
 
 /**
- * Nastavi jeden GUC. Puvodne `SET x = '<interpolovana hodnota>'`; ted
- * `set_config($1, $2, false)` — POCETNE TOTEZ (jeden round-trip), ale
- * parametrizovane misto vlepovani hodnoty do SQL.
+ * Nastavi VSECHNY ctyri RLS GUC a v TEMZ dotazu je precte zpatky (§121).
  *
- * `pg_backend_pid()` navic zustava jako diagnostika R-15 (§117): odklada se
- * na klienta, aby slo porovnat, na KTERE backend session SET probehl. Merenim
- * se ukazalo, ze se to od PID dotazu muze lisit — a prave to je pricina
- * flakinessy.
+ * Mereni (§117) ukazalo, ze se spojeni pod klientem muze vymenit mezi
+ * nastavenim GUC a dotazem: setPid 778 -> queryPid 781. Na nove session zadny
+ * SET neprobehl, vsechny GUC jsou NULL, app_is_service() je false a policy
+ * nepusti nic — dotaz vrati TICHE PRAZDNO misto chyby.
+ *
+ * Nenastavene GUC se nastavuji na '' (prazdny retezec), NE se vynechavaji:
+ * helpery delaji NULLIF(current_setting(...),'')::uuid, takze '' -> NULL a zadne
+ * 22P02 (§111). Diky tomu je zpetne cteni jednoznacne — '' znamena "nastaveno
+ * na prazdno", NULL znamena "tahle session o tom nevi".
  */
-async function setGuc(client: PoolClient, name: string, value: string): Promise<void> {
-  const r = await client.query('SELECT set_config($1, $2, false) AS v, pg_backend_pid() AS pid',
-    [name, value]);
-  (client as PoolClient & { __setPid?: number }).__setPid = Number(r.rows[0].pid);
+async function applyGucs(
+  client: PoolClient,
+  ctx: { promoterId?: string; isPlatformAdmin?: boolean; currentUserId?: string; role?: string },
+): Promise<{ ok: boolean; pid: number }> {
+  const want: Record<string, string> = {
+    'app.current_promoter_id': ctx.promoterId ?? '',
+    'app.is_platform_admin': ctx.isPlatformAdmin ? 'true' : '',
+    'app.current_user_id': ctx.currentUserId ?? '',
+    'app.role': ctx.role ?? '',
+  };
+  const names = Object.keys(want);
+  const sets = names.map((_, i) => `set_config($${i + 1}, $${i + 5}, false) AS s${i}`);
+  const reads = names.map((_, i) => `current_setting($${i + 1}, true) AS r${i}`);
+  const r = await client.query(
+    `SELECT ${sets.join(', ')}, ${reads.join(', ')}, pg_backend_pid() AS pid`,
+    [...names, ...names.map((n) => want[n])],
+  );
+  const row = r.rows[0] as Record<string, string | null>;
+  const ok = names.every((n, i) => (row[`r${i}`] ?? null) === want[n]);
+  return { ok, pid: Number(row.pid) };
 }
 
 class RlsAwarePool {
@@ -194,7 +213,7 @@ class RlsAwarePool {
    * RLS session var se injectne automaticky před prvním query, pokud je
    * context aktivní.
    */
-  async connect(): Promise<PoolClient> {
+  async connect(attempt = 0): Promise<PoolClient> {
     const ctx = tenantStore.getStore();
     const client = await getRawPool().connect();
 
@@ -219,18 +238,19 @@ class RlsAwarePool {
     }
 
     if (ctx?.promoterId || ctx?.isPlatformAdmin || ctx?.currentUserId || ctx?.role) {
-      // Set session-level (ne LOCAL) — bude reset-nuté při release
-      if (ctx.promoterId) {
-        await setGuc(client, 'app.current_promoter_id', ctx.promoterId);
-      }
-      if (ctx.isPlatformAdmin) {
-        await setGuc(client, 'app.is_platform_admin', 'true');
-      }
-      if (ctx.currentUserId) {
-        await setGuc(client, 'app.current_user_id', ctx.currentUserId);
-      }
-      if (ctx.role) {
-        await setGuc(client, 'app.role', ctx.role);
+      // Nastav a HNED OVER, ze GUC na te session opravdu jsou. Kdyz ne, spojeni
+      // se zahodi (release(true) ho z poolu odstrani) a zkusi se jine. Po
+      // vycerpani pokusu se vyhodi CHYBA — nikdy tiche prazdno.
+      const verified = await applyGucs(client, ctx);
+      if (!verified.ok) {
+        if (process.env.RLS_POOL_DEBUG === '1') {
+          console.warn('[RLS-GUC-MISMATCH] zahazuji spojeni pid=', verified.pid);
+        }
+        client.release(true);
+        if (attempt >= 2) {
+          throw new Error('rls-pool: GUC se nepodarilo nastavit ani na 3. spojeni');
+        }
+        return this.connect(attempt + 1);
       }
       // Wrap release aby vyresetoval session vars
       const originalRelease = client.release.bind(client);

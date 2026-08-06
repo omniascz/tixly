@@ -72,7 +72,20 @@ dostalo RLS + `p_*_scope`. Izolace ověřena, 0 rozbitých testů, gate prošel.
 | `identity.eudi_verifications` | zápis je anonymní (`user_id` se nevyplňuje), filtrace tokenem → servisní větev jako §94. Má mít uživatel vlastní pohled? Dnes žádná routa taková není. |
 | `marketing.fan_bonus_issued` | `user_id` NULLABLE — bonus pro hosta bez účtu, nebo nedodělek? |
 
-## R-15 🔴 PŘÍČINA NALEZENA, návrh VYVRÁCEN (§120)
+## R-15 🔴 NEVYŘEŠENO — vyvráceny UŽ DVA návrhy (§120, §121)
+
+**Varianta 3 (ověření GUC při akvizici) implementována a změřena: NEFUNGUJE.**
+`MISMATCH=0` — kontrola nezabrala ani jednou, protože GUC jsou při akvizici
+správně; záměna spojení nastává **až potom**, mezi návratem `connect()` a dotazem.
+Ověření před dotazem principiálně nemůže chytit něco, co se stane po něm.
+5 běhů: `9|9|9|10|10` passed z 10 → tři pády.
+
+**Co z toho plyne:** kontrola musí být ve **stejném round-tripu jako dotaz
+volajícího**, ne před ním — jinak vždy zbude okno. Jediné dva tvary, které to
+splňují: transakce (`SET LOCAL` + dotaz), nebo přidání kontroly do dotazu samotného.
+První nejde plošně (§120), druhý znamená sáhnout na dotazy.
+
+### Starší zápis (§120)
 
 Návrh injektovat SET LOCAL po volajícího BEGIN **neřeší ani jeden změřený pád**:
 `discover`, `artists/[slug]` i `events/[id]/alert` mají BEGIN=0 — patří mezi 14
