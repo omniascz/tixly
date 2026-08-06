@@ -128,4 +128,22 @@ d('kontrakt cronu (C2)', () => {
     console.log('[order-completed]', res.status, JSON.stringify(body).slice(0, 220));
     await q('GRANT SELECT,INSERT,UPDATE,DELETE ON tickets.tickets TO tixly_app').catch(() => undefined);
   }, 180_000);
+
+  it('release-rolling-reserves: cela cesta uvolneni PROJDE (D4)', async () => {
+    const { randomUUID: uid } = await import('crypto');
+    const U = uid(), P = uid(), RR = uid();
+    const q = (sql: string, p: unknown[] = []) => clone.pool.query(sql, p);
+    await q("INSERT INTO identity.users (id,email,name,gdpr_consent_at) VALUES ($1,$2,'U',now())", [U, `rr_${U.slice(0,8)}@t.cz`]);
+    await q("INSERT INTO platform.promoters (id,name,email) VALUES ($1,'P',$2)", [P, `rp_${P.slice(0,8)}@t.cz`]);
+    await q(`INSERT INTO platform.rolling_reserves (id,promoter_id,amount,release_date,released)
+             VALUES ($1,$2,12345,CURRENT_DATE - 1,FALSE)`, [RR, P]);
+    const out = await call('@/app/api/internal/cron/release-rolling-reserves/route',
+      '/api/internal/cron/release-rolling-reserves');
+    const st = await q('SELECT released FROM platform.rolling_reserves WHERE id=$1', [RR]);
+    const au = await q("SELECT action, actor_type, new_values->>'operation' AS op FROM audit.audit_log WHERE table_name='rolling_reserves' ORDER BY created_at DESC LIMIT 1");
+    console.log('[release-rolling-reserves]', out.status, JSON.stringify(out.body).slice(0, 150));
+    console.log('   rezerva released =', st.rows[0]?.released, '| audit =', JSON.stringify(au.rows[0]));
+    expect(out.body.ok).toBe(true);
+    expect(st.rows[0]?.released).toBe(true);
+  }, 180_000);
 });

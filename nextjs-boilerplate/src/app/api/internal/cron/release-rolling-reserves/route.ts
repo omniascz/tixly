@@ -60,13 +60,22 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     if (releasedCount > 0) {
       await client.query(
+        // D4: puvodne action='BULK_RELEASE', actor_type='cron' — ANI JEDNO neni
+        // v prislusnem CHECK vyctu (action: INSERT/UPDATE/DELETE; actor_type:
+        // user/system/admin/platform_admin/gate/promoter). INSERT byl PRITOM
+        // VE STEJNE TRANSAKCI jako UPDATE rezerv, takze 23514 rollbacknul
+        // i UVOLNENI SAMOTNE — promoterum se zadrzovaly penize a nikdo to
+        // nevidel, protoze routa vratila 500 az z catch bloku (FINDINGS §142).
         `INSERT INTO audit.audit_log
            (schema_name, table_name, record_id, action, actor_type, new_values)
-         VALUES ('platform', 'rolling_reserves', $1, 'BULK_RELEASE', 'cron', $2::jsonb)`,
+         VALUES ('platform', 'rolling_reserves', $1, 'UPDATE', 'system', $2::jsonb)`,
         [
           // Použijeme první reserve id jako anchor pro batch
           r.rows[0].id,
           JSON.stringify({
+            // 'BULK_RELEASE' nese DETAIL, ne sloupec action — ten ma CHECK
+            // ARRAY['INSERT','UPDATE','DELETE'] a enum se nerozsiruje (D4).
+            operation: 'BULK_RELEASE',
             releasedCount,
             totalAmount,
             byPromoter,
@@ -78,16 +87,21 @@ export async function POST(req: NextRequest): Promise<Response> {
     await client.query('COMMIT');
   } catch (err) {
     await client.query('ROLLBACK');
-    return NextResponse.json(
-      { error: 'INTERNAL', message: err instanceof Error ? err.message : String(err) },
-      { status: 500 },
-    );
+    // Kontrakt C2: cron nevraci 500, ale ok:false s duvodem — jinak se selhani
+    // ztrati v retry smycce planovace misto aby bylo videt v monitoringu.
+    return NextResponse.json({
+      ok: false, processed: 0, failed: 1,
+      errors: [`release: ${err instanceof Error ? err.message.slice(0, 160) : String(err)}`],
+    });
   } finally {
     client.release();
   }
 
   return NextResponse.json({
     ok: true,
+    processed: releasedCount,
+    failed: 0,
+    errors: [],
     releasedCount,
     totalAmount,
     byPromoter,

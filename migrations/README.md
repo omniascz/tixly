@@ -105,6 +105,7 @@ Nic z toho **není na produkci**. Pořadí je závazné.
 | 463 | `463_b2b_service_branch.sql` | b2b trojice dostane `app_is_platform_admin() OR app_is_service()` | ⚠️ nasadit SPOLU s obalením 6 b2b rout — `admin/b2b` používalo holé `requirePlatformAdmin`, které GUC NENASTAVUJE, a migrace by správu účtů zavřela; FINDINGS §111 |
 | 464 | `464_b2b_orders_correlate_invoice_orders.sql` | `dunning_log` + `order_reservations` korelují na `b2b_orders.invoice_orders`, ne na `orders.orders` | opravuje mrtvou větev (promotér neviděl vlastní dunning log); RED→GREEN přímým SQL, FINDINGS §124 |
 | 465 | `465_artists_event_id_nullable.sql` | `lineups.artists.event_id` NOT NULL → NULLABLE | promotér-level katalog umělců bez akce; RED→GREEN + izolace změřena, policies se to nedotýká, FINDINGS §137 |
+| 466 | `466_rolling_reserves_policy.sql` | `platform.rolling_reserves` ma RLS bez policies (tichy deny) → doplnit scope | ⚠️ PRED NASAZENIM PREGENEROVAT `rls-snapshot.json` na klonu s 466 — jinak gate ohlasi drift; FINDINGS §142 |
 
 ### ⚠️ „capacity backfill" — v pořadí NENÍ a nemá být
 

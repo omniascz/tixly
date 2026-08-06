@@ -2388,3 +2388,71 @@ Dva pripady uz **potvrzene jsou** meritelnym chovanim: `362` (§139) a `437`
 a `440_prod_schema_reconcile` jsou **nenasazene** migrace z aktualni fronty,
 takze jejich sloupce v baseline byt nemaji. Vypis je nefiltruje a rikam to,
 misto abych cislo umele snizil.
+
+---
+
+## §142 ✅ D4: uvolneni rezerv — DVE vrstvy, obe opravene
+
+### a) RED: dolozeny pad + financni dopad
+
+CHECK vycty precteny z klonu, ne odhadnuty:
+
+```
+audit_log_action_check      CHECK (action     = ANY (ARRAY['INSERT','UPDATE','DELETE']))
+audit_log actor_type check  CHECK (actor_type = ANY (ARRAY['user','system','admin','platform_admin','gate','promoter']))
+```
+
+Kod psal `action='BULK_RELEASE'`, `actor_type='cron'` — **ani jedno ve vyctu neni**.
+Zadani mluvilo jen o `action`; `actor_type` je druhe poruseni teze radky.
+
+```
+RED    action='BULK_RELEASE' actor='cron'  :: 23514 → ROLLBACK
+       rezerva po behu: released=false ZADRZENA
+GREEN  action='UPDATE' actor='system'      :: COMMIT, uvolneno 2
+       rezerva po behu: released=true UVOLNENA
+```
+
+🔴 **Financni dopad potvrzen strukturou, ne domnenkou:** ten `INSERT` je
+**ve stejne transakci** jako `UPDATE rolling_reserves`. `23514` proto
+rollbacknul **i uvolneni samotne** — promoterum se zadrzovaly penize.
+
+### b) Oprava dle zamceneho rozhodnuti
+
+`action='UPDATE'`, `actor_type='system'`, a `BULK_RELEASE` presunuto do
+`new_values` jako `operation`. Enum se nerozsiruje.
+
+### d) 🔴 PEEL: pod tim byla DRUHA vrstva
+
+Po oprave CHECKu routa **porad nic neuvolnila**:
+
+```
+[release-rolling-reserves] 200 {"ok":true,"releasedCount":0,"totalAmount":0}
+   rezerva released = false
+```
+
+`platform.rolling_reserves` ma **ENABLE ROW LEVEL SECURITY a NULA POLICIES** —
+tichy deny (§91). Pod `tixly_app` nevidi radky nikdo, **ani servisni kontext**.
+Routa pritom bezi v `runWithServiceContext`. UPDATE proto matchoval 0 radku
+a cron se tvaril uspesne.
+
+**Migrace 466** doplnuje vzorec ze §81 (admin OR service OR vlastni promoter).
+Promoterska vetev tam patri: promoter ma na svoje zadrzene penize videt.
+
+### c) GREEN: cela cesta pres handler
+
+```
+[release-rolling-reserves] 200 {"ok":true,"processed":1,"failed":0,"errors":[],
+                                "releasedCount":1,"totalAmount":12345,"byPromoter":{…}}
+   rezerva released = true | audit = {"action":"UPDATE","actor_type":"system"}
+```
+
+### e) Kontrakt C2 doplnen
+
+Routa vracela pri selhani **500**. Ted `{ok:false, processed, failed, errors[]}`
+se statusem 200, uspesna vetev ma `processed/failed/errors` take.
+
+⚠️ **`rls-snapshot.json` NEPREGENEROVAN.** Prvni pokus jsem udelal proti klonu
+**bez migrace 466** a vratil ho — do snapshotu by se zapsal stav o jednu policy
+pozadu a gate by pak hlasil drift na produkci. Snapshot zustava na 624 policies
+a **musi se pregenerovat na klonu VCETNE 466**, nez se 466 nasadi. Zapsano
+jako podminka v deploy-order.
