@@ -262,3 +262,20 @@ i z `vercel.json`. Tiket zustava otevreny.
 Self-check na predfixove verzi vratil 0 tam, kde vada prokazatelne byla.
 Vysledek „0 nalezu" u 5 rout tedy NEPLATI. Prepsat do souboru (ne `node -e`,
 kde se rozbije escapovani `$`) a znovu self-checknout, nez se cislo pouzije.
+
+## R-23 🔴 `foyer-orders` cte tabulku, ktera neexistuje (§130)
+
+`orders.foyer_order_items` neni v baseline (0 vyskytu), ale
+`admin/events/[id]/foyer-orders/route.ts:54` z ni cte → 42P01.
+Foyer JE dosazitelny z UI (polozky v `EventDetailNav`, vlastni stranky),
+takze to uvidi uzivatel, ne jen log. Bud tabulku doplnit, nebo poddotaz odstranit.
+
+## R-24 🕶️ 29 polykacu chyb v `src/` (§129)
+
+`node scripts/scan-silent-writes.mjs --root=src` (self-check prosel).
+Ne kazdy je vada — u `health/redis` nebo `rate-limit` je degradace zamerna.
+Rozhodnout kus po kuse: polyka se tam chyba ZAPISU, ktery je soucasti ukolu?
+Nejpodezrelejsi: `scanner/validate:469`, `hardware/scan:105`, `rfid/scan:103`,
+`resale/purchase/[listingId]:111` — penize a vstup.
+⚠️ Trida C (citac bez vazby na vysledek) je v skeneru SLEPA — self-check ji na
+znamem pripade nenasel. Cislo 0 u ni NEPLATI.

@@ -1819,3 +1819,96 @@ Skener patri do souboru, ne do `node -e` — az se k tomu vratim.
 `ok: failed === 0` a `errors[]` — je to nejlevnejsi dalsi krok.
 `order-completed` ma 954 radku a 7 polykacu chyb; `:462` s `23514` na
 `ticket_modular_access_level_check` jsem **neoveroval**.
+
+---
+
+## §129 ✅ R-22: skener prepsan do souboru, SELF-CHECK PROSEL
+
+`scripts/scan-silent-writes.mjs`. Predchozi pokus v `node -e` byl slepy kvuli
+escapovani `$` v shellu (§128) — tenhle ma povinny `--selfcheck` proti
+predfixove verzi `seat-upgrade-notify`, kde vada prokazatelne byla:
+
+```
+[selfcheck] A dotaz bez parametru : 1  (radek 86)
+[selfcheck] B catch polykac       : 1  (radek 90)
+[selfcheck] C citac bez vazby     : 0
+[selfcheck] PROSEL — skener zname vady NAJDE
+```
+
+Skener parsuje zavorky (preskakuje template literaly i `${}` interpolace), takze
+nezavisi na tom, jestli je za backtickem carka — coz byla puvodni past.
+
+### Vysledek na celem `src/`
+
+```
+A_DOTAZ_BEZ_PARAMETRU —  0
+B_CATCH_POLYKAC       — 29
+C_CITAC_BEZ_VAZBY     —  0
+```
+
+**A = 0 je tentokrat NALEZ, ne slepota** — trida „dotaz s `$n` bez pole
+parametru" se v repu vyskytovala **jednou jedinkrat**, a ta uz je opravena.
+
+⚠️ **C = 0 NEPLATI.** Heuristika hleda `x++` do 6 radku za polykacem a na znamem
+pripade **nezabrala** (citac tam byl o 8 radku dal). Self-check to ukazal a
+nechavam to tak — cislo je bezcenne a je oznacene.
+
+### B: 29 polykacu chyb, `file:line`
+
+`admin/commemorative/send:153`, `admin/events/[id]/artists:82`,
+`admin/kyc/aml-check:134`, `admin/sales-stream:76,116,146`,
+`admin/scanner/validate:469`, `auth/oauth/callback/apple:99`,
+`auth/reset-password:117`, `buyer/refund-requests:116`, `dsa/report:75`,
+`events/[id]/seats/stream:76`, `hardware/scan:105`, `health/redis:36`,
+`internal/cron/charge-installments:170`, `internal/cron/consent-log-purge:43`,
+`internal/cron/seat-upgrade-notify:89`, `internal/cron/send-commemorative:52`,
+`internal/web-vitals:62`, `mock-qes/[requestId]:116`, `oauth/token:35`,
+`resale/purchase/[listingId]:111`, `rfid/scan:103`,
+`lib/ai/smart-send-time:97`, `lib/ai/social-post:93`,
+`lib/pricing/rules-engine:102`, `lib/rate-limit/per-tenant:66`,
+`lib/sdk/tixly-sdk:252`, `lib/vouchers/voucher-pdf:149`
+
+**NEOPRAVENO** dle zadani — je to rozsah, ne verdikt. Ne kazdy polykac je vada:
+u `health/redis` nebo `rate-limit` je degradace zamerna. Rozhodnout se to musi
+kus po kuse: **polyka se tam chyba ZAPISU, ktery je soucasti ukolu?**
+Nejpodezrelejsi jsou `scanner/validate:469`, `hardware/scan:105`, `rfid/scan:103`
+a `resale/purchase:111` — tam jde o penize nebo o vstup.
+
+## §130 🔧 Foyer: ZIVA cesta s ROZBITOU vetvi — premisa „vypnuty" byla chybna
+
+### a) Dosazitelny z UI: ANO
+
+```
+src/app/admin/events/[id]/EventDetailNav.tsx:85  Foyer menu
+src/app/admin/events/[id]/EventDetailNav.tsx:86  Foyer objednávky
+src/app/admin/events/[id]/foyer-menu/page.tsx    fetch /api/admin/events/{id}/foyer-menu
+```
+
+Polozky v navigaci, vlastni stranky, vlastni fetch. **Neni to mrtvy kod.**
+
+### b) Zmereno na klonu
+
+```
+catalog.foyer_menu_items  OK
+orders.foyer_orders       OK
+orders.foyer_order_items  42P01 relation "orders.foyer_order_items" does not exist
+```
+
+`grep foyer_order_items` v baseline: **0 vyskytu**. Pritom
+`admin/events/[id]/foyer-orders/route.ts:54` z te tabulky ctе.
+
+### c) VERDIKT: **ziva funkce, jedna vetev rozbita**
+
+| routa | stav |
+|---|---|
+| `admin/events/[id]/foyer-menu` | tabulka existuje → cesta by mela fungovat |
+| `admin/events/[id]/foyer-orders` | hlavni dotaz nad `orders.foyer_orders` projde, ale **poddotaz na polozky spadne na 42P01** |
+
+Je to tataz trida jako `seat-upgrade-notify` (§126): routa se pta na tabulku,
+ktera ve schematu neni. Rozdil je, ze foyer je **z UI dosazitelny**, takze to
+uzivatel uvidi, zatimco cron by to jen tise zalogoval.
+
+🔧 **Oprava tvrzeni z predchozich kol:** nikde v REMEDIATION jsem netvrdil,
+ze foyer je vypnuty — ta premisa prisla v zadani a ja ji v §126 uz jednou
+opravil. Tady ji doplnuju o mereni: **neni vypnuty, je castecne rozbity.**
+Zapsano jako R-23.
