@@ -56,6 +56,10 @@ function getRawPool(): Pool {
       connectionTimeoutMillis: 8000,
       idleTimeoutMillis: 30000,
     });
+    if (process.env.RLS_POOL_DEBUG === '1') {
+      pool.on('error', (e) => console.warn('[POOL-ERROR]', (e as Error)?.message?.slice(0, 80)));
+      pool.on('remove', () => console.warn('[POOL-REMOVE] spojeni odstraneno z poolu'));
+    }
   }
   return pool;
 }
@@ -125,6 +129,23 @@ export function runWithUserContext<T>(
  * Pokud není context (volání mimo runWith*), query proběhne bez session
  * vars — RLS vrátí jen public-policy rows.
  */
+
+/**
+ * Nastavi jeden GUC. Puvodne `SET x = '<interpolovana hodnota>'`; ted
+ * `set_config($1, $2, false)` — POCETNE TOTEZ (jeden round-trip), ale
+ * parametrizovane misto vlepovani hodnoty do SQL.
+ *
+ * `pg_backend_pid()` navic zustava jako diagnostika R-15 (§117): odklada se
+ * na klienta, aby slo porovnat, na KTERE backend session SET probehl. Merenim
+ * se ukazalo, ze se to od PID dotazu muze lisit — a prave to je pricina
+ * flakinessy.
+ */
+async function setGuc(client: PoolClient, name: string, value: string): Promise<void> {
+  const r = await client.query('SELECT set_config($1, $2, false) AS v, pg_backend_pid() AS pid',
+    [name, value]);
+  (client as PoolClient & { __setPid?: number }).__setPid = Number(r.rows[0].pid);
+}
+
 class RlsAwarePool {
   async query<R extends QueryResultRow = QueryResultRow>(
     text: string | QueryConfig<unknown[]>,
@@ -198,16 +219,16 @@ class RlsAwarePool {
     if (ctx?.promoterId || ctx?.isPlatformAdmin || ctx?.currentUserId || ctx?.role) {
       // Set session-level (ne LOCAL) — bude reset-nuté při release
       if (ctx.promoterId) {
-        await client.query(`SET app.current_promoter_id = '${ctx.promoterId}'`);
+        await setGuc(client, 'app.current_promoter_id', ctx.promoterId);
       }
       if (ctx.isPlatformAdmin) {
-        await client.query(`SET app.is_platform_admin = 'true'`);
+        await setGuc(client, 'app.is_platform_admin', 'true');
       }
       if (ctx.currentUserId) {
-        await client.query(`SET app.current_user_id = '${ctx.currentUserId}'`);
+        await setGuc(client, 'app.current_user_id', ctx.currentUserId);
       }
       if (ctx.role) {
-        await client.query(`SET app.role = '${ctx.role}'`);
+        await setGuc(client, 'app.role', ctx.role);
       }
       // Wrap release aby vyresetoval session vars
       const originalRelease = client.release.bind(client);

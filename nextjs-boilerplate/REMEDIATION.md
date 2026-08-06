@@ -72,7 +72,20 @@ dostalo RLS + `p_*_scope`. Izolace ověřena, 0 rozbitých testů, gate prošel.
 | `identity.eudi_verifications` | zápis je anonymní (`user_id` se nevyplňuje), filtrace tokenem → servisní větev jako §94. Má mít uživatel vlastní pohled? Dnes žádná routa taková není. |
 | `marketing.fan_bonus_issued` | `user_id` NULLABLE — bonus pro hosta bez účtu, nebo nedodělek? |
 
-## R-15 🟡 MECHANISMUS VYSVĚTLEN, oprava neprovedena (§116)
+## R-15 🟡 PŘÍČINA NALEZENA: spojení se vymění mezi SET a dotazem (§117)
+
+`setPid=778 queryPid=781 shoda=FALSE role=null radku=0` — přímý důkaz.
+Vyloučeno měřením: pool-level `query()`, chybějící `await`, dvojité `release()`,
+zděděné cizí GUC. **NEVÍM, proč se spojení vymění** (`POOL-REMOVE` 2× i v běhu,
+který prošel; `POOL-ERROR` nikdy).
+
+⚠️ Navrhovaný tvar „GUC v `pool.on('connect')`" **nesedí** — tam ještě není znám
+request-scoped kontext. Směr, který dává smysl: držet `SET LOCAL` a dotaz
+v jedné transakci, aby záměna spojení skončila **chybou místo tichého prázdna**.
+`RlsAwarePool.query()` to už dělá; rozchází se cesta `connect()`.
+NEIMPLEMENTOVÁNO.
+
+### Starší zápis (§116)
 
 Ve chvíli pádu jsou **všechny čtyři GUC `null`** (= v té session nikdy nebyly
 nastavené) a dotaz vrátí 0 řádků; jinak `role="system"` a 1 řádek.

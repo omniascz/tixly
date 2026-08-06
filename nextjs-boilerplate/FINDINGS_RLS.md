@@ -1239,3 +1239,86 @@ spojení. To by chtělo ověřit dřív, než se produkční cesta změní.
 
 **Implementace bodu 2 NEPROVEDENA** — došel kontext. Body 2c (5 shodných běhů)
 a 2d (celá sada 3×) proto **nedoloženy**. R-18 zůstává na řadě.
+
+---
+
+## §117 ✅ VERDIKT R-15: `SET` a dotaz běží na RŮZNÝCH backend PID
+
+### 1a) `pool.query()` místo `client.query()` — VYLOUČENO
+
+```
+discover/route.ts        connect=1  db().query=0  client.query=3
+artists/[slug]/route.ts  connect=1  db().query=0  client.query=2
+events/[id]/alert        connect=3  db().query=0  client.query=2
+```
+
+Žádná z těch rout nejde přes pool-level `query()`. (Ta cesta v `RlsAwarePool`
+existuje — `if (!ctx) return rawPool.query(…)` — ale uplatní se jen bez kontextu,
+a tyhle routy kontext mají.)
+
+### 1b) Chybějící `await` — VYLOUČENO
+
+Všech **8** `SET` v `connect()` je awaitovaných, **0** bez `await`.
+
+### 1d) DEFINITIVNÍ TEST: backend PID při SET vs. při dotazu
+
+Aby se nezměnilo časování (a jev se nemaskoval, §116), zůstal **stejný počet
+round-tripů**: `SET x = y` se nahradilo za
+`SELECT set_config($1,$2,false), pg_backend_pid()` — jeden dotaz jako předtím,
+navíc vrací PID. PID dotazu se přidal jako sloupec do dotazu, který routa
+stejně posílá.
+
+```
+beh1: 1 failed  setPid=794 queryPid=794  shoda=true   role="system"  radku=1  (3×)
+beh2: 1 failed  setPid=778 queryPid=778  shoda=true   role="system"  radku=1
+                setPid=778 queryPid=778  shoda=true   role="system"  radku=1
+                setPid=778 queryPid=781  shoda=FALSE  role=null      radku=0  ← PÁD
+beh3: 0 failed  setPid=772 queryPid=772  shoda=true   (3×)
+beh4: 0 failed  setPid=737 queryPid=737  shoda=true   (3×)
+```
+
+### 1e) VERDIKT
+
+**`set_config` proběhl na backend session 778, dotaz se vykonal na 781** — na
+tomtéž objektu klienta, uvnitř jednoho requestu. Spojení pod klientem se mezi
+nastavením GUC a dotazem **vyměnilo**. To je kandidát **(c) — znovupřipojení /
+záměna spojení**, ne pool-level query a ne chybějící `await`.
+
+Tím je řetěz uzavřený:
+
+```
+spojení se vymění  →  na nové session žádný SET neproběhl  →  všechny 4 GUC null
+                   →  app_is_service() false  →  policy nepustí nic  →  0 řádků
+                   →  test „událost nenalezena"
+```
+
+To vysvětluje i práh u `max=1` ze §114: s jediným spojením se prostě nemá co
+zaměnit.
+
+⚠️ **Co NEVÍM:** *proč* se spojení vymění. `POOL-REMOVE` se objevil **2× v každém
+běhu — i v těch, které prošly**, a `POOL-ERROR` ani jednou. Odstranění spojení
+z poolu tedy samo o sobě pád nezpůsobuje; rozhoduje časování. Jestli za tím
+stojí `idleTimeoutMillis: 30000`, Neonem zavřené nečinné spojení, nebo něco
+v `pg`, jsem **nezjistil**.
+
+### 2) Oprava NEPROVEDENA — a tvar z zadání pro tuhle příčinu nesedí
+
+Zadání navrhovalo pro reconnect „nastavit GUC v `connect` handleru poolu".
+**To by nefungovalo:** `pool.on('connect')` se volá při vzniku *nového* spojení,
+kde ještě není znám request-scoped kontext (`app.current_user_id` konkrétního
+uživatele). Statické GUC tam nastavit jde, tenant kontext ne.
+
+Co by dávalo smysl (**nenavrženo k nasazení, jen zápis směru**): držet `SET` a
+dotaz v jedné transakci (`SET LOCAL`), takže záměna spojení uprostřed skončí
+**chybou místo tichého prázdného výsledku**. `RlsAwarePool.query()` to už tak
+dělá; rozchází se to jen na cestě `connect()`, kterou si transakci řídí volající.
+
+**Body 2a–2d nesplněny.** Pět shodných běhů ani trojí běh celé sady nedokládám —
+oprava neexistuje. R-18 zůstává na řadě.
+
+### Co zůstalo v kódu
+
+`SET x = '<interpolovaná hodnota>'` → `set_config($1, $2, false)`. Počet
+round-tripů **stejný**, ale hodnota jde parametrem místo vlepení do SQL.
+`pg_backend_pid()` zůstává jako diagnostika. Události poolu (`error`, `remove`)
+se logují jen pod `RLS_POOL_DEBUG`.
