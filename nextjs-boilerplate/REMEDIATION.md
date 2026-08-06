@@ -72,7 +72,20 @@ dostalo RLS + `p_*_scope`. Izolace ověřena, 0 rozbitých testů, gate prošel.
 | `identity.eudi_verifications` | zápis je anonymní (`user_id` se nevyplňuje), filtrace tokenem → servisní větev jako §94. Má mít uživatel vlastní pohled? Dnes žádná routa taková není. |
 | `marketing.fan_bonus_issued` | `user_id` NULLABLE — bonus pro hosta bez účtu, nebo nedodělek? |
 
-## R-15 🔴 NEVYŘEŠENO — vyvráceny UŽ DVA návrhy (§120, §121)
+## R-15 🟡 UZAVŘENO JAKO ZNÁMÉ RIZIKO — ne vyřešeno (§122–123)
+
+Tři vyvrácené opravy: líné `SET LOCAL` po `BEGIN` (§120), ověření GUC při
+akvizici (§121, `MISMATCH=0`), kontrola v dotazu (§122 — vyžadovala by
+SQL-aware rewriter v poolu, jehož fallback by okno stejně nechal otevřené).
+
+**Dopad na produkci:** 8 čtecích rout bez `BEGIN` může tiše vrátit prázdno
+místo dat (`discover`, `artists/[slug]`, `travel-packages`, `postal-fees`,
+`carbon-offset-settings`, `health/db`, `buyer/fan-bonus`,
+`my/orders/[id]/upgrade-options`). Zápisové cesty selžou **hlasitě** (42501).
+Symptom: „endpoint vrací prázdný seznam, po refreshi už ne."
+**Proč se session vymění: NEVÍM.**
+
+### Starší zápis (§120, §121)
 
 **Varianta 3 (ověření GUC při akvizici) implementována a změřena: NEFUNGUJE.**
 `MISMATCH=0` — kontrola nezabrala ani jednou, protože GUC jsou při akvizici
@@ -213,7 +226,12 @@ Co by B obnášelo:
 Riziko střední: dotkne se poolu i tokenové cesty; chyba zavře B2B portál úplně.
 Podmínka nasazení: izolační test firma A vs firma B, jinak migrace jen mění tvar.
 
-## R-18 🟡 Dvě policy korelují proti špatné tabulce — mrtvé, ne děravé (§110)
+## R-18 ✅ VYŘEŠENO migrací 464 (§124)
+
+RED: promotér-vlastník viděl 0. GREEN: vidí 1, cizí promotér 0, kupující 0
+(záměrně — `invoice_orders` nemá `user_id`). Doloženo přímým SQL, ne testy.
+
+### Původní zápis (§110)
 
 `p_rls_dunning_log` a `p_rls_order_reservations` dělají
 `EXISTS (… FROM orders.orders o_ WHERE o_.id = <tbl>.order_id …)`, ale

@@ -1546,3 +1546,113 @@ Ted se **vzdy nastavuji vsechny ctyri** — zbytek po predchozim drziteli uz
 propadnout nemuze. To je realne zuzeni, jen neresi flakinessu.
 
 **R-18 zustava na rade.**
+
+---
+
+## §122 VERDIKT proveditelnosti: kontrola v dotazu je KREHKA — R-15 se zaviraNA JAKO RIZIKO
+
+### 1a) Jak by obalka vypadala — a proc zadny tvar nesedi
+
+| tvar | proc nefunguje |
+|---|---|
+| **CTE guard** `WITH _guard AS (SELECT 1 WHERE current_setting('app.role',true) IS NOT NULL) <dotaz>` | CTE, na ktere se nikdo neodkazuje, se **nevykona** — planovac ho zahodi. Aby se vykonalo, musel by ho puvodni dotaz JOINovat, coz uz meni jeho semantiku. Navic dotaz muze `WITH` uz mit, a pak se musi slucovat. |
+| **pripojeni podminky k `WHERE`** | Vyzaduje parsovat SQL. U `INSERT ... VALUES`, `COPY`, DDL a `BEGIN/COMMIT/SET` neni kam pripojit. |
+| **dva prikazy v jednom round-tripu** (`SELECT guard; <dotaz>`) | Jde jen v **simple query** protokolu. Jakmile ma dotaz parametry — coz ma vetsina — pouzije se **extended** protokol, ktery vic prikazu v jedne zprave **neumi**. |
+
+### 1b) Co to rozbije
+
+Parametrizovane dotazy (vetsina), `COPY`, DDL, transakcni prikazy
+(`BEGIN`/`COMMIT`/`ROLLBACK`/`SET`), pojmenovane prepared statements, kurzory,
+`QueryConfig` objekty misto retezce. `RETURNING` by prezilo, ale to je jedina
+polozka seznamu.
+
+### 1c) VERDIKT: **prepis poolu, ne hodinova prace**
+
+Aby to bylo bezpecne, musel by pool obsahovat **SQL-aware rewriter** s rozhodovaci
+tabulkou pro kazdy typ prikazu a s fallbackem tam, kde se prepsat neda —
+a prave ten fallback by okno nechal otevrene, takze by se cil stejne nesplnil.
+Riziko rozbiti je vysoke, prinos nejisty.
+
+**NEIMPLEMENTOVANO.** Treti navrh v rade, ktery neprojde — tentokrat uz ve fazi
+posouzeni, ne az po zmereni.
+
+## §123 R-15 uzavreno jako ZNAME RIZIKO (ne vyreseno)
+
+### Diagnoza
+
+**Pricina:** backend session se vymeni mezi `set_config` a dotazem. Doloženo
+primo: `setPid=778`, `queryPid=781`, tyz objekt klienta, jeden request (§117).
+Na nove session zadny `SET` neprobehl → vsechny ctyri GUC `null` (ne `''`) →
+`app_is_service()` false → policy nepusti nic → **tiche prazdno**.
+
+**Proc se session vymeni: NEVIM.** Vylouceno merenim: `idleTimeoutMillis`
+(600 s nic nezmenilo), dvojite `release()` (citac 0 vyskytu), zdedene cizi GUC
+(spina se objevila jen v bezich, ktere prosly), pool-level `query()`
+(routy ho nepouzivaji), chybejici `await` (vsech 8 `SET` awaitovanych).
+`POOL-ERROR` se neobjevil nikdy, `POOL-REMOVE` 2x v kazdem behu vcetne
+prochazejicich.
+
+### Reprodukce
+
+```
+max=10, public-routes (10 testu), 5 behu bez diagnostiky → 1-2 pady na beh
+```
+
+Tri zasahy, ktere jev MASKUJI (kazdy jen posouva casovani):
+
+```
+max=1                        5 behu → 0 padu
+afterEach 50 ms              4 behy → 0 padu
+diagnosticky round-trip      7 behu → 0 padu
+```
+
+### Tri vyvracene opravy
+
+1. **Line `SET LOCAL` po volajiciho `BEGIN`** (§120) — padajici routy
+   (`discover`, `artists/[slug]`, `alert`) `BEGIN` vubec neposilaji.
+2. **Overeni GUC pri akvizici + retry** (§121) — implementovano, zmereno:
+   `MISMATCH=0`, pady pokracuji. Zamena nastava AZ PO akvizici.
+3. **Kontrola v dotazu** (§122) — posouzeno jako neproveditelne bez prepisu poolu.
+
+### Dusledek pro produkci
+
+- **Ctecí cesty bez `BEGIN`** (8 rout: `discover`, `artists/[slug]`,
+  `travel-packages`, `postal-fees`, `carbon-offset-settings`, `health/db`,
+  `buyer/fan-bonus`, `my/orders/[id]/upgrade-options`) mohou **vratit prazdno
+  misto dat**. Tise. Uzivatel uvidi „nic nenalezeno".
+- **Zapisove cesty** se projevi **hlasite** — bez GUC neprojde `WITH CHECK`
+  a padne `42501`. Tam se to nepretece do dat, jen do chyby.
+- Produkce zatim **nebezi**; jev je videt na trech routach v testech.
+
+🟡 **Znama vada, ne vyresena.** Kdo na to narazi: symptom je „endpoint vraci
+prazdny seznam, po refreshi uz ne".
+
+## §124 Migrace 464: R-18 opraveno, RED→GREEN primym SQL
+
+Sada je flaky (§123), takze dukaz je **primy SQL proti klonu**, ne pocet
+zelenych testu.
+
+```
+RED (bez 464)
+ promoter A (vlastnik faktury)  dunning_log=0  order_reservations=0
+ promoter B (CIZI)              dunning_log=0  order_reservations=0
+ kupujici                       dunning_log=0  order_reservations=0
+ servisni                       dunning_log=2  order_reservations=2
+
+GREEN (s 464), adresne na fakturu promotera A
+ promoter A (vlastnik faktury)  dunning_log(A)=1  order_reservations(A)=1
+ promoter B (CIZI)              dunning_log(A)=0  order_reservations(A)=0
+ kupujici                       dunning_log(A)=0  order_reservations(A)=0
+ servisni                       dunning_log(A)=1  order_reservations(A)=1
+```
+
+⚠️ Prvni GREEN meril **globalni count** a vypadal jako unik (B vidi 1) — jenze
+B ma vlastni fakturu, takze videl **svuj** radek. Chyba byla v meritku, ne
+v policy; opraveno na adresny dotaz na fakturu A. Nechavam to zapsane, protoze
+globalni count je u izolacnich testu past.
+
+Kupujici vidi 0 **zamerne**: `invoice_orders` nema `user_id`, je to fakturacni
+objednavka firmy. Kdo za firmu vidi, resi R-17.
+
+`rls-snapshot.json`: 624 policies, 436 tabulek. Gate prosel (pocet policies se
+nemeni — 464 dve existujici prepisuje).

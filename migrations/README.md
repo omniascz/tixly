@@ -103,6 +103,7 @@ Nic z toho **není na produkci**. Pořadí je závazné.
 | 461 | `461_mechanical_rls.sql` | RLS + `p_*_scope` na 19 tabulek s přímým tenant sloupcem | GENEROVANÁ (`scripts/gen-461-mechanical-rls.mjs`) — needituj ručně; izolace RED→GREEN na 6 reprezentantech, 0 rozbitých testů, FINDINGS §106 |
 | 462 | `462_shared_catalog_and_eudi_rls.sql` | `films`/`sport_teams` (čtení sdílené, zápis vlastní) + `eudi_verifications` servisní | nasadit SPOLU s opravou `admin/films/[id]` a `admin/sport-teams/[id]` — bez ní by aplikace a policy říkaly různé věci, FINDINGS §108 |
 | 463 | `463_b2b_service_branch.sql` | b2b trojice dostane `app_is_platform_admin() OR app_is_service()` | ⚠️ nasadit SPOLU s obalením 6 b2b rout — `admin/b2b` používalo holé `requirePlatformAdmin`, které GUC NENASTAVUJE, a migrace by správu účtů zavřela; FINDINGS §111 |
+| 464 | `464_b2b_orders_correlate_invoice_orders.sql` | `dunning_log` + `order_reservations` korelují na `b2b_orders.invoice_orders`, ne na `orders.orders` | opravuje mrtvou větev (promotér neviděl vlastní dunning log); RED→GREEN přímým SQL, FINDINGS §124 |
 
 ### ⚠️ „capacity backfill" — v pořadí NENÍ a nemá být
 
