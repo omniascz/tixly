@@ -2122,3 +2122,53 @@ jsem v aktualnim stavu, ne v historii.
 ⚠️ Co ovsem plati: kdyby ten INSERT z jakehokoli duvodu selhal, **ted uz to
 bude videt** — modularni pristupy jsou zarazene mezi kriticke kroky, takze
 selhani da `ok:false`, ne tichy log.
+
+---
+
+## §136 ✅ F1: program-booklet smazan — nenarozena funkce, ne mrtva
+
+### a) Co na tom viselo (overeno grepem, ne prevzato)
+
+| misto | stav pri overeni |
+|---|---|
+| `api/programs/[eventId]/route.ts` | reader, cetl `is_published` + `program_price_halire` **SMAZANO** |
+| `api/admin/events/[id]/program/route.ts` | writer, `INSERT … is_published` **SMAZANO** |
+| `[locale]/program/[eventId]/page.tsx` | stranka, fetchovala reader **SMAZANO** |
+| `backstage/[eventId]/page.tsx:184` | zivy odkaz na tu stranku **ODSTRANEN** (+ nepouzity import `Link`) |
+| `checkout/route.ts:2222` | mrtva vetev za early-guardem **SMAZANA** |
+| `checkout/route.ts:265` early-guard | **PONECHAN** — pojistka proti primemu API POST, komentar prepsan |
+| `checkout/page.tsx` `PROGRAM_PURCHASE_ENABLED` | **PONECHAN** — viz nize |
+
+### b) 🔴 Kritické rozliseni: tabulka ZUSTAVA
+
+`catalog.event_programs` je **rozvrhova/timetable** tabulka:
+
+```
+id, event_id, event_day_id, zone_id, starts_at, ends_at,
+title, artist_name, description, display_order, created_at
+```
+
+Zadny `is_published`, zadny `program_price_halire`. Bookletova funkce se na ni
+**omylem napojila**. Tabulku ani `catalog.program_cast_entries` /
+`orders.program_purchases` (obe existuji) jsem **nesmazal** — je to schema,
+ne kod, a mazani tabulek nebylo v zadani.
+
+⚠️ Overeno, ze **timetable nema zadneho ctenare**: `grep starts_at | grep program`
+v `src/` vraci nic. Vsechny ctyri soubory, ktere se `event_programs` dotykaly,
+byly bookletove. Timetable je tedy tabulka bez konzumenta — samostatna otazka
+(R-27), nesmazal jsem ji ani nedostavel.
+
+### c) Dolozeni
+
+```
+tsc --noEmit                     exit 0
+odkaz na /program/ z UI          0 souboru
+is_published v zivem kodu        0  (zbyle 4 vyskyty jsou KOMENTARE, ktere vysvetluji proc)
+program_price_halire v zivem kodu 0  (dtto)
+```
+
+`PROGRAM_PURCHASE_ENABLED` zustava v `checkout/page.tsx` vedome: `programInfo`
+se uz nikde nenacita, takze blok s checkboxem se **nevykresli**. Odstranit to
+JSX by znamenalo prepsat okolni ternar a **jeden pokus o to mi rozbil stranku**
+(TS17008, chybejici uzaviraci tag) — vratil jsem to a nechal jako mrtvy kod bez
+cesty k vykresleni, s komentarem. Neni to hotove do posledniho radku a rikam to.

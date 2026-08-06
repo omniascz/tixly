@@ -28,6 +28,11 @@ const FOYER_PREORDER_ENABLED = false;
 // neexistují → checkout :2233 by spadl 42703 PO commitu. Backend addProgram fail-closed odmítá;
 // tady navíc nenačítáme programInfo, aby se checkbox nevykreslil (nespoléhat na to, že loader
 // právě teď 500-uje). Re-enable až po feature ticketu "digitální program-booklet subsystém".
+// F1: digitalni program-booklet SMAZAN (FINDINGS §136) — routy /api/programs,
+// /api/admin/events/[id]/program a stranka /program/[eventId] jsou pryc.
+// `programInfo` se uz nikde nenacita, takze blok s checkboxem nize se NEVYKRESLI.
+// JSX zustava jen proto, ze jeho odstraneni by vyzadovalo prepsat okolni ternar;
+// je to mrtvy kod bez cesty k vykresleni, ne funkce.
 const PROGRAM_PURCHASE_ENABLED = false;
 
 function CheckoutForm() {

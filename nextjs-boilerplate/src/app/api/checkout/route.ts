@@ -262,14 +262,16 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
   }
 
-  // Early-guard: digitální program-booklet je DOČASNĚ NEDOSTUPNÝ (schema drift, třída 3 ORPHAN).
+  // Early-guard: digitální program-booklet je SMAZANÝ (F1, FINDINGS §136) — nebyl to
+  // drift k opravě, ale NENAROZENÁ funkce: writer i reader existovaly, schéma pod nimi
+  // nikdy nevzniklo. Guard ZŮSTÁVÁ jako pojistka proti přímému API POST.
   // catalog.event_programs je v prod schématu ROZVRHOVÁ/timetable tabulka — booklet sloupce
   // (program_price_halire, is_published) NEEXISTUJÍ nikde. Post-commit blok níže by proto spadl
   // 42703 AŽ PO COMMITu objednávky (:2128) → buyer platí, dostane 500, objednávka drží inventář =
   // orphan. Fail-closed JEŠTĚ PŘED vytvořením objednávky (stejně jako crypto guard výše):
   // žádná objednávka, žádný orphan, čisté odmítnutí místo 42703-crashe. Z běžného UI addProgram
   // nikdy nepřijde (fieldset skryt); tohle je pojistka proti přímému API POST.
-  // Znovuzapnutí = feature ticket "digitální program-booklet subsystém" (REMEDIATION.md).
+  // Znovuzavedení = nová funkce od nuly, ne znovuzapnutí (REMEDIATION R-26).
   if (input.addProgram) {
     // 503 (ne 400) — sjednoceno s crypto guardem výše (PAYMENT_METHOD_UNAVAILABLE):
     // request není chybný, feature je dočasně nedostupná.
@@ -2215,32 +2217,11 @@ export async function POST(req: NextRequest): Promise<Response> {
     const foyerOrderToken: string | undefined = undefined;
     void input.foyerItems; // schema-accepted, ale záměrně nepersistováno (viz výše)
 
-    // Digitální program (mig 359) — INSERT program_purchase + vrátit access_token.
-    // ⚠️ NEDOSAŽITELNÉ: input.addProgram je fail-closed odmítnut early-guardem výše
-    // (před BEGIN), takže sem s addProgram=true nikdy nedojde. Blok PONECHÁN ZÁMĚRNĚ jako
-    // baseline dluh (SELECT event_programs = drift třídy 3, event_programs je rozvrhová tabulka,
-    // program_price_halire/is_published neexistují). NEOPRAVOVAT column-fixem ani migrací tvořící
-    // booklet sloupce = to je featura (viz feature ticket v REMEDIATION.md).
-    let programAccessToken: string | undefined;
-    if (input.addProgram) {
-      const progRow = await db().query<{ id: string; program_price_halire: number }>(
-        `SELECT id, program_price_halire
-         FROM catalog.event_programs
-         WHERE event_id = $1 AND is_published = true AND program_price_halire > 0
-         LIMIT 1`,
-        [input.eventId],
-      );
-      if (progRow.rows.length > 0) {
-        const prog = progRow.rows[0];
-        const ppRow = await db().query<{ access_token: string }>(
-          `INSERT INTO orders.program_purchases (order_id, program_id, price_halire)
-           VALUES ($1, $2, $3)
-           RETURNING access_token`,
-          [orderId, prog.id, prog.program_price_halire],
-        );
-        programAccessToken = ppRow.rows[0].access_token;
-      }
-    }
+    // F1: digitalni program-booklet SMAZAN (FINDINGS §136). Blok byl nedosazitelny
+    // (input.addProgram fail-closed odmitnut early-guardem) a cetl sloupce
+    // program_price_halire/is_published, ktere na catalog.event_programs
+    // NIKDY NEEXISTOVALY — ta tabulka je rozvrhova (starts_at, artist_name).
+    const programAccessToken: string | undefined = undefined;
 
     // B2B credit — žádná platební brána. Objednávka je ihned 'paid', přesměruj na potvrzení.
     if (input.paymentMethod === 'b2b_credit') {

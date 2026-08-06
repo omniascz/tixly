@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 import { Pool } from 'pg';
-import Link from 'next/link';
 import { Play } from 'lucide-react';
 import { ShareButton } from './ShareButton';
 
@@ -180,12 +179,7 @@ export default async function BackstagePage({
             url={pageUrl}
           />
 
-          <Link
-            href={`/${params.locale}/program/${params.eventId}`}
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-zinc-700 px-4 text-sm text-zinc-300 transition hover:border-zinc-500 hover:text-white"
-          >
-            Zobrazit program večera
-          </Link>
+          {/* F1: odkaz na program-booklet odstranen — funkce smazana (FINDINGS 136) */}
         </div>
       </div>
     </div>

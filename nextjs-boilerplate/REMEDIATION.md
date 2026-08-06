@@ -285,3 +285,21 @@ znamem pripade nenasel. Cislo 0 u ni NEPLATI.
 Cteci strana opravena (cte `orders.foyer_orders.items jsonb`), ale zapisova
 vetev byla odstranena uz v `aa62538`. `foyer-orders` proto bude vzdy vracet
 prazdny seznam. Bud pre-order dostavet, nebo foyer odebrat z `EventDetailNav`.
+
+## R-26 ⏭️ Program-booklet: znovuzavedeni = nova funkce od nuly (§136)
+
+Smazano F1. Nebyl to drift k oprave, ale nenarozena funkce — writer i reader
+existovaly, schema pod nimi nikdy nevzniklo. Kdyby se mel booklet delat,
+zacina se navrhem schematu, ne obnovou kodu.
+
+## R-27 🟡 `catalog.event_programs` (timetable) nema konzumenta (§136)
+
+Po smazani bookletu na tu tabulku nesaha zadny kod. Bud rozvrh dostavet
+(je to smysluplna funkce), nebo tabulku odepsat. Nesmazal jsem ji — je to
+schema a mazani tabulek nebylo v zadani.
+
+## R-28 🟡 Mrtvy JSX blok v `checkout/page.tsx` (§136)
+
+Checkbox digitalniho programu se nevykresli (`programInfo` se nenacita), ale JSX
+tam zustalo — pokus o odstraneni rozbil okolni ternar (TS17008) a byl vracen.
+Odstranit pri pristim doteku toho souboru.
