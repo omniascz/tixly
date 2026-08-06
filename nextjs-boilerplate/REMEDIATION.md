@@ -313,3 +313,17 @@ schema a mazani tabulek nebylo v zadani.
 Checkbox digitalniho programu se nevykresli (`programInfo` se nenacita), ale JSX
 tam zustalo — pokus o odstraneni rozbil okolni ternar (TS17008) a byl vracen.
 Odstranit pri pristim doteku toho souboru.
+
+## R-29 🔴 32 migraci s `IF NOT EXISTS`, jejichz tvar v baseline nesedi (§141)
+
+Trida „tichy no-op": `CREATE TABLE IF NOT EXISTS` nad uz obsazenym jmenem
+neudela nic a kod pak bezi proti cizimu schematu.
+**Potvrzene chovanim:** `362_event_programs` (§139), `437_demand_forecast`
+(cron vypnut ve F7 pro „9 sloupcu nesedi" — ted zname pricinu).
+**Kandidati:** `367_event_reviews` (4), `069_event_seats_base` (3),
+`090_referral_system` (7 celkem, pravdepodobne prejmenovani `_czk`→`_halire`),
+`436_call_center` (2), `365_waiting_list` (1), `035_cinema_program`
+(4 tabulky v baseline vubec nejsou), `018_recurring_events` (6 sloupcu
+na `catalog.events`).
+Sken NEUMI odlisit tichy no-op od pozdejsiho prejmenovani — rozhodnout se musi
+kus po kuse. Reprodukce: viz §141.

@@ -2324,3 +2324,67 @@ v adminu **0**.
 (`src/app/**`), ne z jednoho podstromu. V §136 jsem dolozil „odkaz na /program/
 z UI: 0 souboru" — to cislo bylo spravne pro `[locale]`, ale grep mel byt
 nad celym `src/app`.
+
+---
+
+## §141 🔴 `IF NOT EXISTS` jako trida: 362 NENI jedina, je jich 32
+
+### a) Kolik jich v archivu je
+
+366 migraci v `fc95cb2` (archiv):
+
+```
+CREATE TABLE IF NOT EXISTS      : 378
+ADD COLUMN IF NOT EXISTS        : 256
+CREATE INDEX IF NOT EXISTS      : 569
+```
+
+### b) Kolik z nich ma v baseline JINY TVAR, nez migrace zamyslela: **32**
+
+Porovnano sloupec po sloupci — sloupce z `CREATE TABLE IF NOT EXISTS` proti
+sloupcum teze tabulky v `000_baseline_20260730.sql`:
+
+| migrace | tabulka | chybi sloupcu |
+|---|---|---|
+| `362_event_programs` | `catalog.event_programs` | **12** (`about_text`, `director_note`, `dramaturg_note`, `running_time_minutes`, …) |
+| `437_demand_forecast` | `analytics.demand_forecasts` | **9** (`tickets_sold`, `tickets_total`, `pct_sold`, `forecast_sold`, `forecast_pct`, `demand_score`, …) |
+| `367_event_reviews` | `marketing.event_reviews` | 4 (`reviewer_email`, `reviewer_name`, `comment`, `review_token`) |
+| `069_event_seats_base` | `catalog.event_seats` | 3 (`row`, `dynamic_price_minor`, `dynamic_price_at`) |
+| `090_referral_system` | `referral.credit_wallet` + 3 dalsi | 3+2+1+1 (vsechny `*_czk`) |
+| `436_call_center` | `orders.phone_orders` | 2 (`order_id`, `updated_at`) |
+| `365_waiting_list` | `orders.waiting_list` | 1 (`position`) |
+| `035_cinema_program` | `cinema.*` ×4 | tabulky v baseline **NEJSOU VUBEC** |
+
+### 🔎 Nezavisle potvrzeni F7
+
+`437_demand_forecast` → `analytics.demand_forecasts`, **9 chybejicich sloupcu**.
+To je presne symptom, kvuli kteremu jsem v §126 vypnul cron `demand-forecast`
+s poznamkou „pise proti jinemu designu tabulky (9 sloupcu nesedi)". **Tehdy jsem
+tu pricinu neznal** — bylo to jen pozorovani. Ted je dolozena: tataz trida jako
+u 362.
+
+### c) `ADD COLUMN IF NOT EXISTS`: 14 sloupcu v baseline chybi
+
+Nejvyraznejsi je `018_recurring_events` — **6 sloupcu** na `catalog.events`
+(`is_recurring`, `recurrence_rule`, `slot_duration_min`, `parent_event_id`,
+`recurrence_index`, `recurrence_cancelled`). Cela featura opakovanych akci
+tedy stoji na sloupcich, ktere v baseline nejsou.
+
+### ⚠️ Co tenhle sken NEUMI rozlisit
+
+Neshoda **nemusi** znamenat tichy no-op. Mohla vzniknout i tim, ze pozdejsi
+migrace sloupec prejmenovala nebo zahodila — u `090_referral_system` to na to
+vyslovene vypada (`balance_czk` → pravdepodobne `*_halire`, cely projekt jinde
+pocita v halerich), u `069` je `row` rezervovane slovo.
+
+**Je to tedy seznam KANDIDATU, ne potvrzenych vad.** Rozhodnout se da jen
+u kazdeho zvlast: existuje pozdejsi migrace, ktera to prejmenovala? Kdyz ne,
+je to tichy no-op.
+
+Dva pripady uz **potvrzene jsou** meritelnym chovanim: `362` (§139) a `437`
+(F7, cron vypnut). **NEOPRAVOVANO** dle zadani — R-29.
+
+⚠️ False positives, ktere jsem nechal ve vypisu vedome: `450_tickets_dedup_unique`
+a `440_prod_schema_reconcile` jsou **nenasazene** migrace z aktualni fronty,
+takze jejich sloupce v baseline byt nemaji. Vypis je nefiltruje a rikam to,
+misto abych cislo umele snizil.
