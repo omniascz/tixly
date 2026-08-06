@@ -72,7 +72,21 @@ dostalo RLS + `p_*_scope`. Izolace ověřena, 0 rozbitých testů, gate prošel.
 | `identity.eudi_verifications` | zápis je anonymní (`user_id` se nevyplňuje), filtrace tokenem → servisní větev jako §94. Má mít uživatel vlastní pohled? Dnes žádná routa taková není. |
 | `marketing.fan_bonus_issued` | `user_id` NULLABLE — bonus pro hosta bez účtu, nebo nedodělek? |
 
-## R-15 🟡 PŘÍČINA NALEZENA: spojení se vymění mezi SET a dotazem (§117)
+## R-15 🟡 PŘÍČINA NALEZENA, oprava NAVRŽENA (§117–119)
+
+`idleTimeoutMillis` vyloučen měřením (600 s → 3 pády z 50, beze změny).
+**Jádro:** `RlsAwarePool.query()` drží `SET LOCAL` + dotaz v transakci → záměna
+spojení = CHYBA. `connect()` nastavuje GUC session-level bez transakce → záměna
+= TICHÉ PRÁZDNO. Sjednocení nejde: 161 ze 176 volajících si dělá vlastní `BEGIN`,
+vnořený `BEGIN` dá jen WARNING a rozbije sémantiku `COMMIT`.
+
+**NÁVRH (0 změn call sites, 0 round-tripů navíc):** nastavovat GUC líně —
+obalit `client.query` tak, že po volajícího `BEGIN` se injektne
+`set_config(…, true)` (LOCAL). Záměna spojení pak skončí chybou.
+Volající bez `BEGIN` (15 ze 176) zůstanou na dnešní cestě.
+NEIMPLEMENTOVÁNO — podmínka nasazení: 5 shodných běhů + celá sada 3×.
+
+### Starší zápis (§117)
 
 `setPid=778 queryPid=781 shoda=FALSE role=null radku=0` — přímý důkaz.
 Vyloučeno měřením: pool-level `query()`, chybějící `await`, dvojité `release()`,

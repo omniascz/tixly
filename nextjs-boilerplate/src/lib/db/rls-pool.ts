@@ -54,7 +54,9 @@ function getRawPool(): Pool {
       // spojení se uvolní. Bez tohohle se pool zasekl donekonečna.
       statement_timeout: Number(process.env.PG_STATEMENT_TIMEOUT_MS ?? 15000),
       connectionTimeoutMillis: 8000,
-      idleTimeoutMillis: 30000,
+      // Prepinatelne kvuli R-15 (§118): mereni, jestli za zamenou spojeni stoji
+      // vyhazovani necinnych spojeni z poolu.
+      idleTimeoutMillis: Number(process.env.PG_IDLE_TIMEOUT_MS ?? 30000),
     });
     if (process.env.RLS_POOL_DEBUG === '1') {
       pool.on('error', (e) => console.warn('[POOL-ERROR]', (e as Error)?.message?.slice(0, 80)));

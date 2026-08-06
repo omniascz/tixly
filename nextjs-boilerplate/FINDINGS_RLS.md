@@ -1322,3 +1322,90 @@ oprava neexistuje. R-18 zůstává na řadě.
 round-tripů **stejný**, ale hodnota jde parametrem místo vlepení do SQL.
 `pg_backend_pid()` zůstává jako diagnostika. Události poolu (`error`, `remove`)
 se logují jen pod `RLS_POOL_DEBUG`.
+
+---
+
+## §118 `idleTimeoutMillis` to není; obě cesty se liší transakcí
+
+### 1a) Celá konfigurace poolu
+
+```
+max                     10   (PG_POOL_MAX)
+statement_timeout    15000   (PG_STATEMENT_TIMEOUT_MS)
+connectionTimeoutMillis 8000
+idleTimeoutMillis      30000
+maxUses            NENASTAVENO
+allowExitOnIdle    NENASTAVENO
+keepAlive          NENASTAVENO
+```
+
+`end()` navíc dělá `pool = null`, takže po něm vznikne **nový pool** s novými
+spojeními — v testech se to ale volá až v `afterAll`.
+
+### 1c) Experiment: `idleTimeoutMillis` 30 s → 600 s
+
+```
+2 0 0 1 0   ← idleTimeout=600s, max=10, bez diagnostiky   (3 pády z 50)
+```
+
+Baseline byl 3–5 z 50. **Beze změny. Vyhazování nečinných spojení tedy příčina
+není** — kandidát vyloučen měřením, ne úvahou.
+
+### 1d) Konfigurace, nebo Neon?
+
+**NEVÍM.** Proti Neonu mluví, že `POOL-ERROR` se neobjevil ani jednou — kdyby
+proxy spojení zavřela, `pg` by na tom klientovi chybu vyhodilo. Proti konfiguraci
+mluví experiment výše. Zbývající možnost je něco uvnitř `pg` nebo v tom, jak
+`Pool` recykluje objekty klientů; **nedohledal jsem to.**
+
+## §119 Obě cesty vedle sebe — a proč sjednocení nejde
+
+### 2a) Rozdíl přesně
+
+| | `RlsAwarePool.query()` | `connect()` |
+|---|---|---|
+| transakce | `BEGIN` … `COMMIT` uvnitř metody | žádná — otevírá si ji volající |
+| rozsah GUC | `SET LOCAL` (transakčně lokální) | `set_config(…, false)` = **session-level** |
+| úklid | implicitní koncem transakce | `RESET` při `release()`, asynchronně |
+| záměna spojení uprostřed | transakce zmizí → **CHYBA** | GUC zmizí → **tiché prázdno** |
+
+**Jedna cesta selhává hlasitě, druhá tiše.** To je celé jádro R-15 — a je to
+vlastnost návrhu, ne náhoda.
+
+### 2b) Sjednocení rozbije volající — změřeno
+
+```
+souborů s db().connect():     176
+z nich dělá vlastní BEGIN:    161
+celkem výskytů BEGIN v src/:  192
+```
+
+Kdyby `connect()` vydával klienta s **už otevřenou** transakcí, 161 souborů by
+poslalo vnořený `BEGIN`. Postgres na to odpoví `WARNING: there is already a
+transaction in progress` — tedy **nespadne**, jen se rozejde sémantika `COMMIT`
+(vnitřní commit ukončí celou transakci). To je horší než dnešní stav: tichá
+chyba by se vyměnila za jinou tichou chybu, jen širší.
+
+**Sjednocení tedy NEJDE.**
+
+### 2c) Alternativa, která nepotřebuje změnu volajících — NÁVRH
+
+Využít toho, že **161 ze 176 volajících `BEGIN` stejně dělá**: místo nastavování
+GUC hned v `connect()` je nastavit **líně, hned po volajícího `BEGIN`** — obalit
+`client.query` tak, že když projde `BEGIN`, injektne se
+`set_config(…, true)` (tedy **LOCAL**).
+
+| | dnes | návrh |
+|---|---|---|
+| rozsah GUC | session | transakční |
+| round-tripů navíc | — | 0 (jen se přesunou za `BEGIN`) |
+| změny call sites | — | 0 |
+| záměna spojení | tiché prázdno | **chyba** — transakce na novém spojení neexistuje |
+| volající bez `BEGIN` (15 ze 176) | funguje | musel by zůstat na dnešní cestě |
+
+⚠️ **NEIMPLEMENTOVÁNO.** Je to zásah do cesty, kterou používá 176 souborů;
+podmínkou nasazení je 5 shodných běhů `public-routes` a trojí běh celé sady.
+**Došel mi kontext dřív, než jsem to mohl napsat a ověřit** — a nasadit takovou
+změnu bez těch běhů by bylo přesně to, před čím tenhle celý blok varuje.
+
+**2d a 2e tedy NEDOLOŽENY. R-18 zůstává na řadě.**
