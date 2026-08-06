@@ -298,7 +298,9 @@ Po smazani bookletu na tu tabulku nesaha zadny kod. Bud rozvrh dostavet
 (je to smysluplna funkce), nebo tabulku odepsat. Nesmazal jsem ji — je to
 schema a mazani tabulek nebylo v zadani.
 
-## R-28 🟡 Mrtvy JSX blok v `checkout/page.tsx` (§136)
+## R-28 ✅ VYRESENO (§138) — blok, stavy, loader i typ odstraneny, tsc 0
+
+### Puvodni zapis (§136)
 
 Checkbox digitalniho programu se nevykresli (`programInfo` se nenacita), ale JSX
 tam zustalo — pokus o odstraneni rozbil okolni ternar (TS17008) a byl vracen.

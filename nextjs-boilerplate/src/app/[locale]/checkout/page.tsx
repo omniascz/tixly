@@ -24,16 +24,9 @@ import { fbqTrack } from '@/lib/tracking/fbq';
 const FOYER_PREORDER_ENABLED = false;
 
 // Digitální program-booklet DOČASNĚ VYPNUT — schema drift (třída 3): catalog.event_programs je
-// rozvrhová/timetable tabulka, prodejní booklet sloupce (program_price_halire, is_published)
-// neexistují → checkout :2233 by spadl 42703 PO commitu. Backend addProgram fail-closed odmítá;
-// tady navíc nenačítáme programInfo, aby se checkbox nevykreslil (nespoléhat na to, že loader
-// právě teď 500-uje). Re-enable až po feature ticketu "digitální program-booklet subsystém".
-// F1: digitalni program-booklet SMAZAN (FINDINGS §136) — routy /api/programs,
-// /api/admin/events/[id]/program a stranka /program/[eventId] jsou pryc.
-// `programInfo` se uz nikde nenacita, takze blok s checkboxem nize se NEVYKRESLI.
-// JSX zustava jen proto, ze jeho odstraneni by vyzadovalo prepsat okolni ternar;
-// je to mrtvy kod bez cesty k vykresleni, ne funkce.
-const PROGRAM_PURCHASE_ENABLED = false;
+// F1 (FINDINGS §136): program-booklet SMAZAN. catalog.event_programs je
+// rozvrhová/timetable tabulka; booklet sloupce nikdy neexistovaly. Routy,
+// stránka, loader i UI jsou pryč; backend má fail-closed guard proti přímému POST.
 
 function CheckoutForm() {
   const searchParams = useSearchParams();
@@ -135,16 +128,8 @@ function CheckoutForm() {
     category: string;
     availableCount: number | null;
   }
-  interface ProgramInfo {
-    id: string;
-    title: string | null;
-    coverImageUrl: string | null;
-    programPriceHalire: number;
-  }
   const [foyerMenu, setFoyerMenu] = useState<FoyerMenuItem[]>([]);
   const [foyerItems, setFoyerItems] = useState<Record<string, number>>({});
-  const [programInfo, setProgramInfo] = useState<ProgramInfo | null>(null);
-  const [addProgram, setAddProgram] = useState(false);
 
   // EVENTIM.Travel — hotelové balíčky k eventu
   interface TravelPackage {
@@ -446,18 +431,7 @@ function CheckoutForm() {
       .catch(() => {});
   }, [eventId]);
 
-  useEffect(() => {
-    if (!PROGRAM_PURCHASE_ENABLED) return; // program-booklet dočasně vypnut (viz konstanta nahoře)
-    if (!eventId) return;
-    fetch(`/api/programs/${eventId}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d: { locked?: boolean; program?: ProgramInfo | null } | null) => {
-        if (d?.program && d.locked && (d.program.programPriceHalire ?? 0) > 0) {
-          setProgramInfo(d.program);
-        }
-      })
-      .catch(() => {});
-  }, [eventId]);
+  // F1: loader program-bookletu odstranen — routa /api/programs smazana (FINDINGS 136)
 
   // Po načtení zkusit zjistit, zda má buyer aktivní subscription u promotéra
   // tohoto eventu (vrátí availableSub pro UI checkbox „použít permanentku").
@@ -566,7 +540,6 @@ function CheckoutForm() {
         .filter(([, q]) => q > 0)
         .map(([menuItemId, quantity]) => ({ menuItemId, quantity }));
       if (foyerItemsArr.length > 0) body.foyerItems = foyerItemsArr;
-      if (addProgram && programInfo) body.addProgram = true;
       // EVENTIM.Travel — přidáme hotel balíček pokud byl vybrán
       if (selectedTravelPackageId) {
         body.travelPackageId = selectedTravelPackageId;
@@ -1133,38 +1106,7 @@ function CheckoutForm() {
               </fieldset>
             ) : null}
 
-            {programInfo ? (
-              <div className="rounded-md border border-violet-200 bg-violet-50 p-3">
-                <label className="flex cursor-pointer items-start gap-3 text-sm font-medium text-violet-900">
-                  <input
-                    type="checkbox"
-                    checked={addProgram}
-                    onChange={(e) => setAddProgram(e.target.checked)}
-                    className="mt-0.5"
-                  />
-                  <span className="flex-1">
-                    <span className="block">
-                      📖 Digitální program
-                      {programInfo.title ? ` — ${programInfo.title}` : ''}
-                      {' '}
-                      <span className="font-semibold">
-                        (+{(programInfo.programPriceHalire / 100).toLocaleString('cs-CZ')} Kč)
-                      </span>
-                    </span>
-                    {programInfo.coverImageUrl ? (
-                      <img
-                        src={programInfo.coverImageUrl}
-                        alt="Cover programu"
-                        className="mt-2 h-16 w-auto rounded object-cover"
-                      />
-                    ) : null}
-                    <span className="mt-1 block text-xs font-normal text-violet-800">
-                      Obsazení, režijní poznámka a galerka — přístup přes QR/odkaz v potvrzovacím emailu.
-                    </span>
-                  </span>
-                </label>
-              </div>
-            ) : null}
+            {/* F1: digitalni program-booklet smazan (FINDINGS 136) */}
 
             <fieldset className="border-0 p-0">
               <legend className="mb-1 block text-xs font-medium">
@@ -1716,7 +1658,7 @@ function CheckoutForm() {
                 (sum, item) => sum + (foyerItems[item.id] ?? 0) * item.priceHalire,
                 0,
               );
-              const programTotal = addProgram && programInfo ? programInfo.programPriceHalire : 0;
+              const programTotal = 0; // F1: program-booklet smazan
               const selectedTravel = travelPackages.find((p) => p.id === selectedTravelPackageId);
               const travelTotal = selectedTravel ? selectedTravel.pricePerNightHalire * selectedTravel.nights * travelGuests : 0;
               const carbonTotal = carbonOffset && carbonOffsetOptIn ? carbonOffset.amountHalire : 0;

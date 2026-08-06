@@ -2172,3 +2172,82 @@ se uz nikde nenacita, takze blok s checkboxem se **nevykresli**. Odstranit to
 JSX by znamenalo prepsat okolni ternar a **jeden pokus o to mi rozbil stranku**
 (TS17008, chybejici uzaviraci tag) — vratil jsem to a nechal jako mrtvy kod bez
 cesty k vykresleni, s komentarem. Neni to hotove do posledniho radku a rikam to.
+
+---
+
+## §137 ✅ D10 / migrace 465: `lineups.artists.event_id` NULLABLE
+
+### a) Nikdo na `NOT NULL` nespoleha — overeno ctenim vsech ctenaru
+
+`lineups.artists` cte sedm mist: `admin/artists`, `admin/events/[id]/artists`,
+`artists/[slug]`, `buyer/artists`, `buyer/following`, `buyer/discover/events`,
+`discover`. **Zadny z nich `a.event_id` nepouziva.** Vyskyty `event_id` v tech
+souborech patri jinym tabulkam (`catalog.events`, `lineups.event_artists`).
+`admin/events/[id]/artists:18` spojuje pres `a.id` a `a.promoter_id`.
+
+Vazba umelce na akci se dela `lineups.event_artists` — `admin/artists:39` uz
+dnes pocita `event_count` prave z ni.
+
+### b) RLS drzi i u zaznamu bez akce — ZMERENO
+
+`lineups.artists` ma dve policy a **obe scopuji na `promoter_id`**:
+
+```
+artists_public_select  FOR SELECT  (public OR promoter_id = … OR admin)
+p_artists_tenant       FOR ALL     (admin OR promoter_id = … OR promoter_id IS NULL)
+```
+
+Zadna se `event_id` nedotyka. Zmereno na klonu, ne odvozeno:
+
+```
+IZOLACE u zaznamu s event_id IS NULL: vlastni=1 CIZI=0 OK
+```
+
+### d) RED→GREEN primym behem (presne INSERT z `admin/artists:62`)
+
+```
+RED (bez 465)
+ promoter A   INSERT bez event_id: 23502 null value in column "event_id" of relation "artists"
+ promoter B   INSERT bez event_id: 23502 …
+
+GREEN (s 465)
+ promoter A   INSERT bez event_id: PROSLO
+ promoter B   INSERT bez event_id: PROSLO
+ IZOLACE u zaznamu s event_id IS NULL: vlastni=1 CIZI=0 OK
+```
+
+**PEEL:** pod tim uz zadna dalsi vrstva neni — INSERT pouziva presne ten sloupcovy
+seznam, ktery ma routa, a projde cely.
+
+### e) Gate
+
+465 se policies nedotyka (jen nullability), snapshot je proto beze zmeny:
+`436 tabulek s RLS`, **gate prosel**.
+
+## §138 ✅ R-28 uzavreno: mrtvy kod bookletu v checkoutu opravdu pryc
+
+Minule se odstraneni nepovedlo (TS17008). Pricina: soubor ma **`\r\n` konce
+radku**, takze muj match na `"…) : null}\n"` nesedel a rez padl na spatne misto.
+
+Tentokrat urcen rozsah **poctem zavorek**, ne textovym vzorem — blok
+1136–1167. Odstraneno:
+
+- JSX blok s checkboxem (32 radku)
+- stavy `addProgram`, `programInfo`
+- `if (addProgram && programInfo) body.addProgram = true;`
+- **`useEffect` loader, ktery fetchoval `/api/programs/${eventId}`** — tedy
+  routu, kterou jsem v §136 smazal. Bez tohohle by stranka po kazdem otevreni
+  strilela 404 (tise, `.catch(() => {})`).
+- `programTotal` prepocet, konstanta `PROGRAM_PURCHASE_ENABLED`, typ `ProgramInfo`
+
+```
+grep 'programInfo|addProgram|PROGRAM_PURCHASE|ProgramInfo' → 0 vyskytu
+tsc --noEmit → exit 0
+-60 radku
+```
+
+🔎 **Co se tim ukazalo:** §136 jsem uzavrel s tvrzenim „blok se nevykresli,
+protoze `programInfo` se nenacita". **Nacital se** — loader tam porad byl.
+Blok by se vykreslil, kdyby routa odpovedela. Ze nevykreslil, bylo dilem nahody
+(routa uz neexistovala), ne navrhu. Tvrzeni bylo spravne ve vysledku a spatne
+v oduvodneni.
