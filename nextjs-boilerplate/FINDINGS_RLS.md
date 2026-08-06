@@ -1733,3 +1733,89 @@ beh nedostane. Zapsano jako otevrena vada.
 | `consent-log-purge` | 🟡 tvar srovnan, `ok:false` neverifikovano |
 | `seat-upgrade-notify` | 🟡 tvar + oprava chybejicich parametru; blokuje chybejici tabulka |
 | zbylych 6 | ⏭️ neprovedeno — zadani chtelo nejdriv ukazat vzor |
+
+---
+
+## §126 F6/F7 vypnuty — a oprava premisy o foyer
+
+🔧 **Foyer vypnuty NENI.** Zadani predpokladalo, ze existuje vzor „vypnuteho
+subsystemu" u foyer; grep ukazuje, ze `admin/events/[id]/foyer-menu` i
+`foyer-orders` normalne dotazuji `catalog.foyer_menu_items` a
+`orders.foyer_orders`. Zadny vypinac tam neni. Vzorce `*_DISABLED`, ktere
+v repu jsou, jsou **obchodni pravidla** (promoter zakazal vraceni), ne
+prepinace subsystemu.
+
+**Pouzil jsem mechanismus, ktery v repu opravdu je:** allowlist `ALLOWED_JOBS`
+v `app/api/cron/dispatch/route.ts`. Odebranim jmena job zmizi — dispatcher vrati
+`422 Unknown job`. Zaroven odebrany zaznamy z `vercel.json` (`crons` 30 → 28).
+
+```
+demand-forecast      pise proti jinemu designu tabulky (9 sloupcu nesedi)
+seat-upgrade-notify  chybi tabulky, mj. orders.seat_assignments
+                     (grep v baseline: 0 vyskytu)
+```
+
+Do kontraktu C2 se nezahrnuji — vypnuta routa kontrakt nepotrebuje.
+Tikety „dostavet" zustavaji otevrene (R-20, R-21).
+
+## §127 📚 Ucebnicovy priklad tridy: cron hlasil N zapisu, ktere se nestaly
+
+```js
+await client.query(
+  `INSERT INTO orders.seat_upgrades (order_id, notified_at, status)
+   VALUES ($1, NOW(), 'notified')
+   ON CONFLICT (order_id) DO UPDATE SET …`,
+).catch(() => {
+  // Table may not exist — best-effort
+});
+notified++;
+```
+
+Tri vady v peti radcich, kazda sama o sobe stacila:
+
+1. Dotaz ma `$1`, ale **pole parametru se nepredava**. Postgres to odmitne vzdy.
+2. `.catch(() => {})` chybu **spolkne** — komentar navic tvrdi jiny duvod
+   („tabulka nemusi existovat"), nez ktery ve skutecnosti nastane.
+3. `notified++` se provede **bez ohledu na vysledek**.
+
+Vysledek: cron hlasil `notified: N` pro zapis, ktery neprobehl **ani jednou**.
+Zadny monitoring by to nechytil — odpoved byla `ok: true` a cislo rostlo.
+
+**Poucení:** tvar odpovedi je jen pulka prace. Druha pulka je otazka, jestli ten
+zapis vubec funguje — a ta se nezodpovi ctenim, jen behem.
+
+## §128 🕶️ Skener na tuhle tridu SELHAL self-checkem — nula neplati
+
+Napsal jsem skener hledajici `\.query(\`…$1…\`)` bez pole parametru a pustil ho
+na peti routach: **0 nalezu**. Podle §54 nula z nastroje nic neznamena, dokud
+se neukaze, ze nastroj tu tridu najit umi — tak jsem ho pustil na
+**predfixovou verzi `seat-upgrade-notify`**, kde ta vada prokazatelne byla:
+
+```
+[selfcheck] v predfixove verzi nalezeno: 0 -> SKENER SLEPY
+```
+
+Druhy pokus (povolena carka pred zaviraci zavorkou) dal totez. Pricinou je moje
+**escapovani `$` v shellu**, ne logika vzoru — regex se do `node -e` dostal
+zkomoleny.
+
+**Tim padem „0 dotazu bez parametru" u zbylych 5 rout NEPLATI.** Neni to nalez,
+je to neuspesne mereni. Zapisuju to takhle a ne jinak, protoze presne tahle
+zamena uz v teto praci nastala nekolikrat.
+
+Skener patri do souboru, ne do `node -e` — az se k tomu vratim.
+
+## Stav C2: **1 z 9 overenych, 2 vypnute, 6 nezpracovanych**
+
+| routa | stav |
+|---|---|
+| `verify-event-completion` | ✅ tvar + vynucene selhani overeno |
+| `consent-log-purge` | 🟡 tvar srovnan; vetev `ok:false` **NEOVERENA** (REVOKE ani trigger selhani nevynutily — NEVIM proc) |
+| `seat-upgrade-notify` | ⛔ VYPNUTO (F6) |
+| `demand-forecast` | ⛔ VYPNUTO (F7) |
+| `resale/complete-transfer`, `bank-sync-fio`, `onboarding-reminder`, `order-completed` ×2, `web-vitals` | ⏭️ nezpracovano — dosel kontext |
+
+`onboarding-reminder` uz dnes `sent` i `failed` pocita, chybi jen
+`ok: failed === 0` a `errors[]` — je to nejlevnejsi dalsi krok.
+`order-completed` ma 954 radku a 7 polykacu chyb; `:462` s `23514` na
+`ticket_modular_access_level_check` jsem **neoveroval**.

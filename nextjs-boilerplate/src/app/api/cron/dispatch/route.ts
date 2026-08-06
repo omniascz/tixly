@@ -16,6 +16,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
+// ── VYPNUTO (F6/F7) ─────────────────────────────────────────────────────────
+// 'demand-forecast'      — pise proti jinemu designu tabulky (9 sloupcu nesedi)
+// 'seat-upgrade-notify'  — chybi tabulky, mj. orders.seat_assignments
+//                          (grep v baseline: 0 vyskytu)
+// Vypnuti se dela ODEBRANIM z tohohle allowlistu — dispatcher pak vrati 422
+// "Unknown job". Je to mechanismus, ktery uz v repu je; nezavadim novy.
+// Odpovidajici zaznamy jsou zaroven odebrane z vercel.json (crons).
+// Kontrakt C2 se jich netyka: vypnuta routa kontrakt nepotrebuje.
+// TIKETY "dostavet" u obou ZUSTAVAJI OTEVRENE (REMEDIATION R-20, R-21).
 const ALLOWED_JOBS = new Set([
   'abandoned-cart',
   'anomaly-detect',
@@ -47,9 +56,7 @@ const ALLOWED_JOBS = new Set([
   // Feature 4: Payout SLA
   'event-payout-release',      // auto-payout N days after event ends (per-promoter SLA)
   // Feature 8: Demand Forecasting
-  'demand-forecast',           // every 6h recompute demand score + check yield rules
   // Seat upgrade notifications — unique differentiator vs Eventim/TM
-  'seat-upgrade-notify',       // hourly: notify buyers when better seats open up
   // AXS Invite — release expired adjacent-seat holds
   'release-group-invite-holds',
 ]);

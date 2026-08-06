@@ -246,3 +246,19 @@ Oprava = přepsat korelaci na `b2b_orders.invoice_orders`.
 U těch se z katalogu **nedá** ověřit, že míří tam, kam si policy myslí.
 Kdyby mířil jinam: mrtvá větev (jako R-18), nebo — při kolizi ID prostorů —
 tichá díra. Ověřit jde jen čtením zapisujícího kódu, tabulku po tabulce.
+
+## R-20 ⛔ `seat-upgrade-notify` vypnuto — dostavet subsystem (§126)
+
+Chybi tabulky, mj. `orders.seat_assignments` (0 vyskytu v baseline). Odebrano
+z `ALLOWED_JOBS` i z `vercel.json`. Tiket zustava otevreny.
+
+## R-21 ⛔ `demand-forecast` vypnuto — sladit se schematem (§126)
+
+Pise proti jinemu designu tabulky (9 sloupcu nesedi). Odebrano z `ALLOWED_JOBS`
+i z `vercel.json`. Tiket zustava otevreny.
+
+## R-22 🕶️ Skener „dotaz s $1 bez parametru" je slepy (§128)
+
+Self-check na predfixove verzi vratil 0 tam, kde vada prokazatelne byla.
+Vysledek „0 nalezu" u 5 rout tedy NEPLATI. Prepsat do souboru (ne `node -e`,
+kde se rozbije escapovani `$`) a znovu self-checknout, nez se cislo pouzije.
