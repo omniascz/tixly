@@ -29,8 +29,9 @@ export async function GET(
       total_halire: number;
       buyer_email: string | null;
       created_at: string;
+      items: unknown;
     }>(
-      `SELECT fo.id, fo.pickup_qr_token, fo.status, fo.total_halire, u.email AS buyer_email, fo.created_at
+      `SELECT fo.id, fo.pickup_qr_token, fo.status, fo.total_halire, fo.items, u.email AS buyer_email, fo.created_at
        FROM orders.foyer_orders fo
        LEFT JOIN orders.orders o ON o.id = fo.order_id
        LEFT JOIN identity.users u ON u.id = o.user_id
@@ -40,29 +41,22 @@ export async function GET(
       [params.id, status],
     );
 
-    const orderIds = orders.rows.map((o) => o.id);
+    // R-23 / FINDINGS 131: orders.foyer_order_items NEEXISTUJE a nikdy neexistovala.
+    // Skutecny navrh je DENORMALIZOVANY sloupec `items jsonb` primo na
+    // orders.foyer_orders — doloženo commitem aa62538, ktery ze stejneho duvodu
+    // odstranil zapisovou vetev v checkoutu ("schema drift orphan, trida 3").
+    // Tohle je tataz drift na CTECI strane: dotaz padal na 42P01.
+    // Tvar polozek ({item_name, quantity, unit_halire}) zustava, meni se jen zdroj.
     const itemsByOrder: Record<string, Array<{ item_name: string; quantity: number; unit_halire: number }>> = {};
-
-    if (orderIds.length > 0) {
-      const itemsResult = await db().query<{
-        foyer_order_id: string;
-        item_name: string;
-        quantity: number;
-        unit_halire: number;
-      }>(
-        `SELECT foyer_order_id, item_name, quantity, unit_halire
-         FROM orders.foyer_order_items
-         WHERE foyer_order_id = ANY($1::uuid[])`,
-        [orderIds],
-      );
-      for (const item of itemsResult.rows) {
-        itemsByOrder[item.foyer_order_id] = itemsByOrder[item.foyer_order_id] ?? [];
-        itemsByOrder[item.foyer_order_id].push({
-          item_name: item.item_name,
-          quantity: item.quantity,
-          unit_halire: item.unit_halire,
-        });
-      }
+    for (const row of orders.rows) {
+      const raw = Array.isArray(row.items) ? row.items : [];
+      itemsByOrder[row.id] = raw
+        .filter((x): x is Record<string, unknown> => typeof x === 'object' && x !== null)
+        .map((x) => ({
+          item_name: String(x.item_name ?? x.name ?? ''),
+          quantity: Number(x.quantity ?? 0),
+          unit_halire: Number(x.unit_halire ?? x.unit_price_halire ?? 0),
+        }));
     }
 
     return NextResponse.json({

@@ -88,6 +88,8 @@ export async function POST(
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
       let paymentUrl: string | null = null;
+
+      let paymentError: string | null = null;
       try {
         const payR = await fetch(`${appUrl}/api/checkout/pay`, {
           method: 'POST',
@@ -108,12 +110,21 @@ export async function POST(
           const pd = await payR.json() as { payment_url?: string; gateway_url?: string };
           paymentUrl = pd.payment_url ?? pd.gateway_url ?? null;
         }
-      } catch {
-        // payment init failed — still return order ID, UI can retry
+      } catch (err) {
+        // Objednavka UZ JE zalozena a inventar drzi — proto se tady nepada.
+        // Ale duvod selhani se driv zahodil uplne: zadny log, zadne pole
+        // v odpovedi. UI videlo jen chybejici payment_url a nevedelo proc.
+        // (R-24, trida "polknuta chyba" — tady NENI uspech, ktery nenastal,
+        // je to ztracena pricina.)
+        paymentError = (err as Error).message.slice(0, 160);
+        console.error('[resale/purchase] payment init selhal, objednavka zustava:',
+          orderId, err);
       }
 
       return NextResponse.json({
         order_id: orderId,
+        payment_ok: paymentError === null,
+        payment_error: paymentError,
         listing_id: params.listingId,
         reserved_until: reservedUntil.toISOString(),
         payment_url: paymentUrl,

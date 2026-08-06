@@ -1912,3 +1912,65 @@ uzivatel uvidi, zatimco cron by to jen tise zalogoval.
 ze foyer je vypnuty — ta premisa prisla v zadani a ja ji v §126 uz jednou
 opravil. Tady ji doplnuju o mereni: **neni vypnuty, je castecne rozbity.**
 Zapsano jako R-23.
+
+---
+
+## §131 ✅ R-23 foyer: tabulka nikdy neexistovala, skutecny navrh je `items jsonb`
+
+### b) Rozhodnuto podle dukazu, ne uvahy
+
+`git log -S foyer_order_items` nasel **precedens**: commit `aa62538`
+„fix(checkout): DISABLE foyer pre-order — schema drift orphan (třída 3)":
+
+> `orders.foyer_orders` má denormalizovaný jsonb `items` tvar (bez user_id/
+> buyer_email) a `orders.foyer_order_items` NEEXISTUJE, takže post-commit foyer
+> INSERT (:2200/:2211) padal 42703/42P01 AŽ PO COMMITu objednávky (:2128) →
+> buyer platí, dostane 500, objednávka drží inventář = orphan pending.
+
+Tedy:
+- v `migrations/` (vcetne archivu) `foyer_order_items` **0 vyskytu**,
+- katalog potvrzuje `orders.foyer_orders.items jsonb NOT NULL`,
+- **zapisova** vetev uz byla ze stejneho duvodu odstranena v cervenci.
+
+**Tohle byl tyz drift na CTECI strane, ktery tehdy nikdo nedohledal.**
+Zadnou tabulku jsem si nevymyslel (bod d) — cetl jsem sloupec, ktery existuje.
+
+### a) PEEL: `foyer_order_items` byla JEDINA chybejici vrstva
+
+Po oprave, primy beh obou dotazu proti klonu:
+
+```
+PEEL foyer-menu  : OK rows=0
+PEEL foyer-orders: OK rows=0
+```
+
+Zadne 42P01 ani 42703 pod tim — druha vrstva tam neni.
+
+### c) Oprava: cist `fo.items`, ne neexistujici tabulku
+
+Tvar polozek (`item_name`, `quantity`, `unit_halire`) zustava, meni se jen zdroj.
+Mapovani je defenzivni (`item_name ?? name`, `unit_halire ?? unit_price_halire`),
+protoze **zapisovatel byl odstranen**, takze kanonicky tvar jsonb neni z ceho
+overit — a **hadat ho nebudu**. Migrace neni potreba.
+
+⚠️ Zbyva otevrene: kdyz zapisovatel neexistuje, `foyer-orders` bude vzdy prazdny
+seznam. Jestli se ma pre-order dostavet, nebo foyer z `EventDetailNav` odebrat,
+je **produktove rozhodnuti** — R-25.
+
+## §132 R-24: ctyri podezrele polykace posouzeny, opraven jeden
+
+| misto | co polyka | verdikt |
+|---|---|---|
+| `admin/scanner/validate:469` | `fetch(/api/admin/commemorative/send).catch(() => {})` | ✅ **zamerna degradace** — pamětní e-mail je vedlejsi efekt, ne soucast vpustu. Selhani nikoho nepropusti. |
+| `hardware/scan:105` | `UPDATE catalog.scanner_devices SET last_seen_at` | ✅ **zamerna degradace** — telemetrie, komentar to i rika („neblokuje odpověď"). Ztraci se jen udaj o zivosti zarizeni. |
+| `rfid/scan:103` | `UPDATE catalog.rfid_devices SET last_seen_at` | ✅ **zamerna degradace** — tentyz tvar. |
+| `resale/purchase/[listingId]:111` | `catch {}` kolem **inicializace platby** | 🔴 **ticha vada** — objednavka je zalozena a inventar drzi, ale duvod selhani se zahodil uplne. Zadny log, zadne pole v odpovedi. UI videlo jen chybejici `payment_url` a nevedelo proc. |
+
+**Opraven jen ten ctvrty.** Neni to „uspech, ktery nenastal" — objednavka
+opravdu vznikla — ale **ztracena pricina**. Doplneno `console.error` a dve pole
+v odpovedi: `payment_ok`, `payment_error`. Padat se tam nesmi: objednavka uz
+existuje, vyhozeni chyby by z ni udelalo presne ten orphan pending, kvuli
+kteremu vznikl commit `aa62538`.
+
+Prvni tri **NEOPRAVENY zamerne** — degradace je tam spravna volba a menit ji by
+znamenalo shodit vpust kvuli telemetrii.

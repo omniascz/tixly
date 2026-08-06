@@ -279,3 +279,9 @@ Nejpodezrelejsi: `scanner/validate:469`, `hardware/scan:105`, `rfid/scan:103`,
 `resale/purchase/[listingId]:111` — penize a vstup.
 ⚠️ Trida C (citac bez vazby na vysledek) je v skeneru SLEPA — self-check ji na
 znamem pripade nenasel. Cislo 0 u ni NEPLATI.
+
+## R-25 ⏭️ Foyer pre-order nema zapisovatele — produktove rozhodnuti (§131)
+
+Cteci strana opravena (cte `orders.foyer_orders.items jsonb`), ale zapisova
+vetev byla odstranena uz v `aa62538`. `foyer-orders` proto bude vzdy vracet
+prazdny seznam. Bud pre-order dostavet, nebo foyer odebrat z `EventDetailNav`.
