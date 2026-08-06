@@ -2251,3 +2251,76 @@ protoze `programInfo` se nenacita". **Nacital se** — loader tam porad byl.
 Blok by se vykreslil, kdyby routa odpovedela. Ze nevykreslil, bylo dilem nahody
 (routa uz neexistovala), ne navrhu. Tvrzeni bylo spravne ve vysledku a spatne
 v oduvodneni.
+
+---
+
+## §139 🔴 R-27 verdikt: NENI to nedostavene — je to KOLIZE JMEN dvou tabulek
+
+### a) Data: nula
+
+Read-only count na **produkcni** vetvi (jedina vec, kterou jsem tam pustil):
+
+```
+catalog.event_programs        radku=0
+catalog.program_cast_entries  radku=0
+orders.program_purchases      radku=0
+```
+
+### b) Historie: tabulka BYLA bookletova
+
+`git log -S event_programs` vede na `11c3051 feat(theater): 14 divadelnich
+featur -- mig 357-371`, konkretne **`migrations/362_event_programs.sql`**.
+Ta migrace vytvorila:
+
+```sql
+CREATE TABLE IF NOT EXISTS catalog.event_programs (
+  id, event_id UNIQUE, title, about_text, director_note, dramaturg_note,
+  running_time_minutes, intermissions, language, content_warnings,
+  program_price_halire  INT NOT NULL DEFAULT 0,   -- ← booklet
+  cover_image_url, gallery_urls,
+  is_published          BOOLEAN NOT NULL DEFAULT false,  -- ← booklet
+  created_at, updated_at
+);
+```
+
+**Kod byl proti migraci 362 SPRAVNY.** `is_published` i `program_price_halire`
+tam byly.
+
+### c) VERDIKT: kolize jmen, ne nedostavena funkce
+
+V `000_baseline_20260730.sql` ma `catalog.event_programs` **jiny tvar** —
+rozvrhovy (`event_day_id`, `zone_id`, `starts_at`, `ends_at`, `artist_name`,
+`display_order`), bez jedineho bookletoveho sloupce.
+
+**Dve ruzne featury si narokovaly tyz nazev tabulky a v baseline vyhrala
+rozvrhova.** `CREATE TABLE IF NOT EXISTS` v migraci 362 znamena, ze kdyz uz
+tabulka existovala (z te druhe featury), migrace **tise neudelala nic** —
+a bookletovy kod pak bezel proti cizimu schematu.
+
+🔧 **Tim se opravuje muj vlastni zaver z §136**, kde jsem napsal „nenarozena
+funkce: writer i reader existovaly, schema pod nimi nikdy nevzniklo".
+Schema vzniknout **melo** — migrace ho psala. Nevzniklo kvuli `IF NOT EXISTS`
+nad obsazenym jmenem. To je jina trida vady: **tichy no-op migrace**, ne
+zapomenuty krok.
+
+⚠️ Otazka k rozhodnuti (podklad, ne akce): rozvrhova `event_programs` nema
+konzumenta ani po F1. Bud rozvrh dostavet, nebo obe tabulky odepsat. Data
+nikde nejsou, takze obe cesty stoji stejne.
+
+## §140 🔴 F1 melo mezeru: admin stranka prezila
+
+Pri F1 jsem smazal API routu `admin/events/[id]/program`, ale **stranku**
+`src/app/admin/events/[id]/program/page.tsx` **ne** — a ta byla ziva linkovana
+z `EventDetailNav.tsx:56` jako „Digitální program". Fetchovala prave tu smazanou
+routu, takze by po kliknuti hlasila chybu.
+
+Odhalilo se to az pri R-27, kdy jsem hledal historii tabulky. **Muj grep v §136
+hledal `program/` jen v `src/app/[locale]`**, admin cast jsem neproveril.
+
+Odstraneno (549 radku) + polozka v navigaci. `tsc` 0, odkazu na `}/program`
+v adminu **0**.
+
+**Poucení:** kdyz mazu funkci, seznam mist musim brat z routovaci struktury
+(`src/app/**`), ne z jednoho podstromu. V §136 jsem dolozil „odkaz na /program/
+z UI: 0 souboru" — to cislo bylo spravne pro `[locale]`, ale grep mel byt
+nad celym `src/app`.

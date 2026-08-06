@@ -292,7 +292,15 @@ Smazano F1. Nebyl to drift k oprave, ale nenarozena funkce — writer i reader
 existovaly, schema pod nimi nikdy nevzniklo. Kdyby se mel booklet delat,
 zacina se navrhem schematu, ne obnovou kodu.
 
-## R-27 🟡 `catalog.event_programs` (timetable) nema konzumenta (§136)
+## R-27 🟡 `event_programs`: KOLIZE JMEN dvou featur (§139)
+
+Migrace 362 vytvarela BOOKLETOVOU tabulku (`is_published`, `program_price_halire`),
+ale `CREATE TABLE IF NOT EXISTS` nad uz obsazenym jmenem **tise neudelal nic** —
+v baseline zustala ROZVRHOVA verze jine featury. Kod byl proti 362 spravny.
+Data: 0 radku ve vsech trech tabulkach (overeno read-only na produkci).
+Rozhodnout: rozvrh dostavet, nebo obe odepsat. Obe cesty stoji stejne.
+
+### Puvodni zapis (§136)
 
 Po smazani bookletu na tu tabulku nesaha zadny kod. Bud rozvrh dostavet
 (je to smysluplna funkce), nebo tabulku odepsat. Nesmazal jsem ji — je to

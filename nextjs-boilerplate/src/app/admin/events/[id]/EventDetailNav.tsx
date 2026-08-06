@@ -53,7 +53,6 @@ export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
     { href: `/admin/events/${eventId}/verified-fan`, label: 'Verified Fan', group: 'Marketing' },
     { href: `/admin/events/${eventId}/addons`, label: 'Add-ons', group: 'Marketing' },
     { href: `/admin/events/${eventId}/bundles`, label: 'VIP & Merch Bundles', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/program`, label: 'Digitální program', group: 'Marketing' },
     { href: `/admin/events/${eventId}/donation`, label: 'Donation', group: 'Marketing' },
     { href: `/admin/events/${eventId}/lottery`, label: 'Losování', group: 'Marketing' },
     { href: `/admin/events/${eventId}/lotteries`, label: 'Lotterie (old)', group: 'Marketing' },
