@@ -200,7 +200,18 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
   }
 
-  return NextResponse.json({ ok: true, results });
+  // Kontrakt C2: results[] uz nese per-promoter status; ok se z nej odvodi,
+  // misto aby se hlasil natvrdo. Drive vracela ok:true i kdyz vsechny banky selhaly.
+  const failed = results.filter((r) => r.status === 'failed').length;
+  return NextResponse.json({
+    ok: failed === 0,
+    processed: results.length - failed,
+    failed,
+    errors: results.filter((r) => r.status === 'failed')
+      .map((r) => `${r.promoterId}: ${String((r as { reason?: string }).reason ?? '').slice(0, 140)}`)
+      .slice(0, 20),
+    results,
+  });
 
   });
 }

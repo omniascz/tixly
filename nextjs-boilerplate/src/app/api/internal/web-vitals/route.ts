@@ -29,21 +29,26 @@ export async function POST(req: NextRequest): Promise<Response> {
   if (!parsed.success) {
     return NextResponse.json({ error: 'Validation failed' }, { status: 422 });
   }
-  // Best-effort log — neblokuje response pokud DB selže
+  let failed = 0;
+  const errors: string[] = [];
+  const insertVital = () => db().query(
+    `INSERT INTO marketing.web_vitals (metric, value, navigation_type, url, rating, recorded_at)
+     VALUES ($1, $2, $3, $4, $5, NOW())`,
+    [
+      parsed.data.name,
+      parsed.data.value,
+      parsed.data.navigationType ?? null,
+      parsed.data.url,
+      parsed.data.rating ?? null,
+    ],
+  );
+
   try {
-    await db().query(
-      `INSERT INTO marketing.web_vitals (metric, value, navigation_type, url, rating, recorded_at)
-       VALUES ($1, $2, $3, $4, $5, NOW())`,
-      [
-        parsed.data.name,
-        parsed.data.value,
-        parsed.data.navigationType ?? null,
-        parsed.data.url,
-        parsed.data.rating ?? null,
-      ],
-    );
-  } catch {
-    // Tabulka nemusí existovat — schema migration helper
+    await insertVital();
+  } catch (err) {
+    // Tabulka nemusi existovat — zalozit a INSERT ZOPAKOVAT.
+    // Drive se po CREATE TABLE insert NEOPAKOVAL, takze i v "uspesne" vetvi se
+    // metrika ztratila a routa presto vratila ok:true (FINDINGS §133).
     try {
       await db().query(
         `CREATE TABLE IF NOT EXISTS marketing.web_vitals (
@@ -59,11 +64,18 @@ export async function POST(req: NextRequest): Promise<Response> {
       await db().query(
         `CREATE INDEX IF NOT EXISTS web_vitals_metric_time_idx ON marketing.web_vitals(metric, recorded_at DESC)`,
       );
-    } catch {
-      // ignore
+      await insertVital();
+    } catch (err2) {
+      failed = 1;
+      errors.push(`${(err as Error).message.slice(0, 80)} | retry: ${(err2 as Error).message.slice(0, 80)}`);
     }
   }
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: failed === 0,
+    processed: failed === 0 ? 1 : 0,
+    failed,
+    errors,
+  });
 
   });
 }

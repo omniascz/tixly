@@ -92,6 +92,9 @@ export async function POST(req: NextRequest): Promise<Response> {
       [order.buyer_user_id, listing.ticket_id, order.id, sellerPayout, listing.id],
     );
 
+    let payoutError: string | null = null;
+
+
     // Queue seller payout
     await db().query(
       `INSERT INTO resale.seller_payouts
@@ -101,11 +104,17 @@ export async function POST(req: NextRequest): Promise<Response> {
        ON CONFLICT DO NOTHING`,
       [listing.id, listing.seller_id, listing.ask_price, platformFee, sellerPayout],
     ).catch((err: Error) => {
+      // Prevod listku UZ probehl, takze se tady nepada — ale ok:true by tvrdilo,
+      // ze se zaradila i vyplata prodejci. Nezaradila.
+      payoutError = err.message.slice(0, 160);
       console.error('[resale] seller payout insert failed for listing', listing.id, err.message);
     });
 
     return NextResponse.json({
-      ok: true,
+      ok: payoutError === null,
+      processed: 1,
+      failed: payoutError === null ? 0 : 1,
+      errors: payoutError === null ? [] : [`seller_payout: ${payoutError}`],
       ticket_id: listing.ticket_id,
       new_owner_id: order.buyer_user_id,
       seller_payout_halire: sellerPayout,

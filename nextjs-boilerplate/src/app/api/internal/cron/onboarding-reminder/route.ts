@@ -54,46 +54,58 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   // Promotéry s nedokončeným onboardingem, registrace 7+ dní zpět,
   // bez reminder mailu v posledních 7 dnech
-  const r = await db().query<OnboardingRow>(
-    `SELECT p.id AS promoter_id,
-            p.name AS promoter_name,
-            p.brand_color_hex,
-            u.email AS owner_email,
-            u.name AS owner_name,
-            p.kyc_status,
-            (p.bank_account IS NOT NULL AND length(p.bank_account) > 5) AS has_bank,
-            (EXISTS (SELECT 1 FROM platform.promoter_branding pb
-                     WHERE pb.promoter_id = p.id
-                       AND (pb.logo_url IS NOT NULL OR pb.primary_color IS NOT NULL))) AS has_branding,
-            (SELECT COUNT(*)::int FROM catalog.events
-             WHERE promoter_id = p.id AND status = 'published') AS published_events,
-            EXTRACT(DAY FROM now() - p.created_at)::int AS days_since_registration
-     FROM platform.promoters p
-     JOIN platform.promoter_members pm ON pm.promoter_id = p.id AND pm.role = 'owner'
-     JOIN identity.users u ON u.id = pm.user_id
-     WHERE p.status = 'active'
-       AND p.created_at < now() - interval '7 days'
-       AND (
-         p.kyc_status != 'approved'
-         OR p.bank_account IS NULL
-         OR NOT EXISTS (SELECT 1 FROM catalog.events
-                        WHERE promoter_id = p.id AND status = 'published')
-       )
-       AND NOT EXISTS (
-         SELECT 1 FROM audit.audit_log al
-         WHERE al.record_id = p.id::text
-           AND al.table_name = 'promoters'
-           AND al.action = 'UPDATE'
-           AND al.new_values->>'kind' = 'onboarding_reminder'
-           AND al.created_at > now() - interval '7 days'
-       )
-     LIMIT 200`,
-  );
+  // Kontrakt C2: selhani UVODNIHO dotazu se driv propagovalo ven jako 500.
+  // Cron ma vratit ok:false s duvodem, ne spadnout.
+  let r: { rows: OnboardingRow[] };
+  try {
+    r = await db().query<OnboardingRow>(
+      `SELECT p.id AS promoter_id,
+              p.name AS promoter_name,
+              p.brand_color_hex,
+              u.email AS owner_email,
+              u.name AS owner_name,
+              p.kyc_status,
+              (p.bank_account IS NOT NULL AND length(p.bank_account) > 5) AS has_bank,
+              (EXISTS (SELECT 1 FROM platform.promoter_branding pb
+                       WHERE pb.promoter_id = p.id
+                         AND (pb.logo_url IS NOT NULL OR pb.primary_color IS NOT NULL))) AS has_branding,
+              (SELECT COUNT(*)::int FROM catalog.events
+               WHERE promoter_id = p.id AND status = 'published') AS published_events,
+              EXTRACT(DAY FROM now() - p.created_at)::int AS days_since_registration
+       FROM platform.promoters p
+       JOIN platform.promoter_members pm ON pm.promoter_id = p.id AND pm.role = 'owner'
+       JOIN identity.users u ON u.id = pm.user_id
+       WHERE p.status = 'active'
+         AND p.created_at < now() - interval '7 days'
+         AND (
+           p.kyc_status != 'approved'
+           OR p.bank_account IS NULL
+           OR NOT EXISTS (SELECT 1 FROM catalog.events
+                          WHERE promoter_id = p.id AND status = 'published')
+         )
+         AND NOT EXISTS (
+           SELECT 1 FROM audit.audit_log al
+           WHERE al.record_id = p.id::text
+             AND al.table_name = 'promoters'
+             AND al.action = 'UPDATE'
+             AND al.new_values->>'kind' = 'onboarding_reminder'
+             AND al.created_at > now() - interval '7 days'
+         )
+       LIMIT 200`,
+    );
+  } catch (err) {
+    console.error('[onboarding-reminder] uvodni dotaz selhal:', err);
+    return NextResponse.json({
+      ok: false, processed: 0, failed: 1,
+      errors: [`candidates query: ${(err as Error).message.slice(0, 160)}`],
+    });
+  }
 
   const { sendMail } = await import('@/lib/email/mailer');
 
   let sent = 0;
   let failed = 0;
+  const errors: string[] = [];
 
   for (const row of r.rows) {
     const todo: string[] = [];
@@ -153,14 +165,19 @@ export async function POST(req: NextRequest): Promise<Response> {
     } catch (err) {
       console.error('[onboarding-reminder]', row.owner_email, err);
       failed += 1;
+      errors.push(String((err as Error).message).slice(0, 140));
     }
   }
 
+  // Kontrakt C2: ok az kdyz failed === 0. HTTP zustava 200 — jedna polozka
+  // z tisice nesmi shodit cely beh, signal nese telo, ne status.
   return NextResponse.json({
-    ok: true,
+    ok: failed === 0,
+    processed: sent,
+    failed,
+    errors: errors.slice(0, 20),
     candidates: r.rows.length,
     sent,
-    failed,
   });
 
   });

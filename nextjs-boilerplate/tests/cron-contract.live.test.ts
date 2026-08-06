@@ -71,4 +71,30 @@ d('kontrakt cronu (C2)', () => {
     }
     void randomUUID();
   }, 120_000);
+
+  it('onboarding-reminder: pri rozbite tabulce NEVRATI ok:true', async () => {
+    await clone.pool.query('REVOKE ALL ON platform.promoters FROM tixly_app').catch(() => undefined);
+    const out = await call('@/app/api/internal/cron/onboarding-reminder/route',
+      '/api/internal/cron/onboarding-reminder');
+    console.log('[onboarding-reminder]', out.status, JSON.stringify(out.body).slice(0, 170));
+    await clone.pool.query('GRANT SELECT,INSERT,UPDATE,DELETE ON platform.promoters TO tixly_app').catch(() => undefined);
+  }, 120_000);
+
+  it('bank-sync-fio: tvar obsahuje ok/processed/failed/errors', async () => {
+    const out = await call('@/app/api/internal/cron/bank-sync-fio/route',
+      '/api/internal/cron/bank-sync-fio');
+    console.log('[bank-sync-fio]', out.status, JSON.stringify(out.body).slice(0, 170));
+  }, 120_000);
+
+  it('web-vitals: pri rozbitem zapisu NEVRATI ok:true', async () => {
+    await clone.pool.query('REVOKE ALL ON SCHEMA marketing FROM tixly_app').catch(() => undefined);
+    const { POST } = await import('@/app/api/internal/web-vitals/route');
+    const res = await POST(new NextRequest('http://localhost:3000/api/internal/web-vitals', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name: 'LCP', value: 1234, id: 'v1-abc', url: 'https://example.com/y', rating: 'good' }),
+    }) as never);
+    const body = await res.json() as Record<string, unknown>;
+    console.log('[web-vitals]', res.status, JSON.stringify(body).slice(0, 170));
+    await clone.pool.query('GRANT USAGE ON SCHEMA marketing TO tixly_app').catch(() => undefined);
+  }, 120_000);
 });

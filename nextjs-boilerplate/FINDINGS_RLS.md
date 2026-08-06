@@ -1974,3 +1974,71 @@ kteremu vznikl commit `aa62538`.
 
 Prvni tri **NEOPRAVENY zamerne** — degradace je tam spravna volba a menit ji by
 znamenalo shodit vpust kvuli telemetrii.
+
+---
+
+## §133 Kontrakt cronu: **4 z 9 overenych**, order-completed nezacata
+
+### Dolozeni primym behem, vynucene selhani zapisu
+
+```
+[verify-event-completion] 200 {"ok":false,"processed":0,"failed":1,
+                               "errors":["stats query: permission denied for table events"]}
+[onboarding-reminder]     200 {"ok":false,"processed":0,"failed":1,
+                               "errors":["candidates query: permission denied for table promoters"]}
+[web-vitals]              200 {"ok":false,"processed":0,"failed":1,
+                               "errors":["permission denied for schema marketing | retry: permission denied for schema marketing"]}
+[bank-sync-fio]           200 {"ok":true,"processed":0,"failed":0,"errors":[],"results":[]}
+[consent-log-purge]       200 {"ok":true,"processed":0,"failed":0,"errors":[],"purged":0}
+```
+
+### Nalezene vady typu „zapis, ktery se nikdy nestal"
+
+Skener A nasel jen jeden vyskyt (§129), ale trida C je slepa — tak jsem citace
+prosel ocima, jak zadani chtelo. Nasly se **tri dalsi**, kazda jina:
+
+**1. `web-vitals` — INSERT se po zalozeni tabulky NEOPAKOVAL.**
+
+```js
+} catch {
+  try { await db().query('CREATE TABLE IF NOT EXISTS marketing.web_vitals …'); }
+  catch { /* ignore */ }
+}
+return NextResponse.json({ ok: true });
+```
+
+Tabulka se zalozila, ale metrika, kvuli ktere se zakladala, se **zahodila** —
+a routa presto vratila `ok: true`. Ztraceny je i **prvni** datovy bod po kazdem
+zalozeni. Doplneno `insertVital()` a jeho **zopakovani** po DDL.
+
+**2. `resale/complete-transfer` — vyplata prodejci se nezaradila, `ok:true` presto.**
+
+`INSERT INTO resale.seller_payouts … .catch(err => console.error(…))` —
+chyba se zalogovala, ale odpoved tvrdila uspech. Prevod listku probehl,
+**vyplata ne**. Padat se tam nesmi (prevod uz je hotovy), takze se stav
+propisuje do `ok`/`failed`/`errors`.
+
+**3. `onboarding-reminder` — selhani uvodniho dotazu koncilo 500.**
+Ne tichy uspech, ale porusuje pravidlo „cron nesmi 500-ovat". Ted `ok:false`
+s duvodem.
+
+**4. `bank-sync-fio` — `results[]` uz per-promoter status nesl**, ale `ok: true`
+se vracelo natvrdo. Kdyby selhaly vsechny banky, cron by hlasil uspech.
+`ok` se ted z `results` odvozuje.
+
+### Stav
+
+| routa | stav |
+|---|---|
+| `verify-event-completion` | ✅ tvar + vynucene selhani |
+| `onboarding-reminder` | ✅ tvar + vynucene selhani |
+| `web-vitals` | ✅ tvar + vynucene selhani + opraveny ztraceny INSERT |
+| `resale/complete-transfer` | 🟡 tvar + oprava; selhani **nevynuceno** (vyzaduje realny resale listing) |
+| `bank-sync-fio` | 🟡 tvar overen behem; selhani **nevynuceno** (bez FIO credentials `results` prazdne) |
+| `consent-log-purge` | 🟡 tvar; vetev `ok:false` **NEOVERENA** (§128) |
+| `seat-upgrade-notify`, `demand-forecast` | ⛔ vypnute (F6/F7) |
+| `order-completed` (:408, :462) | ⏭️ **NEZACATA** — 954 radku, dle zadani na samostatnou session |
+
+**4 z 9 overenych vynucenym selhanim**, 3 s tvarem bez vynuceni, 2 vypnute.
+Bod 2 zadani (`23514` na `ticket_modular_access_level_check`) **neresen** —
+je uvnitr `order-completed`, kterou jsem nezacinal.
