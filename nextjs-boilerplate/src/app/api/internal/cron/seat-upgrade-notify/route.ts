@@ -65,6 +65,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
 
       let notified = 0;
+      let failed = 0;
+      const errors: string[] = [];
       for (const cand of candidatesRes.rows) {
         try {
           // Check if better seats exist in same zone at same or lower price
@@ -83,13 +85,16 @@ export async function POST(req: NextRequest): Promise<Response> {
           if (Number(betterRes.rows[0]?.count ?? 0) === 0) continue;
 
           // Log the upgrade opportunity to avoid spamming (table may not exist yet, use orders.seat_upgrades)
+          // Puvodne se tady nepredavaly PARAMETRY (dotaz ma $1, pole chybelo),
+          // takze INSERT vzdy spadl — a .catch(() => {}) to spolkl. Cron pak hlasil
+          // notified > 0 pro zapis, ktery nikdy neprobehl. To je presne ta trida,
+          // kvuli ktere C2 vzniklo: uspech, ktery nenastal.
           await client.query(
             `INSERT INTO orders.seat_upgrades (order_id, notified_at, status)
              VALUES ($1, NOW(), 'notified')
              ON CONFLICT (order_id) DO UPDATE SET notified_at = NOW(), status = 'notified'`,
-          ).catch(() => {
-            // Table may not exist — best-effort
-          });
+            [cand.order_id],
+          );
 
           // In production, send via ForgeMsg / Resend — here we log for the cron report
           console.log(
@@ -98,15 +103,22 @@ export async function POST(req: NextRequest): Promise<Response> {
           );
           notified++;
         } catch (err) {
+          // Jedna polozka z tisice nesmi shodit cely beh — ale NESMI se ani ztratit.
+          failed++;
+          errors.push(`${cand.order_id}: ${(err as Error).message.slice(0, 120)}`);
           console.error(`[seat-upgrade-notify] order ${cand.order_id} error:`, err);
         }
       }
 
       await client.query('COMMIT');
+      // Kontrakt C2: ok az kdyz failed === 0. HTTP zustava 200, aby planovac
+      // neretryoval kvuli jedne polozce — signal nese telo, ne status.
       return NextResponse.json({
-        ok: true,
+        ok: failed === 0,
+        processed: notified,
+        failed,
+        errors: errors.slice(0, 20),
         candidates: candidatesRes.rows.length,
-        notified,
       });
     } catch (err) {
       await client.query('ROLLBACK').catch(() => undefined);

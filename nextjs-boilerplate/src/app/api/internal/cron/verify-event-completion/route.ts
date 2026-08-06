@@ -70,10 +70,17 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
     stats = r.rows;
   } catch (err) {
-    console.warn('[verify-event-completion] skip:', err);
-    return NextResponse.json({ ok: true, skipped: true });
+    // Selhani UVODNIHO dotazu neni "preskoceno" — nic se nezpracovalo a nikdo
+    // se to nedozvedel. ok:false, at je to videt v monitoringu.
+    console.error('[verify-event-completion] uvodni dotaz selhal:', err);
+    return NextResponse.json({
+      ok: false, processed: 0, failed: 1,
+      errors: [`stats query: ${(err as Error).message.slice(0, 160)}`],
+    });
   }
 
+  let failed = 0;
+  const errors: string[] = [];
   let completed = 0;
   let suspicious = 0;
   let noShow = 0;
@@ -148,14 +155,20 @@ export async function POST(req: NextRequest): Promise<Response> {
             }),
           ],
         );
-      } catch {
-        // audit.anomaly_alerts table optional — silent
+      } catch (err) {
+        // Drive "silent". Zapis do audit.anomaly_alerts je soucast ukolu —
+        // kdyz spadne, cron uz nesmi tvrdit, ze probehl cely.
+        failed++;
+        errors.push(`anomaly_alert ${ev.event_id}: ${(err as Error).message.slice(0, 120)}`);
       }
     }
   }
 
   return NextResponse.json({
-    ok: true,
+    ok: failed === 0,
+    processed: completed,
+    failed,
+    errors: errors.slice(0, 20),
     checked: stats.length,
     completed,
     suspicious,

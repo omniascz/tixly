@@ -1656,3 +1656,80 @@ objednavka firmy. Kdo za firmu vidi, resi R-17.
 
 `rls-snapshot.json`: 624 policies, 436 tabulek. Gate prosel (pocet policies se
 nemeni — 464 dve existujici prepisuje).
+
+---
+
+## §125 C2 kontrakt cronu — vzor na 3 routach z 9
+
+Seznam z §41 **overen**, vsech 9 rout existuje:
+`internal/cron/{seat-upgrade-notify, demand-forecast, verify-event-completion,
+bank-sync-fio, onboarding-reminder, consent-log-purge}`,
+`internal/resale/complete-transfer`, `internal/order-completed`,
+`internal/web-vitals`.
+
+### Tvar, ktery zavadim
+
+```jsonc
+{ "ok": failed === 0, "processed": n, "failed": m, "errors": [ "…" ] }
+```
+
+HTTP zustava **200** i pri `ok:false` — jedna polozka z tisice nesmi shodit cely
+beh, ale signal musi byt v tele, ne ve statusu.
+
+### 🔴 Nalez pri opravovani: `seat-upgrade-notify` hlasil zapis, ktery se nikdy nestal
+
+```js
+await client.query(
+  `INSERT INTO orders.seat_upgrades (order_id, notified_at, status)
+   VALUES ($1, NOW(), 'notified') ON CONFLICT …`,
+).catch(() => { /* Table may not exist — best-effort */ });
+notified++;
+```
+
+Dotaz ma `$1`, ale **pole parametru se nepredavalo vubec**. INSERT proto padal
+**vzdy**, `.catch` chybu spolkl a `notified++` se presto provedl. Cron hlasil
+`notified: N` pro zapis, ktery neprobehl ani jednou. To je presne trida, kvuli
+ktere C2 vzniklo — doplneny parametry i pocitadlo.
+
+### 🔴 A hlubsi vada: routa nikdy nemohla dobehnout
+
+Primy beh proti klonu:
+
+```
+[seat-upgrade-notify] 500 {"error":"INTERNAL"}
+  → relation "orders.seat_assignments" does not exist
+```
+
+`grep seat_assignments` v baseline: **0 vyskytu**. Routa se ptá na tabulku, ktera
+ve schematu neni. Selhava **hlasite** (500), takze to neni tichy uspech — ale
+znamena to, ze **novy tvar odpovedi se u ni nedal predvest**, protoze se k nemu
+beh nedostane. Zapsano jako otevrena vada.
+
+### Dolozeni primym behem (ne vitest sadou jako dukaz, jen jako spoustec)
+
+```
+[verify-event-completion] 200 {"ok":false,"processed":0,"failed":1,
+                               "errors":["stats query: permission denied for table events"]}
+[consent-log-purge]       200 {"ok":true,"processed":0,"failed":0,"errors":[],"purged":0}
+[seat-upgrade-notify]     500 {"error":"INTERNAL"}
+```
+
+- **`verify-event-completion` ✅ kontrakt overen vynucenym selhanim.** Odebrano
+  pravo na `catalog.events`; drive vracela `{ok:true, skipped:true}` — tedy
+  „preskoceno", i kdyz se nezpracovalo nic. Ted `ok:false` s duvodem.
+  Zaroven prestal byt tichy `catch {}` u zapisu do `audit.anomaly_alerts`.
+- **`consent-log-purge` ⚠️ tvar srovnan, ale selhani jsem NEVYNUTIL.** `REVOKE`
+  nezabral (prava chodi i pres default privileges) a ani statement-level trigger
+  `BEFORE DELETE` beh neshodil — routa vratila `ok:true, purged:0`.
+  **NEVIM, cim to je**; vetev `ok:false` u ni tedy tohle kolo **neni predvedena**
+  (predvedena byla jinak v §102).
+- **`seat-upgrade-notify`** — viz vyse, k tvaru se beh nedostane.
+
+### Stav: **1 z 9 hotovych a overenych**, 2 rozpracovane
+
+| routa | stav |
+|---|---|
+| `verify-event-completion` | ✅ tvar + vynucene selhani overeno |
+| `consent-log-purge` | 🟡 tvar srovnan, `ok:false` neverifikovano |
+| `seat-upgrade-notify` | 🟡 tvar + oprava chybejicich parametru; blokuje chybejici tabulka |
+| zbylych 6 | ⏭️ neprovedeno — zadani chtelo nejdriv ukazat vzor |

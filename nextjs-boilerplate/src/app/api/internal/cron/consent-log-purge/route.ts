@@ -36,7 +36,10 @@ export async function POST(req: NextRequest): Promise<Response> {
        )
        SELECT COUNT(*)::text AS count FROM del`,
     );
-    return NextResponse.json({ ok: true, purged: Number(r.rows[0]?.count ?? 0) });
+    return NextResponse.json({
+      ok: true, processed: Number(r.rows[0]?.count ?? 0), failed: 0, errors: [],
+      purged: Number(r.rows[0]?.count ?? 0),
+    });
   } catch (err) {
     // Puvodni catch polykal COKOLI a vracel {ok:true, purged:0} — to je
     // NEROZLISITELNE od poctiveho smazani nuly radku. GDPR purge tak mohl
@@ -51,11 +54,18 @@ export async function POST(req: NextRequest): Promise<Response> {
     const code = (err as { code?: string }).code;
     if (code === '42P01') {
       console.warn('[consent-log-purge] tabulka neexistuje, preskakuji:', code);
-      return NextResponse.json({ ok: true, purged: 0, skipped: 'table_missing' });
+      return NextResponse.json({
+        ok: true, processed: 0, failed: 0, errors: [],
+        purged: 0, skipped: 'table_missing',
+      });
     }
     console.error('[consent-log-purge] SELHALO:', err);
     return NextResponse.json(
-      { ok: false, purged: 0, error: 'PURGE_FAILED', code: code ?? null },
+      {
+        ok: false, processed: 0, failed: 1,
+        errors: [`purge: ${code ?? 'unknown'}`],
+        purged: 0, error: 'PURGE_FAILED', code: code ?? null,
+      },
       { status: 500 },
     );
   }
