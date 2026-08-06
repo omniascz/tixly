@@ -285,6 +285,23 @@ export async function POST(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
+  // ── Kontrakt C2 (FINDINGS §134) ───────────────────────────────────────────
+  // Post-processing po zaplaceni. Kroky se deli na KRITICKE (bez nich je
+  // objednavka nekompletni: vydani listku, modularni pristupy, group/party
+  // sloty) a VOLITELNE (e-mail, SMS, wallet pass, analytika, royalty, forgemsg).
+  // Do `failed` jde jen selhani kritickeho kroku; volitelne jde do `degraded`.
+  // Padat se nesmi — platba uz probehla a 500 by webhook nutil retryovat.
+  let failed = 0;
+  const errors: string[] = [];
+  const degraded: string[] = [];
+  const critical = (step: string, err: unknown) => {
+    failed++;
+    errors.push(`${step}: ${String((err as Error)?.message).slice(0, 140)}`);
+  };
+  const optional = (step: string, err: unknown) => {
+    degraded.push(`${step}: ${String((err as Error)?.message).slice(0, 100)}`);
+  };
+
   const body = (await request.json().catch(() => null)) as { orderId?: string } | null;
   const orderId = body?.orderId;
   if (!orderId) {
@@ -489,7 +506,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         await modClient.query('COMMIT');
       } catch (err) {
         await modClient.query('ROLLBACK').catch(() => undefined);
-        console.error('[order-completed] modular pass pickup failed', err);
+        critical('modular_pass', err); console.error('[order-completed] modular pass pickup failed', err);
       } finally {
         modClient.release();
       }
@@ -519,7 +536,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         await groupClient.query('COMMIT');
       } catch (err) {
         await groupClient.query('ROLLBACK').catch(() => undefined);
-        console.error('[order-completed] group_invitation completion failed', err);
+        critical('group_invitations', err); console.error('[order-completed] group_invitation completion failed', err);
       } finally {
         groupClient.release();
       }
@@ -558,7 +575,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         await partyClient.query('COMMIT');
       } catch (err) {
         await partyClient.query('ROLLBACK').catch(() => undefined);
-        console.error('[order-completed] party_split slot completion failed', err);
+        critical('party_split', err); console.error('[order-completed] party_split slot completion failed', err);
       } finally {
         partyClient.release();
       }
@@ -704,7 +721,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       }
     }
   } catch (err) {
-    console.error('[order-completed] ticket issue / PDF failed:', err);
+    critical('ticket_issue', err); console.error('[order-completed] ticket issue / PDF failed:', err);
   }
 
   // Loyalty: award points pro user_id (idempotent per order_id)
@@ -726,7 +743,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       client.release();
     }
   } catch (err) {
-    console.error('[order-completed] loyalty award failed:', err);
+    optional('loyalty', err); console.error('[order-completed] loyalty award failed:', err);
   }
 
   // Odešli e-mail přes centrální mailer (Mailhog v dev, Resend/Postmark/SES v prod)
@@ -751,7 +768,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     });
     emailSent = true;
   } catch (err) {
-    console.error('[order-completed] email failed:', err);
+    optional('email', err); console.error('[order-completed] email failed:', err);
   }
 
   // SMS vstupenky (SMSticket-style) — link na magic show page per ticket.
@@ -833,11 +850,16 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
   } catch (err) {
-    console.error('[order-completed] forgemsg emit failed:', err);
+    optional('forgemsg', err); console.error('[order-completed] forgemsg emit failed:', err);
   }
 
   return NextResponse.json({
-    success: true,
+    ok: failed === 0,
+    processed: ticketsIssued,
+    failed,
+    errors: errors.slice(0, 20),
+    degraded: degraded.slice(0, 20),
+    success: failed === 0,
     orderId,
     emailSent,
     smsSent,

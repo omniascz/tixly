@@ -97,4 +97,35 @@ d('kontrakt cronu (C2)', () => {
     console.log('[web-vitals]', res.status, JSON.stringify(body).slice(0, 170));
     await clone.pool.query('GRANT USAGE ON SCHEMA marketing TO tixly_app').catch(() => undefined);
   }, 120_000);
+
+  it('order-completed: pri selhani KRITICKEHO kroku NEVRATI ok:true', async () => {
+    // Minimalni retez: user -> promoter -> venue -> event -> ticket_type -> order
+    const { randomUUID: uid } = await import('crypto');
+    const U = uid(), P = uid(), V = uid(), E = uid(), TT = uid(), O = uid();
+    const q = (sql: string, p: unknown[] = []) => clone.pool.query(sql, p);
+    await q("INSERT INTO identity.users (id,email,name,gdpr_consent_at) VALUES ($1,$2,'U',now())", [U, `oc_${U.slice(0,8)}@t.cz`]);
+    await q("INSERT INTO platform.promoters (id,name,email) VALUES ($1,'P',$2)", [P, `p_${P.slice(0,8)}@t.cz`]);
+    await q("INSERT INTO catalog.venues (id,name,city,country,capacity) VALUES ($1,'V','Praha','CZ',100)", [V]);
+    await q(`INSERT INTO catalog.events (id,promoter_id,organizer_id,venue_id,title,date_start,slug,status)
+             VALUES ($1,$2,$3,$4,'OC',now()+interval '30 day',$5,'published')`, [E, P, U, V, `oc-${E.slice(0,8)}`]);
+    await q(`INSERT INTO catalog.ticket_types (id,event_id,name,kind,base_price,total_qty,remaining_qty,visibility)
+             VALUES ($1,$2,'GA','standing',50000,10,10,'public')`, [TT, E]);
+    await q(`INSERT INTO orders.orders (id,user_id,event_id,status,total_amount,currency,expires_at)
+             VALUES ($1,$2,$3,'paid',50000,'CZK', now()+interval '1 day')`, [O, U, E])
+      .catch((e) => console.log('order seed:', e.code, e.message.slice(0, 70)));
+    await q(`INSERT INTO orders.order_items (order_id,ticket_type_id,quantity,unit_price)
+             VALUES ($1,$2,1,50000)`, [O, TT])
+      .catch((e) => console.log('item seed:', e.code, e.message.slice(0, 70)));
+
+    // vynut selhani KRITICKEHO kroku: vydani listku
+    await q('REVOKE ALL ON tickets.tickets FROM tixly_app').catch(() => undefined);
+    const { POST } = await import('@/app/api/internal/order-completed/route');
+    const res = await POST(new NextRequest('http://localhost:3000/api/internal/order-completed', {
+      method: 'POST', headers: { 'x-internal-token': SECRET, 'content-type': 'application/json' },
+      body: JSON.stringify({ orderId: O }),
+    }) as never);
+    const body = await res.json() as Record<string, unknown>;
+    console.log('[order-completed]', res.status, JSON.stringify(body).slice(0, 220));
+    await q('GRANT SELECT,INSERT,UPDATE,DELETE ON tickets.tickets TO tixly_app').catch(() => undefined);
+  }, 180_000);
 });

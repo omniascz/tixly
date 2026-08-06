@@ -2042,3 +2042,83 @@ se vracelo natvrdo. Kdyby selhaly vsechny banky, cron by hlasil uspech.
 **4 z 9 overenych vynucenym selhanim**, 3 s tvarem bez vynuceni, 2 vypnute.
 Bod 2 zadani (`23514` na `ticket_modular_access_level_check`) **neresen** —
 je uvnitr `order-completed`, kterou jsem nezacinal.
+
+---
+
+## §134 order-completed: mapa, dve opravene premisy, kontrakt
+
+### 🔧 Premisa „7 polykacu" NEPLATI
+
+Skener (self-checknuty, §129) hlasi v `order-completed` **0 polykacu s prazdnym
+telem**. Cislo 7 pochazelo z meho drivejsiho hrubeho `grep -c`, ktery pocital
+i `catch(() => undefined)` u `ROLLBACK` — a to polykac neni, to je spravne
+osetreny rollback.
+
+**Zadny catch v te route nebyl nemy.** Vsechny logovaly. Vada byla jinde:
+**zadny z nich se nepromital do odpovedi.**
+
+### a/c) Mapa — kriticke vs volitelne
+
+| radek | krok | verdikt |
+|---|---|---|
+| 425 | loyalty award (ROLLBACK+log) | volitelne |
+| 447 | fan-bonus (ROLLBACK+log) | volitelne |
+| 490 | **modularni pristupy** (ROLLBACK+log) | 🔴 **kriticke** — buyer koupil pass, bez radku nefunguje |
+| 520 | **group_invitations** (ROLLBACK+log) | 🔴 **kriticke** — soucast toho, co koupil |
+| 559 | **party_split sloty** (ROLLBACK+log) | 🔴 **kriticke** |
+| 571 | conversion tracking | volitelne |
+| 585 | royalty accrue | volitelne |
+| 598 | resale transfer | volitelne |
+| 701 | wallet pass | volitelne |
+| **706** | **vydani listku + PDF** | 🔴 **NEJKRITICTEJSI** |
+| 722 | hlavni transakce — **rethrow** | spravne uz drive |
+| 728 | loyalty | volitelne |
+| 753 | e-mail | volitelne |
+| 835 | forgemsg emit | volitelne |
+
+### b) Citace: `ticketsIssued` byl reportovany, ale bez vazby na `success`
+
+Odpoved znela `{ success: true, ticketsIssued, emailSent, … }` — `success: true`
+**natvrdo**, bez ohledu na to, co se nepovedlo.
+
+### 🔴 Dolozeno vynucenym selhanim kritickeho kroku
+
+Odebrano pravo na `tickets.tickets`, pak realny retez objednavky:
+
+```
+[order-completed] ticket issue / PDF failed: error: permission denied for table tickets
+[order-completed] 200 {"ok":false,"processed":0,"failed":1,
+                       "errors":["ticket_issue: permission denied for table tickets"],
+                       "degraded":[],"success":false,
+                       "emailSent":true,"smsSent":false,…}
+```
+
+Vsimni si `emailSent: true` vedle `failed: 1`. **Kupujici dostal potvrzovaci
+e-mail, ackoli se nevydal ani jeden listek** — a routa driv vratila
+`success: true`. Presne ten „uspech, ktery nenastal", jen o rad drazsi nez
+u cronu: tady uz probehla platba.
+
+HTTP zustava **200 zamerne** — 500 by webhook nutil retryovat post-processing
+nad uz zaplacenou objednavkou.
+
+## §135 🔧 23514 na `ticket_modular_access_level_check` — premisa NEPLATI
+
+Zadani tvrdilo, ze se vklada `access_level = 'full'`, ktere neni ve vyctu.
+**Zmereno gepem, ne uvahou:**
+
+```
+CHECK (access_level = ANY (ARRAY['general','premium','vip','backstage','accessibility']))
+kod (order-completed:476):  VALUES ($1, $2, $3, 'general')
+grep 'full' jako access_level v celem src/:  0 vyskytu
+```
+
+Vklada se `'general'`, coz **ve vyctu je**. Hodnota `'full'` se v repu
+nevyskytuje vubec — ani v kodu, ani v UI, ani ve schematu.
+
+**Migrace 465 tedy NENI potreba** a hodnotu neni co opravovat. Bud uz byla ta
+vada opravena drive, nebo byl puvodni report nepresny. **NEVIM ktere** — hledal
+jsem v aktualnim stavu, ne v historii.
+
+⚠️ Co ovsem plati: kdyby ten INSERT z jakehokoli duvodu selhal, **ted uz to
+bude videt** — modularni pristupy jsou zarazene mezi kriticke kroky, takze
+selhani da `ok:false`, ne tichy log.
