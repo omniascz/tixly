@@ -179,7 +179,7 @@ class RlsAwarePool {
     // Overuje hypotezu, ze se do poolu vraceji SPINAVA spojeni: reset GUC bezi
     // fire-and-forget a jeho chyba se polyka. Kdyz spojeni pri akvizici uz nese
     // cizi GUC, hypoteza plati.
-    if (process.env.RLS_POOL_DEBUG === '1') {
+    if (process.env.RLS_POOL_DEBUG_ACQ === '1') {
       const d = await client.query(
         "SELECT current_setting('app.current_user_id', true) AS u," +
         " current_setting('app.current_promoter_id', true) AS p," +
@@ -211,9 +211,23 @@ class RlsAwarePool {
       }
       // Wrap release aby vyresetoval session vars
       const originalRelease = client.release.bind(client);
+      // Idempotentni release. Puvodne diagnostika k R-15: hypoteza byla, ze se
+      // release() vola dvakrat a druhy RESET dorazi do session NOVEHO drzitele.
+      // ZMERENO: [RLS-DOUBLE-RELEASE] se za 5 behu neobjevil ani jednou, zatimco
+      // pady pokracovaly (3 z 5) — hypoteza VYVRACENA. Straz tu zustava proto,
+      // ze dvojite release je chyba tak jako tak, ne proto, ze by neco resila.
+      let releasedOnce = false;
       (client as PoolClient & { release: typeof originalRelease }).release = ((
         err?: Error | boolean,
       ): void => {
+        if (releasedOnce) {
+          if (process.env.RLS_POOL_DEBUG === '1') {
+            console.warn('[RLS-DOUBLE-RELEASE] release() volan podruhe;',
+              'RESET pujde do cizi session. ctx:', JSON.stringify(ctx));
+          }
+          return;
+        }
+        releasedOnce = true;
         // Best-effort reset — connection se vrátí čistá do poolu
         void client
           .query(

@@ -72,7 +72,19 @@ dostalo RLS + `p_*_scope`. Izolace ověřena, 0 rozbitých testů, gate prošel.
 | `identity.eudi_verifications` | zápis je anonymní (`user_id` se nevyplňuje), filtrace tokenem → servisní větev jako §94. Má mít uživatel vlastní pohled? Dnes žádná routa taková není. |
 | `marketing.fan_bonus_issued` | `user_id` NULLABLE — bonus pro hosta bez účtu, nebo nedodělek? |
 
-## R-15 🟡 POTVRZENO: závod o návrat spojení do poolu (§114–115)
+## R-15 🟡 MECHANISMUS VYSVĚTLEN, oprava neprovedena (§116)
+
+Ve chvíli pádu jsou **všechny čtyři GUC `null`** (= v té session nikdy nebyly
+nastavené) a dotaz vrátí 0 řádků; jinak `role="system"` a 1 řádek.
+**Dotaz se vykonal na jiné backend session než `SET`.** Bez `app.role` je
+`app_is_service()` false → policy nepustí nic.
+Není to zděděný cizí GUC, je to **chybějící vlastní GUC**.
+Dvojité `release()` vyvráceno čítačem (0 výskytů, pády pokračovaly).
+⚠️ Návrh ze §115 (nastavit GUC v `connect()`) míří správně, ale **nemusí stačit** —
+jádro je, že `SET` a dotaz nejsou garantovaně na témž spojení. Ověřit dřív,
+než se produkční cesta změní. NEVÍM, proč se session rozejde.
+
+### Starší zápis (§114–115)
 
 Doloženo maticí: `max=1` → 0 pádů z 50; `max=2/5/20` → 3–5 z 50. Práh, ne
 gradient. `afterEach` 50 ms → 0 z 40. Závod je ve vracení spojení, ne v routě.

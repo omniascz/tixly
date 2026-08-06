@@ -1153,3 +1153,89 @@ udělat.
 | 2c | ✅ návrh + rozsah napsán |
 | 3 | ⏭️ neprovedeno — závod V POOLU JE, takže podmínka „pokud závod není v poolu" neplatí |
 | R-18 | ⏭️ pořád čeká na spolehlivou sadu |
+
+---
+
+## §116 ✅ MECHANISMUS R-15 VYSVĚTLEN: dotaz běží na session, kam SET nedorazil
+
+### 1a) Instrumentace bez round-tripu
+
+Předchozí sonda (§113) přidávala dotaz při akvizici — a tím jev **maskovala**
+(0 pádů ze 7 běhů). Tentokrát se GUC čtou **jako sloupce téhož dotazu**, který
+routa stejně posílá:
+
+```sql
+SELECT COUNT(*) AS total,
+       current_setting('app.role', true)              AS _dbg_role,
+       current_setting('app.current_user_id', true)   AS _dbg_uid,
+       …
+```
+
+Nula round-tripů navíc → jev zůstal reprodukovatelný (3 pády ze 4 běhů).
+
+### 1b) Korelace JE — a je jednoznačná
+
+```
+beh1: 1 failed
+   [DISCOVER-GUC] radku=1 total=1 role="system" uid=null pid=null adm=null
+   [DISCOVER-GUC] radku=1 total=1 role="system" uid=""   pid=""   adm=""
+   [DISCOVER-GUC] radku=1 total=1 role="system" uid=""   pid=""   adm=""
+beh3: 1 failed
+   [DISCOVER-GUC] radku=1 total=1 role="system" uid=null pid=null adm=null
+   [DISCOVER-GUC] radku=1 total=1 role="system" uid=""   pid=""   adm=""
+   [DISCOVER-GUC] radku=0 total=0 role=null    uid=null pid=null adm=null   ← PÁD
+beh4: 0 failed  (všechna tři volání role="system", radku=1)
+```
+
+**Ve chvíli pádu jsou všechny čtyři GUC `null` a dotaz vrátí 0 řádků.**
+Ve všech ostatních voláních je `role="system"` a vrátí 1 řádek.
+
+Rozlišení `null` vs `""` je tu nosné:
+
+| hodnota | znamená |
+|---|---|
+| `null` | GUC v té session **nikdy nebyl nastaven** |
+| `""` | GUC nastaven **byl** a pak přišel `RESET` |
+
+Řádky 2 a 3 mají `uid/pid/adm = ""` → recyklované spojení po RESETu, na kterém
+`SET app.role` proběhl. Řádek s pádem má **všechny čtyři `null`** → je to
+session, do které **nedorazil žádný `SET`**.
+
+### 1c) VERDIKT
+
+Routa běží v `runWithServiceContext`, `connect()` tedy `SET app.role='system'`
+vydal — ale **dotaz se vykonal na jiné backend session, než na které ten `SET`
+proběhl.** Bez `app.role` je `app_is_service()` false, policy `p_events_promoter_scope`
+nepustí nic → `radku=0` → test „událost nenalezena".
+
+Tím je vysvětlené to, co §114 nechávalo otevřené: **proč se závod projeví jako
+„dotaz nevrátil data".** Není to zděděný cizí GUC (§113 to vyloučila správně) —
+je to **chybějící vlastní GUC**.
+
+⚠️ **Co zůstává NEVÍM:** proč se session rozejde. Že `SET` a dotaz skončí na
+různých sessionech, je změřené; jestli za to může znovupřipojení uvnitř `pg`,
+záměna klienta v poolu, nebo něco třetího, jsem **nezjistil**.
+
+### Vedlejší výsledek: dvojité `release()` to není
+
+Hypotéza „release se volá dvakrát a druhý RESET dorazí do cizí session" byla
+testována čítačem (bez round-tripu, tedy bez maskování):
+
+```
+beh1-5:  DOUBLE-RELEASE = 0, 0, 0, 0, 0   |   pády: 0,1,1,0,1
+```
+
+**Ani jednou** — a pády mezitím pokračovaly. Vyvráceno. Strážka idempotentního
+release v kódu zůstává, ale proto, že dvojité release je chyba tak jako tak,
+ne proto, že by cokoli řešila.
+
+### Dopad na návrh opravy ze §115
+
+Návrh (nastavit všechny GUC v `connect()` místo úklidu v `release()`) míří
+správným směrem — deterministicky nastavit stav na akvizici. **Ale sám o sobě
+nemusí stačit**: pokud se dotaz může vykonat na session, kam žádný `SET`
+nedorazil, je problém v tom, že `SET` a dotaz nejsou garantovaně na témž
+spojení. To by chtělo ověřit dřív, než se produkční cesta změní.
+
+**Implementace bodu 2 NEPROVEDENA** — došel kontext. Body 2c (5 shodných běhů)
+a 2d (celá sada 3×) proto **nedoloženy**. R-18 zůstává na řadě.
