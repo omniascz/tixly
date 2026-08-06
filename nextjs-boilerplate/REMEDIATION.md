@@ -72,7 +72,19 @@ dostalo RLS + `p_*_scope`. Izolace ověřena, 0 rozbitých testů, gate prošel.
 | `identity.eudi_verifications` | zápis je anonymní (`user_id` se nevyplňuje), filtrace tokenem → servisní větev jako §94. Má mít uživatel vlastní pohled? Dnes žádná routa taková není. |
 | `marketing.fan_bonus_issued` | `user_id` NULLABLE — bonus pro hosta bez účtu, nebo nedodělek? |
 
-## R-15 🟡 PŘÍČINA NALEZENA, oprava NAVRŽENA (§117–119)
+## R-15 🔴 PŘÍČINA NALEZENA, návrh VYVRÁCEN (§120)
+
+Návrh injektovat SET LOCAL po volajícího BEGIN **neřeší ani jeden změřený pád**:
+`discover`, `artists/[slug]` i `events/[id]/alert` mají BEGIN=0 — patří mezi 14
+volajících, kteří transakci vůbec neotevírají. Statistika 161 ze 176 platí, ale je
+irelevantní; padají ti zbylí.
+Doplnit to transakcí v `connect()` nejde plošně: z volajících bez BEGIN je
+8 čtecích (bezpečné) a **7 zapisujících** (implicitní ROLLBACK by jejich zápisy
+zahodil — mezi nimi `guest-user.ts`).
+Směry (žádný nevybrán): explicitní `readOnly` u `connect()` / kontrola PID při
+prvním dotazu / vynucení `app.role IS NOT NULL` v dotazu.
+
+### Starší zápis (§117–119)
 
 `idleTimeoutMillis` vyloučen měřením (600 s → 3 pády z 50, beze změny).
 **Jádro:** `RlsAwarePool.query()` drží `SET LOCAL` + dotaz v transakci → záměna

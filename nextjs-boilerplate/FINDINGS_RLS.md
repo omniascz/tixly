@@ -1409,3 +1409,76 @@ podmínkou nasazení je 5 shodných běhů `public-routes` a trojí běh celé s
 změnu bez těch běhů by bylo přesně to, před čím tenhle celý blok varuje.
 
 **2d a 2e tedy NEDOLOŽENY. R-18 zůstává na řadě.**
+
+---
+
+## §120 NAVRH ZE §119 PADA: padajici routy jsou prave ty BEZ BEGIN
+
+Bod 1 zadani (over predpoklady, nez sahnes na 176 souboru) svuj ucel splnil —
+navrh se vyvratil driv, nez se ho nekdo dotkl v kodu.
+
+### 1a) Okno mezi connect() a BEGIN: 2 soubory
+
+`my/tickets/[ticketId]/transfer/route.ts`, `tickets/transfer/[token]/route.ts`.
+Obojí jsou routy, které jsem obaloval v §98. Malé.
+
+### 1b) Volajici BEZ BEGIN — a mezi nimi VSECHNY tri padajici routy
+
+```
+discover/route.ts          BEGIN=0  connect=1
+artists/[slug]/route.ts    BEGIN=0  connect=1
+events/[id]/alert/route.ts BEGIN=0  connect=3
+```
+
+To je rozhodujici. Navrh „injektovat `set_config(…, true)` po volajiciho
+`BEGIN`" by tyhle tri routy **nechal beze zmeny** — zadny `BEGIN` neposilaji,
+takze by se injektaz nikdy nespustila a zustaly by na session-scoped ceste,
+kde se ta flakinessa prave deje.
+
+**Navrh tedy neresi ani jeden ze zmerenych padu.**
+
+Seznam bez `BEGIN`: **14 souboru** metodou „nikde v souboru neni BEGIN";
+metodou „po jednotlivem `connect()`" jich vyjde **17** — rozdil delaji soubory,
+kde je `BEGIN` jen v nektere z vice vetvi.
+
+| cte (0 zapisovych prikazu) — 8 | zapisuje — 7 |
+|---|---|
+| `artists/[slug]`, `buyer/fan-bonus`, `carbon-offset-settings`, `discover`, `events/[id]/travel-packages`, `health/db`, `my/orders/[id]/upgrade-options`, `postal-fees` | `admin/events/[id]/box-office` (2), `…/box-office/sessions/[sessionId]` (1), `admin/events/[id]/travel` (1), `…/travel/[packageId]` (2), `editorial/articles/[slug]` (1), `events/[id]/alert` (3), `lib/identity/guest-user.ts` (5) |
+
+### 1c) Cim by se navrh musel doplnit — a proc to neni mechanicke
+
+Pro volajici bez `BEGIN` by `connect()` musel transakci otevrit **sam** a
+`release()` ji uzavrit `ROLLBACK`em.
+
+- U **8 ctecich** bezpecne — nic se necommituje, protoze se nic nezapisuje.
+- U **7 zapisujicich** nebezpecne: jejich zapisy by se implicitnim `ROLLBACK`
+  **zahodily**. Mezi nimi `guest-user.ts`, ktery zaklada uzivatele napric osmi
+  cestami, a `events/[id]/alert`, ktery zrovna ted opravujeme.
+
+Rozlisit ctece a zapisovace za behu **nejde spolehlive** — helper nevidi, co
+s klientem volajici udela. Slo by to explicitnim priznakem
+`db().connect({ readOnly: true })`, ale to uz **je** zmena call sites, tedy
+presne to, cemu se navrh chtel vyhnout.
+
+### VERDIKT
+
+Navrh stal na predpokladu, ze drtiva vetsina volajicich `BEGIN` posila
+(161 ze 176). To cislo **plati**, ale je **irelevantni** — padaji ti, kdo do
+tech 161 nepatri. **Statistika vetsiny nic nerika o tom, kde se chyba deje.**
+
+**Bod 2 zadani jsem NEPROVEDL.** Sahnout na 176 souboru kvuli navrhu, o kterem
+je zmereno, ze ani jeden pozorovany pad neopravi, by bylo za nic.
+**2c, 2d, 2e NEDOLOZENY** — tentokrat ne proto, ze dosel kontext, ale proto,
+ze by ta cisla stejne nic neukazala. **R-18 zustava na rade.**
+
+### Smer dal (zadny nevybran)
+
+1. Explicitni `readOnly` priznak u `connect()` → transakce jen tam, kde je to
+   bezpecne. Zmena call sites, ale jen u 8 ctecich.
+2. Kontrola PID pri prvnim dotazu — `set_config` uz dnes PID vraci (§117).
+   Stoji round-trip navic na pozadavek.
+3. Vynutit v dotazu `app.role IS NOT NULL`, aby zamena spojeni **spadla**
+   misto vraceni prazdna.
+
+Ktera z nich, **NEVIM** — rozhoduje se mezi cenou round-tripu a rozsahem zmeny
+v call sites, a to je rozhodnuti, ne technikalie.
