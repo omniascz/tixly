@@ -348,3 +348,13 @@ Mechanismus prokázán na `rolling_reserves` (D4: `rowCount 0` bez chyby),
 u těchto 5 **NEZMĚŘENO**.
 Rozhodnout per tabulka: kdo smí zapisovat — jen servisní cesta, nebo i platform
 admin? U peněžních tabulek je to produktová otázka, ne technická.
+
+## R-31 🔴 `executor.ts` píše `status='processing'`, které v CHECK není (§147)
+
+```
+CHECK (status = ANY (ARRAY['pending','approved','paid','failed','cancelled']))
+executor.ts: 'processing' na 3 mistech — prvni prechod pending → processing
+```
+Dřív to schovávala RLS (`rowCount=0` **před** kontrolou CHECKu). Oprava R-30
+vadu **odkryla**. Doporučení dle vzorce D4 (enum nerozšiřovat): zmapovat na
+`'approved'`. **Rozhodnutí, ne technikálie — čeká.**

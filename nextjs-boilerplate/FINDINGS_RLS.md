@@ -2585,3 +2585,77 @@ potřebuje obalit, jinak bude oprava policy zase vypadat jako hotová a nebude.
 **Neopraveno** — patří k rozhodnutí o `payouts`.
 
 **Migrace nenapsána** dle zadání. Body 3 (D12) nedošel kontext.
+
+---
+
+## §147 ✅ Migrace 467 + obalení executoru — obě části doloženy ODDĚLENĚ
+
+### 1c) RED → GREEN na všech čtyřech tabulkách
+
+```
+                                    RED (bez 467)   GREEN (s 467)
+ servisni UPDATE payouts            rowCount=0      rowCount=1   ✅
+ promoter A meni SVE settings       rowCount=0      rowCount=1   ✅
+ promoter A meni CIZI settings      rowCount=0      rowCount=0   ✅ izolace drzi
+ promoter A VLOZI podpis            42501           rowCount=1   ✅
+ promoter A PREPISE podpis          rowCount=0      rowCount=0   ✅ dukaz chranen
+ servisni UPDATE oauth_accounts     rowCount=0      rowCount=1   ✅
+ CIZI promoter B meni payouts       rowCount=0      rowCount=0   ✅ izolace drzi
+```
+
+Řádek „PŘEPÍŠE podpis" je ten podstatný: promotér podpis **vloží**, ale
+**nepřepíše** — `FOR INSERT` bez `FOR UPDATE`. Kdybych dal `FOR ALL`, prošlo by
+obojí a důkazní hodnota podpisu by zmizela.
+
+### 1d) Executor zvlášť — migrace SAMA nestačila
+
+Na klonu, kde **467 už aplikovaná je**:
+
+```
+BEZ kontextu (executor pred obalenim) rowCount=0
+SE servisnim (executor po obaleni)    rowCount=1
+```
+
+**Obě části byly potřeba.** Samotná migrace by `payouts` „opravila" jen zdánlivě:
+policy by existovala, ale executor by ji bez `app.role='service'` nesplnil
+a dál by tiše vracel nulu.
+
+`executor.ts` používá `db().query()` — tedy transakční cestu se `SET LOCAL`,
+která je podle §119 ta bezpečná; vlastní `BEGIN` nemá, takže se ho R-15 netýká.
+
+### 1e) 🔴 PEEL: pod `payouts` je TŘETÍ vrstva — `status = 'processing'`
+
+Když UPDATE po opravě konečně řádek **dosáhl**, vyskočila skutečná chyba:
+
+```
+23514 new row for relation "payouts" violates check constraint …
+```
+
+```
+CHECK (status = ANY (ARRAY['pending','approved','paid','failed','cancelled']))
+executor.ts pise:  'pending', 'processing' (3×), 'paid', 'failed'
+```
+
+**`'processing'` ve výčtu není** a `executor.ts` ho zapisuje na třech místech —
+je to první přechod stavu (`pending → processing`), takže výplata spadne hned
+na začátku.
+
+Dřív to nebylo vidět, protože RLS řádek odfiltrovala **před** kontrolou CHECKu:
+`rowCount=0` bez chyby. Oprava RLS tuhle vadu **odkryla**, nezpůsobila.
+
+⚠️ **NEOPRAVENO — není to v zamčeném rozhodnutí.** Podle vzorce z D4 („schéma je
+pravda, enum nerozšiřovat") by se `'processing'` mělo zmapovat na existující
+hodnotu; sémanticky nejbližší je **`'approved'`** (výplata schválená, ještě
+neodeslaná). Ale je to rozhodnutí, ne technikálie — R-31.
+
+### 2) Snapshot a gate
+
+```
+[snapshot] 631 policies, 436 tabulek s RLS
+generatedFrom … + 466_rolling_reserves_policy.sql + 467_writable_policies_r30.sql
+✅ GATE PROŠEL — žádný drift
+```
+
+Minule se snapshot musel vrátit, protože byl o policy pozadu. Teď je
+**kompletní** — `generatedFrom` obsahuje obě nové migrace, ověřeno čtením
+souboru, ne domněnkou. 624 → 631 policies (+7: 1× 466, 6× 467).

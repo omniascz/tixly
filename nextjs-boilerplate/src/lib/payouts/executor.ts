@@ -17,7 +17,7 @@
  *   - On success: status = 'paid', external_payout_id = provider ID, executed_at = NOW()
  */
 
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import {
   getWiseConfig,
   createWiseRecipient,
@@ -56,7 +56,7 @@ type ExecuteResult = {
  * Execute a single pending payout.
  * Updates platform.payouts status in DB.
  */
-export async function executePayout(row: PromoterPayoutRow): Promise<ExecuteResult> {
+async function executePayoutImpl(row: PromoterPayoutRow): Promise<ExecuteResult> {
   const amountMajor = row.net_payout / 100;
 
   // Determine provider
@@ -278,7 +278,7 @@ async function failPayout(payoutId: string, reason: string, retryCount: number):
  * Fetch all pending payouts ready for execution.
  * Returns promoter payout data needed by executePayout().
  */
-export async function fetchPendingPayouts(limit = 50): Promise<PromoterPayoutRow[]> {
+async function fetchPendingPayoutsImpl(limit = 50): Promise<PromoterPayoutRow[]> {
   const res = await db().query<PromoterPayoutRow>(
     `SELECT
        py.id AS payout_id,
@@ -303,4 +303,21 @@ export async function fetchPendingPayouts(limit = 50): Promise<PromoterPayoutRow
     [MAX_RETRIES, limit],
   );
   return res.rows;
+}
+
+// ── Servisni kontext (R-30, FINDINGS §147) ──────────────────────────────────
+// Tenhle modul bezel BEZ kontextu, zatimco ostatni tri zapisovatele do
+// platform.payouts (cron/event-payout-release, cron/payouts-auto-settle,
+// payments/wise/webhook) obaleni jsou. Migrace 467 sama by nestacila: bez
+// app.role='service' by policy p_payouts_service_write neplatila a UPDATE by
+// dal tise vracel rowCount = 0.
+//
+// Vyplaty jsou vyhradne strojova cesta (crony + webhook banky), takze servisni
+// kontext je spravny — nejde o uzivatelskou operaci.
+export function executePayout(row: PromoterPayoutRow): Promise<ExecuteResult> {
+  return runWithServiceContext(() => executePayoutImpl(row));
+}
+
+export function fetchPendingPayouts(limit = 50): Promise<PromoterPayoutRow[]> {
+  return runWithServiceContext(() => fetchPendingPayoutsImpl(limit));
 }

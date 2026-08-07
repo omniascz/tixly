@@ -1360,6 +1360,24 @@
    "wcheck": ""
   },
   {
+   "tbl": "compliance.e_signatures",
+   "pol": "p_e_signatures_promoter_insert",
+   "cmd": "INSERT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "",
+   "wcheck": "(promoter_id = app_current_promoter_id())"
+  },
+  {
+   "tbl": "compliance.e_signatures",
+   "pol": "p_e_signatures_service",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "app_is_service()",
+   "wcheck": "app_is_service()"
+  },
+  {
    "tbl": "conference.booth_assignments",
    "pol": "p_scope",
    "cmd": "ALL",
@@ -1736,6 +1754,24 @@
    "roles": "{public}",
    "qual": "((user_id = app_current_user_id()) OR (current_setting('app.is_platform_admin'::text, true) = 'true'::text) OR (current_setting('app.is_service'::text, true) = 'true'::text))",
    "wcheck": ""
+  },
+  {
+   "tbl": "identity.oauth_accounts",
+   "pol": "p_oauth_accounts_owner_read",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(user_id = app_current_user_id())",
+   "wcheck": ""
+  },
+  {
+   "tbl": "identity.oauth_accounts",
+   "pol": "p_oauth_accounts_service",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "app_is_service()",
+   "wcheck": "app_is_service()"
   },
   {
    "tbl": "identity.password_reset_tokens",
@@ -3431,12 +3467,30 @@
   },
   {
    "tbl": "platform.payout_settings",
+   "pol": "p_payout_settings_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_service() OR (promoter_id = app_current_promoter_id()))"
+  },
+  {
+   "tbl": "platform.payout_settings",
    "pol": "platform_payout_settings_promoter",
    "cmd": "SELECT",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
    "qual": "(app_is_service() OR (promoter_id = app_current_promoter_id()))",
    "wcheck": ""
+  },
+  {
+   "tbl": "platform.payouts",
+   "pol": "p_payouts_service_write",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "app_is_service()",
+   "wcheck": "app_is_service()"
   },
   {
    "tbl": "platform.payouts",
@@ -3644,6 +3698,15 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "platform.rolling_reserves",
+   "pol": "p_rolling_reserves_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
   },
   {
    "tbl": "platform.rolling_reserves",
@@ -8031,5 +8094,5 @@
    "cfg": "search_path=pg_catalog, public"
   }
  ],
- "generatedFrom": "migrations: 000_baseline_20260730.sql + 000_baseline_globals.sql + 450_tickets_dedup_unique.sql + 451_orders_payment_provider_pos.sql + 452_tracking_events_provider_tiktok.sql + 453_users_select_scoped.sql + 454_rls_cast_nullif_fix.sql + 455_rls_namedrift_identity.sql + 456_drop_base64url_defaults.sql + 457_orders_payment_provider_channels.sql + 458_party_split_rls_service_branch.sql + 459_users_promoter_upsert.sql + 460_ticket_alerts_service_branch.sql + 461_mechanical_rls.sql + 462_shared_catalog_and_eudi_rls.sql + 463_b2b_service_branch.sql + 464_b2b_orders_correlate_invoice_orders.sql"
+ "generatedFrom": "migrations: 000_baseline_20260730.sql + 000_baseline_globals.sql + 450_tickets_dedup_unique.sql + 451_orders_payment_provider_pos.sql + 452_tracking_events_provider_tiktok.sql + 453_users_select_scoped.sql + 454_rls_cast_nullif_fix.sql + 455_rls_namedrift_identity.sql + 456_drop_base64url_defaults.sql + 457_orders_payment_provider_channels.sql + 458_party_split_rls_service_branch.sql + 459_users_promoter_upsert.sql + 460_ticket_alerts_service_branch.sql + 461_mechanical_rls.sql + 462_shared_catalog_and_eudi_rls.sql + 463_b2b_service_branch.sql + 464_b2b_orders_correlate_invoice_orders.sql + 465_artists_event_id_nullable.sql + 466_rolling_reserves_policy.sql + 467_writable_policies_r30.sql"
 }
