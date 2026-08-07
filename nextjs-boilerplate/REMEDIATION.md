@@ -419,3 +419,12 @@ neexistuji nikde.
 Po `public.resale_listings -> orders.resale_listings` dotaz porad pouziva
 `re.price_halire`; tabulka ma `listing_price_halire` / `original_price_halire`.
 Ktery z nich je "trzba z resale", je rozhodnuti. NEOPRAVENO.
+
+## R-38 Roztrideni chybejicich tabulek nejde automatizovat (§159)
+
+Dva klasifikatory (podobnost jmen, prekryv sloupcu) selhaly self-checkem —
+1 ze 3 znamych pripadu. Duvod: spravna nahrada muze byt SLOUPEC na jine tabulce
+(`foyer_orders.items jsonb`), ne jina tabulka.
+Co plati: z 26 chybejicich je **17 vyhradne v `src/lib/reports/*`**. Odepsani
+rozbitych reportu (R-35) by odstranilo dve tretiny problemu bez migrace.
+Zbylych 9 je v routach a chce rozhodnuti per pripad.

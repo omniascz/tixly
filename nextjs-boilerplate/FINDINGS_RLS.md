@@ -3248,3 +3248,80 @@ Scoping se nezmenil a je dal v poradku (§156): 31 definic bez `pid`, z toho
 Zbyva **15 rozbitych reportu** — ty uz stoji na tabulkach, ktere neexistuji
 nikde (`marketing.affiliate_*`, `analytics.pixel_events`,
 `marketing.rsvp_registrations`, `platform.subscription_payments`, ...).
+
+---
+
+## §159 Roztrideni 26 chybejicich tabulek: automat SELHAL SELF-CHECK, cisla nepublikuju
+
+Zkusil jsem dva klasifikatory. **Oba selhaly**, kazdy jinak.
+
+### Pokus 1: podobnost jmen
+
+Pro **26 z 26** vratil „JINE JMENO?" — vzdy se naslo neco podobne
+(`seat_assignments` -> `conference.booth_assignments`,
+`affiliate_events` -> `public.presale_events`). Klasifikace, ktera rekne
+„mozna" u vseho, nerika nic.
+
+### Pokus 2: prekryv sloupcu, ktere dotaz pouziva
+
+Lepsi napad — hledat tabulku, ktera ma sloupce, jez dotaz od te chybejici
+chce. Vysledek ale obsahoval zjevne nesmysly:
+
+```
+marketing.lottery_winners      -> marketing.ad_clicks          100% z 2 sloupcu
+analytics.pixel_events         -> communications.broadcasts    100% z 2 sloupcu
+platform.subscription_payments -> orders.bank_transfer_lines   100% z 3 sloupcu
+```
+
+„100 %" ze dvou obecnych sloupcu (`user_id`, `campaign_id`) je nahoda, ne shoda.
+
+### SELF-CHECK (§54) — a proc cisla NEPUBLIKUJU
+
+Pustil jsem klasifikator na tri pripady, kde **spravnou odpoved uz znam
+z drivejsich kol**:
+
+| pripad | spravne | klasifikator rekl |
+|---|---|---|
+| `catalog.seat_maps` | `venue_seating_charts` / `catalog.seats` (§153) | „nezjisteny sloupce" ❌ |
+| `orders.foyer_order_items` | `orders.foyer_orders.items jsonb` (§139, commit `aa62538`) | „nezjisteny sloupce" ❌ |
+| `orders.seat_assignments` | subsystem nevznikl (§126, F6) | „nevznikl" ✅ |
+
+**1 ze 3.** Podle pravidla ze §54 se takovy vysledek nehlasi jako nalez.
+
+🔎 **Proc to nejde automatizovat:** spravna odpoved u `foyer_order_items` nebyla
+jina TABULKA, ale **sloupec `items jsonb` na jine tabulce**. Zadny klasifikator
+tabulka-na-tabulku takovou nahradu najit nemuze. A u `seat_maps` se sloupce
+nedaly vytahnout, protoze dotaz je poskladany pres alias v jinem miste souboru.
+
+**Roztrideni tedy zustava rucni prace** — jedna tabulka po druhe, se ctenim
+dotazu i historie. Automat ho neudela.
+
+### Co je zmerene a plati
+
+```
+chybejicich tabulek : 26
+  jen v `src/lib/reports/*` : 17
+  v routach                 :  9
+  ve strankach              :  0
+```
+
+Nejvetsi koncentrace: `reports-extra-2.ts` (12 tabulek), `reports-extra-3.ts` (2),
+`lib/ai/smart-send-time.ts` (2), `my/orders/[id]/upgrade-options` (2).
+
+**17 z 26 se tyka VYHRADNE reportu.** To je dulezite pro rozhodovani: kdyby se
+rozbite reporty odepsaly (R-35, 15 definic), zmizi dve tretiny problemu naráz —
+bez jedine migrace.
+
+Zbylych 9 je v routach: `seat_assignments`, `seat_maps`, `seat_map_entries`
+(upgrade cesta), `foyer_order_items`, `forgemsg_credentials`,
+`group_discounts`, `price_tiers`, `commemorative_tickets`, `guest_list_entries`.
+Tam uz je potreba rozhodnout per pripad.
+
+**Rucne dolozene ze tri predchozich kol:**
+
+| tabulka | verdikt | dukaz |
+|---|---|---|
+| `orders.foyer_order_items` | **jina nahrada** — `foyer_orders.items jsonb` | commit `aa62538` (§139) |
+| `orders.seat_assignments` | **subsystem nevznikl** | F6, cron vypnut (§126) |
+| `analytics.demand_forecasts` | **tichy no-op migrace 437** | §141 |
+| `catalog.seat_maps` | **NEVIM** — kandidati `venue_seating_charts`, `catalog.seats` | §153 |
