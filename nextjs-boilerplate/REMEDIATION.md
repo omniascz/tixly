@@ -360,3 +360,15 @@ executor.ts: 'processing' na 3 mistech — prvni prechod pending → processing
 Dřív to schovávala RLS (`rowCount=0` **před** kontrolou CHECKu). Oprava R-30
 vadu **odkryla**. Doporučení dle vzorce D4 (enum nerozšiřovat): zmapovat na
 `'approved'`. **Rozhodnutí, ne technikálie — čeká.**
+
+## R-32 3 duplicitni CHECK constrainty + 15 duplicitnich indexu (§152)
+
+Stopa po opakovanem spusteni migraci (tataz trida jako §141).
+**Constrainty** — uklid bezpecny: zadne jmeno se v kodu nepouziva za behu
+(jediny vyskyt `chk_resale_face_value_enforcement` je KOMENTAR
+v `buyer/resale/list/route.ts:21`), `ON CONSTRAINT` nikde.
+**Indexy — NE plosne.** Vetsina dvojic je `xxx_key` (index za UNIQUE constraintem)
++ `idx_xxx` (rucni). Zahodit `_key` = zahodit unikatnost tokenu
+(`gift_claims`, `ticket_transfers`, `api_keys`). Bezpecna je jen rucni polovina,
+a to per dvojici.
+Cislo 15 je DOLNI ODHAD — sken neodhali indexy s jinym poradim sloupcu.

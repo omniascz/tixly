@@ -108,6 +108,7 @@ Nic z toho **není na produkci**. Pořadí je závazné.
 | 466 | `466_rolling_reserves_policy.sql` | `platform.rolling_reserves` ma RLS bez policies (tichy deny) → doplnit scope | snapshot PŘEGENEROVÁN včetně 466 i 467 (631 policies), gate prošel; FINDINGS §142 |
 | 467 | `467_writable_policies_r30.sql` | 4 tabulky mely policy jen `FOR SELECT` → zápisové větve (R-30) | nasadit SPOLU s obalením `lib/payouts/executor.ts` — bez něj policy neplatí a zápis dál tiše vrací 0; FINDINGS §147 |
 | 468 | `468_payouts_status_processing.sql` | `payouts_status_check` + `'processing'` | mezistav `approved → processing → paid`, executor ho píše 3×; enum se tu ROZŠIŘUJE (na rozdíl od D4, kde šlo o popis operace, ne stav); FINDINGS §148 |
+| 469 | `469_broadcasts_target_event.sql` | `broadcasts_target_check` + `'event'` | UI tu volbu NABIZI (`TARGET_OPTIONS` + validace + sloupec `event_id`); na rozdil od D5 hodnota do sveta tabulky PATRI; FINDINGS §151 |
 
 ### ⚠️ „capacity backfill" — v pořadí NENÍ a nemá být
 

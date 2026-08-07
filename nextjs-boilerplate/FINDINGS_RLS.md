@@ -2814,3 +2814,110 @@ moderaci a lidska akce do ni nepatri.
 RED   event_moderation_log platform_admin: 23514 violates check constraint
 GREEN audit_log UPDATE/platform_admin:     PROSLO rowCount=1
 ```
+
+---
+
+## §151 E11: `broadcasts.target='event'` — UI tu volbu NABIZI, takze migrace 469
+
+### a) Dukaz greppem, ne dojmem
+
+```
+src/app/admin/broadcasts/new/page.tsx:33  TARGET_OPTIONS = [
+  { value: 'all',           label: 'Vsichni zakaznici ...' },
+  { value: 'buyers_only',   label: 'Pouze kupujici pres Tixly' },
+  { value: 'contacts_only', label: 'Pouze importovana databaze' },
+  { value: 'subscribers',   label: 'Pouze predplatitele' },
+  { value: 'event',         label: 'Zakaznici konkretni akce' },   <-- tady
+];
+```
+
+Ze to neni zapomenuty radek v UI, dokladaji ctyri nezavisle stopy:
+
+| stopa | misto |
+|---|---|
+| `type Target` tu hodnotu obsahuje | `page.tsx:13` |
+| UI si vynucuje vyber akce | `page.tsx:123` `if (target === 'event' && !eventId)` |
+| routa to validuje take | `route.ts:61` `eventId required for target=event` |
+| tabulka ma sloupec `event_id` | `communications.broadcasts` |
+
+Cela cesta je kolem te hodnoty postavena; chybi **jen v CHECK vyctu**.
+
+### b) Proc TADY rozsirit, kdyz u D5 ne
+
+Rozdil je v tom, jestli hodnota do sveta te tabulky **patri**:
+
+- **D5** — `event_moderation_log` je designovany pro STROJOVOU moderaci
+  (`auto_keyword|auto_ai|human`); `platform_admin` byl hodnota CIZI, patrila
+  do `audit_log`. Vycet se nerozsiril.
+- **E11** — `'event'` do sveta broadcastu patri (vlastni sloupec, vlastni UI
+  volba, vlastni validace). Chybi jen na jednom miste. Vycet se rozsiruje.
+
+### c) RED -> GREEN
+
+```
+RED   target='event': 23514 new row for relation "broadcasts" violates check constraint
+GREEN target='event': PROSLO rowCount=1
+```
+
+## §152 Duplicitni constrainty a indexy — stopa po opakovanem spusteni migraci
+
+### a) Duplicitni CHECK constrainty: **3**
+
+```
+marketing.loyalty_accounts   loyalty_accounts_balance_check, loyalty_accounts_points_balance_check
+                             :: CHECK (points_balance >= 0)
+platform.payouts             payouts_net_payout_check, payouts_net_payout_check1
+                             :: CHECK (net_payout >= 0)
+resale.resale_listings       chk_resale_face_value_enforcement, listings_ask_price_le_original
+                             :: CHECK (ask_price <= original_price)
+```
+
+### b) Duplicitni indexy: **15**
+
+```
+catalog.rfid_devices            idx_rfid_devices_apikey       + rfid_devices_api_key_key
+catalog.scanner_devices         idx_scanner_devices_api_key   + scanner_devices_api_key_key
+conference.exhibitor_sessions   ..._exhibitor_id_session_id_key + ..._pke
+marketing.loyalty_accounts      loyalty_accounts_user_id_key  + loyalty_accounts_user_idx
+marketing.loyalty_transactions  idx_loyalty_tx_account        + loyalty_tx_account_idx
+orders.gift_claims              gift_claims_claim_token_key   + idx_gift_claims_token
+orders.lottery_entries          idx_lottery_entries_token     + lottery_entries_entry_token_key
+orders.orders                   idx_orders_affiliate_id       + orders_affiliate_idx
+orders.party_split_sessions     ..._share_token_key           + party_split_token_idx
+orders.reschedule_responses     idx_reschedule_resp_token     + ..._response_token_key
+orders.ticket_transfers         idx_ticket_transfers_token    + ..._transfer_token_key
+platform.api_keys               api_keys_key_hash_key         + idx_api_keys_key_hash
+... a dalsi 3
+```
+
+Kazdy duplicitni index stoji zapisovy vykon — pri kazdem INSERT/UPDATE se
+udrzuji obe kopie.
+
+### c) Byl by uklid bezpecny?
+
+🟢 **Constrainty: ano, s jednou vyjimkou.** Grep na jmena v `src/`:
+
+```
+chk_resale_face_value_enforcement -> 1 soubor
+  buyer/resale/list/route.ts:21  (jen KOMENTAR: "DB constraint ... vynucuje")
+ostatni jmena -> 0 souboru
+```
+
+Odkaz je **komentar, ne kod** — nic se za behu na jmeno neptа. Nikde v `src/`
+navic neni `ON CONSTRAINT`. Zahodit jednu z kazde dvojice by tedy neselhalo.
+Pri mazani `chk_resale_face_value_enforcement` by se mel upravit i ten komentar,
+at nezustane odkaz na neexistujici jmeno.
+
+🔴 **Indexy: NE plosne — je tam past.** Vetsina dvojic je tvaru
+`xxx_key` + `idx_xxx`, kde `xxx_key` **neni obycejny index, ale index za UNIQUE
+constraintem**. Zahodit ten spatny znamena zahodit unikatnost — u
+`gift_claims_claim_token_key`, `ticket_transfers_transfer_token_key`
+nebo `api_keys_key_hash_key` by to znamenalo, ze token prestane byt unikatni.
+
+Bezpecne je zahodit **jen tu rucne vytvorenou** (`idx_*`) polovinu. To se ale
+musi rozhodnout u kazde dvojice zvlast — proto **NEOPRAVUJI**, jen vypisuji.
+Zapsano jako R-32.
+
+⚠️ Sken porovnava definice po `regexp_replace` jmena — dve deklarace se stejnym
+telem a jinym jmenem. Neodhali indexy, ktere se lisi poradim sloupcu, ale delaji
+totez. Cislo 15 je tedy **dolni odhad**.
