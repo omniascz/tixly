@@ -372,3 +372,11 @@ v `buyer/resale/list/route.ts:21`), `ON CONSTRAINT` nikde.
 (`gift_claims`, `ticket_transfers`, `api_keys`). Bezpecna je jen rucni polovina,
 a to per dvojici.
 Cislo 15 je DOLNI ODHAD — sken neodhali indexy s jinym poradim sloupcu.
+
+## R-33 `catalog.seat_maps` NEEXISTUJE, ale `my/orders/[id]/upgrade-options` z ni cte (§153)
+
+`42P01`. V baseline zadna `catalog.seat_maps`; existuji `event_seats`, `seats`,
+`venue_seating_charts`, `seat_view_photos`. Konzument je jediny — tahle routa.
+Tataz trida jako `foyer_order_items` (§130) a `seat_assignments` (§126).
+Rozhodnout: zalozit tabulku, nebo dotaz prepsat na `venue_seating_charts`?
+Bez rozhodnuti by se hadalo schema. NEOPRAVENO.

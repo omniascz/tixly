@@ -2921,3 +2921,88 @@ Zapsano jako R-32.
 ⚠️ Sken porovnava definice po `regexp_replace` jmena — dve deklarace se stejnym
 telem a jinym jmenem. Neodhali indexy, ktere se lisi poradim sloupcu, ale delaji
 totez. Cislo 15 je tedy **dolni odhad**.
+
+---
+
+## §153 Devet obalenych rout: seed SE SDILET DA — a hned prvni odhalil chybejici tabulku
+
+### b) KLICOVA ODPOVED: je to JEDNA session, ne pet
+
+`makeSeed().fullChain()` v `tests/helpers/live-fixture.ts` uz umi cely retez:
+
+```
+promoter -> venue -> event -> ticket_type -> order -> VYDANE LISTKY
+                                             (produkcni cestou pres issueTicketsForOrder)
+```
+
+Overeno behem:
+
+```
+[seed] order= f73d74d6-... user= 532f1b4a-... listku= 1
+[tickets] vydano v DB = 1
+```
+
+Drahá cast (retez az k listku) je tedy **hotova a sdilena**. Zbytek je per-routa
+uz jen doplnek: druhy `ticket_type` pro upgrade, radek `postal_deliveries`,
+radek `ticket_transfers`. **Neni to 9x vlastni retez.**
+
+| routa | co navic nad `fullChain()` |
+|---|---|
+| `my/orders/[id]/upgrade-options` | nic |
+| `my/orders/[id]/upgrade` | druhy `ticket_type` (drazsi) |
+| `my/tickets/[ticketId]/transfer` | nic |
+| `tickets/transfer/[token]` | radek z predchozi routy |
+| `platform/postal/[id]` ×2 | radek `orders.postal_deliveries` |
+| `platform/artists` | jen promoter (retez nepotrebuje) |
+| cron ×2 | nic (bezi nad celym schematem) |
+
+### c/d) Zmereno primym behem
+
+```
+[upgrade-options] vlastnik 500 {"error":"INTERNAL"}
+[upgrade-options] CIZI     404 {"error":"NOT_FOUND"}
+[platform/artists]         403 {"error":"FORBIDDEN"}
+[tickets] vydano v DB = 1
+```
+
+🔒 **Izolace (bod d) POTVRZENA** u `upgrade-options`: cizi uzivatel dostane
+`404 NOT_FOUND`, ne cizi data. Kontext funguje.
+
+### e) 🔴 PEEL: `catalog.seat_maps` NEEXISTUJE
+
+Vlastnikova cesta pada na:
+
+```
+[GET /upgrade-options] error: relation "catalog.seat_maps" does not exist  (42P01)
+```
+
+```
+grep 'CREATE TABLE catalog.seat_maps' v baseline : 0
+tabulky, ktere v catalog EXISTUJI:  event_seats, seats, venue_seating_charts,
+                                    seat_view_photos, event_seat_view_photos
+konzumentu `catalog.seat_maps` v src/ : 1  (jen tahle routa)
+```
+
+Tataz trida jako `orders.foyer_order_items` (§130) a `orders.seat_assignments`
+(§126): **routa se pta na tabulku, ktera ve schematu neni**. Obaleni kontextem
+tu vadu neodhalilo, protoze pred nim routa padala uz na RLS — az kdyz kontext
+zacal fungovat, dotaz se dostal k tabulce a spadl na 42P01.
+
+**Je to stejny vzorec jako u payouts:** kazda vrstva schovavala tu dalsi.
+
+⚠️ **NEOPRAVENO.** Zda se ma `seat_maps` zalozit, nebo dotaz prepsat na
+`venue_seating_charts` / `catalog.seats`, je rozhodnuti — a bez neho by se
+hadalo schema. R-33.
+
+### f) Kolik zbyva
+
+**Z devíti je dolozena JEDNA cesta (izolace u `upgrade-options`) a jedna
+zablokovana nalezem.** `platform/artists` vraci `403` — potrebuje platform-admin
+token, ne jen kontext; seed pro nej musi vyrobit i autentizaci, coz je jina
+prace nez retez objednavky.
+
+**Zbyva 8.** Odhad: dva az tri z nich (`my/tickets/transfer`,
+`tickets/transfer/[token]`, `my/orders/upgrade`) jdou na sdilenem seedu hned,
+`postal` ×2 potrebuji jeden radek navic, `platform/artists` a crony maji vlastni
+autentizacni pozadavky. **Jedna session by mela stacit** — pokud se pod nimi
+neobjevi dalsi chybejici tabulky jako `seat_maps`.
