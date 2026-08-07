@@ -349,7 +349,9 @@ u těchto 5 **NEZMĚŘENO**.
 Rozhodnout per tabulka: kdo smí zapisovat — jen servisní cesta, nebo i platform
 admin? U peněžních tabulek je to produktová otázka, ne technická.
 
-## R-31 🔴 `executor.ts` píše `status='processing'`, které v CHECK není (§147)
+## R-31 ✅ VYŘEŠENO migrací 468 (§148) — 6 z 6 přechodů projde
+
+### Původní zápis (§147)
 
 ```
 CHECK (status = ANY (ARRAY['pending','approved','paid','failed','cancelled']))

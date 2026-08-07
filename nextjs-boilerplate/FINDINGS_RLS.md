@@ -2659,3 +2659,74 @@ generatedFrom … + 466_rolling_reserves_policy.sql + 467_writable_policies_r30.
 Minule se snapshot musel vrátit, protože byl o policy pozadu. Teď je
 **kompletní** — `generatedFrom` obsahuje obě nové migrace, ověřeno čtením
 souboru, ne domněnkou. 624 → 631 policies (+7: 1× 466, 6× 467).
+
+---
+
+## §148 ✅ Migrace 468: `payouts.status` — celá cesta výplaty projde
+
+### b) Úplná inventura zapisovatelů, ne jen těch, co spadli
+
+Prošel jsem všechny čtyři zapisovatele do `platform.payouts` a u každého
+**všechny** hodnoty, které do `status` píšou — včetně parametrizovaných:
+
+```
+lib/payouts/executor.ts     'processing' (3×), 'paid', 'failed'
+                            + failPayout: $2 = 'failed' | 'pending'  (executor.ts:267)
+cron/event-payout-release   INSERT … 'pending'
+cron/payouts-auto-settle    INSERT … 'pending'
+payments/wise/webhook       'paid', 'failed'
+```
+
+🔎 Hrubý grep v těch souborech našel i `'active'` a `'refunded'` — **patří jiným
+tabulkám** (objednávky/lístky), ne `payouts`. Ověřeno cíleným grepem na
+`UPDATE platform.payouts` / `INTO platform.payouts`. Kdybych to nerozlišil,
+rozšířil bych výčet o dvě hodnoty, které tam nemají co dělat.
+
+**Mimo výčet je jediná hodnota: `'processing'`.**
+
+### c) RED → GREEN, celá cesta všemi přechody
+
+```
+                            RED (bez 468)                    GREEN (s 468)
+ pending → processing       23514 violates check constraint  rowCount=1
+ processing → paid          rowCount=1                       rowCount=1
+ reset na pending (retry)   rowCount=1                       rowCount=1
+ pending → failed           rowCount=1                       rowCount=1
+ failed → approved (rucni)  rowCount=1                       rowCount=1
+ approved → cancelled       rowCount=1                       rowCount=1
+ ────────────────────────────────────────────────────────────────────────
+ PROSLO                     5 z 6                            6 z 6
+```
+
+### d) PEEL: čtvrtá vrstva **není**
+
+```
+CHECK constraintu na payouts: 10  — devet je >= 0 na castkach, desaty je status
+NOT NULL bez DEFAULT: promoter_id, period_from, period_to, payout_cycle
+triggery: zadne
+```
+
+Zbylých devět CHECKů jsou nezápornosti částek — ty kód neporušuje. Sloupce
+`NOT NULL` bez defaultu oba INSERTy vyplňují. Žádný trigger. **Pod tím už nic není.**
+
+⚠️ Vedlejší pozorování: `payouts_net_payout_check` a `payouts_net_payout_check1`
+jsou **duplicitní** (obojí `net_payout >= 0`). Neškodí, ale je to stopa po témž
+`IF NOT EXISTS`/opakovaném přidání jako §141. **Neopravuji**, jen zapisuji.
+
+### e) Snapshot a gate
+
+468 mění CHECK, ne policies — snapshot zůstává na **631 policies / 436 tabulek**
+a **gate prošel**. Ověřeno spuštěním proti klonu s 468, ne odvozeno.
+
+### Řetěz kolem `payouts` je tím uzavřený
+
+Tři vrstvy, každá schovávala tu další:
+
+1. **RLS** — policy jen `FOR SELECT`, zápis vracel `rowCount=0` bez chyby (§145)
+2. **kontext** — `executor.ts` běžel bez `app.role='service'`, takže ani po
+   migraci 467 by policy neplatila (§147)
+3. **CHECK** — `'processing'` mimo výčet; vyskočilo to teprve, když UPDATE
+   konečně řádek dosáhl (§147 → 468)
+
+Kdyby se opravila jen kterákoli jedna, výplaty by dál nefungovaly a vypadalo by
+to jako hotové.

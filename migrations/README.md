@@ -107,6 +107,7 @@ Nic z toho **není na produkci**. Pořadí je závazné.
 | 465 | `465_artists_event_id_nullable.sql` | `lineups.artists.event_id` NOT NULL → NULLABLE | promotér-level katalog umělců bez akce; RED→GREEN + izolace změřena, policies se to nedotýká, FINDINGS §137 |
 | 466 | `466_rolling_reserves_policy.sql` | `platform.rolling_reserves` ma RLS bez policies (tichy deny) → doplnit scope | snapshot PŘEGENEROVÁN včetně 466 i 467 (631 policies), gate prošel; FINDINGS §142 |
 | 467 | `467_writable_policies_r30.sql` | 4 tabulky mely policy jen `FOR SELECT` → zápisové větve (R-30) | nasadit SPOLU s obalením `lib/payouts/executor.ts` — bez něj policy neplatí a zápis dál tiše vrací 0; FINDINGS §147 |
+| 468 | `468_payouts_status_processing.sql` | `payouts_status_check` + `'processing'` | mezistav `approved → processing → paid`, executor ho píše 3×; enum se tu ROZŠIŘUJE (na rozdíl od D4, kde šlo o popis operace, ne stav); FINDINGS §148 |
 
 ### ⚠️ „capacity backfill" — v pořadí NENÍ a nemá být
 
