@@ -209,7 +209,7 @@ export const REPORTS_EXTRA_3: ReportDef[] = [
                    COUNT(pa.id)::int AS zadosti,
                    COUNT(pa.id) FILTER (WHERE pa.status='approved')::int AS schvaleno,
                    COUNT(pa.id) FILTER (WHERE pa.status='rejected')::int AS zamítnuto
-            FROM public.press_accreditations pa
+            FROM orders.press_accreditations pa
             JOIN catalog.events e ON e.id=pa.event_id
             WHERE e.promoter_id=$1
               AND pa.created_at::date BETWEEN $2 AND $3
@@ -256,7 +256,7 @@ export const REPORTS_EXTRA_3: ReportDef[] = [
       sql: `SELECT e.title AS akce,
                    COUNT(bm.id)::int AS passu,
                    COUNT(bm.id) FILTER (WHERE bm.scanned_at IS NOT NULL)::int AS vyuzito
-            FROM public.backstage_moments bm
+            FROM catalog.backstage_moments bm
             JOIN catalog.events e ON e.id=bm.event_id
             WHERE e.promoter_id=$1
               AND bm.created_at::date BETWEEN $2 AND $3
@@ -390,7 +390,7 @@ export const REPORTS_EXTRA_3: ReportDef[] = [
                    COUNT(DISTINCT pos.id)::int AS pos_transakci
             FROM platform.promoter_members pm
             JOIN identity.users u ON u.id=pm.user_id
-            LEFT JOIN public.scan_logs sc ON sc.scanned_by=u.id
+            LEFT JOIN tickets.scan_logs sc ON sc.scanned_by=u.id
               AND sc.scanned_at::date BETWEEN $2 AND $3
             LEFT JOIN orders.orders pos ON pos.cashier_id=u.id
               AND pos.status='paid' AND pos.paid_at::date BETWEEN $2 AND $3

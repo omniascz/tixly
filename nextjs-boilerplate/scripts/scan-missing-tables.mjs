@@ -29,11 +29,20 @@ function baselineTables(path) {
   const t = new Set();
   for (const m of s.matchAll(/CREATE (?:TABLE|VIEW|MATERIALIZED VIEW)(?: IF NOT EXISTS)? ([a-z_]+\.[a-z_]+)/gi)) {
     t.add(m[1].toLowerCase());
+    if (m[1].toLowerCase().startsWith('public.')) t.add(m[1].toLowerCase().slice(7));
   }
   return t;
 }
 
 /** Odkazy na tabulky v SQL uvnitr TS. Schema.tabulka, tedy zadne aliasy. */
+/** b) Tabulky psane BEZ schematu: search_path je `pg_catalog, public`, takze
+ *  hole jmeno miri do `public` — nebo nikam. Zachytavame je take. */
+const BARE = [
+  /FROM\s+([a-z_]{3,})\s/gi,
+  /JOIN\s+([a-z_]{3,})\s/gi,
+  /INSERT\s+INTO\s+([a-z_]{3,})\s/gi,
+];
+
 const REFS = [
   /\bFROM\s+([a-z_]+\.[a-z_]+)/gi,
   /\bJOIN\s+([a-z_]+\.[a-z_]+)/gi,
@@ -42,14 +51,23 @@ const REFS = [
   /\bDELETE\s+FROM\s+([a-z_]+\.[a-z_]+)/gi,
 ];
 
-/** Schemata, ktera v projektu existuji — filtruje `array.map` a podobne falesne shody. */
-const SCHEMAS = new Set([
-  'accessibility', 'accreditation', 'ads', 'affiliate', 'ai_ads', 'ambassador',
-  'analytics', 'attribution', 'audit', 'auth', 'b2b', 'b2b_orders', 'benefit_payments',
-  'blacklist', 'brands', 'catalog', 'cinema', 'communications', 'compliance',
-  'conference', 'identity', 'lineups', 'marketing', 'notifications', 'orders',
-  'payments', 'platform', 'pricing', 'referral', 'resale', 'tickets',
-]);
+/**
+ * Schemata se ctou Z BASELINE, ne z ruky.
+ *
+ * Predchozi verze mela zadrateny vycet, ve kterem CHYBELO `public` — a tim
+ * propadlo ~12 odkazu (`public.scan_logs`, `public.resale_listings`, ...).
+ * Cislo 34 bylo podhodnocene (R-36). Je to POSESTE tataz trida (§82):
+ * nastroj si drzi kopii neceho, co se da zjistit z reality.
+ */
+function baselineSchemas(path) {
+  const s = readFileSync(path, 'utf8');
+  const out = new Set(['public']);  // public existuje vzdy, i kdyz ho baseline nevytvari
+  for (const m of s.matchAll(/CREATE (?:TABLE|VIEW|MATERIALIZED VIEW)(?: IF NOT EXISTS)? ([a-z_]+)\./gi)) {
+    out.add(m[1].toLowerCase());
+  }
+  for (const m of s.matchAll(/CREATE SCHEMA(?: IF NOT EXISTS)? ([a-z_]+)/gi)) out.add(m[1].toLowerCase());
+  return out;
+}
 
 const lineOf = (s, i) => s.slice(0, i).split('\n').length;
 
@@ -65,6 +83,23 @@ function scanFile(path, known) {
       if (!SCHEMAS.has(schema)) continue;
       if (known.has(tbl)) continue;
       hits.push({ tbl, line: lineOf(s, m.index) });
+    }
+  }
+
+  // b) Hola jmena bez schematu. `search_path` je `pg_catalog, public`, takze
+  //    mirí do `public` — nebo nikam. CTE aliasy a SQL klicova slova se musi
+  //    odfiltrovat, jinak by kazdy `FROM cte_x` vypadal jako chybejici tabulka.
+  const cte = new Set([...s.matchAll(/(?:WITH|,)\s+([a-z_][a-z0-9_]{2,})\s+AS\s*\(/gi)].map((x) => x[1].toLowerCase()));
+  const NOISE = new Set(['select', 'lateral', 'unnest', 'generate_series', 'json_to_recordset',
+    'jsonb_to_recordset', 'values', 'only', 'dual', 'each', 'string_to_table', 'regexp_split_to_table']);
+  for (const re of BARE) {
+    re.lastIndex = 0;
+    let m;
+    while ((m = re.exec(s)) !== null) {
+      const raw = m[1].toLowerCase();
+      if (cte.has(raw) || NOISE.has(raw)) continue;
+      if (known.has(raw) || known.has(`public.${raw}`)) continue;
+      hits.push({ tbl: `(bez schematu) ${raw}`, line: lineOf(s, m.index) });
     }
   }
   return hits;
@@ -93,11 +128,12 @@ function dynamicCount(files) {
 
 const baseline = opt('baseline', '../migrations/000_baseline_20260730.sql');
 const known = baselineTables(baseline);
+const SCHEMAS = baselineSchemas(baseline);
 
 // ── SELF-CHECK ───────────────────────────────────────────────────────────────
 if (flag('selfcheck')) {
   const extra = opt('extra');
-  const targets = ['catalog.seat_maps'];
+  const targets = ['catalog.seat_maps', 'public.scan_logs', 'public.resale_listings'];
   const found = new Set();
   const files = walk(opt('root', 'src'));
   for (const f of files) for (const h of scanFile(f, known)) found.add(h.tbl);

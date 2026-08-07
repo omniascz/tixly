@@ -408,3 +408,14 @@ Rozhodnout per report: dostavet tabulku, prepsat dotaz, nebo report odepsat.
 `SCHEMAS` v `scan-missing-tables.mjs` neobsahoval `public`, takze
 `public.scan_logs`, `public.resale_listings`, `public.foyer_orders` a dalsich
 ~12 jmen propadlo. Cislo 34 bylo PODHODNOCENE. Doplnit `public` a prescanovat.
+
+## R-35 aktualizace: 15 (bylo 24) reportu spadne (§158)
+
+Devet se opravilo srovnanim prefixu. Zbylych 15 stoji na tabulkach, ktere
+neexistuji nikde.
+
+## R-37 `udalosti_resell` ma spravny prefix, ale spatny sloupec (§157)
+
+Po `public.resale_listings -> orders.resale_listings` dotaz porad pouziva
+`re.price_halire`; tabulka ma `listing_price_halire` / `original_price_halire`.
+Ktery z nich je "trzba z resale", je rozhodnuti. NEOPRAVENO.

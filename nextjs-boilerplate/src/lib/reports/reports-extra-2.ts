@@ -72,7 +72,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
       sql: `SELECT e.title AS akce,
                    COUNT(DISTINCT re.id)::int AS prodeju,
                    ROUND(SUM(re.price_halire)/100.0,2)::numeric AS trzby_czk
-            FROM public.resale_listings re
+            FROM orders.resale_listings re
             JOIN catalog.events e ON e.id=re.event_id
             WHERE e.promoter_id=$1 AND re.status='sold'
               AND re.sold_at::date BETWEEN $2 AND $3
@@ -121,7 +121,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
             FROM catalog.events e
             JOIN orders.orders o ON o.event_id=e.id AND o.status='paid'
             JOIN orders.order_items oi ON oi.order_id=o.id
-            LEFT JOIN public.scan_logs sc ON sc.order_item_id=oi.id AND sc.result='valid'
+            LEFT JOIN tickets.scan_logs sc ON sc.order_item_id=oi.id AND sc.result='valid'
             WHERE e.promoter_id=$1
               AND e.date_start::date BETWEEN $2 AND $3
             GROUP BY e.id, e.title ORDER BY scan_rate LIMIT 100`,
@@ -317,7 +317,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
                    COUNT(gle.id) FILTER (WHERE gle.status='confirmed')::int AS potvrzeno,
                    COUNT(gle.id) FILTER (WHERE gle.scanned_at IS NOT NULL)::int AS naskenováno
             FROM public.guest_list_entries gle
-            JOIN public.guest_lists gl ON gl.id=gle.guest_list_id
+            JOIN cross_scanner.guest_lists gl ON gl.id=gle.guest_list_id
             JOIN catalog.events e ON e.id=gl.event_id
             WHERE e.promoter_id=$1
               AND gl.created_at::date BETWEEN $2 AND $3
@@ -372,7 +372,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
             JOIN orders.order_items oi ON oi.ticket_type_id=tt.id
             JOIN orders.orders o ON o.id=oi.order_id AND o.status='paid'
             JOIN catalog.events e ON e.id=o.event_id
-            LEFT JOIN public.scan_logs sc ON sc.order_item_id=oi.id AND sc.result='valid'
+            LEFT JOIN tickets.scan_logs sc ON sc.order_item_id=oi.id AND sc.result='valid'
             WHERE e.promoter_id=$1
               AND e.date_start::date BETWEEN $2 AND $3
             GROUP BY tt.id, tt.name ORDER BY celkem DESC LIMIT 50`,
@@ -392,7 +392,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
       sql: `SELECT e.title AS akce,
                    COUNT(*)::int AS zamitnutych,
                    MODE() WITHIN GROUP (ORDER BY sc.result) AS duvod
-            FROM public.scan_logs sc
+            FROM tickets.scan_logs sc
             JOIN orders.order_items oi ON oi.id=sc.order_item_id
             JOIN orders.orders o ON o.id=oi.order_id
             JOIN catalog.events e ON e.id=o.event_id
@@ -417,7 +417,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
                    COUNT(DISTINCT fo.id)::int AS objednavky,
                    SUM(foi.quantity)::int AS polozek,
                    ROUND(SUM(fo.total_halire)/100.0,2)::numeric AS trzby_czk
-            FROM public.foyer_orders fo
+            FROM orders.foyer_orders fo
             JOIN public.foyer_order_items foi ON foi.order_id=fo.id
             JOIN catalog.events e ON e.id=fo.event_id
             WHERE e.promoter_id=$1 AND fo.status='paid'
@@ -439,7 +439,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
       sql: `SELECT e.title AS akce,
                    COUNT(ea.id)::int AS hlaseni,
                    AVG(ea.recipient_count)::int AS prumerny_dosah
-            FROM public.emergency_announcements ea
+            FROM communications.emergency_announcements ea
             JOIN catalog.events e ON e.id=ea.event_id
             WHERE e.promoter_id=$1
               AND ea.created_at::date BETWEEN $2 AND $3
@@ -710,7 +710,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
       sql: `SELECT sc.scanned_at::date::text AS den,
                    COUNT(*)::int AS scanu,
                    ROUND(100.0*COUNT(*) FILTER (WHERE sc.result='valid')/COUNT(*),1)::numeric AS valid_pct
-            FROM public.scan_logs sc
+            FROM tickets.scan_logs sc
             WHERE sc.scanned_at::date BETWEEN $1 AND $2
             GROUP BY 1 ORDER BY 1 LIMIT 200`,
       values: [from(p), to(p)],

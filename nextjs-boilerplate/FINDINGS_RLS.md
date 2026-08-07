@@ -3159,3 +3159,92 @@ nehrozi.
 kdybych to publikoval, hlasil bych deset neexistujicich uniku. Je to tataz
 trida jako §128/§152: **nastroj meri jen to, na co dosahne, a jeho nula ani
 jeho nalez neplati bez overeni druhou cestou.**
+
+---
+
+## §157 R-36 opraveno: skener cte schemata z katalogu; nove cislo je 33 -> 26
+
+### a) Zadratovany seznam pryc — POSESTE tataz trida
+
+`SCHEMAS` byl rucne vypsany a **chybelo v nem `public`**. Ted se cte z baseline:
+
+```js
+function baselineSchemas(path) {
+  const out = new Set(['public']);           // existuje vzdy, i kdyz ho baseline nevytvari
+  for (const m of s.matchAll(/CREATE (?:TABLE|VIEW|MATERIALIZED VIEW)… ([a-z_]+)\./gi)) out.add(m[1]);
+  for (const m of s.matchAll(/CREATE SCHEMA… ([a-z_]+)/gi)) out.add(m[1]);
+  return out;
+}
+```
+
+`baseline zna tabulek: 590 -> 615` (pribyly `public.*`, ktere driv propadaly).
+
+### b) Hola jmena bez schematu
+
+Doplneno. `search_path` je `pg_catalog, public`, takze hole jmeno miri do
+`public` — nebo nikam. Filtruji se CTE aliasy (`WITH x AS (`) a SQL slova,
+jinak by kazdy `FROM cte_x` vypadal jako chybejici tabulka.
+
+**Vysledek: 0 odkazu bez schematu.** Projekt schema pise vzdy.
+
+### c) SELF-CHECK rozsiren a PROSEL
+
+```
+[selfcheck] baseline zna 615 tabulek
+  NASEL  catalog.seat_maps
+  NASEL  public.scan_logs
+  NASEL  public.resale_listings
+  NASEL  orders.foyer_order_items
+[selfcheck] PROSEL
+```
+
+### d) NOVE CISLO MISTO 34
+
+```
+odkazu na NEEXISTUJICI : 33
+  SPATNY PREFIX        :  7   (vsechny `public.*`)
+  BEZ SCHEMATU         :  0
+  CHYBI UPLNE          : 26
+```
+
+### e) Sedm prefixu opraveno — a zase to nestacilo
+
+```
+public.scan_logs               -> tickets.scan_logs
+public.resale_listings         -> orders.resale_listings
+public.foyer_orders            -> orders.foyer_orders
+public.emergency_announcements -> communications.emergency_announcements
+public.guest_lists             -> cross_scanner.guest_lists
+public.press_accreditations    -> orders.press_accreditations
+public.backstage_moments       -> catalog.backstage_moments
+```
+
+`resale_listings` je zase ve DVOU schematech. Dotaz joinuje `re.event_id`,
+ktery ma `orders.resale_listings`; `resale.resale_listings` ho nema. Proto
+`orders`.
+
+⚠️ **Ale i po opravě prefixu ten report zustava rozbity:** pouziva
+`re.price_halire`, a `orders.resale_listings` ma `listing_price_halire`
+a `original_price_halire`. Prefix byl **prvni vrstva**, sloupec je druha —
+presne to, pred cim varovala lekce z minuleho kola. **Neopravuji**, jmeno
+sloupce je rozhodnuti.
+
+Po opravě: **33 -> 26**, `tsc` 0.
+
+## §158 Reporty premerene: 24 -> 15
+
+```
+definic reportu celkem     : 198
+SPADNE (chybejici tabulka) :  15   (bylo 24)
+```
+
+Devet reportu se opravilo **samo** tim, ze se srovnal prefix — nesahaly na
+chybejici tabulku, jen na spatne schema.
+
+Scoping se nezmenil a je dal v poradku (§156): 31 definic bez `pid`, z toho
+21 `scope: 'platform'` (routa je hlida) a 10 deleguje na `helpers.ts`.
+**Zadny report bez tenant filtru.**
+
+Zbyva **15 rozbitych reportu** — ty uz stoji na tabulkach, ktere neexistuji
+nikde (`marketing.affiliate_*`, `analytics.pixel_events`,
+`marketing.rsvp_registrations`, `platform.subscription_payments`, ...).
