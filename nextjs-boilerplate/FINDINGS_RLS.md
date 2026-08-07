@@ -3086,3 +3086,76 @@ se dotaz k tabulce vubec nedostal. Az kdyz se opravil kontext, vyskocilo 42P01.
 **Kazda vrstva schovavala tu dalsi** — tentyz vzorec jako u payouts.
 
 **NEOPRAVOVANO** dle zadani. R-34.
+
+---
+
+## §155 12x spatny prefix opraveno; 34 -> 22
+
+### a) Cile overeny proti baseline, ne prevzaty ze skeneru
+
+Skener nabizel prvni shodu podle jmena tabulky — a u jedne by trefil vedle:
+
+```
+marketing.lottery_entries -> skener navrhl catalog.lottery_entries
+                             SPRAVNE je  orders.lottery_entries
+```
+
+`lottery_entries` existuje ve DVOU schematech. Dotaz pouziva
+`le.campaign_id`; `orders.lottery_entries` ho ma, `catalog.lottery_entries` ma
+`lottery_id`. **Bez kontroly sloupcu by oprava prefixu jen posunula chybu
+z 42P01 na 42703.**
+
+Opraveno 12 odkazu v 10 souborech, `tsc` 0, sken **34 -> 22**.
+
+### b) `auth.users` NENI zbytek po Supabase
+
+`git log -S "auth.users"` vede na `a402161 chore: initial commit — Tixly
+snapshot 2026-04-29`. Grep na `supabase` v `src/` i `package.json`: **nic**.
+Je to prosty spatny prefix od zacatku, ne stopa po migraci z jine platformy.
+Zbyle vyskyty `auth.` v kodu jsou JS promenne, ne schemata.
+
+### ⚠️ Sken mel slepe misto: schema `public`
+
+Muj `SCHEMAS` seznam v `scan-missing-tables.mjs` **neobsahoval `public`**, takze
+odkazy jako `public.scan_logs`, `public.resale_listings`, `public.foyer_orders`
+propadly. Reportova analyza (§156) je uz zapocitala a nasla dalsich **12 jmen**
+v `public.*`. **Cislo 34 z §154 tedy bylo podhodnocene.**
+
+## §156 Reporty: 24 ze 198 spadne; scoping je v poradku
+
+### a/b) VERDIKT CISLEM
+
+```
+definic reportu celkem     : 198
+SPADNE (chybejici tabulka) :  24
+```
+
+Rozbite jsou skoro vsechny v `reports-extra-2.ts` a `-3.ts` — mj.
+`marketing_meta_pixel`, `marketing_affiliate_partner`, `ops_scan_*` (3x),
+`ops_foyer_preorders`, `platform_mrr`, `udalosti_lottery`.
+
+Modul **JE dosazitelny**: `admin/reports/run/route.ts` + stranka
+`admin/reports/inhouse`. Kazdy z tech 24 reportu dnes skonci na 42P01.
+
+### c) 🟢 Scoping: ZADNY report neni bez nej — a byl to falesny poplach
+
+Hruby sken hlasil **31 definic bez `pid`**. Dva kroky to vysvetlily:
+
+1. **21 z nich ma `scope: 'platform'`** — cross-promoterske reporty ZAMERNE.
+   Routa je hlida: `run/route.ts:38` `if (def.scope === 'platform')` -> overi
+   `is_platform_admin` v `identity.users`, jinak odmitne.
+2. **Zbylych 10** (vsechny v `reports-prodeje.ts`) `pid` v tele definice nema,
+   protoze deleguji na sdilene tovarny `timeSalesQuery` / `dimSalesQuery`
+   v `helpers.ts:31`, kde `pid` JE:
+   ```
+   return (pid: string, p) => ({ … values: [pid, from(p), to(p)] })
+   ```
+
+**Zadny report tedy nebezi bez tenant scopingu.** Cross-tenant unik z teto cesty
+nehrozi.
+
+🔎 **Muj vlastni sken vyrobil falesny poplach** a chytil jsem ho az kontrolou
+`helpers.ts`. Per-definice regex nevidi scoping schovany ve sdilene tovarne —
+kdybych to publikoval, hlasil bych deset neexistujicich uniku. Je to tataz
+trida jako §128/§152: **nastroj meri jen to, na co dosahne, a jeho nula ani
+jeho nalez neplati bez overeni druhou cestou.**

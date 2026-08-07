@@ -176,7 +176,7 @@ export const REPORTS_MARKETING: ReportDef[] = [
                    COUNT(DISTINCT wl.user_id)::int AS cekajicich,
                    COUNT(DISTINCT wl.user_id) FILTER (WHERE wl.status='notified')::int AS notifikovano,
                    COUNT(DISTINCT o.user_id)::int AS nakoupilo
-            FROM marketing.waiting_list wl
+            FROM orders.waiting_list wl
             JOIN catalog.events e ON e.id = wl.event_id
             LEFT JOIN orders.orders o ON o.event_id=e.id AND o.user_id=wl.user_id AND o.status='paid'
             WHERE e.promoter_id=$1
@@ -265,7 +265,7 @@ export const REPORTS_MARKETING: ReportDef[] = [
       sql: `SELECT ac.code AS kod,
                    COUNT(DISTINCT acu.id)::int AS pouzito,
                    COUNT(DISTINCT o.id) FILTER (WHERE o.status='paid')::int AS nakoupeno
-            FROM marketing.access_codes ac
+            FROM catalog.access_codes ac
             LEFT JOIN marketing.access_code_usages acu ON acu.code_id = ac.id
             LEFT JOIN orders.orders o ON o.id = acu.order_id
             JOIN catalog.events e ON e.id = ac.event_id
@@ -312,7 +312,7 @@ export const REPORTS_MARKETING: ReportDef[] = [
       sql: `SELECT b.name AS nazev, b.channel AS kanal,
                    b.recipient_count AS adresatu,
                    b.sent_at::date::text AS odeslano
-            FROM marketing.broadcasts b
+            FROM communications.broadcasts b
             WHERE b.promoter_id=$1
               AND b.sent_at::date BETWEEN $2 AND $3
             ORDER BY b.sent_at DESC LIMIT 200`,

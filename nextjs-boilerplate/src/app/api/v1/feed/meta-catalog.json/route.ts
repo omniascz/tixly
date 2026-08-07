@@ -73,7 +73,7 @@ export async function GET(req: NextRequest): Promise<Response> {
                   WHERE o.event_id = e.id AND o.status = 'paid'), 0
               ) AS remaining_capacity
          FROM catalog.events e
-         JOIN catalog.promoters p ON p.id = e.promoter_id
+         JOIN platform.promoters p ON p.id = e.promoter_id
          LEFT JOIN catalog.venues v ON v.id = e.venue_id
          LEFT JOIN catalog.ticket_types tt ON tt.event_id = e.id AND tt.is_active = true
         WHERE ${conditions.join(' AND ')}

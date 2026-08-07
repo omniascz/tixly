@@ -586,7 +586,7 @@ export const REPORTS_EXTRA_1: ReportDef[] = [
                    COUNT(DISTINCT o.user_id) FILTER (WHERE o.status='paid')::int AS nakoupilo,
                    ROUND(100.0*COUNT(DISTINCT o.user_id) FILTER (WHERE o.status='paid')
                      /NULLIF(COUNT(DISTINCT wl.user_id),0),1)::numeric AS konverze
-            FROM marketing.waiting_list wl
+            FROM orders.waiting_list wl
             JOIN catalog.events e ON e.id=wl.event_id
             LEFT JOIN orders.orders o ON o.event_id=e.id AND o.user_id=wl.user_id
             WHERE e.promoter_id=$1

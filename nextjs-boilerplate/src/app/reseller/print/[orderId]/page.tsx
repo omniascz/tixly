@@ -32,7 +32,7 @@ async function getOrderTickets(orderId: string): Promise<TicketRow[]> {
      JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
      JOIN catalog.events e ON e.id = tt.event_id
      JOIN catalog.venues v ON v.id = e.venue_id
-     JOIN auth.users u ON u.id = o.user_id
+     JOIN identity.users u ON u.id = o.user_id
      LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
      WHERE t.order_id = $1
      ORDER BY t.id`,

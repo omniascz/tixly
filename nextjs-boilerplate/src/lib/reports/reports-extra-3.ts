@@ -232,8 +232,8 @@ export const REPORTS_EXTRA_3: ReportDef[] = [
                    COUNT(DISTINCT le.user_id)::int AS prihlaseni,
                    COUNT(DISTINCT lw.user_id)::int AS vyherce,
                    COUNT(DISTINCT o.user_id) FILTER (WHERE o.status='paid')::int AS nakoupilo
-            FROM marketing.lottery_campaigns lc
-            LEFT JOIN marketing.lottery_entries le ON le.campaign_id=lc.id
+            FROM orders.lottery_campaigns lc
+            LEFT JOIN orders.lottery_entries le ON le.campaign_id=lc.id
             LEFT JOIN marketing.lottery_winners lw ON lw.campaign_id=lc.id
             LEFT JOIN catalog.events e ON e.id=lc.event_id
             LEFT JOIN orders.orders o ON o.event_id=e.id AND o.user_id=lw.user_id
@@ -281,7 +281,7 @@ export const REPORTS_EXTRA_3: ReportDef[] = [
                    COUNT(fm.id) FILTER (WHERE fm.status='delivered')::int AS doruceno,
                    ROUND(100.0*COUNT(fm.id) FILTER (WHERE fm.status='delivered')
                      /NULLIF(COUNT(fm.id),0),1)::numeric AS pct
-            FROM platform.forgemsg_outbox fm
+            FROM public.forgemsg_outbox fm
             WHERE fm.promoter_id=$1
               AND fm.sent_at::date BETWEEN $2 AND $3
             GROUP BY 1 ORDER BY 1 LIMIT 200`,
@@ -347,7 +347,7 @@ export const REPORTS_EXTRA_3: ReportDef[] = [
       sql: `SELECT DATE_TRUNC('month', r.created_at)::date::text AS mesic,
                    COUNT(r.id)::int AS refundu,
                    ROUND(AVG(EXTRACT(EPOCH FROM (r.processed_at - r.created_at))/3600))::int AS avg_hodiny
-            FROM orders.refunds r
+            FROM public.refunds r
             JOIN orders.orders o ON o.id=r.order_id
             JOIN catalog.events e ON e.id=o.event_id
             WHERE e.promoter_id=$1 AND r.status='processed'
@@ -366,7 +366,7 @@ export const REPORTS_EXTRA_3: ReportDef[] = [
     ],
     buildQuery: (pid, p) => ({
       sql: `SELECT al.created_at::date::text AS den, COUNT(al.id)::int AS pozadavku
-            FROM platform.audit_log al
+            FROM audit.audit_log al
             JOIN orders.orders o ON o.id=al.resource_id
             JOIN catalog.events e ON e.id=o.event_id
             WHERE e.promoter_id=$1 AND al.action='ticket.reprint'
@@ -388,7 +388,7 @@ export const REPORTS_EXTRA_3: ReportDef[] = [
       sql: `SELECT u.email AS staff_email,
                    COUNT(DISTINCT sc.id)::int AS scanu,
                    COUNT(DISTINCT pos.id)::int AS pos_transakci
-            FROM identity.promoter_members pm
+            FROM platform.promoter_members pm
             JOIN identity.users u ON u.id=pm.user_id
             LEFT JOIN public.scan_logs sc ON sc.scanned_by=u.id
               AND sc.scanned_at::date BETWEEN $2 AND $3

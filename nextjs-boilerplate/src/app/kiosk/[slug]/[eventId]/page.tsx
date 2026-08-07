@@ -23,7 +23,7 @@ async function getData(slug: string, eventId: string) {
     const evRes = await db().query<EventRow>(
       `SELECT e.id, e.title, e.currency, p.slug AS promoter_slug
          FROM catalog.events e
-         JOIN catalog.promoters p ON p.id = e.promoter_id
+         JOIN platform.promoters p ON p.id = e.promoter_id
         WHERE e.id = $1
           AND p.slug = $2
           AND e.status = 'published'

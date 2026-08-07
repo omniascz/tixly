@@ -147,7 +147,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
                    ROUND(COALESCE(SUM(ref.amount_halire),0)/100.0,2)::numeric AS refund_czk
             FROM catalog.event_reschedules er
             JOIN catalog.events e ON e.id=er.event_id
-            LEFT JOIN orders.refunds ref ON ref.event_id=e.id
+            LEFT JOIN public.refunds ref ON ref.event_id=e.id
               AND ref.created_at > er.created_at
             WHERE e.promoter_id=$1
               AND er.created_at::date BETWEEN $2 AND $3
@@ -247,7 +247,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
                    ROUND(100.0*COUNT(ac.id) FILTER (WHERE ac.used_at IS NOT NULL)
                      /NULLIF(COUNT(ac.id),0),1)::numeric AS vyuziti_pct
             FROM marketing.access_code_groups acg
-            JOIN marketing.access_codes ac ON ac.group_id=acg.id
+            JOIN catalog.access_codes ac ON ac.group_id=acg.id
             JOIN catalog.events e ON e.id=acg.event_id
             WHERE e.promoter_id=$1
               AND acg.created_at::date BETWEEN $2 AND $3
@@ -655,7 +655,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
     buildQuery: (pid) => ({
       sql: `SELECT COALESCE(ow.current_step,'nezahájeno') AS krok,
                    COUNT(p.id)::int AS promoteru
-            FROM identity.promoters p
+            FROM platform.promoters p
             LEFT JOIN platform.onboarding_wizards ow ON ow.promoter_id=p.id
             WHERE p.id != $1
             GROUP BY 1 ORDER BY 2 DESC LIMIT 20`,
@@ -673,7 +673,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
     buildQuery: () => ({
       sql: `SELECT COALESCE(p.kyc_status, 'neuvedeno') AS kyc_status,
                    COUNT(p.id)::int AS promoteru
-            FROM identity.promoters p
+            FROM platform.promoters p
             GROUP BY 1 ORDER BY 2 DESC`,
       values: [],
     }),
@@ -729,7 +729,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
       sql: `SELECT pr.name AS promoter,
                    COUNT(DISTINCT rp.id)::int AS resellerov,
                    ROUND(SUM(o.total_amount)/100.0,2)::numeric AS trzby_czk
-            FROM identity.promoters pr
+            FROM platform.promoters pr
             JOIN platform.reseller_partners rp ON rp.promoter_id=pr.id
             JOIN orders.orders o ON o.reseller_id=rp.id AND o.status='paid'
               AND o.paid_at::date BETWEEN $1 AND $2
@@ -769,7 +769,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
       sql: `SELECT e.title AS akce, pr.name AS promoter,
                    ROUND(SUM(o.total_amount)/100.0,2)::numeric AS trzby_czk
             FROM orders.orders o JOIN catalog.events e ON e.id=o.event_id
-            JOIN identity.promoters pr ON pr.id=e.promoter_id
+            JOIN platform.promoters pr ON pr.id=e.promoter_id
             WHERE o.status='paid' AND o.paid_at::date BETWEEN $1 AND $2
             GROUP BY e.id, e.title, pr.name ORDER BY trzby_czk DESC LIMIT 50`,
       values: [from(p), to(p)],
@@ -789,7 +789,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
                    COUNT(DISTINCT o.id)::int AS objednavky,
                    ROUND(100.0*AVG(o.platform_fee_halire::numeric/NULLIF(o.total_amount,0)),2)::numeric AS avg_fee_pct
             FROM orders.orders o JOIN catalog.events e ON e.id=o.event_id
-            JOIN identity.promoters pr ON pr.id=e.promoter_id
+            JOIN platform.promoters pr ON pr.id=e.promoter_id
             WHERE o.status='paid' AND o.paid_at::date BETWEEN $1 AND $2
             GROUP BY pr.id, pr.name HAVING COUNT(DISTINCT o.id) >= 10
             ORDER BY avg_fee_pct DESC LIMIT 100`,

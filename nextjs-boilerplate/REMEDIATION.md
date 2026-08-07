@@ -394,3 +394,17 @@ Bez rozhodnuti by se hadalo schema. NEOPRAVENO.
 Nejvetsi koncentrace v `src/lib/reports/*` (~18), a ten modul JE dosazitelny
 (`admin/reports/run` + stranka `admin/reports/inhouse`).
 Rozhodnout per tabulka: prefix / dostavet / odepsat report.
+
+## R-35 24 ze 198 reportu dnes spadne na 42P01 (§156)
+
+Modul `src/lib/reports/*` je dosazitelny (`admin/reports/run` + stranka
+`admin/reports/inhouse`). 24 definic saha na tabulku, ktera neexistuje.
+Scoping je v poradku — zadny report nebezi bez tenant filtru (21 je
+`scope: 'platform'` a routa je hlida, 10 deleguje na `helpers.ts`).
+Rozhodnout per report: dostavet tabulku, prepsat dotaz, nebo report odepsat.
+
+## R-36 Sken neexistujicich tabulek mel slepe misto: schema `public` (§155)
+
+`SCHEMAS` v `scan-missing-tables.mjs` neobsahoval `public`, takze
+`public.scan_logs`, `public.resale_listings`, `public.foyer_orders` a dalsich
+~12 jmen propadlo. Cislo 34 bylo PODHODNOCENE. Doplnit `public` a prescanovat.

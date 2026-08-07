@@ -34,7 +34,7 @@ async function getKioskData(slug: string) {
   return runWithServiceContext(async () => {
     const proRes = await db().query<PromoterRow>(
       `SELECT p.id, p.name, b.logo_url
-         FROM catalog.promoters p
+         FROM platform.promoters p
          LEFT JOIN platform.promoter_branding b ON b.promoter_id = p.id
         WHERE p.slug = $1`,
       [slug],

@@ -361,7 +361,7 @@ export const REPORTS_ZAKAZNICI: ReportDef[] = [
     buildQuery: (pid, p) => ({
       sql: `SELECT e.title AS akce, u.email,
                    wl.status AS stav, wl.created_at::date::text AS prihlaseni
-            FROM marketing.waiting_list wl
+            FROM orders.waiting_list wl
             JOIN catalog.events e ON e.id = wl.event_id
             JOIN identity.users u ON u.id = wl.user_id
             WHERE e.promoter_id = $1
