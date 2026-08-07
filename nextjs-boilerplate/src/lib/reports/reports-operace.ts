@@ -48,6 +48,8 @@ export const REPORTS_OPERACE: ReportDef[] = [
       values: [pid, from(p), to(p)],
     }),
   },
+  // VYRAZENO (R-35): chybi tabulka tickets.ticket_scans. Definice zustava — SQL bude platit,
+  // az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
   {
     id: 'ops_scan_duplicit', title: 'Duplicitní skenování', category: 'operace',
     description: 'Vstupenky skenované vícekrát — možný podvod.',

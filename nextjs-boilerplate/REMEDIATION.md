@@ -428,3 +428,33 @@ Dva klasifikatory (podobnost jmen, prekryv sloupcu) selhaly self-checkem —
 Co plati: z 26 chybejicich je **17 vyhradne v `src/lib/reports/*`**. Odepsani
 rozbitych reportu (R-35) by odstranilo dve tretiny problemu bez migrace.
 Zbylych 9 je v routach a chce rozhodnuti per pripad.
+
+## R-37 15 reportu ceka na tabulky (§160)
+
+Vyrazeno z registru pres `DISABLED_REPORTS` v `src/lib/reports/registry.ts`
+(mechanismus jako `ALLOWED_JOBS` u cronu). Definice v kodu ZUSTALY.
+| report | chybi |
+|---|---|
+| `zakaznici_verified_fan` | `marketing.verified_fan_registrations` |
+| `marketing_meta_pixel` | `analytics.pixel_events` |
+| `marketing_broadcast_results` | `marketing.crm_broadcasts` |
+| `marketing_access_codes_pouziti` | `marketing.access_code_groups` |
+| `marketing_rsvp_dle_akce` | `marketing.rsvp_registrations` |
+| `marketing_guestlist_bulk` | `public.guest_list_entries` |
+| `marketing_affiliate_partner` | `marketing.affiliate_commissions/_events/_partners` |
+| `ops_foyer_preorders` | `public.foyer_order_items` |
+| `ops_commemmorative` | `public.commemorative_tickets` |
+| `platform_onboarding_wizard` | `platform.onboarding_wizards` |
+| `platform_mrr` | `platform.subscription_payments` |
+| `udalosti_lottery` | `marketing.lottery_winners` |
+| `platform_error_rate` | `orders.payment_attempts` |
+| `marketing_access_codes` | `marketing.access_code_usages` |
+| `ops_scan_duplicit` | `tickets.ticket_scans` |
+
+## R-39 Tri moduly s chybejicimi tabulkami — NEVIM (§161)
+
+`lib/forgemsg/dispatch.ts` (`public.forgemsg_credentials`),
+`lib/pricing/resolve-price.ts` (`pricing.price_tiers`),
+`my/orders/[id]/upgrade-options` (`catalog.seat_maps`, `seat_map_entries`).
+`lib/ai/smart-send-time.ts` (`marketing.email_opens`,
+`campaign_recipient_events`) je podle vseho nedostaveny subsystem.

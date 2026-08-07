@@ -55,8 +55,16 @@ export async function POST(
     const gd = await db().query<{
       min_quantity: number; label: string; discount_pct: number | null;
     }>(
-      `SELECT min_quantity, label, discount_pct
-       FROM catalog.group_discounts WHERE event_id = $1 ORDER BY min_quantity`,
+      // R-38: `catalog.group_discounts` NEEXISTUJE (42P01) a `.catch` nize to
+      // tise polykal — sablona se ukladala bez skupinovych slev a nikdo se to
+      // nedozvedel. Skutecna tabulka je `catalog.group_discount_tiers`; ma
+      // vsechny tri pouzite sloupce (min_quantity, label, discount_pct), ale
+      // klicuje pres ticket_type_id, ne event_id — proto JOIN na ticket_types.
+      `SELECT gdt.min_quantity, gdt.label, gdt.discount_pct
+         FROM catalog.group_discount_tiers gdt
+         JOIN catalog.ticket_types tt ON tt.id = gdt.ticket_type_id
+        WHERE tt.event_id = $1
+        ORDER BY gdt.min_quantity`,
       [params.id],
     ).catch(() => ({ rows: [] as { min_quantity: number; label: string; discount_pct: number | null }[] }));
 

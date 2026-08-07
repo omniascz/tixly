@@ -217,6 +217,8 @@ export const REPORTS_EXTRA_3: ReportDef[] = [
       values: [pid, from(p), to(p)],
     }),
   },
+  // VYRAZENO (R-35): chybi tabulka marketing.lottery_winners. Definice zustava — SQL bude platit,
+  // az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
   {
     id: 'udalosti_lottery', title: 'Losování kampaně', category: 'udalosti',
     description: 'Přehled losovacích kampaní — přihlášení, výherci, konverze.',
@@ -466,6 +468,8 @@ export const REPORTS_EXTRA_3: ReportDef[] = [
     }),
   },
   // ── PLATFORMA ────────────────────────────────────────────────────────────────
+  // VYRAZENO (R-35): chybi tabulka orders.payment_attempts. Definice zustava — SQL bude platit,
+  // az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
   {
     id: 'platform_error_rate', title: 'Chybovost plateb (platform)', category: 'platform',
     description: 'Podíl neúspěšných platebních pokusů na celkové platformě.',

@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsPromoter } from '@/lib/admin-auth';
-import { REPORT_BY_ID } from '@/lib/reports/registry';
+import { REPORT_BY_ID, DISABLED_REPORTS } from '@/lib/reports/registry';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const UUID_RE = /^[0-9a-f-]{36}$/i;
@@ -32,6 +32,17 @@ export async function GET(req: NextRequest): Promise<Response> {
 
     const def = REPORT_BY_ID.get(reportId);
     if (!def) {
+      // Vyrazeny report (R-35) dostane VLASTNI odpoved, at je z ni poznat, ze
+      // to neni preklep v id, ale ceka se na tabulku. Bez toho by uzivatel
+      // videl bud 404 'neznamy report', nebo (driv) syrove 42P01 z databaze.
+      const chybi = DISABLED_REPORTS.get(reportId);
+      if (chybi) {
+        return NextResponse.json({
+          error: 'REPORT_UNAVAILABLE',
+          message: `Report je dočasně nedostupný — chybí tabulka ${chybi}.`,
+          missingTable: chybi,
+        }, { status: 503 });
+      }
       return NextResponse.json({ error: 'UNKNOWN_REPORT' }, { status: 404 });
     }
 

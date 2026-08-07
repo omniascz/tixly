@@ -3325,3 +3325,98 @@ Tam uz je potreba rozhodnout per pripad.
 | `orders.seat_assignments` | **subsystem nevznikl** | F6, cron vypnut (§126) |
 | `analytics.demand_forecasts` | **tichy no-op migrace 437** | §141 |
 | `catalog.seat_maps` | **NEVIM** — kandidati `venue_seating_charts`, `catalog.seats` | §153 |
+
+---
+
+## §160 15 rozbitych reportu VYRAZENO z registru; 198 -> 183 v UI
+
+### a) Jak je registr postaveny
+
+`src/lib/reports/registry.ts` sklada `ALL_REPORTS` z jedenacti modulu a z nej
+dela `REPORT_BY_ID`. UI (`admin/reports/inhouse`) i routa `run` cerpaji z tehoz
+mista — takze staci vyradit **jednou**.
+
+### b) Mechanismus: denylist, ne novy vypinac
+
+Pouzil jsem tentyz vzorec jako `ALLOWED_JOBS` v `app/api/cron/dispatch/route.ts`
+— **jeden seznam v kodu, ktery rozhoduje o dostupnosti**:
+
+```ts
+export const DISABLED_REPORTS = new Map<string, string>([
+  ['zakaznici_verified_fan', 'marketing.verified_fan_registrations'],
+  …15 polozek…
+]);
+
+export const ALL_REPORTS = ALL_REPORTS_INCLUDING_DISABLED.filter(
+  (r) => !DISABLED_REPORTS.has(r.id),
+);
+```
+
+Klic je id reportu, **hodnota je tabulka, ktera chybi** — seznam sam je tedy
+i zadanim, co dostavet.
+
+### c) Definice zustavaji + komentar u kazde
+
+Zadna definice se nemaze. U vsech patnacti je primo v kodu:
+
+```
+// VYRAZENO (R-35): chybi tabulka <jmeno>. Definice zustava — SQL bude platit,
+// az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
+```
+
+### d) Dolozeni
+
+```
+definic celkem       : 198
+vyrazeno             :  15
+v UI / spustitelnych : 183
+```
+
+`run` na vyrazeny report uz nevraci syrove 42P01 z databaze ani matouci
+„neznamy report", ale **vlastni odpoved**:
+
+```json
+503 { "error": "REPORT_UNAVAILABLE",
+      "message": "Report je dočasně nedostupný — chybí tabulka …",
+      "missingTable": "…" }
+```
+
+Rozliseni je zamerne: `404 UNKNOWN_REPORT` = preklep v id, `503` = ceka se
+na tabulku.
+
+## §161 Devet rout s chybejicimi tabulkami — rucne roztrideno
+
+| routa / modul | chybejici tabulka | verdikt |
+|---|---|---|
+| `internal/cron/seat-upgrade-notify` | `orders.seat_assignments` | **uz vyrazeno** (F6, §126) — nedosazitelne |
+| `admin/events/[id]/foyer-orders` | `orders.foyer_order_items` | 🟢 **falesny pozitiv** — je to jen v KOMENTARI (r. 44), kod uz cte `items jsonb` (§131) |
+| `admin/events/[id]/save-as-template` | `catalog.group_discounts` | ✅ **OPRAVENO** — nahrada existuje |
+| `my/orders/[id]/upgrade-options` | `catalog.seat_maps`, `catalog.seat_map_entries` | **NEVIM** (R-33) |
+| `lib/forgemsg/dispatch.ts` | `public.forgemsg_credentials` | **NEVIM** |
+| `lib/pricing/resolve-price.ts` | `pricing.price_tiers` | **NEVIM** |
+| `lib/ai/smart-send-time.ts` | `marketing.email_opens`, `marketing.campaign_recipient_events` | **subsystem nevznikl** — je to jedna z „mock/keyword" featur |
+
+### ✅ Opraveno: `catalog.group_discounts` -> `catalog.group_discount_tiers`
+
+Nahrada je **dolozitelna sloupci**, ne odhadem:
+
+```
+dotaz pouziva          : min_quantity, label, discount_pct
+group_discount_tiers ma: id, ticket_type_id, min_quantity, discount_pct,
+                         discount_flat_halire, label, created_at
+```
+
+Vsechny tri sedi. Rozdil je v klici: tabulka vaze na `ticket_type_id`, dotaz
+filtroval `event_id` — proto pribyl `JOIN catalog.ticket_types`.
+
+🔎 **A byl tam polykac:** `.catch(() => ({ rows: [] }))`. Sablona se tedy
+ukladala **bez skupinovych slev** a nikdo se to nedozvedel — 42P01 se spolklo.
+Tataz trida jako §127.
+
+**Sken: 26 -> 25.**
+
+### Falesny pozitiv skeneru
+
+`foyer-orders/route.ts` odkaz uz nema — skener chytil **slovo v komentari**.
+Vzory hledaji `FROM <schema>.<tabulka>`, coz v prozaickem komentari nastat muze.
+Cislo 25 je tedy **horni odhad**; komentarove zminky se od kodu nerozlisuji.

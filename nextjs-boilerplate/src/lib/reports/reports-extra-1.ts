@@ -546,6 +546,8 @@ export const REPORTS_EXTRA_1: ReportDef[] = [
       values: [pid, from(p), to(p)],
     }),
   },
+  // VYRAZENO (R-35): chybi tabulka marketing.verified_fan_registrations. Definice zustava — SQL bude platit,
+  // az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
   {
     id: 'zakaznici_verified_fan', title: 'Verified Fan přehled', category: 'zakaznici',
     description: 'Zákazníci schváleni přes Verified Fan program.',

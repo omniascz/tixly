@@ -252,6 +252,8 @@ export const REPORTS_MARKETING: ReportDef[] = [
       values: [pid, from(p), to(p)],
     }),
   },
+  // VYRAZENO (R-35): chybi tabulka marketing.access_code_usages. Definice zustava — SQL bude platit,
+  // az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
   {
     id: 'marketing_access_codes', title: 'Přístupové kódy — využití', category: 'marketing',
     description: 'Jak zákazníci využívají přístupové kódy.',

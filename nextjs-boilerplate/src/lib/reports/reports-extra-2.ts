@@ -183,6 +183,8 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
     }),
   },
   // ── MARKETING extra ─────────────────────────────────────────────────────────
+  // VYRAZENO (R-35): chybi tabulka analytics.pixel_events. Definice zustava — SQL bude platit,
+  // az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
   {
     id: 'marketing_meta_pixel', title: 'Meta Pixel events', category: 'marketing',
     description: 'Počet Purchase/InitiateCheckout events odeslaných přes CAPI.',
@@ -204,6 +206,8 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
       values: [pid, from(p), to(p)],
     }),
   },
+  // VYRAZENO (R-35): chybi tabulka marketing.crm_broadcasts. Definice zustava — SQL bude platit,
+  // az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
   {
     id: 'marketing_broadcast_results', title: 'Broadcast výsledky', category: 'marketing',
     description: 'E-mailové kampaně — opens, clicks a prodeje.',
@@ -230,6 +234,8 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
       values: [pid, from(p), to(p)],
     }),
   },
+  // VYRAZENO (R-35): chybi tabulka marketing.access_code_groups. Definice zustava — SQL bude platit,
+  // az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
   {
     id: 'marketing_access_codes_pouziti', title: 'Přístupové kódy — využití', category: 'marketing',
     description: 'Kolik přístupových kódů bylo uplatněno vs. vydáno.',
@@ -255,6 +261,8 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
       values: [pid, from(p), to(p)],
     }),
   },
+  // VYRAZENO (R-35): chybi tabulka marketing.rsvp_registrations. Definice zustava — SQL bude platit,
+  // az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
   {
     id: 'marketing_rsvp_dle_akce', title: 'RSVP per akce', category: 'marketing',
     description: 'Počet RSVP registrací a konverzí per akce.',
@@ -301,6 +309,8 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
       values: [pid, from(p), to(p)],
     }),
   },
+  // VYRAZENO (R-35): chybi tabulka public.guest_list_entries. Definice zustava — SQL bude platit,
+  // az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
   {
     id: 'marketing_guestlist_bulk', title: 'Guestlist — bulk pozvánky', category: 'marketing',
     description: 'Hromadné pozvánky přes guestlist a jejich využití.',
@@ -325,6 +335,8 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
       values: [pid, from(p), to(p)],
     }),
   },
+  // VYRAZENO (R-35): chybi tabulka marketing.affiliate_commissions + affiliate_events + affiliate_partners. Definice zustava — SQL bude platit,
+  // az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
   {
     id: 'marketing_affiliate_partner', title: 'Affiliate partneři', category: 'marketing',
     description: 'Výkonnost affiliate partnerů — prokliky, konverze, komise.',
@@ -402,6 +414,8 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
       values: [pid, from(p), to(p)],
     }),
   },
+  // VYRAZENO (R-35): chybi tabulka public.foyer_order_items. Definice zustava — SQL bude platit,
+  // az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
   {
     id: 'ops_foyer_preorders', title: 'Foyer předobjednávky', category: 'operace',
     description: 'Předobjednávky přes foyer (občerstvení) per akce.',
@@ -493,6 +507,8 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
       values: [pid, from(p), to(p)],
     }),
   },
+  // VYRAZENO (R-35): chybi tabulka public.commemorative_tickets. Definice zustava — SQL bude platit,
+  // az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
   {
     id: 'ops_commemmorative', title: 'Vzpomínkové vstupenky (NFT/PDF)', category: 'operace',
     description: 'Vydané vzpomínkové vstupenky post-event.',
@@ -644,6 +660,8 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
     }),
   },
   // ── PLATFORMA extra ─────────────────────────────────────────────────────────
+  // VYRAZENO (R-35): chybi tabulka platform.onboarding_wizards. Definice zustava — SQL bude platit,
+  // az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
   {
     id: 'platform_onboarding_wizard', title: 'Onboarding wizard stav', category: 'platform',
     description: 'Promotéři v průběhu onboarding wizardu — v jakém kroku stojí.',
@@ -737,6 +755,8 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
       values: [from(p), to(p)],
     }),
   },
+  // VYRAZENO (R-35): chybi tabulka platform.subscription_payments. Definice zustava — SQL bude platit,
+  // az tabulka vznikne. Viz DISABLED_REPORTS v registry.ts.
   {
     id: 'platform_mrr', title: 'MRR (Monthly Recurring Revenue)', category: 'platform',
     description: 'Měsíční opakující se výnosy z předplatného a abonmentek.',
