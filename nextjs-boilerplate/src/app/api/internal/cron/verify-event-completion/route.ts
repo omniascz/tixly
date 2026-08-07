@@ -135,13 +135,31 @@ export async function POST(req: NextRequest): Promise<Response> {
     if (newStatus === 'suspicious' || newStatus === 'no_show') {
       try {
         await db().query(
+          // D12: schema je pravda. Kod psal `payload` (sloupec NEEXISTUJE, 42703),
+          // vynechaval `message` (NOT NULL, 23502) a alert_type mimo CHECK (23514).
+          // Vsechny tri opraveny podle skutecneho schematu, migrace neni potreba.
+          //
+          // alert_type = 'low_velocity': z povoleneho vyctu
+          //   traffic_spike | refund_spike | fraud_cluster | queue_overflow
+          //   | sellout_imminent | low_velocity
+          // je to jedina hodnota, ktera popisuje ANOMALNE NIZKOU MIRU — a presne
+          // to se tu meri (podil naskenovanych listku). 'fraud_cluster' by tvrdil
+          // PODVOD, coz tahle kontrola neprokazuje: nula skenu muze byt zrusena
+          // akce nebo vypadek turniketu. Falesny podvodny signal v anomaly feedu
+          // je horsi nez presna, ale obecnejsi kategorie.
+          //
+          // event_id ma VLASTNI SLOUPEC — driv se schovaval jen v JSON.
           `INSERT INTO audit.anomaly_alerts
-             (promoter_id, alert_type, severity, payload)
-           VALUES ($1, $2, $3, $4::jsonb)`,
+             (promoter_id, event_id, alert_type, severity, message, metadata)
+           VALUES ($1, $2, $3, $4, $5, $6::jsonb)`,
           [
             ev.promoter_id,
-            'event_completion_anomaly',
+            ev.event_id,
+            'low_velocity',
             newStatus === 'no_show' ? 'critical' : 'warning',
+            newStatus === 'no_show'
+              ? `Akce "${ev.title}" skoncila bez jedineho naskenovaneho listku (${ev.total_tickets} prodanych).`
+              : `Akce "${ev.title}" ma podezrele nizky podil skenu: ${scanRate} % z ${ev.total_tickets} listku.`,
             JSON.stringify({
               event_id: ev.event_id,
               event_title: ev.title,

@@ -2730,3 +2730,87 @@ Tři vrstvy, každá schovávala tu další:
 
 Kdyby se opravila jen kterákoli jedna, výplaty by dál nefungovaly a vypadalo by
 to jako hotové.
+
+---
+
+## §149 D12: `anomaly_alerts` — tri poruseni najednou, migrace NENI potreba
+
+### a) Skutecne schema
+
+```
+alert_type  NOT NULL  CHECK: traffic_spike | refund_spike | fraud_cluster
+                             | queue_overflow | sellout_imminent | low_velocity
+severity    NOT NULL  CHECK: info | warning | critical
+message     NOT NULL            <- kod ho nevyplnoval        (23502)
+metadata    jsonb NOT NULL      <- kod psal `payload`         (42703)
+event_id    vlastni sloupec     <- kod ho schovaval do JSON
+alert_type='event_completion_anomaly' mimo vycet             (23514)
+```
+
+**Tri nezavisle vady na jednom INSERTu.**
+
+### b) Proc `low_velocity`, a ne prvni z vyctu
+
+Meri se **podil naskenovanych listku** — anomalne nizka mira. Z sesti hodnot je
+`low_velocity` jedina, ktera nizkou miru popisuje.
+
+`fraud_cluster` by byl vyznamove silnejsi, ale **tvrdil by podvod**, ktery tahle
+kontrola neprokazuje: nula skenu muze byt zrusena akce nebo vypadek turniketu.
+**Falesny podvodny signal v anomaly feedu je horsi nez presna, ale obecnejsi
+kategorie.**
+
+### c) Migrace neni potreba
+
+Zamcene „schema je pravda" drzi: vsechny tri vady jsou v kodu. Drivejsi odhad
+se potvrdil.
+
+### d) GREEN primym behem
+
+```
+[D12] 200 {"ok":true,"processed":0,"failed":0,"errors":[],"checked":1,"noShow":1}
+   alert = {"alert_type":"low_velocity","severity":"critical",
+            "message":"Akce \"D12 akce\" skoncila bez jedineho naskenovaneho listku (5 prodanych).",
+            "event_id":"7a03cac5-...","rate":"0"}
+```
+
+`ok:true`, `failed:0`, radek vznikl, `message` vyplnena, `event_id` ve svem
+sloupci, `metadata.scan_rate_pct = 0`.
+
+> Seed me pritom stal dva pokusy: `tickets.tickets` **nema `event_id`** (42703)
+> a `totp_secret_*` je `bytea`, kam nesel retezcovy literal (08P01). Vazba listku
+> na akci vede pres `order_id`/`ticket_type_id`.
+
+### e) PEEL: ctvrta vrstva neni
+
+`audit.anomaly_alerts` ma `svc_audit_anomaly_alerts` (`FOR ALL`,
+`app_is_service()`) — servisni kontext cronu projde.
+
+## §150 D5: zapis platform admina presmerovan do `audit.audit_log`
+
+### a) Kde to bylo — prosel jsem VSECH PET zapisovatelu
+
+```
+admin/events/route.ts                'auto_keyword' | 'auto_ai'   OK
+admin/events/[id]/route.ts           'auto_ai'                    OK
+platform/moderation/.../approve      'human'                      OK
+platform/moderation/.../reject       'human'                      OK
+platform/reports/[id]/route.ts       'platform_admin'             VADA
+```
+
+Jediny nesoulad je v **DSA takedown**. Kdybych se spolehl na prvni nalez,
+opravoval bych `approve`, kde je vsechno v poradku.
+
+### b) Oprava
+
+Zapis presmerovan do `audit.audit_log` vzorcem z D4: `action='UPDATE'`
+z povoleneho vyctu, `actor_type='platform_admin'` (v `audit_log` **legitimni**
+hodnota, overeno v `audit_log_actor_type_check`), detail v `new_values`.
+Vycet `event_moderation_log` se **nerozsiruje** — tabulka je pro strojovou
+moderaci a lidska akce do ni nepatri.
+
+### c) RED -> GREEN
+
+```
+RED   event_moderation_log platform_admin: 23514 violates check constraint
+GREEN audit_log UPDATE/platform_admin:     PROSLO rowCount=1
+```

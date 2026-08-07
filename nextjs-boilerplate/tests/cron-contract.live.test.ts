@@ -146,4 +146,35 @@ d('kontrakt cronu (C2)', () => {
     expect(out.body.ok).toBe(true);
     expect(st.rows[0]?.released).toBe(true);
   }, 180_000);
+
+  it('D12 verify-event-completion: zapise anomaly_alert (drive 42703/23502/23514)', async () => {
+    const { randomUUID: uid } = await import('crypto');
+    const U = uid(), P = uid(), V = uid(), E = uid(), TT = uid(), O = uid();
+    const q = (sql: string, p: unknown[] = []) => clone.pool.query(sql, p);
+    await q("INSERT INTO identity.users (id,email,name,gdpr_consent_at) VALUES ($1,$2,'U',now())", [U, `d12_${U.slice(0,8)}@t.cz`]);
+    await q("INSERT INTO platform.promoters (id,name,email) VALUES ($1,'P',$2)", [P, `d12p_${P.slice(0,8)}@t.cz`]);
+    await q("INSERT INTO catalog.venues (id,name,city,country,capacity) VALUES ($1,'V','Praha','CZ',100)", [V]);
+    // akce skoncila vcera, listky prodane, nic naskenovaneho -> no_show
+    await q(`INSERT INTO catalog.events (id,promoter_id,organizer_id,venue_id,title,date_start,date_end,slug,status)
+             VALUES ($1,$2,$3,$4,'D12 akce',now()-interval '2 day',now()-interval '1 day',$5,'published')`,
+      [E, P, U, V, `d12-${E.slice(0,8)}`]);
+    await q(`INSERT INTO catalog.ticket_types (id,event_id,name,kind,base_price,total_qty,remaining_qty,visibility)
+             VALUES ($1,$2,'GA','standing',50000,10,5,'public')`, [TT, E]);
+    await q(`INSERT INTO orders.orders (id,user_id,event_id,status,total_amount,currency,expires_at)
+             VALUES ($1,$2,$3,'paid',50000,'CZK',now()+interval '1 day')`, [O, U, E]);
+    for (let i = 0; i < 5; i++) {
+      await q(`INSERT INTO tickets.tickets (order_id,ticket_type_id,owner_id,original_owner_id,
+                 totp_secret_encrypted,totp_secret_iv,original_price,status)
+               VALUES ($1,$2,$3,$3,$4,$5,50000,'valid')`,
+        [O, TT, U, Buffer.from('00', 'hex'), Buffer.from('00', 'hex')])
+        .catch((e) => { if (i === 0) console.log('ticket seed:', e.code, e.message.slice(0, 60)); });
+    }
+    const out = await call('@/app/api/internal/cron/verify-event-completion/route',
+      '/api/internal/cron/verify-event-completion');
+    const al = await q("SELECT alert_type, severity, message, event_id, metadata->>'scan_rate_pct' AS rate FROM audit.anomaly_alerts ORDER BY created_at DESC LIMIT 1");
+    console.log('[D12]', out.status, JSON.stringify(out.body).slice(0, 150));
+    console.log('   alert =', JSON.stringify(al.rows[0]));
+    expect(out.body.ok).toBe(true);
+    expect(al.rows.length).toBe(1);
+  }, 180_000);
 });

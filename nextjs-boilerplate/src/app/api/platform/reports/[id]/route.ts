@@ -81,11 +81,28 @@ export async function PATCH(
         `UPDATE catalog.events SET status = 'rejected', updated_at = NOW() WHERE id = $1`,
         [r.rows[0].event_id],
       );
+      // D5: driv se tenhle zaznam psal do audit.event_moderation_log s
+      // actor_type='platform_admin'. Ten CHECK povoluje jen
+      // ARRAY['auto_keyword','auto_ai','human'] — tabulka je designovana pro
+      // STROJOVOU moderaci. Akce lidskeho platform admina patri do
+      // audit.audit_log, a vycet se NEROZSIRUJE.
+      // Vzorec z D4: `action` z povoleneho vyctu, detail v `new_values`;
+      // actor_type='platform_admin' je v audit_log legitimni hodnota.
       await client.query(
-        `INSERT INTO audit.event_moderation_log
-           (event_id, actor_user_id, actor_type, decision, reason)
-         VALUES ($1, $2, 'platform_admin', 'rejected', $3)`,
-        [r.rows[0].event_id, admin.userId, `DSA report ${params.id}: ${input.actionTaken ?? 'content removed'}`],
+        `INSERT INTO audit.audit_log
+           (schema_name, table_name, record_id, action, actor_type, actor_id, new_values)
+         VALUES ('catalog', 'events', $1, 'UPDATE', 'platform_admin', $2, $3::jsonb)`,
+        [
+          r.rows[0].event_id,
+          admin.userId,
+          JSON.stringify({
+            operation: 'dsa_report_takedown',
+            decision: 'rejected',
+            status: 'rejected',
+            dsa_report_id: params.id,
+            action_taken: input.actionTaken ?? 'content removed',
+          }),
+        ],
       );
     }
 
