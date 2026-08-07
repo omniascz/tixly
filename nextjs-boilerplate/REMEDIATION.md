@@ -327,3 +327,14 @@ neudela nic a kod pak bezi proti cizimu schematu.
 na `catalog.events`).
 Sken NEUMI odlisit tichy no-op od pozdejsiho prejmenovani — rozhodnout se musi
 kus po kuse. Reprodukce: viz §141.
+
+## R-30 🔴 8 tabulek má policy jen `FOR SELECT` — zápis tiše neprojde (§144)
+
+`compliance.e_signatures`, `identity.oauth_accounts`, `payments.wero_payments`,
+`payments.wero_webhooks`, `platform.event_settlements`, `platform.payout_events`,
+`platform.payout_settings`, `platform.payouts`.
+**5 z nich má v kódu zapisovatele**, `platform.payouts` čtyři — peníze.
+Mechanismus prokázán na `rolling_reserves` (D4: `rowCount 0` bez chyby),
+u těchto 5 **NEZMĚŘENO**.
+Rozhodnout per tabulka: kdo smí zapisovat — jen servisní cesta, nebo i platform
+admin? U peněžních tabulek je to produktová otázka, ne technická.

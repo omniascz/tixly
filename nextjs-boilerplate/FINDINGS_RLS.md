@@ -2456,3 +2456,83 @@ se statusem 200, uspesna vetev ma `processed/failed/errors` take.
 pozadu a gate by pak hlasil drift na produkci. Snapshot zustava na 624 policies
 a **musi se pregenerovat na klonu VCETNE 466**, nez se 466 nasadi. Zapsano
 jako podminka v deploy-order.
+
+---
+
+## §143 🔧 §142 bylo ŠPATNĚ: `rolling_reserves` policy MĚLA — jen `FOR SELECT`
+
+### a) Tabulek s RLS a nula policies: **0**
+
+Změřeno na klonu, dvakrát:
+
+```
+A) samotny baseline                : 0
+B) po migracich 450-465 (bez 466)  : 0
+```
+
+**§91 mělo pravdu.** Moje tvrzení v §142 („`platform.rolling_reserves` má RLS
+zapnutou a nula policies") bylo **nesprávné**.
+
+### Proč jsem se spletl
+
+V D4 jsem policy vypisoval takhle:
+
+```js
+r.rows.forEach(x => console.log('  ' + x.policyname + ': ' + x.qual…));
+…
+| grep -E "policy|RLS"
+```
+
+Vypsaný řádek obsahuje **jméno policy**, ne slovo „policy" — takže mi ho vlastní
+`grep` zahodil a já z prázdného výstupu usoudil, že policy neexistuje.
+**Filtr výstupu si vymyslel nález.** Je to táž třída jako §128 (slepý skener),
+jen na druhém konci: tam nástroj nenašel to, co tam bylo; tady jsem si výsledek
+odřízl při zobrazení.
+
+### Skutečný stav
+
+```
+platform_rolling_reserves_promoter  cmd=SELECT  (app_is_service() OR promoter_id = app_current_promoter_id())
+p_rolling_reserves_scope            cmd=ALL     ← přidala migrace 466
+```
+
+Existovala **jediná policy, a jen `FOR SELECT`**. Routa dělá `UPDATE`, pro který
+tedy nebyla **žádná** použitelná policy → RLS odfiltrovala všechny řádky
+a `UPDATE` matchoval 0. Migrace 466 je pořád správná a měření D4
+(`releasedCount 0 → 1`) platí — mění se **diagnóza**, ne oprava.
+
+## §144 🔴 Nová podtřída: RLS tabulky, kde jsou VŠECHNY policy jen `FOR SELECT`
+
+To je ta správná generalizace. Katalogový sken (po 466):
+
+```
+TABULEK, KDE VSECHNY POLICY JSOU JEN FOR SELECT: 8
+  compliance.e_signatures        zapisujicich souboru = 1
+  identity.oauth_accounts        zapisujicich souboru = 1
+  payments.wero_payments         zapisujicich souboru = 0
+  payments.wero_webhooks         zapisujicich souboru = 0
+  platform.event_settlements     zapisujicich souboru = 0
+  platform.payout_events         zapisujicich souboru = 0
+  platform.payout_settings       zapisujicich souboru = 1
+  platform.payouts               zapisujicich souboru = 4   ← peníze
+```
+
+**5 z 8 má v kódu zapisovatele**, a `platform.payouts` čtyři. Zápis do nich
+podle mechanismu z §143 tiše neprojde — `rowCount 0` bez chyby, přesně jako
+u `rolling_reserves`.
+
+⚠️ **NEZMĚŘENO.** Pokusil jsem se to doložit na `platform.payouts`, ale seed
+spadl na `42703 column "amount_halire" does not exist`, takže výsledky
+`SELECT vidi=0 / UPDATE rowCount=0` byly nad **prázdnou tabulkou** a nedokazují
+nic. Nevydávám je za měření. Mechanismus je prokázaný **jen** na
+`rolling_reserves` (D4); zbylých 5 sdílí signaturu, ale ověřeno to není.
+
+**NEOPRAVOVÁNO** — u peněžních tabulek (`payouts`, `payout_settings`,
+`event_settlements`) je otázka, kdo smí zapisovat, produktová: jen servisní
+cesta, nebo i platform admin? Zapsáno jako R-30.
+
+### Body zadání, na které nedošlo
+
+- **1c** (proč §91 hlásilo 0): zodpovězeno — hlásilo správně, chyba byla moje.
+- **1d/1e**: neopravováno, snapshot tedy nepřegenerován.
+- **2 (R-29, 32 kandidátů)** a **3 (D12)**: nezpracováno, došel kontext.
