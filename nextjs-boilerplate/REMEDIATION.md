@@ -380,3 +380,17 @@ Cislo 15 je DOLNI ODHAD — sken neodhali indexy s jinym poradim sloupcu.
 Tataz trida jako `foyer_order_items` (§130) a `seat_assignments` (§126).
 Rozhodnout: zalozit tabulku, nebo dotaz prepsat na `venue_seating_charts`?
 Bez rozhodnuti by se hadalo schema. NEOPRAVENO.
+
+## R-34 34 odkazu na neexistujici tabulky; 22 skutecne chybi (§154)
+
+`node scripts/scan-missing-tables.mjs --root=src` (self-check prosel na
+`seat_maps` i `foyer_order_items`).
+**12x spatny prefix** — oprava jednoslovna, bez migrace (`identity.promoters` ->
+`platform.promoters`, `platform.audit_log` -> `audit.audit_log`, `auth.users` ->
+`identity.users` = zbytek po Supabase, ...).
+**22x tabulka neexistuje nikde** — `seat_assignments`, `seat_maps`,
+`seat_map_entries`, `foyer_order_items`, `price_tiers`, `ticket_scans`,
+`payment_attempts`, `affiliate_*`, ...
+Nejvetsi koncentrace v `src/lib/reports/*` (~18), a ten modul JE dosazitelny
+(`admin/reports/run` + stranka `admin/reports/inhouse`).
+Rozhodnout per tabulka: prefix / dostavet / odepsat report.

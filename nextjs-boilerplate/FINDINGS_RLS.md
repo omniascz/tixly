@@ -3006,3 +3006,83 @@ prace nez retez objednavky.
 `postal` ×2 potrebuji jeden radek navic, `platform/artists` a crony maji vlastni
 autentizacni pozadavky. **Jedna session by mela stacit** — pokud se pod nimi
 neobjevi dalsi chybejici tabulky jako `seat_maps`.
+
+---
+
+## §154 VERDIKT: 34 odkazu na neexistujici tabulky, z toho 22 skutecne chybi
+
+### c) SELF-CHECK PROSEL (podminka publikace, §54/§128)
+
+Skener musel najit oba ZNAME pripady — `catalog.seat_maps` (v aktualnim kodu)
+i `orders.foyer_order_items` (na commitu PRED opravou §130):
+
+```
+[selfcheck] baseline zna 590 tabulek
+  NASEL  catalog.seat_maps
+  NASEL  orders.foyer_order_items
+[selfcheck] PROSEL — skener zname pripady najde
+```
+
+### e) VERDIKT CISLEM
+
+```
+baseline zna tabulek        : 590
+odkazu na NEEXISTUJICI      :  34
+  z toho SPATNE SCHEMA      :  12   (tabulka existuje, jen pod jinym schematem)
+  SKUTECNE CHYBEJICI        :  22
+```
+
+### Dve ruzne tridy, ktere se davaji dohromady
+
+🟡 **12x spatny prefix** — tabulka existuje, dotaz mineva schema:
+
+```
+identity.promoters          -> platform.promoters
+catalog.promoters           -> platform.promoters
+platform.audit_log          -> audit.audit_log
+identity.promoter_members   -> platform.promoter_members
+marketing.lottery_campaigns -> orders.lottery_campaigns
+marketing.broadcasts        -> communications.broadcasts
+auth.users                  -> identity.users
+marketing.waiting_list      -> orders.waiting_list
+```
+
+Oprava je **jednoslovna** a nepotrebuje migraci. `auth.users` je navic
+podezrele — vypada na zbytek po Supabase.
+
+🔴 **22x tabulka neexistuje nikde**, mj. `orders.seat_assignments`,
+`catalog.seat_maps`, `catalog.seat_map_entries`, `orders.foyer_order_items`,
+`pricing.price_tiers`, `tickets.ticket_scans`, `orders.payment_attempts`,
+`platform.subscription_payments`, `marketing.affiliate_*` (3x),
+`marketing.lottery_winners`, `analytics.pixel_events`.
+
+### b) Dosazitelnost
+
+Nejvetsi koncentrace je v `src/lib/reports/*` (~18 z 34). Ten modul **JE
+dosazitelny** — importuje ho `app/api/admin/reports/run/route.ts` a stranka
+`app/admin/reports/inhouse/page.tsx`. Nejsou to mrtve soubory; kazdy report,
+ktery se takove tabulky dotkne, spadne na 42P01.
+
+Zbytek je v routach primo: `my/orders/[id]/upgrade` + `upgrade-options`
+(`seat_assignments`, `seat_maps`, `seat_map_entries`), `internal/cron/seat-upgrade-notify`
+(uz VYPNUTY, F6), `admin/events/[id]/save-as-template`, feedy pro Meta/TikTok
+katalog, kiosk stranka, `reseller/print`.
+
+### d) Co cislo NEPOKRYVA
+
+```
+dynamicky skladanych dotazu (sken je NEVIDI): 1
+```
+
+Jen jeden dotaz sklada jmeno tabulky interpolaci — cislo 34 tedy pokryva
+prakticky vsechno. Sken navic nevidi tabulky psane BEZ schematu (spolehajici
+na `search_path`) a odkazy uvnitr SQL funkci v databazi.
+
+### Proc se to nachazelo po jedne
+
+Ctyri predchozi nalezy teto tridy prisly **nahodou pri jine praci**
+(§126, §130, §141, §153). Duvod: RLS a chybejici kontext padaly DRIV, takze
+se dotaz k tabulce vubec nedostal. Az kdyz se opravil kontext, vyskocilo 42P01.
+**Kazda vrstva schovavala tu dalsi** — tentyz vzorec jako u payouts.
+
+**NEOPRAVOVANO** dle zadani. R-34.
