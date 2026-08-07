@@ -2536,3 +2536,52 @@ cesta, nebo i platform admin? Zapsáno jako R-30.
 - **1c** (proč §91 hlásilo 0): zodpovězeno — hlásilo správně, chyba byla moje.
 - **1d/1e**: neopravováno, snapshot tedy nepřegenerován.
 - **2 (R-29, 32 kandidátů)** a **3 (D12)**: nezpracováno, došel kontext.
+
+---
+
+## §145 ✅ VERDIKT R-30: **4 ze 4** změřených je tiše rozbitých
+
+### 🔧 Nejdřív oprava vlastního počtu
+
+§144 tvrdilo „5 z 8 má zapisovatele". **Jsou 4**: `platform.payouts` (4 soubory),
+`platform.payout_settings`, `compliance.e_signatures`, `identity.oauth_accounts`.
+Chybná aritmetika, ne nový nález.
+
+### e) `amount_halire` — chyba MÉHO TESTU, ne kódu
+
+Grep ukazuje, že `amount_halire` patří jiným tabulkám
+(`lineups.artists.flat_amount_halire`, splátky u advance-payout).
+V `platform.payouts` je sloupec **`net_payout`**. Minulé `42703` jsem si
+způsobil sám tím, že jsem jméno odhadl místo přečtení. Kód je v pořádku.
+
+### b/c) Změřeno na klonu, skutečná schémata, servisní kontext
+
+```
+platform.payouts             servisni UPDATE: rowCount=0  <- TICHY DENY
+platform.payout_settings     servisni UPDATE: rowCount=0  <- TICHY DENY
+compliance.e_signatures      servisni UPDATE: rowCount=0  <- TICHY DENY
+identity.oauth_accounts      servisni UPDATE: rowCount=0  <- TICHY DENY
+```
+
+**Žádná chyba, žádný SQLSTATE — jen nula změněných řádků.** Mechanismus ze §143
+tedy neplatí jen pro `rolling_reserves`; platí pro celou podtřídu.
+
+### d) VERDIKT ČÍSLEM: **4 ze 4**
+
+## §146 Podklad k rozhodnutí — kdo dnes zapisuje a co doporučuji
+
+| tabulka | kdo zapisuje | dnešní kontext | doporučení |
+|---|---|---|---|
+| `platform.payouts` | `cron/event-payout-release`, `cron/payouts-auto-settle`, `payments/wise/webhook`, `lib/payouts/executor.ts` | 3× `runWithServiceContext`, executor **bez kontextu** | **servisní** (`app_is_service()`) + ponechat čtecí promotérskou větev. Žádná z těch cest není uživatelská — jsou to crony a webhook banky. Platform-admin větev **nepřidávat**: nikdo z adminu do `payouts` přímo nepíše, přidávala by práva bez konzumenta. |
+| `platform.payout_settings` | `admin/settings` | `runAsActivePromoterNonStaff` | **promotér vlastní** (`promoter_id = app_current_promoter_id()`) + servisní. Je to nastavení promotéra, mění si ho sám — vzorec z 461. |
+| `compliance.e_signatures` | `admin/onboarding/step/[step]` | `runAsActivePromoter` | **promotér vlastní** + servisní. ⚠️ Ale podpis je **důkaz** — zápis ano, `UPDATE`/`DELETE` **ne**. Doporučuji `FOR INSERT` promotérovi a `FOR ALL` jen servisní. Přepsatelný podpis je horší než nezapisovatelný. |
+| `identity.oauth_accounts` | `lib/oauth/provider.ts` | `runWithServiceContext` | **servisní** + čtecí větev vlastníka (`user_id = app_current_user_id()`). Uživatel má vidět svá propojení, ale měnit je smí jen přihlašovací tok. |
+
+### ⚠️ Vedlejší nález: `lib/payouts/executor.ts` běží BEZ kontextu
+
+Ostatní tři zapisovatelé do `payouts` jsou obalení `runWithServiceContext`,
+executor **není**. I po doplnění servisní větve by mu zápis neprošel —
+potřebuje obalit, jinak bude oprava policy zase vypadat jako hotová a nebude.
+**Neopraveno** — patří k rozhodnutí o `payouts`.
+
+**Migrace nenapsána** dle zadání. Body 3 (D12) nedošel kontext.

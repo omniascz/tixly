@@ -328,7 +328,17 @@ na `catalog.events`).
 Sken NEUMI odlisit tichy no-op od pozdejsiho prejmenovani — rozhodnout se musi
 kus po kuse. Reprodukce: viz §141.
 
-## R-30 🔴 8 tabulek má policy jen `FOR SELECT` — zápis tiše neprojde (§144)
+## R-30 🔴 ZMĚŘENO: 4 ze 4 zapisovaných tabulek jsou tiše rozbité (§145–146)
+
+`platform.payouts`, `platform.payout_settings`, `compliance.e_signatures`,
+`identity.oauth_accounts` — servisní `UPDATE` vrací `rowCount=0` **bez chyby**.
+Doporučení per tabulka viz §146; `e_signatures` má být jen `FOR INSERT`
+(podpis je důkaz, nesmí jít přepsat).
+⚠️ `lib/payouts/executor.ts` navíc běží **bez kontextu** — i po opravě policy
+by mu zápis neprošel.
+**Čeká na rozhodnutí, migrace nenapsána.**
+
+### Původní zápis (§144)
 
 `compliance.e_signatures`, `identity.oauth_accounts`, `payments.wero_payments`,
 `payments.wero_webhooks`, `platform.event_settlements`, `platform.payout_events`,
