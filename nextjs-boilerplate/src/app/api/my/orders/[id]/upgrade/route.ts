@@ -72,10 +72,13 @@ export async function POST(
       // If new seat specified, verify it's available
       if (body.newSeatId) {
         const seatCheck = await client.query(
-          `SELECT 1 FROM orders.seat_assignments sa
-            JOIN tickets.tickets t2 ON t2.id = sa.ticket_id
+          // R-41: `orders.seat_assignments` NEEXISTUJE a nikdy nemusela —
+          // prirazeni sedadla je ulozene PRIMO na listku (`tickets.tickets.seat_id`).
+          // Overeno: v celem schematu nema ZADNA tabulka `ticket_id` i `seat_id`
+          // zaroven, zatimco `tickets.tickets` ma `seat_id` i `event_seat_id`.
+          `SELECT 1 FROM tickets.tickets t2
             JOIN orders.orders o2 ON o2.id = t2.order_id
-           WHERE sa.seat_id=$1 AND o2.event_id=$2 AND o2.status IN ('pending','paid')`,
+           WHERE t2.seat_id=$1 AND o2.event_id=$2 AND o2.status IN ('pending','paid')`,
           [body.newSeatId, ticket.event_id],
         );
         if ((seatCheck.rowCount ?? 0) > 0) {
@@ -90,7 +93,7 @@ export async function POST(
            (original_order_id, original_ticket_id, original_seat_id,
             new_seat_id, new_ticket_type_id, upgrade_fee_halire, status)
          VALUES ($1,$2,
-           (SELECT seat_id FROM orders.seat_assignments WHERE ticket_id=$2 LIMIT 1),
+           (SELECT seat_id FROM tickets.tickets WHERE id=$2),
            $3,$4,$5,'pending')
          RETURNING id`,
         [params.id, body.ticketId, body.newSeatId ?? null, body.newTicketTypeId, upgradeFee],
@@ -101,7 +104,7 @@ export async function POST(
         // Free upgrade — apply immediately
         if (body.newSeatId) {
           await client.query(
-            `UPDATE orders.seat_assignments SET seat_id=$1 WHERE ticket_id=$2`,
+            `UPDATE tickets.tickets SET seat_id=$1 WHERE id=$2`,
             [body.newSeatId, body.ticketId],
           );
         }

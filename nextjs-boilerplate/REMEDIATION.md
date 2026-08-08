@@ -474,3 +474,19 @@ Sloupec `price_halire` -> `base_price` opraven, izolace dolozena (cizi 404),
 ale routa pak pada na chybejici tabulce `orders.seat_assignments` — tataz,
 kvuli ktere je vypnuty `cron/seat-upgrade-notify` (F6). Ceka na rozhodnuti
 spolu s R-34/R-39.
+
+## R-41 VYRESENO (§166) — `seat_assignments` nahrazena `tickets.tickets.seat_id`
+
+## R-42 `cron/seat-upgrade-notify` uz nemusi byt vypnuty (§166)
+
+F6 ho vypnul kvuli `orders.seat_assignments`. Ta se ukazala jako navrhova
+odbocka — prirazeni sedadla je na `tickets.tickets.seat_id`. Staci tam tataz
+zamena jako v `my/orders/[id]/upgrade` a job muze zpet do `ALLOWED_JOBS`.
+POZOR: routa ma i druhou vadu (§127, chybejici parametry) — ta uz opravena je.
+
+## R-43 report `udalosti_resell` NENI vyrazeny, ale spadne (§165)
+
+`orders.resale_listings.price_halire` neexistuje (tabulka ma
+`listing_price_halire`). Report proti nemu bezi a v `DISABLED_REPORTS` NENI,
+protoze sken hleda chybejici TABULKY, ne sloupce. Bud opravit sloupec (R-37),
+nebo report vyradit.

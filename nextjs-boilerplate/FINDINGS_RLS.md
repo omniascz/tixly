@@ -3594,3 +3594,100 @@ Izolace je dolozena a oprava sloupce plati.
 | `my/orders/[id]/upgrade` | 🟡 izolace ✅, pozitivni cesta blokovana `seat_assignments` |
 
 **6 z 8 dolozeno zelene**, 1 vypnuty, 1 blokovany chybejici tabulkou.
+
+---
+
+## §165 Kolize jmen napric schematy: 20 jmen, 7 pouzitych v obou — ale vadne NEJSOU
+
+### a) Z katalogu
+
+```
+jmen ve VICE schematech : 20
+z toho pouzivanych v kodu: 17
+z toho v OBOU schematech:  7
+```
+
+Sedm, kde kod cte obe varianty:
+
+```
+campaigns              brands(8) + marketing(3)
+dynamic_pricing_rules  catalog(4) + pricing(3)
+lottery_entries        catalog(6) + orders(7)
+partners               charity(2) + partner(6)
+resale_listings        orders(2) + resale(14)
+ticket_transfers       orders(2) + tickets(1)
+```
+
+### b/c) Overeno SLOUPCI, ne jmeny — kolize sama vadou neni
+
+Pro kazdou dvojici jsem overil, jestli sloupce, ktere dotaz pres alias pouziva,
+v te tabulce existuji:
+
+```
+brands.campaigns               ok       marketing.campaigns            ok
+catalog.dynamic_pricing_rules  ok       catalog.lottery_entries        ok
+charity.partners               ok       partner.partners               ok
+orders.ticket_transfers        ok       tickets.ticket_transfers       ok
+```
+
+**Obe varianty jsou legitimni featury**, ne preklep. `lottery_entries` (bod c)
+je toho prikladem: `catalog.*` pouziva losovani u akci, `orders.*` losovani
+kampani (`campaign_id`) — dve ruzne veci se stejnym jmenem.
+
+Dve mista sloupce **nemaji**:
+
+| misto | chybi | stav |
+|---|---|---|
+| `lib/reports/reports-extra-3.ts` -> `orders.lottery_entries.user_id` | tabulka ma `email`, `name` | report `udalosti_lottery` uz je VYRAZENY (R-37) |
+| `lib/reports/reports-extra-2.ts` -> `orders.resale_listings.price_halire` | tabulka ma `listing_price_halire` | 🔴 report `udalosti_resell` **NENI vyrazeny** — spadne az za behu |
+
+⚠️ **Checker ma falesne pozitivy** tam, kde se alias kryje s JS promennou
+(`r.rows`, `p.event`). Vypis u `resale.resale_listings` a
+`pricing.dynamic_pricing_rules` je proto potreba cist s rezervou — hlasil
+`rows`, `event`, `promoter`, `updated`, coz jsou vlastnosti objektu, ne sloupce.
+
+## §166 ✅ R-41 VYRESENO: `seat_assignments` nikdy nebyla potreba
+
+### a) Co routa od te tabulky chtela
+
+Jen **dva sloupce**: `ticket_id` a `seat_id`. Tri mista — kontrola obsazenosti
+sedadla, cteni puvodniho sedadla, zapis noveho.
+
+### b) Nahrada — hledana sloupci, ne jmenem
+
+```
+tabulky, ktere maji `ticket_id` I `seat_id` zaroven : 0
+tickets.tickets ma seat sloupce                     : seat_id, event_seat_id
+```
+
+**Prirazeni sedadla je ulozene primo na listku.** Zadna spojovaci tabulka
+v tomhle schematu neexistuje a existovat nemusi — `orders.seat_assignments`
+byla navrhova odbocka, ktera se nikdy nepostavila.
+
+### c) VERDIKT: nahrada existuje -> opraveno, obe cesty PROSLY
+
+```
+SELECT 1 FROM orders.seat_assignments sa JOIN tickets.tickets t2 ON t2.id = sa.ticket_id
+  WHERE sa.seat_id=$1                    ->  FROM tickets.tickets t2 … WHERE t2.seat_id=$1
+(SELECT seat_id FROM orders.seat_assignments WHERE ticket_id=$2 LIMIT 1)
+                                         ->  (SELECT seat_id FROM tickets.tickets WHERE id=$2)
+UPDATE orders.seat_assignments SET seat_id=$1 WHERE ticket_id=$2
+                                         ->  UPDATE tickets.tickets SET seat_id=$1 WHERE id=$2
+```
+
+```
+[my/orders/upgrade] vlastnik 200 {"upgradeId":"c271e2d2-…","upgradeFeeHalire":80000,"applied":fal…
+[my/orders/upgrade] CIZI     404 {"error":"TICKET_NOT_FOUND"}
+```
+
+**Sken chybejicich tabulek: 26 -> 25.**
+
+🔎 A plyne z toho jeste jedno: `cron/seat-upgrade-notify` byl vypnuty (F6) prave
+pro `orders.seat_assignments`. **Duvod k jeho vypnuti tim odpada** — staci tam
+udelat tutez zamenu. Neudelal jsem to (je mimo zadani), ale F6 uz neni
+„subsystem nevznikl", nybrz „ta sama zamena, jen jinde". R-42.
+
+### Kolik z 8 obalenych rout
+
+**7 z 8 dolozeno zelene.** Osmy je `cron/seat-upgrade-notify`, ktery je vypnuty —
+a podle §166 uz zbytecne.
