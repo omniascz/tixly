@@ -81,7 +81,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
 
     if (events.rows.length === 0) {
-      return NextResponse.json({ ok: true, processed: 0, message: 'No upcoming events' });
+      return NextResponse.json({ ok: true, processed: 0, failed: 0, errors: [], message: 'No upcoming events' });
     }
 
     const eventIds = events.rows.map((e) => e.id);
@@ -194,10 +194,13 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     return NextResponse.json({
-      ok: true,
+      // R-46: driv `ok: true` natvrdo, i kdyz `errors` neprazdne — porusovalo
+      // kontrakt C2. Vypnute joby do C2 auditu nespadaly, takze to proklouzlo.
+      ok: errors.length === 0,
+      failed: errors.length,
       processed,
       total: events.rows.length,
-      errors: errors.length > 0 ? errors : undefined,
+      errors,
     });
   });
 }

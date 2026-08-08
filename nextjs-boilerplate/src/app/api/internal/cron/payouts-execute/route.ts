@@ -43,7 +43,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   const pending = await fetchPendingPayouts(Math.min(batchSize, 100));
 
   if (pending.length === 0) {
-    return NextResponse.json({ ok: true, processed: 0, message: 'No pending payouts' });
+    return NextResponse.json({ ok: true, processed: 0, failed: 0, errors: [], message: 'No pending payouts' });
   }
 
   const results = await Promise.allSettled(pending.map((row) => executePayout(row)));
@@ -70,11 +70,13 @@ export async function POST(req: NextRequest): Promise<Response> {
   console.info(`[payouts-execute] batch=${pending.length} paid=${paid} skipped=${skipped} failed=${failed}`);
 
   return NextResponse.json({
-    ok: true,
+    // R-46: driv `ok: true` natvrdo vedle neprazdneho `errors`. U vyplat to
+    // znamenalo, ze selhani jednotlivych plateb hlasil cron jako uspech.
+    ok: errors.length === 0 && failed === 0,
     processed: pending.length,
     paid,
     skipped,
     failed,
-    errors: errors.length > 0 ? errors : undefined,
+    errors,
   });
 }

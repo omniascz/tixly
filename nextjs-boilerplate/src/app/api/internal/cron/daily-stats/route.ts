@@ -152,7 +152,10 @@ export async function POST(req: NextRequest): Promise<Response> {
   };
 
   if (r.rows.length === 0) {
-    return NextResponse.json(summary);
+    // R-46: `ok` se nastavuje az TED, podle toho, co se za behu nasypalo do
+  // `summary.errors`. Driv bylo `true` uz pri stavbe objektu a uz se nemenilo.
+  summary.ok = summary.errors.length === 0;
+  return NextResponse.json(summary);
   }
 
   const { sendMail } = await import('@/lib/email/mailer');

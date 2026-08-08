@@ -403,6 +403,10 @@ async function main(): Promise<void> {
   console.log(`[harness] cíl: ${branchHost} (ověřeno: není prod)`);
   await ensureBaseActors();
   const results: AttackResult[] = [];
+  // A a B se driv nevolaly (blokator §3.6 padl az 8af3b08). Ted uz jde pustit
+  // cely harness najednou — jeden ucelenzy obraz concurrency vrstvy.
+  results.push(await attackA());
+  results.push(await attackB());
   results.push(await attackD());
   results.push(await attackC());
   results.push(await attackE());
@@ -410,7 +414,7 @@ async function main(): Promise<void> {
   // POZOR: NEpřepisujeme FINDINGS_CONCURRENCY.md (obsahuje ručně psanou A/B/P1 analýzu).
   // D/C výsledky vypíšeme na stdout + uložíme JSON do scratchpadu; integraci do FINDINGS
   // udělá člověk ručně (kontrola narativu, jako u A/B).
-  console.log('\n===== VÝSLEDKY D/C (assert proti reálné DB) =====');
+  console.log('\n===== VÝSLEDKY A–E (assert proti reálné DB) =====');
   for (const r of results) {
     const st = Object.entries(r.statuses).map(([k, v]) => `${k}×${v}`).join(', ');
     console.log(`  ${r.name}: ${r.verdict}\n    ${r.detail}\n    HTTP: ${st}`);

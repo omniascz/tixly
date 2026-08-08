@@ -532,3 +532,16 @@ NEOPRAVENO — job je vypnuty. Az se bude resit, opravit spolu s nim.
 per-event prognozu poptavky v absolutnich poctech. 5 z 11 hodnot nema kam,
 4 klicova pole tabulky kod nepocita. Bud dostavet prognozu (nova tabulka),
 nebo prepsat kod na cenovy model.
+
+## R-46 VYRESENO (§172) — a odhalilo dva AKTIVNI crony mimo C2 audit
+
+`payouts-execute` (penize!) a `daily-stats` vracely `ok:true` vedle neprazdneho
+`errors`. C2 slo po jmennem seznamu devíti rout, ne po vsech cronech.
+
+## R-48 🔴 PRUSTREL: purchase-limit race (§3.6, §173)
+
+`max_per_buyer=2`, 5 soubeznych nakupu -> vsech 5 proslo (200×5), kupujici ma
+5 kusu. Kontrola je read-then-write bez zamku.
+Neztratilo se nic, PRETEKLO. Opacna vada nez oversell (§3.1), ktery drzi.
+Oprava: `SELECT ... FOR UPDATE` na agregaci kupujiciho, nebo unikatni omezeni —
+ktera cesta, je rozhodnuti. NEOPRAVENO dle zadani.

@@ -3948,3 +3948,81 @@ Harness pri tom behu overil i zbyle dva:
 D) Double issuance (§3.4): DRZI   M=3, 2× order-completed soucasne -> tickets=3 (prustrel by byl 6)
 C) Seat double-sell (§3.2): DRZI  1 held seat, 2 soubezne checkouty -> sold=1, 2xx=1
 ```
+
+---
+
+## §172 R-46: kontrakt porusovaly i DVA AKTIVNI crony, nejen vypnute
+
+### a) `demand-forecast` opraven
+
+`ok: true` natvrdo vedle neprazdneho `errors` -> `ok: errors.length === 0`
++ `failed`. Vetev „No upcoming events" doplnena o `failed: 0, errors: []`.
+
+### b) 🔴 Kontrola vsech ostatnich odhalila dva AKTIVNI
+
+„Vypnute neznamena zkontrolovane" platilo — ale ukazalo se **i naopak**:
+C2 audit sel po JMENNEM SEZNAMU nine rout, ne po vsech cronech. Dva aktivni
+proto proklouzly:
+
+| cron | vada |
+|---|---|
+| `payouts-execute` | `ok: true` natvrdo vedle `errors` — **selhani jednotlivych vyplat hlasil jako uspech** |
+| `daily-stats` | `summary.ok = true` se nastavilo **pri stavbe objektu**, pak se do `summary.errors` sypalo, ale `ok` uz se nezmenilo |
+
+`payouts-execute` je ten horsi — jsou to penize. Opraveno oboje;
+u `payouts-execute` bylo potreba slozit `ok` z **obou** signalu
+(`errors.length === 0 && failed === 0`), protoze si uz vlastni `failed`
+pocital.
+
+### c) `seat-upgrade-notify` (vypnuty) kontrakt DODRZUJE
+
+`ok: failed === 0` — dostal ho pri C2 kole (§133), jeste nez se vypnul.
+
+### Poucení
+
+Audit podle jmenneho seznamu najde presne to, co je na seznamu. Kdyby C2 slo
+pres `ls app/api/internal/cron/*`, naslo by `payouts-execute` uz tehdy.
+
+## §173 ✅ CELY HARNESS A–E: ctyri drzi, JEDEN PRUSTREL
+
+```
+A) Oversell GA (§3.1):          DRZI      stock=5, 20 soubeznych po 1
+                                          -> commitnutych 5 (cekano 5), remaining_qty=0
+                                          HTTP: 200×5, 409×15
+B) Purchase-limit race (§3.6):  PRUSTREL  max_per_buyer=2, 5 soubeznych po 1 (tyz buyer)
+                                          -> realne prodano kupci 5 ks (invariant <= 2)
+                                          HTTP: 200×5
+C) Seat double-sell (§3.2):     DRZI      1 held seat, 2 soubezne -> sold=1, 2xx=1
+                                          HTTP: 200×1, 409×1
+D) Double issuance (§3.4):      DRZI      M=3, 2× order-completed -> tickets=3 (prustrel 6)
+                                          HTTP: 200×2
+E) Party-split slot race:       DRZI      3 sloty, 10 prijeti -> 200×3, unikatnich 3,
+                                          remaining 100->97
+                                          HTTP: 200×3, 409×7
+```
+
+### b) 🔴 attackB: soucty NESEDI, a to je ta vada
+
+Limit je **2 kusy na kupujiciho**. Pet soubeznych nakupu **vsech pet proslo**
+(`200×5`) a kupujici ma **5 kusu**. Kdyby limit drzel, cekali bychom
+`200×2, 4xx×3`.
+
+Kontrola je tedy **read-then-write bez zamku**: kazde z peti volani si precetlo
+„zatim 0 kusu", vyhodnotilo „0 + 1 <= 2" a zapsalo. Zadne z nich nevidelo ta
+ostatni.
+
+Neztratilo se nic — vsech pet objednavek existuje. **Preteklo.** To je opacna
+vada nez u A/C/E, kde inventar drzel.
+
+### c) NEOPRAVENO dle zadani
+
+Rozsah: tyka se `max_per_buyer` na `catalog.ticket_types`. Oprava je tataz trida
+jako u oversellu (§3.1), ktery **drzi** — tam se pouzil atomicky decrement
+s podminkou. Tady by slo o `SELECT … FOR UPDATE` na agregaci kupujiciho, nebo
+o unikatni omezeni. Ktera cesta, je rozhodnuti. R-48.
+
+### Co harness NEMERI
+
+Nic o RLS (bezi pod `tixly_app`, ale invarianty overuje owner poolem),
+nic o vykonu, a nic mimo tech pet scenaru. Refundy, prevody listku ani
+B2B kredit souběžně merene NEJSOU.
