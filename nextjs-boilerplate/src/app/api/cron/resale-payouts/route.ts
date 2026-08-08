@@ -91,8 +91,10 @@ export async function GET(req: NextRequest): Promise<Response> {
     }
   }
 
+  // R-46: driv `ok: true` natvrdo, i kdyz `results.failed > 0`. Audit C2 sel
+  // po jmennem seznamu devíti rout, takze tahle proklouzla (FINDINGS 174).
   return NextResponse.json({
-    ok: true,
+    ok: (results.failed ?? 0) === 0,
     runAt: new Date().toISOString(),
     ...results,
   });

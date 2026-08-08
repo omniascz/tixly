@@ -184,7 +184,9 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
   }
 
-  return NextResponse.json({ ok: true, processed: due.rows.length, sent, failed, cancelled });
+  return NextResponse.json({      // R-46: driv `ok: true` natvrdo, i kdyz `failed > 0`. Audit C2 sel po
+      // jmennem seznamu devíti rout, takze tahle proklouzla (FINDINGS 174).
+ ok: failed === 0, processed: due.rows.length, sent, failed, cancelled });
 
   });
 }

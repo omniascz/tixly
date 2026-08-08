@@ -4026,3 +4026,103 @@ o unikatni omezeni. Ktera cesta, je rozhodnuti. R-48.
 Nic o RLS (bezi pod `tixly_app`, ale invarianty overuje owner poolem),
 nic o vykonu, a nic mimo tech pet scenaru. Refundy, prevody listku ani
 B2B kredit souběžně merene NEJSOU.
+
+---
+
+## §174 ✅ R-48 OPRAVEN: purchase-limit drzi, a nic jineho nespadlo
+
+### a) Jak byl limit modelovany
+
+Tri kontroly v `checkout/route.ts`, vsechny stejneho tvaru:
+
+```
+:913  tt.max_tickets_per_buyer  (per AKCE, napric typy)
+:939  tt.max_per_buyer          (per TYP listku)
+:966  tt.max_per_user           (per TYP listku)
+```
+
+Kazda: `SELECT COALESCE(SUM(oi.quantity),0)` -> porovnej v JS -> zapis.
+
+### b) Proc podminka v INSERTu NESTACI
+
+Nabizelo se `INSERT … WHERE (SELECT SUM(…)) + $q <= limit`. **Neopravilo by to
+nic**: pod READ COMMITTED necommitnute radky souběžných transakci nejsou videt,
+takze i ten poddotaz by u vsech peti vratil 0. Tataz past jako u puvodniho kodu,
+jen presunuta do SQL.
+
+Unikatni ani exclusion constraint „soucet <= N" **vyjadrit neumi** — omezuji
+jednotlivy radek, ne agregaci.
+
+**Zvolen `pg_advisory_xact_lock` na dvojici (kupujici, akce).** Neni to zamek na
+agregaci: dva RUZNI kupujici se neblokuji, serializuje se jen tyz kupujici na
+teze akci. Uvolni se sam pri COMMIT i ROLLBACK, nepotrebuje schema ani migraci,
+a pokryva vsechny tri kontroly najednou (je pred prvni z nich).
+
+### c) RED -> GREEN
+
+```
+PRED  B) Purchase-limit race: PRUSTREL
+         max_per_buyer=2, 5 soubeznych -> kupci prodano 5 ks
+         HTTP: 200×5
+PO    B) Purchase-limit race: DRZI
+         max_per_buyer=2, 5 soubeznych -> kupci prodano 2 ks (invariant <= 2)
+         HTTP: 200×2, 422×3
+```
+
+### d) PEEL: sekvencni cesta nerozbita
+
+Tri odmítnutí prisla jako **422**, ne 500 — je to `PURCHASE_LIMIT_EXCEEDED`
+s cislem limitu a poctem uz koupenych. Odmitnuti je tedy srozumitelne, ne pad.
+
+### e) Cely harness znovu — nic, co drzelo, nespadlo
+
+```
+A) Oversell GA:          DRZI   200×5, 409×15, remaining_qty=0
+B) Purchase-limit race:  DRZI   200×2, 422×3          <- bylo PRUSTREL
+C) Seat double-sell:     DRZI   200×1, 409×1
+D) Double issuance:      DRZI   tickets=3
+E) Party-split slot:     DRZI   200×3, 409×7, unikatnich 3
+```
+
+**Pet z peti.**
+
+## §175 Doaudit vsech cronu: 46 rout, 7 mimo C2
+
+### a) Ze STRUKTURY, ne z dokumentu
+
+```
+routy pod src/app/api/{internal,cron}/  : 46
+zaznamu v vercel.json crons             : 28
+```
+
+C2 slo po jmennem seznamu **devíti** rout z §41. Rozdil mezi 9 a 46 je presne
+ten prostor, kde se vady schovaly.
+
+### b/c) Kolik jich C2 minulo: **7**
+
+```
+internal/broadcast-send
+internal/cron/abandoned-cart
+internal/cron/charge-installments      <- splatky, penize
+internal/cron/recompute-dynamic-pricing
+internal/cron/refresh-spotify
+internal/cron/send-reminders
+cron/resale-payouts                    <- vyplaty, penize
+```
+
+Vsechny mely `failed` spocitany, ale `ok: true` **natvrdo** — takze selhani
+jednotlivych polozek hlasily jako uspech. Dve z nich se tykaji penez.
+
+### d) Opraveno vsech 7
+
+`ok: failed === 0` (u `resale-payouts` `(results.failed ?? 0) === 0`).
+Po opravě sken hlasi **1**, a ta jedna je **falesny pozitiv** mého detektoru:
+`daily-stats` ma `ok: true` jako pocatecni hodnotu objektu a spravne ho
+prepocitava az pri odeslani (`summary.ok = summary.errors.length === 0`,
+oprava z §172). Overeno ctenim, ne odhadem.
+
+### Poucení podruhé
+
+Poprve to byla dvojice (`payouts-execute`, `daily-stats`), ted sedmice. **Kdyby
+C2 slo pres routovaci strukturu, byla by hotova napoprve.** Seznam v dokumentu
+popisuje, co nekdo videl; struktura popisuje, co existuje.

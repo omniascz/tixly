@@ -545,3 +545,15 @@ nebo prepsat kod na cenovy model.
 Neztratilo se nic, PRETEKLO. Opacna vada nez oversell (§3.1), ktery drzi.
 Oprava: `SELECT ... FOR UPDATE` na agregaci kupujiciho, nebo unikatni omezeni —
 ktera cesta, je rozhodnuti. NEOPRAVENO dle zadani.
+
+## R-48 VYRESENO (§174) — purchase-limit drzi (200×2, 422×3), harness 5/5
+
+`pg_advisory_xact_lock` na dvojici (kupujici, akce) pred vsemi tremi kontrolami.
+Podminka v INSERTu by to neopravila (READ COMMITTED), constraint „soucet <= N"
+vyjadrit neumi.
+
+## R-49 Doaudit cronu (§175): 46 rout, 7 mimo C2, vsech 7 opraveno
+
+`broadcast-send`, `abandoned-cart`, `charge-installments`, `recompute-dynamic-pricing`,
+`refresh-spotify`, `send-reminders`, `resale-payouts`. Dve se tykaly penez.
+Poucení: audit podle routovaci struktury, ne podle seznamu v dokumentu.

@@ -67,7 +67,9 @@ async function runRecompute(): Promise<Response> {
     client.release();
   }
 
-  return NextResponse.json({ ok: true, processed, updated, failed });
+  return NextResponse.json({      // R-46: driv `ok: true` natvrdo, i kdyz `failed > 0`. Audit C2 sel po
+      // jmennem seznamu devíti rout, takze tahle proklouzla (FINDINGS 174).
+ ok: failed === 0, processed, updated, failed });
   });
 }
 

@@ -908,6 +908,24 @@ export async function POST(req: NextRequest): Promise<Response> {
       }),
     );
 
+    // ── R-48: serializace limitu na dvojici (kupujici, akce) ─────────────────
+    // Vsechny tri kontroly nize jsou READ-THEN-WRITE: precti SUM, porovnej
+    // v JS, zapis. Pod READ COMMITTED si soubezne transakce navzajem nevidi
+    // necommitnute radky, takze kazda precte tyz stav. Zmereno harnessem:
+    // limit 2, pet soubeznych nakupu -> proslo VSECH PET (attackB, §173).
+    //
+    // Podminka primo v INSERT (`WHERE SUM(...) < limit`) to NEOPRAVI ze stejneho
+    // duvodu — cizi radky tam jeste nejsou. Unikatni ani exclusion constraint
+    // „soucet <= N" vyjadrit neumi.
+    //
+    // Zamek proto neni na agregaci, ale na DVOJICI kupujici+akce: dva ruzni
+    // kupujici se neblokuji, tyz kupujici na teze akci se serializuje.
+    // `pg_advisory_xact_lock` se uvolni sam pri COMMIT i ROLLBACK.
+    if (userId) {
+      await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))',
+        [`checkout-limit:${userId}:${tt.event_id}`]);
+    }
+
     // Per-event purchase limit (mig 433) — max_tickets_per_buyer na events omezuje
     // celkový počet vstupenek napříč všemi ticket_types pro danou akci.
     if (tt.max_tickets_per_buyer !== null && tt.max_tickets_per_buyer > 0) {
