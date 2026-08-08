@@ -573,3 +573,11 @@ HIGH ma FP rate 0 % (7/7 skutecnych) — heuristiku UDRZOVAT.
 Medium/low stoji na proxy konfidenci (pocet aliasu v dotazu), jejich FP rate
 neni zmereny. Mezi medium je podezreni na artefakt parseru
 (`d.d -> conference.days.d`), NEOVERENO.
+
+## R-52 11 z 20 policies migrace 455 neovereno chovanim (§180)
+
+Overeno 9 (bylo 3), unik zadny. Neovereno: 4x edp_*, event_travel_packages_write,
+box_office_sales/sessions_promoter, seat_upgrades_buyer, travel_bookings_select,
+wero_webhooks_tenant_isolation (FK retez), ticket_transfers_insert (test meri
+jen SELECT).
+Nastroj: `tests/mig455.live.test.ts` — seed z introspekce, NEVIM misto hadani.

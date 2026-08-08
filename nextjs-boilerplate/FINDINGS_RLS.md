@@ -4355,3 +4355,83 @@ prah je u nich, ne u HIGH.
 🔎 Jedna vec za pozornost: mezi medium byl `d.d -> conference.days.d`, coz
 vypada na artefakt parseru (vzor `alias.sloupec` chytil neco, co sloupec neni).
 **Neoveroval jsem to** — je to jen dojem z jednoho radku, ne mereni.
+
+---
+
+## §180 ✅ Migrace 455: chovanim overeno 9 z 20 (bylo 3), NULA uniku
+
+### a) Metoda: seed z INTROSPEKCE, ne z ruky
+
+Test `tests/mig455.live.test.ts` si pro kazdou tabulku zjisti `NOT NULL` sloupce
+bez defaultu z `pg_attribute`, FK doplni z `fullChain` podle jmena sloupce
+(`promoter_id`, `event_id`, `order_id`, …) a zbytek dopocita podle typu.
+Kdyz narazi na `uuid` FK, ktery neumi rozresit, **vzda to a hlasi NEVIM** —
+misto aby hadal.
+
+Pak dve mereni: vlastni kontext radek **vidi**, cizi **nevidi**.
+
+```
+catalog.event_sponsors           [promoter] vlastni=1 cizi=0  OK
+catalog.event_travel_links       [promoter] vlastni=1 cizi=0  OK
+catalog.venue_gates              [promoter] vlastni=1 cizi=0  OK
+identity.magic_link_tokens       [user]     vlastni=1 cizi=0  OK
+lineups.performance_cast         [promoter] vlastni=1 cizi=0  OK
+marketing.ticket_alerts          [user]     vlastni=1 cizi=0  OK
+orders.postal_deliveries         [user]     vlastni=1 cizi=0  OK
+orders.ticket_transfers          [user]     vlastni=1 cizi=0  OK
+payments.wero_payments           [promoter] vlastni=1 cizi=0  OK
+
+SOUHRN: OK=9  UNIK=0  NEVIM=6  z 16 tabulek
+```
+
+### 🔎 Dve „vlastni nevidi" byly ARTEFAKTY SEEDU, ne nalezy
+
+Prvni beh hlasil u `catalog.venue_gates` a `payments.wero_webhooks`, ze vlastnik
+svuj radek nevidi. Vypadalo to jako nalez. Neni:
+
+```
+venue_gates_select   koreluje pres catalog.venues.promoter_id
+                     -> fullChain zaklada venue BEZ promoter_id
+wero_webhooks        koreluje pres payment_id -> wero_payments.promoter_id
+                     -> muj seed payment_id vubec nevyplnil
+```
+
+Po doplneni vazby u `venue_gates` vysel **OK**. Kdybych to nedohledal, zapsal
+bych dva falesne nalezy — a pri „vlastni nevidi" je to zvlast zradne, protoze
+to vypada jako **prisnejsi** RLS, tedy neco, co se nezda nebezpecne.
+
+### b) NEVIM: 6 tabulek + wero_webhooks
+
+```
+catalog.event_distribution_partners   catalog.event_travel_packages
+orders.box_office_sales               orders.box_office_sessions
+orders.seat_upgrades                  orders.travel_bookings
+payments.wero_webhooks
+```
+
+U `wero_webhooks` jsem retez zkusil dostavet a **zastavil se**: po `order_id`
+si `wero_payments` vyzadaly `amount_halire`, a zadani rika nezasekavat se na
+jedne tabulce. Zbylych sest ma v NOT NULL sadeach uuid FK, ktere seed neumi
+rozresit bez rucniho retezu.
+
+### c) VERDIKT: 9 z 20 policies overeno chovanim, 11 zbyva
+
+```
+pred timto kolem : 3 z 20
+po nem           : 9 z 20   (+6)
+neovereno        : 11
+```
+
+Neovereno zustava: 4× `edp_*` (`event_distribution_partners`),
+`event_travel_packages_write`, `box_office_sales_promoter`,
+`box_office_sessions_promoter`, `seat_upgrades_buyer`, `travel_bookings_select`,
+`wero_webhooks_tenant_isolation`, a `ticket_transfers_insert` — ta posledni
+proto, ze **muj test meri jen SELECT**; INSERT policy se timhle zpusobem overit
+neda.
+
+**Unik: zadny.** Ve vsech devíti merenych pripadech cizi kontext radek nevidel.
+
+### 2) 93 buyer-only policies
+
+**NEZPRACOVANO** — dosel kontext. Zustava jako dalsi krok; vzorkovani podle
+tvaru predikatu (§53) je pripravene jako metoda.
