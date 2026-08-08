@@ -4225,3 +4225,68 @@ hledani, ne popis reality — pouzit ho jako vstup znamena zdedit jeho slepa mis
 Prakticky: `walk('src/app')`, `pg_policies`, `pg_class`, `readdirSync(migrations)`.
 Kdyz uz seznam v kodu byt musi, musi u nej stat, **proti cemu se overuje, ze je
 uplny** (§82).
+
+---
+
+## §178 ✅ R-50 UZAVREN: vsech 30 provereno, 0 zranitelnych
+
+### a) Sum oddelen — a je ho vic, nez to vypadalo
+
+Z tricetky **19 vubec neni SQL**. Skener hleda sablonovy literal, ktery obsahuje
+SQL klicove slovo a `${…}` — a slova `FROM`, `SET`, `WHERE` se bezne vyskytuji
+i v prozaickem textu.
+
+```
+8   AI prompty        lib/ai/{moderation,price-suggest,social-post×4},
+                      lib/moderation/ai-gate, admin/events/[id]/ai-description
+4   fetch URL v .tsx  platform/venues/[id]/seating-chart/* (venueId)
+4   nazvy souboru     Content-Disposition (accounting×2, invoices, accounting:128)
+2   XML / id balicku  admin/reports/pohoda:91,129
+1   chybova hlaska    admin/events/[id]/transit-combo:133
+```
+
+### b) Zbylych 11 JE SQL — a u kazdeho konci uzivatelsky vstup bezpecne
+
+| misto | interpolace | kde vstup konci |
+|---|---|---|
+| `public/events:135` | `ORDER BY ${sort}` | **allowlist** `SORT_MAP[sp.get('sort') ?? 'date_asc'] ?? SORT_MAP.date_asc` |
+| `lib/identity/guest-user:131` | `DO UPDATE ${conflictAction}` | **allowlist** `CONFLICT_ACTION[input.onExisting ?? 'touch']` |
+| `admin/alerts:25` | `${showAck ? '' : 'AND …'}` | ternar, konstanty |
+| `admin/call-center/order:138` | `${eventId ? 'AND po.event_id = $3' : ''}` | ternar, konstanty |
+| `admin/events/[id]/guestlist:284` | `${checkinClause}` | ternar, konstanty |
+| `admin/notifications/[id]:27` | `${readAtVal}` | ternar -> `'NOW()'` \| `'NULL'` |
+| `platform/incidents/[id]/updates:41` | `COALESCE(resolved_at, ${resolvedAt})` | ternar -> `'NOW()'` \| `'NULL'` |
+| `admin/crm/rfm:54` | `${perPage}` | `Math.min(100, Math.max(1, parseInt(…)))` |
+| `buyer/artists:58` | `${limitParam}` | `params.length` — interni pocet |
+| `lib/graphql/resolvers:123` | `${limitIdx}`, `${offsetIdx}` | indexy placeholderu (`params.length`) |
+| `.../restore:53` | `${params.chartId}` | uvnitr **vazane hodnoty**, ne v textu SQL |
+
+### c) Identifikatory: dva, oba za allowlistem
+
+Parametrizovat identifikator nejde, takze musi byt allowlist. V celem repu se
+z uzivatelskeho vstupu odvozuji **dva**:
+
+```
+public/events        smer/sloupec razeni  -> SORT_MAP        (fallback pri neznamem klici)
+guest-user           fragment ON CONFLICT -> CONFLICT_ACTION (fallback 'touch')
+```
+
+Oba maji mapu **i fallback**, takze neznamy klic da konstantu, ne vstup.
+`public/events` je pritom **verejna routa bez autentizace** — kdyby ten
+allowlist chybel, byla by to injekce dosazitelna kymkoli.
+
+### d) VERDIKT CISLEM — tentokrat cela tricitka, ne vzorek
+
+```
+dynamickych dotazu celkem : 257
+  z uzivatelskeho vstupu  :  30   <- vsech 30 PROVERENO
+    z toho neni SQL       :  19
+    SQL a bezpecnych      :  11
+    ZRANITELNYCH          :   0
+```
+
+### Co tim netvrdim
+
+Skener vidi **sablonove literaly**. Nevidi SQL slozene konkatenaci pres vic
+promennych, SQL vracene z funkce jako retezec, ani dotazy stavene v knihovnach
+mimo `src/`. Tvrdim „nula mezi 30 nalezenymi", ne „nula v repu".

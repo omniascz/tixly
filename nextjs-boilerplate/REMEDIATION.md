@@ -558,7 +558,9 @@ vyjadrit neumi.
 `refresh-spotify`, `send-reminders`, `resale-payouts`. Dve se tykaly penez.
 Poucení: audit podle routovaci struktury, ne podle seznamu v dokumentu.
 
-## R-50 22 z 30 dynamickych dotazu s uzivatelskym vstupem NEDOHLEDANO (§176)
+## R-50 VYRESENO (§178) — vsech 30 provereno, 0 zranitelnych
+
+### Puvodni zapis (§176)
 
 Dohledano 8 nejrizikovejsich — vsechny bezpecne (allowlist, orezane cislo,
 konstanty, vazane hodnoty, nazvy souboru). Zbylych 22 je NEZMERENYCH, ne cistych.
