@@ -86,6 +86,30 @@ async function callCheckout(body: CheckoutBody, userId?: string): Promise<number
   return res.status; // jen pro diagnostiku; asert je vždy proti DB, ne proti tomuhle
 }
 
+// ── Zakladni akteri ──────────────────────────────────────────────────────────
+// Harness byl psany proti PROD-KLONU, kde promoter s pevnym UUID uz existoval.
+// Proti cistemu baseline klonu padal na FK `venues_promoter_id_fk`. Zalozeni je
+// idempotentni, takze na prod-klonu se nic nezmeni.
+async function ensureBaseActors(): Promise<void> {
+  // vsechna pevna UUID, ktera harness pouziva jako aktery
+  const ACTORS = [
+    '00000000-0000-4000-a000-000000000002',
+    '00000000-0000-4000-a000-000000000010',
+  ];
+  for (const id of ACTORS) {
+    await admin.query(
+      `INSERT INTO identity.users (id, email, name, gdpr_consent_at)
+       VALUES ($1, $2, 'Harness Actor', now()) ON CONFLICT (id) DO NOTHING`,
+      [id, `harness-${id.slice(-12)}@tixly.test`],
+    );
+  }
+  await admin.query(
+    `INSERT INTO platform.promoters (id, name, email)
+     VALUES ($1, 'Harness Promoter', $2) ON CONFLICT (id) DO NOTHING`,
+    [PROMOTER, `harness-p-${PROMOTER.slice(0, 8)}@tixly.test`],
+  );
+}
+
 // ── Seed (admin/owner pool, dle prod NOT-NULL sloupců zjištěných v KROK 1) ─────
 async function seedScenario(opts: {
   remainingQty: number;
@@ -377,6 +401,7 @@ async function attackC(): Promise<AttackResult> {
 async function main(): Promise<void> {
   const branchHost = (TEST_DATABASE_URL.match(/@([^/]+)\//)?.[1]) ?? '(neznámý host)';
   console.log(`[harness] cíl: ${branchHost} (ověřeno: není prod)`);
+  await ensureBaseActors();
   const results: AttackResult[] = [];
   results.push(await attackD());
   results.push(await attackC());

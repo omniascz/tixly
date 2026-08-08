@@ -520,3 +520,15 @@ skeny, nikdo je nespustil. 7 nekvalifikovanych sloupcu sken nepokryva.
 U `orders.orders.promo_code`, `platform_fee_halire`, `tickets.scan_logs.result`
 a dalsich neni z dotazu poznat, jestli se sloupec prejmenoval, nebo featura
 nevznikla. Rozhodnout kus po kuse.
+
+## R-46 `demand-forecast` vraci `ok:true` s neprazdnym `errors` (§170)
+
+Porusuje kontrakt C2. Vypnute joby do C2 auditu nespadaly, takze to proklouzlo.
+NEOPRAVENO — job je vypnuty. Az se bude resit, opravit spolu s nim.
+
+## R-47 demand-forecast: rozhodnuti misto opravy (§170)
+
+`analytics.demand_forecasts` je per-ticket-type CENOVE doporuceni; kod pocita
+per-event prognozu poptavky v absolutnich poctech. 5 z 11 hodnot nema kam,
+4 klicova pole tabulky kod nepocita. Bud dostavet prognozu (nova tabulka),
+nebo prepsat kod na cenovy model.

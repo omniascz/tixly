@@ -3844,3 +3844,107 @@ Odkazy typu `SELECT status FROM …` se bez parseru SQL k tabulce priradit nedaj
 Je jich sedm, takze pokryti je vysoke — ale ne uplne, a rikam to.
 Sken take nevidi sloupce v `CASE`, poddotazech bez aliasu a v dynamicky
 skladanych castech.
+
+---
+
+## §170 demand-forecast: PEEL dve vrstvy, verdikt JINY MODEL — zustava vypnuty
+
+### a) PEEL nejdriv, verdikt az potom (poucení ze seat-upgrade)
+
+```
+vrstva 1  column "start_at" does not exist        -> catalog.events ma `date_start`.  OPRAVENO
+vrstva 2  column "tickets_sold" of relation "demand_forecasts" does not exist
+```
+
+Po opravě prvni vrstvy cteci cast **projde** a routa se dostane az k INSERTu.
+
+### b) Zamena sloupcu, nebo jina data? JINA DATA.
+
+```
+kod pise:   event_id, days_to_event, tickets_sold, tickets_total, pct_sold,
+            velocity_7d, velocity_1d, forecast_sold, forecast_pct,
+            demand_score, recommendation
+tabulka ma: id, event_id, ticket_type_id, computed_at, days_to_event, sold_pct,
+            velocity_per_day, projected_final_pct, recommended_price_halire,
+            price_change_reason, auto_applied
+```
+
+| kod | tabulka |
+|---|---|
+| `event_id`, `days_to_event` | ✅ shoda |
+| `pct_sold` -> `sold_pct` | prejmenovani |
+| `forecast_pct` -> `projected_final_pct` | prejmenovani |
+| `velocity_7d` + `velocity_1d` | tabulka ma **jednu** `velocity_per_day` |
+| `tickets_sold`, `tickets_total`, `forecast_sold`, `demand_score`, `recommendation` | **nemaji kam** |
+
+A naopak: tabulka ma `ticket_type_id`, `recommended_price_halire`,
+`price_change_reason`, `auto_applied` — **ty kod vubec nepocita**.
+
+**Neni to prejmenovani.** Tabulka je **per-ticket-type CENOVE doporuceni**,
+kod pocita **per-event prognozu poptavky v absolutnich poctech**. Ulozit vystup
+kodu by znamenalo zahodit 5 z 11 hodnot a nechat 4 klicova pole tabulky prazdna.
+
+Sedi to s §141: migrace 437 chtela zalozit forecast tabulku, jenze jmeno uz
+mela obsazene cenova tabulka a `CREATE TABLE IF NOT EXISTS` tise neudelal nic.
+
+### c) Zustava vypnuty — ale s PRAVDIVYM duvodem
+
+Puvodni „9 sloupcu nesedi" znelo jako prejmenovani, tedy jako prace na pul
+hodiny. Ve skutecnosti chybi **tabulka pro jiny model** — bud se prognoza
+dostavi (nova tabulka pod jinym jmenem), nebo se kod prepise na cenovy model.
+To je rozhodnuti, ne oprava.
+
+Oprava `start_at` -> `date_start` v kodu **zustava** — je spravna bez ohledu
+na to, jestli job pobezi.
+
+⚠️ Vedlejsi nalez: routa vratila `{"ok":true, …, "errors":[…]}` — **`ok:true`
+s neprazdnym `errors`**. To porusuje kontrakt C2. Vypnute joby do C2 auditu
+nespadaly, takze to proklouzlo. NEOPRAVENO (job je vypnuty), zapsano jako R-46.
+
+## §171 ✅ attackE ZMEREN: party-split slot race DRZI
+
+### d) Role overena na zacatku
+
+```
+role check: app=tixly_app  owner=neondb_owner
+[harness] cíl: <klon> (ověřeno: není prod)
+```
+
+### a) Harness pouzit, ne postaven vedle
+
+`attackE()` uz v `concurrency-harness.ts` **byl** a z `main()` se **volal** —
+chybelo jen prostredi. Nic druheho jsem nestavel.
+
+Musel jsem doplnit **`ensureBaseActors()`**: harness byl psany proti
+PROD-KLONU, kde promoter s pevnym UUID uz existoval, takze proti cistemu
+baseline klonu padal na `venues_promoter_id_fk` a pak na `orders_user_id_fkey`.
+Zalozeni je idempotentni (`ON CONFLICT DO NOTHING`), takze na prod-klonu se
+nic nezmeni.
+
+### b/c) Tally — soucet sedi
+
+```
+E) Party-split slot race: DRZI
+   3 volnych slotu, 10 soubeznych prijeti
+   200×3  (cekano 3)
+   unikatnich slotIndex = 3  (zadny dvakrat)
+   remaining_qty 100 -> 97   (pokles 3, cekano 3)
+   HTTP: 200×3, 409×7
+```
+
+**3 + 7 = 10** — zadne volani se neztratilo. **3 unikatni sloty** — zadny
+dvakrat. **Pokles presne o 3** — zadny slot ztraceny.
+
+### e) Race se neobjevil
+
+Nehlasim dojem, hlasim tally: soucty sedi na vsech trech osach (HTTP, unikatnost
+slotu, inventar). Migrace 458 tim dostala i souběžný důkaz, ne jen sekvencni.
+
+### Vedlejsi: D a C take DRZI
+
+Harness pri tom behu overil i zbyle dva:
+
+```
+D) Double issuance (§3.4): DRZI   M=3, 2× order-completed soucasne -> tickets=3 (prustrel by byl 6)
+C) Seat double-sell (§3.2): DRZI  1 held seat, 2 soubezne checkouty -> sold=1, 2xx=1
+```

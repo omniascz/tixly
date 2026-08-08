@@ -29,7 +29,7 @@ function safeEqual(a: string, b: string): boolean {
 interface EventRow {
   id: string;
   title: string;
-  start_at: string;
+  date_start: string;
   promoter_id: string;
 }
 
@@ -73,11 +73,11 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     // Fetch upcoming published events (within 90 days)
     const events = await db().query<EventRow>(
-      `SELECT id, title, start_at, promoter_id
+      `SELECT id, title, date_start, promoter_id
        FROM catalog.events
        WHERE status = 'published'
-         AND start_at BETWEEN NOW() - INTERVAL '1 day' AND NOW() + INTERVAL '90 days'
-       ORDER BY start_at`,
+         AND date_start BETWEEN NOW() - INTERVAL '1 day' AND NOW() + INTERVAL '90 days'
+       ORDER BY date_start`,
     );
 
     if (events.rows.length === 0) {
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         if (!sales || sales.total_qty === 0) continue;
 
         const now = new Date();
-        const startAt = new Date(event.start_at);
+        const startAt = new Date(event.date_start);
         const daysToEvent = Math.max(0, Math.round((startAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
         const pctSold = (sales.sold_qty / sales.total_qty) * 100;
         const velocity7d = sales.sold_7d / 7;

@@ -23,7 +23,12 @@ import { NextRequest, NextResponse } from 'next/server';
 //                          o.buyer_email, e.name, s.zone_name, s.row_label,
 //                          s.label. Routa je psana proti JINEMU SCHEMATU;
 //                          neni to zamena, je to prepis. R-42.
-// 'demand-forecast'      — pise proti jinemu designu tabulky (9 sloupcu nesedi)
+// 'demand-forecast'      — ZUSTAVA VYPNUTY, ale duvod se UPRESNIL (§170):
+//                          neni to "9 sloupcu nesedi" (to znelo jako prejmenovani).
+//                          analytics.demand_forecasts je per-ticket-type CENOVE
+//                          doporuceni, kod pocita per-event prognozu poptavky
+//                          v absolutnich poctech. 5 z 11 hodnot nema kam ulozit.
+//                          Bud dostavet prognozu, nebo prepsat kod. R-47.
 // 'seat-upgrade-notify'  — VRACENO 2026-08-08 (R-42): premisa neplatila,
 //                          orders.seat_assignments byla odbocka; sedadlo je na
 //                          orders.order_items.seat_id. Viz FINDINGS §167.

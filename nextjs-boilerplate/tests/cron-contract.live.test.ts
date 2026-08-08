@@ -177,4 +177,24 @@ d('kontrakt cronu (C2)', () => {
     expect(out.body.ok).toBe(true);
     expect(al.rows.length).toBe(1);
   }, 180_000);
+
+  it('demand-forecast: PEEL cele cesty', async () => {
+    const { randomUUID: uid } = await import('crypto');
+    const U = uid(), P = uid(), V = uid(), E = uid(), TT = uid(), O = uid();
+    const q = (sql: string, p: unknown[] = []) => clone.pool.query(sql, p);
+    await q("INSERT INTO identity.users (id,email,name,gdpr_consent_at) VALUES ($1,$2,'U',now())", [U, `df_${U.slice(0,8)}@t.cz`]);
+    await q("INSERT INTO platform.promoters (id,name,email) VALUES ($1,'P',$2)", [P, `dfp_${P.slice(0,8)}@t.cz`]);
+    await q("INSERT INTO catalog.venues (id,name,city,country,capacity) VALUES ($1,'V','Praha','CZ',100)", [V]);
+    await q(`INSERT INTO catalog.events (id,promoter_id,organizer_id,venue_id,title,date_start,slug,status)
+             VALUES ($1,$2,$3,$4,'DF',now()+interval '20 day',$5,'published')`, [E, P, U, V, `df-${E.slice(0,8)}`]);
+    await q(`INSERT INTO catalog.ticket_types (id,event_id,name,kind,base_price,total_qty,remaining_qty,visibility)
+             VALUES ($1,$2,'GA','standing',50000,100,60,'public')`, [TT, E]);
+    await q(`INSERT INTO orders.orders (id,user_id,event_id,status,total_amount,currency,expires_at)
+             VALUES ($1,$2,$3,'paid',50000,'CZK',now()+interval '1 day')`, [O, U, E]);
+    await q(`INSERT INTO orders.order_items (order_id,ticket_type_id,quantity,unit_price,total_price)
+             VALUES ($1,$2,40,50000,2000000)`, [O, TT]).catch((e) => console.log('item seed:', e.code, e.message.slice(0,60)));
+    const out = await call('@/app/api/internal/cron/demand-forecast/route',
+      '/api/internal/cron/demand-forecast');
+    console.log('[demand-forecast]', out.status, JSON.stringify(out.body).slice(0, 190));
+  }, 180_000);
 });
