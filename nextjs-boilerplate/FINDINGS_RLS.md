@@ -3772,3 +3772,75 @@ jinak.
 vzniklo ze skenu chybejicich TABULEK, takze reporty se spatnym SLOUPCEM jim
 proklouzly. Kolik jich takovych je, **NEVIM** — sken na sloupce v reportech
 neexistuje.
+
+---
+
+## §169 R-44: sken SLOUPCU nasel 36 dalsich rozbitych reportu — vic nez sken tabulek
+
+### a/b) Novy nastroj + SELF-CHECK jako podminka publikace
+
+`scripts/scan-report-columns.mjs`. Pro kazdou definici najde
+`FROM/JOIN schema.tabulka alias` a overi, ze kazdy `alias.sloupec` na te tabulce
+existuje.
+
+Self-check bezi proti **commitu PRED opravou** (`38ef608~1`), kde znam dva
+skutecne pripady:
+
+```
+[selfcheck] NASEL  orders.resale_listings.price_halire
+[selfcheck] NASEL  orders.lottery_entries.user_id
+[selfcheck] PROSEL — skener zname pripady najde
+```
+
+### c) VYSLEDEK: 36 reportu ma spatny sloupec, 31 z nich bylo AKTIVNICH
+
+```
+definic celkem                 : 198
+se spatnym SLOUPCEM            :  36
+  z toho uz vyrazenych         :   5
+  AKTIVNICH a pritom rozbitych :  31
+```
+
+**Sken sloupcu nasel vic vad nez sken tabulek** (36 vs 15). Prokluz byl
+systematicky: `DISABLED_REPORTS` vzniklo z jedne otazky („existuje tabulka?"),
+takze druhou tridu („existuje sloupec?") neresilo vubec.
+
+Ukazky — nejsou to okrajove reporty:
+
+```
+platform_avg_fees          orders.orders.platform_fee_halire
+ops_invalid_scans          tickets.scan_logs.result, .order_item_id
+srov_promo_efficacy        orders.orders.promo_code
+zakaznici_newsletter       identity.users.marketing_opt_in
+platform_novi_promoteri    platform.promoters.owner_user_id
+marketing_broadcast_prehled communications.broadcasts.name, .channel
+```
+
+Vsech 31 doplneno do `DISABLED_REPORTS` **s uvedenim chybejiciho sloupce**
+(nikoli tabulky) — stejny mechanismus, jen jina hodnota v mape.
+Opravovat je po jednom nema smysl bez rozhodnuti: u `promo_code`,
+`platform_fee_halire` nebo `result` neni z dotazu poznat, jestli se sloupec
+prejmenoval, nebo featura nevznikla.
+
+### d) VERDIKT CISLEM
+
+```
+definic celkem       : 198
+vyrazeno             :  46   (15 chybejici tabulka + 31 spatny sloupec)
+v UI / spustitelnych : 152
+```
+
+⚠️ **„Spustitelnych" NENI totez co „overene funkcnich".** 152 znamena, ze
+projdou **dvema skeny** — chybejici tabulka a chybejici kvalifikovany sloupec.
+Nikdo je nespustil.
+
+### Mez nastroje, kterou cislo nepokryva
+
+```
+nekvalifikovanych sloupcu (NEPOKRYTO): 7
+```
+
+Odkazy typu `SELECT status FROM …` se bez parseru SQL k tabulce priradit nedaji.
+Je jich sedm, takze pokryti je vysoke — ale ne uplne, a rikam to.
+Sken take nevidi sloupce v `CASE`, poddotazech bez aliasu a v dynamicky
+skladanych castech.

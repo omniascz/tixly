@@ -506,3 +506,17 @@ v kodu zustavaji.
 
 Reporty se spatnym SLOUPCEM (jako `udalosti_resell`) vyrazovani proklouzly.
 Kolik jich je, NEVIM — sken na sloupce v reportech neexistuje.
+
+## R-44 VYRESENO (§169) — 31 reportu se spatnym sloupcem doplneno do DISABLED_REPORTS
+
+Novy nastroj `scripts/scan-report-columns.mjs` (self-check prosel).
+Aktivnich reportu: 198 -> 152 (46 vyrazenych: 15 chybejici tabulka,
+31 spatny sloupec).
+POZOR: „spustitelnych 152" NENI „overene funkcnich 152" — projdou jen dvema
+skeny, nikdo je nespustil. 7 nekvalifikovanych sloupcu sken nepokryva.
+
+## R-45 31 vyrazenych reportu ceka na rozhodnuti per sloupec (§169)
+
+U `orders.orders.promo_code`, `platform_fee_halire`, `tickets.scan_logs.result`
+a dalsich neni z dotazu poznat, jestli se sloupec prejmenoval, nebo featura
+nevznikla. Rozhodnout kus po kuse.
