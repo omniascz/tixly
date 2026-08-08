@@ -4126,3 +4126,102 @@ oprava z §172). Overeno ctenim, ne odhadem.
 Poprve to byla dvojice (`payouts-execute`, `daily-stats`), ted sedmice. **Kdyby
 C2 slo pres routovaci strukturu, byla by hotova napoprve.** Seznam v dokumentu
 popisuje, co nekdo videl; struktura popisuje, co existuje.
+
+---
+
+## §176 H: dynamicke dotazy — VERDIKT 257 / 30 / 0 prokazatelne zranitelnych
+
+### Nastroj + SELF-CHECK
+
+`scripts/scan-dynamic-sql.mjs`. Self-check pousti skener na DVE fixtury a chce
+od nej, aby je **rozlisil**:
+
+```
+[selfcheck] bezpecna fixture ($1/$2 placeholdery) nalezena : true
+              … oznacena jako uzivatelska                  : false  (ma byt false)
+[selfcheck] rizikova fixture (ORDER BY ${sp.get('sort')})  : true
+              … oznacena jako uzivatelska                  : true   (ma byt true)
+[selfcheck] PROSEL
+```
+
+Nestaci, aby nastroj neco nasel — musi **nenajít** to, co je v poradku. Bez te
+druhe poloviny by „30 nalezu" nic nerikalo.
+
+### a/d) VERDIKT CISLEM
+
+```
+dynamickych dotazu celkem      : 257
+  z UZIVATELSKEHO vstupu       :  30
+  jen z internich konstant     : 227
+prokazatelne zranitelnych      :   0  (z osmi dohledanych)
+```
+
+⚠️ Cislo **257, ne 135**. Zadani vychazelo ze starsiho mereni; skener hleda
+sablonove literaly obsahujici SQL klicove slovo a `${…}`.
+
+### b) Roztrideni tech 30
+
+```
+lib/ai/*        6   AI PROMPTY, ne SQL — skener chytil slova FROM/SET v proze
+*.tsx stranky   4   fetch URL, ne SQL
+API routy      22   z toho cast jsou nazvy souboru v Content-Disposition
+```
+
+### c) Dohledano osm nejrizikovejsich — vsechny BEZPECNE
+
+| misto | interpolace | proc je to v poradku |
+|---|---|---|
+| `public/events:149` | `ORDER BY ${sort}` | `sort` je **klic do allowlistu** `SORT_MAP` s fallbackem; interpoluje se konstanta, ne vstup |
+| `admin/crm/rfm:54` | `${perPage}` | `Math.min(100, Math.max(1, parseInt(…)))` — cislo, orezane |
+| `admin/notifications/[id]:27` | `${readAtVal}` | ternar -> `'NOW()'` nebo `'NULL'`, konstanty |
+| `admin/events/[id]/guestlist:284` | `${checkinClause}` | ternar -> pevny fragment nebo `''` |
+| `buyer/artists:58` | `${limitParam}` | `params.length`, interni pocet |
+| `.../restore:53` | `${params.chartId}` | je uvnitr **vazane hodnoty**, ne v textu SQL |
+| `admin/accounting/export:157,186` | `${from}-${to}` | nazev souboru v `Content-Disposition` |
+| `admin/reports/pohoda:91` | `${month ?? from}` | id datoveho balicku, ne SQL |
+
+`public/events` je pritom **verejna routa** — kdyby `sort` sel do SQL primo,
+byla by to injekce bez autentizace. Allowlist tam je a funguje; to je ten
+spravny vzor.
+
+### e) Nic k okamzite oprave
+
+**Zadna prokazatelna injekce na dosazitelne ceste.**
+
+⚠️ **Dohledal jsem 8 z 30**, ne vsech tricet. Zbylych 22 jsem netracoval —
+tvrdim tedy „nula prokazatelne zranitelnych **mezi dohledanymi**", ne „nula
+zranitelnych". Zbytek je **nezmereny**, ne cisty. R-50.
+
+## §177 📏 PRAVIDLO: seznam mist k auditu se bere ze STRUKTURY, ne z dokumentu
+
+*„Seznam v dokumentu popisuje, co nekdo videl; struktura popisuje, co existuje."*
+
+Dva pripady z tohohle projektu, oba stalo pul session navic:
+
+**1. C2 podle jmenneho seznamu.** Audit kontraktu cronu sel po **devíti** routach
+vyjmenovanych v §41. Routovaci struktura jich ma **46**. Vysledek:
+
+```
+1. kolo  9 rout auditovano       -> "hotovo"
+2. kolo  nalezeny 2 dalsi vadne  (payouts-execute, daily-stats)
+3. kolo  nalezeno 7 dalsich      (vc. charge-installments, resale-payouts — penize)
+```
+
+Devet auditovanych, devet nalezenych. Zbylych 37 nikdo neotevrel, dokud se
+seznam nevzal z `ls src/app/api/{internal,cron}/*`.
+
+**2. F1 grep jen v `[locale]`.** Pri mazani program-bookletu jsem grepnul
+`src/app/[locale]` a dolozil „odkaz na /program/ z UI: 0 souboru". Cislo bylo
+pravdive — pro ten podstrom. Admin cast (`src/app/admin/...`) jsem neproveril
+a **stranka s zivym odkazem v navigaci prezila**; naslo se to az o dve kola
+pozdeji pri jine praci (§140).
+
+### Pravidlo
+
+**Seznam mist k auditu se bere z routovaci struktury nebo z katalogu databaze,
+nikdy z dokumentu ani z predchoziho nalezu.** Dokument je vysledek minuleho
+hledani, ne popis reality — pouzit ho jako vstup znamena zdedit jeho slepa mista.
+
+Prakticky: `walk('src/app')`, `pg_policies`, `pg_class`, `readdirSync(migrations)`.
+Kdyz uz seznam v kodu byt musi, musi u nej stat, **proti cemu se overuje, ze je
+uplny** (§82).

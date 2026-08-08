@@ -557,3 +557,10 @@ vyjadrit neumi.
 `broadcast-send`, `abandoned-cart`, `charge-installments`, `recompute-dynamic-pricing`,
 `refresh-spotify`, `send-reminders`, `resale-payouts`. Dve se tykaly penez.
 Poucení: audit podle routovaci struktury, ne podle seznamu v dokumentu.
+
+## R-50 22 z 30 dynamickych dotazu s uzivatelskym vstupem NEDOHLEDANO (§176)
+
+Dohledano 8 nejrizikovejsich — vsechny bezpecne (allowlist, orezane cislo,
+konstanty, vazane hodnoty, nazvy souboru). Zbylych 22 je NEZMERENYCH, ne cistych.
+Nastroj: `node scripts/scan-dynamic-sql.mjs` (self-check rozlisi bezpecny
+a rizikovy vzor).
