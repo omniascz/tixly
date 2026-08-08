@@ -4435,3 +4435,174 @@ neda.
 
 **NEZPRACOVANO** — dosel kontext. Zustava jako dalsi krok; vzorkovani podle
 tvaru predikatu (§53) je pripravene jako metoda.
+
+---
+
+## §184 — 93 buyer-only policies: 19 vzorcu, vsech 19 zmereno, nula uniku
+
+Buyer byl dlouho slepa dimenze (§107): merilo se pod promoterem, a kdyz se buyer
+poprve zmeril, nasel rozbite socialni funkce. Tohle je prvni uplne mereni te
+dimenze.
+
+### Vymezeni mnoziny — z katalogu, ne ze seznamu (§177)
+
+`pg_policies` na klonu se vsemi migracemi:
+
+```
+policies, ktere zminuji current_user_id             : 178
+  z toho i promoter_id (smisena dimenze)            :  85
+  ciste BUYER-ONLY                                  :  93   <- tato mnozina
+```
+
+Cislo 93 z §43 sedi.
+
+### a) Kolik distinktnich tvaru: 19
+
+Normalizace stejna jako u 64 vzorcu v §53 — jmena tabulek/sloupcu a literaly se
+nahradi zastupci, zbyde kostra predikatu.
+
+```
+ 1)  56x  app_is_platform_admin() OR app_is_service() OR (X = app_current_user_id())
+ 2)   6x  (X)::text = current_setting('app.current_user_id', true)
+ 3)   6x  app_is_service() OR app_is_platform_admin() OR (X = app_current_user_id())
+ 4)   5x  X = app_current_user_id()
+ 5)   3x  admin-GUC OR EXISTS (SELECT 1 FROM orders.orders o WHERE o.id = X AND o.user_id = ...)
+ 6)   2x  X IN (SELECT id FROM <owner tabulka> WHERE user_id = ...)
+ 7)   2x  app_is_platform_admin() OR ((X)::text = current_setting(...))
+ 8)   2x  ((X)::text = current_setting(...)) OR (admin GUC)
+ 9-19)  po 1x
+```
+
+Jeden vzor pokryva 56 z 93. Prvni ctyri tvary pokryvaji 73 z 93 (78 %).
+Mereni zbylych 74 policies by tedy melo maly informacni prinos — proto vzorek.
+
+### b) Mereni: jeden reprezentant na vzor
+
+`tests/buyer-policies.live.test.ts`, klon pod `tixly_app` (BYPASSRLS=false).
+Zaklada se dvojice radku (vlastnik A / cizi B) a cte se pod kontextem A.
+
+```
+ 1. auth.passkey_challenges.p_rls_passkey_challenges        sve=1 cizi=0  OK
+ 2. compliance.dsa_reports.dsa_reports_own                  sve=1 cizi=0  OK
+ 3. identity.user_secrets.p_user_secrets_scope              sve=1 cizi=0  OK
+ 4. identity.oauth_accounts.p_oauth_accounts_owner_read     sve=1 cizi=0  OK
+ 5. orders.postal_deliveries.postal_deliveries_buyer        sve=1 cizi=0  OK
+ 6. marketing.loyalty_transactions.loyalty_tx_owner         sve=1 cizi=0  OK
+ 7. marketing.user_spotify_connections.p_spotify_conn_own   sve=1 cizi=0  OK
+ 8. orders.identity_verifications.identity_verif_own_select sve=1 cizi=0  OK
+ 9. catalog.scanner_devices.platform_admin_devices          buyer=0 admin=1  OK
+10. identity.eudi_verifications.p_eudi_verifications_scope  sve=1 cizi=0  OK
+11. identity.magic_link_tokens.magic_link_tokens_owner      sve=1 cizi=0  OK
+12. identity.oauth_accounts.oauth_accounts_own              sve=1 cizi=0  OK
+13. lineups.artist_follows.artist_follows_own               sve=1 cizi=0  OK
+14. marketing.ticket_alerts.ticket_alerts_select            sve=1 cizi=0  OK
+15. orders.party_split_slots.party_split_slots_write        sve=1 cizi=0  OK
+16. orders.ticket_transfers.p_ticket_transfers_service      sve=1 cizi=0  OK
+17. orders.ticket_transfers.ticket_transfers_sender         sve=1 cizi=0  OK
+18. orders.transit_passes.transit_passes_buyer_owns         sve=1 cizi=0  OK
+19. resale.resale_listings.resale_listings_buyer_view       sve=1 cizi=0  OK
+
+SOUHRN: OK=19  UNIK=0  ROZBITE=0  NEVIM=0  z 19
+```
+
+Vzor 9 (`scanner_devices`) neni o vlastnictvi, ale o tom, jestli je uzivatel
+admin. Merila se proto jina dvojice: bezny buyer nevidi, platform admin vidi.
+Oznacit ho za "mimo rozsah" by byla vyhybka — predikat jde overit, jen jinak.
+
+### c) Ctyri artefakty seedu, ktere by se hlasily jako nalezy (§183)
+
+Prvni beh dal OK=7 a jeden UNIK. Ani jedno nebyl nalez:
+
+| tabulka | co vypadalo jako vada | co to bylo |
+|---|---|---|
+| `resale_listings` | UNIK — buyer vidi cizi radek | prvni vetev je `status = 'active'` = verejny marketplace. Default sloupce je `'active'`, takze seed vyrobil verejny radek. S `status='expired'` je izolace v poradku. |
+| `party_split_sessions` | seed 23514 | `CHECK (total_slots >= 2)`, seeder plnil 1 |
+| `user_secrets` | seed 23505 | PK je `user_id` a radek uz zalozil fullChain — existujici radek se ma pouzit, ne zakladat znovu |
+| `loyalty_transactions`, `passkey_challenges` | seed 23514 | CHECK vycty (`kind`, `type`) — hodnota se musi vzit z vyctu |
+
+"UNIK" je artefakt stejne casto jako "vlastni nevidi". §183 varoval jen pred
+druhym smerem; tenhle beh ukazal i prvni. Verejna vetev v policy (`status =
+'active'`, `is_public`) vyrobi falesny unik pokazde, kdyz seed necha default.
+
+Reseni v nastroji: seeder se ridi katalogem — `pg_constraint` pro CHECK vycty
+i ciselne meze, `pg_constraint contype='f'` pro FK cile (vc. jednourovnoveho
+doseedovani prazdne cilove tabulky), `pg_index indisprimary` pro PK sloupec.
+Po tom 19/19 bez jedineho NEVIM.
+
+### d) VERDIKT
+
+```
+vzorcu (tvaru predikatu)  : 19   (pokryvaji vsech 93 policies)
+zmereno chovanim          : 19
+rozbitych                 :  0
+uniku                     :  0
+NEVIM                     :  0
+```
+
+Co tim netvrdim: zmereno je 19 policies z 93, ne vsech 93. Tvrzeni je
+"kazdy TVAR predikatu se chova spravne na svem reprezentantovi", ne "kazda ze
+93 tabulek je v poradku" — dve policies stejneho tvaru se muzou lisit tim, na
+ktery sloupec koreluji, a spatny sloupec by tenhle vzorek neodhalil.
+
+---
+
+## §185 — R-53: `transit_passes` — admin vetev je MRTVA (drift jmena GUC)
+
+`orders.transit_passes` byla jedina NEJASNA policy z §108; korelace na orders se
+tehdy nenasla.
+
+Ci data to jsou: kupujiciho. Policy koreluje pres
+`order_id IN (SELECT id FROM orders.orders WHERE user_id = app_current_user_id())`.
+Zapisuje ji jedina routa, `buyer/orders/[orderId]/transit-pass`.
+
+Vlastnicka vetev funguje — zmereno jako vzor 18 v §184 (sve=1, cizi=0).
+
+Administratorska vetev nefunguje. Cte `current_setting('app.platform_admin')`
+— bez `is_`. Aplikace tenhle GUC nenastavuje nikde; standard je
+`app.is_platform_admin` pres helper `app_is_platform_admin()`. V celych migracich
+je `app.platform_admin` prave jednou, a to tady.
+
+Migrace 455 tuhle tridu driftu popsala jmenovite a mela ji uzavrit — tenhle
+vyskyt ji unikl, protoze 455 resila schema `identity`, kdezto policy je v
+`orders`. Uklid podle schematu nechal jeden vyskyt tridy zivy.
+
+Neni to unik: mrtva vetev nikoho nepousti navic, jen nepousti admina. Riziko je
+opacne nez u driftu obvykle — nezvysuje opravneni, snizuje.
+
+RED -> GREEN (migrace 471, mereno na klonu):
+
+```
+admin PRED mig471 = 0     PO = 1     |  buyer sve=1  cizi=0
+```
+
+---
+
+## §186 — Holy `SET` prezije spojeni a prosakne do dalsiho mereni
+
+Pri mereni R-53 vratil cerstvy klient `current_setting('app.is_platform_admin')
+= 'true'`, aniz to kdo na tom spojeni nastavil. Predchozi mereni pouzilo
+`SET app.is_platform_admin='true'` (bez `LOCAL`); to prezije konec transakce a pri
+recyklaci spojeni se dostane k dalsimu klientovi. Vysledek: buyer se meril s
+admin priznakem a vysel z toho falesny unik (`cizi=1`).
+
+Je to tataz pricina jako R-15 (flakiness zive sady, `setPid=778 queryPid=781`)
+— jen videna z druhe strany: tam se kontext ztratil, tady prosakl.
+
+Oprava v mereni: `BEGIN; SET LOCAL …; SELECT …; COMMIT`. Po ni je `g=""`,
+`app_is_platform_admin()=false` a vysledky sedi.
+
+Dusledek pro cteni starsich cisel: kazde mereni, ktere nastavuje GUC holym `SET`
+a pak meri neco jineho, je potencialne kontaminovane. V §184 kontaminace nenastala
+— jediny admin `SET` byl u vzoru 9 a vsech deset nasledujicich vzoru vyslo
+`cizi=0`, coz by pri prosaknuti byt nemohlo.
+
+---
+
+## §187 — Metodicka poznamka: klon aplikuje i migraci, kterou zrovna testujes
+
+Prvni mereni R-53 hlasilo `admin PRED mig471 = 1`, tedy ze vetev funguje uz pred
+opravou. Duvod: `createLiveClone` aplikuje vsechny soubory z `../migrations`,
+vcetne 471, ktery jsem prave zalozil. "Pred" stav tedy na klonu neexistoval.
+
+RED–GREEN test nove migrace musi puvodni stav explicitne obnovit (DROP + CREATE
+puvodniho textu), jinak meri dvakrat "po".

@@ -581,3 +581,34 @@ box_office_sales/sessions_promoter, seat_upgrades_buyer, travel_bookings_select,
 wero_webhooks_tenant_isolation (FK retez), ticket_transfers_insert (test meri
 jen SELECT).
 Nastroj: `tests/mig455.live.test.ts` — seed z introspekce, NEVIM misto hadani.
+
+## R-53 — `orders.transit_passes`: mrtva admin vetev (drift jmena GUC) — OPRAVENO
+
+Policy `transit_passes_buyer_owns` cetla `current_setting('app.platform_admin')`
+misto `app.is_platform_admin`. Aplikace ten GUC nenastavuje nikde, vetev byla
+trvale false: platform admin transit_passes nevidel. Jediny vyskyt teto varianty
+jmena v celych migracich.
+
+Migrace `471_transit_passes_admin_guc_drift.sql`. Mereno na klonu:
+`admin PRED=0 PO=1`, buyer izolace zachovana (`sve=1 cizi=0`). Detail §185.
+
+Servisni vetev se NEPRIDAVALA — v puvodni policy nebyla a pridat ji by znamenalo
+rozsirit pristup nad ramec toho, co autor napsal.
+
+## R-54 — Mereni GUC musi pouzivat `SET LOCAL`, ne holy `SET`
+
+Holy `SET` prezije transakci i klienta a pri recyklaci spojeni prosakne do dalsiho
+mereni; zpusobil falesny unik. Stejna pricina jako R-15. Opraveno v
+`tests/buyer-policies.live.test.ts` (BEGIN / SET LOCAL / COMMIT).
+
+Zbyva projit ostatni zive testy a nahradit v nich holy `SET` — dokud se to
+neudela, kazde cislo z testu, ktery nastavuje admin/service GUC a pak meri neco
+jineho, je potencialne kontaminovane. Detail §186.
+
+## R-55 — 74 z 93 buyer-only policies zmereno jen pres vzor
+
+§184 zmerilo 19 reprezentantu, po jednom na tvar predikatu; pokryvaji vsech 93.
+Netvrdi to ale, ze zbylych 74 je v poradku — dve policies stejneho tvaru se muzou
+lisit tim, na ktery sloupec koreluji. Nizka priorita: nejcastejsi tvar (56x) je
+trivialni `X = app_current_user_id()` a lisit se muze jen jmenem sloupce, ktere
+jde overit staticky proti katalogu.
