@@ -4290,3 +4290,68 @@ dynamickych dotazu celkem : 257
 Skener vidi **sablonove literaly**. Nevidi SQL slozene konkatenaci pres vic
 promennych, SQL vracene z funkce jako retezec, ani dotazy stavene v knihovnach
 mimo `src/`. Tvrdim „nula mezi 30 nalezenymi", ne „nula v repu".
+
+---
+
+## §179 ✅ T4 triage: 7 HIGH, vsech 7 SKUTECNYCH, nula false positives
+
+### Cislo je 52, ne 59
+
+Zadani mluvilo o 59. Aktualni beh `schema-reality-scan.mjs` dava **T4 = 52**.
+Rozdil jsou nalezy, ktere behem tehle prace zmizely samy — opravene prefixy
+(§155, §157), `seat_assignments` -> `tickets.seat_id` (§166), `group_discounts`
+-> `group_discount_tiers` (§161).
+
+```
+T4 celkem : 52
+  high    :  7
+  medium  : 16
+  low     : 29
+```
+
+### a/b) HIGH prosleho po jednom, overeno INTROSPEKCI
+
+| # | misto | identifikator | verdikt |
+|---|---|---|---|
+| 1 | `gift/[token]:201` | `tt.sort_order` na `catalog.ticket_types` | **SKUTECNY** |
+| 2–7 | `cron/seat-upgrade-notify:77` | `s2.{event_id, zone_name, is_available, is_held, row_label, label}` na `catalog.seats` | **SKUTECNE** (6×) |
+
+Introspekce (ne odhad):
+
+```
+catalog.ticket_types  radici sloupec: ZADNY (ani sort_order, ani display_order)
+catalog.seats         ma: id, venue_id, section, seat_number, zone, status,
+                          locked_by_order_id, locked_until, created_at
+```
+
+**FALSE POSITIVES mezi HIGH: 0.**
+
+### e) Sest z nich uz zname, sedmy opraven
+
+Sest je `seat-upgrade-notify` — presne ty sloupce, ktere §167 vyjmenoval, kdyz
+jsem ten job vracel mezi vypnute. **T4 to nasel nezavisle a shodne**, coz je
+dobra zprava o skeneru: bez nej by se to naslo zas jen nahodou pri jine praci.
+
+Sedmy je novy a **dosazitelny**: `gift/[token]` je verejne uplatneni darkoveho
+poukazu. `ORDER BY tt.sort_order ASC NULLS LAST, tt.base_price ASC` koncilo
+42703, takze cesta padala. Opraveno na razeni cenou — sloupec, ktery existuje.
+
+### c) Medium/low jen spocitany
+
+16 medium, 29 low. **Neprochazel jsem je** dle zadani. Konfidence je odvozena
+z **poctu aliasu v dotazu** (`<=2` high, `<=4` medium, jinak low) — je to proxy
+za „jak snadno se dal alias splest", ne mira jistoty nalezu.
+
+### d) VERDIKT: heuristiku T4 UDRZOVAT
+
+False-positive rate u HIGH je **0 %** (7 ze 7 skutecnych, obojí potvrzeno
+introspekci). To je presne opacny zaver, nez zadani pripoustelo — T4 se
+vyndavat nema.
+
+⚠️ Plati to **jen pro HIGH**. O medium/low neříkám nic; ta konfidence stoji na
+proxy, takze jejich FP rate muze byt uplne jiny. Kdyby se mel T4 nekdy krotit,
+prah je u nich, ne u HIGH.
+
+🔎 Jedna vec za pozornost: mezi medium byl `d.d -> conference.days.d`, coz
+vypada na artefakt parseru (vzor `alias.sloupec` chytil neco, co sloupec neni).
+**Neoveroval jsem to** — je to jen dojem z jednoho radku, ne mereni.

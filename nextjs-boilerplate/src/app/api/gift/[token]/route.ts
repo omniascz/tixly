@@ -200,7 +200,10 @@ export async function POST(
         const ttRes = await client.query<{ id: string }>(
           `SELECT tt.id FROM catalog.ticket_types tt
             WHERE tt.event_id = $1 AND tt.remaining_qty > 0
-            ORDER BY tt.sort_order ASC NULLS LAST, tt.base_price ASC
+            -- T4: catalog.ticket_types NEMA sort_order (ani jiny radici sloupec) —
+            -- overeno introspekci, ne odhadem. ORDER BY na nem koncil 42703 a routa
+            -- (verejne uplatneni darkoveho poukazu) padala. Radi se cenou.
+            ORDER BY tt.base_price ASC
             LIMIT 1`,
           [selectedEventId],
         );

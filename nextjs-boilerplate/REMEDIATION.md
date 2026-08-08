@@ -566,3 +566,10 @@ Dohledano 8 nejrizikovejsich — vsechny bezpecne (allowlist, orezane cislo,
 konstanty, vazane hodnoty, nazvy souboru). Zbylych 22 je NEZMERENYCH, ne cistych.
 Nastroj: `node scripts/scan-dynamic-sql.mjs` (self-check rozlisi bezpecny
 a rizikovy vzor).
+
+## R-51 T4 medium (16) a low (29) neotriagovane (§179)
+
+HIGH ma FP rate 0 % (7/7 skutecnych) — heuristiku UDRZOVAT.
+Medium/low stoji na proxy konfidenci (pocet aliasu v dotazu), jejich FP rate
+neni zmereny. Mezi medium je podezreni na artefakt parseru
+(`d.d -> conference.days.d`), NEOVERENO.
