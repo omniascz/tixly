@@ -23,7 +23,7 @@ async function GETImpl(
          JOIN catalog.events et ON et.id = o.event_id
          JOIN catalog.venues v ON v.id = et.venue_id
          JOIN catalog.ticket_types tty ON tty.id = tt.ticket_type_id
-        WHERE tr.token = $1`,
+        WHERE tr.transfer_token = $1`,
       [params.token],
     );
     if (r.rowCount === 0) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });

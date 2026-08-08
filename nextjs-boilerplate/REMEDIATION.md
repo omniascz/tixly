@@ -458,3 +458,10 @@ Vyrazeno z registru pres `DISABLED_REPORTS` v `src/lib/reports/registry.ts`
 `my/orders/[id]/upgrade-options` (`catalog.seat_maps`, `seat_map_entries`).
 `lib/ai/smart-send-time.ts` (`marketing.email_opens`,
 `campaign_recipient_events`) je podle vseho nedostaveny subsystem.
+
+## R-40 `tickets/transfer/[token]` vraci 404 i po oprave sloupce (§162)
+
+`tr.token` -> `tr.transfer_token` opraveno (42703 pryc), ale GET dal vraci
+`404 NOT_FOUND` a POST `500`, ackoli radek v `orders.ticket_transfers` existuje.
+Dotaz ma pet JOINu (tickets, orders, events, venues, ticket_types) — nektery
+radek zahazuje. Nedohledano.

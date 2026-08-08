@@ -69,4 +69,104 @@ d('obalene routy — pozitivni cesta', () => {
     console.log('[platform/artists]', out.status, out.body);
     expect(out.status).toBeLessThan(500);
   }, 120_000);
+
+  // ── platform-admin token ────────────────────────────────────────────────
+  // Fixture ho neumi, ale vyrobit jde: platform-auth.ts overuje `jose` JWT
+  // proti JWT_SECRET a chce `sub` + `roles.isPlatformAdmin`. Dev fallback
+  // secretu je v kodu, takze test nepotrebuje zadnou env.
+  const adminToken = async (userId: string) => {
+    const { SignJWT } = await import('jose');
+    const secret = new TextEncoder().encode(
+      process.env.JWT_SECRET ?? 'dev-secret-change-me-min-32-chars-please');
+    return new SignJWT({ roles: { isPlatformAdmin: true } })
+      .setProtectedHeader({ alg: 'HS256' }).setSubject(userId)
+      .setExpirationTime('1h').sign(secret);
+  };
+
+  it('platform/artists — s platform-admin tokenem (drive 403)', async () => {
+    await clone.pool.query('UPDATE identity.users SET is_platform_admin = true WHERE id = $1',
+      [chain.adminUserId]).catch((e) => console.log('admin flag:', e.code));
+    const tok = await adminToken(chain.adminUserId);
+    const { GET } = await import('@/app/api/platform/artists/route');
+    const res = await GET(new NextRequest('http://localhost:3000/api/platform/artists',
+      { headers: { authorization: `Bearer ${tok}` } }) as never);
+    console.log('[platform/artists]', res.status, (await res.text()).slice(0, 110));
+  }, 120_000);
+
+  it('platform/postal — GET seznam s admin tokenem', async () => {
+    const tok = await adminToken(chain.adminUserId);
+    const { GET } = await import('@/app/api/platform/postal/route');
+    const res = await GET(new NextRequest('http://localhost:3000/api/platform/postal',
+      { headers: { authorization: `Bearer ${tok}` } }) as never);
+    console.log('[platform/postal]', res.status, (await res.text()).slice(0, 110));
+  }, 120_000);
+
+  it('my/tickets/[ticketId]/transfer — GET vlastnik vs CIZI (izolace)', async () => {
+    const t = await clone.pool.query('SELECT id FROM tickets.tickets WHERE order_id=$1 LIMIT 1',
+      [chain.orderId]);
+    const tid = t.rows[0]?.id as string;
+    const { GET } = await import('@/app/api/my/tickets/[ticketId]/transfer/route');
+    const hit = async (uid: string) => {
+      const r = await GET(new NextRequest(`http://localhost:3000/api/my/tickets/${tid}/transfer`,
+        { headers: { 'x-user-id': uid } }) as never, { params: { ticketId: tid } } as never);
+      return `${r.status} ${(await r.text()).slice(0, 70)}`;
+    };
+    console.log('[my/tickets/transfer] vlastnik', await hit(chain.userId));
+    console.log('[my/tickets/transfer] CIZI    ', await hit(cizi.id));
+  }, 120_000);
+
+  it('cron/release-group-invite-holds — servisni kontext', async () => {
+    process.env.INTERNAL_SERVICE_TOKEN = 'test-cron-secret';
+    const { POST } = await import('@/app/api/internal/cron/release-group-invite-holds/route');
+    const res = await POST(new NextRequest('http://localhost:3000/x',
+      { method: 'POST', headers: { 'x-internal-token': 'test-cron-secret' } }) as never);
+    console.log('[cron/release-group-invite-holds]', res.status, (await res.text()).slice(0, 110));
+  }, 120_000);
+
+  it('my/tickets/transfer POST -> tickets/transfer/[token] GET+POST', async () => {
+    const t = await clone.pool.query('SELECT id FROM tickets.tickets WHERE order_id=$1 LIMIT 1',
+      [chain.orderId]);
+    const tid = t.rows[0]?.id as string;
+    // 1) vlastnik zalozi prevod
+    const { POST: startTransfer } = await import('@/app/api/my/tickets/[ticketId]/transfer/route');
+    const r1 = await startTransfer(new NextRequest(`http://localhost:3000/x`, {
+      method: 'POST', headers: { 'x-user-id': chain.userId, 'content-type': 'application/json' },
+      body: JSON.stringify({ toEmail: cizi.email }),
+    }) as never, { params: { ticketId: tid } } as never);
+    const b1 = await r1.text();
+    console.log('[my/tickets/transfer POST]', r1.status, b1.slice(0, 110));
+    const tok = await clone.pool.query(
+      'SELECT transfer_token FROM orders.ticket_transfers WHERE ticket_id=$1 ORDER BY created_at DESC LIMIT 1', [tid]);
+    const token = tok.rows[0]?.transfer_token as string | undefined;
+    console.log('[transfer] token v DB =', token ? 'ANO' : 'NE');
+    if (!token) return;
+    // 2) GET je VEREJNY — prijemce jeste neni prihlaseny
+    const { GET, POST } = await import('@/app/api/tickets/transfer/[token]/route');
+    const g = await GET(new NextRequest(`http://localhost:3000/x`) as never,
+      { params: { token } } as never);
+    console.log('[transfer/token GET verejny]', g.status, (await g.text()).slice(0, 100));
+    // 3) POST prijme prihlaseny prijemce
+    const pr = await POST(new NextRequest(`http://localhost:3000/x`, {
+      method: 'POST', headers: { 'x-user-id': cizi.id, 'content-type': 'application/json' },
+      body: JSON.stringify({}),
+    }) as never, { params: { token } } as never);
+    console.log('[transfer/token POST prijemce]', pr.status, (await pr.text()).slice(0, 100));
+  }, 180_000);
+
+  it('platform/postal/[id] PATCH s admin tokenem', async () => {
+    const tok = await adminToken(chain.adminUserId);
+    const d = await clone.pool.query(
+      `INSERT INTO orders.postal_deliveries
+         (order_id, recipient_name, address_line1, city, postal_code, status)
+       VALUES ($1,'Prijemce','Ulice 1','Praha','11000','pending') RETURNING id`,
+      [chain.orderId]).catch((e) => { console.log('postal seed:', e.code, e.message.slice(0, 60)); return null; });
+    if (!d) return;
+    const id = d.rows[0].id as string;
+    const { PATCH } = await import('@/app/api/platform/postal/[id]/route');
+    const r = await PATCH(new NextRequest('http://localhost:3000/x', {
+      method: 'PATCH', headers: { authorization: `Bearer ${tok}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ status: 'dispatched' }),
+    }) as never, { params: { id } } as never);
+    console.log('[platform/postal/[id] PATCH]', r.status, (await r.text()).slice(0, 110));
+  }, 120_000);
 });

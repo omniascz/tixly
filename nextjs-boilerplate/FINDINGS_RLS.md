@@ -3420,3 +3420,85 @@ Tataz trida jako §127.
 `foyer-orders/route.ts` odkaz uz nema — skener chytil **slovo v komentari**.
 Vzory hledaji `FROM <schema>.<tabulka>`, coz v prozaickem komentari nastat muze.
 Cislo 25 je tedy **horni odhad**; komentarove zminky se od kodu nerozlisuji.
+
+---
+
+## §162 Obalene routy: 5 z 8 dolozeno zelene, seed sdileny podle plánu
+
+Vsechno na jednom `fullChain()` — potvrzeno, ze retez stacil a nemusel se
+stavet devetkrat.
+
+### Dolozeno primym behem
+
+```
+[my/tickets/transfer GET]     vlastnik 200 {"ticket":{"id":"5e6c5097-…","status":"valid"…
+[my/tickets/transfer GET]     CIZI     404 {"error":"NOT_FOUND"}          <- izolace
+[my/tickets/transfer POST]    201 {"token":"msfMTGuTPke0B_Jo…","toEmail":"cizi-…"}
+[platform/artists]            200 {"artists":[]}          (drive 403)
+[platform/postal]             200 {"deliveries":[]}
+[platform/postal/[id] PATCH]  200 {"updated":true}
+[cron/release-group-invite-holds] 200 {"ok":true,"releasedHoldSeats":0,…}
+```
+
+### d) Platform-admin token JDE vyrobit — fixture ho jen neumela
+
+`platform-auth.ts` overuje `jose` JWT proti `JWT_SECRET` a chce `sub`
++ `roles.isPlatformAdmin`. Dev fallback secretu je primo v kodu, takze test
+nepotrebuje zadnou env:
+
+```ts
+new SignJWT({ roles: { isPlatformAdmin: true } })
+  .setProtectedHeader({ alg: 'HS256' }).setSubject(userId)
+  .setExpirationTime('1h').sign(secret)
+```
+
+Tim padly **tri** routy naráz (`platform/artists`, `platform/postal`,
+`platform/postal/[id]`), ktere do ted vracely 403.
+
+### b) Izolace u `my/*` — dolozena
+
+`my/tickets/[ticketId]/transfer`: vlastnik dostane lístek, cizi uzivatel `404`.
+`my/orders/[id]/upgrade-options`: cizi `404` (vlastnik blokovan R-33).
+
+### e) 🔴 PEEL: `tickets/transfer/[token]` mel spatny nazev sloupce
+
+```
+error: column tr.token does not exist  (42703)
+```
+
+Tabulka `orders.ticket_transfers` ma **`transfer_token`**, ne `token`.
+Opraveno (1 vyskyt). Po opravě dotaz **bezi**, ale vraci `404` — nektery
+z peti JOINu radek zahazuje. **Neni to dořešené** a rikam to: GET vraci 404
+a POST `500`. Dalsi vrstva pod tim je, nenasel jsem ji.
+
+### c) Verejna vetev GET vs uzivatelska POST
+
+Obe se daly zavolat zvlast (GET bez hlavicky, POST s `x-user-id` prijemce),
+takze **rozdeleni vetvi ze §98 je funkcni** — chyba je az v dotazu, ne
+v kontextu.
+
+### f) Kolik z osmi
+
+| routa | stav |
+|---|---|
+| `my/tickets/[ticketId]/transfer` (GET+POST) | ✅ dolozeno + izolace |
+| `platform/artists` | ✅ dolozeno |
+| `platform/postal` | ✅ dolozeno |
+| `platform/postal/[id]` | ✅ dolozeno |
+| `cron/release-group-invite-holds` | ✅ dolozeno |
+| `cron/seat-upgrade-notify` | ⛔ vypnuty (F6) — nedosazitelny |
+| `tickets/transfer/[token]` | 🟡 sloupec opraven, **404/500 zustava** |
+| `my/orders/[id]/upgrade` | ⏭️ **nezkouseno** — dosel kontext |
+
+**5 z 8 dolozeno zelene**, 1 vypnuty, 1 castecne, 1 nezkouseny.
+
+### Seedove pasti (stalo to tri pokusy)
+
+```
+recipientEmail -> spravne je toEmail          (my/tickets/transfer)
+status 'shipped' -> povolene: pending, dispatched, delivered, returned
+orders.postal_deliveries NOT NULL: recipient_name, address_line1, city, postal_code
+```
+
+Vsechny tri jsem si zpusobil odhadem misto ctenim — tataz chyba jako
+`amount_halire` v §145.
