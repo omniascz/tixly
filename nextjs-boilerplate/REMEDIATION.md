@@ -490,3 +490,19 @@ POZOR: routa ma i druhou vadu (§127, chybejici parametry) — ta uz opravena je
 `listing_price_halire`). Report proti nemu bezi a v `DISABLED_REPORTS` NENI,
 protoze sken hleda chybejici TABULKY, ne sloupce. Bud opravit sloupec (R-37),
 nebo report vyradit.
+
+## R-42 AKTUALIZACE (§167): job zustava vypnuty, ale z JINEHO duvodu
+
+Premisa „chybi orders.seat_assignments" neplatila (sedadlo je na
+`orders.order_items.seat_id`), ale pod ni je retez: `o.buyer_email`, `e.name`,
+`s.zone_name`, `s.row_label`, `s.label`. `catalog.seats` ma `zone`, `section`,
+`seat_number`. Routa je psana proti JINEMU SCHEMATU sedadel — neni to zamena,
+je to prepis. Tri opravy (oi.seat_id, buyer_email pres identity.users, e.title)
+v kodu zustavaji.
+
+## R-43 VYRESENO (§168) — `re.price_halire` -> `re.listing_price_halire`
+
+## R-44 `DISABLED_REPORTS` vzniklo ze skenu TABULEK, ne sloupcu (§168)
+
+Reporty se spatnym SLOUPCEM (jako `udalosti_resell`) vyrazovani proklouzly.
+Kolik jich je, NEVIM — sken na sloupce v reportech neexistuje.

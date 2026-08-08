@@ -3691,3 +3691,84 @@ udelat tutez zamenu. Neudelal jsem to (je mimo zadani), ale F6 uz neni
 
 **7 z 8 dolozeno zelene.** Osmy je `cron/seat-upgrade-notify`, ktery je vypnuty —
 a podle §166 uz zbytecne.
+
+---
+
+## §167 R-42: premisa NEPLATILA, ale job zustava vypnuty — pod ni je RETEZ
+
+### a) `seat_assignments` byla odbocka i tady
+
+```
+LEFT JOIN orders.seat_assignments sa ON sa.order_item_id = oi.id
+LEFT JOIN catalog.seats s ON s.id = sa.seat_id
+```
+
+`orders.order_items` ma **`seat_id` primo na sobe** — stejne jako
+`tickets.tickets` (§166). Join pres spojovaci tabulku odpada cely:
+
+```
+LEFT JOIN catalog.seats s ON s.id = oi.seat_id
+```
+
+**Premisa „subsystem nevznikl" tedy opravdu neplatila.** Ale…
+
+### 🔴 PEEL: pod ni jsou JESTE CTYRI vrstvy
+
+Kazda vyskocila teprve po opraveni te predchozi:
+
+```
+1. relation "orders.seat_assignments" does not exist   -> opraveno (oi.seat_id)
+2. column o.buyer_email does not exist                 -> opraveno (JOIN identity.users bu)
+3. column e.name does not exist                        -> opraveno (e.title)
+4. column s.zone_name does not exist                   -> NEOPRAVENO
+```
+
+A `catalog.seats` ma ve skutecnosti:
+
+```
+id, venue_id, section, seat_number, zone, status, locked_by_order_id, locked_until
+```
+
+Routa chce `zone_name`, `row_label`, `label` — **tri dalsi neshody naráz**.
+
+### c) VERDIKT: neni to zamena, je to prepis
+
+Job **vracim mezi vypnute**. Nechat zapnuty job, ktery po peti opravach porad
+pada, by bylo horsi nez ho nechat vypnuty s pravdivym duvodem.
+
+🔧 **Duvod vypnuti se ale MENI** a to je podstatne: nebylo to „chybi tabulky",
+byla to **routa psana proti jinemu schematu sedadel**. Rozdil je prakticky —
+u „chybi tabulka" se ceka na migraci, u „jine schema" se ma prepsat dotaz.
+
+Tri opravy (`oi.seat_id`, `buyer_email` pres `identity.users`, `e.title`)
+v kodu **zustavaji** — jsou spravne bez ohledu na to, jestli je job zapnuty.
+
+### Co to rika o vypinani obecne
+
+Vypnout neco s odůvodněním „subsystem nevznikl" je levne a **schovava to, jak
+hluboko vada saha**. U `seat-upgrade-notify` se za jednou vetou skryvalo pet
+vrstev. Kdyby se to tehdy odloupalo, vedelo by se, ze to neni cekani na migraci.
+
+## §168 R-43: `udalosti_resell` opraven, ne vyrazen
+
+### a) Ktery sloupec
+
+```
+orders.resale_listings : event_id, sold_at, status, listing_price_halire, original_price_halire
+resale.resale_listings : ask_price, original_price, sold_at, status, original_purchase_price_halire
+```
+
+Dotaz joinuje `re.event_id` a filtruje `re.sold_at` — obojí ma **jen
+`orders.resale_listings`**, coz potvrzuje prefix z §157. Trzba z prodaneho
+resale je **`listing_price_halire`**.
+
+### b) Opraveno, ne vyrazeno
+
+`re.price_halire` -> `re.listing_price_halire`. Report se do
+`DISABLED_REPORTS` nepridava — tabulka existuje, sloupec taky, jen se jmenoval
+jinak.
+
+⚠️ Zaroven to ukazuje **mezeru v tom, jak se vyrazovalo**: `DISABLED_REPORTS`
+vzniklo ze skenu chybejicich TABULEK, takze reporty se spatnym SLOUPCEM jim
+proklouzly. Kolik jich takovych je, **NEVIM** — sken na sloupce v reportech
+neexistuje.

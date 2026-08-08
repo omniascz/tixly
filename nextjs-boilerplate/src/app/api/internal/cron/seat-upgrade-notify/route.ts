@@ -37,9 +37,9 @@ export async function POST(req: NextRequest): Promise<Response> {
       }>(
         `SELECT DISTINCT ON (o.id)
                 o.id AS order_id,
-                o.buyer_email,
+                bu.email AS buyer_email,
                 o.event_id,
-                e.name AS event_title,
+                e.title AS event_title,
                 e.date_start::text,
                 s.zone_name,
                 s.row_label AS current_row,
@@ -49,8 +49,11 @@ export async function POST(req: NextRequest): Promise<Response> {
            JOIN orders.order_items oi ON oi.order_id = o.id
            JOIN catalog.ticket_types tt ON tt.id = oi.ticket_type_id
            JOIN catalog.events e ON e.id = o.event_id
-           LEFT JOIN orders.seat_assignments sa ON sa.order_item_id = oi.id
-           LEFT JOIN catalog.seats s ON s.id = sa.seat_id
+           LEFT JOIN identity.users bu ON bu.id = o.user_id
+           -- R-42: orders.seat_assignments neexistuje a nemusi — sedadlo je
+           -- ulozene PRIMO na orders.order_items.seat_id, stejne jako na
+           -- tickets.tickets.seat_id (FINDINGS 166). Join pres ni odpada.
+           LEFT JOIN catalog.seats s ON s.id = oi.seat_id
           WHERE o.status = 'paid'
             AND e.date_start > NOW() + INTERVAL '2 days'
             AND e.date_start < NOW() + INTERVAL '90 days'

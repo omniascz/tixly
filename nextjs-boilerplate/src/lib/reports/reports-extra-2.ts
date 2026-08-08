@@ -71,7 +71,7 @@ export const REPORTS_EXTRA_2: ReportDef[] = [
     buildQuery: (pid, p) => ({
       sql: `SELECT e.title AS akce,
                    COUNT(DISTINCT re.id)::int AS prodeju,
-                   ROUND(SUM(re.price_halire)/100.0,2)::numeric AS trzby_czk
+                   ROUND(SUM(re.listing_price_halire)/100.0,2)::numeric AS trzby_czk
             FROM orders.resale_listings re
             JOIN catalog.events e ON e.id=re.event_id
             WHERE e.promoter_id=$1 AND re.status='sold'

@@ -17,9 +17,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // ── VYPNUTO (F6/F7) ─────────────────────────────────────────────────────────
+// 'seat-upgrade-notify'  — ZUSTAVA VYPNUTY. Premisa "chybi seat_assignments"
+//                          sice NEPLATILA (sedadlo je na order_items.seat_id,
+//                          FINDINGS 167), ale pod ni je RETEZ dalsich neshod:
+//                          o.buyer_email, e.name, s.zone_name, s.row_label,
+//                          s.label. Routa je psana proti JINEMU SCHEMATU;
+//                          neni to zamena, je to prepis. R-42.
 // 'demand-forecast'      — pise proti jinemu designu tabulky (9 sloupcu nesedi)
-// 'seat-upgrade-notify'  — chybi tabulky, mj. orders.seat_assignments
-//                          (grep v baseline: 0 vyskytu)
+// 'seat-upgrade-notify'  — VRACENO 2026-08-08 (R-42): premisa neplatila,
+//                          orders.seat_assignments byla odbocka; sedadlo je na
+//                          orders.order_items.seat_id. Viz FINDINGS §167.
 // Vypnuti se dela ODEBRANIM z tohohle allowlistu — dispatcher pak vrati 422
 // "Unknown job". Je to mechanismus, ktery uz v repu je; nezavadim novy.
 // Odpovidajici zaznamy jsou zaroven odebrane z vercel.json (crons).
