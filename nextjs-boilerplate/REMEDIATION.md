@@ -465,3 +465,12 @@ Vyrazeno z registru pres `DISABLED_REPORTS` v `src/lib/reports/registry.ts`
 `404 NOT_FOUND` a POST `500`, ackoli radek v `orders.ticket_transfers` existuje.
 Dotaz ma pet JOINu (tickets, orders, events, venues, ticket_types) — nektery
 radek zahazuje. Nedohledano.
+
+## R-40 VYRESENO migraci 470 (§163) — obe vetve 200
+
+## R-41 `my/orders/[id]/upgrade` blokovana `orders.seat_assignments` (§164)
+
+Sloupec `price_halire` -> `base_price` opraven, izolace dolozena (cizi 404),
+ale routa pak pada na chybejici tabulce `orders.seat_assignments` — tataz,
+kvuli ktere je vypnuty `cron/seat-upgrade-notify` (F6). Ceka na rozhodnuti
+spolu s R-34/R-39.

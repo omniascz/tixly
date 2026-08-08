@@ -59,7 +59,7 @@ async function POSTImpl(
       id: string; ticket_id: string; from_user_id: string; to_email: string; expires_at: string; status: string;
     }>(
       `SELECT id, ticket_id, from_user_id, to_email, expires_at, status
-         FROM orders.ticket_transfers WHERE token=$1 FOR UPDATE`,
+         FROM orders.ticket_transfers WHERE transfer_token=$1 FOR UPDATE`,
       [params.token],
     );
 

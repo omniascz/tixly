@@ -57,8 +57,8 @@ export async function POST(
       }
 
       // Get new ticket type price
-      const ttRes = await client.query<{ price_halire: number; name: string }>(
-        `SELECT price_halire, name FROM catalog.ticket_types
+      const ttRes = await client.query<{ base_price: number; name: string }>(
+        `SELECT base_price, name FROM catalog.ticket_types
           WHERE id=$1 AND event_id=$2 AND remaining_qty>0 FOR UPDATE`,
         [body.newTicketTypeId, ticket.event_id],
       );
@@ -67,7 +67,7 @@ export async function POST(
         return NextResponse.json({ error: 'TICKET_TYPE_UNAVAILABLE' }, { status: 409 });
       }
 
-      const upgradeFee = Math.max(0, ttRes.rows[0].price_halire - ticket.original_price);
+      const upgradeFee = Math.max(0, ttRes.rows[0].base_price - ticket.original_price);
 
       // If new seat specified, verify it's available
       if (body.newSeatId) {

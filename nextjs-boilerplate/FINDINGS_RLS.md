@@ -3502,3 +3502,95 @@ orders.postal_deliveries NOT NULL: recipient_name, address_line1, city, postal_c
 
 Vsechny tri jsem si zpusobil odhadem misto ctenim — tataz chyba jako
 `amount_halire` v §145.
+
+---
+
+## §163 R-40 UZAVRENO: viníkem nebyl zadny JOIN, ale DVE tabulky stejneho jmena
+
+### a) Bisect — a premisa zadani NEPLATI
+
+Odebiral jsem JOINy po jednom proti klonu, obojí se stejnym tokenem:
+
+```
+owner (bypassrls)             1 jen ticket_transfers … 6 + ticket_types   rowCount=1  (vsech sest)
+tixly_app + app.role=system   1 jen ticket_transfers … 6 + ticket_types   rowCount=0  (vsech sest)
+```
+
+**Radek mizel uz u PRVNI tabulky, pred jakymkoli JOINem.** Zadani predpokladalo,
+ze „jeden z peti JOINu radek zahodi" — nezahazoval ho zadny.
+
+### b) Proc: kolize jmen + chybejici servisni vetev
+
+Existuji **dve** tabulky `ticket_transfers`:
+
+```
+tickets.ticket_transfers  -> p_scope (FOR ALL, app_is_service())          <- ochranu MA
+orders.ticket_transfers   -> _insert (INSERT), _update (UPDATE),
+                             _sender (SELECT: from_user_id = app_current_user_id()
+                                              OR app.is_platform_admin)
+```
+
+Routa cte `orders.*`, ale bezi v **servisnim kontextu** (§98, zamcene
+„verejne routy -> servisni kontext"), kde `app_current_user_id()` je NULL.
+Zadna vetev neplatila -> RLS radek odfiltrovala.
+
+**Neni to neuplny seed** (bod c) — radek v tabulce byl, owner ho videl.
+Je to **vada schematu**: SELECT policy bez servisni vetve, tataz trida jako R-30,
+plus kolize jmen jako §139.
+
+### d) Oprava a PROSLO
+
+**Migrace 470** doplnila do `orders.ticket_transfers` vetev servisni,
+platform-admin a **prijemce** (`to_email`). Vetev prijemce tam patri: bez ni by
+prihlaseny prijemce svuj vlastni prevod nevidel — a prave proto POST vracel 500.
+
+PEEL nasel jeste **druhy vyskyt spatneho sloupce**:
+
+```
+error: column "token" does not exist        (radek 62, `WHERE token=$1 FOR UPDATE`)
+```
+
+Prvni vyskyt (`tr.token`) jsem opravil minule, tenhle byl bez aliasu, takze mi
+grep na `tr.token` unikl. Opraveno.
+
+**Vysledek — obe vetve zelene:**
+
+```
+[transfer/token GET verejny]   200 {"transfer":{"to_email":"cizi-…","expires_at":"2026-08-11…
+[transfer/token POST prijemce] 200 {"claimed":true,"ticketId":"f2eb7b91-…"}
+```
+
+## §164 `my/orders/[id]/upgrade`: izolace dolozena, pozitivni cesta blokovana
+
+```
+[my/orders/upgrade] vlastnik 500 {"error":"INTERNAL"}
+[my/orders/upgrade] CIZI     404 {"error":"TICKET_NOT_FOUND"}     <- izolace OK
+```
+
+PEEL, dve vrstvy pod sebou:
+
+1. `column "price_halire" does not exist` — `catalog.ticket_types` ma
+   **`base_price`**. Opraveno (3 vyskyty).
+2. Po opravě vyskocila druha: `relation "orders.seat_assignments" does not exist`.
+
+Druha vrstva je **skutecne chybejici tabulka** — tataz, kvuli ktere je vypnuty
+`cron/seat-upgrade-notify` (F6, §126). Zadani spravne varovalo, ze routa je
+z teze rodiny; jen to neni `seat_maps`, ale `seat_assignments`.
+
+**Pozitivni cestu tedy dojet nejde bez rozhodnuti o te tabulce (R-34/R-39).**
+Izolace je dolozena a oprava sloupce plati.
+
+### Kolik z 8
+
+| routa | stav |
+|---|---|
+| `my/tickets/[ticketId]/transfer` | ✅ + izolace |
+| `tickets/transfer/[token]` GET + POST | ✅ **nove dolozeno** |
+| `platform/artists` | ✅ |
+| `platform/postal` | ✅ |
+| `platform/postal/[id]` | ✅ |
+| `cron/release-group-invite-holds` | ✅ |
+| `cron/seat-upgrade-notify` | ⛔ vypnuty (F6) |
+| `my/orders/[id]/upgrade` | 🟡 izolace ✅, pozitivni cesta blokovana `seat_assignments` |
+
+**6 z 8 dolozeno zelene**, 1 vypnuty, 1 blokovany chybejici tabulkou.

@@ -169,4 +169,61 @@ d('obalene routy — pozitivni cesta', () => {
     }) as never, { params: { id } } as never);
     console.log('[platform/postal/[id] PATCH]', r.status, (await r.text()).slice(0, 110));
   }, 120_000);
+
+  it('R-40 bisect: ktery JOIN zahazuje radek prevodu', async () => {
+    const t = await clone.pool.query('SELECT id FROM tickets.tickets WHERE order_id=$1 LIMIT 1',
+      [chain.orderId]);
+    const tid = t.rows[0]?.id as string;
+    const { POST: startTransfer } = await import('@/app/api/my/tickets/[ticketId]/transfer/route');
+    await startTransfer(new NextRequest('http://localhost:3000/x', {
+      method: 'POST', headers: { 'x-user-id': chain.userId, 'content-type': 'application/json' },
+      body: JSON.stringify({ toEmail: cizi.email }),
+    }) as never, { params: { ticketId: tid } } as never);
+    const tk = await clone.pool.query(
+      'SELECT transfer_token FROM orders.ticket_transfers WHERE ticket_id=$1 ORDER BY created_at DESC LIMIT 1', [tid]);
+    const token = tk.rows[0]?.transfer_token as string;
+    const steps: Array<[string, string]> = [
+      ['1 jen ticket_transfers', 'FROM orders.ticket_transfers tr'],
+      ['2 + tickets',            'FROM orders.ticket_transfers tr JOIN tickets.tickets tt ON tt.id = tr.ticket_id'],
+      ['3 + orders',             'FROM orders.ticket_transfers tr JOIN tickets.tickets tt ON tt.id = tr.ticket_id JOIN orders.orders o ON o.id = tt.order_id'],
+      ['4 + events',             'FROM orders.ticket_transfers tr JOIN tickets.tickets tt ON tt.id = tr.ticket_id JOIN orders.orders o ON o.id = tt.order_id JOIN catalog.events et ON et.id = o.event_id'],
+      ['5 + venues',             'FROM orders.ticket_transfers tr JOIN tickets.tickets tt ON tt.id = tr.ticket_id JOIN orders.orders o ON o.id = tt.order_id JOIN catalog.events et ON et.id = o.event_id JOIN catalog.venues v ON v.id = et.venue_id'],
+      ['6 + ticket_types',       'FROM orders.ticket_transfers tr JOIN tickets.tickets tt ON tt.id = tr.ticket_id JOIN orders.orders o ON o.id = tt.order_id JOIN catalog.events et ON et.id = o.event_id JOIN catalog.venues v ON v.id = et.venue_id JOIN catalog.ticket_types tty ON tty.id = tt.ticket_type_id'],
+    ];
+    const { Client } = await import('pg');
+    for (const [label, from] of steps) {
+      // OWNER pool = bypassrls, takze RLS tu nehraje roli — meri se cisty JOIN
+      const r = await clone.pool.query(`SELECT 1 ${from} WHERE tr.transfer_token = $1`, [token]);
+      console.log(`   [bisect] ${label.padEnd(22)} rowCount=${r.rowCount}`);
+    }
+    // a totez pod tixly_app v servisnim kontextu, jako to dela routa
+    const a = new Client({ connectionString: process.env.DATABASE_URL });
+    await a.connect();
+    await a.query("SET app.role='system'");
+    for (const [label, from] of steps) {
+      const r = await a.query(`SELECT 1 ${from} WHERE tr.transfer_token = $1`, [token]);
+      console.log(`   [bisect/app] ${label.padEnd(22)} rowCount=${r.rowCount}`);
+    }
+    await a.end();
+  }, 180_000);
+
+  it('my/orders/[id]/upgrade — vlastnik vs CIZI (posledni z 8)', async () => {
+    const t = await clone.pool.query('SELECT id FROM tickets.tickets WHERE order_id=$1 LIMIT 1',
+      [chain.orderId]);
+    const tid = t.rows[0]?.id as string;
+    // druhy, drazsi typ listku jako cil upgradu
+    const tt2 = await clone.pool.query(
+      `INSERT INTO catalog.ticket_types (event_id,name,kind,base_price,total_qty,remaining_qty,visibility)
+       VALUES ($1,'VIP','seated',90000,10,10,'public') RETURNING id`, [chain.eventId]);
+    const { POST } = await import('@/app/api/my/orders/[id]/upgrade/route');
+    const hit = async (uid: string) => {
+      const r = await POST(new NextRequest('http://localhost:3000/x', {
+        method: 'POST', headers: { 'x-user-id': uid, 'content-type': 'application/json' },
+        body: JSON.stringify({ ticketId: tid, newTicketTypeId: tt2.rows[0].id }),
+      }) as never, { params: { id: chain.orderId } } as never);
+      return `${r.status} ${(await r.text()).slice(0, 90)}`;
+    };
+    console.log('[my/orders/upgrade] vlastnik', await hit(chain.userId));
+    console.log('[my/orders/upgrade] CIZI    ', await hit(cizi.id));
+  }, 180_000);
 });

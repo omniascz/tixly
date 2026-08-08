@@ -109,6 +109,7 @@ Nic z toho **není na produkci**. Pořadí je závazné.
 | 467 | `467_writable_policies_r30.sql` | 4 tabulky mely policy jen `FOR SELECT` → zápisové větve (R-30) | nasadit SPOLU s obalením `lib/payouts/executor.ts` — bez něj policy neplatí a zápis dál tiše vrací 0; FINDINGS §147 |
 | 468 | `468_payouts_status_processing.sql` | `payouts_status_check` + `'processing'` | mezistav `approved → processing → paid`, executor ho píše 3×; enum se tu ROZŠIŘUJE (na rozdíl od D4, kde šlo o popis operace, ne stav); FINDINGS §148 |
 | 469 | `469_broadcasts_target_event.sql` | `broadcasts_target_check` + `'event'` | UI tu volbu NABIZI (`TARGET_OPTIONS` + validace + sloupec `event_id`); na rozdil od D5 hodnota do sveta tabulky PATRI; FINDINGS §151 |
+| 470 | `470_ticket_transfers_service_branch.sql` | `orders.ticket_transfers` SELECT: + service, platform admin, prijemce | nasadit SPOLU s opravou `tr.token`/`token` -> `transfer_token`; FINDINGS §163 |
 
 ### ⚠️ „capacity backfill" — v pořadí NENÍ a nemá být
 
