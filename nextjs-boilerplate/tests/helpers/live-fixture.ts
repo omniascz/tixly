@@ -85,7 +85,7 @@ export interface LiveClone {
  */
 export async function createLiveClone(
   label: string,
-  opts: { migrations?: string[] } = {},
+  opts: { migrations?: string[]; exclude?: string[] } = {},
 ): Promise<LiveClone> {
   const created = await neon(`/projects/${PROJECT}/branches`, {
     method: 'POST',
@@ -100,7 +100,11 @@ export async function createLiveClone(
   await new Promise((r) => setTimeout(r, 4000));
   const { uri } = await neon(
     `/projects/${PROJECT}/connection_uri?branch_id=${branchId}` +
-      `&role_name=${ROLE}&database_name=${DB_NAME}`,
+      // `pooled=false` je POVINNE. Bez nej vrati Neon `-pooler` endpoint, kde
+      // vsechna spojeni sdili JEDEN backend (zmereno: 16 spojeni -> 1 pid).
+      // Cerstvy `new Client()` pak zdedi GUC po predchozim mereni — presne to
+      // vyrobilo falesny unik v §186 a je to i mechanismus R-15.
+      `&role_name=${ROLE}&database_name=${DB_NAME}&pooled=false`,
   );
 
   process.env.NEXT_PUBLIC_APP_URL ??= 'http://localhost:3000';
@@ -132,7 +136,15 @@ export async function createLiveClone(
   // Hlasitě, ať se z toho nestane tichý předpoklad jako minule.
   console.log(`[live-fixture] handlery běží jako: ${asOwner ? 'neondb_owner (BYPASSRLS — RLS SE NEMĚŘÍ)' : 'tixly_app (RLS platí)'}`);
 
-  for (const file of opts.migrations ?? PENDING_MIGRATIONS) {
+  // `exclude` je RED stav pro RED->GREEN test (§187): klon jinak aplikuje VSECHNY
+  // soubory z ../migrations vcetne te, kterou testujes, takze "pred" a "po" jsou
+  // dvakrat "po". Staci prefix cisla — `exclude: ['471']`.
+  const skip = (f: string) => (opts.exclude ?? []).some((x) => f.startsWith(x));
+  const chosen = (opts.migrations ?? PENDING_MIGRATIONS).filter((f) => !skip(f));
+  if (opts.exclude?.length) {
+    console.log(`[live-fixture] RED stav — vynechano: ${opts.exclude.join(', ')}`);
+  }
+  for (const file of chosen) {
     // `../migrations` — migrace se archivačním commitem `fc95cb2` sloučily do
     // JEDINÉ kořenové složky; `nextjs-boilerplate/migrations/` zanikla.
     const sql = await readFile(join('..', 'migrations', file), 'utf8');

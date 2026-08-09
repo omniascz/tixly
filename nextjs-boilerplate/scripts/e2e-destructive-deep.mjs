@@ -11,7 +11,7 @@ import pg from 'pg';
 const BASE = 'http://localhost:3000', ts = Date.now(), PW = 'Demo2026!';
 const env = readFileSync(new URL('../.env.local', import.meta.url), 'utf8');
 const pool = new pg.Pool({ connectionString: (env.match(/^DATABASE_URL="?([^"\n]+)"?/m) || [])[1], max: 8 });
-async function q(s, p = []) { const c = await pool.connect(); try { await c.query(`SET app.role='service'`); return await c.query(s, p); } finally { c.release(); } }
+async function q(s, p = []) { const c = await pool.connect(); try { await c.query('BEGIN'); await c.query(`SET LOCAL app.role = 'service'`); const _r = await c.query(s, p); await c.query('COMMIT'); return _r; } catch (e) { await c.query('ROLLBACK').catch(() => undefined); throw e; } finally { c.release(); } }
 async function api(method, path, { token, body } = {}) {
   const h = {}; if (token) h.Authorization = `Bearer ${token}`; if (body !== undefined) h['Content-Type'] = 'application/json';
   const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 12000);

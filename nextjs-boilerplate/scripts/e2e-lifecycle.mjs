@@ -31,10 +31,13 @@ const pool = new pg.Pool({ connectionString: dbUrl });
 async function q(sql, params = []) {
   const c = await pool.connect();
   try {
-    await c.query(`SET app.role = 'service'`); // bypass RLS pro ověřování
-    return await c.query(sql, params);
-  } finally {
-    c.release();
+    await c.query('BEGIN');
+    await c.query(`SET LOCAL app.role = 'service'`); // bypass RLS pro ověřování
+    const r = await c.query(sql, params);
+    await c.query('COMMIT');
+    return r;
+  } catch (e) { await c.query('ROLLBACK').catch(() => undefined); throw e; } finally {
+c.release();
   }
 }
 

@@ -4606,3 +4606,153 @@ vcetne 471, ktery jsem prave zalozil. "Pred" stav tedy na klonu neexistoval.
 
 RED–GREEN test nove migrace musi puvodni stav explicitne obnovit (DROP + CREATE
 puvodniho textu), jinak meri dvakrat "po".
+
+---
+
+## §188 — OPRAVA §186: prosakuje POOLER, ne holy `SET` sam o sobě
+
+§186 tvrdilo, ze holy `SET` „prezije spojeni a pri jeho recyklaci se dostane
+k dalsimu klientovi". **To jsem neoveril a je to nepresne.** Zmereno
+(`scripts/guc-leak-probe.mjs`, 8 opakovani na kazdy scenar, na obou endpointech
+tehoz klonu):
+
+```
+                                        POOLED (-pooler)      DIRECT (pooled=false)
+A) novy Client -> SET -> end;
+   novy Client -> cti                   prosaklo 8/8          prosaklo 0/8
+                                        (1 backend na 16 sp.) (16 backendu)
+B) pg.Pool: connect -> SET -> release;
+   connect -> cti                       prosaklo 8/8          prosaklo 8/8
+C) pg.Pool: BEGIN/SET LOCAL/COMMIT      prosaklo 0/8          prosaklo 0/8
+```
+
+Tri veci, ktere z toho plynou:
+
+1. **Na primem endpointu cerstvy `new Client()` NIC nededi.** Puvodni vysvetleni
+   ze §186 tedy neplati.
+2. **Na poolovanem endpointu sdili vsechna spojeni jeden backend** (16 spojeni,
+   1 `pg_backend_pid`). Tam „cerstvy klient" neexistuje a holy `SET` se prenese
+   na kohokoli dalsiho. Tohle je skutecna pricina falesneho uniku v §186.
+3. `SET LOCAL` v transakci je tesny **na obou** endpointech. Oprava ze §186 byla
+   spravna, jen zduvodneni bylo spatne.
+
+### Kde se pooler vzal
+
+`tests/helpers/live-fixture.ts` zadalo Neon API o `connection_uri` **bez**
+parametru `pooled`. Neon v tom pripade vraci `-pooler` host. `baseline-clone.mjs`
+`pooled=false` predava — proto probe pres nej nic neukazala a proto se to
+neprojevilo drive.
+
+To znamena, ze **kazde mereni pres `live-fixture` dosud bezelo na sdilenem
+backendu**, kde se GUC prenaseji mezi „ruznymi" spojenimi. Opraveno: fixture
+si nove vynucuje `pooled=false`.
+
+### A take: R-15 je tim vysvetlene, ale NE uzavrene
+
+R-15 (flakiness zive sady) melo priznak `setPid=778 queryPid=781` — spojeni se
+vymenilo mezi `set_config` a dotazem. Na poolovanem endpointu je to presne to,
+co pooler dela. Po prepnuti na primy endpoint jsem sadu pustil **4x**:
+
+```
+beh 1  4 padle ze 76
+beh 2  4 padle (tyz seznam)
+beh 3  4 padle (tyz seznam)
+beh 4  5 padlych — navic `checkout-guest > dedup`, ktery samostatne PROJDE
+```
+
+Tri behy shodne, ctvrty ne. **Flakiness tedy zmizela jen zcasti — R-15 zustava
+otevrene.** Tvrdit „opraveno" by bylo predcasne.
+
+Ctyri trvale padajici jsou znamé tikety, ne regrese:
+`T-WAITLIST-PROVIDER`, `T-BOXOFFICE-EXPIRES`, `consent-log-purge` (kontrakt C2)
+a `my/orders/[id]/upgrade-options`, ktery pada na `catalog.seat_maps does not
+exist` — to je R-39.
+
+---
+
+## §189 — R-54: uklid holych `SET`, a co se po nem zmenilo (nic)
+
+### a) Kde se GUC nastavuje holym `SET`
+
+```
+souboru celkem                          : 40   (79 vyskytu)
+  na pg.Pool + release  -> PROSAKUJE    : 23
+  na vlastnim Clientu                   : 17   (prosakuje jen na pooleru)
+```
+
+### b) Prevedeno
+
+* 22 skriptu ve `scripts/` prevedeno na `BEGIN; SET LOCAL …; COMMIT`.
+  Pri tom se doplnil **ROLLBACK** v `catch` — bez nej by se pri chybe vratilo
+  do poolu spojeni v prerusene transakci a otravilo dalsiho drzitele. To by
+  byla horsi vada, nez ktera se opravovala.
+* `seed-e2e-fixtures.mjs` mel overovaci dotazy az za `COMMIT`em; po ztrate
+  servisniho kontextu by je RLS srazila na nulu. Overeni presunuto dovnitr
+  transakce.
+* `guc-leak-probe.mjs` si holy `SET` **nechava zamerne** — meri ho.
+* `tests/helpers/live-fixture.ts`: `pooled=false`.
+* `tests/mig455.live.test.ts`, `tests/buyer-policies.live.test.ts`: `SET LOCAL`.
+
+Zbyl jediny soubor s holym `SET` na poolu — prave probe.
+
+### c) Prememeno: zmenilo se NIC
+
+| mereni | pred uklidem | po uklidu |
+|---|---|---|
+| migrace 455 (16 tabulek) | OK=9 UNIK=0 NEVIM=6 | **OK=9 UNIK=0 NEVIM=6** |
+| 93 buyer-only (19 vzorcu) | OK=19 UNIK=0 | **OK=19 UNIK=0** |
+| cela ziva sada | — | 71/77, 4 znamé tikety |
+
+**Proc zadne cislo nepadlo, i kdyz kontaminace byla realna:** u obou merení
+nastavuje kazdy kontext *stejnou sadu klicu*, kterou nastavil ten predchozi,
+takze se prepsala. Zdedit slo jen klic, ktery druhy kontext vubec nesahal —
+u mig455 `app.current_user_id` pri promoter-dimenzi. Zadna z merenych policies
+nema soucasne user-vetev i promoter-vetev, takze zdedena hodnota nemela kam
+zabrat. Je to **shoda okolnosti, ne zasluha metody**.
+
+### d) VERDIKT
+
+```
+souboru s holym SET                    : 40   (79 vyskytu)
+z toho realne netesnych                : 23   (pool+release, 8/8)
+  + vsechna mereni pres live-fixture   :      (pooled endpoint, 8/8)
+prevedeno                              : 25   (22 skriptu + fixture + 2 testy)
+premereno                              :  2 sady + cela ziva sada
+zmenilo vysledek                       :  0
+```
+
+---
+
+## §190 — §187 opraveno v harnessu: RED se meri VYNECHANIM migrace
+
+`createLiveClone` umi nove `exclude: ['470', '471']` — vynecha ty soubory z
+`../migrations`, takze RED stav skutecne existuje. Bez toho merily RED i GREEN
+tentyz stav (§187).
+
+### a) Kolik RED->GREEN tim proslo: 1 ze 13
+
+V FINDINGS je 13 bloku RED->GREEN. Dvanact z nich ma v RED sloupci **jinou
+hodnotu nez v GREEN** (23514, 42501, `rowCount=0`) — takovy RED se dvakrat-po
+byt nemuze, je sam sobe dukazem. Jediny, kde se RED a GREEN rovnaly, byl
+**471** — a prave proto se past nasla.
+
+Poucení: RED, ktery vypada stejne jako GREEN, neni „uz to fungovalo" — je to
+podezreni, ze se RED nezmeril.
+
+### c) Premereno 470 a 471 spravne (`tests/red-green-470-471.live.test.ts`)
+
+```
+--- 470 orders.ticket_transfers ---
+servisni kontext vidi transfer      RED=0  GREEN=1   OPRAVENO
+platform admin vidi transfer        RED=1  GREEN=1   uz drive OK
+--- 471 orders.transit_passes ---
+platform admin vidi transit pass    RED=0  GREEN=1   OPRAVENO
+vlastnik ho vidi porad              RED=1  GREEN=1   beze zmeny (spravne)
+```
+
+Obe migrace tedy **skutecne neco opravily** — servisni vetev u 470 a
+administratorskou u 471, obojí z RED=0.
+
+Nove zjisteni: **administratorska vetev, kterou 470 pridavala, uz fungovala i
+bez ni** (RED=1). Ta cast migrace 470 byla redundantni. Neskodi, ale komentar
+migrace tvrdil vic, nez bylo treba — a to by se bez spravneho RED nepoznalo.

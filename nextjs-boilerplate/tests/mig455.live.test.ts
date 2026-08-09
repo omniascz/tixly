@@ -111,8 +111,15 @@ d('migrace 455 — chovani policies', () => {
       const { Client } = await import('pg');
       const ask = async (setup: string[]) => {
         const a = new Client({ connectionString: process.env.DATABASE_URL }); await a.connect();
-        for (const s of setup) await a.query(s);
+        // SET LOCAL v transakci, ne holy SET (R-54): holy SET prezije spojeni a na
+        // poolovanem endpointu se dostane k dalsimu mereni. Navic se tim uklidi GUC,
+        // ktere tenhle kontext NENASTAVUJE — promoter-dimenze by jinak zdedila
+        // `app.current_user_id` z predchozi user-dimenze a videla radek "spravne"
+        // ze spatneho duvodu.
+        await a.query('BEGIN');
+        for (const s of setup) await a.query(s.replace(/^SET /, 'SET LOCAL '));
         const r = await a.query(`SELECT count(*)::int n FROM ${tbl} WHERE id=$1`, [id]);
+        await a.query('COMMIT');
         await a.end(); return r.rows[0].n as number;
       };
       const own = dim === 'promoter'

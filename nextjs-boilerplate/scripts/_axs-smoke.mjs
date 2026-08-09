@@ -4,7 +4,7 @@ import pg from 'pg';
 const BASE = 'http://localhost:3000', PW = 'Demo2026!', ts = Date.now();
 const u = readFileSync(new URL('../.env.local', import.meta.url), 'utf8').match(/^DATABASE_URL="?([^"\n]+)"?/m)[1];
 const pool = new pg.Pool({ connectionString: u, max: 4 });
-async function q(s, p = []) { const c = await pool.connect(); try { await c.query(`SET app.role='service'`); return await c.query(s, p); } finally { c.release(); } }
+async function q(s, p = []) { const c = await pool.connect(); try { await c.query('BEGIN'); await c.query(`SET LOCAL app.role = 'service'`); const _r = await c.query(s, p); await c.query('COMMIT'); return _r; } catch (e) { await c.query('ROLLBACK').catch(() => undefined); throw e; } finally { c.release(); } }
 let ipc = 0;
 async function api(m, path, body, tok) {
   const h = { 'X-Forwarded-For': `12.${(ts >> 8) % 256}.${(ts + ipc++) % 256}.${ipc % 256}` };

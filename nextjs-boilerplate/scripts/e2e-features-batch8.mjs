@@ -10,7 +10,7 @@ const pool = new pg.Pool({ connectionString: (env.match(/^DATABASE_URL="?([^"\n]
 // Replikace src/lib/crypto encryptSecret (aes-256-gcm) pro seed FB tokenu
 function getKey() { const hex = (env.match(/^ENCRYPTION_KEY=([^\n]+)/m) || [])[1]; if (!hex) throw new Error('ENCRYPTION_KEY missing'); return hex.length === 64 ? Buffer.from(hex, 'hex') : createHash('sha256').update(hex).digest(); }
 function encryptSecret(pt) { const iv = randomBytes(12); const c = createCipheriv('aes-256-gcm', getKey(), iv); const ct = Buffer.concat([c.update(pt, 'utf8'), c.final()]); const tag = c.getAuthTag(); return Buffer.concat([iv, ct, tag]).toString('base64'); }
-async function q(s, p = []) { const c = await pool.connect(); try { await c.query(`SET app.role='service'`); return await c.query(s, p); } finally { c.release(); } }
+async function q(s, p = []) { const c = await pool.connect(); try { await c.query('BEGIN'); await c.query(`SET LOCAL app.role = 'service'`); const _r = await c.query(s, p); await c.query('COMMIT'); return _r; } catch (e) { await c.query('ROLLBACK').catch(() => undefined); throw e; } finally { c.release(); } }
 async function api(method, path, { token, body } = {}) {
   const h = { 'X-Forwarded-For': '77.'+((Date.now()>>8)%256)+'.'+(Math.floor(Math.random()*256))+'.'+(Math.floor(Math.random()*256)) }; if (token) h.Authorization = `Bearer ${token}`; if (body !== undefined) h['Content-Type'] = 'application/json';
   const r = await fetch(`${BASE}${path}`, { method, headers: h, body: body !== undefined ? JSON.stringify(body) : undefined });

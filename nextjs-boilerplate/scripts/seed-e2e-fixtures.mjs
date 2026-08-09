@@ -34,8 +34,12 @@ const pool = new pg.Pool({ connectionString: dbUrl, max: 2 });
   const c = await pool.connect();
   try {
     // Service kontext (obejde RLS) + celý seed jako JEDEN multi-statement dotaz.
-    await c.query(`SET app.role = 'service'`);
+    // SET LOCAL vyzaduje transakci; seed je stejne jeden celek, takze BEGIN sedi.
+    await c.query('BEGIN');
+    await c.query(`SET LOCAL app.role = 'service'`);
     await c.query(sql);
+    // Overeni MUSI zustat uvnitr transakce — po COMMITu uz servisni kontext
+    // neplati (SET LOCAL konci) a RLS by pocty srazila na nulu.
     // Ověření, že fixtures sedí
     const ev = await c.query(
       `SELECT count(*) c FROM catalog.event_seats WHERE event_id = '00000000-0000-4000-a000-000000000402' AND status='available'`,
@@ -43,8 +47,10 @@ const pool = new pg.Pool({ connectionString: dbUrl, max: 2 });
     const mem = await c.query(
       `SELECT count(*) c FROM platform.promoter_members WHERE user_id = '00000000-0000-4000-a000-000000000115'`,
     );
+    await c.query('COMMIT');
     console.log(`✅ Seed hotový — event402 available seats: ${ev.rows[0].c}, Verze membership: ${mem.rows[0].c}`);
   } catch (e) {
+    await c.query('ROLLBACK').catch(() => undefined);
     console.error('❌ Seed selhal:', e.message);
     process.exitCode = 1;
   } finally {

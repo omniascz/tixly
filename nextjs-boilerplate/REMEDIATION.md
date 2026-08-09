@@ -1,3 +1,87 @@
+# STAV — 2026-08-09 (cti nejdriv tohle)
+
+Tenhle soubor je **hlavni zdroj kontinuity**. Da se z nej pokracovat bez
+konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
+§1–§190); tady je jen to, co je hotove, co je otevrene a cim zacit.
+
+## Jak se v tomhle projektu meri
+
+* Vsechno se meri na **ephemeral Neon vetvi** (`tests/helpers/live-fixture.ts`,
+  `scripts/baseline-clone.mjs`). Produkcni vetev je prazdna a **nesahá se na ni**.
+* Handlery bezi jako **`tixly_app`** (`BYPASSRLS=false`). Pod `neondb_owner` je
+  596 policies inertnich a mereni nic neznamena.
+* Klon **musi** chtit `pooled=false`. Na `-pooler` endpointu sdili vsechna
+  spojeni jeden backend a GUC se prenaseji mezi mereními (§188).
+* GUC se nastavuji **`SET LOCAL` v transakci**, nikdy holym `SET` (R-54).
+* RED->GREEN se meri na klonu **bez** testovane migrace:
+  `createLiveClone(label, { exclude: ['471'] })` (§190).
+* Nastroj bez self-checku nic netvrdi (§54). Nula z nej neznamena nulu v repu.
+* Seznam k auditu se bere ze **struktury** (routovaci strom, `pg_policies`,
+  katalog), nikdy z dokumentu (§177).
+* Kdyz mereni rekne „vlastni nevidi" nebo „vidi cizi", **prvni hypoteza je
+  neuplny seed**, ne vada RLS (§183, §184c).
+
+## Zamcena rozhodnuti (neprehodnocovat bez pokynu)
+
+1. Produkcni `DATABASE_URL` bude pouzivat **`tixly_app`**, ne `neondb_owner`.
+   Nastavuje se rucne ve Vercelu. **Deploy requirement.**
+2. Verejne routy dostanou **servisni kontext**, ne `USING (true)` v policy.
+3. Policies se opravuji na **`app_*()` helpery**, ne obchazenim v rls-poolu.
+4. `communications` a `brands` dostanou granty (nejsou mrtve).
+5. Kanaly se **rozlisuji**, nesjednocuji (reporting by se zpetne nerozdelil).
+6. `base64url` prislo v PostgreSQL **19**, ne 18. Nikde neopravovat na 18.
+
+## Hotovo a overene chovanim
+
+| oblast | stav |
+|---|---|
+| RLS izolace promoter-dimenze | 64 vzorcu z 596 policies zmereno (§53) |
+| RLS izolace buyer-dimenze | 19 tvaru pokryvajicich 93 policies, 0 uniku (§184) |
+| migrace 455 | 9 z 20 policies overeno chovanim, 0 uniku (§180) |
+| dynamicke SQL | 257 dotazu, 30 z uzivatelskeho vstupu, **0 zranitelnych** (§178) |
+| souběh (harness A–E) | 5/5, vc. purchase-limit race po oprave (§174) |
+| crony | 46 rout doauditovano ze struktury, 7 porusení opraveno (§175) |
+| reporty | 198 definic, 152 aktivnich; 46 vyrazeno (15 tabulka + 31 sloupec) |
+| T4 triage HIGH | 7 ze 7 skutecnych, 0 false positive (§181) |
+| migrace 470, 471 | RED->GREEN spravnou metodou (§190) |
+
+## Otevrene tikety — poradi, ve kterem bych pokracoval
+
+1. **R-15** flakiness zive sady. Pooler byl *cast* pricin; po `pooled=false` byly
+   3 behy shodne a ctvrty ne (`checkout-guest > dedup` — samostatne PROJDE).
+   Zbytek pricin **NEVIM**. Nejlevnejsi dalsi krok: pustit sadu 5x a podivat se,
+   jestli pada vzdy tyz test.
+2. **R-39** tri moduly s chybejicimi tabulkami (`catalog.seat_maps`,
+   `forgemsg/dispatch`, `resolve-price`). `seat_maps` dnes shazuje
+   `my/orders/[id]/upgrade-options` na 500 — je to jeden ze 4 trvale padajicich
+   testu v zive sade.
+3. **R-52** 11 z 20 policies migrace 455 neovereno (dlouhy FK retez;
+   `ticket_transfers_insert` navic potrebuje merit INSERT, ne SELECT).
+4. **R-45** 31 vyrazenych reportu ceka na rozhodnuti per sloupec.
+5. **R-51** T4 medium (16) a low (29) neotriagovane.
+6. **R-47** demand-forecast — rozhodnuti o modelu, ne oprava.
+7. **R-55** 74 z 93 buyer-only policies zmereno jen pres vzor. Nizka priorita:
+   nejcastejsi tvar (56x) je trivialni a lisit se muze jen jmenem sloupce, coz
+   jde overit staticky proti katalogu.
+8. **R-25** foyer pre-order writer (ceka na rozhodnuti).
+9. **R-29** 32 kandidatu na `IF NOT EXISTS`.
+10. **R-32** duplicitni indexy — **odlozeno uzivatelem** („riziko prevysuje uzitek").
+
+## Znamé trvale padajici testy (nejsou regrese)
+
+```
+T-WAITLIST-PROVIDER      admin-guest   23514 walkin
+T-BOXOFFICE-EXPIRES      admin-guest   23502 expires_at
+consent-log-purge (C2)   cron-contract vraci ok:true pri odepreni prava
+upgrade-options          wrapped-routes catalog.seat_maps neexistuje  -> R-39
+```
+
+## Nasazeni
+
+Migrace `470` a `471` jsou v repu, **na produkci NEJSOU**. Nic neni pushnute —
+strom je vzdy 150+ commitu nad `origin/master` zamerne, push se nedela bez pokynu.
+
+---
 
 ---
 

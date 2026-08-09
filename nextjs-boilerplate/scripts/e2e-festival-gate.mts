@@ -44,10 +44,13 @@ async function q<T extends pg.QueryResultRow = pg.QueryResultRow>(
 ): Promise<pg.QueryResult<T>> {
   const c = await pool.connect();
   try {
-    await c.query(`SET app.role = 'service'`);
-    return await c.query<T>(sql, params);
-  } finally {
-    c.release();
+    await c.query('BEGIN');
+    await c.query(`SET LOCAL app.role = 'service'`);
+    const r = await c.query<T>(sql, params);
+    await c.query('COMMIT');
+    return r;
+  } catch (e) { await c.query('ROLLBACK').catch(() => undefined); throw e; } finally {
+c.release();
   }
 }
 

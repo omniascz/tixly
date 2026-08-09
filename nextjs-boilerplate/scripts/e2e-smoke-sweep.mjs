@@ -15,7 +15,7 @@ const PW = 'Demo2026!';
 const env = readFileSync(new URL('../.env.local', import.meta.url), 'utf8');
 const dbUrl = (env.match(/^DATABASE_URL="?([^"\n]+)"?/m) || [])[1];
 const pool = new pg.Pool({ connectionString: dbUrl });
-async function q(sql, p = []) { const c = await pool.connect(); try { await c.query(`SET app.role='service'`); return await c.query(sql, p); } finally { c.release(); } }
+async function q(sql, p = []) { const c = await pool.connect(); try { await c.query('BEGIN'); await c.query(`SET LOCAL app.role = 'service'`); const _r = await c.query(sql, p); await c.query('COMMIT'); return _r; } catch (e) { await c.query('ROLLBACK').catch(() => undefined); throw e; } finally { c.release(); } }
 async function api(method, path, { token, body } = {}) {
   const headers = {}; if (token) headers['Authorization'] = `Bearer ${token}`;
   if (body !== undefined) headers['Content-Type'] = 'application/json';
