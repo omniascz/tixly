@@ -2,7 +2,7 @@
 
 Tenhle soubor je **hlavni zdroj kontinuity**. Da se z nej pokracovat bez
 konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
-§1–§201); tady je jen to, co je hotove, co je otevrene a cim zacit.
+§1–§202); tady je jen to, co je hotove, co je otevrene a cim zacit.
 
 ⚠️ Tenhle soubor je ten v `nextjs-boilerplate/`. V korenu repa lezi starsi
 `REMEDIATION.md` (STAV 2026-07-29), ktery je **neaktualni** — needituj ho.
@@ -129,7 +129,18 @@ konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
    stara cisla vznikla na jinem stavu repa. Zbylych 15 medium vypada REALNE
    (penize: `platform.promoters.payout_*` na 2 mistech; `catalog.events.e.name`
    se kryje s §167; `m.membership_code` je znamy konzumovany sloupec).
-   Triaz kus po kuse porad NENI hotova.
+   **Triaz medium HOTOVA (§202): 10 z 10 overenych je SKUTECNYCH, 0 false
+   positive.** Po oprave CTE uz v medium sum neni. Nejzavaznejsi:
+   `platform.promoters.payout_currency/wise_recipient_id/paypal_payout_email`
+   neexistuji — `payout_currency` je prejmenovani (`primary_currency`), ale
+   `wise_*` a `paypal_payout_*` nemaji v celem schematu ZADNY protejsek =
+   ctvrta vrstva payouts, nenarozeny subsystem. Dal rozbite dosazitelne cesty:
+   `reviews/[token]` (`review_token`, `reviewer_name` neexistuji),
+   `buyer/cross-passes/my-memberships` (`membership_code`, `valid_until`),
+   `press/event/[id]` (`events.name` -> `title`, JINE misto nez §167),
+   `reschedule` (`reschedule_responses.user_id`). NEOPRAVENO, RED->GREEN
+   nebezel — u vetsiny to je produktove rozhodnuti, ne jednoradkova zamena.
+   Low (28) porad neotriagovane.
 8. **R-47** demand-forecast — rozhodnuti o modelu, ne oprava.
 9. **R-55** 74 z 93 buyer-only policies zmereno jen pres vzor. Nizka priorita:
    nejcastejsi tvar (56x) je trivialni a lisit se muze jen jmenem sloupce, coz

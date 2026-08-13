@@ -5515,3 +5515,72 @@ Dve z nich se **kryji se starsimi nalezy**, coz je nezavisle potvrzeni:
 Heuristika T4 je po §200 o jednu tridu falesnych pozitivu cistsi a **zbytek
 medium nevypada jako sum**. Triaz medium/low ale porad NENI hotova — tohle byl
 nahled, ne overeni kus po kuse. Zadny z tech 15 se neoveril chovanim.
+
+---
+
+## §202 — T4 medium overeno proti katalogu: 10 z 10 SKUTECNYCH, 0 false positive
+
+Merený stav: **hola vetev z produkce** (migrace se neaplikuji), introspekce
+`information_schema`. Nastroj `scripts/t4-medium-verify.mjs`, self-check
+(znamy sloupec musi najit, vymysleny ne) prosel.
+
+| tabulka.sloupec | verdikt |
+|---|---|
+| `platform.promoters.payout_currency` | **SKUTECNY** |
+| `platform.promoters.wise_recipient_id` | **SKUTECNY** |
+| `platform.promoters.paypal_payout_email` | **SKUTECNY** |
+| `marketing.event_reviews.reviewer_name` | **SKUTECNY** |
+| `marketing.event_reviews.review_token` | **SKUTECNY** |
+| `tickets.cross_pass_memberships.membership_code` | **SKUTECNY** |
+| `tickets.cross_pass_memberships.valid_until` | **SKUTECNY** |
+| `catalog.events.name` | **SKUTECNY** |
+| `catalog.events.starts_at` | **SKUTECNY** |
+| `orders.reschedule_responses.user_id` | **SKUTECNY** |
+
+**0 false positive.** Po oprave CTE (§200) uz v medium sum neni.
+
+### 1) Penezni sloupce na `platform.promoters` — CTVRTA vrstva payouts
+
+Sloupce **neexistuji**. Hledaly se SLOUPCE, ne jmena (metoda ze §166):
+
+```
+payout_currency      -> promoters.primary_currency  (existuje) / platform.payouts.currency
+wise_recipient_id    -> *wise* v CELEM schematu: NIC
+paypal_payout_email  -> na promoters nic; payments.paypal_orders.* je PRIJEM plateb, ne vyplata
+```
+Co `platform.promoters` pro vyplaty doopravdy ma:
+`payout_method`, `iban`, `swift_bic`, `bank_name`, `bank_account`,
+`primary_currency`, `auto_payout_days_after_event`.
+
+**PEEL potvrzen.** `payout_currency` je prejmenovani (`primary_currency`), ale
+`wise_recipient_id` a `paypal_payout_email` nemaji v celem schematu **zadny
+protejsek** — Wise ani PayPal-payout jako vyplatni kanal neexistuje. Neni to
+drift jmena, je to **nenarozeny subsystem** (tataz trida jako R-26).
+Cte to `admin/payouts/execute:48` **i** `lib/payouts/executor.ts:283` — tedy
+routa i knihovna, obe na penezni ceste. Radi se k R-30/R-31.
+
+### 2) Ostatni — vsechny na DOSAZITELNYCH cestach
+
+* **`catalog.events.name`** (`press/event/[id]:23`) — potvrzeno, `events` ma
+  `title`. Je to **JINE MISTO** nez §167 (to bylo o `cron/seat-upgrade-notify`),
+  tataz vada podruhe.
+* **`catalog.events.starts_at`** (`reviews/[token]:24`) — spravne je `date_start`.
+* **`marketing.event_reviews`**: tabulka ma `user_id, event_id, order_id, rating,
+  title, body, promoter_reply…` — **zadny `review_token` ani `reviewer_name`**.
+  Cela tokenova cesta recenzi (`reviews/[token]` GET i POST) tedy stoji na
+  sloupci, ktery neexistuje.
+* **`tickets.cross_pass_memberships`**: ma `bundle_id, user_id, order_id,
+  totp_secret_*, status` — **zadny `membership_code` ani `valid_until`**.
+  `buyer/cross-passes/my-memberships:19` je rozbite. (`membership_code` je
+  pritom sloupec, u ktereho uz drive padlo, ze se KONZUMUJE.)
+* **`orders.reschedule_responses`**: ma `reschedule_id, order_id, response,
+  responded_at, response_token` — **zadny `user_id`**. Dve mista.
+
+### Co NEBYLO udelano
+
+**Nic z toho jsem neopravoval a RED->GREEN nebezel** — dosel kontext.
+Oprava tady navic neni jednoradkova: u `payout_currency` -> `primary_currency`
+ano, ale u `wise_recipient_id`/`paypal_payout_email` je to **produktove
+rozhodnuti** (dostavet vyplatni kanal, nebo kod odstranit), stejne jako
+u R-26/R-47. U `review_token` a `membership_code` taky — chybi cela tabulkova
+podpora, ne jeden sloupec.
