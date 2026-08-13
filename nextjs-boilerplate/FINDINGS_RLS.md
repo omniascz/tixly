@@ -5650,3 +5650,63 @@ zakryvajici vadu (lekce `membership_code`).
 | payouts | `wise_recipient_id`, `paypal_payout_email` — viz §203 d) |
 
 Vse na **dosazitelnych** cestach. Zamena sloupce by u nich byla hadani.
+
+---
+
+## §206 — PATA VRSTVA payouts: `wise_recipient_id` se nejen cte, ale ZAPISUJE
+
+Merený stav: grep nad `src/` na HEAD `1a00e0d` (staticky), sloupce overeny
+introspekci v §202.
+
+NEVIM #2 ze §203 zodpovezeno: **ano, konzumuje se — a je to horsi, nez cteni.**
+
+```
+executor.ts:43,44   typ radku
+executor.ts:68      if (method === 'paypal' && row.paypal_payout_email)
+executor.ts:83      reason = !row.iban && !row.paypal_payout_email ? … : …
+executor.ts:113     let recipientId = row.wise_recipient_id;
+executor.ts:127     UPDATE platform.promoters SET wise_recipient_id = $2 WHERE id = $1
+executor.ts:145     UPDATE platform.promoters SET wise_recipient_id = $2 WHERE id = $1
+executor.ts:205     receiver: row.paypal_payout_email!
+admin/payouts/execute/route.ts:45,46,51
+```
+
+**Wise vetev si do neexistujiciho sloupce CACHUJE recipient id** (`:127`,
+`:145`). Odstranit ty sloupce jen ze SELECTu tedy **vyplaty nerozbehne** —
+cesta spadne o kus dal, na 42703 pri `UPDATE`. To je **pata** nezavisla vrstva
+(po R-30 `rowCount=0`, R-31 `'processing'` mimo CHECK, §203 SELECT 42703).
+
+### Co z toho plyne pro zamcene rozhodnuti „wise ZUSTAVA"
+
+Vetev Wise se ridi podle `iban` (existuje) — potud v poradku. Ale cache
+`wise_recipient_id` nema kam. Jsou dve cesty a **je to rozhodnuti, ne oprava**:
+
+* **A) zrusit cache** — `recipientId` drzet jen v pameti behu. Cena: pri kazde
+  vyplate se u Wise zaklada recipient znovu (dalsi API volani, jina semantika
+  idempotence). Kod se zmensi, migrace netreba.
+* **B) doplnit sloupec migraci** — `ALTER TABLE platform.promoters ADD COLUMN
+  wise_recipient_id bigint`. Zachova dnesni zamer autora, ale pridava sloupec
+  do penezni tabulky kvuli integraci, ktera jinak v schematu neexistuje.
+
+### Proc jsem to NEUDELAL
+
+Zadani predpokladalo, ze staci sloupce ze SELECTu odstranit. Po tomhle nalezu
+to znamena **prepsat vetev Wise v penezni ceste** (odstranit dve `UPDATE`,
+zmenit zivotni cyklus `recipientId`) plus vyriznout paypal vetev a pridat
+`ENABLED_PAYOUT_CHANNELS` — a to vse s kontextem, ktery uz nestaci na
+RED->GREEN pres celou cestu. Zasah do prevodu penez bez dolozeneho behu je
+horsi nez vada, ktera je popsana a nezmenena.
+
+**Nic z payouts jsem v tomhle kole nemenil.** Predchozi oprava
+(`payout_currency` -> `primary_currency`, commit `8e02def`) zustava; sama o sobe
+vyplaty nerozbehne a je to tak i zapsane v §203 e).
+
+### Poradi pro pristi kolo
+
+1. Rozhodnout A vs B u `wise_recipient_id`.
+2. Vyriznout paypal vetev (`:68`, `:83`, `:205`) + typy — zamceno.
+3. `ENABLED_PAYOUT_CHANNELS` s kontrolou PRED dotazem.
+4. Teprve pak RED->GREEN pres celou cestu, na klonu pod `tixly_app`
+   se servisnim kontextem, RED pres `exclude`.
+5. Pocitat s SESTOU vrstvou — `platform.payouts` ma vlastni vady (R-30, R-31),
+   ktere se dosud nikdy neprojevily, protoze cesta spadla driv.
