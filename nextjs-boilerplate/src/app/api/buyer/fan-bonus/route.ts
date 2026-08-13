@@ -15,8 +15,19 @@ export async function GET(req: NextRequest): Promise<Response> {
     return runWithServiceContext(async () => {
       const client = await db().connect();
       try {
-        await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
-
+        // R-57: tady byval `SET LOCAL app.is_platform_admin = 'true'`. Byl
+        // SPICI — mimo transakci PostgreSQL hlasi „SET LOCAL can only be used
+        // in transaction blocks" a hodnota zustane prazdna (zmereno 3/3, §192),
+        // a v cele route zadny BEGIN neni. Nic tedy nedelal, ale byl to
+        // pripraveny vystup opravneni: kdyby `connect()` transakci otevrel
+        // (kandidat (c) u R-56), kupujici GET by najednou bezel jako platform
+        // admin. Odstraneno.
+        //
+        // Prava nechybi: `marketing.gift_vouchers` ma vetve
+        // `app_is_platform_admin() OR promoter_id = …` a `app_is_service()`
+        // (baseline :40620, :40945) — kupujici vetev zadnou. Routa proto stoji
+        // na SERVISNIM kontextu z `runWithServiceContext` vyse a scopuje se
+        // sama pres `WHERE fbi.user_id = $1`. Platform admin k tomu netreba.
         const history = await getFanBonusHistory(client, userId);
 
         const totalAvailable = history

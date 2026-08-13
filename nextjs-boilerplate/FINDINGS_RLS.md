@@ -5009,3 +5009,112 @@ popisu R-15 („endpoint vraci prazdny seznam") a **koriguje to durazny ton §19
 existuje a je popsatelna: routa, ktera se na identitni scoping spoleha VYHRADNE
 na RLS a sama ji v dotazu neopakuje. Ve vzorku 10 nebyla ani jedna; kolik jich
 je mezi zbylymi 196, **NEVIM**. Sken na tuhle tridu neexistuje.
+
+---
+
+## §194 — R-56: sdili oba endpointy strop? ANO. A kolik ktery stoji.
+
+Nastroj: `scripts/r56-shared-ceiling.mjs`.
+
+### Pooled spojeni NEstoji jeden backend
+
+```
+vychozi stav                    10 backendu (3 klientske)
+ 25 pooled klientu    ->  17 backendu (10 klientskych)
+100 pooled klientu    ->  21 backendu (14 klientskych)
+300 pooled klientu    ->  43 backendu (36 klientskych)
+```
+300 klientu stalo ~33 backendu, tedy zhruba **1 backend na 9 pooled klientu**.
+Na direct je to 1:1. Tohle je cely rozdil mezi (a) a (b).
+
+### Strop je SPOLECNY — dolozeno
+
+§192 zmerilo direct sam: **890** spojeni. Tenhle beh mel soubezne nabehly
+pooler (~36 backendu) a direct se dostal jen na **854**:
+```
+890 - 854 = 36  =  presne to, co drzel pooler
+```
+Sdileni stropu tedy neni domnenka, je videt v cisle.
+
+### Ale vyhladoveni neni okamzite
+
+Pri vycerpanem directu (854 drzenych, dalsi direct -> 53300, self-check OK)
+**pooled spojeni PROSLO** (`{"ok":1}`). Duvod: PgBouncer uz mel backend
+navazany z predchoziho kroku a jen ho znovu pouzil.
+⚠️ **NEMERENO:** co se stane, kdyz pooler potrebuje NOVY backend a zadny slot
+neni. Tam by konkuroval o tytez sloty a pravdepodobne selhal. Netvrdim, ze je
+pooled cesta imunni — jen ze degraduje pozdeji.
+
+### Cena reconnectu (median z 12)
+
+```
+DIRECT  nove spojeni 297 ms   z poolu 41 ms   rozdil 255 ms
+POOLED  nove spojeni 304 ms   z poolu 41 ms   rozdil 263 ms
+```
+⚠️ Mereno z vyvojarskeho stroje do `eu-central-1`, takze **absolutni cislo je
+horni odhad** — z Vercelu ve stejnem regionu bude nizsi. Pomer (nove spojeni
+~7x drazsi nez z poolu) je to, co plati.
+
+### Kolik `connect()` je na horkych cestach
+
+```
+HORKA checkout+platby     26
+HORKA scanner+POS+HW      11
+HORKA verejny katalog     12
+crony (internal)          10
+admin ostatni             57
+platform ostatni          24
+buyer+my ostatni          38
+jine (lib, ostatni)       28
+CELKEM                   206     z toho horke: 49 = 24 %
+```
+(Zarazeni je hrube, podle cesty v routovacim strome. `subscriptions/*` a
+`vouchers/*` jsou v „jine", presto jsou to nakupni cesty — 49 je spis dolni
+odhad.)
+
+### Doporuceni pro (b): jake `max` kazdemu poolu
+
+Rozpocet: 901 - 6 superuser = **~895**, minus baseline ~5, minus pooler
+(pri 300 soubeznych klientech ~35) = **~855 slotu pro direct pool**.
+
+| pool | `max` | `idleTimeoutMillis` | proc |
+|---|---|---|---|
+| direct (`connect()`) | **4** | **10000** | 1 slot = 1 spojeni, takze se skrbi. 855/4 = **213 instanci**, nez se narazi |
+| pooled (`query()`) | 10 (dnesek) | 30000 (dnesek) | spojeni stoji ~1/9 backendu, nema smysl je skrtit |
+
+Pri dnesnim `PG_POOL_MAX=10` na obou by direct pool vydrzel jen **~85 instanci**
+— to je uz v dosahu onsale spicky, takze snizit je podstata doporuceni, ne
+kosmetika.
+
+`idleTimeoutMillis` u direct poolu: zkratit ano, ale ne agresivne. Kazde
+znovunavazani stoji ~255 ms (horni odhad) a 24 % `connect()` volani je na
+horkych cestach. 10 s je kompromis; 5 s by uz bylo videt na latenci checkoutu.
+
+⚠️ Vse plati pro compute **0.25–2 CU**. Jiny compute = jine `max_connections`
+= cela tabulka se premeri.
+
+## §195 — R-57 VYRESENO: spici `SET LOCAL` odstranen, RED->GREEN dolozen
+
+`src/app/api/buyer/fan-bonus/route.ts:18` mel
+`SET LOCAL app.is_platform_admin = 'true'` a v cele route zadny `BEGIN`.
+
+**Proc tam byl:** pridal ho commit `65f4890` spolu s celou featurou.
+`marketing.gift_vouchers` ma RLS jen s vetvemi
+`app_is_platform_admin() OR promoter_id = …` (baseline `:40620`) a
+`app_is_service()` (`:40945`) — **kupujici vetev zadnou**. Autor zjevne
+potreboval prava navic. Jenze routa uz je obalena `runWithServiceContext`,
+cimz `app_is_service()` plati; admin byl navic.
+
+**Oprava:** radek smazan, `runWithPlatformAdminContext` se NEPOUZIL — dal by
+routе vic prav, nez potrebuje, a scoping uz zajistuje `WHERE fbi.user_id = $1`.
+
+**RED->GREEN** (`tests/fan-bonus-r57.live.test.ts`, 2/2 zelene):
+```
+RED  (s radkem, UVNITR transakce) = "true"    <- eskalace byla armovana
+GREEN(bez radku)                  = ""        <- a je odjistena
+```
+RED se **musel** merit v transakci — mimo ni radek nedelal nic a obe strany by
+vysly stejne (past ze §190: RED, ktery se od GREEN nelisi, nic nedokazuje).
+
+**Neregrese:** kupujici 200 a vidi `R57-VLASTNI` (5000) a NEvidi `R57-CIZI`;
+cizi 200 a presne naopak. Routa tedy na admin pravech nestala.

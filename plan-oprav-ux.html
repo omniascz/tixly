@@ -1,0 +1,805 @@
+<title>Šest vln pro Tixly</title>
+<style>
+  :root {
+    --ground: #F3F4F7;
+    --surface: #FFFFFF;
+    --surface-2: #EAECF2;
+    --ink: #171A22;
+    --ink-2: #474C5C;
+    --ink-3: #787E92;
+    --rule: #D6D9E3;
+    --rule-soft: #E5E7EE;
+    --accent: #2E3A8C;
+    --accent-soft: #E3E6F6;
+    --good: #1C6E4D;
+    --good-soft: #DFF0E7;
+    --warn: #8C5F08;
+    --warn-soft: #F7EBD3;
+    --bad: #A02F29;
+    --bad-soft: #F7E1DF;
+    --shadow: 0 1px 2px rgba(23,26,34,.06), 0 8px 24px -12px rgba(23,26,34,.18);
+    --sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    --serif: "Iowan Old Style", Georgia, "Times New Roman", serif;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, "SFMono-Regular", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #121319; --surface: #191B22; --surface-2: #22242E;
+      --ink: #E9EAEF; --ink-2: #AAAEBD; --ink-3: #7C8194;
+      --rule: #2E3140; --rule-soft: #262936;
+      --accent: #94A2F2; --accent-soft: #21253A;
+      --good: #63C793; --good-soft: #16281F;
+      --warn: #E2B45C; --warn-soft: #2A2314;
+      --bad: #EA8B82; --bad-soft: #2B1917;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #121319; --surface: #191B22; --surface-2: #22242E;
+    --ink: #E9EAEF; --ink-2: #AAAEBD; --ink-3: #7C8194;
+    --rule: #2E3140; --rule-soft: #262936;
+    --accent: #94A2F2; --accent-soft: #21253A;
+    --good: #63C793; --good-soft: #16281F;
+    --warn: #E2B45C; --warn-soft: #2A2314;
+    --bad: #EA8B82; --bad-soft: #2B1917;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground); color: var(--ink);
+    font-family: var(--serif); font-size: 17px; line-height: 1.62; margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px 96px; }
+
+  header.masthead { padding: 56px 0 28px; border-bottom: 1px solid var(--rule); }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 14px;
+  }
+  h1 {
+    font-family: var(--sans); font-weight: 700; letter-spacing: -.022em;
+    font-size: clamp(34px, 5.4vw, 54px); line-height: 1.05; margin: 0 0 16px; text-wrap: balance;
+  }
+  .standfirst { font-size: 19px; color: var(--ink-2); max-width: 62ch; margin: 0 0 26px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 8px 10px; font-family: var(--mono); font-size: 11.5px; }
+  .meta-row span {
+    border: 1px solid var(--rule); border-radius: 999px; padding: 4px 11px;
+    color: var(--ink-2); background: var(--surface);
+  }
+
+  .layout { display: grid; grid-template-columns: 1fr; gap: 40px; padding-top: 40px; }
+  @media (min-width: 1040px) {
+    .layout { grid-template-columns: 200px minmax(0, 1fr); gap: 56px; }
+    nav.toc { position: sticky; top: 24px; align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; }
+  }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  nav.toc a {
+    display: block; font-family: var(--sans); font-size: 13px; line-height: 1.35;
+    color: var(--ink-2); text-decoration: none; padding: 6px 8px; border-radius: 6px;
+  }
+  nav.toc a:hover { background: var(--surface); color: var(--ink); }
+  nav.toc .tag {
+    font-family: var(--mono); font-size: 10px; color: var(--ink-3); display: block; margin-bottom: 1px;
+  }
+  main { min-width: 0; }
+
+  section { margin: 0 0 8px; padding: 0 0 44px; }
+  section + section { padding-top: 40px; }
+  .perf {
+    border: 0; height: 1px; margin: 0 0 34px; position: relative;
+    background-image: linear-gradient(to right, var(--rule) 0 6px, transparent 6px 12px);
+    background-size: 12px 1px;
+  }
+  .perf::before, .perf::after {
+    content: ""; position: absolute; top: -5px; width: 10px; height: 10px;
+    border-radius: 50%; background: var(--ground); border: 1px solid var(--rule);
+  }
+  .perf::before { left: -5px; } .perf::after { right: -5px; }
+
+  h2 {
+    font-family: var(--sans); font-weight: 700; letter-spacing: -.018em;
+    font-size: clamp(24px, 3vw, 32px); line-height: 1.14; margin: 0 0 6px; text-wrap: balance;
+  }
+  .sec-num {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em;
+    color: var(--accent); text-transform: uppercase; display: block; margin-bottom: 10px;
+  }
+  .sec-lead { color: var(--ink-2); max-width: 66ch; margin: 0 0 26px; }
+  h3 { font-family: var(--sans); font-weight: 650; font-size: 19px; letter-spacing: -.01em; margin: 32px 0 10px; }
+  h4 {
+    font-family: var(--mono); font-weight: 600; font-size: 11.5px; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--ink-3); margin: 18px 0 8px;
+  }
+  p { max-width: 68ch; margin: 0 0 14px; }
+  ul, ol { max-width: 68ch; margin: 0 0 14px; padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  li::marker { color: var(--ink-3); }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  code {
+    font-family: var(--mono); font-size: .84em; background: var(--surface-2);
+    padding: 1px 5px; border-radius: 4px; word-break: break-word;
+  }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 20px 22px; margin: 0 0 16px; box-shadow: var(--shadow);
+  }
+  .card > :last-child { margin-bottom: 0; }
+  .grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 18px; }
+  @media (min-width: 720px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+  .grid-3 { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 18px; }
+  @media (min-width: 760px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } }
+
+  .pill {
+    display: inline-block; font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: .08em; text-transform: uppercase; font-weight: 600;
+    padding: 3px 8px; border-radius: 4px; white-space: nowrap;
+  }
+  .pill.good { background: var(--good-soft); color: var(--good); }
+  .pill.bad { background: var(--bad-soft); color: var(--bad); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill.info { background: var(--accent-soft); color: var(--accent); }
+  .pill.plain { background: var(--surface-2); color: var(--ink-2); }
+
+  .callout {
+    background: var(--accent-soft); border: 1px solid var(--rule);
+    border-radius: 10px; padding: 18px 20px; margin: 0 0 20px;
+  }
+  .callout > :last-child { margin-bottom: 0; }
+  .callout .label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 8px;
+  }
+
+  .table-scroll {
+    overflow-x: auto; margin: 0 0 22px; border: 1px solid var(--rule);
+    border-radius: 10px; background: var(--surface);
+  }
+  table { border-collapse: collapse; width: 100%; font-family: var(--sans); font-size: 14px; min-width: 640px; }
+  th, td { text-align: left; padding: 11px 13px; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
+  th {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 600; background: var(--surface-2);
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .t-id { font-family: var(--mono); font-size: 12px; color: var(--accent); white-space: nowrap; }
+  .t-name { font-weight: 650; }
+
+  .wave {
+    border: 1px solid var(--rule); border-radius: 12px; background: var(--surface);
+    margin: 0 0 18px; overflow: hidden; box-shadow: var(--shadow);
+  }
+  .wave-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px;
+    padding: 16px 20px; border-bottom: 1px solid var(--rule-soft); background: var(--surface-2);
+  }
+  .wave-title { font-family: var(--sans); font-weight: 700; font-size: 18px; letter-spacing: -.01em; }
+  .wave-meta { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); margin-left: auto; }
+  .wave-body { padding: 18px 20px 20px; }
+  .wave-body > :first-child { margin-top: 0; }
+  .wave-goal {
+    font-family: var(--sans); font-size: 14.5px; color: var(--ink-2);
+    margin: 0 0 16px; max-width: 70ch;
+  }
+
+  .item { border-top: 1px dashed var(--rule); padding: 16px 0 4px; }
+  .item:first-of-type { border-top: 0; padding-top: 4px; }
+  .item-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+  .item-id {
+    font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--accent);
+  }
+  .item-title { font-family: var(--sans); font-weight: 650; font-size: 16px; letter-spacing: -.005em; }
+  .item-cost { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-left: auto; }
+  .item dl { margin: 0; font-family: var(--sans); font-size: 14.5px; line-height: 1.55; }
+  .item dt {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-3); margin-top: 10px;
+  }
+  .item dd { margin: 2px 0 0; color: var(--ink-2); max-width: 72ch; }
+  .item dd strong { color: var(--ink); font-weight: 600; }
+
+  .check { list-style: none; padding: 0; margin: 0 0 8px; }
+  .check li {
+    display: grid; grid-template-columns: 18px 1fr; gap: 9px; padding: 6px 0;
+    font-family: var(--sans); font-size: 14.5px; line-height: 1.5; color: var(--ink-2);
+  }
+  .check li::before { content: "✓"; color: var(--good); font-family: var(--mono); font-size: 12px; padding-top: 3px; }
+
+  footer.end {
+    border-top: 1px solid var(--rule); margin-top: 30px; padding-top: 22px;
+    font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); letter-spacing: .03em;
+  }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">Plán oprav · 13. 8. 2026 · navazuje na rešerši „Admin za oponou"</p>
+  <h1>Šest vln pro Tixly</h1>
+  <p class="standfirst">Prioritizovaný plán oprav admina pro pořadatele. Řazeno podle poměru dopad ku pracnosti, ne podle závažnosti — první vlna je hotová za den a hned je vidět.</p>
+  <div class="meta-row">
+    <span>30 položek</span>
+    <span>6 vln</span>
+    <span>odhad 5–7 týdnů práce</span>
+    <span>většina je frontend</span>
+  </div>
+</header>
+
+<div class="layout">
+
+<nav class="toc" aria-label="Obsah">
+  <ol>
+    <li><a href="#east"><span class="tag">Východisko</span>Co už existuje</a></li>
+    <li><a href="#v0"><span class="tag">Vlna 0 · 1 den</span>Hotfixy</a></li>
+    <li><a href="#v1"><span class="tag">Vlna 1 · 1 týden</span>Přehled akce</a></li>
+    <li><a href="#v2"><span class="tag">Vlna 2 · 4 dny</span>Dashboard na server</a></li>
+    <li><a href="#v3"><span class="tag">Vlna 3 · 1–1,5 týdne</span>Navigace a slovník</a></li>
+    <li><a href="#v4"><span class="tag">Vlna 4 · 1 týden</span>Objednávka a peníze</a></li>
+    <li><a href="#v5"><span class="tag">Vlna 5 · 1 týden</span>Provoz a mobil</a></li>
+    <li><a href="#v6"><span class="tag">Vlna 6 · průběžně</span>Systémová hygiena</a></li>
+    <li><a href="#nedelat"><span class="tag">Rozhodnutí</span>Co teď neřešit</a></li>
+    <li><a href="#merit"><span class="tag">Kontrola</span>Jak poznat, že to zabralo</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ===== VÝCHODISKO ===== -->
+<section id="east">
+  <hr class="perf">
+  <span class="sec-num">Východisko</span>
+  <h2>Co už na backendu je</h2>
+  <p class="sec-lead">Tohle rozhoduje o pracnosti celého plánu. Většina nálezů z analýzy nevyžaduje novou logiku — data existují, jen nejsou zapojená do rozhraní.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th style="width:34%">Existuje</th><th>Co z toho plyne</th></tr></thead>
+      <tbody>
+        <tr><td class="t-name"><code>api/admin/events/[id]/live-ops</code></td><td>Vrací prodáno, tržby, refundované, tempo skenů (5/15/60 min), zóny, dny, stavy objednávek a <strong>inventář po typech vstupenek včetně <code>total_qty</code> a <code>remaining_qty</code></strong>. Sell-through po typech je tedy spočitatelný dnes.</td></tr>
+        <tr><td class="t-name"><code>api/admin/events/[id]/live</code></td><td>Obsahuje <code>date_trunc</code> — denní buckety pro křivku prodeje už umí.</td></tr>
+        <tr><td class="t-name"><code>api/admin/orders</code></td><td>Agreguje <code>COUNT</code> a <code>SUM</code> serverově nad filtrovanou množinou. Dashboard nemusí stahovat řádky.</td></tr>
+        <tr><td class="t-name"><code>api/admin/ticket-changes/[changeId]</code></td><td>Schvalovací flow už mění <code>ticket_type_id</code> i sedadlo, upravuje <code>remaining_qty</code> a řeší cenový rozdíl. <strong>Motor výměny existuje</strong> — chybí jen varianta iniciovaná adminem.</td></tr>
+        <tr><td class="t-name"><code>api/admin/events/[id]/clone</code></td><td>Duplikace akce je hotová.</td></tr>
+        <tr><td class="t-name"><code>api/admin/sales-stream</code></td><td>SSE stream prodejů á 3 s — živý přehled nepotřebuje polling.</td></tr>
+        <tr><td class="t-name"><code>lib/scanner/offline-queue</code></td><td>Offline validace a fronta pro web skener. Nativní appka to může převzít, ne psát znovu.</td></tr>
+        <tr><td class="t-name"><code>components/admin/*</code></td><td><code>PageHeader</code> je na 146 ze 171 stránek. Základ designového systému stojí, jen se nedodržuje u tabulek.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <span class="label">Odhady pracnosti</span>
+    <p>Časy jsou <strong>můj odhad na základě přečteného kódu</strong>, ne měření. Předpokládají jednoho vývojáře, který v kódu žije. Nezahrnují QA ani migrace dat. Kde si nejsem jistý rozsahem, uvádím rozpětí.</p>
+  </div>
+</section>
+
+<!-- ===== VLNA 0 ===== -->
+<section id="v0">
+  <hr class="perf">
+  <span class="sec-num">Vlna 0</span>
+  <h2>Hotfixy, které nejsou redesign</h2>
+  <p class="sec-lead">Šest věcí, které jsou prostě chyby. Žádná diskuse o návrhu, žádná závislost. Dají se udělat během jednoho dne a hned se pozná rozdíl.</p>
+
+  <div class="wave">
+    <div class="wave-head">
+      <span class="wave-title">Vlna 0 — Hotfixy</span>
+      <span class="pill bad">P0</span>
+      <span class="wave-meta">odhad 1 den · 6 položek</span>
+    </div>
+    <div class="wave-body">
+      <p class="wave-goal">Cíl: odstranit věci, které uživatele mate nebo mu lžou, aniž by se cokoli přenavrhovalo.</p>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">0.1</span><span class="item-title">Stavy vstupenek se zobrazují anglicky</span><span class="item-cost">~15 min</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd><code>orders/[orderId]/page.tsx:328</code> předává do <code>StatusBadge</code> stav vstupenky (<code>valid</code>, <code>used</code>, <code>revoked</code>), ale komponenta zná jen 5 stavů objednávky → českému uživateli se zobrazí syrový anglický řetězec v šedém štítku.</dd>
+          <dt>Oprava</dt>
+          <dd>Rozšířit <code>StatusBadge</code> o samostatnou mapu stavů vstupenky, nebo vytvořit <code>TicketStatusBadge</code>. Typ přestat přetypovávat přes <code>as OrderStatus</code>.</dd>
+          <dt>Hotovo, když</dt>
+          <dd>V detailu objednávky se u každé vstupenky zobrazí <strong>Platná / Použitá / Zneplatněná</strong> se správnou barvou, a TypeScript nedovolí předat cizí stav.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">0.2</span><span class="item-title">Detail objednávky ukazuje jiné číslo než seznam</span><span class="item-cost">~30 min</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>Seznam pracuje s <code>orderNumber</code>, detail má nadpis <code>Objednávka {id.slice(0,8)}</code> (<code>:184</code>). Pokladní hledá podle čísla a v detailu vidí jiný řetězec.</dd>
+          <dt>Oprava</dt>
+          <dd>Do dotazu v <code>fetchOrder</code> přidat <code>order_number</code> a použít ho v nadpisu. UUID nechat jen jako malý technický řádek pod nadpisem.</dd>
+          <dt>Hotovo, když</dt>
+          <dd>Číslo v seznamu, v nadpisu detailu, v e-mailu kupci a v exportu je jeden a týž řetězec.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">0.3</span><span class="item-title">Tabulky se na úzké obrazovce ořezávají</span><span class="item-cost">~10 min</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd><code>DataTable.tsx:27</code> má na obalu <code>overflow-hidden</code> → sloupce se useknou a nejde odscrollovat.</dd>
+          <dt>Oprava</dt>
+          <dd>Změnit na <code>overflow-x-auto</code>. U částek zároveň doplnit <code>tabular-nums</code>.</dd>
+          <dt>Hotovo, když</dt>
+          <dd>Na šířce 1024 px jde v objednávkách doscrollovat na poslední sloupec a stránka sama nescrolluje do strany.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">0.4</span><span class="item-title">Mrtvé a duplicitní položky v menu akce</span><span class="item-cost">~20 min</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd><code>EventDetailNav.tsx</code>: <code>wristbands</code> je v menu dvakrát (<code>:36</code> a <code>:92</code>), vedle „Losování" je „<strong>Lotterie (old)</strong>" (<code>:58</code>).</dd>
+          <dt>Oprava</dt>
+          <dd>Duplicitu smazat. U <code>lotteries</code> rozhodnout: buď zrušit route, nebo ji z navigace odstranit a nechat jen přímý odkaz z migračního hlášení.</dd>
+          <dt>Hotovo, když</dt>
+          <dd>Žádná položka menu nevede na „old" variantu a žádný odkaz není v menu dvakrát.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">0.5</span><span class="item-title">Refund ze seznamu falšuje důvod v auditu</span><span class="item-cost">2–3 h</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd><code>orders/page.tsx:212</code> posílá natvrdo <code>reason: 'customer_request'</code>, bulk verze (<code>:249</code>) natvrdo <code>'event_cancelled'</code>. Audit log tedy obsahuje důvod, který nikdo nezvolil. Navíc jde o <code>window.confirm</code>, zatímco detail má pořádný formulář.</dd>
+          <dt>Oprava</dt>
+          <dd>Vytáhnout refundní formulář ze <code>SupportActions.tsx</code> do sdílené komponenty <code>RefundDialog</code> (výběr důvodu, poznámka, potvrzovací checkbox s částkou) a použít ji na obou místech. Bulk varianta ukáže součet a počet.</dd>
+          <dt>Hotovo, když</dt>
+          <dd>Refund vypadá a chová se stejně ze seznamu i z detailu a v audit logu je vždy důvod, který obsluha vybrala.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">0.6</span><span class="item-title">Návrat ze objednávky zahodí filtry</span><span class="item-cost">2–3 h</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>Filtry a stránka žijí v <code>useState</code> (<code>orders/page.tsx:150</code>), z URL se čte jen počáteční <code>eventId</code>. Po „← Zpět na seznam" je uživatel zpátky na první stránce bez filtrů.</dd>
+          <dt>Oprava</dt>
+          <dd>Přenést celý stav filtrů do query stringu přes <code>useSearchParams</code> + <code>router.replace</code>. Vedlejší přínos: filtrovaný seznam jde poslat kolegovi odkazem.</dd>
+          <dt>Hotovo, když</dt>
+          <dd>Zpětné tlačítko prohlížeče i odkaz „Zpět" vrátí uživatele na tutéž stránku se stejnými filtry, a URL se dá zkopírovat.</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VLNA 1 ===== -->
+<section id="v1">
+  <hr class="perf">
+  <span class="sec-num">Vlna 1</span>
+  <h2>Akce dostane domovskou obrazovku</h2>
+  <p class="sec-lead">Největší přínos celého plánu. Dnes akce nemá kde „bydlet" — má 74 podstránek a žádný přehled. Data pro ten přehled už existují v <code>live-ops</code>.</p>
+
+  <div class="wave">
+    <div class="wave-head">
+      <span class="wave-title">Vlna 1 — Přehled akce</span>
+      <span class="pill bad">P0</span>
+      <span class="wave-meta">odhad 5–7 dní · 4 položky</span>
+    </div>
+    <div class="wave-body">
+      <p class="wave-goal">Cíl: pořadatel otevře akci a do dvaceti sekund ví, jestli prodává podle očekávání — bez otevírání reportu.</p>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">1.1</span><span class="item-title">Vytvořit <code>events/[id]/page.tsx</code></span><span class="item-cost">2–3 dny</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>Soubor neexistuje. <code>/admin/events/&lt;id&gt;</code> nikam nevede, i když je to nejpřirozenější URL v celém adminu.</dd>
+          <dt>Obsah obrazovky</dt>
+          <dd><strong>Čtyři KPI karty nahoře a nic dalšího, co by soupeřilo:</strong> sell-through v %, čistá tržba, tempo za 7 dní, dny do akce. Pod nimi kapacitní pruh (prodáno / držené / komplimentky / volné) se stejnou legendou jako plánek. Pak tabulka typů vstupenek — prodáno, kapacita, sell-through, průměrná cena — z <code>live-ops</code> inventáře. Vpravo nebo dole: poslední objednávky a rychlé odkazy na 5 nejpoužívanějších podstránek.</dd>
+          <dt>Zdroj dat</dt>
+          <dd><code>live-ops</code> pro inventář a tempo, <code>events/[id]/live</code> pro denní křivku. Novou logiku psát netřeba.</dd>
+          <dt>Hotovo, když</dt>
+          <dd>Na <code>/admin/events/&lt;id&gt;</code> je přehled, který odpoví na „jsme v plánu?" bez jediného dalšího kliku.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">1.2</span><span class="item-title">Sell-through do seznamu akcí</span><span class="item-cost">1 den</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>Typ <code>AdminEvent</code> (<code>types/admin.ts:16</code>) nese jen <code>id, name, date, moderationStatus</code>. Seznam akcí tedy nemá jediné prodejní číslo — jen 12 textových odkazů v řádku.</dd>
+          <dt>Oprava</dt>
+          <dd>Do dotazu v <code>api/admin/events/route.ts</code> přidat agregaci přes <code>catalog.ticket_types</code> (<code>SUM(total_qty)</code>, <code>SUM(remaining_qty)</code>) a součet tržeb. Rozšířit typ. Do tabulky přidat sloupce <strong>Prodáno / Kapacita</strong>, <strong>Sell-through</strong> (s mini pruhem) a <strong>Tržba</strong>.</dd>
+          <dt>Hotovo, když</dt>
+          <dd>Ze seznamu akcí je poznat, která akce zaostává, bez otevírání jediné z nich.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">1.3</span><span class="item-title">Klik na název akce vede na akci</span><span class="item-cost">~15 min</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd><code>events/page.tsx:47</code> odkazuje název akce na <code>/admin/orders?eventId=…</code>. Uživatel čeká akci, dostane objednávky.</dd>
+          <dt>Oprava</dt>
+          <dd>Přesměrovat na <code>/admin/events/{id}</code> (existuje po 1.1). Odkaz na objednávky nechat jako sekundární akci v řádku.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">1.4</span><span class="item-title">Prořezat akce v řádku ze 12 na 3</span><span class="item-cost">2–3 h</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>V řádku je 12 textových odkazů (Upravit, Sezóna, Add-ons, Nastavení, Náramky, Live, Reporty, Zpráva, Losování, Hospitality, Member pricing, 🔥 Dynamic). Ve čtyřsloupcové tabulce to přeteče a rozbije to čtení.</dd>
+          <dt>Oprava</dt>
+          <dd>Nechat <strong>Upravit</strong>, <strong>Objednávky</strong> a <strong>Live</strong>; zbytek do jednoho přetékajícího menu „…". Vše ostatní je dostupné z přehledu akce.</dd>
+          <dt>Hotovo, když</dt>
+          <dd>Řádek se vejde na 1280 px bez horizontálního scrollu a nejčastější operace je první.</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VLNA 2 ===== -->
+<section id="v2">
+  <hr class="perf">
+  <span class="sec-num">Vlna 2</span>
+  <h2>Dashboard přestane počítat ze vzorku</h2>
+  <p class="sec-lead">Dnešní přehled tvrdí čísla, která nejsou pravdivá. To je vážnější než jakýkoli estetický nález v celé analýze.</p>
+
+  <div class="wave">
+    <div class="wave-head">
+      <span class="wave-title">Vlna 2 — Dashboard na server</span>
+      <span class="pill bad">P0</span>
+      <span class="wave-meta">odhad 3–5 dní · 4 položky</span>
+    </div>
+    <div class="wave-body">
+      <p class="wave-goal">Cíl: každé číslo na přehledu je spočítané nad celou databází a znamená to, co je u něj napsáno.</p>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">2.1</span><span class="item-title">Agregační endpoint místo počítání v prohlížeči</span><span class="item-cost">1–2 dny</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd><code>admin/page.tsx:100</code> natáhne <code>limit: 100</code> objednávek a z nich v klientu spočítá dnešní tržby, dnešní objednávky, prodané lístky, trend 7 dní, čtrnáctidenní graf, průměrnou objednávku, počet zákazníků, top 5 zákazníků, churn i refund rate. <strong>Všechna tato čísla jsou při vyšším objemu nepravdivá</strong> a zároveň je to ten způsob, jakým se admin dá zahltit.</dd>
+          <dt>Oprava</dt>
+          <dd>Nový <code>GET /api/admin/stats/overview</code>, který vrátí hotové agregáty: dnešek, posledních 7 vs. předchozích 7 dní, denní buckety za 14 dní, průměrnou objednávku, počet zákazníků, refund rate. Vzor dotazu je už v <code>events/[id]/live</code> (<code>date_trunc</code>) a v <code>orders/route.ts</code> (<code>COUNT</code>/<code>SUM</code>).</dd>
+          <dt>Hotovo, když</dt>
+          <dd>Přehled nenačítá žádný seznam objednávek kvůli číslům, a součty sedí s reportem za totéž období.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">2.2</span><span class="item-title">Z jedenácti KPI karet udělat čtyři</span><span class="item-cost">1 den</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>Tři bloky karet (4 + 4 + 3) plus dvě karty se seznamy plus graf plus tabulka. Nic nemá přednost, takže nic nevynikne.</dd>
+          <dt>Oprava</dt>
+          <dd>Nahoře čtyři karty: <strong>tržba dnes</strong>, <strong>tempo 7 dní vs. předchozích 7</strong>, <strong>nejbližší akce a její sell-through</strong>, <strong>co vyžaduje pozornost</strong> (refundace k vyřízení, chargebacky, akce pod plánem). Zbytek pod ně jako sekundární řádek menším písmem. Top zákazníci a churn patří do CRM, ne na hlavní obrazovku.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">2.3</span><span class="item-title">Ukazovat čistou tržbu, ne jen hrubou</span><span class="item-cost">0,5–1 den</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>Karta „Tržby (celkem)" ukazuje hrubý objem. Pořadatele zajímá, co mu zůstane po poplatcích a refundacích.</dd>
+          <dt>Oprava</dt>
+          <dd>Karta ukáže čistou částku velkým písmem a hrubou jako doplněk pod ní. Zdroj pro rozpad je stejný jako pro modul Výplaty.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">2.4</span><span class="item-title">Odstranit emoji z nadpisů karet</span><span class="item-cost">~15 min</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>„🏆 Top 5 zákazníků", „⚠️ Churn risk" — emoji jako značka sekce. Nekonzistentní se zbytkem, špatně se čte ve screen readeru.</dd>
+          <dt>Oprava</dt>
+          <dd>Nadpis textem, stav barevným štítkem. Ikona z <code>lucide-react</code>, když je potřeba vizuální kotva.</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VLNA 3 ===== -->
+<section id="v3">
+  <hr class="perf">
+  <span class="sec-num">Vlna 3</span>
+  <h2>Navigace a slovník</h2>
+  <p class="sec-lead">Nejnáročnější vlna na rozhodování, ne na kód. Vyžaduje, aby někdo řekl, které funkce jsou hlavní a které vedlejší — to za vás nespočítá žádný nástroj.</p>
+
+  <div class="wave">
+    <div class="wave-head">
+      <span class="wave-title">Vlna 3 — Navigace, slovník, hledání</span>
+      <span class="pill warn">P1</span>
+      <span class="wave-meta">odhad 6–8 dní · 5 položek</span>
+    </div>
+    <div class="wave-body">
+      <p class="wave-goal">Cíl: nový uživatel najde funkci, aniž by prošel 123 položek menu ve třech úrovních.</p>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">3.1</span><span class="item-title">Sidebar ze 49 položek na ~14</span><span class="item-cost">2 dny</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>49 položek v 11 sekcích, „Dashboard" je až pátý v sekci „Akce", sekce „Provoz" má jednu položku, „Setup" je vklíněný mezi analytiku a finance.</dd>
+          <dt>Oprava</dt>
+          <dd>Hlavní menu: <strong>Přehled · Akce · Objednávky · Zákazníci · Pokladna · Skener · Marketing · Finance · Reporty · Sály · Tým · Nastavení</strong>. Vše ostatní (Brand Connect, Social Shop, OAuth apps, RFM, Pricemaster, Ads…) pod jednu položku <strong>„Vše"</strong> — stránku s dlaždicemi rozdělenými do skupin a s vyhledáváním. Sekce „Sály" doplnit, dnes v menu chybí úplně, takže editor plánku sálu není dosažitelný.</dd>
+          <dt>Hotovo, když</dt>
+          <dd>Sidebar se vejde bez scrollování na 900 px vysokou obrazovku a Přehled je první položka.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">3.2</span><span class="item-title">Menu akce ze 74 položek na 9 záložek</span><span class="item-cost">2–3 dny</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>74 položek v 9 rozbalovacích menu v liště s <code>overflow-x-auto</code>. Protože <code>overflow-x: auto</code> vynutí i svislé ořezání, rozbalený seznam se podle pravidel CSS pod lištou ořízne. <em>Neověřeno v prohlížeči — ověřit jako první krok této položky.</em></dd>
+          <dt>Oprava</dt>
+          <dd>Devět skutečných záložek: <strong>Přehled · Vstupenky · Plánek · Objednávky · Účastníci · Prodej · Marketing · Vyúčtování · Nastavení</strong>. Zbývajících ~65 funkcí se stane sekcemi <em>uvnitř</em> těchto stránek (dynamic pricing, member pricing, channel prices a pricing windows patří na jednu stránku „Ceny"; guestlist, akreditace a press na „Účastníky"). Žádný dropdown v liště.</dd>
+          <dt>Hotovo, když</dt>
+          <dd>Přechod mezi sekcemi akce je jeden klik bez rozbalování a lišta se vejde na 1280 px.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">3.3</span><span class="item-title">Jeden jazyk, jeden slovník</span><span class="item-cost">1 den</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>V jednom menu vedle sebe: „Typy vstupenek", „Holds", „Dynamic pricing", „Channel prices", „Will Call", „Hot mode", „Live ops", „Sales report", „Obsazení". K tomu emoji jen u některých položek (🪑, ⭐, 🚗, 💳, 📡, 🎤…).</dd>
+          <dt>Oprava</dt>
+          <dd>Sestavit slovník termínů (jedna tabulka: pojem → český název → kde se používá) a projet jím navigaci, nadpisy, tlačítka i e-maily. Emoji z navigace pryč bez výjimky. Zavedené anglické termíny bez rozumného překladu (POS) ponechat, ale konzistentně.</dd>
+          <dt>Hotovo, když</dt>
+          <dd>Tentýž objekt se všude jmenuje stejně a v navigaci není jediné emoji.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">3.4</span><span class="item-title">Globální hledání pod <code>Ctrl/⌘ K</code></span><span class="item-cost">2 dny</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>Admin nemá žádné globální hledání. Při 171 stránkách je to jediný rozumný způsob, jak se dostat kamkoli.</dd>
+          <dt>Oprava</dt>
+          <dd>Paleta hledá ve třech skupinách: <strong>objednávky</strong> (číslo, příjmení, e-mail), <strong>akce</strong> (název), <strong>stránky admina</strong> (statický rejstřík všech 171 route s českými názvy). Zároveň to elegantně řeší funkce, které se do prořezaného menu nevejdou.</dd>
+          <dt>Hotovo, když</dt>
+          <dd>Objednávka podle příjmení je nalezená do 10 sekund odkudkoli v adminu.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">3.5</span><span class="item-title">Kontext v horní liště</span><span class="item-cost">0,5 dne</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd><code>Topbar</code> má na všech 171 stránkách statický titulek „Tixly Admin". Nenese žádnou informaci o tom, kde uživatel je.</dd>
+          <dt>Oprava</dt>
+          <dd>Titulek podle stránky, a v kontextu akce navíc <strong>přepínač akce s vyhledáváním</strong>, který při přepnutí zachová aktuální záložku.</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VLNA 4 ===== -->
+<section id="v4">
+  <hr class="perf">
+  <span class="sec-num">Vlna 4</span>
+  <h2>Objednávka a peníze</h2>
+  <p class="sec-lead">Detail objednávky je dnes nejlepší obrazovka v celém adminu. Chybí mu čtyři věci, aby byl kompletní.</p>
+
+  <div class="wave">
+    <div class="wave-head">
+      <span class="wave-title">Vlna 4 — Objednávka, výměna, poplatky</span>
+      <span class="pill warn">P1</span>
+      <span class="wave-meta">odhad 5–7 dní · 5 položek</span>
+    </div>
+    <div class="wave-body">
+      <p class="wave-goal">Cíl: cokoli, co po telefonu chce zákazník, jde vyřídit z jedné obrazovky, aniž by se objednávka rozpadla na dvě.</p>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">4.1</span><span class="item-title">Výměna vstupenky iniciovaná adminem</span><span class="item-cost">2–3 dny</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>Výměna neexistuje. Je refund, transfer na jiný e-mail a zrušení lístku — takže obsluha musí storno + nový nákup, což rozbije historii i reporty.</dd>
+          <dt>Klíčové zjištění</dt>
+          <dd><strong>Motor už existuje.</strong> <code>api/admin/ticket-changes/[changeId]</code> při schválení mění <code>ticket_type_id</code> i sedadlo, upravuje <code>remaining_qty</code>, řeší doplatek i refund rozdílu. Chybí varianta, kde změnu zakládá admin, ne zákazník.</dd>
+          <dt>Oprava</dt>
+          <dd>Nová záložka <strong>Výměna</strong> v <code>SupportActions</code>: vyber lístek → nový typ nebo jiný termín → náhled rozdílu ceny → provést. Interně vytvořit <code>ticket_change</code> ve stavu rovnou schváleno, se stejným zápisem do auditu.</dd>
+          <dt>Hotovo, když</dt>
+          <dd>Výměna proběhne bez storna, objednávka zůstane jedna a v historii je vidět původní i nový stav.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">4.2</span><span class="item-title">Částečný refund</span><span class="item-cost">1–2 dny</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>Refunduje se vždy celá objednávka. Reálný případ „ze čtyř lístků vrátit jeden" nejde vyřešit.</dd>
+          <dt>Oprava</dt>
+          <dd>V refundním dialogu volba <strong>celá objednávka / vybrané vstupenky / vlastní částka</strong>, s automatickým přepočtem a informací, jestli se vrací i servisní poplatek. Kapacita se musí vrátit jen za skutečně zneplatněné lístky.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">4.3</span><span class="item-title">Rozpad poplatků a DPH v detailu</span><span class="item-cost">1 den</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>Detail ukazuje celkem a slevu. Nikde není, kolik je servisní poplatek, kolik platební brána, kolik DPH a co zůstane pořadateli.</dd>
+          <dt>Oprava</dt>
+          <dd>Blok „Rozpad" pod položkami: cena, sleva, DPH podle sazby, servisní poplatek, poplatek brány, <strong>čistý výnos pořadatele</strong>. Stejná čísla, jaká používá modul Výplaty — aby seděla.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">4.4</span><span class="item-title">Log odeslaných e-mailů</span><span class="item-cost">1 den</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>Není vidět, jestli kupujícímu dorazilo potvrzení, kdy a co. Přitom „nepřišly mi lístky" je nejčastější dotaz na podporu.</dd>
+          <dt>Oprava</dt>
+          <dd>Sekce „Komunikace" s výpisem odeslaných zpráv (typ, čas, adresa, stav doručení, pokud ho brána vrací) a tlačítkem poslat znovu u každé.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">4.5</span><span class="item-title">Audit log čitelně, ne jako JSON</span><span class="item-cost">0,5–1 den</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd><code>orders/[orderId]/page.tsx:380</code> vypisuje <code>newValues</code> jako syrový JSON v <code>&lt;pre&gt;</code>.</dd>
+          <dt>Oprava</dt>
+          <dd>Věta v češtině: „<strong>Jana Nováková</strong> vrátila 1 240 Kč · důvod: žádost zákazníka · 12. 8. 14:32". Syrový JSON schovat pod „Technický detail".</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VLNA 5 ===== -->
+<section id="v5">
+  <hr class="perf">
+  <span class="sec-num">Vlna 5</span>
+  <h2>Provoz a mobil</h2>
+  <p class="sec-lead">Tady je paradox: nástroj určený ke dveřím (nativní appka) umí míň než ten, který ke dveřím nevezmete (web skener).</p>
+
+  <div class="wave">
+    <div class="wave-head">
+      <span class="wave-title">Vlna 5 — Dveře, pokladna, mobil</span>
+      <span class="pill warn">P1</span>
+      <span class="wave-meta">odhad 5–7 dní · 4 položky</span>
+    </div>
+    <div class="wave-body">
+      <p class="wave-goal">Cíl: večer akce projde bez toho, aby někdo potřeboval notebook.</p>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">5.1</span><span class="item-title">Offline režim do nativní appky</span><span class="item-cost">2–3 dny</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd><code>mobile-promoter/app/scanner.tsx</code> nemá offline frontu — validuje přes síť. Web skener přitom offline umí (<code>lib/scanner/offline-queue</code>).</dd>
+          <dt>Oprava</dt>
+          <dd>Přenést logiku fronty do appky (manifest do lokálního úložiště, lokální validace, synchronizace po obnovení signálu). Na obrazovce vždy viditelný <strong>indikátor režimu</strong>: online / offline / synchronizuji, plus počet nesynchronizovaných skenů.</dd>
+          <dt>Hotovo, když</dt>
+          <dd>V režimu letadlo appka odbaví vstupenku, označí duplicitu a po připojení se fronta sama srovná.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">5.2</span><span class="item-title">Odezva skeneru na celou obrazovku</span><span class="item-cost">1 den</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>Webový skener ukazuje výsledek jako malou kartu s 16px textem a 20px ikonou (<code>scanner/page.tsx:744</code>). Ve tmě, v rukavicích a s frontou za zády je to nečitelné.</dd>
+          <dt>Oprava</dt>
+          <dd>Výsledek přes celou plochu: zelená / oranžová / červená, jedno slovo velkým písmem, pod ním jméno a typ vstupenky. U duplicity zůstane <strong>čas prvního použití</strong> — ten už funguje a je to nejcennější údaj u dveří.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">5.3</span><span class="item-title">Mobilní navigace webového admina</span><span class="item-cost">1–2 dny</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd><code>admin/layout.tsx</code> staví pevný sidebar <code>w-60 h-screen</code> bez jediného responzivního pravidla. Na telefonu zabírá dvě třetiny šířky.</dd>
+          <dt>Oprava</dt>
+          <dd>Pod 1024 px sidebar skrýt a otevírat jako panel z hamburgeru. Netýká se to celého admina — cílem je, aby <strong>přehled, objednávky, skener a pokladna</strong> byly na telefonu použitelné. Editor plánku a reporty zůstanou desktopové záměrně.</dd>
+        </dl>
+      </div>
+
+      <div class="item">
+        <div class="item-head"><span class="item-id">5.4</span><span class="item-title">Pokladna: údaje kupujícího na hlavní ploše</span><span class="item-cost">1 den</span></div>
+        <dl>
+          <dt>Problém</dt>
+          <dd>Přesně tenhle krok se u Eventbrite po schování za tlačítko „more actions" přestal vyplňovat — což doložily recenze pokladních. Stojí za to zkontrolovat, že v <code>admin/pos</code> není zadání kupujícího o klik dál, než musí být.</dd>
+          <dt>Oprava</dt>
+          <dd>Prodej na tři kliky, pole pro jméno a e-mail viditelné bez rozbalování, uzávěrka směny na konci.</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VLNA 6 ===== -->
+<section id="v6">
+  <hr class="perf">
+  <span class="sec-num">Vlna 6</span>
+  <h2>Systémová hygiena</h2>
+  <p class="sec-lead">Nic z toho není vidět za jeden den, ale bez toho se každá další funkce staví dráž. Dělat průběžně vedle ostatních vln, ne v jednom bloku.</p>
+
+  <div class="wave">
+    <div class="wave-head">
+      <span class="wave-title">Vlna 6 — Designový systém a technický dluh</span>
+      <span class="pill plain">P2</span>
+      <span class="wave-meta">průběžně · 8 položek</span>
+    </div>
+    <div class="wave-body">
+
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th style="width:44px">#</th><th style="width:26%">Položka</th><th>Co udělat</th><th style="width:88px">Odhad</th></tr></thead>
+          <tbody>
+            <tr><td class="t-id">6.1</td><td class="t-name">Rozhodnout o tmavém režimu</td><td><code>ThemeProvider</code> má <code>defaultTheme="light"</code>, <code>enableSystem={false}</code> a nikdo nevolá <code>setTheme</code> — tmavý režim je fakticky vypnutý, ale v adminu je <strong>2 373 natvrdo zapsaných barevných tříd</strong>, které by ho rozbily. Buď ho vědomě zrušit a odstranit mrtvý kód, nebo naplánovat převod na tokeny. Nedělat půlku.</td><td>2–5 dní</td></tr>
+            <tr><td class="t-id">6.2</td><td class="t-name">Jedna tabulka místo 68</td><td><code>DataTable</code> se používá v 6 stránkách, ale <strong>68 stránek má vlastní <code>&lt;table&gt;</code></strong>. Doplnit do <code>DataTable</code> řazení, volbu sloupců a sticky hlavičku, a migrovat stránky postupně — vždy tu, které se zrovna dotýkáte.</td><td>průběžně</td></tr>
+            <tr><td class="t-id">6.3</td><td class="t-name">Uložené pohledy</td><td>Uložit kombinaci filtrů pod názvem („dnešní prodeje", „k refundaci") a sdílet ji v týmu. Staví na 0.6 (filtry v URL) — bez toho to nedává smysl.</td><td>2 dny</td></tr>
+            <tr><td class="t-id">6.4</td><td class="t-name">Pryč s nativními dialogy</td><td>V adminu je <strong>22 prohlížečových dialogů</strong> (14× <code>alert()</code>, 8× <code>window.confirm</code>). Nahradit sdíleným dialogem a toastem. Text vždy říká, co se stalo — ne „Hotovo.".</td><td>1–2 dny</td></tr>
+            <tr><td class="t-id">6.5</td><td class="t-name">Autosave a odemčení wizardu</td><td>Osmikrokový průvodce tvorby akce žije jen v paměti — zavření záložky ho zahodí. Ukládat rozpracovaný stav a povolit skok na už navštívený i následující krok (<code>disabled={i &gt; stepIdx}</code> zrušit).</td><td>1–2 dny</td></tr>
+            <tr><td class="t-id">6.6</td><td class="t-name">Prázdné stavy</td><td><code>EmptyState</code> používají 2 stránky ze 171. Doplnit ho tam, kde uživatel přistane poprvé — s návodem, co udělat, ne s prázdnou plochou.</td><td>průběžně</td></tr>
+            <tr><td class="t-id">6.7</td><td class="t-name">Role jemněji</td><td>Dnes fakticky dvě úrovně (<code>staff</code> vidí 7 položek, ostatní všech 49). Doplnit alespoň <strong>Pokladní</strong>, <strong>Marketing</strong> a <strong>Účetní</strong> s vlastní výchozí obrazovkou po přihlášení.</td><td>2–3 dny</td></tr>
+            <tr><td class="t-id">6.8</td><td class="t-name">Přístupnost admina</td><td>Existující <code>A11Y_AUDIT.md</code> pokrývá jen nákupní stranu a sám přiznává odebraný <code>outline</code> a kontrast pod 4,5:1. Admin nebyl auditovaný vůbec. Projet focus stavy, kontrast a klávesovou obsluhu — pokladní často nemá myš.</td><td>2–3 dny</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== NEDĚLAT ===== -->
+<section id="nedelat">
+  <hr class="perf">
+  <span class="sec-num">Rozhodnutí</span>
+  <h2>Co v tomhle kole vědomě neřešit</h2>
+  <p class="sec-lead">Plán je užitečný hlavně tím, co z něj vynechá. Tohle jsou věci, které by se nabízely, ale teď by braly čas lepším.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Redukci 76 funkcí akce</h3>
+      <p>Vlna 3 je jen <strong>přeskládá</strong> do devíti stránek. Rozhodnutí, které z nich zrušit, vyžaduje data o skutečném používání — ta zatím nemáte. Nejdřív měřit, pak mazat.</p>
+    </div>
+    <div class="card">
+      <h3>Vlastní dashboard s widgety</h3>
+      <p><code>api/admin/dashboards/[key]</code> ukládá rozvržení v <code>react-grid-layout</code>. Konfigurovatelný dashboard má smysl až tehdy, když ten pevný ukazuje správná čísla. Do té doby jen znásobuje chybu.</p>
+    </div>
+    <div class="card">
+      <h3>Kompletní převod barev na tokeny</h3>
+      <p>2 373 výskytů je práce na týdny s vysokým rizikem regresí a nulovým viditelným přínosem. Převádět jen soubory, kterých se stejně dotýkáte v jiných vlnách.</p>
+    </div>
+    <div class="card">
+      <h3>Plnou paritu nativní appky</h3>
+      <p>Appka má dělat čtyři věci: přihlásit, skenovat i offline, ukázat živý přehled a prodat na místě. Vše ostatní patří na desktop — cpát tam zbytek admina je slepá ulička.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MĚŘENÍ ===== -->
+<section id="merit">
+  <hr class="perf">
+  <span class="sec-num">Kontrola</span>
+  <h2>Jak poznat, že to zabralo</h2>
+  <p class="sec-lead">Šest měření, která jdou udělat před první vlnou a po poslední. Bez čísla před tím je „zlepšili jsme UX" jen dojem.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th style="width:30%">Co měřit</th><th style="width:26%">Jak</th><th>Cíl</th></tr></thead>
+      <tbody>
+        <tr><td class="t-name">Zjistit stav akce</td><td>Stopky: od přihlášení k odpovědi „prodává tahle akce podle plánu?"</td><td>Dnes: nezjistitelné z UI. Po vlně 1: <strong>do 20 s</strong>.</td></tr>
+        <tr><td class="t-name">Dohledat objednávku podle příjmení</td><td>Stopky, zadání typické reklamace</td><td><strong>Do 10 s</strong> odkudkoli v adminu (vlna 3.4).</td></tr>
+        <tr><td class="t-name">Vyřídit refund</td><td>Počet kliků od otevření admina</td><td><strong>Max 4 kliky</strong>, vždy stejný postup (vlna 0.5).</td></tr>
+        <tr><td class="t-name">Přesnost čísel na přehledu</td><td>Porovnat KPI s reportem za totéž období</td><td><strong>Shoda na korunu.</strong> Dnes se rozchází vždy, když je objednávek přes 100 (vlna 2.1).</td></tr>
+        <tr><td class="t-name">Průchodnost vstupu</td><td>Skenů za minutu a podíl sporných</td><td><strong>Pod 0,5 % sporných</strong>, žádný výpadek při ztrátě signálu (vlna 5.1).</td></tr>
+        <tr><td class="t-name">Dotazy „kde najdu…"</td><td>Štítek v podpoře</td><td>Klesající podíl. Když neklesá, problém je v architektuře, ne v dokumentaci.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <span class="label">Doporučené pořadí</span>
+    <p>Začít <strong>vlnou 0 celou</strong> — je za den a zbaví vás šesti věcí, které kazí dojem z čehokoli dalšího. Pak <strong>1.1 (přehled akce)</strong>, protože je to největší jednotlivý přínos a data pro něj už existují. Pak <strong>2.1 (agregační endpoint)</strong>, protože dokud dashboard lže, nemá smysl ho zkrášlovat. Vlny 3 až 5 běží podle toho, co pálí víc: navigace u nových zákazníků, výměny u telefonické podpory, mobil před sezónou. Vlna 6 průběžně a nikdy jako samostatný sprint.</p>
+  </div>
+
+  <footer class="end">
+    Plán sestaven 13. 8. 2026 z analýzy zdrojového kódu · aplikace nebyla spuštěna · odhady pracnosti jsou kvalifikovaný odhad, ne měření · položka 3.2 obsahuje jedno tvrzení k ověření v prohlížeči
+  </footer>
+</section>
+
+</main>
+</div>
+</div>

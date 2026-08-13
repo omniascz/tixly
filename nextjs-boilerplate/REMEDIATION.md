@@ -2,7 +2,7 @@
 
 Tenhle soubor je **hlavni zdroj kontinuity**. Da se z nej pokracovat bez
 konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
-§1–§193); tady je jen to, co je hotove, co je otevrene a cim zacit.
+§1–§195); tady je jen to, co je hotove, co je otevrene a cim zacit.
 
 ⚠️ Tenhle soubor je ten v `nextjs-boilerplate/`. V korenu repa lezi starsi
 `REMEDIATION.md` (STAV 2026-07-29), ktery je **neaktualni** — needituj ho.
@@ -64,7 +64,13 @@ konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
    Vercelu sifrovana a NEOVERIL jsem ji. Cesty ven jsou **zmerene** (§192):
    proveditelne a) i b), **b) levneji**; c) nedoporucuji. Dopad ohranicen
    vzorkem 10 rout (§193): **0 z 10 by vydalo cizi data**, projev je
-   fail-closed. R-57 = spici `SET LOCAL` v `buyer/fan-bonus:18`.
+   fail-closed. R-57 (spici `SET LOCAL`) je **VYRESENY** (§195).
+   **Pripraveno k implementaci (b)** — §194 ma zmerene rozpocty:
+   direct pool `max=4`, `idleTimeoutMillis=10000` (855 slotu / 4 = 213 instanci);
+   pooled pool nechat 10 / 30000. Strop je SPOLECNY (dolozeno: pooler drzel
+   36 backendu a direct se dostal jen na 854 misto 890), ale pooled spojeni
+   stoji ~1/9 backendu, takze direct je ten, ktery se musi skrbit.
+   NEIMPLEMENTOVANO — dosla kapacita session, ne rozhodnuti.
 1. **R-15** flakiness zive sady. Pooler byl *cast* pricin. **Domereno (§191):
    5 behu na `pooled=false` -> pada VZDY TYZ test** (`checkout-guest > velka
    pismena v e-mailu`, 2 z 5 behu, nikdy zadny jiny). §108 „pokazde jiny test"
@@ -772,7 +778,15 @@ kolik ji je mezi zbylymi 196, **NEVIM**.
 
 ⚠️ Nedelej z toho „206 der".
 
-## R-57 🟡 `buyer/fan-bonus:18` — spici `SET LOCAL` mimo transakci (§192)
+## R-57 ✅ VYRESENO (§195) — spici `SET LOCAL` odstranen
+
+Radek smazan; `runWithPlatformAdminContext` se NEPOUZIL, protoze routa uz je
+v servisnim kontextu a `gift_vouchers` ma vetev `app_is_service()`. Scoping
+zajistuje `WHERE fbi.user_id = $1`.
+RED->GREEN (`tests/fan-bonus-r57.live.test.ts`, 2/2): v transakci RED `"true"`
+-> GREEN `""`. Neregrese: kupujici vidi svuj bonus a NEvidi cizi (a naopak).
+
+### Puvodni zapis (§192)
 
 `SET LOCAL app.is_platform_admin = 'true'` a v cele route neni `BEGIN`.
 Zmereno 3/3: mimo transakci to hlasi `WARNING: SET LOCAL can only be used in
