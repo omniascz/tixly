@@ -5710,3 +5710,57 @@ vyplaty nerozbehne a je to tak i zapsane v §203 e).
    se servisnim kontextem, RED pres `exclude`.
 5. Pocitat s SESTOU vrstvou — `platform.payouts` ma vlastni vady (R-30, R-31),
    ktere se dosud nikdy neprojevily, protoze cesta spadla driv.
+
+---
+
+## §207 — Vyplatni SELECT opraven, RED->GREEN dolozen, PEEL prekvapil
+
+Merený stav: **klon s nenasazenymi migracemi** (`createLiveClone`), handlery pod
+`tixly_app`, servisni kontext — tak, jak cestu pousti cron.
+Migrace v tom zadna neni, takze `exclude` (§190) se nepouzil: **RED je puvodni
+tvar dotazu, GREEN opraveny**, oba proti temuz klonu a temuz radku.
+
+```
+[§207] RED   = 42703
+[§207] GREEN = 1 radek
+[§207] PEEL UPDATE rowCount = 1   <- projde
+4 passed
+```
+
+### Co se zmenilo v kodu
+
+* `wise_recipient_id` a `paypal_payout_email` pryc z obou SELECTu
+  (`executor.ts`, `admin/payouts/execute/route.ts`) i z typu radku.
+* **Cache `wise_recipient_id` zrusena** (varianta A ze §206): recipient se
+  zaklada pri kazde vyplate. Dve `UPDATE platform.promoters SET
+  wise_recipient_id` byly zapisy do neexistujiciho sloupce.
+* **Paypal vetev vyriznuta** cela vcetne `executePayPalPayout()` a importu —
+  zamceno, `payout_method_check` ji nepovoluje.
+* `ENABLED_PAYOUT_CHANNELS = {bank_transfer, sepa_credit, wise}` s kontrolou
+  **pred dotazem**; neznamy kanal -> `failPayout` se srozumitelnym duvodem,
+  ne 42703 uprostred prevodu penez. `payout_method IS NULL` prochazi dal
+  (dnesni chovani, radi se podle meny a IBAN).
+
+### PEEL — pata vrstva prekonana, SESTA se NEPOTVRDILA
+
+Cekalo se, ze hned za SELECTem spadne R-30 (`platform.payouts`: servisni
+`UPDATE` vraci `rowCount=0` bez chyby). **Nespadla: `rowCount = 1`.**
+Servisni UPDATE na `platform.payouts` na tomhle klonu **projde**.
+
+⚠️ Netvrdim, ze R-30 byla chybna — merila jinou situaci a mezitim se zmenilo
+schema (461 a dalsi). Tvrdim jen, ze **na teto ceste, na tomhle klonu, se
+neprojevila**. Doverovat tomu jde potud, pokud se stejne overi i R-31
+(`'processing'` mimo `payout_method_check`… presneji mimo `status` CHECK),
+coz **NEZMERENO** — test konci u `status='failed'`, ktery v CHECKu je.
+
+### Co dolozene NENI
+
+* **Cela cesta vyplaty do konce.** Test dokladá SELECT + UPDATE. Vlastni prevod
+  (Wise API) se nespoustel — `WISE_API_KEY` v testu neni, vetev by skoncila
+  na „Wise not configured". Realny prevod penez tedy **neoveren**.
+* **Druhe misto** (`admin/payouts/execute`) ma **tentyz opraveny SELECT**
+  (zmena provedena na obou), ale jeho routa se nevolala — dolozen je tvar
+  dotazu, ne beh routy.
+* Seed se odloupaval stejne jako sama cesta: `platform.payouts` ma
+  `period_from`, `period_to` i `payout_cycle` jako **NOT NULL bez defaultu**
+  (23502 dvakrat za sebou). Kdo bude tu tabulku plnit z kodu, narazi na tez.

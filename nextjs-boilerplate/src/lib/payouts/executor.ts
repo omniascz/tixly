@@ -5,7 +5,9 @@
  * Called by the payouts-execute cron job.
  *
  * Provider selection:
- *   1. Explicit payout_method on promoter (sepa_credit | wise → Wise; paypal → PayPal)
+ *   1. Explicit payout_method on promoter (sepa_credit | wise → Wise)
+ *      paypal je VYRAZENY — payout_method_check ho nepovoluje a sloupec
+ *      paypal_payout_email v schematu neexistuje (§203, §206).
  *   2. Currency-based auto-routing:
  *      - EUR/GBP/PLN/non-CZK → Wise (covers SEPA + SWIFT)
  *      - CZK → FIO (existing CZ bank transfer)
@@ -21,10 +23,8 @@ import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import {
   getWiseConfig,
   createWiseRecipient,
-  getWiseRecipient,
   createAndFundWiseTransfer,
 } from './wise';
-import { createPayPalPayout } from './paypal-payouts';
 
 const MAX_RETRIES = 3;
 
@@ -40,9 +40,14 @@ interface PromoterPayoutRow {
   swift_bic: string | null;
   payout_method: string | null;
   payout_currency: string | null;
-  wise_recipient_id: number | null;
-  paypal_payout_email: string | null;
 }
+
+/**
+ * Kanaly, ktere se smi provest. Mimo tenhle vycet cesta selze PRED dotazem.
+ * payout_method_check na platform.promoters povoluje
+ * bank_transfer | sepa_credit | wise — paypal v nem NENI (§203).
+ */
+export const ENABLED_PAYOUT_CHANNELS = new Set(['bank_transfer', 'sepa_credit', 'wise']);
 
 type ExecuteResult = {
   payoutId: string;
@@ -60,14 +65,20 @@ async function executePayoutImpl(row: PromoterPayoutRow): Promise<ExecuteResult>
   const amountMajor = row.net_payout / 100;
 
   // Determine provider
+  // ─── ENABLED_PAYOUT_CHANNELS (§203 d) ──────────────────────────────────────
+  // Vzorem DISABLED_REPORTS / ALLOWED_JOBS: neznamy nebo vyrazeny kanal ma
+  // selhat SROZUMITELNE a HNED, ne az 42703 uprostred prevodu penez.
+  //   'paypal' — payout_method_check ho nepovoluje a paypal_payout_email
+  //              v schematu neexistuje. Vyrazeno.
+  //   NULL     — projde, radi se dal podle meny a IBAN (dnesni chovani).
   const method = row.payout_method;
+  if (method !== null && !ENABLED_PAYOUT_CHANNELS.has(method)) {
+    const reason = `payout channel disabled: ${method}`;
+    await failPayout(row.payout_id, reason, row.retry_count);
+    return { payoutId: row.payout_id, status: 'failed', reason };
+  }
   const currency = row.payout_currency ?? row.currency;
   const isEurLike = currency !== 'CZK';
-
-  // PayPal path
-  if (method === 'paypal' && row.paypal_payout_email) {
-    return executePayPalPayout(row, amountMajor, currency);
-  }
 
   // Wise path: explicit wise/sepa_credit OR non-CZK currency with IBAN
   if ((method === 'wise' || method === 'sepa_credit' || isEurLike) && row.iban) {
@@ -80,8 +91,8 @@ async function executePayoutImpl(row: PromoterPayoutRow): Promise<ExecuteResult>
   }
 
   // Cannot execute — missing payout details
-  const reason = !row.iban && !row.paypal_payout_email
-    ? 'Promoter has no IBAN or PayPal payout email configured'
+  const reason = !row.iban
+    ? 'Promoter has no IBAN configured'
     : `No suitable provider for currency=${currency} method=${method ?? 'unset'}`;
 
   await db().query(
@@ -109,44 +120,17 @@ async function executeWisePayout(
   }
 
   try {
-    // Ensure recipient exists (use cached ID or create new)
-    let recipientId = row.wise_recipient_id;
-
-    if (!recipientId) {
-      const recipient = await createWiseRecipient({
-        accountHolderName: row.promoter_name,
-        currency: targetCurrency,
-        iban: row.iban!,
-        bic: row.swift_bic ?? undefined,
-        legalType: 'BUSINESS',
-      });
-      recipientId = recipient.id;
-
-      // Cache wise_recipient_id on promoter
-      await db().query(
-        `UPDATE platform.promoters SET wise_recipient_id = $2 WHERE id = $1`,
-        [row.promoter_id, recipientId],
-      );
-    } else {
-      // Verify cached recipient is still valid
-      try {
-        await getWiseRecipient(recipientId);
-      } catch {
-        // Stale — recreate
-        const newRecipient = await createWiseRecipient({
-          accountHolderName: row.promoter_name,
-          currency: targetCurrency,
-          iban: row.iban!,
-          bic: row.swift_bic ?? undefined,
-          legalType: 'BUSINESS',
-        });
-        recipientId = newRecipient.id;
-        await db().query(
-          `UPDATE platform.promoters SET wise_recipient_id = $2 WHERE id = $1`,
-          [row.promoter_id, recipientId],
-        );
-      }
-    }
+    // §206: `wise_recipient_id` na `platform.promoters` NEEXISTUJE, takze se
+    // recipient necachuje a zaklada se pri kazde vyplate. Varianta A —
+    // cena je jedno API volani navic, zisk je, ze cesta vubec bezi.
+    const recipient = await createWiseRecipient({
+      accountHolderName: row.promoter_name,
+      currency: targetCurrency,
+      iban: row.iban!,
+      bic: row.swift_bic ?? undefined,
+      legalType: 'BUSINESS',
+    });
+    const recipientId = recipient.id;
 
     const sourceCurrency = process.env.WISE_SOURCE_CURRENCY ?? 'EUR';
 
@@ -182,56 +166,6 @@ async function executeWisePayout(
   }
 }
 
-// ─── PayPal Payouts ───────────────────────────────────────────────────
-
-async function executePayPalPayout(
-  row: PromoterPayoutRow,
-  amountMajor: number,
-  currency: string,
-): Promise<ExecuteResult> {
-  if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
-    const reason = 'PayPal not configured';
-    await failPayout(row.payout_id, reason, row.retry_count);
-    return { payoutId: row.payout_id, status: 'failed', reason };
-  }
-
-  try {
-    const result = await createPayPalPayout({
-      senderBatchId: `tixly-${row.payout_id}`,
-      emailSubject: 'Tixly — výplata za vstupenky',
-      items: [
-        {
-          sender_item_id: row.payout_id,
-          receiver: row.paypal_payout_email!,
-          amountValue: amountMajor.toFixed(2),
-          currency,
-          note: `Tixly výplata — ${row.payout_id.slice(0, 8)}`,
-        },
-      ],
-    });
-
-    await db().query(
-      `UPDATE platform.payouts
-       SET status = 'processing', payout_provider = 'paypal',
-           external_payout_id = $2, executed_at = NOW(),
-           failure_reason = NULL
-       WHERE id = $1`,
-      [row.payout_id, result.batchId],
-    );
-
-    return {
-      payoutId: row.payout_id,
-      status: 'paid',
-      provider: 'paypal',
-      externalId: result.batchId,
-      reason: `status=${result.status}`,
-    };
-  } catch (err) {
-    const reason = err instanceof Error ? err.message : String(err);
-    await failPayout(row.payout_id, reason, row.retry_count);
-    return { payoutId: row.payout_id, status: 'failed', provider: 'paypal', reason };
-  }
-}
 
 // ─── FIO (CZK domestic) ───────────────────────────────────────────────
 
@@ -290,9 +224,7 @@ async function fetchPendingPayoutsImpl(limit = 50): Promise<PromoterPayoutRow[]>
        p.iban,
        p.swift_bic,
        p.payout_method,
-       p.primary_currency AS payout_currency,
-       p.wise_recipient_id,
-       p.paypal_payout_email
+       p.primary_currency AS payout_currency
      FROM platform.payouts py
      JOIN platform.promoters p ON p.id = py.promoter_id
      WHERE py.status = 'pending'
