@@ -2,7 +2,7 @@
 
 Tenhle soubor je **hlavni zdroj kontinuity**. Da se z nej pokracovat bez
 konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
-§1–§197); tady je jen to, co je hotove, co je otevrene a cim zacit.
+§1–§198); tady je jen to, co je hotove, co je otevrene a cim zacit.
 
 ⚠️ Tenhle soubor je ten v `nextjs-boilerplate/`. V korenu repa lezi starsi
 `REMEDIATION.md` (STAV 2026-07-29), ktery je **neaktualni** — needituj ho.
@@ -96,8 +96,10 @@ konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
    (`ticket_transfers`). Cela servisni vrstva nad `rfid_*`, `royalty_*`,
    `parking/accommodation_offers`, `bundle_items`, `qes_signing_requests`,
    `scanner_devices` je mrtva. Opravovat po skupinach s izolacnim testem.
-   ⚠️ `app.platform_admin` ma 1 vyskyt i na klonu S migraci 471 — R-53 tvrdilo,
-   ze to byl jediny a ze ho 471 opravila. NEOVERENO, cim to je.
+   **Fail-closed se NEOTACI: 0 z 39** (§198) — vsech 39 je PERMISSIVE a zadna
+   nepouziva NOT / IS NULL / IS DISTINCT FROM / <> / COALESCE s pravdivym
+   defaultem. Proto tiket, ne hotfix.
+   ⚠️ Cislo 39 plati pro **PRODUKCNI stav**; po nasazeni 470+471 bude 38.
 3. **R-19** ✅ ZODPOVEZENO (§197) — rozsah premeren ze struktury: 134 sloupcu
    (ne 191; jina definice, ne spor). **0** sloupcu se porovnava s GUC jineho
    druhu identity. Trida „unik zamenou identity" v tomhle vzorku neexistuje;
@@ -126,6 +128,21 @@ T-BOXOFFICE-EXPIRES      admin-guest   23502 expires_at
 consent-log-purge (C2)   cron-contract vraci ok:true pri odepreni prava
 upgrade-options          wrapped-routes catalog.seat_maps neexistuje  -> R-39
 ```
+
+## Poznamky k historii (necist jako soucast nalezu)
+
+* **Dva HTML artefakty se dostaly do cizich commitu.** `29c2bcd` obsahuje
+  `plan-oprav-ux.html`, `798bbea` obsahuje `analyza-ia-vsech-funkci.html`.
+  Nepatri k tem commitum — vzal je tam `git add -A`. **Historie se nepresipise**
+  (rozhodnuti uzivatele), commity zustavaji jak jsou. Nic se neztratilo.
+  Ponauceni: v tomhle repu se commituje **vyhradne vyslovnymi cestami**, protoze
+  v tree byva soubezne rozpracovana prace na admin UI.
+* **`npx tsc --noEmit` NENI zeleny a neni to vada RLS prace.**
+  `.next/types/app/api/rfid/scan/route.ts` hlasi TS2344, protoze
+  `src/app/api/rfid/scan/route.ts:253` exportuje `generateRfidDeviceKey` —
+  Next.js v route souboru povoluje jen handlery a konfiguraci. Cizi kod,
+  **nesahat**. Znamena to ale, ze tsc se v teto casti repa neda pouzit jako
+  signal „cisto" — je potreba se divat, jestli je chyba tahle, nebo nova.
 
 ## Nasazeni
 

@@ -5253,9 +5253,8 @@ coz je moje sonda.
 * 13 policies `*_svc` cte `app.bypass_rls` — cela servisni vrstva nad
   `rfid_*`, `royalty_*`, `parking/accommodation_offers`, `bundle_items`,
   `qes_signing_requests`, `scanner_devices` je mrtva.
-* `app.platform_admin` ma sken **1 vyskyt i na klonu S migraci 471**. R-53
-  tvrdilo, ze to byl jediny vyskyt a ze ho 471 opravila. Bud je nekde druhy,
-  nebo 471 nezabrala. **NEOVERENO.**
+* `app.platform_admin` ma sken 1 vyskyt. **Nejdriv jsem to napsal jako spor
+  s R-53 — bylo to moje pochybeni, viz oprava v §198.**
 
 ### VERDIKT (1d)
 
@@ -5279,3 +5278,54 @@ otocila. Sken to nerozlisuje.
 ⚠️ Neopravoval jsem nic: 0 uniku znamena, ze neni co opravit **hned**.
 39 mrtvych vetvi je tiket R-58, ne hotfix — kazda oprava rozsiruje pristup
 a chce izolacni test (tataz podminka jako u 461).
+
+---
+
+## §198 — R-58: fail-closed se NEOTACI (0 z 39). A oprava me chyby v §197.
+
+### 1) Otoci se nekde fail-closed?
+
+Uvaha „nenastaveny GUC = NULL = vetev neplati = jen omezuje" plati jen tehdy,
+kdyz se nekde neobraci. Hledaly se tvary, kde NULL naopak POVOLI:
+`NOT`, `IS NULL`, `IS DISTINCT FROM`, `<>`/`!=`, `COALESCE(current_setting(…),'true')`,
+a k tomu RESTRICTIVE policies (tam mrtva vetev zamyka vsechno).
+
+Self-check: 5 obracejicich tvaru se MUSI najit, primy tvar
+`(current_setting('app.is_admin', true))::boolean` NESMI. Prosel.
+
+```
+podezrelych: 0 z 39
+permissive/restrictive u driftovanych: {"PERMISSIVE": 39}
+```
+
+**VERDIKT: vsech 39 je skutecne fail-closed, zadna se neotaci.**
+R-58 tedy zustava tiket, ne hotfix. Kdyby se otacela jedina, byl by to hotfix —
+neotaci se ani jedna.
+
+⚠️ Sken hleda tvary, ktere jsem vyjmenoval. Exoticke obraceni (napr. GUC uvnitr
+`SECURITY DEFINER` funkce, ktera si default dosadi sama) by nenasel. Helpery
+`app_*()` jsou z tohohle pohledu NEPROVERENE — jejich telo se necetlo.
+
+### 2) OPRAVA: zadny spor s R-53 nebyl, mel jsem chybu v mereni
+
+§197 tvrdilo, ze `app.platform_admin` ma vyskyt „i na klonu S migraci 471", a
+delalo z toho otevrenou otazku. **To bylo spatne.** Orchestrator
+(`scratchpad/run-r19.mjs`) zaklada vetev z produkce pres Neon API a **migrace
+NEAPLIKUJE** — na rozdil od `createLiveClone`, ktery je aplikuje. Sken tedy
+merí **produkcni stav**, kde 470 ani 471 nasazene nejsou (viz sekce Nasazeni
+v REMEDIATION).
+
+Doloženo: migrace `471_transit_passes_admin_guc_drift.sql` dela
+`DROP POLICY … ; CREATE POLICY transit_passes_buyer_owns … USING
+(app_is_platform_admin() OR order_id IN (…))`. Nalezena policy je pritom
+porad puvodni tvar s `current_setting('app.platform_admin')` — presne ta, kterou
+471 nahrazuje.
+
+**Dusledky:**
+* R-53 i migrace 471 jsou v poradku, tvrzeni o jedinosti taky. Nic se neopravuje.
+* Cislo **39 policies s driftem plati pro PRODUKCNI stav**, ne pro repo.
+  Po nasazeni 470+471 bude **38** (471 odstrani `app.platform_admin`).
+* Metodicka poznamka: „klon" neznamena jedno a totez. `createLiveClone`
+  aplikuje nenasazene migrace, holá vetev pres API ne. U kazdeho cisla je
+  potreba rict, ktery z tech dvou stavu se meril — jinak vznikne presne tenhle
+  falesny spor.
