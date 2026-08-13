@@ -4756,3 +4756,125 @@ administratorskou u 471, obojí z RED=0.
 Nove zjisteni: **administratorska vetev, kterou 470 pridavala, uz fungovala i
 bez ni** (RED=1). Ta cast migrace 470 byla redundantni. Neskodi, ale komentar
 migrace tvrdil vic, nez bylo treba — a to by se bez spravneho RED nepoznalo.
+
+---
+
+## §191 — R-15 ma mechanismus: `connect()` + poolovany endpoint = CIZI kontext
+
+§188 zjistilo, ze pooler vysvetluje symptom v **testech**, a tim to skoncilo.
+Nikdo neproveril, co tyz mechanismus dela **produkcnimu kodu**. Dela hodne.
+
+### Proc to §188 nemohlo videt
+
+`guc-leak-probe.mjs` meri PROSAKOVANI (dostal jsem cizi GUC po nekom, kdo uz
+skoncil). R-15 ma ale jiny priznak: `setPid=778 queryPid=781, role=null,
+radku=0` — to je ZTRATA VLASTNIHO GUC. Zadny ze scenaru A/B/C tuhle tridu
+nemeri. Novy nastroj: `scripts/guc-swap-probe.mjs`.
+
+### Co se meri
+
+`rls-pool.ts:216 connect()` vola `applyGucs()` (`:159`), coz je
+`set_config($n, $m, false)` — **SESSION-level, MIMO transakci** — a hned si to
+precte v TEMZE statementu. Proto §121 namerilo `MISMATCH=0`: jeden statement je
+vzdy na jednom backendu, kontrola nemuze selhat. Volajici pak posle svuj dotaz
+jako **samostatny** statement. Na pooleru v transaction mode se backend
+prideluje per transakci, takze samostatny statement muze dostat jiny backend.
+
+```
+                                            POOLED          DIRECT
+Z self-check (nastav na A, cti na B)        74/80 spatne    80/80 spatne
+D  connect() dnes (session GUC mimo tx)     70/80            0/80
+D2 connect() + vlastni BEGIN volajiciho     78/80            0/80
+E  BEGIN / SET LOCAL / dotaz / COMMIT        0/80            0/80
+```
+(10 souběznych klientu x 8 kol, oba endpointy TEHOZ klonu, self-check prosel
+na obou — na direct az po oprave scenare Z, ktery v prvni verzi pustil klienta
+A pred ctenim a pool mu ho vratil jako B; slepy self-check se ohlasil sam.)
+
+### Overeno na SKUTECNEM kodu, ne na kopii tvaru
+
+`tests/rls-pool-pooler.live.test.ts` pousti `db().connect()` +
+`runWithUserContext` z produkcniho modulu, oba endpointy tehoz klonu:
+
+```
+DIRECT  n=60  spatne= 0                     <- self-check
+POOLED  n=60  spatne=59  (37 prazdno, 22 CIZI uzivatel)
+```
+
+### Od jakeho souběhu (POOLED, 12 kol na hodnotu)
+
+```
+klientu   D        D2       E      pozn.
+   1      0/12     0/12     0/12   self-check SELHAL (1 backend) -> cislo NEPLATI
+   2      9/24    15/24     0/24
+   3     27/36    26/36     0/36
+   5     51/60    50/60     0/60
+  10    112/120  116/120    0/120
+```
+
+**Staci DVA soubezne requesty v jedne instanci.** Neni to vada jen pod onsale
+naporem; onsale ji jen zesili.
+
+### Tri veci, ktere dokument dosud rikal jinak
+
+1. **Neni to „tiche prazdno".** U D bylo z 70 spatnych jen **3** prazdnych,
+   zbylych **67 byl CIZI kontext** — dotaz bezel pod GUC jineho soubezneho
+   requestu. R-15 je v REMEDIATION popsane jako „8 ctecich rout muze tise
+   vratit prazdno"; tahle trida je jina a horsi. Na realnem kodu vyslo
+   37 prazdno / 22 cizi — pomer posouva fire-and-forget `RESET` v obalce
+   `release()` (`:275`), ktery na pooleru take dopadne na cizi backend.
+2. **Vlastni `BEGIN` volajiciho nepomuze — zhorsuje to** (D2 > D). §120 stavelo
+   na tom, ze riziko nesou jen ti volajici, co `BEGIN` nemaji (15 ze 176).
+   Na poolovanem endpointu to neplati: GUC se nastavily PRED tou transakci.
+3. **Tvar E je tesny na obou endpointech.** `RlsAwarePool.query()` (`:183–206`)
+   uz E JE, takze je bezpecny. Vadna je jen cesta `connect()`.
+
+### Dosah (ze struktury, ne z dokumentu)
+
+```
+db().query(   666 vyskytu / 308 souboru   tvar E   bezpecne
+db().connect( 206 vyskytu / 176 souboru   tvar D2  vadne na pooleru
+```
+
+### Co to znamena pro produkci — a co NEVIM
+
+`GO-LIVE-CHECKLIST.md:135` ma odskrtnute, ze prod `DATABASE_URL` **uz je**
+pooled endpoint (`ep-…-pooler`), a `db/ONSALE-PLAYBOOK.md:22–28` ho primo
+predepisuje kvuli connection limitum. **Neoveril jsem to** — hodnota je ve
+Vercelu „Encrypted sensitive" a neprectu ji. Dokud to nekdo neprecte, je tohle
+jedina chybejici kostka; vsechno ostatni je zmerene.
+
+Kdyby prod na pooleru bezel, pak u 206 volani `connect()` neplati, ze dotaz
+bezi pod kontextem sveho requestu. Kolik z toho jsou skutecne uniky dat zalezi
+na tom, jestli si routa filtruje sama, nebo se spoleha na RLS — to je per routa
+a NENI to zmerene.
+
+### Smery opravy (zadny nevybran — je to rozhodnuti)
+
+* **A: prod na direct endpoint.** Zmereno 0/80 i 0/60. Ale pooler tam je kvuli
+  connection limitum pod onsale (`ONSALE-PLAYBOOK` §1) — tohle by ten problem
+  vratilo.
+* **B: GUC az v transakci volajiciho.** Tvar E je tesny na obou endpointech.
+  Znamena to nenastavovat GUC v `connect()` eagerne, ale injektovat
+  `set_config(…, true)` do transakce volajiciho. Pro ~15 volajicich bez `BEGIN`
+  je potreba rozhodnout zvlast (u zapisovych by vlastni transakce zmenila
+  semantiku commitu — §120).
+* **C: nechat `connect()` selhat hlasite** misto tiche zameny. Dnesni kontrola
+  v `applyGucs` to principialne nemuze chytit (§121) — musela by byt ve stejne
+  transakci jako dotaz, cimz se z toho stava varianta B.
+
+### R-15 flakiness sady: pada VZDY TYZ test
+
+5 behu zive sady na `pooled=false`:
+
+```
+beh 1  4 padle   (znama ctverice)
+beh 2  4 padle
+beh 3  5 padlych  + checkout-guest > „velka pismena v e-mailu…"
+beh 4  4 padle
+beh 5  5 padlych  + tentyz test
+```
+
+§108 tvrdilo „pokazde jiny test" — to platilo na pooleru. Po `pooled=false` je
+flakiness lokalizovana do **jednoho** testu, 2 z 5 behu, nikdy zadny jiny.
+Zbyla pricina je tim zuzena na jeden reprodukovatelny cil. NEVYSETRENO.

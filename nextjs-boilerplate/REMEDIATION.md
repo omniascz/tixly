@@ -1,8 +1,11 @@
-# STAV — 2026-08-09 (cti nejdriv tohle)
+# STAV — 2026-08-13 (cti nejdriv tohle)
 
 Tenhle soubor je **hlavni zdroj kontinuity**. Da se z nej pokracovat bez
 konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
-§1–§190); tady je jen to, co je hotove, co je otevrene a cim zacit.
+§1–§191); tady je jen to, co je hotove, co je otevrene a cim zacit.
+
+⚠️ Tenhle soubor je ten v `nextjs-boilerplate/`. V korenu repa lezi starsi
+`REMEDIATION.md` (STAV 2026-07-29), ktery je **neaktualni** — needituj ho.
 
 ## Jak se v tomhle projektu meri
 
@@ -10,8 +13,13 @@ konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
   `scripts/baseline-clone.mjs`). Produkcni vetev je prazdna a **nesahá se na ni**.
 * Handlery bezi jako **`tixly_app`** (`BYPASSRLS=false`). Pod `neondb_owner` je
   596 policies inertnich a mereni nic neznamena.
-* Klon **musi** chtit `pooled=false`. Na `-pooler` endpointu sdili vsechna
-  spojeni jeden backend a GUC se prenaseji mezi mereními (§188).
+* Klon **musi** chtit `pooled=false`. Na `-pooler` endpointu se backend
+  prideluje **per transakci**, takze GUC nastavene mimo transakci nezustanou
+  u volajiciho a mezi mereními se michaji (§188, upresneno v §191).
+  ⚠️ §188 psalo „vsechna spojeni sdili JEDEN backend" — to plati jen pri
+  sekvencnim pouziti. Zmereno pri souběhu: 2 klienti -> 2 backendy,
+  10 klientu -> 8 az 10 backendu (§191). Zaver §188 tim nepada, mechanismus
+  je ale prirazovani per transakci, ne jediny sdileny backend.
 * GUC se nastavuji **`SET LOCAL` v transakci**, nikdy holym `SET` (R-54).
 * RED->GREEN se meri na klonu **bez** testovane migrace:
   `createLiveClone(label, { exclude: ['471'] })` (§190).
@@ -47,10 +55,18 @@ konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
 
 ## Otevrene tikety — poradi, ve kterem bych pokracoval
 
-1. **R-15** flakiness zive sady. Pooler byl *cast* pricin; po `pooled=false` byly
-   3 behy shodne a ctvrty ne (`checkout-guest > dedup` — samostatne PROJDE).
-   Zbytek pricin **NEVIM**. Nejlevnejsi dalsi krok: pustit sadu 5x a podivat se,
-   jestli pada vzdy tyz test.
+0. **R-56** 🔴 `connect()` na poolovanem endpointu bezi pod CIZIM kontextem.
+   Zmereno na realnem kodu (§191): POOLED 59/60 spatne (37 prazdno, 22 cizi
+   uzivatel), DIRECT 0/60. Staci **2 soubezne requesty**. Tyka se 206 volani
+   `db().connect()` ve 176 souborech; `db().query()` (666x) je bezpecne.
+   **Blokuje to jedina neznama: jestli prod `DATABASE_URL` opravdu miri na
+   `-pooler`.** `GO-LIVE-CHECKLIST.md:135` rika ze ano, ale hodnota je ve
+   Vercelu sifrovana a NEOVERIL jsem ji. Pak rozhodnuti A/B/C ze §191.
+1. **R-15** flakiness zive sady. Pooler byl *cast* pricin. **Domereno (§191):
+   5 behu na `pooled=false` -> pada VZDY TYZ test** (`checkout-guest > velka
+   pismena v e-mailu`, 2 z 5 behu, nikdy zadny jiny). §108 „pokazde jiny test"
+   platilo jen na pooleru. Zbyla pricina je tim zuzena na jeden
+   reprodukovatelny cil; proc pada, **NEVIM**.
 2. **R-39** tri moduly s chybejicimi tabulkami (`catalog.seat_maps`,
    `forgemsg/dispatch`, `resolve-price`). `seat_maps` dnes shazuje
    `my/orders/[id]/upgrade-options` na 500 — je to jeden ze 4 trvale padajicich
@@ -161,6 +177,20 @@ dostalo RLS + `p_*_scope`. Izolace ověřena, 0 rozbitých testů, gate prošel.
 Tři vyvrácené opravy: líné `SET LOCAL` po `BEGIN` (§120), ověření GUC při
 akvizici (§121, `MISMATCH=0`), kontrola v dotazu (§122 — vyžadovala by
 SQL-aware rewriter v poolu, jehož fallback by okno stejně nechal otevřené).
+
+**🔧 KOREKCE 2026-08-13 (§191) — „proč se session vymění" UŽ VÍM, a dopad je
+větší, než tenhle odstavec tvrdil.** Na poolovaném endpointu (transaction mode)
+se backend přiděluje per transakci; `connect()` nastavuje GUC **session-level
+mimo transakci**, takže dotaz volajícího může dorazit na jiný backend. Změřeno
+na reálném kódu: POOLED 59/60 špatně, DIRECT 0/60, práh jsou **2 souběžné
+requesty**. Dvě opravy původního textu:
+* Není to jen „tiché prázdno" — většina případů je **cizí kontext** (jiný
+  uživatel/promotér), ne prázdno.
+* Netýká se to jen 8 rout bez `BEGIN`. Vlastní `BEGIN` volajícího nepomáhá
+  (změřeno hůř než bez něj) → jde o **všech 206 volání `db().connect()`**.
+Detail, sweep a směry opravy: §191. Tiket **R-56**.
+
+### Původní zápis (dopad na produkci)
 
 **Dopad na produkci:** 8 čtecích rout bez `BEGIN` může tiše vrátit prázdno
 místo dat (`discover`, `artists/[slug]`, `travel-packages`, `postal-fees`,
@@ -696,3 +726,39 @@ Netvrdi to ale, ze zbylych 74 je v poradku — dve policies stejneho tvaru se mu
 lisit tim, na ktery sloupec koreluji. Nizka priorita: nejcastejsi tvar (56x) je
 trivialni `X = app_current_user_id()` a lisit se muze jen jmenem sloupce, ktere
 jde overit staticky proti katalogu.
+
+## R-56 🔴 `connect()` na poolovanem endpointu bezi pod CIZIM kontextem (§191)
+
+Zmereno na realnem kodu (`tests/rls-pool-pooler.live.test.ts`), oba endpointy
+tehoz klonu, self-check prosel na obou:
+
+```
+DIRECT  n=60  spatne= 0
+POOLED  n=60  spatne=59   (37 prazdno, 22 CIZI uzivatel)
+```
+
+Prah je **2 soubezne requesty** (sweep 1/2/3/5/10 klientu v §191), ne onsale
+napor. Tyka se **206 volani `db().connect()` ve 176 souborech**;
+`db().query()` (666x/308 souboru) uz ma tvar `BEGIN/SET LOCAL/COMMIT` a je
+zmerene tesne (0/120).
+
+**Ceka na jednu FAKTU a pak na ROZHODNUTI:**
+1. FAKT: miri prod `DATABASE_URL` na `-pooler`? `GO-LIVE-CHECKLIST.md:135`
+   rika ano, ale hodnota je ve Vercelu sifrovana — **NEOVERENO**.
+2. ROZHODNUTI: A) prod na direct endpoint (vrati problem s connection limity),
+   B) GUC az v transakci volajiciho (tvar E, tesny na obou endpointech;
+   ~15 volajicich bez `BEGIN` chce resit zvlast), C) nechat selhat hlasite —
+   coz vyjde na B. Detail v §191.
+
+⚠️ Kolik z toho jsou skutecne uniky dat, zalezi per routa na tom, jestli si
+filtruje sama, nebo se spoleha na RLS. **NENI to zmerene** a nedelej z toho
+„206 der".
+
+## Nastroje pridane 2026-08-13
+
+* `scripts/guc-swap-probe.mjs` — meri ZTRATU vlastniho GUC (ne prosakovani
+  ciziho, to je `guc-leak-probe.mjs`). Ma vestaveny self-check: scenar Z musi
+  ztratu najit, jinak sonda konci exit 3 a jeji nuly NEPLATI. Pri `--clients=1`
+  self-check korektne selze (1 backend, neni co zamenit).
+* `tests/rls-pool-pooler.live.test.ts` — tyz zaver na produkcnim modulu misto
+  na kopii tvaru. Direct vetev je self-check (musi byt 0).
