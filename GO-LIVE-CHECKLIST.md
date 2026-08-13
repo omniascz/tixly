@@ -134,6 +134,18 @@
   zapne na hot akci přepínačem `queue_enabled` + `queue_max_concurrent`. **Hlavní páka pro „tisíce/s".**
 - [x] **Neon pooler** 🤖 ✅ — prod `DATABASE_URL` (z Neon integrace) UŽ JE pooled endpoint
   (`ep-…-pooler`). Default `PG_POOL_MAX=10` per-instance je pro serverless OK.
+- [ ] **R-56: dva pooly — ověřit env na produkci** 🧑 — od R-56 jde `db().connect()` na
+  **přímý** endpoint a `db().query()` na poolovaný (FINDINGS_RLS §191–§194). Přímé URI se
+  odvodí z `DATABASE_URL` odstraněním `-pooler`, takže **obvykle není co nastavovat** —
+  ale je potřeba potvrdit dvě věci:
+  1. **Že `DATABASE_URL` na produkci opravdu míří na `-pooler`.** Řádek výše to tvrdí,
+     ale hodnota je ve Vercelu „Encrypted sensitive" a nikdo ji od té doby nečetl.
+     Když je přímé, R-56 se produkce netýkala a nastavení `PG_DIRECT_POOL_MAX` jen ubere sloty.
+  2. **`PG_DIRECT_POOL_MAX=4`** a **`PG_DIRECT_IDLE_TIMEOUT_MS=10000`** ve Vercel env
+     (defaulty v kódu jsou stejné, tohle je jen pojistka pro ladění bez deploye).
+     Rozpočet: ~855 slotů / 4 = ~213 souběžných instancí. Detail: `db/ONSALE-PLAYBOOK.md` §1b.
+  ⚠️ Čísla platí pro compute **0.25–2 CU**; při změně compute se `max_connections` mění
+  a musí se přeměřit.
 - [ ] **Zátěžový test na NASAZENÉ produkci** 🤖 — `scripts/load-test.mjs` proti app.tixly.cz
   (s frontou + poolerem) → definitivní strop. Lokální test = jen 1 proces, Vercel škáluje horizontálně.
 - [ ] **Vercel: spending limit + concurrency alert** 🧑 — ať on-sale špička nepřekvapí fakturou/limitem.

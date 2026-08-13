@@ -1,0 +1,679 @@
+<title>Sto sedmdesát jedna obrazovek</title>
+<style>
+  :root {
+    --ground: #F3F4F7; --surface: #FFFFFF; --surface-2: #EAECF2;
+    --ink: #171A22; --ink-2: #474C5C; --ink-3: #787E92;
+    --rule: #D6D9E3; --rule-soft: #E5E7EE;
+    --accent: #2E3A8C; --accent-soft: #E3E6F6;
+    --good: #1C6E4D; --good-soft: #DFF0E7;
+    --warn: #8C5F08; --warn-soft: #F7EBD3;
+    --bad: #A02F29; --bad-soft: #F7E1DF;
+    --shadow: 0 1px 2px rgba(23,26,34,.06), 0 8px 24px -12px rgba(23,26,34,.18);
+    --sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    --serif: "Iowan Old Style", Georgia, "Times New Roman", serif;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, "SFMono-Regular", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #121319; --surface: #191B22; --surface-2: #22242E;
+      --ink: #E9EAEF; --ink-2: #AAAEBD; --ink-3: #7C8194;
+      --rule: #2E3140; --rule-soft: #262936;
+      --accent: #94A2F2; --accent-soft: #21253A;
+      --good: #63C793; --good-soft: #16281F;
+      --warn: #E2B45C; --warn-soft: #2A2314;
+      --bad: #EA8B82; --bad-soft: #2B1917;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #121319; --surface: #191B22; --surface-2: #22242E;
+    --ink: #E9EAEF; --ink-2: #AAAEBD; --ink-3: #7C8194;
+    --rule: #2E3140; --rule-soft: #262936;
+    --accent: #94A2F2; --accent-soft: #21253A;
+    --good: #63C793; --good-soft: #16281F;
+    --warn: #E2B45C; --warn-soft: #2A2314;
+    --bad: #EA8B82; --bad-soft: #2B1917;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground); color: var(--ink); font-family: var(--serif);
+    font-size: 17px; line-height: 1.62; margin: 0; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px 96px; }
+
+  header.masthead { padding: 56px 0 28px; border-bottom: 1px solid var(--rule); }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 14px;
+  }
+  h1 {
+    font-family: var(--sans); font-weight: 700; letter-spacing: -.022em;
+    font-size: clamp(32px, 5.2vw, 52px); line-height: 1.05; margin: 0 0 16px; text-wrap: balance;
+  }
+  .standfirst { font-size: 19px; color: var(--ink-2); max-width: 64ch; margin: 0 0 26px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 8px 10px; font-family: var(--mono); font-size: 11.5px; }
+  .meta-row span {
+    border: 1px solid var(--rule); border-radius: 999px; padding: 4px 11px;
+    color: var(--ink-2); background: var(--surface);
+  }
+
+  .layout { display: grid; grid-template-columns: 1fr; gap: 40px; padding-top: 40px; }
+  @media (min-width: 1080px) {
+    .layout { grid-template-columns: 194px minmax(0, 1fr); gap: 52px; }
+    nav.toc { position: sticky; top: 24px; align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; }
+  }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  nav.toc a {
+    display: block; font-family: var(--sans); font-size: 13px; line-height: 1.35;
+    color: var(--ink-2); text-decoration: none; padding: 6px 8px; border-radius: 6px;
+  }
+  nav.toc a:hover { background: var(--surface); color: var(--ink); }
+  nav.toc .tag { font-family: var(--mono); font-size: 10px; color: var(--ink-3); display: block; }
+  main { min-width: 0; }
+
+  section { margin: 0 0 8px; padding: 0 0 44px; }
+  section + section { padding-top: 40px; }
+  .perf {
+    border: 0; height: 1px; margin: 0 0 34px; position: relative;
+    background-image: linear-gradient(to right, var(--rule) 0 6px, transparent 6px 12px);
+    background-size: 12px 1px;
+  }
+  .perf::before, .perf::after {
+    content: ""; position: absolute; top: -5px; width: 10px; height: 10px;
+    border-radius: 50%; background: var(--ground); border: 1px solid var(--rule);
+  }
+  .perf::before { left: -5px; } .perf::after { right: -5px; }
+
+  h2 {
+    font-family: var(--sans); font-weight: 700; letter-spacing: -.018em;
+    font-size: clamp(24px, 3vw, 31px); line-height: 1.14; margin: 0 0 6px; text-wrap: balance;
+  }
+  .sec-num {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em;
+    color: var(--accent); text-transform: uppercase; display: block; margin-bottom: 10px;
+  }
+  .sec-lead { color: var(--ink-2); max-width: 68ch; margin: 0 0 26px; }
+  h3 { font-family: var(--sans); font-weight: 650; font-size: 19px; letter-spacing: -.01em; margin: 32px 0 10px; }
+  h4 {
+    font-family: var(--mono); font-weight: 600; font-size: 11.5px; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--ink-3); margin: 18px 0 8px;
+  }
+  p { max-width: 70ch; margin: 0 0 14px; }
+  ul, ol { max-width: 70ch; margin: 0 0 14px; padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  li::marker { color: var(--ink-3); }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  code {
+    font-family: var(--mono); font-size: .84em; background: var(--surface-2);
+    padding: 1px 5px; border-radius: 4px; word-break: break-word;
+  }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 20px 22px; margin: 0 0 16px; box-shadow: var(--shadow);
+  }
+  .card > :last-child { margin-bottom: 0; }
+  .grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 18px; }
+  @media (min-width: 740px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+  .grid-4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+  @media (min-width: 760px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
+  .stat { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; }
+  .stat .n {
+    font-family: var(--sans); font-size: 30px; font-weight: 700; letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums; line-height: 1.1;
+  }
+  .stat .l { font-family: var(--mono); font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); margin-top: 4px; }
+  .stat.alarm .n { color: var(--bad); }
+
+  .pill {
+    display: inline-block; font-family: var(--mono); font-size: 10px;
+    letter-spacing: .07em; text-transform: uppercase; font-weight: 600;
+    padding: 2px 7px; border-radius: 4px; white-space: nowrap;
+  }
+  .pill.good { background: var(--good-soft); color: var(--good); }
+  .pill.bad { background: var(--bad-soft); color: var(--bad); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill.info { background: var(--accent-soft); color: var(--accent); }
+  .pill.plain { background: var(--surface-2); color: var(--ink-2); }
+
+  .callout {
+    background: var(--accent-soft); border: 1px solid var(--rule);
+    border-radius: 10px; padding: 18px 20px; margin: 0 0 20px;
+  }
+  .callout > :last-child { margin-bottom: 0; }
+  .callout .label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 8px;
+  }
+  .callout.warn { background: var(--warn-soft); }
+  .callout.warn .label { color: var(--warn); }
+
+  .table-scroll {
+    overflow-x: auto; margin: 0 0 22px; border: 1px solid var(--rule);
+    border-radius: 10px; background: var(--surface);
+  }
+  table { border-collapse: collapse; width: 100%; font-family: var(--sans); font-size: 13.5px; min-width: 660px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
+  th {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 600; background: var(--surface-2);
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .t-name { font-weight: 650; white-space: nowrap; }
+  .routes { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); line-height: 1.7; }
+
+  .tabbar {
+    display: flex; flex-wrap: wrap; gap: 6px; padding: 12px; margin: 0 0 18px;
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; box-shadow: var(--shadow);
+  }
+  .tabbar span {
+    font-family: var(--sans); font-size: 13.5px; font-weight: 600;
+    padding: 6px 12px; border-radius: 7px; background: var(--surface-2); color: var(--ink-2);
+  }
+  .tabbar span.on { background: var(--accent); color: #fff; }
+
+  .check { list-style: none; padding: 0; margin: 0 0 14px; max-width: 70ch; }
+  .check li {
+    display: grid; grid-template-columns: 18px 1fr; gap: 9px; padding: 6px 0;
+    font-family: var(--sans); font-size: 14.5px; line-height: 1.5; color: var(--ink-2);
+  }
+  .check li::before { content: "✓"; color: var(--good); font-family: var(--mono); font-size: 12px; padding-top: 3px; }
+  .check.x li::before { content: "✕"; color: var(--bad); }
+
+  footer.end {
+    border-top: 1px solid var(--rule); margin-top: 30px; padding-top: 22px;
+    font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); letter-spacing: .03em;
+  }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">Analýza informační architektury · 13. 8. 2026 · třetí díl</p>
+  <h1>Sto sedmdesát jedna obrazovek</h1>
+  <p class="standfirst">Úplný soupis všeho, co Tixly admin umí, a návrh, kam to patří. Žádná funkce se nemaže ani neschovává — jen dostává správné místo. Součástí je rešerše, jak se organizuje rozhraní s tolika funkcemi.</p>
+  <div class="meta-row">
+    <span>171 stránek zmapováno</span>
+    <span>76 podstránek akce zařazeno</span>
+    <span>26 nálezů bez odkazu</span>
+    <span>návrh: 12 + 10 položek navigace</span>
+  </div>
+</header>
+
+<div class="layout">
+
+<nav class="toc" aria-label="Obsah">
+  <ol>
+    <li><a href="#s1"><span class="tag">01</span>Jak jsem měřil</a></li>
+    <li><a href="#s2"><span class="tag">02</span>Co Tixly umí — čísla</a></li>
+    <li><a href="#s3"><span class="tag">03</span>26 nedostupných funkcí</a></li>
+    <li><a href="#s4"><span class="tag">04</span>Co říká rešerše</a></li>
+    <li><a href="#s5"><span class="tag">05</span>Tři pravidla návrhu</a></li>
+    <li><a href="#s6"><span class="tag">06</span>Nová navigace akce</a></li>
+    <li><a href="#s7"><span class="tag">07</span>Všech 76 funkcí zařazeno</a></li>
+    <li><a href="#s8"><span class="tag">08</span>Nová navigace organizace</a></li>
+    <li><a href="#s9"><span class="tag">09</span>Modulární zapínání</a></li>
+    <li><a href="#s10"><span class="tag">10</span>Slovník a přejmenování</a></li>
+    <li><a href="#s11"><span class="tag">11</span>Co se změní v kódu</a></li>
+    <li><a href="#s12"><span class="tag">12</span>Otevřené otázky</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- 01 -->
+<section id="s1">
+  <hr class="perf">
+  <span class="sec-num">Sekce 01</span>
+  <h2>Jak jsem měřil</h2>
+  <p class="sec-lead">Aby bylo jasné, odkud čísla pocházejí a co znamená „žádnou funkci neopomenout".</p>
+
+  <h4>Postup</h4>
+  <ul>
+    <li>Vypsal jsem všech <strong>171 souborů <code>page.tsx</code></strong> pod <code>src/app/admin</code> a z každého vytáhl titulek (<code>PageHeader title</code>, případně <code>&lt;h1&gt;</code>). Soupis je tedy strojový, ne odhadnutý.</li>
+    <li>Rozdělil jsem je na <strong>86 rout na úrovni organizace</strong> (bez parametrů), <strong>76 podstránek akce</strong> pod <code>events/[id]</code> a zbytek detailové stránky s parametrem.</li>
+    <li>Porovnal jsem seznam rout s odkazy v <code>Sidebar.tsx</code> a v <code>EventDetailNav.tsx</code> a dohledal, na které stránky <strong>nevede odkaz odnikud z celé aplikace</strong>.</li>
+    <li>K návrhu struktury jsem dohledal rešerši k informační architektuře rozsáhlých B2B adminů, progresivnímu odhalování, hub-and-spoke modelu, card sortingu a k tomu, jak se surfacují málo používané funkce.</li>
+  </ul>
+
+  <h4>Limity</h4>
+  <ul>
+    <li>Aplikaci jsem <strong>nespouštěl</strong>. Vím, které stránky existují a jak se jmenují, ne jak vypadají v běhu.</li>
+    <li><strong>Nevím, které funkce se skutečně používají.</strong> Zařazení stavím na doméně a názvu, ne na telemetrii. Proto níže nic nenavrhuju mazat — jen přeskládat.</li>
+    <li>Čísla typu „−38 % dotazů na podporu" pocházejí z blogů agentur bez odkazu na primární data. Beru je jako indicii směru a označuju je.</li>
+  </ul>
+</section>
+
+<!-- 02 -->
+<section id="s2">
+  <hr class="perf">
+  <span class="sec-num">Sekce 02</span>
+  <h2>Co Tixly umí</h2>
+  <p class="sec-lead">Rozsah, se kterým se pracuje. Tohle je podle mě víc funkcí, než má kterákoli platforma z původní rešerše — problém není nedostatek, ale orientace.</p>
+
+  <div class="grid-4">
+    <div class="stat"><div class="n">171</div><div class="l">stránek admina</div></div>
+    <div class="stat"><div class="n">76</div><div class="l">podstránek jedné akce</div></div>
+    <div class="stat"><div class="n">123</div><div class="l">položek ve dvou menu</div></div>
+    <div class="stat alarm"><div class="n">26</div><div class="l">bez jediného odkazu</div></div>
+  </div>
+
+  <h3>Domény, které pokrýváte</h3>
+  <p>Když se 171 stránek seskupí podle toho, co řeší, vyjde patnáct oblastí. Většina ticketingových platforem pokrývá čtyři až šest z nich.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th style="width:20%">Oblast</th><th style="width:52px">Počet</th><th>Co konkrétně</th></tr></thead>
+      <tbody>
+        <tr><td class="t-name">Prodej a inventář</td><td class="num">14</td><td>Typy vstupenek, holds &amp; kills, časové vstupy, sedadla, stoly, doplňky, balíčky, dárkové vstupenky, will call, čekací listina, fronta</td></tr>
+        <tr><td class="t-name">Cenotvorba</td><td class="num">10</td><td>Dynamické ceny, cenová okna, členské ceny, ceny po kanálech, A/B testy cen, cenové scénáře, predikce poptávky, last-minute, množstevní a skupinové slevy</td></tr>
+        <tr><td class="t-name">Marketing</td><td class="num">22</td><td>Promo kódy, poukazy, gift karty, přístupové kódy, hromadné e-maily, SMS, šablony, kampaně, marketplace ads, pixely, Facebook, social shop, print QR, kolekce, 6× AI nástroj</td></tr>
+        <tr><td class="t-name">Peníze</td><td class="num">12</td><td>Výplaty, výplaty umělců, pre-event payout, faktury, ERP export, bankovní výpisy, chargebacky, refundní žádosti, účetní a inhouse reporty, NIPOS</td></tr>
+        <tr><td class="t-name">Publikum a CRM</td><td class="num">10</td><td>Zákazníci, RFM segmentace, členské skupiny, B2B účty, guestlist, akreditace, press, verified fan, demografie, GDPR</td></tr>
+        <tr><td class="t-name">Provoz na místě</td><td class="num">14</td><td>Skener, hardwarová zařízení, průvodce personálu, POS, quick POS, terminály, RFID zóny a náramky, foyer bar a menu, kiosk display, hospitality</td></tr>
+        <tr><td class="t-name">Partneři a distribuce</td><td class="num">7</td><td>Partnerská síť, affiliate program, žádosti partnerů, distribuce, sponzoři, cestovní partneři, MHD kombi</td></tr>
+        <tr><td class="t-name">Sekundární trh</td><td class="num">4</td><td>Resale marketplace, resale politika, fan guarantee, anti-scalping</td></tr>
+        <tr><td class="t-name">Sezóny a předplatné</td><td class="num">6</td><td>Abonentky, sezónní pasy, permanentky, sezónní přehled, produkce a reprízy, event groups</td></tr>
+        <tr><td class="t-name">Zážitky pro fanoušky</td><td class="num">9</td><td>Super fan, fan bonus, fan ticket, backstage moment, vzpomínková vstupenka, wallet push a obsah, losování, hodnocení</td></tr>
+        <tr><td class="t-name">Vertikály</td><td class="num">6</td><td>Filmový katalog, sportovní týmy, školní objednávky, livestream, charita a dárcovství, parkování a ubytování</td></tr>
+        <tr><td class="t-name">Sály</td><td class="num">4</td><td>Sály, plánky sedadel, editor plánku, brány a vstupy</td></tr>
+        <tr><td class="t-name">Integrace</td><td class="num">6</td><td>Webhooks, OAuth aplikace, embed, white-label domény, branding, KYC</td></tr>
+        <tr><td class="t-name">Bezpečnost a compliance</td><td class="num">6</td><td>Audit log, fraud queue, anomaly alerts, dokumenty k podpisu (QES), GDPR, moderace</td></tr>
+        <tr><td class="t-name">Tým a přístup</td><td class="num">4</td><td>Personál, tým, role, notifikace</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <span class="label">Co z toho plyne</span>
+    <p>Tohle není produkt, který potřebuje víc funkcí. Je to produkt, který potřebuje <strong>přestat na uživatele vysypat všechno naráz</strong>. Rešerše níže se proto netýká toho, co postavit, ale jak z postaveného udělat něco použitelného.</p>
+  </div>
+</section>
+
+<!-- 03 -->
+<section id="s3">
+  <hr class="perf">
+  <span class="sec-num">Sekce 03</span>
+  <h2>Dvacet šest funkcí, na které nevede odkaz</h2>
+  <p class="sec-lead">Nejtvrdší nález celé analýzy. Tyto stránky existují, jsou hotové, mají titulek i logiku — a z celé aplikace na ně nevede jediný <code>href</code>. Dostanete se tam jen přímou URL.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th style="width:26%">Funkce</th><th style="width:30%">Route</th><th>Proč to bolí</th></tr></thead>
+      <tbody>
+        <tr><td class="t-name">Refund žádosti</td><td class="routes">/admin/refund-requests</td><td>Fronta žádostí o vrácení peněz. Bez odkazu se nevyřizuje — zákazník čeká.</td></tr>
+        <tr><td class="t-name">Rezervace</td><td class="routes">/admin/reservations</td><td>B2B a telefonické rezervace. Modul postavený, ale nikdo o něm neví.</td></tr>
+        <tr><td class="t-name">NIPOS reporting</td><td class="routes">/admin/reports/nipos</td><td>Statistický výkaz pro kulturní instituce v ČR. Legislativní povinnost schovaná před uživatelem.</td></tr>
+        <tr><td class="t-name">Live přehled prodejů</td><td class="routes">/admin/live</td><td>Duplicitní s <code>/admin/dashboard/live</code>, který v menu je. Jedna z nich je nejspíš mrtvá.</td></tr>
+        <tr><td class="t-name">Tým</td><td class="routes">/admin/team</td><td>Vedle „Personál" (<code>/admin/staff</code>), který v menu je. Dvě obrazovky pro totéž.</td></tr>
+        <tr><td class="t-name">6× AI nástroj</td><td class="routes">/admin/ai/auto-tag · cover-images · description · moderation · price-suggestion · social-posts</td><td>Šest hotových AI nástrojů (generování popisů, obrázků, sociálních příspěvků, návrh ceny, tagování, moderace). Nula z nich je v navigaci. Marketingově je to nejsilnější věc, kterou máte.</td></tr>
+        <tr><td class="t-name">Gift karty</td><td class="routes">/admin/gift-cards</td><td>Vedle „Dárkové poukazy" (<code>/admin/vouchers</code>), který v menu je. Nutno rozhodnout, jestli je to totéž.</td></tr>
+        <tr><td class="t-name">B2B firemní účty</td><td class="routes">/admin/b2b</td><td>Celý firemní kanál nedostupný.</td></tr>
+        <tr><td class="t-name">Affiliate program</td><td class="routes">/admin/affiliates</td><td>V menu je „Affiliate žádosti", ale samotný program ne.</td></tr>
+        <tr><td class="t-name">Anomaly alerts</td><td class="routes">/admin/alerts</td><td>Upozornění na neobvyklý vývoj prodeje — přesně to, co má pořadatel vidět.</td></tr>
+        <tr><td class="t-name">Anti-scalping</td><td class="routes">/admin/anti-scalping</td><td>Ochrana proti překupníkům. Prodejní argument, který nikdo nenajde.</td></tr>
+        <tr><td class="t-name">Fan Guarantee</td><td class="routes">/admin/resale-guarantee</td><td>Reklamace ze sekundárního trhu.</td></tr>
+        <tr><td class="t-name">Školní objednávky</td><td class="routes">/admin/school-bookings</td><td>Celá vertikála pro divadla a kina.</td></tr>
+        <tr><td class="t-name">Marketing kampaně</td><td class="routes">/admin/campaigns</td><td>V menu jsou dílčí nástroje, zastřešující kampaně ne.</td></tr>
+        <tr><td class="t-name">Marketing (rozcestník)</td><td class="routes">/admin/marketing</td><td>Stránka obsahuje jediný odkaz — <code>mailto:marketing@tixly.cz</code>. Buď dodělat jako hub, nebo zrušit.</td></tr>
+        <tr><td class="t-name">Import zákazníků</td><td class="routes">/admin/import</td><td>Migrace z jiné platformy. Klíčové při přebírání zákazníka od konkurence.</td></tr>
+        <tr><td class="t-name">GDPR</td><td class="routes">/admin/gdpr</td><td>Výmazy a exporty osobních údajů. Zákonná lhůta běží i bez odkazu v menu.</td></tr>
+        <tr><td class="t-name">Quick POS</td><td class="routes">/admin/pos/quick</td><td>Rychlá pokladna. Ta rychlá varianta je hůř dostupná než ta pomalá.</td></tr>
+        <tr><td class="t-name">POS terminály</td><td class="routes">/admin/pos/terminals</td><td>Nastavení tiskáren.</td></tr>
+        <tr><td class="t-name">Hardwarová zařízení</td><td class="routes">/admin/scanner/devices</td><td>Správa skenerů.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><strong>Vedle toho na úrovni akce:</strong> <code>lastminute</code> (Last-minute sleva) a <code>stream</code> (Nastavení livestreamu) nejsou v menu akce, přestože jsou hotové.</p>
+
+  <div class="callout warn">
+    <span class="label">Souvislost</span>
+    <p>Zhruba <strong>třetina postaveného admina je fakticky neexistující</strong>, protože se k ní uživatel nedostane. Než přidávat cokoli nového, má smysl zpřístupnit tohle — je to nejlevnější „nová funkčnost", jakou lze získat.</p>
+  </div>
+</section>
+
+<!-- 04 -->
+<section id="s4">
+  <hr class="perf">
+  <span class="sec-num">Sekce 04</span>
+  <h2>Co říká rešerše k organizaci mnoha funkcí</h2>
+  <p class="sec-lead">Pět principů, které jsem dohledal a které se přímo promítají do návrhu níže.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Většina funkcí se nepoužívá</h3>
+      <p>Průzkumy uvádějí, že <strong>přes 60 % funkcí běžné SaaS aplikace zákazníci používají zřídka nebo vůbec</strong>. To není důvod je mazat — je to důvod je nedávat na stejnou úroveň jako těch zbylých 40 %.</p>
+    </div>
+    <div class="card">
+      <h3>Progresivní odhalování funguje měřitelně</h3>
+      <p>Popsaný případ: sidebar s 22 položkami bez seskupení, uživatelé se ptali podpory „kde najdu X". Po vytažení šesti nejpoužívanějších akcí nahoru a sbalení zbytku klesly navigační dotazy o 38 %, čas k první hodnotě o 22 %. <em>Údaj z blogu agentury bez primárního zdroje — beru jako indicii, ne důkaz.</em></p>
+    </div>
+    <div class="card">
+      <h3>Seskupovat podle záměru, ne podle schématu</h3>
+      <p>Doporučení pro SaaS navigaci: skupiny tvořit podle toho, <strong>co chce uživatel udělat</strong> (analyzovat, nastavit, spravovat), nikoli podle organizační struktury nebo databázových tabulek. A oddělit denní práci od čtvrtletní: denní nahoru, správa dolů.</p>
+    </div>
+    <div class="card">
+      <h3>Objevování patří do kontextu, ne do menu</h3>
+      <p>Broadcast (bannery, pop-upy po přihlášení) vytváří povědomí, ale nemění chování. <strong>Kontextové surfacování</strong> — nabídnout funkci ve chvíli, kdy z chování plyne, že je relevantní — funguje řádově líp. Uváděný příklad: adopce vláken ve Slacku vzrostla z 23 % na 67 % za 90 dní jen změnou toho, kde se nabízela.</p>
+    </div>
+    <div class="card">
+      <h3>Hub a paprsky</h3>
+      <p>Model, kde centrální rozcestník drží odkazy do izolovaných sekcí. Vhodné přesně tam, kde je funkcí příliš na plochou navigaci — sekce se nemusí propojovat mezi sebou, stačí, aby vedly z jednoho místa.</p>
+    </div>
+    <div class="card">
+      <h3>Čtyři až šest skupin</h3>
+      <p>Card sorty typicky vyprodukují <strong>čtyři až šest kategorií</strong>. Dvanáct skupin v levém menu a devět v menu akce, jak je to dnes, je za hranicí toho, co si uživatel udrží v hlavě. Strukturu je pak potřeba ověřit tree testem, ne dohadem.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 05 -->
+<section id="s5">
+  <hr class="perf">
+  <span class="sec-num">Sekce 05</span>
+  <h2>Tři pravidla, podle kterých jsem to skládal</h2>
+  <p class="sec-lead">Aby zařazení každé z 76 funkcí nebylo věcí vkusu, potřebuje pravidla, která jdou zkontrolovat.</p>
+
+  <h3>1 · Záložka říká, kde jsem. Sekce uvnitř říká, co dělám.</h3>
+  <p>Dnešní menu akce má 74 rovnocenných odkazů, takže „Dynamic pricing", „Pricing windows", „Member pricing" a „Channel prices" jsou čtyři samostatné destinace, i když jsou to čtyři pohledy na jednu věc — cenu. V návrhu je <strong>jedna záložka „Ceny" a v ní deset sekcí</strong>. Uživatel dělá jedno rozhodnutí místo čtyř.</p>
+
+  <h3>2 · Nic se nemaže a nic se neschovává za nedosažitelnou vrstvu.</h3>
+  <p>Každá ze 76 funkcí má v návrhu své místo a je dosažitelná nejvýš na dva kliky. Vedle toho existuje <strong>rozcestník „Vše"</strong> se seznamem úplně všeho a vyhledáváním, takže i funkce, kterou jsem zařadil špatně, zůstává k nalezení. To je pojistka proti tomu, že se mýlím.</p>
+
+  <h3>3 · Co se u téhle akce nepoužívá, není vidět — ale jde zapnout.</h3>
+  <p>RFID náramky, foyer bar, MHD kombi-ticket a sociální odstup sedadel nemají co dělat v menu klubového koncertu pro dvě stě lidí. Zároveň je nesmí být problém zapnout u festivalu. Řešení je v sekci 09.</p>
+</section>
+
+<!-- 06 -->
+<section id="s6">
+  <hr class="perf">
+  <span class="sec-num">Sekce 06</span>
+  <h2>Nová navigace akce</h2>
+  <p class="sec-lead">Ze 74 odkazů v devíti rozbalovacích menu se stane deset záložek. Devět obsahových a Nastavení.</p>
+
+  <h4>Dnes</h4>
+  <div class="tabbar">
+    <span>Základ ▾</span><span>Lístky ▾</span><span>Pricing ▾</span><span>Marketing ▾</span>
+    <span>Mobile/Pass ▾</span><span>Operations ▾</span><span>RFID ▾</span><span>Finance ▾</span><span>After-event ▾</span>
+  </div>
+  <p style="font-family:var(--mono);font-size:12px;color:var(--ink-3);margin-top:-8px">Devět rozbalovacích menu, za nimi 74 položek, tři úrovně kliků, míchaná čeština s angličtinou, dvě položky duplicitní.</p>
+
+  <h4>Návrh</h4>
+  <div class="tabbar">
+    <span class="on">Přehled</span><span>Vstupenky</span><span>Ceny</span><span>Plánek</span><span>Prodej</span>
+    <span>Publikum</span><span>Provoz</span><span>Marketing</span><span>Vyúčtování</span><span>Nastavení</span>
+  </div>
+  <p style="font-family:var(--mono);font-size:12px;color:var(--ink-3);margin-top:-8px">Deset záložek, jeden klik, žádné rozbalování, jeden jazyk. Funkce jsou sekcemi uvnitř stránek.</p>
+
+  <h3>Proč zrovna tyhle</h3>
+  <ul>
+    <li><strong>Přehled</strong> dnes chybí úplně — akce nemá kde začít. Je první, protože je to nejčastější důvod, proč akci otevíráš.</li>
+    <li><strong>Vstupenky a Ceny odděleně</strong>, přestože spolu souvisí: inventář nastavuješ jednou při zakládání, ceny ladíš průběžně celou dobu prodeje. Jiná frekvence, jiná záložka.</li>
+    <li><strong>Prodej a Publikum odděleně</strong>: prodej je transakce (objednávky, will call, fronta), publikum jsou lidé (guestlist, akreditace, press).</li>
+    <li><strong>Provoz</strong> sdružuje vše pro den D. Je to jediná záložka, kterou má smysl otevřít na telefonu.</li>
+    <li><strong>Vyúčtování</strong> je samostatné, protože „kde jsou moje peníze" je podle původní rešerše nejsilnější důvod, proč pořadatelé mění platformu.</li>
+    <li><strong>Nastavení</strong> poslední, oddělené — konfigurace nemá být promíchaná s denní prací.</li>
+  </ul>
+</section>
+
+<!-- 07 -->
+<section id="s7">
+  <hr class="perf">
+  <span class="sec-num">Sekce 07</span>
+  <h2>Všech 76 funkcí, zařazených</h2>
+  <p class="sec-lead">Kompletní mapa. Každá existující podstránka akce má přiřazenou záložku a sekci. Nic nechybí a nic nepřebývá — součet sedí na 76.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th style="width:110px">Záložka</th><th style="width:52px">Kusů</th><th style="width:24%">Sekce uvnitř</th><th>Zdrojové stránky</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="t-name">Přehled</td><td class="num">1</td>
+          <td>Nová stránka: KPI, kapacitní pruh, typy vstupenek, křivka prodeje, poslední objednávky, upozornění</td>
+          <td class="routes">live-ops</td>
+        </tr>
+        <tr>
+          <td class="t-name">Vstupenky</td><td class="num">12</td>
+          <td>Typy a kapacita · Držení míst · Vydané lístky · Doplňky a balíčky · Speciální vstupenky · Sezóna</td>
+          <td class="routes">ticket-types · holds · tickets · entry-slots · access-matrix · custom-fields · addons · bundles · gifts · fan-ticket · commemorative · season</td>
+        </tr>
+        <tr>
+          <td class="t-name">Ceny</td><td class="num">10</td>
+          <td>Cenová okna · Dynamika a poptávka · Slevy · Testy a scénáře</td>
+          <td class="routes">pricing-windows · dynamic-pricing · demand-forecast · lastminute · member-pricing · channel-prices · volume-discounts · group-discounts · ab-price-tests · price-scenarios</td>
+        </tr>
+        <tr>
+          <td class="t-name">Plánek</td><td class="num">5</td>
+          <td>Mapa sedadel · Stoly · Dostupnost a odstup · Pohled ze sedadla</td>
+          <td class="routes">seats · table-seating · social-distancing · accessible-entrances · view-photos</td>
+        </tr>
+        <tr>
+          <td class="t-name">Prodej</td><td class="num">6</td>
+          <td>Objednávky · Vyzvednutí a čekání · Prodejní kanály · Sekundární trh</td>
+          <td class="routes">will-call · waitlist · queue · distribution · resale-marketplace · resale-policy</td>
+        </tr>
+        <tr>
+          <td class="t-name">Publikum</td><td class="num">6</td>
+          <td>Hosté a akreditace · Registrace fanoušků · Kdo přišel</td>
+          <td class="routes">guestlist · accreditation · press · verified-fan · demographics · reviews</td>
+        </tr>
+        <tr>
+          <td class="t-name">Provoz</td><td class="num">10</td>
+          <td>Den D · RFID a náramky · Foyer a bar · Krizové situace</td>
+          <td class="routes">hot-mode · emergency · hospitality · kiosk-display · rfid-zones · rfid-live · wristbands · foyer-menu · foyer-orders · stream</td>
+        </tr>
+        <tr>
+          <td class="t-name">Marketing</td><td class="num">17</td>
+          <td>Komunikace · Prodej na webu · Zážitky pro fanoušky · Partneři a doplňkové služby · AI nástroje</td>
+          <td class="routes">broadcast · publish-facebook · marketing-qr · embed · ai-description · wallet-push · wallet-modules · superfan · fan-bonus · backstage · donation · lottery · lotteries<span class="pill bad">zrušit</span> · sponsors · travel-links · transit-combo · parking-bundles</td>
+        </tr>
+        <tr>
+          <td class="t-name">Vyúčtování</td><td class="num">3</td>
+          <td>Report prodeje · Výplaty · Royalty</td>
+          <td class="routes">sales-report · advance-payout · artist-royalties</td>
+        </tr>
+        <tr>
+          <td class="t-name">Nastavení</td><td class="num">6</td>
+          <td>Základní údaje · Obsazení · Šablony · Změna termínu</td>
+          <td class="routes">edit · settings · cast · templates · postpone · reschedule</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr><td class="t-name">Celkem</td><td class="num">76</td><td colspan="2" style="font-family:var(--mono);font-size:11.5px;color:var(--ink-3)">Sedí na počet adresářů v <code>events/[id]</code>. Ani jedna funkce nevypadla.</td></tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <h3>Dvě rozhodnutí, která v tom jsou schovaná</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Losování dvakrát</h4>
+      <p><code>lottery</code> („Losování") a <code>lotteries</code> („Lotterie (old)") jsou dvě obrazovky pro totéž a v dnešním menu jsou obě. Návrh počítá s tím, že <strong>stará varianta se z navigace odstraní</strong>. Jestli se má i smazat route, patří rozhodnout podle toho, jestli na ni existují data.</p>
+    </div>
+    <div class="card">
+      <h4>Náramky dvakrát</h4>
+      <p><code>wristbands</code> je v dnešním menu na dvou místech (v „Lístcích" i v „RFID"). V návrhu je jednou, v Provozu, protože náramek je nástroj dne D, ne typ vstupenky.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 08 -->
+<section id="s8">
+  <hr class="perf">
+  <span class="sec-num">Sekce 08</span>
+  <h2>Nová navigace organizace</h2>
+  <p class="sec-lead">Ze 49 položek v 11 sekcích se stane 12 položek. Zbylých 74 rout dostane místo uvnitř nich nebo na rozcestníku „Vše" — včetně těch 26 dnes nedostupných.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th style="width:130px">Položka menu</th><th style="width:30%">Co obsahuje</th><th>Stránky</th></tr></thead>
+      <tbody>
+        <tr><td class="t-name">Přehled</td><td>Domovská obrazovka, živý prodej, upozornění</td><td class="routes">/ · dashboard/live · live<span class="pill warn">duplicita</span> · alerts<span class="pill bad">dnes bez odkazu</span></td></tr>
+        <tr><td class="t-name">Akce</td><td>Seznam, tvorba, hromadný import, skupiny, šablony, produkce, sezónní přehled, kolekce</td><td class="routes">events · events/new · events/batch-import<span class="pill bad">bez odkazu</span> · event-groups · event-templates · productions · season · collections</td></tr>
+        <tr><td class="t-name">Objednávky</td><td>Objednávky, refundace, chargebacky, rezervace, call centrum, školní skupiny</td><td class="routes">orders · refund-requests<span class="pill bad">bez odkazu</span> · chargebacks · reservations<span class="pill bad">bez odkazu</span> · call-center · school-bookings<span class="pill bad">bez odkazu</span></td></tr>
+        <tr><td class="t-name">Zákazníci</td><td>Databáze, segmentace, členské skupiny, firemní účty, import, GDPR</td><td class="routes">customers · crm/rfm · member-groups<span class="pill bad">bez odkazu</span> · b2b<span class="pill bad">bez odkazu</span> · import<span class="pill bad">bez odkazu</span> · gdpr<span class="pill bad">bez odkazu</span></td></tr>
+        <tr><td class="t-name">Pokladna</td><td>POS, rychlý prodej, terminály a tiskárny</td><td class="routes">pos · pos/quick<span class="pill bad">bez odkazu</span> · pos/terminals<span class="pill bad">bez odkazu</span></td></tr>
+        <tr><td class="t-name">Vstup</td><td>Skener, zařízení, průvodce pro personál</td><td class="routes">scanner · scanner/devices<span class="pill bad">bez odkazu</span> · scanner/guide</td></tr>
+        <tr><td class="t-name">Marketing</td><td>Kódy a poukazy, rozesílky, kampaně, reklama, měření, AI nástroje</td><td class="routes">promo-codes · vouchers · gift-cards<span class="pill bad">bez odkazu</span> · access-codes · broadcasts · sms-campaigns · email-templates · campaigns<span class="pill bad">bez odkazu</span> · ads · tracking-pixels · facebook · social-shop · brand-connect · ai/×6<span class="pill bad">bez odkazu</span></td></tr>
+        <tr><td class="t-name">Partneři</td><td>Partnerská síť, affiliate program a žádosti</td><td class="routes">resellers · affiliates<span class="pill bad">bez odkazu</span> · partner-applications</td></tr>
+        <tr><td class="t-name">Finance</td><td>Výplaty, faktury, účetnictví, výpisy, reporty včetně NIPOS</td><td class="routes">payouts · artist-payouts · invoices · accounting · bank-transfers · reports · reports/inhouse · reports/nipos<span class="pill bad">bez odkazu</span></td></tr>
+        <tr><td class="t-name">Sály</td><td>Sály, plánky, editor, brány</td><td class="routes">venues/[id] · venues/[id]/seating-chart · …/editor · …/gates<span class="pill bad">celá sekce chybí v menu</span></td></tr>
+        <tr><td class="t-name">Tým</td><td>Personál, role, audit log, notifikace</td><td class="routes">staff · team<span class="pill warn">duplicita</span> · audit-log · notifications</td></tr>
+        <tr><td class="t-name">Nastavení</td><td>Účet, branding, domény, KYC, dokumenty, integrace, ochrana</td><td class="routes">settings · settings/branding<span class="pill bad">bez odkazu</span> · settings/domains<span class="pill bad">bez odkazu</span> · settings/kyc<span class="pill bad">bez odkazu</span> · domains · documents · webhooks · oauth-apps · embed · anti-scalping<span class="pill bad">bez odkazu</span> · fraud-queue · resale-guarantee<span class="pill bad">bez odkazu</span> · onboarding</td></tr>
+        <tr><td class="t-name">Předplatné</td><td>Abonentky, sezónní pasy, permanentky — patří pod Akce jako podsekce</td><td class="routes">subscriptions · season-passes · subscription-plans</td></tr>
+        <tr><td class="t-name">Vertikály</td><td>Zobrazí se jen promotérovi, který je používá — viz sekce 09</td><td class="routes">films · sport-teams</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Rozcestník „Vše"</h3>
+  <p>Poslední položka menu. Jedna stránka se všemi 86 routami, seskupenými podle patnácti domén ze sekce 02, s vyhledáváním a s možností připnout si funkci do hlavního menu. Řeší tři věci naráz: zpřístupní těch 26 sirotků, dá power userům rychlou cestu kamkoli a je pojistkou proti tomu, že jsem něco zařadil špatně.</p>
+</section>
+
+<!-- 09 -->
+<section id="s9">
+  <hr class="perf">
+  <span class="sec-num">Sekce 09</span>
+  <h2>Modulární zapínání</h2>
+  <p class="sec-lead">Klíčová část návrhu. Bez ní bude i deset záložek přeplněných, protože v každé bude patnáct sekcí, z nichž konkrétní pořadatel použije tři.</p>
+
+  <h3>Tři úrovně dostupnosti</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th style="width:120px">Úroveň</th><th style="width:26%">Kdy je vidět</th><th>Které funkce</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="t-name"><span class="pill good">Vždy</span></td>
+          <td>U každé akce, bez ohledu na typ</td>
+          <td class="routes">přehled · typy vstupenek · holds · vydané lístky · objednávky · guestlist · hromadná zpráva · embed · report prodeje · základní údaje · nastavení</td>
+        </tr>
+        <tr>
+          <td class="t-name"><span class="pill info">Podle typu</span></td>
+          <td>Zapne se automaticky podle šablony zvolené při zakládání akce — ty už v <code>events/new</code> existují</td>
+          <td class="routes"><strong>Festival:</strong> dny a zóny, RFID, náramky, foyer, kempy · <strong>Divadlo:</strong> plánek, stoly, obsazení, abonentky, sezóna, školní objednávky · <strong>Kino:</strong> filmový katalog, časové vstupy · <strong>Sport:</strong> týmy, sezónní pasy, hospitality · <strong>Konference:</strong> akreditace, doplňkové otázky, press</td>
+        </tr>
+        <tr>
+          <td class="t-name"><span class="pill plain">Na vyžádání</span></td>
+          <td>Vypnuté, dokud si je pořadatel nezapne v Nastavení akce nebo na rozcestníku</td>
+          <td class="routes">A/B testy cen · cenové scénáře · predikce poptávky · ceny po kanálech · MHD kombi · parkování a ubytování · cestovní partneři · sociální odstup · pohled ze sedadla · vzpomínková vstupenka · backstage moment · super fan · fan bonus · dárcovství · losování · sponzoři · livestream · wallet obsah · sekundární trh</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Jak se zapíná</h3>
+  <p>Nová sekce v Nastavení akce: <strong>Moduly</strong> — seznam vypnutých funkcí s jednou větou, co dělají, a přepínačem. Zapnutá funkce se okamžitě objeví jako sekce ve své záložce. Pořadatel si zároveň může nastavit výchozí sadu pro celou organizaci, aby to nedělal u každé akce znovu.</p>
+
+  <h3>Kontextové nabízení místo bannerů</h3>
+  <p>Rešerše je v tomhle jednoznačná: pop-up po přihlášení vytvoří povědomí, ale nezmění chování. Funkci má smysl nabídnout <strong>ve chvíli, kdy z dat plyne, že je relevantní</strong>. Konkrétně pro Tixly:</p>
+  <ul>
+    <li>Prodej se týden nehnul a do akce zbývá měsíc → nabídni <strong>Last-minute slevu</strong> a <strong>Hromadnou zprávu</strong> nekupujícím.</li>
+    <li>Akce je vyprodaná → nabídni <strong>Čekací listinu</strong> a <strong>Sekundární trh</strong>.</li>
+    <li>Kapacita nad 3 000 a jeden termín → nabídni <strong>Smart Queue</strong> a <strong>Verified Fan</strong>.</li>
+    <li>Akce nemá popis nebo obrázek → nabídni <strong>AI popis</strong> a <strong>AI cover</strong>. Tím se zároveň zviditelní šest AI nástrojů, které dnes nikdo nenajde.</li>
+    <li>Vyšší podíl objednávek z jednoho zdroje → nabídni <strong>tracking odkazy</strong> a <strong>affiliate</strong>.</li>
+  </ul>
+  <p>Tohle je zároveň nejlevnější cesta, jak vaše nejsilnější funkce vůbec dostat před uživatele — dnes o většině z nich neví.</p>
+</section>
+
+<!-- 10 -->
+<section id="s10">
+  <hr class="perf">
+  <span class="sec-num">Sekce 10</span>
+  <h2>Slovník a přejmenování</h2>
+  <p class="sec-lead">Bez tohohle je jakákoli struktura jen jinak uspořádaný zmatek. Návrh: jeden jazyk, žádná emoji, žádné dvě jména pro jednu věc.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th style="width:30%">Dnes</th><th style="width:30%">Návrh</th><th>Proč</th></tr></thead>
+      <tbody>
+        <tr><td class="routes">Holds &amp; Kills</td><td class="t-name">Držená a vyřazená místa</td><td>„Kill" je pro pokladní neproniknutelné.</td></tr>
+        <tr><td class="routes">Dynamic pricing / Pricing windows / Channel prices / Member pricing</td><td class="t-name">Sekce uvnitř záložky Ceny</td><td>Čtyři destinace pro jednu doménu.</td></tr>
+        <tr><td class="routes">Hot mode</td><td class="t-name">Režim vysoké zátěže</td><td>Neprozrazuje, co dělá.</td></tr>
+        <tr><td class="routes">Live ops</td><td class="t-name">Průběh akce</td><td>—</td></tr>
+        <tr><td class="routes">Will Call</td><td class="t-name">Vyzvednutí na pokladně</td><td>Americký termín bez ekvivalentu v CZ provozu.</td></tr>
+        <tr><td class="routes">Access matrix</td><td class="t-name">Oprávnění vstupu</td><td>—</td></tr>
+        <tr><td class="routes">Broadcast / Broadcasty</td><td class="t-name">Hromadná zpráva</td><td>Sjednotit s „Hromadné e-maily" na úrovni organizace.</td></tr>
+        <tr><td class="routes">Sales report</td><td class="t-name">Report prodeje</td><td>—</td></tr>
+        <tr><td class="routes">Add-ons</td><td class="t-name">Doplňky</td><td>—</td></tr>
+        <tr><td class="routes">Event Groups / Event templates / Event Collections</td><td class="t-name">Skupiny akcí / Šablony akcí / Kolekce</td><td>Tři anglické názvy pro tři blízké koncepty — v češtině je rozdíl vidět líp.</td></tr>
+        <tr><td class="routes">Scanner</td><td class="t-name">Skener</td><td>—</td></tr>
+        <tr><td class="routes">🪑 Stoly, ⭐ Super Fan, 🚗 Parking, 💳 Náramky, 📡 Live Dashboard, 🎤 Royalty, 🔄 Sekundární trh, 🔥 Dynamic</td><td class="t-name">bez emoji</td><td>Emoji jen u některých položek působí jako chyba a špatně se čte ve screen readeru.</td></tr>
+        <tr><td class="routes">Personál (<code>staff</code>) vs. Tým (<code>team</code>)</td><td class="t-name">rozhodnout, sloučit</td><td>Dvě obrazovky, jeden pojem.</td></tr>
+        <tr><td class="routes">Dárkové poukazy (<code>vouchers</code>) vs. Gift karty (<code>gift-cards</code>)</td><td class="t-name">rozhodnout, sloučit nebo odlišit</td><td>Pokud je rozdíl věcný, musí být vidět z názvu.</td></tr>
+        <tr><td class="routes">Losování (<code>lottery</code>) vs. Lotterie (old)</td><td class="t-name">ponechat jednu</td><td>Stará verze nepatří do produkční navigace.</td></tr>
+        <tr><td class="routes">Live přehled (<code>live</code>) vs. Live dashboard (<code>dashboard/live</code>)</td><td class="t-name">ponechat jednu</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 11 -->
+<section id="s11">
+  <hr class="perf">
+  <span class="sec-num">Sekce 11</span>
+  <h2>Co se změní v kódu</h2>
+  <p class="sec-lead">Rozsah zásahu. Podstatné je, že <strong>se nemaže ani nepřesouvá jediná route</strong> — mění se navigace a přibývají obalové stránky. Tím je změna vratná a nízkoriziková.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th style="width:30%">Soubor</th><th style="width:100px">Zásah</th><th>Co se stane</th></tr></thead>
+      <tbody>
+        <tr><td class="routes">components/admin/Sidebar.tsx</td><td><span class="pill warn">přepis</span></td><td>49 položek → 12 + „Vše". Zachovat filtrování podle role, rozšířit ho na víc rolí. Doplnit chybějící sekci Sály.</td></tr>
+        <tr><td class="routes">app/admin/events/[id]/EventDetailNav.tsx</td><td><span class="pill warn">přepis</span></td><td>74 položek v <code>&lt;details&gt;</code> → 10 záložek jako odkazy. Odstranit duplicity, doplnit <code>lastminute</code> a <code>stream</code>, zrušit <code>overflow-x-auto</code> jako příčinu ořezávání.</td></tr>
+        <tr><td class="routes">app/admin/events/[id]/page.tsx</td><td><span class="pill good">nový</span></td><td>Přehled akce — dnes neexistuje. Data z <code>live-ops</code>.</td></tr>
+        <tr><td class="routes">app/admin/events/[id]/{ceny,prodej,publikum,provoz,marketing,vyuctovani}/page.tsx</td><td><span class="pill good">nové</span></td><td>Šest rozcestníkových stránek. Každá vypíše sekce, které jsou pro danou akci zapnuté, a odkáže na existující podstránky. <strong>Původní routy zůstávají funkční</strong> — postupně se z nich stanou sekce.</td></tr>
+        <tr><td class="routes">app/admin/vse/page.tsx</td><td><span class="pill good">nový</span></td><td>Rozcestník všech 86 rout s vyhledáváním, seskupený podle domén.</td></tr>
+        <tr><td class="routes">components/admin/Topbar.tsx</td><td><span class="pill warn">úprava</span></td><td>Dynamický titulek místo statického „Tixly Admin", přepínač akce, vstup do globálního hledání.</td></tr>
+        <tr><td class="routes">lib/admin/modules.ts</td><td><span class="pill good">nový</span></td><td>Definice modulů: klíč, název, popis, výchozí stav podle šablony akce. Zdroj pravdy pro to, co se kde zobrazí.</td></tr>
+        <tr><td class="routes">lib/admin/nav.ts</td><td><span class="pill good">nový</span></td><td>Jedno místo, kde je popsaná celá navigace obou úrovní — dnes je rozsypaná ve dvou komponentách. Použije ho sidebar, menu akce, rozcestník i globální hledání.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <span class="label">Pořadí</span>
+    <p>Nejdřív <code>lib/admin/nav.ts</code> jako společný zdroj pravdy, pak z něj vygenerovat obě menu a rozcestník. Bez toho by vznikly tři seznamy, které se za měsíc rozejdou — což je přesně důvod, proč dnes 26 stránek nikde není.</p>
+  </div>
+</section>
+
+<!-- 12 -->
+<section id="s12">
+  <hr class="perf">
+  <span class="sec-num">Sekce 12</span>
+  <h2>Otevřené otázky</h2>
+  <p class="sec-lead">Čtyři věci, které za tebe nerozhodnu, protože k nim nemám data ani mandát.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Duplicity: co je mrtvé?</h3>
+      <p><code>staff</code> vs. <code>team</code>, <code>vouchers</code> vs. <code>gift-cards</code>, <code>lottery</code> vs. <code>lotteries</code>, <code>live</code> vs. <code>dashboard/live</code>. V navigaci může být jen jedno. Rozhodnout podle toho, na kterou verzi existují data a která je novější — to jde zjistit z databáze, ne z kódu.</p>
+    </div>
+    <div class="card">
+      <h3>Zůstává 76 samostatných stránek?</h3>
+      <p>Návrh je zatím jen přeskládá. Skutečné sloučení (deset cenových stránek na jednu se sekcemi) je další krok, který stojí víc a měl by se dělat podle toho, co se používá. <strong>Doporučuju nejdřív měřit</strong> — přidat jednoduché počítadlo návštěv stránek admina a rozhodnout za dva měsíce.</p>
+    </div>
+    <div class="card">
+      <h3>Ověřit strukturu na lidech</h3>
+      <p>Deset záložek jsem složil podle domény a rešerše, ne podle toho, jak to vidí produkční. Tree test na pěti lidech z praxe (zadání typu „kde nastavíš slevu pro skupinu deseti lidí?") strukturu ověří za jedno odpoledne.</p>
+    </div>
+    <div class="card">
+      <h3>Vertikály na úrovni organizace</h3>
+      <p>Filmový katalog a Sportovní týmy jsou dnes v hlavním menu pro všechny. Většina promotérů nedělá ani kino, ani sport. Navrhuju je vázat na typ promotéra — ale to je obchodní rozhodnutí o tom, jak se Tixly prodává.</p>
+    </div>
+  </div>
+
+  <footer class="end">
+    Analýza sestavena 13. 8. 2026 strojovým výpisem rout a titulků z <code>src/app/admin</code> · aplikace nebyla spuštěna · zařazení funkcí je návrh podle domény, ne podle telemetrie · statistiky z rešerše pocházejí z blogů agentur a jsou v textu označeny
+  </footer>
+</section>
+
+</main>
+</div>
+</div>

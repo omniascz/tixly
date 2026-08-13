@@ -42,6 +42,54 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const ROLE_RE = /^[a-z_]+$/; // allowlist tvar — SET LOCAL interpoluje string, nutná validace
 
 let pool: Pool | null = null;
+let directPool: Pool | null = null;
+
+/**
+ * R-56 (§191–§194): na poolovanem endpointu se backend prideluje PER TRANSAKCI.
+ * `query()` drzi `SET LOCAL` i dotaz v jedne transakci, takze je tesny (zmereno
+ * 0/120). `connect()` nastavuje GUC session-level MIMO transakci, takze tam
+ * dotaz volajiciho dorazi na jiny backend — zmereno 59/60 spatne na pooleru,
+ * 0/60 na direct.
+ *
+ * Oprava (kandidat (b) ze §192): kazda cesta ma svuj pool.
+ *   query()   -> poolovany endpoint (levny: ~1 backend na 9 klientu)
+ *   connect() -> primy endpoint     (drahy: 1 slot na spojeni -> skrbi se)
+ *
+ * Rozpocet slotu (§194, compute 0.25–2 CU): `max_connections=901`, minus
+ * 6 superuser, minus baseline a backendy pooleru => ~855 pro direct pool.
+ * Pri `max=4` to je ~213 soubeznych instanci. Proto je default 4, ne 10.
+ */
+function directUrl(): string | undefined {
+  // 1) Explicitni promenna ma prednost — konvence DATABASE_URL_SUPER/OPS/APP.
+  const explicit = process.env.DATABASE_URL_DIRECT;
+  if (explicit) return explicit;
+  // 2) Jinak se odvodi z `DATABASE_URL` odstranenim `-pooler` z hostu. Tentyz
+  //    mechanismus pouziva `tests/rls-pool-pooler.live.test.ts` (opacnym smerem).
+  //    Kdyz `-pooler` v hostu neni, URL uz PRIMA je a vrati se beze zmeny —
+  //    v tom pripade oba pooly miri na tyz endpoint a chovani je dnesni.
+  return process.env.DATABASE_URL?.replace(/@([^.@/]+)-pooler\./, '@$1.');
+}
+
+function getDirectPool(): Pool {
+  if (!directPool) {
+    directPool = new Pool({
+      connectionString: directUrl(),
+      // Zamerne NIZSI nez u poolovaneho: na primem endpointu stoji kazde
+      // spojeni jeden slot z ~855. Ladi se pres env bez deploye kodu.
+      max: Number(process.env.PG_DIRECT_POOL_MAX ?? 4),
+      statement_timeout: Number(process.env.PG_STATEMENT_TIMEOUT_MS ?? 15000),
+      connectionTimeoutMillis: 8000,
+      // Kratsi nez u poolovaneho — necinne spojeni tu drzi vzacny slot.
+      // Ne agresivneji: reconnect stoji ~255 ms (horni odhad, §194) a 24 %
+      // volani `connect()` je na horkych cestach.
+      idleTimeoutMillis: Number(process.env.PG_DIRECT_IDLE_TIMEOUT_MS ?? 10000),
+    });
+    if (process.env.RLS_POOL_DEBUG === '1') {
+      directPool.on('error', (e) => console.warn('[DIRECT-POOL-ERROR]', (e as Error)?.message?.slice(0, 80)));
+    }
+  }
+  return directPool;
+}
 
 function getRawPool(): Pool {
   if (!pool) {
@@ -215,7 +263,9 @@ class RlsAwarePool {
    */
   async connect(attempt = 0): Promise<PoolClient> {
     const ctx = tenantStore.getStore();
-    const client = await getRawPool().connect();
+    // R-56: PRIMY endpoint. Na poolovanem tahle cesta principialne nedrzi
+    // kontext — GUC se nastavuji mimo transakci volajiciho (§191).
+    const client = await getDirectPool().connect();
 
     // ── DOCASNA DIAGNOSTIKA (RLS_POOL_DEBUG=1) — R-15 ────────────────────────
     // Overuje hypotezu, ze se do poolu vraceji SPINAVA spojeni: reset GUC bezi
@@ -295,10 +345,14 @@ class RlsAwarePool {
    * Pure pass-through pro existující code co `pool.end()` volá při shutdown.
    */
   async end(): Promise<void> {
-    if (pool) {
-      await pool.end();
-      pool = null;
-    }
+    // MUSI zavrit OBA pooly. Kdyby se zavrel jen `pool`, spojeni direct poolu
+    // zustanou viset — v testech to znamena „Connection terminated unexpectedly"
+    // pri mazani ephemeral vetve pod otevrenymi sockety (tataz trida, kvuli
+    // ktere `live-fixture.cleanup()` zavira `appDb().end()` pred DELETE).
+    const konce: Array<Promise<void>> = [];
+    if (pool) { konce.push(pool.end()); pool = null; }
+    if (directPool) { konce.push(directPool.end()); directPool = null; }
+    await Promise.all(konce);
   }
 }
 

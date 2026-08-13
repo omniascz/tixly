@@ -88,6 +88,64 @@ if ((process.argv.find((a) => a.startsWith('--only=')) ?? '').includes('reconnec
   process.exit(0);
 }
 
+/**
+ * 3) VYHLADOVENI. §194 zmerilo, ze pri vycerpanem directu pooled spojeni PROSLO —
+ * ale jen proto, ze PgBouncer uz backend mel a recykloval ho. Otazka, ktera
+ * zustala NEZODPOVEZENA: co udela, kdyz potrebuje NOVY backend a slot neni?
+ *
+ * Aby musel otevrit nove, pusti se soubezne dotazy, ktere nejdou serializovat
+ * na jeden backend (`pg_sleep`), a je jich vic nez kolik ma pooler navazano.
+ * Merí se, jestli to selze TVRDE (chyba) nebo jen ceka (fronta).
+ */
+async function starve(direct, pooled) {
+  // pooler zahrat co nejmene — jen jedno spojeni, at ma minimum backendu
+  const warm = new pg.Client({ connectionString: pooled });
+  await warm.connect(); await warm.query('SELECT 1');
+  const before = await backends(direct);
+  line(`pred vycerpanim: ${JSON.stringify(before)}`);
+
+  const held = await openMany(direct, 895);
+  line(`drzim direct: ${held.clients.length}  (dalsi -> ${held.err?.code ?? 'bez chyby'})`);
+
+  const N = 40;
+  const t0 = Date.now();
+  const res = await Promise.all(Array.from({ length: N }, async (_, i) => {
+    const c = new pg.Client({ connectionString: pooled, connectionTimeoutMillis: 20000 });
+    const t = Date.now();
+    try {
+      await c.connect();
+      await c.query('SELECT pg_sleep(0.5)');
+      await c.end();
+      return { ok: true, ms: Date.now() - t };
+    } catch (e) {
+      await c.end().catch(() => undefined);
+      return { ok: false, ms: Date.now() - t, code: e.code, msg: String(e.message).slice(0, 70) };
+    }
+  }));
+  const ok = res.filter((r) => r.ok);
+  const bad = res.filter((r) => !r.ok);
+  line(`${N} soubeznych POOLED dotazu pri vycerpanem directu:`);
+  line(`  proslo ${ok.length}, selhalo ${bad.length}, celkem ${Date.now() - t0} ms`);
+  if (ok.length) {
+    const ms = ok.map((r) => r.ms).sort((a, b) => a - b);
+    line(`  doba u uspesnych: min ${ms[0]} ms, median ${ms[Math.floor(ms.length / 2)]} ms, max ${ms[ms.length - 1]} ms`);
+  }
+  for (const b of [...new Set(bad.map((r) => `${r.code} ${r.msg}`))]) line(`  chyba: ${b}`);
+  await closeAll(held.clients);
+  await warm.end().catch(() => undefined);
+  return { ok: ok.length, bad: bad.length };
+}
+
+if ((process.argv.find((a) => a.startsWith('--only=')) ?? '').includes('starve')) {
+  hdr('3) Co udela POOLER, kdyz potrebuje NOVY backend a slot neni');
+  const r = await starve(DIRECT, POOLED);
+  hdr('ZAVER');
+  line(r.bad === 0
+    ? 'Pooler NEselhal — fronta/recyklace to ustala. Degradace je mekka.'
+    : `Pooler selhal u ${r.bad} ze ${r.ok + r.bad} — degradace je TVRDA, rozpocet slotu musi pocitat i s nim.`);
+  process.exit(0);
+}
+
 // ── 1) kolik backendu stoji N pooled klientu ────────────────────────────────
 hdr('1) POOLED: kolik BACKENDU stoji N klientskych spojeni');
 line(`vychozi stav: ${JSON.stringify(await backends(DIRECT))}`);
