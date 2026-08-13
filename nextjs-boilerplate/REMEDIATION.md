@@ -2,7 +2,7 @@
 
 Tenhle soubor je **hlavni zdroj kontinuity**. Da se z nej pokracovat bez
 konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
-§1–§202); tady je jen to, co je hotove, co je otevrene a cim zacit.
+§1–§205); tady je jen to, co je hotove, co je otevrene a cim zacit.
 
 ⚠️ Tenhle soubor je ten v `nextjs-boilerplate/`. V korenu repa lezi starsi
 `REMEDIATION.md` (STAV 2026-07-29), ktery je **neaktualni** — needituj ho.
@@ -157,6 +157,14 @@ T-BOXOFFICE-EXPIRES      admin-guest   23502 expires_at
 consent-log-purge (C2)   cron-contract vraci ok:true pri odepreni prava
 upgrade-options          wrapped-routes catalog.seat_maps neexistuje  -> R-39
 ```
+
+## R-59 🔴 VYPLATY NEFUNGUJI VUBEC (§203)
+
+Obe mista ctou 3 neexistujici sloupce v TEMZE SELECTu jako payout_method/iban
+-> 42703 driv nez vetveni. Nefunguje ZADNA cesta, ani bankovni prevod.
+payout_method CHECK nepovoluje paypal, pritom executor ma paypal vetev.
+Opraveno jen payout_currency -> primary_currency; dotaz se tim NEROZBEHNE.
+Navrh ENABLED_PAYOUT_CHANNELS v §203 d) NEIMPLEMENTOVAN.
 
 ## Poznamky k historii (necist jako soucast nalezu)
 

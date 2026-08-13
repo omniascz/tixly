@@ -5584,3 +5584,69 @@ ano, ale u `wise_recipient_id`/`paypal_payout_email` je to **produktove
 rozhodnuti** (dostavet vyplatni kanal, nebo kod odstranit), stejne jako
 u R-26/R-47. U `review_token` a `membership_code` taky — chybi cela tabulkova
 podpora, ne jeden sloupec.
+
+---
+
+## §203 — VYPLATY NEFUNGUJI VUBEC. Ani bankovni prevod.
+
+Merený stav: introspekce z hole vetve produkce + cteni kodu na HEAD `9b4f72b`.
+
+**a) Co `payout_method` povoluje:**
+```sql
+payout_method_check CHECK (payout_method = ANY (ARRAY['bank_transfer','sepa_credit','wise']))
+```
+**`paypal` v tom vyctu NENI**, pritom executor ma vetev
+`if (method === 'paypal' && row.paypal_payout_email)` (`:68`) — mrtva **dvakrat**
+(hodnota nejde ulozit + sloupec neexistuje).
+
+**b) Vetveni:**
+```
+:68  'paypal' && paypal_payout_email        -> mrtve (CHECK i sloupec)
+:73  (wise|sepa_credit|isEurLike) && iban   -> klici o IBAN, ktery EXISTUJE
+```
+Vetev Wise se **neridi** podle `wise_recipient_id` — ten se nacita a
+v rozhodovani nepouziva.
+
+**c) VERDIKT:** obe mista (`lib/payouts/executor.ts:283–295`,
+`admin/payouts/execute/route.ts:48–54`) ctou `payout_currency`,
+`wise_recipient_id`, `paypal_payout_email` **v TEMZE SELECTu** jako
+`payout_method`/`iban`/`swift_bic`. Dotaz spadne na **42703 driv, nez se
+k vetveni dojde**. Neni to degradace na jednu cestu — **nefunguje zadna**.
+⚠️ Ctvrta nezavisla vrstva vad u payouts (po R-30 `rowCount=0`, R-31
+`'processing'` mimo CHECK) a spadne **driv** nez ostatni.
+
+**d) NAVRH (NEIMPLEMENTOVANO)** vzorem `DISABLED_REPORTS`/`ALLOWED_JOBS`:
+```ts
+export const ENABLED_PAYOUT_CHANNELS = new Set(['bank_transfer', 'sepa_credit']);
+// 'wise'   — CHECK povoluje, ale Wise integrace v schematu neexistuje
+// 'paypal' — CHECK NEPOVOLUJE a paypal_payout_email neexistuje
+```
+Cesta ma selhat srozumitelne **pred** dotazem, ne 42703 uprostred prevodu penez.
+
+**e) Opraveno:** `p.payout_currency` -> `p.primary_currency AS payout_currency`
+na obou mistech (sloupec overen introspekci).
+⚠️ **Dotaz se tim NEROZBEHNE** — `wise_recipient_id` a `paypal_payout_email`
+v nem zustavaji, 42703 trva. **RED->GREEN na urovni chovani NEBEZEL a nemohl**,
+zelena by neprisla; dolozeno je jen katalogem. `NULL::text` jsem nedosadil
+zamerne: `paypal_payout_email` se KONZUMUJE (`:68`), byla by to kosmetika
+zakryvajici vadu (lekce `membership_code`).
+
+## §204 — Opraveno: dva sloupce na `catalog.events`
+
+* `press/event/[id]:23` — `e.name` -> `e.title AS name` (tataz vada jako §167,
+  jine misto; alias drzi tvar odpovedi).
+* `reviews/[token]:25` — `e.starts_at::text` -> `e.date_start::text`.
+
+`tsc` 0 chyb. **Chovanim NEOVERENO** — `reviews/[token]` navic porad stoji na
+`review_token`, ktery neexistuje.
+
+## §205 — Tikety: chybi cely MODEL, ne sloupec (nezamenovat)
+
+| routa | co chybi |
+|---|---|
+| `reviews/[token]` GET i POST | `event_reviews.review_token`, `reviewer_name` (tabulka ma `user_id`) |
+| `buyer/cross-passes/my-memberships:19` | `cross_pass_memberships.membership_code`, `valid_until` |
+| `reschedule/stats:64`, `reschedule/[token]:106` | `reschedule_responses.user_id` (ma `order_id` + `response_token`) |
+| payouts | `wise_recipient_id`, `paypal_payout_email` — viz §203 d) |
+
+Vse na **dosazitelnych** cestach. Zamena sloupce by u nich byla hadani.
