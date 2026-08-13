@@ -2,7 +2,7 @@
 
 Tenhle soubor je **hlavni zdroj kontinuity**. Da se z nej pokracovat bez
 konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
-§1–§191); tady je jen to, co je hotove, co je otevrene a cim zacit.
+§1–§193); tady je jen to, co je hotove, co je otevrene a cim zacit.
 
 ⚠️ Tenhle soubor je ten v `nextjs-boilerplate/`. V korenu repa lezi starsi
 `REMEDIATION.md` (STAV 2026-07-29), ktery je **neaktualni** — needituj ho.
@@ -61,7 +61,10 @@ konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
    `db().connect()` ve 176 souborech; `db().query()` (666x) je bezpecne.
    **Blokuje to jedina neznama: jestli prod `DATABASE_URL` opravdu miri na
    `-pooler`.** `GO-LIVE-CHECKLIST.md:135` rika ze ano, ale hodnota je ve
-   Vercelu sifrovana a NEOVERIL jsem ji. Pak rozhodnuti A/B/C ze §191.
+   Vercelu sifrovana a NEOVERIL jsem ji. Cesty ven jsou **zmerene** (§192):
+   proveditelne a) i b), **b) levneji**; c) nedoporucuji. Dopad ohranicen
+   vzorkem 10 rout (§193): **0 z 10 by vydalo cizi data**, projev je
+   fail-closed. R-57 = spici `SET LOCAL` v `buyer/fan-bonus:18`.
 1. **R-15** flakiness zive sady. Pooler byl *cast* pricin. **Domereno (§191):
    5 behu na `pooled=false` -> pada VZDY TYZ test** (`checkout-guest > velka
    pismena v e-mailu`, 2 z 5 behu, nikdy zadny jiny). §108 „pokazde jiny test"
@@ -745,14 +748,40 @@ zmerene tesne (0/120).
 **Ceka na jednu FAKTU a pak na ROZHODNUTI:**
 1. FAKT: miri prod `DATABASE_URL` na `-pooler`? `GO-LIVE-CHECKLIST.md:135`
    rika ano, ale hodnota je ve Vercelu sifrovana — **NEOVERENO**.
-2. ROZHODNUTI: A) prod na direct endpoint (vrati problem s connection limity),
-   B) GUC az v transakci volajiciho (tvar E, tesny na obou endpointech;
-   ~15 volajicich bez `BEGIN` chce resit zvlast), C) nechat selhat hlasite —
-   coz vyjde na B. Detail v §191.
+2. ROZHODNUTI mezi zmerenymi kandidaty (§192).
 
-⚠️ Kolik z toho jsou skutecne uniky dat, zalezi per routa na tom, jestli si
-filtruje sama, nebo se spoleha na RLS. **NENI to zmerene** a nedelej z toho
-„206 der".
+### Cesty ven — zmereno (§192), NEIMPLEMENTOVANO
+
+| kandidat | spravnost n=60 | call sites | cena |
+|---|---|---|---|
+| **b) dva pooly**: direct pro `connect()`, pooled pro `query()` | 0/60 obe cesty | 0 | nejnizsi; direct sloty cerpa jen `connect()` |
+| a) cely pool na direct URI | 0/60 obe cesty | 0 | strop **890 spojeni**, pak SQLSTATE 53300 — presne ta chyba, kvuli ktere pooler vznikl (`ONSALE-PLAYBOOK.md:24`) |
+| c) transakce uvnitr `connect()` | — | 0 primo | **nejhorsi**: `SET LOCAL` zanikne prvnim `COMMIT`em volajiciho -> rozbije **12 volani v 11 souborech** (vc. `checkout`), a odjisti spici `SET LOCAL app.is_platform_admin` v `buyer/fan-bonus:18` |
+
+Vnoreny `BEGIN` sam je jen WARNING (zmereno 3/3) — §120 melo pravdu, ale
+zabijak je jinde: `SET LOCAL` konci s transakci volajiciho.
+
+### Dopad: vzorek 10 z 206 (§193)
+
+**0 z 10 by vydalo cizi data.** Vsech deset si identitu znovu vaze v aplikaci
+(parametr dotazu nebo explicitni guard); RLS je u nich druha vrstva. Dominantni
+projev zameny je **fail-closed** (prazdno / 42501), ne unik — coriguje to
+durazny ton §191. Je to ale odhad ze **4,9 %** vzorku, ne dukaz o 206.
+Trida, ktera by unikala (routa spolehajici na RLS VYHRADNE), ve vzorku nebyla;
+kolik ji je mezi zbylymi 196, **NEVIM**.
+
+⚠️ Nedelej z toho „206 der".
+
+## R-57 🟡 `buyer/fan-bonus:18` — spici `SET LOCAL` mimo transakci (§192)
+
+`SET LOCAL app.is_platform_admin = 'true'` a v cele route neni `BEGIN`.
+Zmereno 3/3: mimo transakci to hlasi `WARNING: SET LOCAL can only be used in
+transaction blocks` a hodnota zustane `""`. Dnes tedy nedela nic.
+
+Dve veci: (1) routa se spoleha na servisni kontext, ktery na pooleru ztraci —
+proto muze vracet prazdno; (2) kdyby se R-56 resilo kandidatem (c), ten radek
+by **zacal platit** a kupujici GET by bezel jako platform admin. Opravit
+nezavisle na R-56 — bud radek odstranit, nebo ho dat do transakce vedome.
 
 ## Nastroje pridane 2026-08-13
 

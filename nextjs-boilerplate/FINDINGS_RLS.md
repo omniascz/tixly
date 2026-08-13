@@ -4878,3 +4878,134 @@ beh 5  5 padlych  + tentyz test
 §108 tvrdilo „pokazde jiny test" — to platilo na pooleru. Po `pooled=false` je
 flakiness lokalizovana do **jednoho** testu, 2 z 5 behu, nikdy zadny jiny.
 Zbyla pricina je tim zuzena na jeden reprodukovatelny cil. NEVYSETRENO.
+
+---
+
+## §192 — R-56: zmerene cesty ven, a co kazda stoji
+
+Metodika u spravnosti kontextu je stejna jako §191: n=60 (5 klientu x 12 kol),
+oba endpointy TEHOZ klonu. Klon ma **stejny compute jako produkce**
+(min_cu=0.25, max_cu=2) — overeno pres Neon API, jinak by cisla o stropu
+neplatila. Nastroj: `scripts/r56-exits-probe.mjs`.
+
+### a) Cely pool na NEPOOLED URI — konfiguracni zmena, 0 call sites
+
+Spravnost:
+```
+DIRECT   connect()-tvar (D2): 0/60 spatne    query()-tvar (E): 0/60 spatne
+POOLED   connect()-tvar (D2): 51/60          query()-tvar (E): 0/60
+         ^ self-check: kdyby POOLED/D2 vyslo nula, sonda nemeri, co tvrdi
+```
+
+Strop — **to je ta otazka, ktera rozhoduje**:
+```
+max_connections = 901,  superuser_reserved = 6
+otevreno soubezne: 890  -> proslo
+891.                    -> SQLSTATE 53300
+   "remaining connection slots are reserved for roles with the SUPERUSER attribute"
+```
+To je **doslova ta chyba**, kterou `db/ONSALE-PLAYBOOK.md:24` uvadi jako duvod,
+proc se pooler zavedl. Duvod tedy plati — ale az od ~890 soubeznych spojeni,
+ne driv. Pri `PG_POOL_MAX=10` na instanci to je **~89 soubeznych Vercel
+instanci**; a protoze `idleTimeoutMillis=30000`, drzi sloty i instance, ktere
+zrovna nic nedelaji.
+
+### b) Nepooled JEN pro `connect()`, pooled pro `query()` — dva pooly
+
+Technicky to jde a zmereno to je — oba pooly v JEDNOM procesu soucasne:
+```
+connect() -> DIRECT: 0/60 spatne     query() -> POOLED: 0/60 spatne
+```
+`rls-pool.ts` dnes drzi jediny lazy `pool` (`:44`), takze by pribyl druhy.
+Call sites: **0**. Direct spojeni by spotrebovavala jen cesta `connect()`,
+tedy zlomek provozu (206 volani vs 666 u `query()`).
+
+### c) `applyGucs()` do transakce, kterou otevre `connect()` sam
+
+§120 tvrdilo, ze vnoreny `BEGIN` da jen WARNING a rozejde se semantika
+`COMMIT`. **Zmereno, 3 ze 3 opakovani — a je to horsi, nez §120 rikalo:**
+```
+vnoreny BEGIN      -> WARNING: there is already a transaction in progress
+druhy COMMIT       -> WARNING: there is no transaction in progress
+app.role uvnitr    -> "system"
+app.role PO COMMITu volajiciho -> ""      <- SET LOCAL konci s transakci
+app.role dalsi dotaz            -> ""
+app.role po ROLLBACKu           -> ""
+```
+Vnoreny `BEGIN` sam o sobe je tedy neskodny. Zabijak je, ze **`SET LOCAL`
+zanikne prvnim `COMMIT`em volajiciho** — a kazdy dalsi dotaz uz bezi bez
+kontextu.
+
+Koho by to trefilo (`scripts/scan-connect-tx-shape.mjs`, self-check prosel —
+pozitivni vzor nalezen, negativni ne):
+```
+volani db().connect()          : 206
+  s vlastnim BEGIN             : 180
+  bez BEGIN                    :  26
+  s vice nez jednim COMMITem   :  26
+DOTAZ PO COMMITu               :  12 volani v 11 souborech
+```
+Mezi tema 11 je `src/app/api/checkout/route.ts`. (Cislo je spis horni odhad —
+heuristika je textova.)
+
+**Navic mina, kterou by (c) odjistila.** `src/app/api/buyer/fan-bonus/route.ts:18`
+dela `SET LOCAL app.is_platform_admin = 'true'` a v cele route neni zadny
+`BEGIN`. Zmereno (3/3):
+```
+SET LOCAL MIMO transakci  -> WARNING: SET LOCAL can only be used in
+                             transaction blocks;  hodnota zustane ""
+SET LOCAL UVNITR transakce ->                     hodnota "true"
+```
+Dnes je ten radek **spici**. Kdyby `connect()` transakci otevrel, **zacal by
+platit** a kupujici GET by bezel jako platform admin. Sken naslo jedine takove
+misto v `src/` (ostatni vyskyty jsou komentare nebo maji `BEGIN`), ale jedno
+staci.
+
+### d) VERDIKT
+
+| kandidat | spravnost | call sites | cena / riziko |
+|---|---|---|---|
+| **b) dva pooly** | 0/60 obe cesty | 0 | nejnizsi. Direct sloty cerpa jen `connect()`; pooler zustava tam, kde uz je zmereně tesny |
+| a) cely pool direct | 0/60 obe cesty | 0 | vzda se pooleru uplne — strop 890 spojeni, pak 53300. Pro bezny provoz dost, pro onsale je to prave ten duvod, proc pooler vznikl |
+| c) tx v `connect()` | neměřeno na call sites | 0 primo, ale | **nejhorsi**. Rozbije 12 volani (vc. checkoutu) a odjisti spici admin `SET LOCAL`. Nedoporucuji bez toho, ze se nejdriv opravi tech 12 + fan-bonus |
+
+**Proveditelne jsou a) i b), b) levneji.** Obe jsou konfiguracni, obe zmerene
+na 0/60. Rozdil: a) obetuje pooler celemu provozu, b) jen ceste `connect()`.
+Ani jedno NEIMPLEMENTOVANO — je to rozhodnuti.
+
+⚠️ Obe cisla o stropu plati pro compute 0.25–2 CU. Pri jinem compute se
+`max_connections` meni a musi se premerit.
+
+## §193 — R-56: kolik z 206 by vydalo CIZI data (vzorek 10)
+
+Vzorek vybrany podle dosazitelnosti (public > buyer > admin > internal),
+**10 z 206 = 4,9 %**.
+
+| tier | routa | cim se scopuje | pri zamene kontextu |
+|---|---|---|---|
+| public | `discover` | servisni kontext, verejna data | prazdno |
+| public | `artists/[slug]` | `WHERE a.slug=$1` | prazdno |
+| public | `events/[id]/travel-packages` | `WHERE p.event_id=$1` | prazdno |
+| public | `postal-fees` | ciselnik, bez identity | prazdno |
+| buyer | `buyer/fan-bonus` | `userId` z `runAsUser` jako **parametr** | prazdno |
+| buyer | `my/orders/[id]/upgrade-options` | `WHERE o.id=$1 AND o.user_id=$2` | prazdno |
+| buyer | `buyer/resale/list` | explicitni `if (ticket.owner_id !== userId) 403` | prazdno |
+| admin | `admin/events/[id]/comps` | `ownsEvent(eventId, promoterId)` guard | prazdno |
+| admin | `admin/settings` | `WHERE p.id=$1` s `promoter.promoterId` | prazdno |
+| internal | `cron/charge-installments` | servisni, `WHERE id=$1` | prazdno |
+
+**0 z 10 by vydalo cizi data.** Duvod je systematicky, ne nahodny: vsech deset
+si identitu **znovu vaze v aplikaci** — bud jako parametr dotazu, nebo
+explicitnim guardem — a RLS je u nich druha vrstva, ne jedina. Je to tataz
+vlastnost, kvuli ktere je R-12 („24 tabulek bez policy") oznacene jako
+NEblokujici: „routy si filtruji samy".
+
+**Co to znamena a co ne.** §191 zmerilo, ze **GUC** je cizi (59/60). Tenhle
+vzorek rika, ze z toho ve zmerenych pripadech **neplynou cizi DATA** — dominantni
+projev je fail-closed: prazdny vysledek nebo 42501. To je zpet blizko puvodnimu
+popisu R-15 („endpoint vraci prazdny seznam") a **koriguje to durazny ton §191**.
+
+⚠️ Je to **odhad ze vzorku 4,9 %**, ne dukaz o 206. Trida, ktera by unikala,
+existuje a je popsatelna: routa, ktera se na identitni scoping spoleha VYHRADNE
+na RLS a sama ji v dotazu neopakuje. Ve vzorku 10 nebyla ani jedna; kolik jich
+je mezi zbylymi 196, **NEVIM**. Sken na tuhle tridu neexistuje.
