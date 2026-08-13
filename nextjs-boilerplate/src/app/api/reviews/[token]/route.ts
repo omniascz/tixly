@@ -22,7 +22,7 @@ export async function GET(
   const r = await runWithServiceContext(() =>
     db().query<ReviewRow>(
       `SELECT er.id, er.rating, e.title AS event_title,
-              e.starts_at::text AS event_date,
+              e.date_start::text AS event_date,
               er.reviewer_name
        FROM marketing.event_reviews er
        JOIN catalog.events e ON e.id = er.event_id

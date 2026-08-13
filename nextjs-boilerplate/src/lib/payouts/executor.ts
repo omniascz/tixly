@@ -290,7 +290,7 @@ async function fetchPendingPayoutsImpl(limit = 50): Promise<PromoterPayoutRow[]>
        p.iban,
        p.swift_bic,
        p.payout_method,
-       p.payout_currency,
+       p.primary_currency AS payout_currency,
        p.wise_recipient_id,
        p.paypal_payout_email
      FROM platform.payouts py

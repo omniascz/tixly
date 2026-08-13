@@ -20,7 +20,7 @@ export async function GET(
     press_seats_max: number;
     press_deadline: string | null;
   }>(
-    `SELECT e.id, e.name, e.date_start, v.name AS venue_name,
+    `SELECT e.id, e.title AS name, e.date_start, v.name AS venue_name,
             e.status, e.press_seats_max, e.press_deadline
      FROM catalog.events e
      LEFT JOIN catalog.venues v ON v.id = e.venue_id

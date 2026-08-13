@@ -48,7 +48,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     `SELECT
        py.id AS payout_id, py.promoter_id, py.net_payout, py.currency, py.retry_count,
        p.name AS promoter_name, p.iban, p.swift_bic, p.payout_method,
-       p.payout_currency, p.wise_recipient_id, p.paypal_payout_email
+       p.primary_currency AS payout_currency, p.wise_recipient_id, p.paypal_payout_email
      FROM platform.payouts py
      JOIN platform.promoters p ON p.id = py.promoter_id
      WHERE py.id = $1 AND py.status IN ('pending', 'failed')`,
