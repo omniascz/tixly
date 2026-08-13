@@ -5764,3 +5764,45 @@ coz **NEZMERENO** — test konci u `status='failed'`, ktery v CHECKu je.
 * Seed se odloupaval stejne jako sama cesta: `platform.payouts` ma
   `period_from`, `period_to` i `payout_cycle` jako **NOT NULL bez defaultu**
   (23502 dvakrat za sebou). Kdo bude tu tabulku plnit z kodu, narazi na tez.
+
+---
+
+## §208 — Sesta vrstva: `processing` proti CHECKu. RED->GREEN pro 468 poprve spravne.
+
+Merený stav: **dva klony** — jeden `exclude: ['468']` (RED), druhy uplny (GREEN).
+Dosud se 468 overovala jen izolovane; tohle je poprve na skutecnem tvaru zapisu
+z `executor.ts:181`.
+
+```
+[§208] RED  (bez 468) = 23514
+[§208] GREEN (s 468)  = PROSLO      (2 passed)
+```
+
+### VERDIKT — kolik vrstev cesta ma a ktera je posledni
+
+| # | vrstva | stav |
+|---|---|---|
+| 1 | SELECT cte 3 neexistujici sloupce -> **42703** | ✅ opraveno (§207) |
+| 2 | `UPDATE promoters SET wise_recipient_id` -> **42703** | ✅ cache zrusena (§207) |
+| 3 | `status='processing'` mimo CHECK -> **23514** | ⛔ **468 NENI na produkci** |
+| 4 | Wise nekonfigurovan | ✅ selze HLASITE |
+| — | R-30 servisni `UPDATE` = `rowCount 0` | na teto ceste se NEPROJEVILA (§207) |
+
+**Posledni vrstva je #3 a je to DEPLOY, ne kod.** Po §207 je kod spravny, ale
+na produkci `platform.payouts` CHECK porad `processing` nepovoluje — 468 je
+v repu, nasazena neni (sekce Nasazeni). Dokud se nenasadi, vyplaty spadnou na
+**23514** hned za prvnim uspesnym SELECTem. **Oprava kodu sama o sobe vyplaty
+NEROZBEHNE.**
+
+### Tiche selhani u penez NEHROZI
+
+`executor.ts:116` `if (!wiseCfg.isConfigured)` je **pred** prvnim zapisem
+`status='processing'` (`:148`). Kdyz `WISE_API_KEY` chybi, jde payout rovnou
+pres `failPayout()` do `failed` s duvodem — **nemuze zustat viset
+v `processing`**. ⚠️ Overeno **ctenim poradi**, ne behem.
+
+### Co dolozene NENI
+
+* **Routa `admin/payouts/execute` se porad nevolala** — ma tentyz opraveny
+  SELECT, ale beh routy dolozen neni (zbyva z minula).
+* Vlastni prevod penez (Wise API) — nespoustelo se.
