@@ -2,7 +2,7 @@
 
 Tenhle soubor je **hlavni zdroj kontinuity**. Da se z nej pokracovat bez
 konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
-§1–§195); tady je jen to, co je hotove, co je otevrene a cim zacit.
+§1–§196); tady je jen to, co je hotove, co je otevrene a cim zacit.
 
 ⚠️ Tenhle soubor je ten v `nextjs-boilerplate/`. V korenu repa lezi starsi
 `REMEDIATION.md` (STAV 2026-07-29), ktery je **neaktualni** — needituj ho.
@@ -54,6 +54,17 @@ konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
 | migrace 470, 471 | RED->GREEN spravnou metodou (§190) |
 
 ## Otevrene tikety — poradi, ve kterem bych pokracoval
+
+0. **R-56** ✅ OPRAVENO dvema pooly (§192 kandidat b) — `connect()` jde na primy
+   endpoint, `query()` na poolovany. Dolozeno 0/60 na obou cestach, self-check
+   56/60 (pri navratu na pooler zase pada). Ziva sada 2x = ta znama ctverice,
+   nic noveho. Env: `PG_DIRECT_POOL_MAX=4`, `PG_DIRECT_IDLE_TIMEOUT_MS=10000`.
+   Deploy requirements v `db/ONSALE-PLAYBOOK.md` §1b a `GO-LIVE-CHECKLIST.md`.
+   **ZBYVA POTVRDIT:** jestli prod `DATABASE_URL` opravdu miri na `-pooler`
+   (sifrovane ve Vercelu, nikdo to od te doby necetl). Kdyz je prime, oprava
+   nic nemeni a jen ubere sloty — pak snizit `PG_DIRECT_POOL_MAX` netreba.
+
+### Puvodni zapis (vada)
 
 0. **R-56** 🔴 `connect()` na poolovanem endpointu bezi pod CIZIM kontextem.
    Zmereno na realnem kodu (§191): POOLED 59/60 spatne (37 prazdno, 22 cizi

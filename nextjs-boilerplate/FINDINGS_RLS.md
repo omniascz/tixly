@@ -5118,3 +5118,43 @@ vysly stejne (past ze §190: RED, ktery se od GREEN nelisi, nic nedokazuje).
 
 **Neregrese:** kupujici 200 a vidi `R57-VLASTNI` (5000) a NEvidi `R57-CIZI`;
 cizi 200 a presne naopak. Routa tedy na admin pravech nestala.
+
+---
+
+## §196 — R-56: co udela pooler pri vycerpanem stropu (NEVIM #2 ze §194)
+
+§194 zmerilo, ze pri vycerpanem directu pooled spojeni **proslo**, ale jen
+proto, ze PgBouncer uz backend mel a recykloval ho. Otevrena otazka byla, co
+udela, kdyz potrebuje NOVY backend. Domereno (`--only=starve`): pooler se
+zahreje jen jednim spojenim, direct se vycerpa, a pak se pusti 40 soubeznych
+`pg_sleep(0.5)` — tolik dotazu se na par navazanych backendu serializovat neda.
+
+```
+drzim direct: 884   (dalsi -> SQLSTATE 53300)
+40 soubeznych POOLED dotazu:  proslo 40, selhalo 0
+doba u uspesnych: min 1116 ms, MEDIAN 11462 ms, max 20971 ms  (celkem 21 s)
+```
+
+### Zaver — a proc „mekka degradace" je zavadejici zkratka
+
+**Pooler sam nespadne**: 40 ze 40 proslo, zadna chyba. Misto selhani se **ceka**.
+
+Jenze `pg_sleep(0.5)` s medianem **11,5 s** je 23x zpomaleni, a produkce ma
+vlastni limity nizsi, nez jak dlouho se tady cekalo:
+```
+connectionTimeoutMillis = 8000    (rls-pool.ts)
+statement_timeout       = 15000   (PG_STATEMENT_TIMEOUT_MS)
+max namerene cekani     = 20971 ms
+```
+V produkci by se to tedy **stejne projevilo jako chyby** — jen jinymi
+(`connection timeout`, `statement timeout`) nez cistym 53300. Sonda mela
+`connectionTimeoutMillis=20000` a zadny statement_timeout, proto videla nuly.
+
+**Pro rozpocet slotu to znamena:** vycerpani direct poolu **neizoluje** se do
+cesty `connect()`. Pretece do `query()` v podobe fronty, ktera prekroci
+aplikacni timeouty. Je to dalsi duvod drzet `PG_DIRECT_POOL_MAX` nizko —
+rozpocet ze §194 (855 / 4 = ~213 instanci) tim nepada, ale prestava byt
+konzervativni odhad a stava se z nej strop, ktery se nema atakovat.
+
+⚠️ Neměřeno: kde presne je zlom mezi „ceka par set ms" a „ceka 20 s" — merilo
+se jen pri plnem vycerpani.

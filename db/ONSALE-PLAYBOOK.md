@@ -64,6 +64,13 @@ Při starém `10` by to bylo jen ~85 — což je v dosahu onsale špičky, proto
 z poolu (horní odhad, měřeno mimo Vercel) a 24 % volání `connect()` je na horkých
 cestách (checkout, scanner/POS, veřejný katalog).
 
+⚠️ **Vyčerpání přímého poolu se NEizoluje do cesty `connect()`.** Změřeno
+(FINDINGS_RLS §196): při vyčerpaném stropu pooler nespadne, ale **čeká** —
+40 souběžných `pg_sleep(0.5)` mělo medián **11,5 s** a maximum 21 s. To je nad
+`connectionTimeoutMillis=8000` i `statement_timeout=15000`, takže v produkci se to
+projeví jako timeouty i na poolované cestě. `PG_DIRECT_POOL_MAX` proto drž nízko —
+~213 instancí je strop, který se nemá atakovat, ne cíl.
+
 ⚠️ **Všechna čísla platí pro compute 0.25–2 CU.** `max_connections` na Neonu škáluje
 s velikostí compute — při jeho změně se celá tabulka musí přeměřit
 (`node scripts/r56-exits-probe.mjs <direct> <pooled> --cap=1100 --only=ceiling`).
