@@ -5468,3 +5468,50 @@ slepota (CTE), ne jednorazovy preklep.
 jen odstranila jednu tridu falesnych pozitivu; kolik jich z tech 45 spadne,
 se **nezmerilo** — sken se po oprave nepustil (chybel by mu klon a kontext).
 Az se pusti, cisla se musi porovnat proti puvodnim 16/29.
+
+---
+
+## §201 — T4 premereno po oprave CTE (§200)
+
+Merený stav: **ephemeral klon z produkce pres `--ephemeral`** (tj. sken si
+vetev zaklada sam), repo na HEAD `0fd9fa6`.
+
+```
+              drive (§179/§181)   ted
+  high              7              6
+  medium           16             15
+  low              29             28
+  celkem           52             49
+```
+Kontrolni fakt: `conference.days` ma ve vystupu **0 vyskytu** — konkretni
+artefakt ze §200 je pryc.
+
+⚠️ **Ubytek -3 NEPRIPISUJU oprave CTE.** Stara cisla vznikla na jinem stavu
+repa (pred R-57, pred dvema pooly, pred dalsimi zmenami) a nejspis i na jinem
+stavu schematu. Poctive porovnani by chtelo pustit sken s revertovanou opravou
+na TOMTO commitu — neudelano. Jista je jen ta nula u `conference.days`.
+
+### Co v medium zbylo — vypada REALNE, ne jako artefakt
+
+Vsech 15 mirí na konkretni sloupce pres bezne aliasy, zadne CTE:
+```
+platform.promoters  p.payout_currency / p.wise_recipient_id / p.paypal_payout_email
+                    (2x: admin/payouts/execute:48 i lib/payouts/executor.ts:283)
+marketing.event_reviews  er.reviewer_name / er.review_token
+catalog.events           e.name (reviews, press)   e.starts_at
+orders.reschedule_responses  rr.user_id  (2 mista)
+tickets.cross_pass_memberships  m.membership_code / m.valid_until
+```
+Dve z nich se **kryji se starsimi nalezy**, coz je nezavisle potvrzeni:
+* `catalog.events.e.name` — §167 uz doložilo, ze routa je psana proti jinemu
+  schematu sedadel/akci a spravny sloupec je `title`.
+* `m.membership_code` — sloupec, u ktereho uz jednou padlo rozhodnuti, ze se
+  **konzumuje** (neni to kosmetika).
+* `platform.promoters.payout_*` se tyka **penez** a je na dvou mistech naraz
+  (routa i `lib/payouts/executor.ts`) — tataz trida jako R-30/R-31.
+
+### VERDIKT
+
+Heuristika T4 je po §200 o jednu tridu falesnych pozitivu cistsi a **zbytek
+medium nevypada jako sum**. Triaz medium/low ale porad NENI hotova — tohle byl
+nahled, ne overeni kus po kuse. Zadny z tech 15 se neoveril chovanim.
