@@ -350,9 +350,26 @@ function splitTopLevel(s) {
   return out;
 }
 
+/**
+ * Jmena CTE z `WITH x AS (` a `, y AS (`. CTE **stini** skutecnou tabulku
+ * tehoz jmena, takze se nesmi resolvovat proti katalogu.
+ *
+ * R-51: `WITH days AS (SELECT generate_series(…) AS d) … FROM days d … d.d`
+ * se prekladalo na `conference.days` (ta existuje, ale sloupec `d` nema), a
+ * T4 z toho delalo nalez. Byl to artefakt, ne vada — viz §200.
+ */
+function cteNames(sql) {
+  const s = new Set();
+  const re = /(?:\bWITH\b(?:\s+RECURSIVE)?|,)\s+([a-z_][\w]*)\s+AS\s*(?:(?:NOT\s+)?MATERIALIZED\s*)?\(/gi;
+  let m;
+  while ((m = re.exec(sql))) s.add(m[1].toLowerCase());
+  return s;
+}
+
 /** Mapa alias -> resolved table z FROM / JOIN / UPDATE / INSERT INTO. */
 function aliasMap(sql, cols) {
   const map = new Map();
+  const ctes = cteNames(sql);
   const re =
     /\b(?:FROM|JOIN|UPDATE|INTO)\s+([a-z_][\w]*\.[a-z_][\w]*|[a-z_][\w]*)\s*(?:AS\s+)?([a-z_][\w]*)?/gi;
   const KEYWORDS = new Set([
@@ -362,6 +379,9 @@ function aliasMap(sql, cols) {
   ]);
   let m;
   while ((m = re.exec(sql))) {
+    // Nekvalifikovane jmeno, ktere je v tomhle dotazu CTE, NENI tabulka
+    // z katalogu — preskocit vc. jeho aliasu (R-51, §200).
+    if (!m[1].includes('.') && ctes.has(m[1].toLowerCase())) continue;
     const resolved = resolveTable(cols, m[1]);
     if (!resolved) continue;
     const alias = m[2] && !KEYWORDS.has(m[2].toLowerCase()) ? m[2].toLowerCase() : null;
@@ -371,6 +391,30 @@ function aliasMap(sql, cols) {
     if (!map.has(bare)) map.set(bare, resolved);
   }
   return map;
+}
+// ── SELF-CHECK CTE (R-51, §200) — bezi pri kazdem spusteni ────────────────────
+// Bez nej by „T4 uz nehlasi d.d" mohlo znamenat i to, ze se rozbilo mapovani
+// aliasu uplne. Pozitivni vzor: CTE stini tabulku. Negativni: skutecna tabulka
+// se stale resolvuje.
+{
+  const sql = `WITH days AS (SELECT generate_series(NOW(), NOW(), '1 day') AS d)
+               SELECT d.d FROM days d LEFT JOIN orders.orders o ON o.id = d.d`;
+  const cte = cteNames(sql);
+  if (!cte.has('days')) {
+    console.error('SELF-CHECK CTE SELHAL: `WITH days AS (` se nerozpoznalo.');
+    process.exit(3);
+  }
+  const fake = new Map([['conference.days', ['id']], ['orders.orders', ['id']]]);
+  let m;
+  try { m = aliasMap(sql, fake); } catch { m = new Map(); }
+  if (m.has('d')) {
+    console.error('SELF-CHECK CTE SELHAL: alias `d` porad mirí na tabulku ' + m.get('d'));
+    process.exit(3);
+  }
+  if (!m.has('o')) {
+    console.error('SELF-CHECK CTE SELHAL: skutecna tabulka orders.orders se prestala resolvovat.');
+    process.exit(3);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -833,3 +877,4 @@ main().catch((e) => {
   console.error('[scan] CHYBA:', e);
   process.exit(1);
 });
+

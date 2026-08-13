@@ -2,7 +2,7 @@
 
 Tenhle soubor je **hlavni zdroj kontinuity**. Da se z nej pokracovat bez
 konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
-§1–§199); tady je jen to, co je hotove, co je otevrene a cim zacit.
+§1–§200); tady je jen to, co je hotove, co je otevrene a cim zacit.
 
 ⚠️ Tenhle soubor je ten v `nextjs-boilerplate/`. V korenu repa lezi starsi
 `REMEDIATION.md` (STAV 2026-07-29), ktery je **neaktualni** — needituj ho.
@@ -119,7 +119,12 @@ konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
 5. **R-52** 11 z 20 policies migrace 455 neovereno (dlouhy FK retez;
    `ticket_transfers_insert` navic potrebuje merit INSERT, ne SELECT).
 6. **R-45** 31 vyrazenych reportu ceka na rozhodnuti per sloupec.
-7. **R-51** T4 medium (16) a low (29) neotriagovane.
+7. **R-51** T4 medium (16) a low (29) neotriagovane. **Podezreni na artefakt
+   parseru POTVRZENO a opraveno (§200):** `d.d -> conference.days.d` byl falesny
+   — `days` je CTE (`WITH days AS (…) FROM days d`), ktere stinilo skutecnou
+   `conference.days`. `aliasMap()` v `schema-reality-scan.mjs` ted CTE preskakuje,
+   self-check na to bezi pri kazdem spusteni. ⚠️ Sken se po oprave NEPUSTIL —
+   kolik z 16/29 tim odpadne, se nezmerilo.
 8. **R-47** demand-forecast — rozhodnuti o modelu, ne oprava.
 9. **R-55** 74 z 93 buyer-only policies zmereno jen pres vzor. Nizka priorita:
    nejcastejsi tvar (56x) je trivialni a lisit se muze jen jmenem sloupce, coz

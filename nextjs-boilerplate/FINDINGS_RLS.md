@@ -5411,3 +5411,60 @@ bezpecnostni vada.
 Z katalogu to nejde (nemaji FK — to je definice R-19) a z kodu taky ne
 (nemaji zapisovatele). Zbyva jedine cist migrace, ktere je zakladaly, tabulku
 po tabulce. To uz neni sken, to je rucni prace na 116 polozek.
+
+---
+
+## §200 — R-51: `d.d` je ARTEFAKT PARSERU. Heuristika opravena.
+
+Merený stav: **statická analýza repa** (zadna vetev), plus definice tabulek
+z `migrations/000_baseline_20260730.sql`.
+
+### Nález potvrzen jako falešný — doslovně
+
+`conference.days` **existuje** (baseline `:5815`), takze „tabulka chybi" to
+neni. Ma sloupce `id, conference_id, day_date, label, description, sort_order`
+— **zadny `d`**.
+
+Skutecny `d.d` je v `src/app/api/admin/events/[id]/analytics/route.ts:41–48`:
+```sql
+WITH days AS (
+  SELECT generate_series(DATE_TRUNC('day', NOW() - INTERVAL '90 days'),
+                         DATE_TRUNC('day', NOW()), '1 day') AS d
+)
+SELECT d.d::date::text AS day, …
+FROM days d
+LEFT JOIN orders.orders o ON DATE_TRUNC('day', o.paid_at) = d.d
+```
+`days` je **CTE**, `d` je jeho alias a `d` je jeho jediny sloupec. `d.d` tedy
+mirí do CTE, ne do `conference.days`.
+
+### Kde presne se to zlomilo
+
+`scripts/schema-reality-scan.mjs`, funkce `aliasMap()`: regex vezme
+`FROM days d`, posle nekvalifikovane `days` do `resolveTable()`, ta ho najde
+jako `conference.days` a namapuje alias `d` na ni. Pak `d.d` neni mezi sloupci
+=> nalez. **CTE tim padem stini skutecnou tabulku a parser o tom nevi.**
+
+### Oprava
+
+Nova funkce `cteNames(sql)` sbira jmena z `WITH x AS (`, `WITH RECURSIVE`,
+`, y AS (` i `AS MATERIALIZED (`. `aliasMap()` nekvalifikovane jmeno, ktere je
+v tomtez dotazu CTE, **preskoci** — vcetne jeho aliasu.
+
+**SELF-CHECK bezi pri kazdem spusteni** (`:395`), na tomtez dotazu:
+* `WITH days AS (` se musi rozpoznat,
+* alias `d` uz NESMI mirit na tabulku,
+* `orders.orders` se porad resolvovat MUSI (jinak by se „nalez zmizel" dal
+  vysvetlit i tim, ze se rozbilo mapovani aliasu uplne).
+Pri poruse `exit 3`.
+
+### Dopad na R-51
+
+Konkretni nalez `d.d -> conference.days.d` je **zamitnut**. Podezreni ze §179,
+ze mezi T4 medium je artefakt parseru, se **potvrdilo** — a byla to systemova
+slepota (CTE), ne jednorazovy preklep.
+
+⚠️ **Zbytek T4 medium (16) a low (29) je porad NEOTRIAGOVANY.** Tahle oprava
+jen odstranila jednu tridu falesnych pozitivu; kolik jich z tech 45 spadne,
+se **nezmerilo** — sken se po oprave nepustil (chybel by mu klon a kontext).
+Az se pusti, cisla se musi porovnat proti puvodnim 16/29.
