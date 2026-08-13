@@ -2,7 +2,7 @@
 
 Tenhle soubor je **hlavni zdroj kontinuity**. Da se z nej pokracovat bez
 konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
-§1–§198); tady je jen to, co je hotove, co je otevrene a cim zacit.
+§1–§199); tady je jen to, co je hotove, co je otevrene a cim zacit.
 
 ⚠️ Tenhle soubor je ten v `nextjs-boilerplate/`. V korenu repa lezi starsi
 `REMEDIATION.md` (STAV 2026-07-29), ktery je **neaktualni** — needituj ho.
@@ -96,11 +96,19 @@ konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
    (`ticket_transfers`). Cela servisni vrstva nad `rfid_*`, `royalty_*`,
    `parking/accommodation_offers`, `bundle_items`, `qes_signing_requests`,
    `scanner_devices` je mrtva. Opravovat po skupinach s izolacnim testem.
+   ✅ **Dira zavrena (§199): vsechny 4 helpery `app_*()` vraci pri prazdnem
+   kontextu null/false, POVOLUJE 0 ze 4** — zmereno volanim, ne ctenim.
    **Fail-closed se NEOTACI: 0 z 39** (§198) — vsech 39 je PERMISSIVE a zadna
    nepouziva NOT / IS NULL / IS DISTINCT FROM / <> / COALESCE s pravdivym
    defaultem. Proto tiket, ne hotfix.
    ⚠️ Cislo 39 plati pro **PRODUKCNI stav**; po nasazeni 470+471 bude 38.
-3. **R-19** ✅ ZODPOVEZENO (§197) — rozsah premeren ze struktury: 134 sloupcu
+3. **R-19** ✅ UZAVRENO (§197, §199) — vsech 134 sloupcu ma JEDINY tvar
+   `col = app_current_*_id()` (85 promoter, 49 user), zadna jina trida.
+   0 nesouladu, 0 uniku. ⚠️ Zbylych 116 uz nejde overit skenem: nemaji FK
+   (definice R-19) ani zapisovatele v kodu — 6 z 10 zkousenych nema v `src/`
+   ani jediny vyskyt. Policy tam hlida neco, co aplikace nepouziva (trida
+   R-34/R-35). Dalsi krok by byl rucni: cist zakladajici migrace, 116x.
+   Puvodni zapis (§197) — rozsah premeren ze struktury: 134 sloupcu
    (ne 191; jina definice, ne spor). **0** sloupcu se porovnava s GUC jineho
    druhu identity. Trida „unik zamenou identity" v tomhle vzorku neexistuje;
    vada je jinde, viz R-58. Detailne provereno 8 nejrizikovejsich.

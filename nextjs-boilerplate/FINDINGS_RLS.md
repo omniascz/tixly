@@ -5329,3 +5329,85 @@ porad puvodni tvar s `current_setting('app.platform_admin')` — presne ta, kter
   aplikuje nenasazene migrace, holá vetev pres API ne. U kazdeho cisla je
   potreba rict, ktery z tech dvou stavu se meril — jinak vznikne presne tenhle
   falesny spor.
+
+---
+
+## §199 — R-58 dira zavrena; R-19 domereno, kam az to jde
+
+**Merený stav u obou cisel: HOLA VETEV Z PRODUKCE** (Neon API, migrace se
+NEaplikuji) — tedy stav, ktery dnes bezi. Ne klon s 470/471.
+
+### 1) Tela helperu — verdikt „0 z 39" DRZI
+
+`app_*()` funkci je v `public` **ctyri** a vsechny se zavolaly na prazdnem
+kontextu (transakce bez jedineho `SET LOCAL`), necetla se jen definice:
+
+```
+app_current_promoter_id() = null     INVOKER
+app_current_user_id()     = null     INVOKER
+app_is_platform_admin()   = false    INVOKER
+app_is_service()          = false    INVOKER
+POVOLUJE pri prazdnem kontextu: 0 ze 4
+```
+
+Zadny helper si nedosazuje default, zadny nevraci `true` „zadarmo".
+**Dira ve verdiktu §198 je tim zavrena: 39 mrtvych vetvi je fail-closed,
+je to tiket R-58, ne hotfix.**
+
+### 2) R-19: s cim se tech 134 sloupcu porovnava
+
+```
+  85  GUC promoter
+  49  GUC user
+```
+**Zadna jina trida neexistuje** — neni mezi nimi ani jeden sloupec porovnavany
+s jinym sloupcem nebo s konstantou. Vzorek osmi z §197 tedy neminul zadny TVAR;
+vsech 134 ma tentyz tvar `col = app_current_{user,promoter}_id()`.
+
+Riziko u nich neni ve tvaru, ale v tom, jestli sloupec opravdu NESE tu identitu
+(lekce `seller_id` — jmeno to neurcuje). Overovat se to da jedine tim, cim se
+sloupec PLNI. Zkuseno na 10 z nich a **vysledek je jiny, nez se cekalo**:
+
+| tabulka | zapisovatel v `src/` |
+|---|---|
+| `marketing.ad_placements` | **0 vyskytu v src vubec** |
+| `analytics.funnel_events` | **0** |
+| `blacklist.appeals` | **0** |
+| `benefit_payments.payment_sessions` | **0** |
+| `auth.passkey_credentials` | **0** |
+| `public.age_verifications` | **0** |
+| `attribution.touch_points` | 1 soubor, zadny INSERT |
+| `attribution.conversions` | 2 soubory, zadny INSERT |
+| `accessibility.accessible_seats` | 1 soubor, zadny INSERT |
+| `affiliate.affiliates` | ⚠️ viz nize |
+
+**Ani jeden z 10 nejde overit zapisovatelem, protoze zadny nema.** Sest z nich
+nema v `src/` vubec zadny vyskyt.
+
+⚠️ U `affiliate.affiliates` jsem si malem odsouhlasil nesmysl: naslo se
+`INSERT INTO marketing.affiliates (promoter_id, …) VALUES ($1, …)` s
+`promoter.promoterId` — jenze to je **schema `marketing`, ne `affiliate`**.
+Jsou to dve ruzne tabulky. Overena je tim `marketing.affiliates` (sedi:
+`promoter_id` = prihlaseny promoter), NE ta z rizikoveho seznamu.
+
+### VERDIKT (2d)
+
+| | pocet |
+|---|---|
+| sloupcu v rozsahu R-19 | **134** |
+| tvaru porovnani (vsechny stejne) | **1** (`col = app_current_*_id()`) |
+| proverovano detailne celkem (§197 + tady) | **18** |
+| z toho overeno ZAPISOVATELEM v kodu | **1** (`marketing.affiliates`, mimo rizikovy seznam) |
+| nalezenych nesouladu | **0** |
+| **uniku** | **0** |
+
+**Co to opravdu rika:** vzorek nenasel zadny nesoulad, ale taky ukazal, ze
+metoda „over podle zapisovatele" na tehle mnozine **vetsinou nejde pouzit** —
+tabulky nemaji zapisovatele. Policy tam hlida neco, co aplikace nepouziva.
+To je tataz trida jako R-34/R-35 (schema existuje, kod k nemu ne), ne
+bezpecnostni vada.
+
+⚠️ **NEVIM** u zbylych 116: jestli sloupec nese tu identitu, kterou slibuje.
+Z katalogu to nejde (nemaji FK — to je definice R-19) a z kodu taky ne
+(nemaji zapisovatele). Zbyva jedine cist migrace, ktere je zakladaly, tabulku
+po tabulce. To uz neni sken, to je rucni prace na 116 polozek.
