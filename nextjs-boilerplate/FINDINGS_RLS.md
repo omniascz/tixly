@@ -5158,3 +5158,124 @@ konzervativni odhad a stava se z nej strop, ktery se nema atakovat.
 
 ⚠️ Neměřeno: kde presne je zlom mezi „ceka par set ms" a „ceka 20 s" — merilo
 se jen pri plnem vycerpani.
+
+---
+
+## §197 — R-19 domereno: vada neni v cilech sloupcu, ale v JMENECH GUC
+
+R-19 se ptalo, jestli 191 sloupcu bez FK mirí tam, kam si policy mysli. Odpoved
+na tu otazku je castecna, ale **cestou se naslo neco vetsiho**.
+
+### Cislo R-19 premereno ze struktury
+
+`scripts/scan-policy-cols-nofk.mjs` (dva self-checky, oba prosly):
+```
+sloupcu s tenant-jmenem celkem : 423
+  z toho S FK                  : 215
+  bez FK                       : 208
+  bez FK A POUZITY V POLICY    : 134
+```
+§110 uvadelo 553 / 292 / 258 / **191**. Rozdil je definici, ne sporem: tenhle
+sken bere jen BASE TABLE a jen sloupce koncici na `_id` podle vyctu jmen.
+Cislo 134 plati pro tuhle definici, 191 pro tu ze §110 (kterou neznam).
+
+### Radit podle poctu radku NELZE
+
+Zadani chtelo nahoru tabulky s velkym poctem radku. **Produkcni vetev je
+prazdna** (STAV), takze takove razeni by bylo razeni podle nul. Pouzita proxy:
++3 sloupec se porovnava s GUC JINEHO druhu identity, +2 policy nema
+admin/service pojistku (sloupec je jedina podminka).
+
+### Dve pasti, na ktere sonda sama spadla — a self-check je chytil
+
+1. **Pravidlo „jiny druh identity" bylo SLEPE.** Hledalo tvar
+   `current_setting('app.current_user_id')`, jenze policies pouzivaji HELPERY
+   (`app_current_user_id()`). Bez self-checku 2 by vysla nula a vypadala jako
+   dobra zprava.
+2. **Okno kolem sloupce bralo jen text PRED nim.** Regex s alternaci vratil pro
+   `(user_id = app_current_promoter_id())` jen `"(user_id"`, takze helper za
+   rovnitkem nikdy neuvidel. Opraveno na prosty vyrez +-80 znaku.
+3. **`seller_id` byl muj falesny pozitiv.** Zaradil jsem ho mezi promoterske a
+   vyskocil jako nejrizikovejsi nalez. Overeno kodem
+   (`buyer/resale/list/route.ts` plni z `userId` a kontroluje
+   `ticket.owner_id !== userId`): prodavajici na resale je BEZNY UZIVATEL.
+   Zarazeni podle jmena je hypoteza, ne fakt.
+
+Po opravach: **zadny ze 134 sloupcu se neporovnava s GUC jineho druhu identity.**
+Trida „unik zamenou druhu identity" tedy v tomhle vzorku neexistuje.
+
+### Skutecny nalez: 39 z 596 policies cte GUC, ktery nikdo nenastavuje
+
+Top-8 kandidatu se proveril rucne z definic policy a u `payments.wero_payments`
+se ukazalo tohle:
+```sql
+USING (((promoter_id = current_setting('app.promoter_id'::text, true))
+     OR (current_setting('app.is_admin'::text, true))::boolean))
+```
+Aplikace nastavuje `app.current_promoter_id` a `app.is_platform_admin`.
+**Obe vetve jsou mrtve** => tabulka je pro `tixly_app` fail-closed. Tataz trida
+jako R-53 (`transit_passes`, `app.platform_admin`, opraveno migraci 471).
+
+Proto se misto kontroly sloupec-po-sloupci pustil sken na celou sadu policies
+(`scripts/scan-policy-guc-drift.mjs`, self-check na dvou znamych driftech
+a jednom spravnem jmene):
+
+```
+policies celkem              : 596
+ruznych jmen GUC v policies  : 10
+  OK     app.is_platform_admin   37
+  OK     app.current_user_id     19
+  OK     app.current_promoter_id  6
+  OK     app.role                 -
+  DRIFT  app.bypass_rls          13
+  DRIFT  app.promoter_id         10
+  DRIFT  app.user_id             10
+  DRIFT  app.is_service           4
+  DRIFT  app.is_admin             2
+  DRIFT  app.use_service_role     2
+  DRIFT  app.platform_admin       1
+POLICIES S DRIFTEM: 39
+```
+
+Ze ze je to opravdu drift a ne muj neuplny seznam, je overeno **ze struktury**:
+`grep` po `SET LOCAL app.*` / `set_config('app.*` v `src/` a `scripts/` vraci
+presne ctyri jmena (`app.is_platform_admin` 64x, `app.role` 50x,
+`app.current_promoter_id` 25x, `app.current_user_id` 14x) — a `app.probe_a`,
+coz je moje sonda.
+
+### Co to napojuje na starsi tikety
+
+* **`identity.oauth_accounts`** (`oauth_accounts_own` cte `app.is_service`) je
+  jedna ze 4 tabulek z **R-30**, kde servisni `UPDATE` vraci `rowCount=0` bez
+  chyby. Mechanismus je tim vysvetleny.
+* **`orders.ticket_transfers`** (`ticket_transfers_insert`, `_sender` ctou
+  `app.user_id`) je presne ta policy, kterou **R-52** vede jako neoverenou.
+* 13 policies `*_svc` cte `app.bypass_rls` — cela servisni vrstva nad
+  `rfid_*`, `royalty_*`, `parking/accommodation_offers`, `bundle_items`,
+  `qes_signing_requests`, `scanner_devices` je mrtva.
+* `app.platform_admin` ma sken **1 vyskyt i na klonu S migraci 471**. R-53
+  tvrdilo, ze to byl jediny vyskyt a ze ho 471 opravila. Bud je nekde druhy,
+  nebo 471 nezabrala. **NEOVERENO.**
+
+### VERDIKT (1d)
+
+| | pocet |
+|---|---|
+| sloupcu v rozsahu R-19 (bez FK, v policy) | **134** |
+| z toho proverenych detailne (top podle rizika) | **8** |
+| sloupcu porovnavanych s GUC jineho druhu identity | **0** |
+| policies se driftem jmena GUC (cely rozsah 596) | **39** |
+| z toho UNIKY | **0** |
+| z toho MRTVE VETVE (fail-closed) | **39** |
+
+**Proc 0 uniku:** GUC, ktery nikdo nenastavi, vrati NULL. Podminka je pak NULL
+(neplati) => vetev muze jen ODEBRAT pristup, nikdy pridat. Drift jmena GUC je
+principialne fail-closed.
+
+⚠️ **NEOVERENO:** jestli se nektery driftovany GUC neobjevuje **negovany**
+(`NOT current_setting(...)`) nebo v RESTRICTIVE policy — tam by se ta uvaha
+otocila. Sken to nerozlisuje.
+
+⚠️ Neopravoval jsem nic: 0 uniku znamena, ze neni co opravit **hned**.
+39 mrtvych vetvi je tiket R-58, ne hotfix — kazda oprava rozsiruje pristup
+a chce izolacni test (tataz podminka jako u 461).

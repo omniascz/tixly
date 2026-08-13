@@ -2,7 +2,7 @@
 
 Tenhle soubor je **hlavni zdroj kontinuity**. Da se z nej pokracovat bez
 konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
-§1–§196); tady je jen to, co je hotove, co je otevrene a cim zacit.
+§1–§197); tady je jen to, co je hotove, co je otevrene a cim zacit.
 
 ⚠️ Tenhle soubor je ten v `nextjs-boilerplate/`. V korenu repa lezi starsi
 `REMEDIATION.md` (STAV 2026-07-29), ktery je **neaktualni** — needituj ho.
@@ -87,21 +87,36 @@ konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
    pismena v e-mailu`, 2 z 5 behu, nikdy zadny jiny). §108 „pokazde jiny test"
    platilo jen na pooleru. Zbyla pricina je tim zuzena na jeden
    reprodukovatelny cil; proc pada, **NEVIM**.
-2. **R-39** tri moduly s chybejicimi tabulkami (`catalog.seat_maps`,
+2. **R-58** 🔴 NOVY (§197) — **39 z 596 policies cte GUC, ktery aplikace nikdy
+   nenastavuje** (`app.bypass_rls` 13x, `app.promoter_id` 10x, `app.user_id` 10x,
+   `app.is_service` 4x, `app.is_admin` 2x, `app.use_service_role` 2x,
+   `app.platform_admin` 1x). Kod nastavuje presne ctyri jmena — overeno grepem
+   ze struktury. Vsech 39 je **fail-closed**, ne unik (nenastaveny GUC = NULL =
+   vetev neplati). Napojuje se na R-30 (`oauth_accounts`) a R-52
+   (`ticket_transfers`). Cela servisni vrstva nad `rfid_*`, `royalty_*`,
+   `parking/accommodation_offers`, `bundle_items`, `qes_signing_requests`,
+   `scanner_devices` je mrtva. Opravovat po skupinach s izolacnim testem.
+   ⚠️ `app.platform_admin` ma 1 vyskyt i na klonu S migraci 471 — R-53 tvrdilo,
+   ze to byl jediny a ze ho 471 opravila. NEOVERENO, cim to je.
+3. **R-19** ✅ ZODPOVEZENO (§197) — rozsah premeren ze struktury: 134 sloupcu
+   (ne 191; jina definice, ne spor). **0** sloupcu se porovnava s GUC jineho
+   druhu identity. Trida „unik zamenou identity" v tomhle vzorku neexistuje;
+   vada je jinde, viz R-58. Detailne provereno 8 nejrizikovejsich.
+4. **R-39** tri moduly s chybejicimi tabulkami (`catalog.seat_maps`,
    `forgemsg/dispatch`, `resolve-price`). `seat_maps` dnes shazuje
    `my/orders/[id]/upgrade-options` na 500 — je to jeden ze 4 trvale padajicich
    testu v zive sade.
-3. **R-52** 11 z 20 policies migrace 455 neovereno (dlouhy FK retez;
+5. **R-52** 11 z 20 policies migrace 455 neovereno (dlouhy FK retez;
    `ticket_transfers_insert` navic potrebuje merit INSERT, ne SELECT).
-4. **R-45** 31 vyrazenych reportu ceka na rozhodnuti per sloupec.
-5. **R-51** T4 medium (16) a low (29) neotriagovane.
-6. **R-47** demand-forecast — rozhodnuti o modelu, ne oprava.
-7. **R-55** 74 z 93 buyer-only policies zmereno jen pres vzor. Nizka priorita:
+6. **R-45** 31 vyrazenych reportu ceka na rozhodnuti per sloupec.
+7. **R-51** T4 medium (16) a low (29) neotriagovane.
+8. **R-47** demand-forecast — rozhodnuti o modelu, ne oprava.
+9. **R-55** 74 z 93 buyer-only policies zmereno jen pres vzor. Nizka priorita:
    nejcastejsi tvar (56x) je trivialni a lisit se muze jen jmenem sloupce, coz
    jde overit staticky proti katalogu.
-8. **R-25** foyer pre-order writer (ceka na rozhodnuti).
-9. **R-29** 32 kandidatu na `IF NOT EXISTS`.
-10. **R-32** duplicitni indexy — **odlozeno uzivatelem** („riziko prevysuje uzitek").
+10. **R-25** foyer pre-order writer (ceka na rozhodnuti).
+11. **R-29** 32 kandidatu na `IF NOT EXISTS`.
+12. **R-32** duplicitni indexy — **odlozeno uzivatelem** („riziko prevysuje uzitek").
 
 ## Znamé trvale padajici testy (nejsou regrese)
 
