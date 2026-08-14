@@ -5806,3 +5806,58 @@ v `processing`**. ⚠️ Overeno **ctenim poradi**, ne behem.
 * **Routa `admin/payouts/execute` se porad nevolala** — ma tentyz opraveny
   SELECT, ale beh routy dolozen neni (zbyva z minula).
 * Vlastni prevod penez (Wise API) — nespoustelo se.
+
+---
+
+## §209 — Produkcni `DATABASE_URL` PRECTENA. Dve otazky uzavreny naraz.
+
+Zdroj: hodnota z Vercelu, prectena uzivatelem. **Nic se nemerilo** — tohle je
+zaznam faktu, ktery dosud chybel a kvuli kteremu zustavaly otevrene dva tikety.
+
+### 1) Role je `neondb_owner`, ne `tixly_app`
+
+**596 policies je v produkci INERTNICH. RLS se dnes nevynucuje.**
+
+Prestava to byt nejistota a stava se zmerenym stavem. Vsechna mereni teto sady
+bezela pod `tixly_app` prave proto, ze pod `neondb_owner` „mereni nic neznamena"
+(sekce STAV) — ted je dolozeno, ze produkce bezi v tom rezimu, ve kterem se
+nemeri nic.
+
+**Zamcene rozhodnuti #1** (prod na `tixly_app`) tim dostava **dolozeny duvod**,
+ne predpoklad. Do ted to byla hygiena; ted je to jedina vec, ktera policies
+vubec zapne.
+
+### 2) Host obsahuje `-pooler`
+
+**R-56 byla ZIVA produkcni vada**, ne jen vlastnost tvaru kodu. Predpoklad ze
+§191 („`GO-LIVE-CHECKLIST.md:135` rika ze ano, ale neoveril jsem to") plati.
+
+Oprava ze §207 (dva pooly, `connect()` na primy endpoint) ji hasi.
+`PG_DIRECT_POOL_MAX=4` a `PG_DIRECT_IDLE_TIMEOUT_MS=10000` ma smysl nastavit —
+rozpocty jsou v §194 a v `db/ONSALE-PLAYBOOK.md` §1b/§2.
+
+### 3) Jak se ty dve veci navzajem MASKOVALY
+
+Tohle je na tom to podstatne a nesledovalo se to ani v jednom kole:
+
+* Pod `neondb_owner` **RLS nefiltruje**, takze zamena GUC kontextu (R-56)
+  **nema zadny pozorovatelny nasledek** — dotaz vrati tataz data at uz je
+  `app.current_user_id` cizi, prazdny, nebo spravny. Vada byla plne pritomna
+  a plne neviditelna.
+* Kdyby se prepnulo na `tixly_app` **bez** opravy R-56, zaclo by RLS filtrovat
+  podle kontextu, ktery je v 59 pripadech ze 60 cizi nebo prazdny (§191).
+  Vysledek: prazdne seznamy a 42501 napric aplikaci — a vypadalo by to jako
+  **vada RLS policies**, tedy jako regrese migraci 450–471.
+  Hledalo by se to v policies, kde to neni.
+
+**Poradi je proto pevne: nejdriv nasadit opravu R-56 (uz je v `master`),
+teprve pak prepnout roli.** Obracene poradi vyrobi diagnostiku, ktera vede
+spatnym smerem.
+
+### 4) Co z toho plyne pro rotaci
+
+Hodnota `DATABASE_URL` vcetne hesla `neondb_owner` byla **vystavena mimo repo**.
+V historii repa neni (overeno pred pushem: `git log -S` na `npg_`,
+`DATABASE_URL=postgres` a dalsi vzory = 0 commitu), ale heslo se má rotovat.
+Doplneno do `GO-LIVE-CHECKLIST.md` vedle `ALTER ROLE tixly_app` — obojí je
+jedna navsteva Neon konzole.

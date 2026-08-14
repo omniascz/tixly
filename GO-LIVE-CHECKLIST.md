@@ -134,13 +134,24 @@
   zapne na hot akci přepínačem `queue_enabled` + `queue_max_concurrent`. **Hlavní páka pro „tisíce/s".**
 - [x] **Neon pooler** 🤖 ✅ — prod `DATABASE_URL` (z Neon integrace) UŽ JE pooled endpoint
   (`ep-…-pooler`). Default `PG_POOL_MAX=10` per-instance je pro serverless OK.
+- [ ] 🔴 **Rotace hesla `neondb_owner`** 🧑 — hodnota `DATABASE_URL` včetně hesla byla
+  **vystavena mimo repo**. V historii repa NENÍ (ověřeno před pushem: `git log -S` na
+  `npg_`, `DATABASE_URL=postgres` a další vzory = 0 commitů), ale heslo se má rotovat.
+  Dělá se **jednou návštěvou Neon konzole spolu s** `ALTER ROLE tixly_app WITH PASSWORD`
+  níže — obojí je táž obrazovka. Po rotaci přepsat `DATABASE_URL` ve Vercelu.
+- [ ] 🔴 **`ALTER ROLE tixly_app WITH PASSWORD '…'` + přepnout prod `DATABASE_URL` na `tixly_app`** 🧑 —
+  **DOLOŽENO (FINDINGS §209): prod dnes běží jako `neondb_owner`, takže 596 policies
+  je INERTNÍCH a RLS se nevynucuje.** Tohle není hygiena, je to jediná věc, která
+  policies zapne.
+  ⛔ **POŘADÍ JE PEVNÉ:** nejdřív nasadit opravu R-56 (už je v `master`), teprve pak
+  přepnout roli. Obráceně vzniknou prázdné seznamy a 42501 napříč aplikací, které
+  vypadají jako vada RLS — a hledaly by se v policies, kde nejsou (§209 bod 3).
 - [ ] **R-56: dva pooly — ověřit env na produkci** 🧑 — od R-56 jde `db().connect()` na
   **přímý** endpoint a `db().query()` na poolovaný (FINDINGS_RLS §191–§194). Přímé URI se
   odvodí z `DATABASE_URL` odstraněním `-pooler`, takže **obvykle není co nastavovat** —
   ale je potřeba potvrdit dvě věci:
-  1. **Že `DATABASE_URL` na produkci opravdu míří na `-pooler`.** Řádek výše to tvrdí,
-     ale hodnota je ve Vercelu „Encrypted sensitive" a nikdo ji od té doby nečetl.
-     Když je přímé, R-56 se produkce netýkala a nastavení `PG_DIRECT_POOL_MAX` jen ubere sloty.
+  1. ✅ **POTVRZENO (§209): prod host OBSAHUJE `-pooler`.** R-56 byla ŽIVÁ produkční
+     vada, ne jen vlastnost tvaru kódu. Oprava dvěma pooly (v `master`) ji hasí.
   2. **`PG_DIRECT_POOL_MAX=4`** a **`PG_DIRECT_IDLE_TIMEOUT_MS=10000`** ve Vercel env
      (defaulty v kódu jsou stejné, tohle je jen pojistka pro ladění bez deploye).
      Rozpočet: ~855 slotů / 4 = ~213 souběžných instancí. Detail: `db/ONSALE-PLAYBOOK.md` §1b.

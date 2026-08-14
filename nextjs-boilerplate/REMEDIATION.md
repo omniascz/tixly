@@ -33,6 +33,13 @@ konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
 
 1. Produkcni `DATABASE_URL` bude pouzivat **`tixly_app`**, ne `neondb_owner`.
    Nastavuje se rucne ve Vercelu. **Deploy requirement.**
+   ✅ **DOLOZENO (§209):** prod URL prectena — role je dnes `neondb_owner`,
+   takze **596 policies je INERTNICH a RLS se nevynucuje**. Uz to neni hygiena,
+   je to jedina vec, ktera policies zapne.
+   ⛔ **PORADI JE PEVNE:** nejdriv nasadit opravu R-56 (v `master`), teprve pak
+   prepnout roli. Obracene poradi vyrobi prazdne seznamy a 42501 napric
+   aplikaci, ktere vypadaji jako vada RLS — a hledaly by se v policies,
+   kde nejsou. Detail §209 bod 3.
 2. Verejne routy dostanou **servisni kontext**, ne `USING (true)` v policy.
 3. Policies se opravuji na **`app_*()` helpery**, ne obchazenim v rls-poolu.
 4. `communications` a `brands` dostanou granty (nejsou mrtve).
@@ -60,7 +67,10 @@ konverzace, ve ktere vznikl. Detaily nalezu jsou v `FINDINGS_RLS.md` (paragrafy
    56/60 (pri navratu na pooler zase pada). Ziva sada 2x = ta znama ctverice,
    nic noveho. Env: `PG_DIRECT_POOL_MAX=4`, `PG_DIRECT_IDLE_TIMEOUT_MS=10000`.
    Deploy requirements v `db/ONSALE-PLAYBOOK.md` §1b a `GO-LIVE-CHECKLIST.md`.
-   **ZBYVA POTVRDIT:** jestli prod `DATABASE_URL` opravdu miri na `-pooler`
+   ✅ **POTVRZENO (§209): prod host OBSAHUJE `-pooler`, R-56 byla ZIVA
+   produkcni vada.** Oprava dvema pooly ji hasi; nastavit
+   `PG_DIRECT_POOL_MAX=4` a `PG_DIRECT_IDLE_TIMEOUT_MS=10000`.
+   (puvodni zneni) ZBYVALO POTVRDIT: jestli prod `DATABASE_URL` miri na `-pooler`
    (sifrovane ve Vercelu, nikdo to od te doby necetl). Kdyz je prime, oprava
    nic nemeni a jen ubere sloty — pak snizit `PG_DIRECT_POOL_MAX` netreba.
 
