@@ -189,3 +189,73 @@ Reprodukce každého nálezu = spuštění uvedeného skriptu z `audit/e2e/` pro
 - **N4 — Test `cron-contract > consent-log-purge` nemůže zachytit, co tvrdí:** vyrábí selhání na tabulce `audit.consent_log`, která ve schématu z migrací neexistuje; routa pracuje s `compliance.cookie_consent_log` (`09_live_suite.log`).
 - **N5 — Self-test drift guardu je zastaralý:** očekává drift ve dvou souborech, které už opravené jsou → self-test končí „NEPROSEL" (`08_drift_guard_baseline.log`).
 - **N6 — QR kód se kupci ve výchozím nastavení neukáže před začátkem akce** (`qr_reveal_minutes_before` = 0; `e2e_02.out` P7a: `revealed:false`). Může jít o záměr; uvádím jako pozorování.
+
+## 4. Stav testů
+
+### Čísla
+| Položka | Výsledek | Důkaz |
+|---|---|---|
+| `npm ci` | OK | `01_npm_ci.log` |
+| `tsc --noEmit` | 0 chyb | `04_tsc.log` |
+| ESLint | 1030 errors, 451 warnings, exit 1 | `05_eslint.log` |
+| Prettier | 1419 souborů neformátovaných, exit 1 | `06_prettier.log` |
+| `next build` bez DB / s dosažitelnou DB | exit 1 / exit 0 | `10a_build_no_db_FAIL.log`, `10b_build_with_db.log` |
+| Unit/komponentové (vitest, jsdom) | 518 testů: 508 prošlo, 6 selhalo, 4 `it.skip` | `07_vitest.json`, `07_vitest.log` |
+| Live sada proti izolované DB (místo klonu produkce) | 88 testů: 60 prošlo, 2 selhaly, 23 skip | `09_live_suite.log` |
+| **Coverage řádků** | **3,3 %** (7209 / 218215); 1302 z 1365 souborů 0 % | `07b_vitest_coverage.log`, `07d_coverage_critical.txt` |
+
+Kritické moduly s **0 %** pokrytí: `checkout/route.ts` (0/2440), `internal/order-completed` (0/975), `demo-issuer.ts` (0/265), `admin/scanner/validate` (0/470), `middleware.ts` (0/320), všechny refund/cancel routy, `auth/{login,register,forgot-password,reset-password,refresh}`, `cart/validate`, `kiosk/order`, `email/mailer.ts`. Slušně pokryté: `guest-user.ts` 100 %, `totp/verify.ts` 100 %, `resolve-price.ts` 95 %, `rls-pool.ts` 78 %.
+
+### Zpochybnění testů
+- **Skip/only/todo:** 23 markerů. Podstatné je `describe.skipIf(!NEON_API_KEY)` na celé live sadě — bez klíče (běžný stav CI, viz část 5) se DB testy tiše přeskočí a sada je přesto zelená.
+- **Testy mockující testovanou věc:** `subscriptions/checkout/route.test.ts` mockuje `pg` (`vi.mock('pg')`) → netestuje reálné SQL (proto ho nechytil ani schema drift). Ostatní DB testy jsou vedeny jako live proti reálné DB, ne mockem.
+- **Falešně uklidňující:** live sada `skipIf(!NEON_API_KEY)` v CI bez klíče = 0 spuštěných DB testů, přesto zeleno; N4 (kontrakt cronu proti neexistující tabulce); N5 (self-test drift guardu očekává už opravený drift).
+
+### Mutační sonda
+6 kritických funkcí, změna vždy vrácena `git checkout` (strom po každé mutaci čistý) — `11_mutation_probe.log`:
+
+| Mutace | Zachyceno? | Poznámka |
+|---|---|---|
+| M1 TOTP okno ±1 → ±100 | ANO | `totp/verify.test.ts` zčervenal |
+| M2 mock-guard vždy povolen | **NE** | žádný test |
+| M3 GoPay webhook: vypnutá kontrola částky | **NE** | žádný test |
+| M4 checkout: přeprodej (podmínka `remaining_qty >= qty` pryč) | **NE** | žádný test |
+| M5 issuer: bez locku/idempotence, náhodný `ticket_seq` | ANO | `live-fixture` idempotence test |
+| M6 resolve-price: cena −1 haléř | ANO | 8 testů `resolve-price.test.ts` |
+
+Tři nezachycené mutace jsou přesně ty peněžní/kapacitní. Jejich reálný dopad jsem ověřil E2E (K1/K2, P8 podplacení, C1 přeprodej) — vady by prošly do produkce bez povšimnutí testovou sadou.
+
+## 5. Stav dříve známých problémů
+
+- **RLS / role aplikace:** Pod `tixly_app` (NOBYPASSRLS) RLS **čtení** izoluje správně (`e2e_07.out` L1–L5). **Zápis** ne — publikované akce a ceny přepíše kdokoli, `promo_codes` RLS nemá (V8). `FORCE ROW LEVEL SECURITY` = 0 tabulek → jakmile aplikace poběží jako vlastník tabulek (`neondb_owner`, `rolbypassrls=true`), RLS se **celé obchází**, což `GO-LIVE-CHECKLIST.md:142` i `REMEDIATION.md:34-42` uvádějí jako aktuální produkční stav. Tvrzení „všech ~596 policies neúčinných" je **pro roli `neondb_owner` platné** (potvrzeno atributem role, `e2e_07.out` L8), pro `tixly_app` neplatné u čtení a částečně platné u zápisu. Skutečná produkční role: NEOVĚŘENO.
+- **R-56 (únik kontextu v poolu):** oprava funguje pro přímé připojení i pro direct odvozený z pooleru; selhává, když se direct neodvodí (V9). Regrese **opravena podmíněně**.
+- **P1 „tichý refund" (HANDOFF #1):** storno kupcem už tiše neuspěje — pod `neondb_owner` vrátí korektní stav i `refund_request` (`e2e_04_owner.out` X3). Pod `tixly_app` skončí 500 (V2). **Opraveno pro dnešní roli, rozbité pro cílovou.**
+- **P1 „výpadek gate" (HANDOFF #2 cross-pass, #3 guestlist):** drift guard i jeho self-test ukazují dotčené routy jako čisté (`08_drift_guard_baseline.log`, GREEN). Za běhu NEOVĚŘENO (chybí seed cross-pass/guestlist řetězce).
+- **P1 „race dvojitého vystavení" (HANDOFF #4):** neopakuje se. 50 souběžných volání (30 webhooků + 20 přímých order-completed) na 10 objednávek → přesně 10 vstupenek, 1 na objednávku (`e2e_05.out` C2a). Mutační sonda M5 potvrzuje, že to drží ochrana v kódu. **Opraveno.**
+- **Guest-create helper „na 1 místě":** **neplatí.** 23 míst `INSERT INTO identity.users`; 1 v helperu `lib/identity/guest-user.ts:131`, 4 reálné účty (register, register-promoter, team/accept, OAuth), zbylých 18 zakládá guesty/walk-iny mimo helper (`audit/phase2_inventory.md` sekce D, ověřeno grepem). Helper sám je 100 % pokrytý a funkční, ale jednotný není.
+- **Drift guard:** proti izolované DB funguje (59 driftů, `08_drift_guard_baseline.log`). Umělý drift (přejmenování `orders.paid_at`) → guard nahlásil 52 nových míst nad baseline a skončil exitem 1 (`08b_drift_guard_artificial.log`). **Guard reálně selže při driftu.** V CI ale nikdy neběžel účinně (níže).
+- **CI (GitHub Actions, 87 běhů 2026-05-24 – 09-29, `16_gh_runs.json`):** workflow „CI" (lint/test/build) se nespustil ani jednou — je vázán na větve `main`/`develop`, repo má jen `master`. „Schema Drift Guard" 3× push, vždy `need NEON_API_KEY` → selhal. „RLS Gate" 46× success, ale běh je **přeskočený** kvůli chybějícímu secret `DATABASE_URL` (`16b_rls_gate_run.txt`: `##[warning]chybi secret DATABASE_URL — RLS drift se NEKONTROLUJE`). „Database backup to S3" 19/19 selhání (chybí `awscli`/`SLACK_WEBHOOK_URL`). „Security" (gitleaks) 19/19 selhání. **Žádná ochrana v CI reálně nechrání.**
+- **Secrets v git historii:** gitleaks 26 nálezů (`13_gitleaks.json`), po prověření žádný živý secret — názvy sloupců (`meta_capi_token`), testovací fixtures, `.env.example` s prázdnými hodnotami, ukázkové `Bearer <token>` v dokumentaci. `git log -S 'napi_'`/`'npg_'` na skutečné klíče = 0 zásahů. Shoduje se s pamětí projektu (repo bylo 7 týdnů veřejné, reálné secrets neunikly).
+
+## 6. Co chybí oproti plánu (řazeno podle blokace ostrého provozu)
+
+1. **Vrácení peněz přes bránu** (C-46) — bez něj nelze refundovat ani stornovat reálné platby. K2.
+2. **Funkční expirace rezervací + rate-limit nákupu + vracení míst po zrušení platby** (C-20, C-61, C-33) — bez toho lze kapacitu blokovat zdarma. K3.
+3. **Uzavřít neautentizované „demo" prodejní cesty** (kiosk potvrzeně; resale/upgrade/voucher/subscription k ověření). K1.
+4. **Reset hesla** (C-02). V1.
+5. **Rozhodnout produkční DB roli:** přepnutí na `tixly_app` rozbije PDF a storno (V2) a odhalí děravý RLS zápis (V8); ponechání `neondb_owner` znamená RLS zcela mimo hru. C-60.
+6. **Uzávěrka prodeje po začátku akce** (C-29) a **dedikované zrušení akce s hromadným refundem** (C-14) — v kódu nenalezeny.
+7. **Vstupenka zdarma** (C-36, V6), **sken cizí akce** (V3), **zápis scan_logs** (V4).
+8. **Reálné platební brány, e-mail, doména/HTTPS, právní texty a firemní údaje, moderace mimo mock** — otevřené položky `GO-LIVE-CHECKLIST.md` fáze 1, mimo dosah auditu.
+9. **CI, které skutečně běží** (opravit trigger větví, doplnit secrets pro drift/RLS gate).
+10. **Výplaty/settlement** (C-57) — `REMEDIATION.md:171-177` sám uvádí „výplaty nefungují"; ověřeno jen to, že přehled vrací 200 s `source:"computed"` a mock id.
+
+## 7. Co nešlo ověřit a co je k tomu potřeba
+
+- **Skutečný stav produkce** (role aplikace, hodnoty env `DATABASE_URL`/`DATABASE_URL_DIRECT`/`ALLOW_MOCK_PAYMENTS`/`CRON_SECRET`/`PAYPAL_WEBHOOK_ID`/`WISE_WEBHOOK_SECRET`, nasazený commit). Potřeba: přístup k produkčnímu Vercel projektu nebo read-only výpis env; Vercel API bylo během auditu nedostupné (ECONNREFUSED). Bez toho nelze potvrdit, že K1–K3 a V8/V9 platí i na produkci s produkčním schématem — zde jsou měřené proti schématu z migrací.
+- **Reálné platby GoPay/ComGate** (podpis callbacku na ostro, chování brány pro částku 0, reálný refund). Potřeba: sandbox klíče. Testováno proti simulátoru `audit/tools/fake-gopay.mjs`.
+- **Offline režim skeneru** (klientská IndexedDB fronta + ověření proti manifestu). Potřeba: běh v prohlížeči / Playwright. Ověřen jen serverový manifest.
+- **Regrese „výpadek gate" za běhu** (guestlist check-in, cross-pass). Potřeba: seed cross-pass/guestlist řetězce a spuštění handlerů — zatím jen statický důkaz.
+- **Řetězec „demo" cest** resale/upgrade/voucher/subscription confirm až do vydané vstupenky bez platby. Potřeba: cílený E2E; zde jen čtení kódu + potvrzení, že endpointy nejsou za autentizací.
+- **POS/pokladna, guestlist, comps, exporty nad rámec CSV, obsah faktur a DPH, výplaty** — netestováno (časový rozpočet).
+- **Zneužitelnost jednotlivých npm zranitelností** v tomto nasazení — `npm audit` hlásí verze, ne exploitovatelnost.
