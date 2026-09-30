@@ -5,8 +5,8 @@ import pg from 'pg';
 import { q, owner, check, startLog, summary } from './lib.mjs';
 
 startLog('07_rls_direct');
-const S = JSON.parse(readFileSync(new URL('./state.json', import.meta.url), 'utf8'));
-const app = new pg.Pool({ connectionString: 'postgresql://tixly_app:auditapp@localhost:55432/e2e', max: 2 });
+const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
+const app = new pg.Pool({ connectionString: process.env.AUDIT_APP_URL ?? 'postgresql://tixly_app:auditapp@localhost:55432/e2e', max: 2 });
 
 /** Spusti fn v transakci s danym kontextem (SET LOCAL jako rls-pool.query()) a VZDY rollbackne. */
 async function as(ctx, fn) {

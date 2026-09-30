@@ -1,0 +1,16 @@
+{
+ "current_user": "tixly_app",
+ "guc": {
+  "p": null,
+  "r": null
+ },
+ "updateEventTitle": 1,
+ "updateTicketPricesTo1Halir": 8,
+ "unlimitedCapacity": 8,
+ "deletePromoCodes": 2,
+ "deleteEvent": 0,
+ "readBack": {
+  "title": "HACKED-NO-CONTEXT",
+  "min_price": 1
+ }
+}

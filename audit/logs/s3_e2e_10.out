@@ -1,0 +1,18 @@
+# E2E 10_demo_paths  base=http://localhost:3100  2026-09-30T14:39:47.013Z
+FAIL D1  UPGRADE: neprihlaseny (jen ownerEmail+ticketId) upgradne lístek na dražší typ, vznikne paid objednávka a lístek zdraží — BEZ platby
+       {"status":200,"body":"{\"ok\":true,\"ticketId\":\"9d689aae-c176-4de8-b2da-ba2804cd741d\",\"newTicketTypeId\":\"b211168e-e068-4821-8453-397f78d7c0c7\",\"newTicketTypeName\":\"VIP muo796u4\",\"paidHalire\":50000,\"upgradeOrderId\":\"359423ba-1","ticketTypeNow":{"name":"VIP muo796u4","base_price":100000},"upgradeOrder":{"status":"paid","payment_provider":"gopay","total_amount":50000},"gopayCallsDelta…
+FAIL D2  VOUCHER: bez auth checkout+confirm → voucher payment_status=paid s utratitelným zůstatkem, BEZ platby
+       {"checkoutStatus":200,"confirmStatus":200,"voucher":{"payment_status":"paid","balance_halire":200000,"amount_halire":200000,"paid_order_id":"0b8d228b-4431-4193-9b3b-e0d344043ba0"},"gopayCallsDelta":0}
+FAIL D3a  SUBSCRIPTION: oficiální checkout /api/subscriptions/checkout funguje (n-preduskuje mock confirm)
+       {"checkoutStatus":500,"body":"{\"error\":\"INTERNAL\"}"}
+FAIL D3b  SUBSCRIPTION: bez auth confirm (holder seedován) → holder active/paid a vystaveny vstupenky (fixed abo), BEZ platby
+       {"confirmStatus":200,"confirmBody":"{\"holderId\":\"cd417f32-1c4f-4f7b-a866-ad5ce8b864eb\",\"status\":\"active\",\"paymentStatus\":\"paid\",\"aboType\":\"fixed\",\"ticketsIssued\":1,\"totalEvents\":1}","holder":{"id":"cd417f32-1c4f-4f7b-a866-ad5ce8b864eb","status":"active","payment_status":"paid"},"ticketsIssued":1,"gopayCallsDelta":0}
+FAIL D4  RESALE: guest (jen buyerEmail) převezme aktivní listing → nový valid lístek + paid objednávka, listing sold, BEZ platby
+       {"listReqStatus":201,"listingId":"95b17554-3d81-4c34-bb9a-80e08d85f288","buyStatus":200,"newTicket":{"status":"valid","order_status":"paid","payment_provider":"gopay"},"listing":{"status":"sold"},"gopayCallsDelta":0}
+
+# SUMMARY {"PASS":0,"FAIL":5,"INFO":0}
+  FAIL D1 UPGRADE: neprihlaseny (jen ownerEmail+ticketId) upgradne lístek na dražší typ, vznikne paid objednávka a lístek zdraží — BEZ platby
+  FAIL D2 VOUCHER: bez auth checkout+confirm → voucher payment_status=paid s utratitelným zůstatkem, BEZ platby
+  FAIL D3a SUBSCRIPTION: oficiální checkout /api/subscriptions/checkout funguje (n-preduskuje mock confirm)
+  FAIL D3b SUBSCRIPTION: bez auth confirm (holder seedován) → holder active/paid a vystaveny vstupenky (fixed abo), BEZ platby
+  FAIL D4 RESALE: guest (jen buyerEmail) převezme aktivní listing → nový valid lístek + paid objednávka, listing sold, BEZ platby

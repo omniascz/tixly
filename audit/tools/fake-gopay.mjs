@@ -13,7 +13,7 @@ import http from 'node:http';
 import { appendFileSync } from 'node:fs';
 
 const PORT = Number(process.env.FAKE_GOPAY_PORT ?? 3999);
-const LOG = new URL('../logs/fake-gopay.jsonl', import.meta.url);
+const LOG = new URL(process.env.FAKE_GOPAY_LOG ?? '../logs/fake-gopay.jsonl', import.meta.url);
 const payments = new Map();
 const calls = [];
 let seq = 3000000000;

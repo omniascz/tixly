@@ -2,8 +2,8 @@
 // Vse v transakci, na konci ROLLBACK (data se nemeni).
 import { readFileSync } from 'node:fs';
 import pg from 'pg';
-const S = JSON.parse(readFileSync(new URL('./state.json', import.meta.url), 'utf8'));
-const c = new pg.Client({ connectionString: 'postgresql://tixly_app:auditapp@localhost:55432/e2e' });
+const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
+const c = new pg.Client({ connectionString: process.env.AUDIT_APP_URL ?? 'postgresql://tixly_app:auditapp@localhost:55432/e2e' });
 await c.connect(); await c.query('BEGIN');
 const out = {};
 out.current_user = (await c.query('select current_user')).rows[0].current_user;

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { Client, q, owner, check, ev, startLog, summary, gopayCtl, sleep, INTERNAL_TOKEN } from './lib.mjs';
 
 startLog('05_concurrency');
-const S = JSON.parse(readFileSync(new URL('./state.json', import.meta.url), 'utf8'));
+const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
 const login = async (name, email) => { const c = new Client(name); const r = await c.post('/api/auth/login', { email, password: S.pw }); if (r.status !== 200) throw new Error(`login ${email} ${r.status} ${r.text}`); return c; };
 const PA = await login('promoterA', S.promoterA.email);
 const buyer = await login('buyer', S.buyerEmail);
@@ -48,7 +48,7 @@ const paid = (await q(`SELECT count(*)::int n FROM orders.orders o JOIN orders.o
 check('C2a', `50 soubeznych volani (30 webhooku + 20 order-completed) na 10 objednavek: prave ${CAP} vstupenek, 1 na objednavku`, total === CAP && issued.every((x) => x.n === 1) && paid === CAP, { hookStatuses: hist(hooks, (x) => String(x.status)), paidOrders: paid, ticketsTotal: total, maxPerOrder: Math.max(0, ...issued.map((x) => x.n)) });
 const pp = await q(`SELECT pe.order_id, count(*)::int n FROM orders.payment_events pe JOIN orders.order_items oi ON oi.order_id=pe.order_id WHERE oi.ticket_type_id=$1 AND pe.event_type='payment_paid' GROUP BY 1`, [race]);
 check('C2b', 'jedna platba = jeden zaznam payment_paid (3 webhooky na platbu)', pp.every((x) => x.n === 1), { payment_paid_per_order: hist(pp, (x) => String(x.n)) });
-const mailCount = (await (await fetch(`http://localhost:58025/api/v1/search?query=${encodeURIComponent(`to:race-${S.run}`)}&limit=1`)).json()).messages_count;
+const mailCount = (await (await fetch(`${process.env.MAILPIT ?? "http://localhost:58025"}/api/v1/search?query=${encodeURIComponent(`to:race-${S.run}`)}&limit=1`)).json()).messages_count;
 check('C2c', 'potvrzovaci e-maily: 1 na objednavku (ocekavano 10), ne duplicitni', mailCount === CAP, { mailsToRaceBuyers: mailCount, expected: CAP });
 
 // ---------- C3: zavod na promo kod (max 5) ----------

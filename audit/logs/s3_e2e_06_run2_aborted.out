@@ -1,0 +1,29 @@
+# E2E 06_security  base=http://localhost:3100  2026-09-30T14:29:56.339Z
+FAIL K1  NEPRIHLASENY utocnik ziska pres /api/kiosk/order platne vstupenky za 1000 Kc ZDARMA (NODE_ENV=production)
+       {"status":200,"body":"{\"ok\":true,\"orderId\":\"4b7cc0fe-e0a9-4457-902a-bbfe4ccfc669\",\"eventTitle\":\"Audit Koncert A muo796u4\",\"ticketTypeName\":\"Stani\",\"totalAmountHalire\":100000,\"currency\":\"CZK\",\"tickets\":[{\"ticketId\":\"bc3755aa-989e-432c-b124-c17ef7d5cf41\",\"totpSecretBase32\":\"DKM36UYLTNH33UFNZS2JDQWKCSFE5LGH\"},{\"ticketId\":\"3","orderInDb":{"status":"paid","total_amount"…
+FAIL K1b  takto ziskana vstupenka projde u brany (admitted)
+       {"status":200,"body":"{\"result\":\"admitted\",\"kind\":\"single_use\",\"ticket\":{\"ticketId\":\"bc3755aa-989e-432c-b124-c17ef7d5cf41\",\"eventTitle\":\"Audit Koncert A muo796u4\",\"ticketTypeName\":\"Stani\",\"holderEmail\":\"attacker-muo796u4@audit.test\",\"holderName\":\"Utocnik\"},\"admittedAt\":\"2026-09-30T14:29:56.811Z\"}"}
+FAIL K2a  /api/vouchers/holders/[paymentId]/confirm bez autentizace: endpoint je dosazitelny v produkcnim rezimu (neni 401/403)
+       {"status":400,"body":"{\"error\":\"INVALID_PAYMENT_ID\"}"}
+FAIL K2b  /api/subscriptions/holders/[paymentId]/confirm bez autentizace: dosazitelny v produkcnim rezimu (neni 401/403)
+       {"status":400,"body":"{\"error\":\"INVALID_PAYMENT_ID\"}"}
+PASS K2c  mock platebni brana je v produkcnim rezimu zablokovana (403) a objednavku neoznaci paid
+       {"status":403,"body":"{\"error\":\"MOCK_DISABLED\",\"message\":\"Mock payment gateway is disabled in production.\"}","orderStatus":"pending"}
+FAIL K3a  cron recompute-dynamic-pricing (prepisuje ceny) vyzaduje token
+       {"status":200,"body":"{\"ok\":true,\"processed\":0,\"updated\":0,\"failed\":0}"}
+PASS K3b  cron expire-pending-orders vyzaduje token
+       {"status":403,"body":"{\"error\":\"Forbidden\"}"}
+PASS K3c  cron dispatcher s podvrzenou hlavickou x-vercel-cron (CRON_SECRET nastaven) odmitnut
+       {"status":403,"body":"{\"error\":\"Forbidden\"}"}
+PASS K3d  order-completed se spatnym tokenem odmitnut
+       {"status":403,"body":"{\"error\":\"Forbidden\"}"}
+file:///C:/Users/omnia/Documents/tixly-audit/audit/e2e/06-security.mjs:8
+const login = async (name, email) => { const c = new Client(name); const r = await c.post('/api/auth/login', { email, password: S.pw }); if (r.status !== 200) throw new Error(`login ${email} ${r.status} ${r.text}`); return { c, json: r.json }; };
+                                                                                                                                                                     ^
+
+Error: login buyer-muo796u4@audit.test 429 {"error":"RATE_LIMIT_EXCEEDED","message":"Příliš mnoho požadavků na login. Zkuste to prosím za chvíli.","retryAfterMs":3149}
+    at login (file:///C:/Users/omnia/Documents/tixly-audit/audit/e2e/06-security.mjs:8:166)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async file:///C:/Users/omnia/Documents/tixly-audit/audit/e2e/06-security.mjs:46:11
+
+Node.js v24.14.1

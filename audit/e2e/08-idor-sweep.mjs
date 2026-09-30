@@ -8,7 +8,7 @@ import path from 'node:path';
 import { Client, q, owner, startLog, check, summary } from './lib.mjs';
 
 startLog('08_idor_sweep');
-const S = JSON.parse(readFileSync(new URL('./state.json', import.meta.url), 'utf8'));
+const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
 const API = path.resolve(import.meta.dirname, '../../nextjs-boilerplate/src/app/api');
 const login = async (name, email) => { const c = new Client(name); const r = await c.post('/api/auth/login', { email, password: S.pw }); if (r.status !== 200) throw new Error(`login ${email} ${r.status}`); return c; };
 
@@ -58,7 +58,7 @@ for (const rt of routes) {
   }
 }
 const leaks = findings.filter((f) => f.kind === 'LEAK'); const errs = findings.filter((f) => f.kind === '5xx');
-writeFileSync(new URL('../logs/e2e_08_idor_findings.json', import.meta.url), JSON.stringify({ tested: routes.length, skippedUnresolvedParam: skipped, stat, leaks, errs }, null, 1));
+writeFileSync(new URL(`../logs/${process.env.AUDIT_LOG_PREFIX ?? ''}e2e_08_idor_findings.json`, import.meta.url), JSON.stringify({ tested: routes.length, skippedUnresolvedParam: skipped, stat, leaks, errs }, null, 1));
 check('I1', `IDOR sweep: ${routes.length} GET rout s ID v URL x 3 cizi aktori — zadna odpoved 2xx s privatnimi daty obeti`, leaks.length === 0, { tested: routes.length, skippedUnresolvedParam: skipped, stat, leaks: leaks.map((l) => `${l.actor} ${l.route} [${l.markers.join(',').slice(0, 60)}]`) });
 check('I2', 'IDOR sweep: routy vracejici 5xx cizimu aktorovi (chyba misto 401/403/404)', errs.length === 0, { count: errs.length, routes: [...new Set(errs.map((e) => e.route))].slice(0, 60) });
 summary();

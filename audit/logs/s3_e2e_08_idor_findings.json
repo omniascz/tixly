@@ -1,0 +1,76 @@
+{
+ "tested": 153,
+ "skippedUnresolvedParam": 55,
+ "stat": {
+  "promoterB:4xx": 105,
+  "otherBuyer:4xx": 119,
+  "anon:4xx": 118,
+  "promoterB:2xx": 46,
+  "otherBuyer:2xx": 32,
+  "anon:2xx": 32,
+  "anon:5xx": 2,
+  "promoterB:0xx": 1,
+  "otherBuyer:0xx": 1,
+  "anon:0xx": 1,
+  "promoterB:5xx": 1,
+  "otherBuyer:5xx": 1
+ },
+ "leaks": [
+  {
+   "kind": "LEAK",
+   "actor": "promoterB",
+   "route": "buyer/tickets/[ticketId]/upgrade",
+   "status": 200,
+   "markers": [
+    "89414de6-47b5-4199-a0e0-cdd7122be335"
+   ],
+   "sample": "{\"currentTicket\":{\"id\":\"89414de6-47b5-4199-a0e0-cdd7122be335\",\"status\":\"valid\",\"ticketTypeId\":\"d254ddfb-8134-425e-8473-90db640906f0\",\"ticketTypeName\":\"Stani\",\"pricePaidHalire\":50000},\"eligible\":true,\""
+  },
+  {
+   "kind": "LEAK",
+   "actor": "otherBuyer",
+   "route": "buyer/tickets/[ticketId]/upgrade",
+   "status": 200,
+   "markers": [
+    "89414de6-47b5-4199-a0e0-cdd7122be335"
+   ],
+   "sample": "{\"currentTicket\":{\"id\":\"89414de6-47b5-4199-a0e0-cdd7122be335\",\"status\":\"valid\",\"ticketTypeId\":\"d254ddfb-8134-425e-8473-90db640906f0\",\"ticketTypeName\":\"Stani\",\"pricePaidHalire\":50000},\"eligible\":true,\""
+  },
+  {
+   "kind": "LEAK",
+   "actor": "anon",
+   "route": "buyer/tickets/[ticketId]/upgrade",
+   "status": 200,
+   "markers": [
+    "89414de6-47b5-4199-a0e0-cdd7122be335"
+   ],
+   "sample": "{\"currentTicket\":{\"id\":\"89414de6-47b5-4199-a0e0-cdd7122be335\",\"status\":\"valid\",\"ticketTypeId\":\"d254ddfb-8134-425e-8473-90db640906f0\",\"ticketTypeName\":\"Stani\",\"pricePaidHalire\":50000},\"eligible\":true,\""
+  }
+ ],
+ "errs": [
+  {
+   "kind": "5xx",
+   "actor": "anon",
+   "route": "buyer/orders/[orderId]/calendar.ics",
+   "status": 500
+  },
+  {
+   "kind": "5xx",
+   "actor": "promoterB",
+   "route": "public/events/[id]/kiosk",
+   "status": 500
+  },
+  {
+   "kind": "5xx",
+   "actor": "otherBuyer",
+   "route": "public/events/[id]/kiosk",
+   "status": 500
+  },
+  {
+   "kind": "5xx",
+   "actor": "anon",
+   "route": "public/events/[id]/kiosk",
+   "status": 500
+  }
+ ]
+}

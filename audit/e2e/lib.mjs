@@ -44,7 +44,7 @@ export class Client {
 const results = [];
 let LOGFILE = null;
 export function startLog(name) {
-  LOGFILE = new URL(`../logs/e2e_${name}.jsonl`, import.meta.url);
+  LOGFILE = new URL(`../logs/${process.env.AUDIT_LOG_PREFIX ?? ''}e2e_${name}.jsonl`, import.meta.url);
   writeFileSync(LOGFILE, '');
   console.log(`# E2E ${name}  base=${BASE}  ${new Date().toISOString()}`);
 }

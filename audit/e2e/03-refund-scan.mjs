@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { Client, q, owner, check, ev, startLog, summary, gopayCtl, gopayLog, gopayPayments, waitFor, sleep } from './lib.mjs';
 
 startLog('03_refund_scan');
-const S = JSON.parse(readFileSync(new URL('./state.json', import.meta.url), 'utf8'));
+const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
 const login = async (name, email) => { const c = new Client(name); const r = await c.post('/api/auth/login', { email, password: S.pw }); if (r.status !== 200) throw new Error(`login ${email} ${r.status} ${r.text}`); return c; };
 const buyer = await login('buyer', S.buyerEmail);
 const PA = await login('promoterA', S.promoterA.email);
@@ -133,6 +133,6 @@ check('V11', 'poradatel B nestahne manifest akce A', r.status === 404 || r.statu
 const logs = await q(`SELECT result, count(*)::int n FROM tickets.scan_logs WHERE ticket_id = ANY($1::uuid[]) GROUP BY 1 ORDER BY 1`, [gt.map((t) => t.id)]).catch((e) => [{ err: e.message }]);
 check('V12', 'skeny jsou zaznamenany ve scan_logs', logs.length > 0 && !logs[0].err, logs);
 
-writeFileSync(new URL('./state.json', import.meta.url), JSON.stringify(S, null, 2));
+writeFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), JSON.stringify(S, null, 2));
 summary();
 await owner.end();

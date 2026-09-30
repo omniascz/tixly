@@ -8,7 +8,7 @@ import { Client, q, owner, check, ev, startLog, summary, gopayCtl, waitFor, slee
 
 const label = process.argv[2] ?? 'app';
 startLog(`04_differential_${label}`);
-const S = JSON.parse(readFileSync(new URL('./state.json', import.meta.url), 'utf8'));
+const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
 const login = async (name, email) => { const c = new Client(name); const r = await c.post('/api/auth/login', { email, password: S.pw }); if (r.status !== 200) throw new Error(`login ${email} ${r.status} ${r.text}`); return c; };
 const buyer = await login('buyer', S.buyerEmail);
 const PA = await login('promoterA', S.promoterA.email);

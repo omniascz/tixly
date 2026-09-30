@@ -1,0 +1,56 @@
+# E2E 06_security  base=http://localhost:3100  2026-09-30T14:30:07.264Z
+FAIL K1  NEPRIHLASENY utocnik ziska pres /api/kiosk/order platne vstupenky za 1000 Kc ZDARMA (NODE_ENV=production)
+       {"status":200,"body":"{\"ok\":true,\"orderId\":\"0db197b0-092a-454d-8151-e55ced230cfa\",\"eventTitle\":\"Audit Koncert A muo796u4\",\"ticketTypeName\":\"Stani\",\"totalAmountHalire\":100000,\"currency\":\"CZK\",\"tickets\":[{\"ticketId\":\"7ee7bee8-5c5e-4443-8384-c87ab467d07b\",\"totpSecretBase32\":\"VKQPJW5LMRZ63AOMTPMFODBIQCWN5MS6\"},{\"ticketId\":\"6","orderInDb":{"status":"paid","total_amount"…
+FAIL K1b  takto ziskana vstupenka projde u brany (admitted)
+       {"status":200,"body":"{\"result\":\"admitted\",\"kind\":\"single_use\",\"ticket\":{\"ticketId\":\"7ee7bee8-5c5e-4443-8384-c87ab467d07b\",\"eventTitle\":\"Audit Koncert A muo796u4\",\"ticketTypeName\":\"Stani\",\"holderEmail\":\"attacker-muo796u4@audit.test\",\"holderName\":\"Utocnik\"},\"admittedAt\":\"2026-09-30T14:30:07.669Z\"}"}
+FAIL K2a  /api/vouchers/holders/[paymentId]/confirm bez autentizace: endpoint je dosazitelny v produkcnim rezimu (neni 401/403)
+       {"status":400,"body":"{\"error\":\"INVALID_PAYMENT_ID\"}"}
+FAIL K2b  /api/subscriptions/holders/[paymentId]/confirm bez autentizace: dosazitelny v produkcnim rezimu (neni 401/403)
+       {"status":400,"body":"{\"error\":\"INVALID_PAYMENT_ID\"}"}
+PASS K2c  mock platebni brana je v produkcnim rezimu zablokovana (403) a objednavku neoznaci paid
+       {"status":403,"body":"{\"error\":\"MOCK_DISABLED\",\"message\":\"Mock payment gateway is disabled in production.\"}","orderStatus":"pending"}
+FAIL K3a  cron recompute-dynamic-pricing (prepisuje ceny) vyzaduje token
+       {"status":200,"body":"{\"ok\":true,\"processed\":0,\"updated\":0,\"failed\":0}"}
+PASS K3b  cron expire-pending-orders vyzaduje token
+       {"status":403,"body":"{\"error\":\"Forbidden\"}"}
+PASS K3c  cron dispatcher s podvrzenou hlavickou x-vercel-cron (CRON_SECRET nastaven) odmitnut
+       {"status":403,"body":"{\"error\":\"Forbidden\"}"}
+PASS K3d  order-completed se spatnym tokenem odmitnut
+       {"status":403,"body":"{\"error\":\"Forbidden\"}"}
+PASS K4a  podvrzena hlavicka x-user-id bez tokenu -> 401
+       {"status":401,"body":"{\"error\":\"UNAUTHORIZED\"}"}
+PASS K4b  JWT alg=none odmitnut
+       {"status":401,"body":"{\"error\":\"UNAUTHORIZED\"}"}
+PASS K4c  JWT s upravenym payloadem (isPlatformAdmin) a puvodnim podpisem odmitnut
+       {"status":401,"body":"{\"error\":{\"code\":\"TOKEN_INVALID\",\"message\":\"Token invalid or expired\"}}"}
+FAIL K4d  REFRESH token (7 dni) pouzity jako access token na /api/buyer/* odmitnut
+       {"status":200,"body":"{\"ticketId\":\"89414de6-47b5-4199-a0e0-cdd7122be335\",\"revealed\":false,\"revealsAt\":\"2026-10-30T14:27:37.266Z\",\"minutesUntilReveal\":43198,\"message\":\"QR kód se zobrazí 0 minut před akcí.\",\"status\":\"valid\"}","cookieName":"refreshToken","accessTtl":900}
+PASS K4e  auth cookies: HttpOnly + SameSite (+Secure v produkci)
+       ["accessToken=<redacted>; Path=/; Expires=Wed, 30 Sep 2026 14:45:08 GMT; Max-Age=900; Secure; HttpOnly; SameSite=lax","refreshToken=<redacted>; Path=/; Expires=Wed, 07 Oct 2026 14:30:08 GMT; Max-Age=604800; Secure; HttpOnly; SameSite=lax"]
+FAIL K5  CSRF: stavovy POST s cookie a cizim Origin (https://evil.example) odmitnut serverem
+       {"status":200,"note":"ochrana stoji jen na SameSite cookie; server Origin neoveruje","body":"{\"orderId\":\"de2f69ca-36fa-456c-a5d3-e865b8a9801d\",\"paymentId\":\"3000000111\",\"gatewayUrl\":\"http://localhost:3999/gw/300000"}
+PASS K6a  rate limit loginu: 14 pokusu z jedne IP -> 429 po 10
+       {"codes":[401,401,401,401,401,401,401,401,401,401,429,429,429,429]}
+PASS K6b  rate limit loginu per ucet: 14 pokusu na 1 ucet z 14 ruznych IP -> zablokovano
+       {"codes":[401,401,401,401,401,401,401,401,401,401,429,429,429,429]}
+FAIL K7  platba zrusena u brany (CANCELED): objednavka cancelled A 3 mista vracena do prodeje
+       {"webhook":{"status":200,"body":"{\"ok\":true,\"orderId\":\"8dd08ddf-59fe-49e1-9f24-8a5e2b2e3624\",\"state\":\"CANCELED\",\"newStatus\":\"pending\"}"},"orderStatus":"cancelled","remainingBefore":15,"remainingAfter":12,"leaked":3}
+FAIL K8a  SQLi retezec v ID v URL -> 4xx, ne 500
+       {"status":200,"body":"{\"ticketTypes\":[]}"}
+PASS K8b  HTML e-mail escapuje jmeno kupce (XSS payload neni v HTML surovy)
+       {"containsRaw":false,"containsEscaped":false}
+PASS K8c  nevalidni JSON -> 4xx
+       {"status":422,"body":"{\"error\":\"Validation failed\",\"issues\":[{\"code\":\"invalid_type\",\"expected\":\"object\",\"received\":\"null\",\"path\":[],\"message\":\"Expected object, received null\"}]}"}
+PASS K9  bezpecnostni hlavicky na HTML strance
+       {"status":200,"content-security-policy":"default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanag","strict-transport-security":"max-age=63072000; includeSubDomains; preload","x-frame-options":"DENY","x-content-type-options":"nosniff","referrer-policy":"strict-origin-when-cross-origin"}
+
+# SUMMARY {"PASS":13,"FAIL":9,"INFO":0}
+  FAIL K1 NEPRIHLASENY utocnik ziska pres /api/kiosk/order platne vstupenky za 1000 Kc ZDARMA (NODE_ENV=production)
+  FAIL K1b takto ziskana vstupenka projde u brany (admitted)
+  FAIL K2a /api/vouchers/holders/[paymentId]/confirm bez autentizace: endpoint je dosazitelny v produkcnim rezimu (neni 401/403)
+  FAIL K2b /api/subscriptions/holders/[paymentId]/confirm bez autentizace: dosazitelny v produkcnim rezimu (neni 401/403)
+  FAIL K3a cron recompute-dynamic-pricing (prepisuje ceny) vyzaduje token
+  FAIL K4d REFRESH token (7 dni) pouzity jako access token na /api/buyer/* odmitnut
+  FAIL K5 CSRF: stavovy POST s cookie a cizim Origin (https://evil.example) odmitnut serverem
+  FAIL K7 platba zrusena u brany (CANCELED): objednavka cancelled A 3 mista vracena do prodeje
+  FAIL K8a SQLi retezec v ID v URL -> 4xx, ne 500

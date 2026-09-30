@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { Client, q, owner, check, ev, startLog, summary, gopayCtl, sleep, mails, waitFor, INTERNAL_TOKEN, BASE } from './lib.mjs';
 
 startLog('06_security');
-const S = JSON.parse(readFileSync(new URL('./state.json', import.meta.url), 'utf8'));
+const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
 const login = async (name, email) => { const c = new Client(name); const r = await c.post('/api/auth/login', { email, password: S.pw }); if (r.status !== 200) throw new Error(`login ${email} ${r.status} ${r.text}`); return { c, json: r.json }; };
 const anon = () => new Client('anon');
 const ttRow = async (id) => (await q(`SELECT remaining_qty FROM catalog.ticket_types WHERE id=$1`, [id]))[0].remaining_qty;
@@ -95,7 +95,7 @@ if (r.json?.paymentId) {
   await gopayCtl(r.json.paymentId, { state: 'PAID' }); await anon().get(`/api/payments/gopay/webhook?id=${r.json.paymentId}`);
   const m = await waitFor(async () => { const x = await mails(`to:${xe}`); return x.length ? x : null; }, 20000);
   if (m) {
-    const full = await (await fetch(`http://localhost:58025/api/v1/message/${m[0].ID}`)).json();
+    const full = await (await fetch(`${process.env.MAILPIT ?? "http://localhost:58025"}/api/v1/message/${m[0].ID}`)).json();
     check('K8b', 'HTML e-mail escapuje jmeno kupce (XSS payload neni v HTML surovy)', !(full.HTML ?? '').includes(xss), { containsRaw: (full.HTML ?? '').includes(xss), containsEscaped: (full.HTML ?? '').includes('&lt;img') });
   } else check('K8b', 'e-mail nedorazil', null, {});
 } else check('K8b', 'checkout s HTML ve jmene', null, ev(r));

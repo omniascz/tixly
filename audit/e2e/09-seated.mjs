@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { Client, q, owner, check, ev, startLog, summary, gopayCtl, waitFor, sleep, INTERNAL_TOKEN } from './lib.mjs';
 
 startLog('09_seated');
-const S = JSON.parse(readFileSync(new URL('./state.json', import.meta.url), 'utf8'));
+const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
 const PA = new Client('promoterA'); let r = await PA.post('/api/auth/login', { email: S.promoterA.email, password: S.pw });
 const name = `Sezeni ${Date.now()}`;
 r = await PA.post(`/api/admin/events/${S.eventA}/ticket-types`, { name, priceHalire: 70000, totalQty: 6, isSeated: true, kind: 'seated' });

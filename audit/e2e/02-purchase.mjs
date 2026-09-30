@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { Client, q, owner, check, ev, startLog, summary, gopayCtl, gopayPayments, gopayLog, mails, waitFor, sleep, INTERNAL_TOKEN, BASE } from './lib.mjs';
 
 startLog('02_purchase');
-const S = JSON.parse(readFileSync(new URL('./state.json', import.meta.url), 'utf8'));
+const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
 const login = async (name, email) => { const c = new Client(name); const r = await c.post('/api/auth/login', { email, password: S.pw }); if (r.status !== 200) throw new Error(`login ${email} ${r.status} ${r.text}`); return c; };
 const admin = await login('padmin', S.adminEmail);
 const buyer = await login('buyer', S.buyerEmail);
@@ -180,6 +180,6 @@ const inv = await q(`SELECT tt.name, tt.total_qty, tt.remaining_qty,
 check('P16', 'invariant: total_qty = remaining_qty + (pending+paid kusy) a issued <= total_qty pro kazdy typ', inv.every((x) => x.total_qty === x.remaining_qty + x.held_or_sold && x.issued <= x.total_qty), inv);
 
 S.orders = { o1, o2, o3, o4, o5, o6 }; S.pids = { pid1, pid2, pid3, pid4, pid6 };
-writeFileSync(new URL('./state.json', import.meta.url), JSON.stringify(S, null, 2));
+writeFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), JSON.stringify(S, null, 2));
 summary();
 await owner.end();

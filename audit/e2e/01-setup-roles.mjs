@@ -123,6 +123,6 @@ check('E7', 'seznam akci poradatele B neobsahuje akci A', r.status === 200 && !l
 r = await PB.c.get('/api/admin/promo-codes');
 check('E8', 'poradatel B nevidi promo kod poradatele A', r.status === 200 && !JSON.stringify(r.json ?? '').includes(S.promo), { status: r.status, body: JSON.stringify(r.json).slice(0, 200) });
 
-writeFileSync(new URL('./state.json', import.meta.url), JSON.stringify(S, null, 2));
+writeFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), JSON.stringify(S, null, 2));
 summary();
 await owner.end();
