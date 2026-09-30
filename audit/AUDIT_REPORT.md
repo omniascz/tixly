@@ -101,7 +101,12 @@ Reprodukce každého nálezu = spuštění uvedeného skriptu z `audit/e2e/` pro
 - Reprodukce: `audit/e2e/06-security.mjs`, kontroly K1, K1b.
 - Důkaz: `e2e_06.out` K1 — HTTP 200, objednávka v DB `paid` / 100000 hal., 2 vstupenky `valid`, odpověď obsahuje TOTP tajemství vstupenek; K1b — skener vrátil `admitted`; K2c — mock brána ve stejném běhu vrací 403 `MOCK_DISABLED`.
 - Soubory: `src/app/api/kiosk/order/route.ts`, `src/middleware.ts` (cesta není v chráněných prefixech).
-- Příbuzné cesty stejné třídy, **za běhu NEOVĚŘENÉ** (jen čtení kódu, `audit/phase2_inventory.md` sekce C.1): `buyer/resale/buy`, POST `buyer/tickets/[ticketId]/upgrade`, `vouchers/holders/[paymentId]/confirm`, `subscriptions/holders/[paymentId]/confirm`. U posledních dvou je změřeno jen to, že bez přihlášení nevrací 401/403 (`e2e_06.out` K2a, K2b).
+- Příbuzné cesty stejné třídy, v **session 3 za běhu OVĚŘENO** jako zneužitelné (`s3_e2e_10.out`, každá s `gopayCallsDelta = 0`):
+  - **D1 upgrade** (`POST /api/buyer/tickets/[ticketId]/upgrade`): nepřihlášený s `ownerEmail`+`ticketId` upgradne lístek na dražší typ (VIP 1000 Kč), vznikne `paid` objednávka, lístek zdraží — bez platby.
+  - **D4 resale** (`POST /api/buyer/resale/buy`): guest (jen `buyerEmail`) převezme aktivní listing → nový `valid` lístek + `paid` objednávka, listing `sold` — bez platby.
+  - **D2 voucher** (`POST /api/vouchers/holders/[paymentId]/confirm`): bez auth checkout+confirm → voucher `payment_status=paid` s utratitelným zůstatkem 2000 Kč.
+  - **D3b subscription** (`POST /api/subscriptions/holders/[paymentId]/confirm`): bez auth confirm (holder seedován, protože oficiální checkout 500-uje, viz S8) → holder `active`/`paid` + vystavená vstupenka.
+- Souhrn: **pět** neautentizovaných/neplacených cest k platné vstupence (kiosk + tyto čtyři). Řetězce jsou nyní doloženy až do DB, ne jen čtením kódu.
 
 **K2 — Refund mění jen databázi, platební bránu nevolá**
 - Popis: admin refund nastaví objednávku na `refunded`, zneplatní vstupenky a vrátí místa, ale peníze zákazníkovi neodejdou. Funkce `refundGopayPayment` a obdobné pro další brány nemají v kódu žádného volajícího.
@@ -111,7 +116,7 @@ Reprodukce každého nálezu = spuštění uvedeného skriptu z `audit/e2e/` pro
 - Soubory: `src/app/api/admin/orders/[orderId]/refund/route.ts`, `bulk-refund/route.ts`, `admin/refund-requests/[id]/route.ts`, `buyer/orders/[orderId]/refund/route.ts`, `src/app/api/payments/gopay/webhook/route.ts`.
 
 **K3 — Kapacitu lze trvale zablokovat bez placení (tři vady, které se sčítají)**
-- a) Cron expirace nezaplacených objednávek padá na `column "event_seat_id" does not exist` (42703). Přirozený běh bez zásahu do dat v 06:49 UTC: 75 objednávek po expiraci drželo 79 míst, cron vrátil 500, po něm jich bylo stále 75. Dispatcher `/api/cron/dispatch` přitom odpověděl HTTP 200 se `status:500` uvnitř těla, takže plánovač vidí úspěch. Důkaz: `e2e_02.out` P15a; `15_app_server.log` řádek 37. Soubor: `src/app/api/internal/cron/expire-pending-orders/route.ts:76`. Cron je v `vercel.json:34` naplánován každých 5 minut.
+- a) Cron expirace nezaplacených objednávek padá na `column "event_seat_id" does not exist` (42703). Kontrolovaná sonda (session 3, `s3_cron_expire_probe.txt`): 76 objednávek po expiraci drželo 80 GA vstupenek + 2 sedadla; `POST /api/internal/cron/expire-pending-orders` → HTTP 500, po něm stále 76 (nic neuvolněno). Dispatcher `GET /api/cron/dispatch?job=expire-pending-orders` přitom vrátil **HTTP 200** s tělem `{"job":…,"status":500,"result":{…event_seat_id…}}` — vnitřní 500 se do HTTP stavu nepropíše, takže plánovač vidí úspěch (`src/app/api/cron/dispatch/route.ts:113-117`). Původní doklad i z běhu v session 1: `e2e_02.out` P15a; `15_app_server.log` řádek 37. Soubor: `src/app/api/internal/cron/expire-pending-orders/route.ts:76`. Cron je v `vercel.json:34` naplánován každých 5 minut. (Pozn.: `04_*.out` X4 ukazuje, že při **žádné** prošlé objednávce cron vrátí 200 `expiredCount:0` — 500 nastává až s první prošlou objednávkou.)
 - b) Nákup nemá rate-limit: 60 checkoutů z jedné IP během vteřin prošlo všech 60 (`e2e_05.out` C5). Guest checkout nevyžaduje účet.
 - c) Platba zrušená u brány (`CANCELED`) objednávku zruší, ale místa do prodeje nevrátí: 3 místa ztracena (`e2e_06.out` K7). Soubor: `src/app/api/payments/gopay/webhook/route.ts` (větev CANCELED/TIMEOUTED mění jen status).
 - Dopad: nezaplacené rezervace nikdy nezaniknou; kapacita akce se dá vyčerpat bez jediné platby.
@@ -126,6 +131,9 @@ Reprodukce každého nálezu = spuštění uvedeného skriptu z `audit/e2e/` pro
 - Rozdílový test stejných kroků pod `tixly_app` (RLS platí) a pod `neondb_owner`: PDF vstupenek 404 vs 200; storno zaplacené objednávky 500 (`new row violates row-level security policy for table "refund_requests"`) vs 200.
 - Důkaz: `e2e_04_app.out` X2, X3 (FAIL) vs `e2e_04_owner.out` X2, X3 (PASS); `15_app_server.log` řádek 66.
 - Význam: `GO-LIVE-CHECKLIST.md:142` požaduje přepnutí produkce na `tixly_app`. Po přepnutí tyto dvě cesty přestanou fungovat. Soubory: `src/app/api/buyer/orders/[orderId]/ticket-pdf/route.ts:30-66` (dotaz bez RLS kontextu), `buyer/orders/[orderId]/cancel/route.ts`.
+- **Session 3 rozšířila tuto třídu o další dvě cesty** (stejná role-differenční sonda, `s3_pos_selfrefund_role_diff.txt`):
+  - **POS / pokladna** (`POST /api/admin/pos/sale`): pod `tixly_app` 500 — `new row violates row-level security policy for table "users"` (INSERT walk-in kupce do `identity.users`); pod `neondb_owner` 200 + 2 platné vstupenky. Doklad: `s3_e2e_11:OP1` (tixly_app 500), čistá sonda (owner 200). Soubor: `src/app/api/admin/pos/sale/route.ts:157`.
+  - **Self-refund kupcem** (`POST /api/buyer/orders/[orderId]/refund`): i po povolení promotérem (`platform.refund_policies.allow_customer_self_refund=true`, řádek v DB ověřen) vrací 403 `SELF_REFUND_DISABLED`. Příčina: `refund_policies` má RLS `promoter_id = app_current_promoter_id()` (`pg_policies: p_refund_policies_tenant`); refund běží v kontextu kupujícího (bez promoter membership), `LEFT JOIN refund_policies` vrátí NULL → `allow_self=false`. Kupující tak politiku promotéra nikdy neuvidí. Doklad: `s3_e2e_11:OP5a`; route `src/app/api/buyer/orders/[orderId]/refund/route.ts:99-111`.
 
 **V3 — Skener nepozná vstupenku jiné akce téhož pořadatele**
 - Schéma `POST /api/admin/scanner/validate` nemá `eventId`. Vstupenka akce A byla u „brány" akce A2 vpuštěna.
@@ -133,7 +141,7 @@ Reprodukce každého nálezu = spuštění uvedeného skriptu z `audit/e2e/` pro
 
 **V4 — Skeny se nezapisují do `scan_logs`**
 - Sloupec `scanned_by_device_id` je `uuid NOT NULL`, API přijímá libovolný řetězec a webový skener `deviceId` neposílá vůbec. Chyba se jen vypíše do konzole.
-- Důkaz: `15_app_server.log` — 24× `logScan failed` (23× neplatné uuid, 1× NOT NULL); `tickets.scan_logs` po 25+ skenech 0 řádků; `grep deviceId src/app/admin/scanner/page.tsx` = 0 výskytů. Soubor: `src/app/api/admin/scanner/validate/route.ts:434-457`.
+- Důkaz: `15_app_server.log` — 25× `logScan failed` (23× neplatné uuid, 2× `NOT NULL` na `scanned_by_device_id`); `tickets.scan_logs` po 25+ skenech 0 řádků; `grep deviceId src/app/admin/scanner/page.tsx` = 0 výskytů. Soubor: `src/app/api/admin/scanner/validate/route.ts:434-457`.
 
 **V5 — `next build` selže bez dosažitelné databáze**
 - `/api/postal-fees` se při buildu prerenderuje a čte z DB. Bez DB: `Export encountered errors`, exit 1. S DB: exit 0.
@@ -189,6 +197,16 @@ Reprodukce každého nálezu = spuštění uvedeného skriptu z `audit/e2e/` pro
 
 **S7 — Závislosti: 52 zranitelností (2 critical, 22 high)**
 - Důkaz: `14_npm_audit.json`. Critical: `next` (14.2.35) a `vitest`. High v produkčních závislostech mimo jiné `axios`, `nodemailer`, `undici`, `ws`, `form-data`. Zneužitelnost jednotlivých hlášení v tomto nasazení neposuzována.
+
+**S8 — Oficiální checkout předplatného padá (drift `ON CONFLICT`)**
+- `POST /api/subscriptions/checkout` → HTTP 500 `INTERNAL`: `there is no unique or exclusion constraint matching the ON CONFLICT specification`. Kód se opírá o constraint, který schéma z migrací nemá. Předplatné tedy nelze koupit oficiální cestou (samotný neautentizovaný `…/holders/[paymentId]/confirm` přitom funguje — viz K1/D3b).
+- Důkaz: `s3_e2e_10.out` D3a; `20_app_server_s3.log` (`[POST /api/subscriptions/checkout] error … ON CONFLICT`). Řadím jako STŘEDNÍ (funkce mimo provoz, ne peněžní únik).
+
+**S9 — Kontroly, které report v části 3 nejmenoval jmenovitě (doplněno session 3, doloženo v session 1 i 3)**
+- `e2e_03:R1c` — admin refund **nemá auditní stopu**: zápis do `audit.audit_log` selže na `column "entity_id" does not exist`, `refund_requests` 0 řádků; jediná stopa je `payment_events`.
+- `e2e_04_app:X6` a `e2e_04_owner:X6` — `GET /api/buyer/orders` (seznam objednávek kupce) vrací **404** pod oběma rolemi (stránka/route chybí).
+- `e2e_04_owner:X7` — doklad/faktura kupci pod `neondb_owner` vrací 404 (`NOT_FOUND`), zatímco pod `tixly_app` 200 — obrácený role-rozdíl než V2 (pozorování, ne peněžní dopad).
+- `e2e_06:K8a` — SQLi řetězec v ID (`/api/events/{id}/ticket-types`) vrací **200 `{"ticketTypes":[]}`** místo 4xx; není injekce (parametrizováno), ale vstup není odmítnut. `K8c` (nevalidní JSON → 4xx) a `K8b` (XSS v e-mailu escapován) drží.
 
 ### NÍZKÉ
 
