@@ -4,16 +4,16 @@
  * Demo refund flow:
  *   1. Ověří, že order patří k promotérově akci (`events.promoter_id`)
  *   2. Ověří, že status === 'paid' (jinak idempotent / 409)
- *   3. V transakci: status → 'refunded', revoke tickety, audit log
+ *   3. FIX K2: refund projde platební bránou (executeOrderRefund) — status
+ *      'refunded' se nastaví AŽ po potvrzení brány; při chybě/timeoutu 'refund_failed'.
+ *      Revoke lístků + restore inventáře/sedadel jen v úspěšné větvi. Idempotentní.
  *   4. Vrátí JSON s detailem
- *
- * Pro lokální demo nevoláme reálný GoPay refund — předpokládáme mock.
- * V produkci se před COMMIT zavolá GoPay /payments/{id}/refund.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsActivePromoter } from '@/lib/admin-auth';
+import { executeOrderRefund } from '@/lib/payment/refund-order';
 import { z } from 'zod';
 import { escapeHtml } from '@/lib/html-escape/escape';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
@@ -113,124 +113,79 @@ export async function POST(
   }
   const input = parsed.data;
 
-  const client = await db().connect();
-  try {
-    await client.query('BEGIN');
-
-    const orderRes = await client.query<OrderRow>(
-      // LEFT JOIN na identity.users: pod enforced RLS promotér NEVIDÍ řádek
-      // kupujícího (jiný user). INNER JOIN by celý dotaz vyprázdnil → falešné
-      // 404 i pro vlastní objednávku. LEFT JOIN vrátí order vždy; buyer_email
-      // může být null (e-mail je fire-and-forget, degraduje se gracefully).
-      `SELECT o.id, o.status, o.total_amount, o.user_id, o.event_id, o.currency,
-              e.promoter_id AS event_promoter_id,
-              e.title AS event_title,
-              u.email AS buyer_email, u.name AS buyer_name
+  // Ownership + podklady pro notifikace (lehký SELECT; executeOrderRefund si
+  // objednávku sám zamkne a znovu zvaliduje stav).
+  const ownRes = await db().query<OrderRow>(
+    // LEFT JOIN na identity.users: pod enforced RLS promotér NEVIDÍ řádek kupujícího.
+    `SELECT o.id, o.status, o.total_amount, o.user_id, o.event_id, o.currency,
+            e.promoter_id AS event_promoter_id, e.title AS event_title,
+            u.email AS buyer_email, u.name AS buyer_name
        FROM orders.orders o
        JOIN catalog.events e ON e.id = o.event_id
        LEFT JOIN identity.users u ON u.id = o.user_id
-       WHERE o.id = $1
-       FOR UPDATE OF o`,
-      [orderId],
-    );
-    if (orderRes.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-    }
-    const order = orderRes.rows[0];
+      WHERE o.id = $1`,
+    [orderId],
+  );
+  if (ownRes.rows.length === 0) {
+    return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+  }
+  const order = ownRes.rows[0];
+  if (order.event_promoter_id !== promoter.promoterId) {
+    return NextResponse.json({ error: 'Order belongs to another promoter' }, { status: 403 });
+  }
 
-    if (order.event_promoter_id !== promoter.promoterId) {
-      await client.query('ROLLBACK');
-      return NextResponse.json({ error: 'Order belongs to another promoter' }, { status: 403 });
-    }
-
-    if (order.status === 'refunded') {
-      await client.query('ROLLBACK');
-      return NextResponse.json(
-        { ok: true, alreadyRefunded: true, orderId, totalAmount: order.total_amount },
-        { status: 200 },
+  // FIX K2: refund musí projít platební bránou; 'refunded' se nastaví AŽ po jejím
+  // potvrzení. Sdílený stavový automat (refund_pending → brána → refunded/refund_failed),
+  // idempotentní (dvojí požadavek = jedno volání brány). Revoke lístků + restore
+  // inventáře/sedadel se dějí jen v úspěšné větvi (applyEffects).
+  let revokedCount = 0;
+  const result = await executeOrderRefund({
+    pool: db() as unknown as import('pg').Pool,
+    orderId,
+    amountHalire: order.total_amount,
+    finalStatus: 'refunded',
+    applyEffects: async (client) => {
+      const ticketRes = await client.query<{ count: string }>(
+        `WITH revoked AS (
+           UPDATE tickets.tickets SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
+            WHERE order_id = $1 AND status <> 'revoked' RETURNING 1)
+         SELECT COUNT(*)::text AS count FROM revoked`,
+        [orderId],
       );
-    }
-
-    if (order.status !== 'paid') {
-      await client.query('ROLLBACK');
-      return NextResponse.json(
-        { error: `Order status is "${order.status}", only "paid" can be refunded` },
-        { status: 409 },
+      revokedCount = Number(ticketRes.rows[0]?.count ?? 0);
+      await client.query(
+        `UPDATE catalog.ticket_types tt SET remaining_qty = remaining_qty + sub.qty
+           FROM (SELECT ticket_type_id, SUM(quantity) AS qty FROM orders.order_items
+                  WHERE order_id = $1 GROUP BY ticket_type_id) sub
+          WHERE tt.id = sub.ticket_type_id`,
+        [orderId],
       );
-    }
+      await client.query(
+        `UPDATE catalog.event_seats
+            SET status = 'available', order_id = NULL, ticket_id = NULL,
+                hold_user_id = NULL, hold_until = NULL, updated_at = NOW()
+          WHERE order_id = $1
+             OR id IN (SELECT seat_id FROM orders.order_items WHERE order_id = $1 AND seat_id IS NOT NULL)`,
+        [orderId],
+      );
+    },
+    audit: async (client) => {
+      await client.query(
+        `INSERT INTO audit.audit_log
+           (schema_name, table_name, record_id, action, actor_id, actor_type, old_values, new_values)
+         VALUES ('orders', 'orders', $1, 'UPDATE', $2, 'user', $3::jsonb, $4::jsonb)`,
+        [orderId, promoter.userId, JSON.stringify({ status: order.status }),
+         JSON.stringify({ kind: 'refund', status: 'refunded', reason: input.reason, note: input.note ?? null, amount_halire: order.total_amount })],
+      );
+    },
+  });
 
-    // 1) Order → refunded
-    await client.query(
-      `UPDATE orders.orders SET status = 'refunded', updated_at = NOW() WHERE id = $1`,
-      [orderId],
-    );
+  if (result.outcome !== 'refunded' && result.outcome !== 'already') {
+    return NextResponse.json(result.body, { status: result.http });
+  }
 
-    // 2) Tickets → revoked
-    const ticketRes = await client.query<{ count: string }>(
-      `WITH revoked AS (
-         UPDATE tickets.tickets
-         SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
-         WHERE order_id = $1 AND status <> 'revoked'
-         RETURNING 1
-       )
-       SELECT COUNT(*)::text AS count FROM revoked`,
-      [orderId],
-    );
-    const revokedCount = Number(ticketRes.rows[0]?.count ?? 0);
-
-    // 3) Restore inventory
-    await client.query(
-      `UPDATE catalog.ticket_types tt
-       SET remaining_qty = remaining_qty + sub.qty
-       FROM (
-         SELECT ticket_type_id, SUM(quantity) AS qty
-         FROM orders.order_items
-         WHERE order_id = $1
-         GROUP BY ticket_type_id
-       ) sub
-       WHERE tt.id = sub.ticket_type_id`,
-      [orderId],
-    );
-
-    // 3b) Uvolnit sedadla — refundované sedadlo se vrátí do prodeje.
-    // Vazba: event_seats.order_id (POS / SeatPicker) NEBO order_items.seat_id.
-    await client.query(
-      `UPDATE catalog.event_seats
-         SET status = 'available', order_id = NULL, ticket_id = NULL,
-             hold_user_id = NULL, hold_until = NULL, updated_at = NOW()
-       WHERE order_id = $1
-          OR id IN (SELECT seat_id FROM orders.order_items
-                    WHERE order_id = $1 AND seat_id IS NOT NULL)`,
-      [orderId],
-    );
-
-    // 4) Audit log — action constraint allows only INSERT/UPDATE/DELETE,
-    //    refund is logged as UPDATE on orders.orders with new_values.kind='refund'
-    await client.query(
-      `INSERT INTO audit.audit_log
-         (schema_name, table_name, record_id, action, actor_id, actor_type,
-          old_values, new_values)
-       VALUES ('orders', 'orders', $1, 'UPDATE', $2, 'user',
-               $3::jsonb, $4::jsonb)`,
-      [
-        orderId,
-        promoter.userId,
-        JSON.stringify({ status: order.status }),
-        JSON.stringify({
-          kind: 'refund',
-          status: 'refunded',
-          reason: input.reason,
-          note: input.note ?? null,
-          amount_halire: order.total_amount,
-          revoked_tickets: revokedCount,
-        }),
-      ],
-    );
-
-    await client.query('COMMIT');
-
-    // Fire-and-forget refund notification email — failure NESMÍ vrátit refund
+  // Notifikace jen při reálně dokončeném refundu (ne u already/failed).
+  if (result.outcome === 'refunded') {
     void (async () => {
       try {
         const { sendMail } = await import('@/lib/email/mailer');
@@ -238,49 +193,28 @@ export async function POST(
           to: order.buyer_email,
           subject: `Tixly — refund objednávky ${orderId.slice(0, 8)}`,
           html: buildRefundEmailHtml({
-            orderId,
-            amount: order.total_amount,
-            reason: input.reason,
-            eventTitle: order.event_title,
-            buyerName: order.buyer_name ?? order.buyer_email,
+            orderId, amount: order.total_amount, reason: input.reason,
+            eventTitle: order.event_title, buyerName: order.buyer_name ?? order.buyer_email,
           }),
         });
-      } catch (err) {
-        console.error('[refund] email failed:', err);
-      }
+      } catch (err) { console.error('[refund] email failed:', err); }
     })();
-
-    // ForgeMsg — emit order_refunded (reason segmentation, win-back exclusion).
     try {
       const { emitForgeMsg, splitName } = await import('@/lib/forgemsg/emit');
       await emitForgeMsg(
-        {
-          type: 'order_refunded',
-          contact: { email: order.buyer_email, ...splitName(order.buyer_name) },
+        { type: 'order_refunded', contact: { email: order.buyer_email, ...splitName(order.buyer_name) },
           event: { externalId: order.event_id, title: order.event_title, currency: order.currency },
           order: { orderId, amount: order.total_amount, currency: order.currency },
-          payload: { reason: input.reason },
-        },
+          payload: { reason: input.reason } },
         order.event_promoter_id,
       );
-    } catch (emitErr) {
-      console.error('[refund] forgemsg emit failed:', emitErr);
-    }
-
-    return NextResponse.json({
-      ok: true,
-      orderId,
-      refundedAmountHalire: order.total_amount,
-      revokedTickets: revokedCount,
-      reason: input.reason,
-    });
-  } catch (err) {
-    await client.query('ROLLBACK');
-    console.error('[POST /api/admin/orders/[orderId]/refund]', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  } finally {
-    client.release();
+    } catch (emitErr) { console.error('[refund] forgemsg emit failed:', emitErr); }
   }
+
+  return NextResponse.json(
+    { ...result.body, revokedTickets: revokedCount, reason: input.reason },
+    { status: result.http },
+  );
 
   });
 }

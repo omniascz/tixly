@@ -233,18 +233,29 @@ export async function refundGopayPayment(
   }
 
   const token = await getAccessToken(config);
-  const res = await fetch(
-    `${config.apiBaseUrl}/payments/payment/${encodeURIComponent(paymentId)}/refund`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Accept: 'application/json',
+  // FIX K2: refund fetch měl nekonečné čekání — když brána neodpoví (výpadek),
+  // refund by visel navždy a objednávka by zůstala v refund_pending bez rozhodnutí.
+  // Timeout (konfigurovatelný) → AbortError → volající nastaví refund_failed a lze retry.
+  const timeoutMs = Number(process.env.GOPAY_REFUND_TIMEOUT_MS ?? 20000);
+  let res: Response;
+  try {
+    res = await fetch(
+      `${config.apiBaseUrl}/payments/payment/${encodeURIComponent(paymentId)}/refund`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'application/json',
+        },
+        body: new URLSearchParams({ amount: String(amountHalire) }).toString(),
+        signal: AbortSignal.timeout(timeoutMs),
       },
-      body: new URLSearchParams({ amount: String(amountHalire) }).toString(),
-    },
-  );
+    );
+  } catch (err) {
+    // AbortError (timeout) nebo síťová chyba → refund NENÍ potvrzen.
+    return { ok: false, raw: { error: err instanceof Error ? err.name + ': ' + err.message : String(err) } };
+  }
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');

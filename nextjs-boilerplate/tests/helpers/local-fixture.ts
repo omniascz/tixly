@@ -52,7 +52,8 @@ export function setupLocalEnv(): void {
   process.env.APP_URL ??= 'http://localhost:3100';
   process.env.NEXT_PUBLIC_APP_URL ??= 'http://localhost:3100';
   process.env.MODERATION_PROVIDER ??= 'mock';
-  process.env.NODE_ENV ??= 'production'; // demo/mock guardy se řídí NODE_ENV
+  // demo/mock guardy se řídí NODE_ENV; typ je readonly, proto přes cast.
+  (process.env as { NODE_ENV?: string }).NODE_ENV ??= 'production';
 }
 
 export async function createLocalClone(runId?: string): Promise<LocalClone> {
