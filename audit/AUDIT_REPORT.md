@@ -270,21 +270,22 @@ Tři nezachycené mutace jsou přesně ty peněžní/kapacitní. Jejich reálný
 
 1. **Vrácení peněz přes bránu** (C-46) — bez něj nelze refundovat ani stornovat reálné platby. K2.
 2. **Funkční expirace rezervací + rate-limit nákupu + vracení míst po zrušení platby** (C-20, C-61, C-33) — bez toho lze kapacitu blokovat zdarma. K3.
-3. **Uzavřít neautentizované „demo" prodejní cesty** (kiosk potvrzeně; resale/upgrade/voucher/subscription k ověření). K1.
+3. **Uzavřít neautentizované/neplacené „demo" prodejní cesty** — všech **pět** za běhu potvrzeno (kiosk, resale/buy, ticket upgrade, voucher confirm, subscription holder confirm; `s3_e2e_10`). K1.
 4. **Reset hesla** (C-02). V1.
-5. **Rozhodnout produkční DB roli:** přepnutí na `tixly_app` rozbije PDF a storno (V2) a odhalí děravý RLS zápis (V8); ponechání `neondb_owner` znamená RLS zcela mimo hru. C-60.
+5. **Rozhodnout produkční DB roli:** přepnutí na `tixly_app` rozbije PDF, storno, **POS/pokladnu i self-refund** (V2 + session 3) a odhalí děravý RLS zápis (V8) i 156 tabulek bez RLS; ponechání `neondb_owner` znamená RLS zcela mimo hru. Ani jedna varianta není bez ztráty funkcí nebo bezpečnosti — vyžaduje opravu, ne jen volbu. C-60.
 6. **Uzávěrka prodeje po začátku akce** (C-29) a **dedikované zrušení akce s hromadným refundem** (C-14) — v kódu nenalezeny.
 7. **Vstupenka zdarma** (C-36, V6), **sken cizí akce** (V3), **zápis scan_logs** (V4).
 8. **Reálné platební brány, e-mail, doména/HTTPS, právní texty a firemní údaje, moderace mimo mock** — otevřené položky `GO-LIVE-CHECKLIST.md` fáze 1, mimo dosah auditu.
 9. **CI, které skutečně běží** (opravit trigger větví, doplnit secrets pro drift/RLS gate).
 10. **Výplaty/settlement** (C-57) — `REMEDIATION.md:171-177` sám uvádí „výplaty nefungují"; ověřeno jen to, že přehled vrací 200 s `source:"computed"` a mock id.
+11. **Checkout předplatného** (C-56, S8) — 500 na `ON CONFLICT` drift; předplatné nelze koupit oficiální cestou.
 
 ## 7. Co nešlo ověřit a co je k tomu potřeba
 
 - **Skutečný stav produkce** (role aplikace, hodnoty env `DATABASE_URL`/`DATABASE_URL_DIRECT`/`ALLOW_MOCK_PAYMENTS`/`CRON_SECRET`/`PAYPAL_WEBHOOK_ID`/`WISE_WEBHOOK_SECRET`, nasazený commit). Potřeba: přístup k produkčnímu Vercel projektu nebo read-only výpis env; Vercel API bylo během auditu nedostupné (ECONNREFUSED). Bez toho nelze potvrdit, že K1–K3 a V8/V9 platí i na produkci s produkčním schématem — zde jsou měřené proti schématu z migrací.
 - **Reálné platby GoPay/ComGate** (podpis callbacku na ostro, chování brány pro částku 0, reálný refund). Potřeba: sandbox klíče. Testováno proti simulátoru `audit/tools/fake-gopay.mjs`.
 - **Offline režim skeneru** (klientská IndexedDB fronta + ověření proti manifestu). Potřeba: běh v prohlížeči / Playwright. Ověřen jen serverový manifest.
-- **Regrese „výpadek gate" za běhu** (guestlist check-in, cross-pass). Potřeba: seed cross-pass/guestlist řetězce a spuštění handlerů — zatím jen statický důkaz.
-- **Řetězec „demo" cest** resale/upgrade/voucher/subscription confirm až do vydané vstupenky bez platby. Potřeba: cílený E2E; zde jen čtení kódu + potvrzení, že endpointy nejsou za autentizací.
-- **POS/pokladna, guestlist, comps, exporty nad rámec CSV, obsah faktur a DPH, výplaty** — netestováno (časový rozpočet).
+- **Regrese „výpadek gate" za běhu** (guestlist check-in, cross-pass). **Zůstává NEOVĚŘENO** za běhu (runtime test nepsán záměrně) — jediný důkaz je statický: drift guard i jeho self-test ukazují dotčené routy jako čisté (`08_drift_guard_baseline.log`, GREEN u `guestlist/checkin` a `cross-pass`). Pozn.: samotný guestlist check-in přes standardní guest (nikoli cross-pass) v session 3 funguje (`s3_e2e_11:OP3b`); regrese cross-pass řetězce tím ověřená není.
+- **~~Řetězec „demo" cest~~ → OVĚŘENO v session 3** (`s3_e2e_10`): resale/buy, upgrade, voucher confirm i subscription confirm dotaženy až do vydané vstupenky/zůstatku bez platby. Ponecháno zde jen jako záznam, že položka již není otevřená.
+- **~~POS/pokladna, guestlist, comps~~ → OVĚŘENO v session 3** (`s3_e2e_11`): comps a guestlist fungují, POS je rozbité pod `tixly_app` (viz V2/část 3). **Nadále netestováno:** exporty nad rámec CSV, obsah faktur a DPH, výplaty (časový rozpočet).
 - **Zneužitelnost jednotlivých npm zranitelností** v tomto nasazení — `npm audit` hlásí verze, ne exploitovatelnost.
