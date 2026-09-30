@@ -35,7 +35,7 @@ Stavy: FUNGUJE-OVĚŘENO / ČÁSTEČNĚ / NEFUNGUJE / CHYBÍ / NEOVĚŘENO. Zdro
 | Registrace, login, bcrypt, duplicita, slabé heslo | C-01 `openapi.yaml:54-169` | FUNGUJE-OVĚŘENO | e2e_01:A1–A6 | hash v `identity.user_secrets` |
 | Reset hesla | C-02 commit 84ca76e | NEFUNGUJE | e2e_04_app:X14, e2e_04_owner:X14; `15_app_server.log` „column "locale" does not exist“ | 500 pod oběma rolemi |
 | Registrace pořadatele + schválení | C-03 `GO-LIVE-CHECKLIST.md:52-53` | FUNGUJE-OVĚŘENO | e2e_01:C1–C3 | KYC/ARES netestováno |
-| 2FA | C-04 | NEOVĚŘENO | — | kód existuje jen pod `/api/admin/2fa/*` |
+| 2FA | C-04 | FUNGUJE-OVĚŘENO | s3_e2e_11:OP4a,OP4b | setup→verify (TOTP) zapne 2FA; login bez kódu 401 `TOTP_REQUIRED`, s platným kódem projde |
 | Role platform admin / pořadatel / zákazník | C-05, C-06, C-08 | FUNGUJE-OVĚŘENO | e2e_01:B1, E1–E3 | |
 | Odmítnutí přístupu k cizím datům (aplikační vrstva) | C-60 | FUNGUJE-OVĚŘENO | e2e_01:E4–E8; e2e_02:P7b,P7c; e2e_03:R0,R4,V2,V11; IDOR sweep | 1 výjimka viz S2 |
 | Pod-role gate / box_office / finance | C-07 commit 069a48d | NEOVĚŘENO | — | `TESTING_MAP.md:99-105` samo říká, že guard neexistuje |
@@ -52,6 +52,11 @@ Stavy: FUNGUJE-OVĚŘENO / ČÁSTEČNĚ / NEFUNGUJE / CHYBÍ / NEOVĚŘENO. Zdro
 | Platba GoPay + webhook | C-30, C-33 | ČÁSTEČNĚ | e2e_02:P4,P5a,P8 | ověřeno proti simulátoru API, ne proti GoPay |
 | ComGate a ostatní brány | C-31 | NEOVĚŘENO | — | chybí klíče/sandbox |
 | Mock brána vypnutá v produkci | C-32 | ČÁSTEČNĚ | e2e_06:K2c PASS; K1 FAIL | mock-gopay blokován, ale kiosk a další „demo“ cesty guard nemají |
+| „Demo" cesta: ticket upgrade bez platby | C.1#3 | NEFUNGUJE (zneužitelné) | s3_e2e_10:D1 | nepřihlášený (jen ownerEmail+ticketId) upgradne lístek, `paid` objednávka, 0 volání brány |
+| „Demo" cesta: resale/buy bez platby | C.1#2 | NEFUNGUJE (zneužitelné) | s3_e2e_10:D4 | guest převezme listing → nový valid lístek + `paid` objednávka, listing `sold`, 0 volání brány |
+| „Demo" cesta: voucher confirm bez auth | C.1#4 | NEFUNGUJE (zneužitelné) | s3_e2e_10:D2 | bez auth checkout+confirm → voucher `paid` s utratitelným zůstatkem, 0 volání brány |
+| „Demo" cesta: subscription confirm bez auth | C.1#5 | NEFUNGUJE (zneužitelné) | s3_e2e_10:D3b | bez auth confirm (holder) → `active`/`paid` + vystavená vstupenka, 0 volání brány |
+| Subscription checkout | C-56 | NEFUNGUJE | s3_e2e_10:D3a; `20_app_server_s3.log` | 500 „no unique or exclusion constraint matching the ON CONFLICT" (drift) |
 | Idempotence webhooku (3×) | C-33, C-35 | ČÁSTEČNĚ | e2e_02:P5b,P5c,P5e; e2e_05:C2a PASS; P5d, C2b FAIL | 1 vstupenka ✔; 3 záznamy `payment_paid` ✘ |
 | Vystavení vstupenky | C-35 | FUNGUJE-OVĚŘENO | e2e_02:P5b; e2e_05:C2a | |
 | Vstupenka zdarma (0 Kč) | C-36 `TODO.md:49` „HOTOVO“ | NEFUNGUJE | e2e_02:P13 | objednávka zůstane `pending`, 0 vstupenek |
@@ -61,13 +66,15 @@ Stavy: FUNGUJE-OVĚŘENO / ČÁSTEČNĚ / NEFUNGUJE / CHYBÍ / NEOVĚŘENO. Zdro
 | Admin refund (stav v DB) | C-44 | FUNGUJE-OVĚŘENO | e2e_03:R1a,R1d | |
 | Refund peněz přes bránu | C-46 `TODO.md:28,110` | CHYBÍ | e2e_03:R1b; `fake-gopay.jsonl` bez volání `/refund` | viz K2 |
 | Storno kupcem | C-45 commit 63b52ec | ČÁSTEČNĚ | e2e_04_owner:X3 PASS; e2e_04_app:X3 FAIL | pod `tixly_app` 500 (RLS `refund_requests`) |
-| Self-refund kupcem | C-45 | NEOVĚŘENO | e2e_03:R2a (403 SELF_REFUND_DISABLED) | výchozí nastavení ho zakazuje |
+| Self-refund kupcem | C-45 | NEFUNGUJE (pod `tixly_app`) | s3_e2e_11:OP5a; `s3_pos_selfrefund_role_diff.txt` | i po povolení promotérem 403 — `refund_policies` má RLS na promotéra, kupující řádek nevidí; navíc by nevolal bránu (K2) |
 | Sken platné / dvojitý / stornovaná | C-49 | FUNGUJE-OVĚŘENO | e2e_03:V3,V4,V7,V8 | 20 souběžných → 1× admitted |
 | Sken vstupenky jiné akce | C-49 | NEFUNGUJE | e2e_03:V9b | API nemá `eventId` |
 | Log skenů | C-51 | NEFUNGUJE | `15_app_server.log` „logScan failed“ 24×; `tickets.scan_logs` 0 řádků | viz V4 |
 | Offline režim brány | C-50 | ČÁSTEČNĚ | e2e_03:V9a,V10,V11 (manifest) | klientská fronta v IndexedDB neověřena |
-| Guestlist / comps / cross-pass | C-52 | NEOVĚŘENO | — | netestováno |
-| Pokladna / POS | C-53 | NEOVĚŘENO | — | netestováno |
+| Comps (volné vstupenky) | C-52 | FUNGUJE-OVĚŘENO | s3_e2e_11:OP2 | press comp → objednávka + platná vstupenka |
+| Guestlist: přidání + check-in | C-52 | FUNGUJE-OVĚŘENO | s3_e2e_11:OP3a,OP3b | přidání založí záznam+lístek; check-in (token=e-mail) → `attended` |
+| Cross-pass | C-52 | NEOVĚŘENO | — | netestováno (viz „výpadek gate" v části 5) |
+| Pokladna / POS | C-53 | NEFUNGUJE (pod `tixly_app`) | s3_e2e_11:OP1; `s3_pos_selfrefund_role_diff.txt` | pod `tixly_app` 500 (RLS na `identity.users` při INSERT walk-in usera); pod `neondb_owner` 200 + 2 vstupenky — třída V2 |
 | Doklad kupci (PDF) | C-54 | ČÁSTEČNĚ | e2e_04_app:X7 (PDF 200) | obsah a DPH nekontrolovány |
 | Faktury pořadatele | C-54 | ČÁSTEČNĚ | e2e_04:X11 | seznam 200; ISDOC netestován |
 | Exporty a reporty | C-55 | ČÁSTEČNĚ | e2e_04:X8,X9,X10,X13 | CSV objednávek, sales report, export skenů; registr 198 reportů netestován |
