@@ -80,3 +80,60 @@ Stavy: FUNGUJE-OVĚŘENO / ČÁSTEČNĚ / NEFUNGUJE / CHYBÍ / NEOVĚŘENO. Zdro
 
 ---
 
+
+## 3. Nálezy podle závažnosti
+
+Reprodukce každého nálezu = spuštění uvedeného skriptu z `audit/e2e/` proti izolovanému prostředí (postup v `audit/PROGRESS.md`); ID kontroly odkazuje na řádek v `audit/logs/<soubor>.out`.
+
+### KRITICKÉ
+
+**K1 — Kiosková routa vystaví zaplacenou objednávku bez autentizace a bez platby**
+- Popis: `POST /api/kiosk/order` nemá žádné ověření identity ani zařízení a objednávku rovnou označí jako zaplacenou. Platí i v produkčním režimu (`NODE_ENV=production`), kde je jinak mock brána správně vypnutá.
+- Reprodukce: `audit/e2e/06-security.mjs`, kontroly K1, K1b.
+- Důkaz: `e2e_06.out` K1 — HTTP 200, objednávka v DB `paid` / 100000 hal., 2 vstupenky `valid`, odpověď obsahuje TOTP tajemství vstupenek; K1b — skener vrátil `admitted`; K2c — mock brána ve stejném běhu vrací 403 `MOCK_DISABLED`.
+- Soubory: `src/app/api/kiosk/order/route.ts`, `src/middleware.ts` (cesta není v chráněných prefixech).
+- Příbuzné cesty stejné třídy, **za běhu NEOVĚŘENÉ** (jen čtení kódu, `audit/phase2_inventory.md` sekce C.1): `buyer/resale/buy`, POST `buyer/tickets/[ticketId]/upgrade`, `vouchers/holders/[paymentId]/confirm`, `subscriptions/holders/[paymentId]/confirm`. U posledních dvou je změřeno jen to, že bez přihlášení nevrací 401/403 (`e2e_06.out` K2a, K2b).
+
+**K2 — Refund mění jen databázi, platební bránu nevolá**
+- Popis: admin refund nastaví objednávku na `refunded`, zneplatní vstupenky a vrátí místa, ale peníze zákazníkovi neodejdou. Funkce `refundGopayPayment` a obdobné pro další brány nemají v kódu žádného volajícího.
+- Reprodukce: `audit/e2e/03-refund-scan.mjs`, kontroly R1a, R1b.
+- Důkaz: `e2e_03.out` R1a PASS (stav v DB); R1b FAIL — `refundCallsToGateway: 0`, platba u simulované brány stále `PAID`; `logs/fake-gopay.jsonl` neobsahuje žádné volání `/refund`. Komentář v `src/app/api/admin/orders/[orderId]/refund/route.ts:10-11` to sám uvádí („nevoláme reálný GoPay refund").
+- Navazující: když refund ohlásí brána sama (webhook `REFUNDED`), objednávka přejde na `refunded`, ale vstupenka zůstane `valid` (`e2e_03.out` R5).
+- Soubory: `src/app/api/admin/orders/[orderId]/refund/route.ts`, `bulk-refund/route.ts`, `admin/refund-requests/[id]/route.ts`, `buyer/orders/[orderId]/refund/route.ts`, `src/app/api/payments/gopay/webhook/route.ts`.
+
+**K3 — Kapacitu lze trvale zablokovat bez placení (tři vady, které se sčítají)**
+- a) Cron expirace nezaplacených objednávek padá na `column "event_seat_id" does not exist` (42703). Přirozený běh bez zásahu do dat v 06:49 UTC: 75 objednávek po expiraci drželo 79 míst, cron vrátil 500, po něm jich bylo stále 75. Dispatcher `/api/cron/dispatch` přitom odpověděl HTTP 200 se `status:500` uvnitř těla, takže plánovač vidí úspěch. Důkaz: `e2e_02.out` P15a; `15_app_server.log` řádek 37. Soubor: `src/app/api/internal/cron/expire-pending-orders/route.ts:76`. Cron je v `vercel.json:34` naplánován každých 5 minut.
+- b) Nákup nemá rate-limit: 60 checkoutů z jedné IP během vteřin prošlo všech 60 (`e2e_05.out` C5). Guest checkout nevyžaduje účet.
+- c) Platba zrušená u brány (`CANCELED`) objednávku zruší, ale místa do prodeje nevrátí: 3 místa ztracena (`e2e_06.out` K7). Soubor: `src/app/api/payments/gopay/webhook/route.ts` (větev CANCELED/TIMEOUTED mění jen status).
+- Dopad: nezaplacené rezervace nikdy nezaniknou; kapacita akce se dá vyčerpat bez jediné platby.
+
+### VYSOKÉ
+
+**V1 — Reset hesla nefunguje**
+- `POST /api/auth/forgot-password` → 500, `column "locale" does not exist` na `identity.users`. Pod oběma DB rolemi.
+- Důkaz: `e2e_04_app.out` X14, `e2e_04_owner.out` X14; `15b_app_server_owner.log` řádek 7. Soubor: `src/app/api/auth/forgot-password/route.ts:94`.
+
+**V2 — Pod rolí `tixly_app` nefunguje stažení PDF vstupenek ani storno kupcem**
+- Rozdílový test stejných kroků pod `tixly_app` (RLS platí) a pod `neondb_owner`: PDF vstupenek 404 vs 200; storno zaplacené objednávky 500 (`new row violates row-level security policy for table "refund_requests"`) vs 200.
+- Důkaz: `e2e_04_app.out` X2, X3 (FAIL) vs `e2e_04_owner.out` X2, X3 (PASS); `15_app_server.log` řádek 66.
+- Význam: `GO-LIVE-CHECKLIST.md:142` požaduje přepnutí produkce na `tixly_app`. Po přepnutí tyto dvě cesty přestanou fungovat. Soubory: `src/app/api/buyer/orders/[orderId]/ticket-pdf/route.ts:30-66` (dotaz bez RLS kontextu), `buyer/orders/[orderId]/cancel/route.ts`.
+
+**V3 — Skener nepozná vstupenku jiné akce téhož pořadatele**
+- Schéma `POST /api/admin/scanner/validate` nemá `eventId`. Vstupenka akce A byla u „brány" akce A2 vpuštěna.
+- Důkaz: `e2e_03.out` V9b (`admitted`, vstupenka `used`). Soubor: `src/app/api/admin/scanner/validate/route.ts:23-38`. Offline manifest je per-akce správně (V9a).
+
+**V4 — Skeny se nezapisují do `scan_logs`**
+- Sloupec `scanned_by_device_id` je `uuid NOT NULL`, API přijímá libovolný řetězec a webový skener `deviceId` neposílá vůbec. Chyba se jen vypíše do konzole.
+- Důkaz: `15_app_server.log` — 24× `logScan failed` (23× neplatné uuid, 1× NOT NULL); `tickets.scan_logs` po 25+ skenech 0 řádků; `grep deviceId src/app/admin/scanner/page.tsx` = 0 výskytů. Soubor: `src/app/api/admin/scanner/validate/route.ts:434-457`.
+
+**V5 — `next build` selže bez dosažitelné databáze**
+- `/api/postal-fees` se při buildu prerenderuje a čte z DB. Bez DB: `Export encountered errors`, exit 1. S DB: exit 0.
+- Důkaz: `10a_build_no_db_FAIL.log`, `10b_build_with_db.log`. CI job „Build" používá zástupné `DATABASE_URL` (`.github/workflows/ci.yml`), takže by padal.
+
+**V6 — Vstupenka za 0 Kč se nikdy nevystaví**
+- Checkout pro cenu 0 založí u brány platbu na částku 0; objednávka zůstane `pending`, vstupenka nevznikne. `TODO.md:49` uvádí „HOTOVO".
+- Důkaz: `e2e_02.out` P13. Chování skutečné brány pro částku 0 je NEOVĚŘENO; výsledek (žádná vstupenka) na něm nezávisí.
+
+**V7 — Platba přijatá po expiraci objednávky zůstane bez vstupenky i bez nápravy**
+- Objednávka ve stavu `expired`, brána hlásí `PAID`: webhook odpoví `newStatus: paid`, ale objednávka zůstane `expired`, 0 vstupenek, žádný refund, žádná fronta k řešení. Jediná stopa je řádek v `payment_events`.
+- Důkaz: `e2e_03.out` R6. (Stav `expired` byl nastaven SQL, protože cron z K3a nefunguje.)
