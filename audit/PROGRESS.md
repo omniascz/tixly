@@ -20,5 +20,5 @@ Stav k navazující session. „Hotovo" = výstup je doložen souborem v `audit/
 - Aplikační servery z první session skončily na časovém limitu; nové měření už nebylo potřeba.
 
 ## Zbývá
-- [x] dopsat `AUDIT_REPORT.md` části 3–7
-- [x] commit na větev auditu
+- [x] AUDIT_REPORT.md kompletní (7 částí, commit 1a46993)
+- [x] všechny důkazy + report commitnuty na audit/2026-09-30
