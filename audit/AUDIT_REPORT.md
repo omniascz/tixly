@@ -43,7 +43,7 @@ Stavy: FUNGUJE-OVĚŘENO / ČÁSTEČNĚ / NEFUNGUJE / CHYBÍ / NEOVĚŘENO. Zdro
 | Místo (venue) | C-15 | ČÁSTEČNĚ | e2e_01:D1 | vytvoření OK; editor sálu netestován |
 | Kapacita GA bez přeprodeje | C-17 `TESTING_MAP.md:297-301` | FUNGUJE-OVĚŘENO | e2e_02:P11,P16; e2e_05:C1a,C1b | |
 | Sedadla: hold, souběh, nákup, uvolnění | C-16, C-18, C-19 | FUNGUJE-OVĚŘENO | e2e_09:Z0–Z11 (12/12) | sedadla seedována SQL |
-| Expirace nezaplacené objednávky | C-20 `TESTING_MAP.md:281,287` | NEFUNGUJE | e2e_02:P15a; běh cronu 06:49 UTC (viz K3) | |
+| Expirace nezaplacené objednávky | C-20 `TESTING_MAP.md:281,287` | NEFUNGUJE | e2e_02:P15a; `s3_cron_expire_probe.txt` (viz K3) | 76 obj/80 GA + 2 seats drženo, cron 500 |
 | Serverová autorita ceny | C-22 `TODO.md:76` | FUNGUJE-OVĚŘENO | e2e_02:P2b,P3,P3c | |
 | Promo kódy vč. max_uses pod souběhem | C-25 | FUNGUJE-OVĚŘENO | e2e_02:P2b,P14; e2e_05:C3 | |
 | Limit na osobu vč. souběhu | C-27 | FUNGUJE-OVĚŘENO | e2e_02:P12,P12b; e2e_05:C4 | |
@@ -69,7 +69,7 @@ Stavy: FUNGUJE-OVĚŘENO / ČÁSTEČNĚ / NEFUNGUJE / CHYBÍ / NEOVĚŘENO. Zdro
 | Self-refund kupcem | C-45 | NEFUNGUJE (pod `tixly_app`) | s3_e2e_11:OP5a; `s3_pos_selfrefund_role_diff.txt` | i po povolení promotérem 403 — `refund_policies` má RLS na promotéra, kupující řádek nevidí; navíc by nevolal bránu (K2) |
 | Sken platné / dvojitý / stornovaná | C-49 | FUNGUJE-OVĚŘENO | e2e_03:V3,V4,V7,V8 | 20 souběžných → 1× admitted |
 | Sken vstupenky jiné akce | C-49 | NEFUNGUJE | e2e_03:V9b | API nemá `eventId` |
-| Log skenů | C-51 | NEFUNGUJE | `15_app_server.log` „logScan failed“ 24×; `tickets.scan_logs` 0 řádků | viz V4 |
+| Log skenů | C-51 | NEFUNGUJE | `15_app_server.log` „logScan failed“ 25×; `tickets.scan_logs` 0 řádků | viz V4 |
 | Offline režim brány | C-50 | ČÁSTEČNĚ | e2e_03:V9a,V10,V11 (manifest) | klientská fronta v IndexedDB neověřena |
 | Comps (volné vstupenky) | C-52 | FUNGUJE-OVĚŘENO | s3_e2e_11:OP2 | press comp → objednávka + platná vstupenka |
 | Guestlist: přidání + check-in | C-52 | FUNGUJE-OVĚŘENO | s3_e2e_11:OP3a,OP3b | přidání založí záznam+lístek; check-in (token=e-mail) → `attended` |
