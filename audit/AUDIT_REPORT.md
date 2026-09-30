@@ -228,7 +228,7 @@ Reprodukce každého nálezu = spuštění uvedeného skriptu z `audit/e2e/` pro
 | Prettier | 1419 souborů neformátovaných, exit 1 | `06_prettier.log` |
 | `next build` bez DB / s dosažitelnou DB | exit 1 / exit 0 | `10a_build_no_db_FAIL.log`, `10b_build_with_db.log` |
 | Unit/komponentové (vitest, jsdom) | 518 testů: 508 prošlo, 6 selhalo, 4 `it.skip` | `07_vitest.json`, `07_vitest.log` |
-| Live sada proti izolované DB (místo klonu produkce) | 88 testů: 60 prošlo, 2 selhaly, 23 skip | `09_live_suite.log` |
+| Live sada proti izolované DB (místo klonu produkce) | 88 testů deklarováno: 60 prošlo + 2 selhaly + 23 skip = **85 spuštěno**; zbylé **3 se nespustily** (soubor `rls-pool-pooler.live.test.ts` spadl v přípravě, R-56) | `09_live_suite.log` (14 „failed" test-souborů = převážně chyba v `beforeAll`, ne aserce) |
 | **Coverage řádků** | **3,3 %** (7209 / 218215); 1302 z 1365 souborů 0 % | `07b_vitest_coverage.log`, `07d_coverage_critical.txt` |
 
 Kritické moduly s **0 %** pokrytí: `checkout/route.ts` (0/2440), `internal/order-completed` (0/975), `demo-issuer.ts` (0/265), `admin/scanner/validate` (0/470), `middleware.ts` (0/320), všechny refund/cancel routy, `auth/{login,register,forgot-password,reset-password,refresh}`, `cart/validate`, `kiosk/order`, `email/mailer.ts`. Slušně pokryté: `guest-user.ts` 100 %, `totp/verify.ts` 100 %, `resolve-price.ts` 95 %, `rls-pool.ts` 78 %.
@@ -251,6 +251,8 @@ Kritické moduly s **0 %** pokrytí: `checkout/route.ts` (0/2440), `internal/ord
 | M6 resolve-price: cena −1 haléř | ANO | 8 testů `resolve-price.test.ts` |
 
 Tři nezachycené mutace jsou přesně ty peněžní/kapacitní. Jejich reálný dopad jsem ověřil E2E (K1/K2, P8 podplacení, C1 přeprodej) — vady by prošly do produkce bez povšimnutí testovou sadou.
+
+> **Poznámka k mutační sondě (session 3):** u M1 a M2 „zčervenal" kromě cíleného testu i `src/lib/seating/perf.test.ts` (výkonnostní test na 100k sedadel, práh 2000 ms) — u ostatních mutací ne. Jde o **nestabilní (flaky) výkonnostní test závislý na zátěži stroje**, ne o skutečné zachycení mutace; verdikt „zachyceno/ne" v tabulce se opírá výhradně o cílené testy (`totp/verify.test.ts` pro M1). `11_mutation_probe.log` — každá mutace vrácena `git checkout`, strom po ní čistý (`revertedClean`).
 
 ## 5. Stav dříve známých problémů
 
