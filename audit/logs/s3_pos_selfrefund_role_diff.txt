@@ -1,0 +1,16 @@
+# Cista role-differencni sonda (session 3), stejny fresh ticket type (stock 50), POS quantity 2:
+tixly_app  ttCreate=201  posSale=500 {"error":"INTERNAL_ERROR"}  tickets=(zadne)
+           app log: [pos/sale] error: new row violates row-level security policy for table "users"
+owner      ttCreate=201  posSale=200 {"success":true,...}          tickets=valid,valid
+
+# Zaver: POS (/api/admin/pos/sale) funguje pod neondb_owner (BYPASSRLS), ale pod tixly_app (NOBYPASSRLS,
+# = cilova produkcni role dle GO-LIVE-CHECKLIST:142) padne 500 na RLS pri INSERTu walk-in usera do identity.users.
+# Stejna trida jako V2 (PDF/storno pod tixly_app).
+
+# Self-refund (/api/buyer/orders/[orderId]/refund):
+# refund_policies ma RLS `promoter_id = app_current_promoter_id()` (pg_policies: p_refund_policies_tenant).
+# Refund vola kupujici -> bezi pod jeho kontextem (nema promoter membership) -> LEFT JOIN refund_policies
+# vrati NULL -> COALESCE(allow_customer_self_refund,false)=false -> 403 SELF_REFUND_DISABLED,
+# I KDYZ promoter self-refund povolil (radek v DB existuje: allow_customer_self_refund=t, overeno).
+# Dusledek: self-refund je pod tixly_app pro kupujiciho nedosazitelny bez ohledu na nastaveni promotera.
+# (A i kdyby prosel, refund brany nevola - trida K2.)

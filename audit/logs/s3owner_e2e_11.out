@@ -1,0 +1,23 @@
+# E2E 11_operations  base=http://localhost:3101  2026-09-30T14:47:21.530Z
+FAIL OP1  POS: pokladní prodej (cash) vystaví objednávku paid a 2 platné vstupenky
+       {"status":422,"body":"{\"error\":\"OUT_OF_STOCK\",\"remaining\":1}","order":null,"tickets":[]}
+PASS OP2  COMPS: promotér vystaví volnou (press) vstupenku, ticket valid
+       {"status":201,"body":"{\"ok\":true,\"orderId\":\"7723eb3c-c7b7-4edf-9e30-5724e857d11f\",\"compType\":\"press\",\"recipientEmail\":\"press-muo796u4@audit.test\",\"ticketTypeName\":\"Stani\",\"quantity\":1,\"ticketIds\":[\"9f04760f-8131-40aa-b9ae-","tickets":["valid"]}
+FAIL OP3a  GUESTLIST: přidání hosta založí záznam + navázaný lístek
+       {"status":500,"body":"{\"error\":\"INTERNAL_ERROR\"}","entry":{"id":"e621c123-e570-43f5-ace4-fe8d6bd3449e","ticket_id":"08ecc906-5cd9-49d2-9f5b-5476daeec419","status":"attended"}}
+PASS OP3b  GUESTLIST: check-in hosta (token=email) → status attended
+       {"status":200,"body":"{\"admitted\":false,\"reason\":\"ALREADY_CHECKED_IN\",\"guestName\":\"Host Seznam\",\"notes\":null}","after":{"status":"attended","checked_in_at":"2026-09-30T14:46:44.091Z"}}
+PASS OP4a  2FA: setup + verify správným TOTP → 2FA enabled v DB
+       {"setup":200,"verify":200,"enabledInDb":true}
+PASS OP4b  2FA: login bez kódu odmítnut (TOTP_REQUIRED/401), s platným kódem projde
+       {"noCode":401,"noCodeErr":"TOTP_REQUIRED","withCode":200}
+FAIL OP5a  SELF-REFUND: po povolení promotérem buyer self-refund uspěje, objednávka refunded/cancelled a vstupenky zneplatněny
+       {"status":500,"body":"{\"error\":\"INTERNAL_ERROR\"}","tickets":[]}
+FAIL OP5b  SELF-REFUND: peníze — self-refund zavolal refund u platební brány (očekáváno >0)
+       {"gatewayRefundCallsDelta":0,"note":"stejná třída jako K2 — refund jen v DB"}
+
+# SUMMARY {"PASS":4,"FAIL":4,"INFO":0}
+  FAIL OP1 POS: pokladní prodej (cash) vystaví objednávku paid a 2 platné vstupenky
+  FAIL OP3a GUESTLIST: přidání hosta založí záznam + navázaný lístek
+  FAIL OP5a SELF-REFUND: po povolení promotérem buyer self-refund uspěje, objednávka refunded/cancelled a vstupenky zneplatněny
+  FAIL OP5b SELF-REFUND: peníze — self-refund zavolal refund u platební brány (očekáváno >0)
