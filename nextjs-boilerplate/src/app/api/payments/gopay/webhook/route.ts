@@ -22,6 +22,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { getGopayPaymentStatus } from '@/lib/payment/gopay-real';
+import { releaseOrderCapacity } from '@/lib/orders/release-capacity';
 
 
 export const dynamic = 'force-dynamic';
@@ -139,12 +140,21 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
       (status.state === 'CANCELED' || status.state === 'TIMEOUTED') &&
       order.status === 'pending'
     ) {
-      await client.query(
+      const upd = await client.query<{ id: string }>(
         `UPDATE orders.orders
          SET status = $2, updated_at = NOW()
-         WHERE id = $1 AND status = 'pending'`,
+         WHERE id = $1 AND status = 'pending'
+         RETURNING id`,
         [order.id, status.state === 'TIMEOUTED' ? 'expired' : 'cancelled'],
       );
+      // FIX K3: zrušená/timeoutovaná platba musí OKAMŽITĚ vrátit kapacitu (GA
+      // množství, sedadla, promo max_uses). Dřív se jen přepsal status a rezervace
+      // držela inventář až do cronu (který navíc padal). Tentýž helper jako cron;
+      // guard `status='pending'` + RETURNING → uvolní se jen při reálném přechodu
+      // (idempotence proti opakovanému doručení webhooku).
+      if (upd.rows.length > 0) {
+        await releaseOrderCapacity(client, [order.id]);
+      }
     }
 
     await client.query('COMMIT');
