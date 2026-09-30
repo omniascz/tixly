@@ -15,12 +15,17 @@
 import { randomUUID } from 'crypto';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
+import { demoPathDisabledResponse } from '@/lib/payment/demo-path-guard';
 
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ paymentId: string }> },
 ): Promise<Response> {
+  // FIX K1: „voucher mock payment confirm" označil voucher paid s utratitelným
+  // zůstatkem BEZ platby a BEZ auth. Vypnuto do napojení na platební tok (FIX_REPORT_K.md).
+  const disabled = demoPathDisabledResponse();
+  if (disabled) return disabled;
   return runWithServiceContext(async () => {
 
   const { paymentId } = await params;

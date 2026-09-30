@@ -55,8 +55,11 @@ const API_AUTH_PREFIX = '/api/auth/';
 
 const API_PUBLIC_GET_ROUTES = ['/api/events/', '/api/search', '/api/cross-passes/', '/api/subscriptions/plans', '/api/public/'];
 
-// API routes that require auth + admin (platform admin OR promoter membership)
-const API_PROMOTER_PREFIXES = ['/api/admin/', '/api/orders/'];
+// API routes that require auth + admin (platform admin OR promoter membership).
+// FIX K1: /api/kiosk/ přidáno — kiosk (pokladní terminál) musí běžet pod přihlášenou
+// obsluhou; middleware ověří JWT a injektuje x-user-id, handler pak ověří oprávnění
+// k dané akci. Bez tohohle byl kiosk veřejný (vstupenky zdarma bez přihlášení).
+const API_PROMOTER_PREFIXES = ['/api/admin/', '/api/orders/', '/api/kiosk/'];
 const API_PLATFORM_PREFIXES = ['/api/platform/'];
 // Optional auth: token if present propagates as x-user-id, otherwise pass through
 // /api/transfer/accept/ je tu (ne v PUBLIC): GET preview funguje bez tokenu,

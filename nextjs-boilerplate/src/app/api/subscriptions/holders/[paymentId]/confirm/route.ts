@@ -20,12 +20,18 @@ import { randomBytes, randomUUID } from 'crypto';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
 import { encryptSecret } from '@/lib/crypto';
+import { demoPathDisabledResponse } from '@/lib/payment/demo-path-guard';
 
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ paymentId: string }> },
 ): Promise<Response> {
+  // FIX K1: „subscription mock confirm" aktivoval předplatné a vystavil vstupenky
+  // BEZ platby a BEZ auth (payment_id = shared secret). Vypnuto do napojení na
+  // platební tok (FIX_REPORT_K.md).
+  const disabled = demoPathDisabledResponse();
+  if (disabled) return disabled;
   return runWithServiceContext(async () => {
 
   const { paymentId } = await params;

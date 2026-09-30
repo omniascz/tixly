@@ -22,6 +22,7 @@ import { randomUUID } from 'crypto';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { demoPathDisabledResponse } from '@/lib/payment/demo-path-guard';
 
 
 interface TicketRow {
@@ -104,6 +105,10 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { ticketId: string } },
 ): Promise<Response> {
+  // FIX K1: „demo upgrade" měnil typ lístku a zakládal paid upgrade objednávku BEZ
+  // doplatku (stačil ownerEmail). Vypnuto do napojení na platební tok (FIX_REPORT_K.md).
+  const disabled = demoPathDisabledResponse();
+  if (disabled) return disabled;
   return runWithServiceContext(async () => {
 
   if (!/^[0-9a-f-]{36}$/i.test(params.ticketId)) {
