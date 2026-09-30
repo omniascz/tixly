@@ -1,0 +1,21 @@
+=== Database backup to S3 run 36310843232
+backup	UNKNOWN STEP	2026-09-27T09:54:25.5675750Z Secret source: Actions
+backup	UNKNOWN STEP	2026-09-27T09:54:34.9523362Z ##[error]Process completed with exit code 100.
+backup	UNKNOWN STEP	2026-09-27T09:54:34.9764054Z   status: failure
+backup	UNKNOWN STEP	2026-09-27T09:54:34.9764472Z   text: ⚠️ Tixly DB backup failed. Check Actions log.
+backup	UNKNOWN STEP	2026-09-27T09:54:34.9766509Z   failure_message: :no_entry: Failed GitHub Actions
+backup	UNKNOWN STEP	2026-09-27T09:54:35.0791988Z ##[error]Specify secrets.SLACK_WEBHOOK_URL
+=== Schema Drift Guard run 31776282478
+Schema drift (SQL vs live schema)	UNKNOWN STEP	2026-08-14T06:26:23.3613945Z Secret source: Actions
+Schema drift (SQL vs live schema)	UNKNOWN STEP	2026-08-14T06:26:25.8836184Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_U
+Schema drift (SQL vs live schema)	UNKNOWN STEP	2026-08-14T06:26:29.5559031Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_U
+Schema drift (SQL vs live schema)	UNKNOWN STEP	2026-08-14T06:26:38.8446788Z npm cache is not found
+Schema drift (SQL vs live schema)	UNKNOWN STEP	2026-08-14T06:27:52.2028118Z need NEON_API_KEY
+Schema drift (SQL vs live schema)	UNKNOWN STEP	2026-08-14T06:27:52.2129108Z ##[error]Process completed with exit code 2.
+=== Security run 36422083859
+Secret scan (Gitleaks)	UNKNOWN STEP	﻿2026-09-28T12:28:48.8364383Z Current runner version: '2.337.0'
+Secret scan (Gitleaks)	UNKNOWN STEP	2026-09-28T12:28:48.8381193Z ##[group]Runner Image Provisioner
+Secret scan (Gitleaks)	UNKNOWN STEP	2026-09-28T12:28:48.8381785Z Hosted Compute Agent
+Secret scan (Gitleaks)	UNKNOWN STEP	2026-09-28T12:28:48.8382200Z Version: 20260828.587
+Secret scan (Gitleaks)	UNKNOWN STEP	2026-09-28T12:28:48.8382597Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+Secret scan (Gitleaks)	UNKNOWN STEP	2026-09-28T12:28:48.8383033Z Build Date: 2026-08-28T16:44:25Z

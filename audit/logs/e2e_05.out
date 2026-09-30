@@ -1,0 +1,21 @@
+# E2E 05_concurrency  base=http://localhost:3100  2026-09-30T06:32:44.275Z
+PASS C1a  100 soubeznych nakupu na 10 mist: uspelo prave 10, zadny preprodej
+       {"ms":646,"responses":{"200:OK":10,"409:Insufficient inventory (remaining: 0)":87,"409:Insufficient inventory":3},"remaining_qty":0,"dbOrders":[{"status":"pending","n":10,"qty":10}]}
+PASS C1b  remaining_qty nikdy zaporne; neuspesne pozadavky dostaly cistou odpoved (409), ne 500
+       {"http5xx":0,"sample5xx":[]}
+PASS C2a  50 soubeznych volani (30 webhooku + 20 order-completed) na 10 objednavek: prave 10 vstupenek, 1 na objednavku
+       {"hookStatuses":{"200":50},"paidOrders":10,"ticketsTotal":10,"maxPerOrder":1}
+FAIL C2b  jedna platba = jeden zaznam payment_paid (3 webhooky na platbu)
+       {"payment_paid_per_order":{"3":10}}
+PASS C2c  potvrzovaci e-maily: 1 na objednavku (ocekavano 10), ne duplicitni
+       {"mailsToRaceBuyers":10,"expected":10}
+PASS C3  zavod: 40 soubeznych pouziti promo kodu s max_uses=5 -> sleva aplikovana max 5x
+       {"create":201,"applied":5,"db":{"uses_count":5,"max_uses":5},"responses":{"200:OK":5,"422:PROMO_CODE_USED_UP":35}}
+PASS C4  zavod: 15 soubeznych nakupu tehoz uzivatele pri limitu 2 ks/osobu -> max 2 ks
+       {"boughtQty":2,"responses":{"422:PURCHASE_LIMIT_EXCEEDED":13,"200:OK":2}}
+FAIL C5  rate limiting nakupu: 60 checkoutu z JEDNE IP behem vterin -> cast odmitnuta 429
+       {"responses":{"200:OK":60},"heldByOneIp":60,"remaining":{"total_qty":500,"remaining_qty":435}}
+
+# SUMMARY {"PASS":6,"FAIL":2,"INFO":0}
+  FAIL C2b jedna platba = jeden zaznam payment_paid (3 webhooky na platbu)
+  FAIL C5 rate limiting nakupu: 60 checkoutu z JEDNE IP behem vterin -> cast odmitnuta 429

@@ -1,0 +1,142 @@
+{
+ "id": "M2-mock-guard",
+ "what": "mock platby povoleny i v produkci (vstupenky zdarma)",
+ "diff": "nextjs-boilerplate/src/lib/payment/mock-guard.ts | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)",
+ "unit": {
+  "files": "2 failed | 52 passed (54)",
+  "tests": "8 failed | 506 passed | 4 skipped (518)",
+  "failed": [
+   "src/lib/seating/perf.test.ts > diffLayouts performance (Camp Nou class) > diffs identical 100k-seat layouts in < 2000 ms",
+   "src/lib/seating/perf.test.ts > diffLayouts performance (Camp Nou class) > diffs layouts with 1000 changes in 100k-seat dataset",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 404 pokud package neexistuje",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 409 pokud package není on_sale",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 409 pokud SOLD_OUT (capacity exhausted)",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 200 happy path, vrátí holderId + gatewayUrl + price",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > early-bird cena aplikovaná pokud early_bird_until v budoucnosti",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 409 SEAT_TAKEN při konfliktu uq constraint"
+  ]
+ },
+ "live": {
+  "files": "3 failed | 12 passed | 4 skipped (19)",
+  "tests": "2 failed | 60 passed | 23 skipped (88)",
+  "failed": [
+   "tests/rls-pool-pooler.live.test.ts > R-56 — dva pooly: connect() primy, query() poolovany",
+   "tests/cron-contract.live.test.ts > kontrakt cronu (C2) > consent-log-purge: pri odepreni prava NEVRATI ok:true",
+   "tests/wrapped-routes.live.test.ts > obalene routy — pozitivni cesta > my/orders/[id]/upgrade-options — vlastnik vs cizi"
+  ]
+ },
+ "revertedClean": true
+}
+{
+ "id": "M3-gopay-amount",
+ "what": "GoPay webhook: kontrola zaplacene castky vypnuta (underpayment -> paid)",
+ "diff": "nextjs-boilerplate/src/app/api/payments/gopay/webhook/route.ts | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)",
+ "unit": {
+  "files": "1 failed | 53 passed (54)",
+  "tests": "6 failed | 508 passed | 4 skipped (518)",
+  "failed": [
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 404 pokud package neexistuje",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 409 pokud package není on_sale",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 409 pokud SOLD_OUT (capacity exhausted)",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 200 happy path, vrátí holderId + gatewayUrl + price",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > early-bird cena aplikovaná pokud early_bird_until v budoucnosti",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 409 SEAT_TAKEN při konfliktu uq constraint"
+  ]
+ },
+ "live": {
+  "files": "3 failed | 12 passed | 4 skipped (19)",
+  "tests": "2 failed | 60 passed | 23 skipped (88)",
+  "failed": [
+   "tests/rls-pool-pooler.live.test.ts > R-56 — dva pooly: connect() primy, query() poolovany",
+   "tests/cron-contract.live.test.ts > kontrakt cronu (C2) > consent-log-purge: pri odepreni prava NEVRATI ok:true",
+   "tests/wrapped-routes.live.test.ts > obalene routy — pozitivni cesta > my/orders/[id]/upgrade-options — vlastnik vs cizi"
+  ]
+ },
+ "revertedClean": true
+}
+{
+ "id": "M4-checkout-oversell",
+ "what": "checkout: atomicky odpocet bez podminky remaining_qty >= qty (preprodej)",
+ "diff": "nextjs-boilerplate/src/app/api/checkout/route.ts | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)",
+ "unit": {
+  "files": "1 failed | 53 passed (54)",
+  "tests": "6 failed | 508 passed | 4 skipped (518)",
+  "failed": [
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 404 pokud package neexistuje",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 409 pokud package není on_sale",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 409 pokud SOLD_OUT (capacity exhausted)",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 200 happy path, vrátí holderId + gatewayUrl + price",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > early-bird cena aplikovaná pokud early_bird_until v budoucnosti",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 409 SEAT_TAKEN při konfliktu uq constraint"
+  ]
+ },
+ "live": {
+  "files": "3 failed | 12 passed | 4 skipped (19)",
+  "tests": "2 failed | 60 passed | 23 skipped (88)",
+  "failed": [
+   "tests/rls-pool-pooler.live.test.ts > R-56 — dva pooly: connect() primy, query() poolovany",
+   "tests/cron-contract.live.test.ts > kontrakt cronu (C2) > consent-log-purge: pri odepreni prava NEVRATI ok:true",
+   "tests/wrapped-routes.live.test.ts > obalene routy — pozitivni cesta > my/orders/[id]/upgrade-options — vlastnik vs cizi"
+  ]
+ },
+ "revertedClean": true
+}
+{
+ "id": "M5-issuer-idempotency",
+ "what": "issuer: bez advisory locku, bez idempotentni kontroly (existing), ticket_seq nahodny -> dvoji vystaveni",
+ "diff": "nextjs-boilerplate/src/lib/tickets/demo-issuer.ts | 6 +++---\n 1 file changed, 3 insertions(+), 3 deletions(-)",
+ "unit": {
+  "files": "1 failed | 53 passed (54)",
+  "tests": "6 failed | 508 passed | 4 skipped (518)",
+  "failed": [
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 404 pokud package neexistuje",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 409 pokud package není on_sale",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 409 pokud SOLD_OUT (capacity exhausted)",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 200 happy path, vrátí holderId + gatewayUrl + price",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > early-bird cena aplikovaná pokud early_bird_until v budoucnosti",
+   "src/app/api/subscriptions/checkout/route.test.ts > POST /api/subscriptions/checkout > 409 SEAT_TAKEN při konfliktu uq constraint"
+  ]
+ },
+ "live": {
+  "files": "4 failed | 11 passed | 4 skipped (19)",
+  "tests": "3 failed | 59 passed | 23 skipped (88)",
+  "failed": [
+   "tests/rls-pool-pooler.live.test.ts > R-56 — dva pooly: connect() primy, query() poolovany",
+   "tests/cron-contract.live.test.ts > kontrakt cronu (C2) > consent-log-purge: pri odepreni prava NEVRATI ok:true",
+   "tests/live-fixture.live.test.ts > live-fixture seed factory > tickets() je idempotentní (advisory lock + UNIQUE z mig 450)",
+   "tests/wrapped-routes.live.test.ts > obalene routy — pozitivni cesta > my/orders/[id]/upgrade-options — vlastnik vs cizi"
+  ]
+ },
+ "revertedClean": true
+}
+{
+ "id": "M6-resolve-price",
+ "what": "kontrola: dobre pokryty modul (95 %) — finalize() vrati o 1 halir nizsi cenu",
+ "diff": "nextjs-boilerplate/src/lib/pricing/resolve-price.ts | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)",
+ "unit": {
+  "files": "2 failed | 52 passed (54)",
+  "tests": "14 failed | 500 passed | 4 skipped (518)",
+  "failed": [
+   "src/lib/pricing/resolve-price.test.ts > resolveCurrentPrice > returns base_price when no tier and no rules",
+   "src/lib/pricing/resolve-price.test.ts > resolveCurrentPrice > uses pricing.price_tiers total when present (overrides everything)",
+   "src/lib/pricing/resolve-price.test.ts > resolveCurrentPrice > applies active rule with lowest priority (sorted by query)",
+   "src/lib/pricing/resolve-price.test.ts > resolveCurrentPrice > skips rule whose threshold_date has not yet arrived",
+   "src/lib/pricing/resolve-price.test.ts > resolveCurrentPrice > skips rule whose threshold_qty is not yet reached",
+   "src/lib/pricing/resolve-price.test.ts > resolveCurrentPrice > activates threshold_qty rule when remaining_qty drops below threshold",
+   "src/lib/pricing/resolve-price.test.ts > resolveCurrentPrice > falls back to base when pricing.price_tiers table is missing (42P01)",
+   "src/lib/pricing/resolve-price.test.ts > resolveCurrentPrice > passes when expectedHalire matches server"
+  ]
+ },
+ "live": {
+  "files": "3 failed | 12 passed | 4 skipped (19)",
+  "tests": "2 failed | 60 passed | 23 skipped (88)",
+  "failed": [
+   "tests/rls-pool-pooler.live.test.ts > R-56 — dva pooly: connect() primy, query() poolovany",
+   "tests/cron-contract.live.test.ts > kontrakt cronu (C2) > consent-log-purge: pri odepreni prava NEVRATI ok:true",
+   "tests/wrapped-routes.live.test.ts > obalene routy — pozitivni cesta > my/orders/[id]/upgrade-options — vlastnik vs cizi"
+  ]
+ },
+ "revertedClean": true
+}
+(node:35236) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)

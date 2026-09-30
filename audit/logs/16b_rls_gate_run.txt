@@ -1,0 +1,9 @@
+RLS verify (policies vs snapshot)	UNKNOWN STEP	2026-09-29T08:28:53.8639510Z ##[group]Run if [ -z "${DATABASE_URL:-}" ]; then
+RLS verify (policies vs snapshot)	UNKNOWN STEP	2026-09-29T08:28:53.8639978Z ^[[36;1mif [ -z "${DATABASE_URL:-}" ]; then^[[0m
+RLS verify (policies vs snapshot)	UNKNOWN STEP	2026-09-29T08:28:53.8640544Z ^[[36;1m  echo "::warning title=RLS gate PRESKOCEN::chybi secret DATABASE_URL — RLS drift se NEKONTROLUJE"^[[0m
+RLS verify (policies vs snapshot)	UNKNOWN STEP	2026-09-29T08:28:53.8642062Z ^[[36;1m    echo "Chybí secret \`DATABASE_URL\` → drift RLS se **nekontroluje**."^[[0m
+RLS verify (policies vs snapshot)	UNKNOWN STEP	2026-09-29T08:28:53.8644153Z ^[[36;1m    echo "Nastav: Settings → Secrets → Actions → \`DATABASE_URL\` (role **tixly_app**)"^[[0m
+RLS verify (policies vs snapshot)	UNKNOWN STEP	2026-09-29T08:28:53.8645407Z ^[[36;1mnode scripts/rls-verify.mjs^[[0m
+RLS verify (policies vs snapshot)	UNKNOWN STEP	2026-09-29T08:28:53.8836793Z ##[warning]chybi secret DATABASE_URL — RLS drift se NEKONTROLUJE
+RLS verify (policies vs snapshot)	UNKNOWN STEP	2026-09-29T08:28:53.9072235Z ##[warning]chybi secret NEON_API_KEY
+RLS verify (policies vs snapshot)	UNKNOWN STEP	2026-09-29T08:28:54.4417924Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. 
