@@ -43,7 +43,19 @@
 | „Výpadek gate" (guestlist check-in, cross-pass) za běhu | **zůstává NEOVĚŘENO** (zadání: runtime test nepsat), jen statický důkaz |
 | Produkce (role DB, env, nasazený commit), reálné brány | **zůstává NEOVĚŘENO** (audit se na produkci nepřipojuje; chybí sandbox klíče) |
 
-## Zbývá
-- [ ] postavit izolované prostředí znovu z migrací
-- [ ] doměřit D3 a výjimky z tabulky výše
-- [ ] opravit report (D1–D11) a doplnit nové výsledky, část po části, s commitem po každé
+## Hotovo v session 3 (vše doložené a commitnuté)
+- [x] Prostředí postaveno znovu od nuly z migrací (`logs/18…session3`, 632 policies) + build (`logs/19`) + 2 app instance (`logs/20`,`20b`). REPRO v `audit/REPRO.md`.
+- [x] Všech 9 původních E2E (01–09) reprodukováno se shodným vzorem PASS/FAIL (logy `s3_*`).
+- [x] Demo cesty D1–D4 za běhu ověřeny (`10-demo-paths.mjs`, `s3_e2e_10`): upgrade/voucher/subscription-confirm/resale vystaví lístek/zůstatek bez platby; subscription checkout 500 (ON CONFLICT drift).
+- [x] Provozní cesty (`11-operations.mjs`, `s3_e2e_11`): 2FA OVĚŘENO, comps OVĚŘENO, guestlist add+checkin OVĚŘENO, POS 500 pod `tixly_app` / 200 pod owner, self-refund 403 (RLS na refund_policies). Čistá role-sonda `s3_pos_selfrefund_role_diff.txt`.
+- [x] Kontrolovaná sonda expire cronu (`s3_cron_expire_probe.txt`): 76 obj / 80 GA + 2 seats, 500 (42703), dispatcher maskuje 200.
+- [x] Report opraven D1–D11 a doplněn o session-3 nálezy — po částech, commit po každé (parts 1–7).
+
+## Trvale NEOVĚŘENO (mimo dosah / záměrně)
+- Skutečný stav produkce (role DB, env, nasazený commit), reálné GoPay/ComGate — audit se na produkci nepřipojuje; Vercel API bylo nedostupné.
+- „Výpadek gate" (cross-pass řetězec) za běhu — dle zadání runtime test nepsán; jen statický důkaz (drift guard GREEN).
+- Offline fronta skeneru v prohlížeči (IndexedDB) — ověřen jen serverový manifest.
+- Exporty nad rámec CSV, obsah faktur a DPH, výplaty — časový rozpočet.
+
+## Poznámka k prostředí (konec session 3)
+Dlouhoběžící servery (fake-gopay, `next start` :3100/:3101) byly zastaveny po vypršení background limitu — všechna měření byla do té doby hotová a commitnutá. Kontejnery `audit-*` a síť `audit-net` uklizeny na konci session.
