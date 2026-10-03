@@ -311,9 +311,9 @@ Jiné hunky, neodporují si — při sloučení spojit ručně.
 
 Nepřímé kolize (ne stejný soubor):
 - **čísla migrací:** kolo 1 `472_refund_gateway_state.sql` × tvoje `472_royalty_agreements_currency.sql`; kolo 2 používá 480–485 (bez kolize s 472–478).
-- tvoje nové tabulky z 473–478 (náklady akce, vyúčtování umělců, holdy termínů, nabídky…) budou po sloučení bez RLS → test `fix-r2-3b-tables-rls` (přesně 20 tabulek bez RLS) zčervená, dokud pro ně nevznikne rozhodnutí v `audit/r2/gen-482.mjs`.
+- tvoje nové tabulky z 473, 475, 476, 477 mají RLS i politiky už ve svých migracích (ověřeno čtením souborů: každá `ENABLE ROW LEVEL SECURITY` + `CREATE POLICY`), takže strukturální test `fix-r2-3b-tables-rls` po sloučení nezčervená; jejich politiky jsem ale věcně neprověřoval. Pozor: migrace 482 odebírá `tixly_app` TRUNCATE jen u tabulek existujících v okamžiku jejího běhu.
 - `rls-pool.ts` (kontext jen v transakci) a migrace 481/482 platí i pro tvůj necommitnutý kód; tvoje routy pod promotérským kontextem nejsou dotčené, kupcové/anonymní zápisy do zamčených tabulek by byly.
 
 ## 8. Poslední commit
 
-Viz konec souboru (hash commitu tohoto reportu je v odpovědi).
+Hash commitu, který tento report přidává, je uveden v odpovědi (commit nemůže obsahovat vlastní hash).
