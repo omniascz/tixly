@@ -8,10 +8,11 @@ name: Deploy
 #   rls-gate      — policies DB z migrací vs rls-snapshot.json (verify-migrations)
 # Kontrola RLS PRODUKCE běží po migracích (job migrate, rls-verify s DATABASE_URL).
 
+# Kolo 6: JEN push do master. Žádný pull_request ani workflow_dispatch — ruční spuštění jde vybrat
+# na libovolné větvi a nasadilo by neschválený kód. Každý job navíc hlídá ref (pojistka).
 on:
   push:
     branches: [master]
-  workflow_dispatch:
 
 # Jeden deploy najednou per větev
 concurrency:
@@ -45,6 +46,7 @@ jobs:
   deploy:
     name: Deploy → production
     needs: [ci, schema-drift, rls-gate]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     environment: production
 
@@ -80,6 +82,7 @@ jobs:
     name: DB migrace (produkce)
     runs-on: ubuntu-latest
     needs: [deploy]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     environment: production
 
     steps:
