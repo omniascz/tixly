@@ -1,0 +1,27 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r3-reseller-print.live.test.ts [2m ([22m[2m6 tests[22m [2m|[22m [31m1 failed[39m [2m|[22m [33m5 skipped[39m[2m)[22m[33m 408[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-reseller-print.live.test.ts[2m > [22mKrok 5 (kolo 3) — tisk vstupenek prodejce: kontext prodejce + vlastnictví objednávky[2m > [22mverifyResellerToken: přístupový token kupce (týž klíč bez RESELLER_JWT_SECRET) NENÍ relace prodejce[39m
+[31m     → expected { …(8) } to be null[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-reseller-print.live.test.ts[2m > [22mKrok 5 (kolo 3) — tisk vstupenek prodejce: kontext prodejce + vlastnictví objednávky[2m > [22mverifyResellerToken: přístupový token kupce (týž klíč bez RESELLER_JWT_SECRET) NENÍ relace prodejce
+[31m[1mAssertionError[22m: expected { …(8) } to be null[39m
+[36m [2m❯[22m tests/fix-r3-reseller-print.live.test.ts:[2m56:52[22m[39m
+    [90m 54| [39m  [34mit[39m([32m'verifyResellerToken: přístupový token kupce (týž klíč bez RESELL[39m…
+    [90m 55| [39m    [35mconst[39m { verifyResellerToken } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/lib/reseller-auth'[39m…
+    [90m 56| [39m    [34mexpect[39m([35mawait[39m [34mverifyResellerToken[39m(buyerAccess))[33m.[39m[34mtoBeNull[39m()[33m;[39m
+    [90m   | [39m                                                   [31m^[39m
+    [90m 57| [39m    [34mexpect[39m(([35mawait[39m [34mverifyResellerToken[39m(tokA))[33m?.[39mpartnerName)[33m.[39m[34mtoBe[39m([32m'A'[39m)[33m;[39m
+    [90m 58| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[33m5 skipped[39m[90m (6)[39m
+[2m   Start at [22m 14:03:11
+[2m   Duration [22m 1.14s[2m (transform 160ms, setup 0ms, collect 166ms, tests 408ms, environment 0ms, prepare 166ms)[22m
+

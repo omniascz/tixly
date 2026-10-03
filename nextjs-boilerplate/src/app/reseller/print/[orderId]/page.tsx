@@ -1,5 +1,15 @@
-import { db } from '@/lib/db/rls-pool'
-import { notFound } from 'next/navigation'
+'use client'
+
+/**
+ * Tisk vstupenek u prodejce.
+ *
+ * Kolo 3: data čte z GET /api/reseller/orders/[orderId]/tickets s tokenem prodejce
+ * (localStorage 'resellerToken', stejně jako /reseller/sell). API vydá vstupenky jen
+ * objednávky TOHOTO prodejce. Dřív serverová stránka dotazovala DB bez kontextu a ověřovala
+ * jen, že objednávku prodal NĚJAKÝ prodejce.
+ */
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface TicketRow {
   id: string
@@ -13,59 +23,56 @@ interface TicketRow {
   serial: string
 }
 
-async function getOrderTickets(orderId: string): Promise<TicketRow[]> {
-  const r = await db().query<TicketRow>(
-    `SELECT t.id,
-            e.title AS event_title,
-            e.date_start,
-            v.name AS venue_name,
-            tt.name AS ticket_type_name,
-            CASE WHEN es.id IS NOT NULL
-              THEN es.sector || ' ' || es.row || es.seat_number::text
-              ELSE NULL
-            END AS seat_label,
-            u.name AS buyer_name,
-            u.email AS buyer_email,
-            UPPER(SUBSTRING(t.id::text, 1, 8)) AS serial
-     FROM tickets.tickets t
-     JOIN orders.orders o ON o.id = t.order_id
-     JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
-     JOIN catalog.events e ON e.id = tt.event_id
-     JOIN catalog.venues v ON v.id = e.venue_id
-     JOIN identity.users u ON u.id = o.user_id
-     LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
-     WHERE t.order_id = $1
-     ORDER BY t.id`,
-    [orderId],
-  )
-  return r.rows
-}
+type LoadState =
+  | { kind: 'loading' }
+  | { kind: 'not_found' }
+  | { kind: 'error' }
+  | { kind: 'ok'; tickets: TicketRow[] }
 
-async function verifyResellerOrder(orderId: string): Promise<boolean> {
-  const r = await db().query<{ id: string }>(
-    `SELECT rs.id FROM orders.reseller_sales rs WHERE rs.order_id = $1 LIMIT 1`,
-    [orderId],
-  )
-  return r.rows.length > 0
-}
-
-export default async function ResellerPrintPage({ params }: { params: { orderId: string } }) {
+export default function ResellerPrintPage({ params }: { params: { orderId: string } }) {
   const { orderId } = params
-  const [isReseller, tickets] = await Promise.all([
-    verifyResellerOrder(orderId),
-    getOrderTickets(orderId),
-  ])
+  const router = useRouter()
+  const [state, setState] = useState<LoadState>({ kind: 'loading' })
 
-  if (!isReseller || tickets.length === 0) notFound()
+  useEffect(() => {
+    const token = localStorage.getItem('resellerToken')
+    if (!token) {
+      router.replace('/reseller/login')
+      return
+    }
+    let cancelled = false
+    fetch(`/api/reseller/orders/${orderId}/tickets`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (res) => {
+        if (cancelled) return
+        if (res.status === 401) {
+          localStorage.removeItem('resellerToken')
+          router.replace('/reseller/login')
+          return
+        }
+        if (res.status === 404) return setState({ kind: 'not_found' })
+        if (!res.ok) return setState({ kind: 'error' })
+        const j = (await res.json()) as { tickets: TicketRow[] }
+        setState(j.tickets.length === 0 ? { kind: 'not_found' } : { kind: 'ok', tickets: j.tickets })
+      })
+      .catch(() => { if (!cancelled) setState({ kind: 'error' }) })
+    return () => { cancelled = true }
+  }, [orderId, router])
 
-  const first = tickets[0]
+  useEffect(() => {
+    if (state.kind !== 'ok') return
+    document.title = `Vstupenky — ${state.tickets[0].event_title}`
+    const t = setTimeout(() => window.print(), 300)
+    return () => clearTimeout(t)
+  }, [state])
+
+  if (state.kind === 'loading') return <p style={{ padding: '1rem', fontFamily: 'sans-serif' }}>Načítám vstupenky…</p>
+  if (state.kind === 'not_found') return <p style={{ padding: '1rem', fontFamily: 'sans-serif' }}>Objednávka nenalezena (nebo ji neprodala tato prodejna).</p>
+  if (state.kind === 'error') return <p style={{ padding: '1rem', fontFamily: 'sans-serif' }}>Vstupenky se nepodařilo načíst. Zkuste to znovu.</p>
+
+  const tickets = state.tickets
 
   return (
-    <html lang="cs">
-      <head>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Vstupenky — {first.event_title}</title>
+    <>
         <style>{`
           * { box-sizing: border-box; margin: 0; padding: 0; }
           body { font-family: sans-serif; background: #fff; }
@@ -114,8 +121,6 @@ export default async function ResellerPrintPage({ params }: { params: { orderId:
             .ticket:last-child { page-break-after: avoid; }
           }
         `}</style>
-      </head>
-      <body>
         <div className="no-print">
           <button onClick={() => window.print()}>Vytisknout vstupenky</button>
         </div>
@@ -149,9 +154,7 @@ export default async function ResellerPrintPage({ params }: { params: { orderId:
           ))}
         </div>
 
-        <script dangerouslySetInnerHTML={{ __html: 'window.onload = function(){ window.print(); }' }} />
-      </body>
-    </html>
+    </>
   )
 }
 

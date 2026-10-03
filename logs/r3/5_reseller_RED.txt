@@ -1,0 +1,347 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r3-reseller-print.live.test.ts [2m ([22m[2m5 tests[22m [2m|[22m [31m5 failed[39m[2m)[22m[33m 403[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-reseller-print.live.test.ts[2m > [22mKrok 5 (kolo 3) — tisk vstupenek prodejce: kontext prodejce + vlastnictví objednávky[2m > [22mvlastní prodejce → 200 se vstupenkami objednávky[39m
+[31m     → Cannot find module '@/app/api/reseller/orders/[orderId]/tickets/route' imported from 'C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/tests/fix-r3-reseller-print.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r3-reseller-print.live.test.ts[2m > [22mKrok 5 (kolo 3) — tisk vstupenek prodejce: kontext prodejce + vlastnictví objednávky[2m > [22mcizí prodejce → 404 (bez dat)[39m
+[31m     → Cannot find module '@/app/api/reseller/orders/[orderId]/tickets/route' imported from 'C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/tests/fix-r3-reseller-print.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r3-reseller-print.live.test.ts[2m > [22mKrok 5 (kolo 3) — tisk vstupenek prodejce: kontext prodejce + vlastnictví objednávky[2m > [22mbez tokenu → 401; přístupový token kupce jako token prodejce → 401[39m
+[31m     → Cannot find module '@/app/api/reseller/orders/[orderId]/tickets/route' imported from 'C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/tests/fix-r3-reseller-print.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r3-reseller-print.live.test.ts[2m > [22mKrok 5 (kolo 3) — tisk vstupenek prodejce: kontext prodejce + vlastnictví objednávky[2m > [22mobjednávka neprodaná prodejcem → 404[39m
+[31m     → Cannot find module '@/app/api/reseller/orders/[orderId]/tickets/route' imported from 'C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/tests/fix-r3-reseller-print.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r3-reseller-print.live.test.ts[2m > [22mKrok 5 (kolo 3) — tisk vstupenek prodejce: kontext prodejce + vlastnictví objednávky[2m > [22mstránka tisku čte vstupenky přes API s tokenem prodejce (ne serverový dotaz bez kontextu)[39m
+[31m     → expected 'import { db } from \'@/lib/db/rls-poo…' to match /^'use client'/[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 5 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-reseller-print.live.test.ts[2m > [22mKrok 5 (kolo 3) — tisk vstupenek prodejce: kontext prodejce + vlastnictví objednávky[2m > [22mvlastní prodejce → 200 se vstupenkami objednávky
+[31m[1mError[22m: Cannot find module '@/app/api/reseller/orders/[orderId]/tickets/route' imported from 'C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/tests/fix-r3-reseller-print.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m get tests/fix-r3-reseller-print.live.test.ts:[2m49:21[22m[39m
+    [90m 47| [39m
+    [90m 48| [39m  [35mconst[39m [35mget[39m [33m=[39m [35masync[39m (orderId[33m:[39m string[33m,[39m token[33m?[39m[33m:[39m string) [33m=>[39m {
+    [90m 49| [39m    [35mconst[39m { [33mGET[39m } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/app/api/reseller/orders/[orderId]/[39m…
+    [90m   | [39m                    [31m^[39m
+    [90m 50| [39m    [35mreturn[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost/api/reselle[39m…
+    [90m 51| [39m      headers[33m:[39m token [33m?[39m { authorization[33m:[39m [32m`Bearer [39m[36m${[39mtoken[36m}[39m[32m`[39m } [33m:[39m {} })[33m,[39m [33mG[39m…
+[90m [2m❯[22m tests/fix-r3-reseller-print.live.test.ts:[2m55:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-reseller-print.live.test.ts[2m > [22mKrok 5 (kolo 3) — tisk vstupenek prodejce: kontext prodejce + vlastnictví objednávky[2m > [22mcizí prodejce → 404 (bez dat)
+[31m[1mError[22m: Cannot find module '@/app/api/reseller/orders/[orderId]/tickets/route' imported from 'C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/tests/fix-r3-reseller-print.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m get tests/fix-r3-reseller-print.live.test.ts:[2m49:21[22m[39m
+    [90m 47| [39m
+    [90m 48| [39m  [35mconst[39m [35mget[39m [33m=[39m [35masync[39m (orderId[33m:[39m string[33m,[39m token[33m?[39m[33m:[39m string) [33m=>[39m {
+    [90m 49| [39m    [35mconst[39m { [33mGET[39m } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/app/api/reseller/orders/[orderId]/[39m…
+    [90m   | [39m                    [31m^[39m
+    [90m 50| [39m    [35mreturn[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost/api/reselle[39m…
+    [90m 51| [39m      headers[33m:[39m token [33m?[39m { authorization[33m:[39m [32m`Bearer [39m[36m${[39mtoken[36m}[39m[32m`[39m } [33m:[39m {} })[33m,[39m [33mG[39m…
+[90m [2m❯[22m tests/fix-r3-reseller-print.live.test.ts:[2m61:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-reseller-print.live.test.ts[2m > [22mKrok 5 (kolo 3) — tisk vstupenek prodejce: kontext prodejce + vlastnictví objednávky[2m > [22mbez tokenu → 401; přístupový token kupce jako token prodejce → 401
+[31m[1mError[22m: Cannot find module '@/app/api/reseller/orders/[orderId]/tickets/route' imported from 'C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/tests/fix-r3-reseller-print.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m get tests/fix-r3-reseller-print.live.test.ts:[2m49:21[22m[39m
+    [90m 47| [39m
+    [90m 48| [39m  [35mconst[39m [35mget[39m [33m=[39m [35masync[39m (orderId[33m:[39m string[33m,[39m token[33m?[39m[33m:[39m string) [33m=>[39m {
+    [90m 49| [39m    [35mconst[39m { [33mGET[39m } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/app/api/reseller/orders/[orderId]/[39m…
+    [90m   | [39m                    [31m^[39m
+    [90m 50| [39m    [35mreturn[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost/api/reselle[39m…
+    [90m 51| [39m      headers[33m:[39m token [33m?[39m { authorization[33m:[39m [32m`Bearer [39m[36m${[39mtoken[36m}[39m[32m`[39m } [33m:[39m {} })[33m,[39m [33mG[39m…
+[90m [2m❯[22m tests/fix-r3-reseller-print.live.test.ts:[2m66:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-reseller-print.live.test.ts[2m > [22mKrok 5 (kolo 3) — tisk vstupenek prodejce: kontext prodejce + vlastnictví objednávky[2m > [22mobjednávka neprodaná prodejcem → 404
+[31m[1mError[22m: Cannot find module '@/app/api/reseller/orders/[orderId]/tickets/route' imported from 'C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/tests/fix-r3-reseller-print.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m get tests/fix-r3-reseller-print.live.test.ts:[2m49:21[22m[39m
+    [90m 47| [39m
+    [90m 48| [39m  [35mconst[39m [35mget[39m [33m=[39m [35masync[39m (orderId[33m:[39m string[33m,[39m token[33m?[39m[33m:[39m string) [33m=>[39m {
+    [90m 49| [39m    [35mconst[39m { [33mGET[39m } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/app/api/reseller/orders/[orderId]/[39m…
+    [90m   | [39m                    [31m^[39m
+    [90m 50| [39m    [35mreturn[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost/api/reselle[39m…
+    [90m 51| [39m      headers[33m:[39m token [33m?[39m { authorization[33m:[39m [32m`Bearer [39m[36m${[39mtoken[36m}[39m[32m`[39m } [33m:[39m {} })[33m,[39m [33mG[39m…
+[90m [2m❯[22m tests/fix-r3-reseller-print.live.test.ts:[2m71:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-reseller-print.live.test.ts[2m > [22mKrok 5 (kolo 3) — tisk vstupenek prodejce: kontext prodejce + vlastnictví objednávky[2m > [22mstránka tisku čte vstupenky přes API s tokenem prodejce (ne serverový dotaz bez kontextu)
+[31m[1mAssertionError[22m: expected 'import { db } from \'@/lib/db/rls-poo…' to match /^'use client'/[39m
+
+[32m- Expected:[39m 
+/^'use client'/
+
+[31m+ Received:[39m 
+"import { db } from '@/lib/db/rls-pool'
+import { notFound } from 'next/navigation'
+
+interface TicketRow {
+  id: string
+  event_title: string
+  date_start: string
+  venue_name: string
+  ticket_type_name: string
+  seat_label: string | null
+  buyer_name: string | null
+  buyer_email: string
+  serial: string
+}
+
+async function getOrderTickets(orderId: string): Promise<TicketRow[]> {
+  const r = await db().query<TicketRow>(
+    `SELECT t.id,
+            e.title AS event_title,
+            e.date_start,
+            v.name AS venue_name,
+            tt.name AS ticket_type_name,
+            CASE WHEN es.id IS NOT NULL
+              THEN es.sector || ' ' || es.row || es.seat_number::text
+              ELSE NULL
+            END AS seat_label,
+            u.name AS buyer_name,
+            u.email AS buyer_email,
+            UPPER(SUBSTRING(t.id::text, 1, 8)) AS serial
+     FROM tickets.tickets t
+     JOIN orders.orders o ON o.id = t.order_id
+     JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
+     JOIN catalog.events e ON e.id = tt.event_id
+     JOIN catalog.venues v ON v.id = e.venue_id
+     JOIN identity.users u ON u.id = o.user_id
+     LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
+     WHERE t.order_id = $1
+     ORDER BY t.id`,
+    [orderId],
+  )
+  return r.rows
+}
+
+async function verifyResellerOrder(orderId: string): Promise<boolean> {
+  const r = await db().query<{ id: string }>(
+    `SELECT rs.id FROM orders.reseller_sales rs WHERE rs.order_id = $1 LIMIT 1`,
+    [orderId],
+  )
+  return r.rows.length > 0
+}
+
+export default async function ResellerPrintPage({ params }: { params: { orderId: string } }) {
+  const { orderId } = params
+  const [isReseller, tickets] = await Promise.all([
+    verifyResellerOrder(orderId),
+    getOrderTickets(orderId),
+  ])
+
+  if (!isReseller || tickets.length === 0) notFound()
+
+  const first = tickets[0]
+
+  return (
+    <html lang=\"cs\">
+      <head>
+        <meta charSet=\"UTF-8\" />
+        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+        <title>Vstupenky — {first.event_title}</title>
+        <style>{`
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: sans-serif; background: #fff; }
+
+          .no-print { display: block; padding: 1rem; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; }
+          .no-print button { padding: 0.5rem 1.25rem; background: #1e40af; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+
+          .tickets { padding: 1rem; }
+
+          .ticket {
+            width: 148mm;
+            min-height: 105mm;
+            border: 2px solid #1e293b;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 1rem;
+            page-break-inside: avoid;
+            display: flex;
+            gap: 16px;
+          }
+
+          .ticket-info { flex: 1; }
+          .ticket-title { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+          .ticket-date { font-size: 13px; color: #475569; margin-bottom: 2px; }
+          .ticket-venue { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+          .ticket-type { display: inline-block; background: #1e40af; color: #fff; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-bottom: 8px; }
+          .ticket-seat { font-size: 12px; color: #475569; margin-bottom: 4px; }
+          .ticket-buyer { font-size: 11px; color: #94a3b8; }
+          .ticket-serial { font-size: 10px; font-family: monospace; color: #94a3b8; margin-top: 8px; }
+
+          .ticket-qr {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 90px;
+          }
+          .ticket-qr svg { width: 90px; height: 90px; }
+          .ticket-qr .qr-id { font-size: 8px; font-family: monospace; color: #64748b; margin-top: 4px; text-align: center; word-break: break-all; }
+
+          @media print {
+            .no-print { display: none !important; }
+            body { background: #fff; }
+            .tickets { padding: 0; }
+            .ticket { margin-bottom: 0; page-break-after: always; }
+            .ticket:last-child { page-break-after: avoid; }
+          }
+        `}</style>
+      </head>
+      <body>
+        <div className=\"no-print\">
+          <button onClick={() => window.print()}>Vytisknout vstupenky</button>
+        </div>
+
+        <div className=\"tickets\">
+          {tickets.map((t) => (
+            <div key={t.id} className=\"ticket\">
+              <div className=\"ticket-info\">
+                <div className=\"ticket-title\">{t.event_title}</div>
+                <div className=\"ticket-date\">
+                  {new Date(t.date_start).toLocaleString('cs-CZ', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit',
+                  })}
+                </div>
+                <div className=\"ticket-venue\">{t.venue_name}</div>
+                <span className=\"ticket-type\">{t.ticket_type_name}</span>
+                {t.seat_label ? (
+                  <div className=\"ticket-seat\">Sedadlo: {t.seat_label}</div>
+                ) : null}
+                <div className=\"ticket-buyer\">
+                  {t.buyer_name ?? t.buyer_email}
+                </div>
+                <div className=\"ticket-serial\">#{t.serial}</div>
+              </div>
+              <div className=\"ticket-qr\">
+                <QrCode value={`TXP:${t.id}`} size={90} />
+                <div className=\"qr-id\">{t.id.slice(0, 8)}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <script dangerouslySetInnerHTML={{ __html: 'window.onload = function(){ window.print(); }' }} />
+      </body>
+    </html>
+  )
+}
+
+function QrCode({ value, size }: { value: string; size: number }) {
+  const cells = buildQrMatrix(value)
+  const n = cells.length
+  const cellSize = size / n
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} xmlns=\"http://www.w3.org/2000/svg\">
+      <rect width={size} height={size} fill=\"white\" />
+      {cells.flatMap((row, r) =>
+        row.map((dark, c) =>
+          dark ? (
+            <rect
+              key={`${r}-${c}`}
+              x={c * cellSize}
+              y={r * cellSize}
+              width={cellSize}
+              height={cellSize}
+              fill=\"black\"
+            />
+          ) : null,
+        ),
+      )}
+    </svg>
+  )
+}
+
+function buildQrMatrix(text: string): boolean[][] {
+  const size = 21
+  const grid: boolean[][] = Array.from({ length: size }, () => Array(size).fill(false) as boolean[])
+
+  function drawFinder(row: number, col: number) {
+    for (let r = -1; r <= 7; r++) {
+      for (let c = -1; c <= 7; c++) {
+        const tr = row + r
+        const tc = col + c
+        if (tr < 0 || tr >= size || tc < 0 || tc >= size) continue
+        const onBorder = r === -1 || r === 7 || c === -1 || c === 7
+        const onInner = r >= 1 && r <= 5 && c >= 1 && c <= 5
+        const onCore = r >= 2 && r <= 4 && c >= 2 && c <= 4
+        grid[tr][tc] = onBorder || onCore || (!onInner)
+      }
+    }
+  }
+
+  drawFinder(0, 0)
+  drawFinder(0, size - 7)
+  drawFinder(size - 7, 0)
+
+  const bytes = Array.from(text).map((ch) => ch.charCodeAt(0))
+  let bi = 0
+  for (let r = size - 1; r >= 0; r -= 2) {
+    for (let c = size - 1; c >= 0; c--) {
+      if (r < 8 && c < 8) continue
+      if (r < 8 && c >= size - 8) continue
+      if (r >= size - 8 && c < 8) continue
+      const byte = bytes[bi % bytes.length] ?? 0
+      const bit = (byte >> (7 - (bi % 8))) & 1
+      grid[r][c] = bit === 1
+      bi++
+    }
+  }
+
+  return grid
+}
+"
+
+[36m [2m❯[22m tests/fix-r3-reseller-print.live.test.ts:[2m75:17[22m[39m
+    [90m 73| [39m  [34mit[39m([32m'stránka tisku čte vstupenky přes API s tokenem prodejce (ne serv[39m…
+    [90m 74| [39m    [35mconst[39m src [33m=[39m [34mreadFileSync[39m(path[33m.[39m[34mresolve[39m(__dirname[33m,[39m [32m'../src/app/resel[39m…
+    [90m 75| [39m    [34mexpect[39m(src)[33m.[39m[34mtoMatch[39m([36m/^'use client'/[39m)[33m;[39m
+    [90m   | [39m                [31m^[39m
+    [90m 76| [39m    [34mexpect[39m(src)[33m.[39m[34mtoMatch[39m([36m/\/api\/reseller\/orders\/\$\{orderId\}\/ticke[39m…
+    [90m 77| [39m    [34mexpect[39m(src)[33m.[39m[34mtoMatch[39m([36m/localStorage\.getItem\('resellerToken'\)/[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m5 failed[39m[22m[90m (5)[39m
+[2m   Start at [22m 14:02:55
+[2m   Duration [22m 1.39s[2m (transform 122ms, setup 0ms, collect 130ms, tests 403ms, environment 0ms, prepare 602ms)[22m
+
