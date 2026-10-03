@@ -28,6 +28,7 @@ Prostředí: izolovaná DB z migrací, PgBouncer transaction mode, fake-gopay, M
 | bezplatný upgrade nemění kapacitu (R3 bod 4) | změna typu lístku bez úpravy `remaining_qty` | cíl −1, zdroj +1 v systémové části upgradu | fix-r4-free-upgrade-capacity | kapacita beze změny → 1/1 | 34e7711 |
 | mobil `GET /api/v1/buyer/orders` (R3 bod 4) | routa neexistovala, appka dostávala 404 | nová routa pod RLS kupce, tvar dle `OrderSummary` | fix-r4-mobile-buyer-orders | 404 → 2/2 | 092c6469 |
 | QR tištěné vstupenky prodejce (R3 bod 4) | pseudo-matice z `TXP:<uuid>`; TXP1 pod rotating_24h odmítnut (totp_required) | podepsaný statický TXP2 (vstupenka + akce), skener ověří podpis proti akci z DB a pod static_allowed/rotating_24h nahradí TOTP; skutečný QR; klienti znají TXP2 | fix-r4-printed-qr (+ unit 9/9) | 3 fail → 3/3 | 6a7bdf7d |
+| mobile-promoter typecheck (R3 bod 5) | bez node_modules se nedal ověřit | závislosti nainstalovány (lockfile beze změny), `tsc --noEmit` | — | 0 chyb (vč. změn kol 3–4) | db6e8542 |
 <!-- /nalezy -->
 
 **Krok 1 — audit 08 po opravách:** I1 PASS (154 GET rout × 3 cizí aktéři, 0 úniků), I2 PASS (0 odpovědí 5xx). `logs/r4/1c_r2_e2e_08.out`.

@@ -20,10 +20,12 @@ Infrastruktura jako v kole 3 (viz PROGRESS_R3.md). Výstupy: logs/r4/.
 | 3f upgrade-options 500 | HOTOVO (+ kapacita 34e7711) | |
 | 3g mobil /api/v1/buyer/orders | HOTOVO 092c6469 | |
 | 3h QR tištěné vstupenky | HOTOVO 6a7bdf7d (vizuální kontrola v závěru) | |
-| 3i mobile-promoter typecheck | čeká | |
+| 3i mobile-promoter typecheck | HOTOVO db6e8542 — tsc 0; předexistující: package-lock nesynchronizovaný (npm ci EUSAGE) | |
 | 4 CI a provoz | čeká | |
 | Závěr | čeká | |
 
 ## Poznámky
 - Krok 2 rozpracováno: klasifikátor audit/r4/classify-routes.mjs (984 routa+metoda); nález scanner/school-group bez ověření obsluhy.
 - POZOR: jednou selhal fix-k3-capacity v souběžné dávce (chk_catalog_ticket_types_remaining v cronu expirace); 4× nereprodukováno, příčina neznámá — sledovat v závěrečné live sadě.
+- 3i: předexistující nález — mobile-promoter/package-lock.json nesynchronizovaný s package.json (npm ci EUSAGE); lockfile neměněn.
+- KROK 3 HOTOVÝ. Další: krok 4 (CI).
