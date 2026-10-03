@@ -19,6 +19,7 @@ Prostředí: izolovaná DB z migrací, PgBouncer transaction mode, fake-gopay, M
 | konfigurace před přihlášením (wallet/apple, mobile/payment-intent) | kontrola env před `runAsUser` → anonym 503 | kontrola uvnitř `runAsUser` | fix-r4-auth-before-config | anonym 503 → 401 (přihlášený 503) | 7d600b7 |
 | B2B kredit jen podle kódu účtu (verify + checkout) | checkout strhl kredit firmy bez ověření kupujícího; verify vracel zůstatek komukoli s kódem | jen přihlášený člen účtu (joined/admin); verify 401/403; checkout pre-check + debit FOR UPDATE | fix-r4-b2b-credit-auth | 2 fail (zůstatek 200, nákup na firmu 200) → 4/4 | 1bdd439 |
 | seat-upgrade-notify (R3 bod 4) | čte `catalog.seats` (sedadla sálu) a `seat_upgrades.order_id/notified_at` — neexistují; e-mail jen logoval | `event_seats`, lepší volné místo téhož typu a sektoru, skutečný e-mail, log v nové tabulce (migrace 490) | fix-r4-seat-upgrade-notify | 500 → 2/2; od nuly OK, 2× OK | 9524f6e |
+| RLS politiky `true` (R3 bod 4) | 19 politik s `true`: 7 zápisových dovolovalo cizí řádek; čtení ukazovalo koncepty akcí a neaktivní pořadatele (bankovní účet, KYC) | migrace 491: zápis servis/vlastník, čtení jen publikované/aktivní; 10 veřejných ponecháno s důvodem; routy alert/upgrade servisně | fix-r4-true-policies | 2 fail (4× cizí INSERT, koncept/pending vidět) → 3/3 | 3fa3b71 |
 <!-- /nalezy -->
 
 **Krok 1 — audit 08 po opravách:** I1 PASS (154 GET rout × 3 cizí aktéři, 0 úniků), I2 PASS (0 odpovědí 5xx). `logs/r4/1c_r2_e2e_08.out`.
@@ -53,3 +54,27 @@ Neveřejné (pořadatel, admin, kupec, servis, partner, prodejce) = **790**. Gen
 Opravené routy v kroku 2: 25 rout bez identity (middleware), `scanner/school-group`, `mock-qes`, `buyer/resale/list` + `cancel`,
 `tickets/[id]/memory`, `buyer/cross-passes/[id]/wallet/apple`, `mobile/payment-intent`, `b2b/verify`, `checkout` (B2B kredit),
 `qes_signing_requests` (migrace 489).
+
+## Krok 3b — politiky s podmínkou `true`
+
+| Tabulka | Politika | Příkaz | Podmínka | Rozhodnutí |
+|---|---|---|---|---|
+| `audit.audit_log` | append_audit_log | INSERT | WITH CHECK true | ponecháno — append-only audit |
+| `catalog.cinema_screens` | read_cinema_screens | SELECT | true | ponecháno — veřejné údaje sálu |
+| `catalog.event_travel_packages` | event_travel_packages_select | SELECT | true | 491: jen publikované akce + vlastník |
+| `catalog.seat_view_photos` | svp_select_all | SELECT | true | ponecháno — veřejné fotky výhledu |
+| `catalog.seats` | read_seats | SELECT | true | ponecháno — fyzický plánek sálu |
+| `catalog.superfan_experiences` | superfan_exp_public_read | SELECT | true | 491: jen publikované akce + vlastník |
+| `catalog.travel_hotel_rooms` | travel_hotel_rooms_select | SELECT | true | ponecháno — veřejný katalog pokojů |
+| `catalog.travel_hotels` | travel_hotels_select | SELECT | true | ponecháno — veřejný katalog hotelů |
+| `catalog.venue_seating_charts` | read_venue_seating_charts | SELECT | true | ponecháno — plánek sálu |
+| `marketing.ticket_alerts` | ticket_alerts_insert | INSERT | WITH CHECK true | 491: servis/admin |
+| `marketing.ticket_alerts` | ticket_alerts_update | UPDATE | true | 491: servis/admin |
+| `orders.postal_deliveries` | postal_deliveries_insert | INSERT | WITH CHECK true | 491: servis/admin |
+| `orders.seat_upgrades` | seat_upgrades_insert | INSERT | WITH CHECK true | 491: servis/admin |
+| `orders.seat_upgrades` | seat_upgrades_update | UPDATE | true | 491: servis/admin |
+| `orders.ticket_transfers` | ticket_transfers_update | UPDATE | true | 491: servis/admin/odesílatel/příjemce |
+| `orders.travel_bookings` | travel_bookings_insert | INSERT | WITH CHECK true | 491: servis/admin |
+| `platform.carbon_offset_settings` | carbon_offset_settings_public_select | SELECT | true | ponecháno — globální nastavení |
+| `platform.postal_fees` | postal_fees_select | SELECT | true | ponecháno — ceník |
+| `platform.promoters` | p_promoters_read | SELECT | true | 491: jen aktivní + vlastní/člen |

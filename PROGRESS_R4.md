@@ -13,7 +13,7 @@ Infrastruktura jako v kole 3 (viz PROGRESS_R3.md). Výstupy: logs/r4/.
 | 1c audit 08 bez FAIL | HOTOVO — 2/0, 154 rout, 0 úniků, 0×5xx (logs/r4/1c_*) | |
 | 2 routy bez identity + tabulka všech rout + generovaný test | HOTOVO — 2a–2g + tabulka/test bea7c5d; oauth/authorize ověřit HTTP v závěru | bea7c5d |
 | 3a seat-upgrade-notify | HOTOVO 9524f6e | |
-| 3b RLS politiky true | čeká | |
+| 3b RLS politiky true | HOTOVO 3fa3b71 (tabulka logs/r4/3b_true_policies_before.txt) | |
 | 3c veřejný e-mail organizátora | čeká | |
 | 3d restwert | čeká | |
 | 3e exchange | čeká | |
