@@ -25,8 +25,8 @@ Základ: `fix/critical-2026-09-30` @ `1a6e96d`. Worktree `../tixly-fix`. `tixly/
 | 3A V8 (zápis akce/ceny/promo/objednávky/vstupenky) | HOTOVO | 2e38967 |
 | 3B 156 tabulek bez RLS | HOTOVO | 8c868d3 (tabulka logs/r2/3B_tables_decision.md) |
 | 4 V9 R-56 | HOTOVO | 8713d13 |
-| 5 V4/S1/V6/S8/P1/QR | rozpracováno: V4 68c4090, S1 bc098b6 hotovo; zbývá V6, S8, P1, QR | |
-| Závěr + FIX_REPORT_R2 | čeká | |
+| 5 V4/S1/V6/S8/P1/QR | HOTOVO | V4 68c4090, S1 bc098b6, V6 d23d4da, S8 cc949bb, P1 1889775, QR 0995576, onboarding (navazující nález) |
+| Závěr + FIX_REPORT_R2 | rozpracováno | |
 
 ## Krok 0 — výsledky (2026-10-03, app :3200 pod tixly_app)
 Požadované kontroly: r2_e2e_02:P15a PASS, r2_e2e_03:R1b PASS, R1c PASS (opravený dotaz, kind=refund), r2_e2e_04_app:X14 PASS,
@@ -58,3 +58,8 @@ mobile/payment-intent obchází rate-limity K3; S4 recompute-dynamic-pricing bez
 3B: RED 8/8 → GREEN 8/8; 50 tenant / 3 user / 83 zamčeno / 20 systémové; TRUNCATE odebrán; 482 od nuly + 2×.
 Nově nalezeno (mimo zadání, do reportu): orders.invoices UNIQUE(invoice_number) globálně, číslování per pořadatel → 500 (audit X7).
 4: PgBouncer `fix-pgb` :56633 (audit/r2/pgb). RED 173/200 a 193/200 → GREEN 0/200 ve všech vzorech.
+
+## Krok 5 — výsledky
+V4 RED 0/5 řádků → 5/5; S1 RED 3 záznamy → 1 (migrace 484 dedupe_key, 16 zápisů ON CONFLICT); V6 0 Kč dokončeno bez brány;
+S8 live RED ON CONFLICT → GREEN, unit 7/7 (mock rls-pool řídicí příkaz); P1 routa odstraněna; QR default rotating_24h (485);
+onboarding drift (krok 4 + markStepDone jsonb) opraven jako navazující nález.
