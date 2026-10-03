@@ -16,7 +16,7 @@ Infrastruktura jako v kole 3 (viz PROGRESS_R3.md). Výstupy: logs/r4/.
 | 3b RLS politiky true | HOTOVO (+ převod vstupenky 4fea477) | |
 | 3c veřejný e-mail organizátora | HOTOVO 133dfc2 | |
 | 3d restwert | HOTOVO d235d8d | |
-| 3e exchange | čeká | |
+| 3e exchange | HOTOVO caad0e0 | |
 | 3f upgrade-options 500 | čeká | |
 | 3g mobil /api/v1/buyer/orders | čeká | |
 | 3h QR tištěné vstupenky | čeká | |
