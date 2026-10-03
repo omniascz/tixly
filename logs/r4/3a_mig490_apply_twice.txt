@@ -1,0 +1,4 @@
+NOTICE:  policy "p_seat_upgrade_notifications_svc" for relation "orders.seat_upgrade_notifications" does not exist, skipping
+apply 1 exit=0
+NOTICE:  relation "seat_upgrade_notifications" already exists, skipping
+apply 2 exit=0
