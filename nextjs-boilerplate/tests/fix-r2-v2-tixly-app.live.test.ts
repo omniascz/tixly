@@ -150,9 +150,11 @@ run('Krok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut', () => {
     expect(await orderStatus(o.orderId)).toBe('paid');
     expect(await refundCalls()).toBe(0);
 
+    const remBefore = await remaining(o.ticketTypeId);
     const own = await throughMiddleware(req('POST', `/api/buyer/orders/${o.orderId}/refund`, o.ownerToken, { reason: 'kolo2 self-refund' }), h, ctx);
     expect(own.status, await own.clone().text()).toBe(200);
     expect(await orderStatus(o.orderId)).toBe('refunded');
+    expect(await remaining(o.ticketTypeId), 'kapacita vrácena (systémový efekt self-refundu)').toBe(remBefore + 1);
     expect(await ticketStatuses(o.orderId)).toEqual(['revoked']);
     expect(await refundCalls(), 'brána zavolána právě jednou').toBe(1);
   });

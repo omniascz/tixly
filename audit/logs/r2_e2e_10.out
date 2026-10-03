@@ -1,4 +1,4 @@
-# E2E 10_demo_paths  base=http://localhost:3200  2026-10-03T06:59:07.557Z
+# E2E 10_demo_paths  base=http://localhost:3200  2026-10-03T08:33:28.245Z
 PASS D1  UPGRADE: neprihlaseny (jen ownerEmail+ticketId) upgradne lístek na dražší typ, vznikne paid objednávka a lístek zdraží — BEZ platby
        {"status":404,"body":"{\"error\":\"NOT_FOUND\"}","ticketTypeNow":{"name":"Stani","base_price":50000},"upgradeOrder":null,"gopayCallsDelta":0}
 PASS D2  VOUCHER: bez auth checkout+confirm → voucher payment_status=paid s utratitelným zůstatkem, BEZ platby
@@ -6,13 +6,13 @@ PASS D2  VOUCHER: bez auth checkout+confirm → voucher payment_status=paid s ut
 FAIL D3a  SUBSCRIPTION: oficiální checkout /api/subscriptions/checkout funguje (n-preduskuje mock confirm)
        {"checkoutStatus":500,"body":"{\"error\":\"INTERNAL\"}"}
 PASS D3b  SUBSCRIPTION: bez auth confirm (holder seedován) → holder active/paid a vystaveny vstupenky (fixed abo), BEZ platby
-       {"confirmStatus":404,"confirmBody":"{\"error\":\"NOT_FOUND\"}","holder":{"id":"0a6acda0-1d37-4b3c-bbf4-924d2c6fffc0","status":"pending_payment","payment_status":"pending"},"ticketsIssued":0,"gopayCallsDelta":0}
+       {"confirmStatus":404,"confirmBody":"{\"error\":\"NOT_FOUND\"}","holder":{"id":"2b250a0b-944c-44f3-860f-6e6fd9126bc0","status":"pending_payment","payment_status":"pending"},"ticketsIssued":0,"gopayCallsDelta":0}
 PASS D4  RESALE: guest (jen buyerEmail) převezme aktivní listing → nový valid lístek + paid objednávka, listing sold, BEZ platby
-       {"listReqStatus":201,"listingId":"faa9aa5f-df6b-4f38-b1f2-d4c666124d5a","buyStatus":404,"newTicket":null,"listing":{"status":"active"},"gopayCallsDelta":0}
+       {"listReqStatus":201,"listingId":"d543bd55-ff70-4a61-96a3-c17ef7158473","buyStatus":404,"newTicket":null,"listing":{"status":"active"},"gopayCallsDelta":0}
 PASS D5  KIOSK: nepřihlášený POST /api/kiosk/order -> 401 a žádná objednávka
        {"status":401,"body":"{\"error\":{\"code\":\"TOKEN_MISSING\",\"message\":\"Authorization required\"}}","ordersInDb":[]}
 PASS D6  KIOSK: nepřihlášený POST s podvrženým x-user-id existující obsluhy -> 401 a žádná objednávka
-       {"staffUserId":"377087f7-8143-49c4-b08f-1eac7adae045","status":401,"body":"{\"error\":{\"code\":\"TOKEN_MISSING\",\"message\":\"Authorization required\"}}","ordersInDb":[]}
+       {"staffUserId":"27444505-b0b5-48d5-b447-3f08fb50ee72","status":401,"body":"{\"error\":{\"code\":\"TOKEN_MISSING\",\"message\":\"Authorization required\"}}","ordersInDb":[]}
 
 # SUMMARY {"PASS":6,"FAIL":1,"INFO":0}
   FAIL D3a SUBSCRIPTION: oficiální checkout /api/subscriptions/checkout funguje (n-preduskuje mock confirm)

@@ -1,6 +1,6 @@
-# E2E 12_cron_expire_probe  base=http://localhost:3200  2026-10-03T06:59:11.079Z
+# E2E 12_cron_expire_probe  base=http://localhost:3200  2026-10-03T08:33:45.474Z
 PASS E0  priprava: 8 GA objednavek (16 ks) + 1 sedadlova (2 sedadla) pending
-       {"orders":9,"gaRemaining":4,"seatHold":{"status":200,"body":"{\"holdToken\":\"8924baa4-9669-4b86-9a04-68af24d0d28a\",\"seatIds\":[\"9bd50d7e-41ff-47f6-859d-9257daec5c59\",\"78661b58-a61a-4861-a069-dfd24e775f3a\"],\"expiresAt\":\"2026-10-03T07:14:17.557Z\"}"},"seatCheckout":{"status":200,"body":"{\"orderId\":\"79525694-dfca-4b56-8b43-93237241561e\",\"paymentId\":\"3000000056\",\"gatewayUrl\":\"http…
+       {"orders":9,"gaRemaining":4,"seatHold":{"status":200,"body":"{\"holdToken\":\"6f3335df-5bda-4dfd-8c9c-e23b13efd71e\",\"seatIds\":[\"eca46075-ef6e-4626-9c76-8a1e8ba457bf\",\"dbca62f9-d222-4ad6-b67f-586b8f7f12c0\"],\"expiresAt\":\"2026-10-03T08:48:57.795Z\"}"},"seatCheckout":{"status":200,"body":"{\"orderId\":\"e8c88dc2-9c9a-4c84-a944-d07f83ee5b84\",\"paymentId\":\"3012120592\",\"gatewayUrl\":\"http…
 PASS E1  cron expire-pending-orders -> HTTP 200 (ne 500 / 42703)
        {"status":200,"body":"{\"ok\":true,\"expiredCount\":9,\"seatsReleased\":2}"}
 PASS E2  vsech 9 proslych objednavek -> expired

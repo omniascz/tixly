@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 import { z } from 'zod';
 
@@ -194,7 +194,9 @@ export async function POST(
         return NextResponse.json({ error: 'TARGET_EVENT_PAST' }, { status: 409 });
       }
 
-      const targetTtRes = await client.query<{
+      // Kolo 2 / V8: kapacita a sedadla cílové akce = systémový efekt výměny (kupec je
+      // měnit ani zamykat nesmí); vstupenka je výše ověřena jako kupcova (FOR UPDATE OF t).
+      const targetTtRes = await asSystemInTx(client, () => client.query<{
         id: string;
         remaining_qty: number;
       }>(
@@ -206,7 +208,7 @@ export async function POST(
           LIMIT 1
             FOR UPDATE`,
         [parsed.data.targetEventId],
-      );
+      ));
 
       if (targetTtRes.rows.length === 0) {
         await client.query('ROLLBACK');
@@ -218,7 +220,7 @@ export async function POST(
       let newSeatInfo: string | null = null;
 
       if (parsed.data.targetSeatId) {
-        const seatRes = await client.query<{
+        const seatRes = await asSystemInTx(client, () => client.query<{
           id: string;
           status: string;
           row_label: string | null;
@@ -229,7 +231,7 @@ export async function POST(
             WHERE id = $1 AND event_id = $2
               FOR UPDATE`,
           [parsed.data.targetSeatId, parsed.data.targetEventId],
-        );
+        ));
         if (seatRes.rows.length === 0 || seatRes.rows[0].status !== 'available') {
           await client.query('ROLLBACK');
           return NextResponse.json({ error: 'SEAT_NOT_AVAILABLE' }, { status: 409 });
@@ -238,7 +240,7 @@ export async function POST(
         const s = seatRes.rows[0];
         newSeatInfo = s.row_label && s.seat_num ? `${s.row_label}${s.seat_num}` : null;
       } else {
-        const autoSeatRes = await client.query<{
+        const autoSeatRes = await asSystemInTx(client, () => client.query<{
           id: string;
           row_label: string | null;
           seat_num: string | null;
@@ -250,7 +252,7 @@ export async function POST(
             LIMIT 1
               FOR UPDATE`,
           [parsed.data.targetEventId],
-        );
+        ));
         if (autoSeatRes.rows.length > 0) {
           newSeatId = autoSeatRes.rows[0].id;
           const s = autoSeatRes.rows[0];
@@ -259,22 +261,22 @@ export async function POST(
       }
 
       if (ticket.event_seat_id) {
-        await client.query(
+        await asSystemInTx(client, () => client.query(
           `UPDATE catalog.event_seats
               SET status = 'available', order_id = NULL, ticket_id = NULL,
                   hold_user_id = NULL, hold_until = NULL, updated_at = NOW()
             WHERE id = $1`,
           [ticket.event_seat_id],
-        );
+        ));
       }
 
       if (newSeatId) {
-        await client.query(
+        await asSystemInTx(client, () => client.query(
           `UPDATE catalog.event_seats
               SET status = 'sold', ticket_id = $1, updated_at = NOW()
             WHERE id = $2`,
           [ticket.id, newSeatId],
-        );
+        ));
       }
 
       await client.query(
@@ -291,24 +293,24 @@ export async function POST(
         [parsed.data.targetEventId, ticket.order_id],
       );
 
-      await client.query(
+      await asSystemInTx(client, () => client.query(
         `UPDATE catalog.ticket_types
             SET remaining_qty = remaining_qty - 1
           WHERE id = $1`,
         [targetTt.id],
-      );
+      ));
 
-      const sourceTtRes = await client.query<{ id: string }>(
+      const sourceTtRes = await asSystemInTx(client, () => client.query<{ id: string }>(
         `SELECT id FROM catalog.ticket_types WHERE event_id = $1 AND id = $2`,
         [ticket.event_id, ticket.ticket_type_id],
-      );
+      ));
       if (sourceTtRes.rows.length > 0) {
-        await client.query(
+        await asSystemInTx(client, () => client.query(
           `UPDATE catalog.ticket_types
               SET remaining_qty = remaining_qty + 1
             WHERE id = $1`,
           [ticket.ticket_type_id],
-        );
+        ));
       }
 
       await client.query('COMMIT');

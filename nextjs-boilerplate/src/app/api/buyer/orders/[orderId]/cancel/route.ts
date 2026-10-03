@@ -15,7 +15,7 @@
  *   7. Zneplatni tickety (status = 'revoked')
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 import { z } from 'zod';
 
@@ -60,7 +60,7 @@ export async function POST(
          FROM orders.orders o
          JOIN catalog.events e ON e.id = o.event_id
         WHERE o.id = $1
-          FOR UPDATE`,
+          FOR UPDATE OF o`,
       [params.orderId],
     );
 
@@ -122,8 +122,9 @@ export async function POST(
       [params.orderId],
     );
 
-    // Free up ticket_type stock
-    await client.query(
+    // Free up ticket_type stock — systémový efekt (kapacitu kupec měnit nesmí, kolo 2 / V8);
+    // objednávka je výše ověřena jako kupcova pod jeho RLS kontextem.
+    await asSystemInTx(client, () => client.query(
       `UPDATE catalog.ticket_types tt
           SET remaining_qty = remaining_qty + (
             SELECT COUNT(*) FROM tickets.tickets
@@ -132,7 +133,7 @@ export async function POST(
         WHERE EXISTS (SELECT 1 FROM tickets.tickets
                        WHERE order_id = $1 AND ticket_type_id = tt.id)`,
       [params.orderId],
-    );
+    ));
 
     // Refund request pokud nějaký.
     // POZOR: žádný .catch() tady — refund_request NENÍ best-effort. Když selže,

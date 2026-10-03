@@ -43,7 +43,10 @@ check('X5', `[${label}] cron release-expired-seat-holds`, r.status === 200, ev(r
 
 r = await buyer.get('/api/buyer/orders');
 check('X6', `[${label}] kupec vidi seznam svych objednavek`, r.status === 200, { status: r.status, body: (r.text ?? '').slice(0, 160) });
-r = await buyer.get(`/api/buyer/orders/${A.orderId}/invoice`);
+// kolo 2: X7 na VLASTNÍ zaplacené objednávce — A je po X3 stornovaná (storno pod tixly_app
+// dřív padalo, proto X7 „náhodou" běžel na zaplacené objednávce).
+const A7 = await buy(1);
+r = await buyer.get(`/api/buyer/orders/${A7.orderId}/invoice`);
 check('X7', `[${label}] doklad/faktura k objednavce (kupec)`, r.status === 200, { status: r.status, ct: r.headers.get('content-type'), head: r.text.slice(0, 120) });
 r = await PA.get('/api/admin/orders');
 check('X8', `[${label}] poradatel: seznam objednavek`, r.status === 200 && JSON.stringify(r.json).includes(A.orderId), { status: r.status, body: (r.text ?? '').slice(0, 160) });

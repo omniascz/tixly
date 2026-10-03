@@ -17,7 +17,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 import { executeOrderRefund } from '@/lib/payment/refund-order';
 import { z } from 'zod';
@@ -222,37 +222,38 @@ export async function POST(
       orderId: params.orderId,
       amountHalire: netRefundHalire,               // kupci se vrací net (fee zůstává)
       finalStatus: remainingValid === 0 ? 'refunded' : 'paid',
+      // Kapacita a sedadla = systémový efekt (kupec je měnit nesmí, kolo 2 / V8) → asSystemInTx.
       applyEffects: async (c) => {
         if (isPartial) {
           await c.query(
             `UPDATE tickets.tickets SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
               WHERE id = ANY($1::uuid[]) AND status = 'valid'`, [revokedTicketIds]);
-          await c.query(
+          await asSystemInTx(c, () => c.query(
             `UPDATE catalog.ticket_types tt SET remaining_qty = remaining_qty + sub.qty
                FROM (SELECT ticket_type_id, COUNT(*)::int AS qty FROM tickets.tickets
                       WHERE id = ANY($1::uuid[]) GROUP BY ticket_type_id) sub
-              WHERE tt.id = sub.ticket_type_id`, [revokedTicketIds]);
-          await c.query(
+              WHERE tt.id = sub.ticket_type_id`, [revokedTicketIds]));
+          await asSystemInTx(c, () => c.query(
             `UPDATE catalog.event_seats SET status='available', order_id=NULL, ticket_id=NULL,
                     hold_user_id=NULL, hold_until=NULL, updated_at=NOW()
               WHERE ticket_id = ANY($1::uuid[])
                  OR id IN (SELECT seat_id FROM tickets.tickets WHERE id = ANY($1::uuid[]) AND seat_id IS NOT NULL)`,
-            [revokedTicketIds]);
+            [revokedTicketIds]));
         } else {
           await c.query(
             `UPDATE tickets.tickets SET status='revoked', revoked_at=NOW(), updated_at=NOW()
               WHERE order_id = $1 AND status <> 'revoked'`, [params.orderId]);
-          await c.query(
+          await asSystemInTx(c, () => c.query(
             `UPDATE catalog.ticket_types tt SET remaining_qty = remaining_qty + sub.qty
                FROM (SELECT ticket_type_id, SUM(quantity) AS qty FROM orders.order_items
                       WHERE order_id = $1 GROUP BY ticket_type_id) sub
-              WHERE tt.id = sub.ticket_type_id`, [params.orderId]);
-          await c.query(
+              WHERE tt.id = sub.ticket_type_id`, [params.orderId]));
+          await asSystemInTx(c, () => c.query(
             `UPDATE catalog.event_seats SET status='available', order_id=NULL, ticket_id=NULL,
                     hold_user_id=NULL, hold_until=NULL, updated_at=NOW()
               WHERE order_id = $1
                  OR id IN (SELECT seat_id FROM orders.order_items WHERE order_id = $1 AND seat_id IS NOT NULL)`,
-            [params.orderId]);
+            [params.orderId]));
         }
       },
       audit: async (c) => {

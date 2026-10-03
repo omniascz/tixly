@@ -149,6 +149,31 @@ export function runWithServiceContext<T>(callback: () => Promise<T>): Promise<T>
 }
 
 /**
+ * Kolo 2 / V8: systémový vedlejší efekt akce kupce UVNITŘ jeho transakce.
+ *
+ * Politiky kupci záměrně nedovolí měnit kapacitu (`catalog.ticket_types`), sedadla
+ * (`catalog.event_seats`) ani vkládat objednávky/vstupenky — to smí jen pořadatel, admin
+ * a systém. Některé akce kupce ale systémový efekt nutně mají (storno vrací kapacitu,
+ * rezervace drží sedadlo). Ty běží přes tento helper: na dobu `fn` přepne `app.role`
+ * na 'system' JEN v rámci aktuální transakce (`set_config(..., true)`) a pak ji vrátí.
+ *
+ * Pravidla použití: `client` MUSÍ být uvnitř `BEGIN`; vlastnictví/oprávnění kupce se
+ * ověří DŘÍV pod jeho RLS kontextem; `fn` obsahuje jen konkrétní systémové příkazy
+ * odvozené z ověřených dat (ne obecné dotazy).
+ */
+export async function asSystemInTx<T>(client: PoolClient, fn: () => Promise<T>): Promise<T> {
+  const prev = (await client.query<{ r: string | null }>(`SELECT current_setting('app.role', true) AS r`)).rows[0]?.r ?? '';
+  await client.query(`SELECT set_config('app.role', 'system', true)`);
+  try {
+    return await fn();
+  } finally {
+    // Při chybě v `fn` je transakce abortovaná a příkaz selže — volající stejně dělá ROLLBACK,
+    // který lokální nastavení zahodí; původní chybu nepřebíjíme.
+    await client.query(`SELECT set_config('app.role', $1, true)`, [prev]).catch(() => undefined);
+  }
+}
+
+/**
  * Wrap async callback s buyer (user) contextem — pro orders/tickets RLS,
  * které isolují přes app.current_user_id. Volitelný `role` ('service'/'gate').
  */

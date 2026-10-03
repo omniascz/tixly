@@ -24,10 +24,11 @@ if (r.json?.orderId) {
 }
 
 // ---------- K2: dalsi neautentizovane potvrzovaci endpointy ----------
+// kolo 2: 404 = cesta vypnuta opravou K1 (demo-path-guard) — také odmitnuti.
 r = await anon().post('/api/vouchers/holders/nonexistent-payment/confirm', { action: 'pay' });
-check('K2a', '/api/vouchers/holders/[paymentId]/confirm bez autentizace: endpoint je dosazitelny v produkcnim rezimu (neni 401/403)', r.status === 401 || r.status === 403, ev(r));
+check('K2a', '/api/vouchers/holders/[paymentId]/confirm bez autentizace: endpoint je dosazitelny v produkcnim rezimu (neni 401/403/404)', [401, 403, 404].includes(r.status), ev(r));
 r = await anon().post('/api/subscriptions/holders/nonexistent-payment/confirm', { action: 'pay' });
-check('K2b', '/api/subscriptions/holders/[paymentId]/confirm bez autentizace: dosazitelny v produkcnim rezimu (neni 401/403)', r.status === 401 || r.status === 403, ev(r));
+check('K2b', '/api/subscriptions/holders/[paymentId]/confirm bez autentizace: dosazitelny v produkcnim rezimu (neni 401/403/404)', [401, 403, 404].includes(r.status), ev(r));
 r = await anon().post(`/api/mock-gopay/${S.pids.pid3}`, { action: 'pay' });
 const o3 = (await q(`SELECT status FROM orders.orders WHERE id=$1`, [S.orders.o3]))[0].status;
 check('K2c', 'mock platebni brana je v produkcnim rezimu zablokovana (403) a objednavku neoznaci paid', r.status === 403 && o3 === 'pending', { ...ev(r), orderStatus: o3 });

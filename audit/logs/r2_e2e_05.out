@@ -1,6 +1,6 @@
-# E2E 05_concurrency  base=http://localhost:3200  2026-10-03T07:40:16.166Z
+# E2E 05_concurrency  base=http://localhost:3200  2026-10-03T08:32:34.290Z
 PASS C1a  100 soubeznych nakupu na 10 mist: uspelo prave 10, zadny preprodej
-       {"ms":5316,"responses":{"200:OK":10,"409:Insufficient inventory (remaining: 0)":88,"409:Insufficient inventory":2},"remaining_qty":0,"dbOrders":[{"status":"pending","n":10,"qty":10}]}
+       {"ms":2927,"responses":{"200:OK":10,"409:Insufficient inventory":3,"409:Insufficient inventory (remaining: 0)":87},"remaining_qty":0,"dbOrders":[{"status":"pending","n":10,"qty":10}]}
 PASS C1b  remaining_qty nikdy zaporne; neuspesne pozadavky dostaly cistou odpoved (409), ne 500
        {"http5xx":0,"sample5xx":[]}
 PASS C2a  50 soubeznych volani (30 webhooku + 20 order-completed) na 10 objednavek: prave 10 vstupenek, 1 na objednavku

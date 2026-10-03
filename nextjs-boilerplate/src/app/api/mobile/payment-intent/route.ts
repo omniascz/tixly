@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { runAsUser } from '@/lib/auth';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -59,8 +59,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     try {
       await client.query('BEGIN');
 
-      // Uzamkneme ticket_type a zkontrolujeme dostupnost
-      const ttRes = await client.query<{
+      // Uzamkneme ticket_type a zkontrolujeme dostupnost.
+      // Kolo 2 / V8: zámek/snížení kapacity a vznik objednávky jsou systémové operace
+      // (jako checkout v servisním kontextu) — kupec je pod RLS sám provést nesmí.
+      const ttRes = await asSystemInTx(client, () => client.query<{
         id: string; base_price: number; currency: string; remaining_qty: number;
       }>(
         `SELECT tt.id, tt.base_price, e.currency, tt.remaining_qty
@@ -69,7 +71,7 @@ export async function POST(req: NextRequest): Promise<Response> {
          WHERE tt.id = $1 AND tt.event_id = $2 AND e.status = 'published'
          FOR UPDATE OF tt`,
         [ticketTypeId, eventId],
-      );
+      ));
       if (!ttRes.rows[0]) {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
@@ -83,26 +85,26 @@ export async function POST(req: NextRequest): Promise<Response> {
       const totalAmount = tt.base_price * qty;
 
       // Snížení inventáře
-      await client.query(
+      await asSystemInTx(client, () => client.query(
         `UPDATE catalog.ticket_types SET remaining_qty = remaining_qty - $1 WHERE id = $2`,
         [qty, ticketTypeId],
-      );
+      ));
 
       // Vytvoření pending objednávky (expires za 30 min — cron vrátí inventář)
-      const orderRes = await client.query<{ id: string }>(
+      const orderRes = await asSystemInTx(client, () => client.query<{ id: string }>(
         `INSERT INTO orders.orders
            (user_id, event_id, status, total_amount, currency, payment_provider, expires_at)
          VALUES ($1, $2, 'pending', $3, $4, 'stripe', NOW() + INTERVAL '30 minutes')
          RETURNING id`,
         [userId, eventId, totalAmount, tt.currency],
-      );
+      ));
       const orderId = orderRes.rows[0].id;
 
-      await client.query(
+      await asSystemInTx(client, () => client.query(
         `INSERT INTO orders.order_items (order_id, ticket_type_id, quantity, unit_price, total_price)
          VALUES ($1, $2, $3, $4, $5)`,
         [orderId, ticketTypeId, qty, tt.base_price, totalAmount],
-      );
+      ));
 
       // Stripe PaymentIntent — bez redirect-based metod (nativní sheet)
       const pi = await stripePost<{ id: string; client_secret: string }>(

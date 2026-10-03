@@ -1,0 +1,97 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r2-v8-rls-write.live.test.ts [2m ([22m[2m5 tests[22m [2m|[22m [31m4 failed[39m[2m)[22m[33m 1873[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r2-v8-rls-write.live.test.ts[2m > [22mKrok 3A — V8: zápis a čtení cizího tenanta pod tixly_app odepřen[2m > [22makce B: UPDATE / DELETE / INSERT za tenanta B odepřeno[39m
+[31m     → promotér A UPDATE events: expected 1 to satisfy [Function denied][39m
+[31m   [33m❯[31m tests/fix-r2-v8-rls-write.live.test.ts[2m > [22mKrok 3A — V8: zápis a čtení cizího tenanta pod tixly_app odepřen[2m > [22mceny B: UPDATE ticket_types / INSERT typu do akce B / sedadla odepřeno[39m
+[31m     → promotér A UPDATE price: expected 1 to satisfy [Function denied][39m
+[31m   [33m❯[31m tests/fix-r2-v8-rls-write.live.test.ts[2m > [22mKrok 3A — V8: zápis a čtení cizího tenanta pod tixly_app odepřen[2m > [22mpromo kódy B: čtení i zápis odepřen[39m
+[31m     → promotér A SELECT promo: expected 1 to satisfy [Function denied][39m
+[31m   [33m❯[31m tests/fix-r2-v8-rls-write.live.test.ts[2m > [22mKrok 3A — V8: zápis a čtení cizího tenanta pod tixly_app odepřen[2m > [22mobjednávky a vstupenky na akci B: čtení, změna, vložení odepřeno[39m
+[31m     → kupec A INSERT paid order do akce B: expected 1 to satisfy [Function denied][39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 4 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-v8-rls-write.live.test.ts[2m > [22mKrok 3A — V8: zápis a čtení cizího tenanta pod tixly_app odepřen[2m > [22makce B: UPDATE / DELETE / INSERT za tenanta B odepřeno
+[31m[1mAssertionError[22m: promotér A UPDATE events: expected 1 to satisfy [Function denied][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/fix-r2-v8-rls-write.live.test.ts:[2m84:122[22m[39m
+    [90m 82| [39m  [34mit[39m([32m'akce B: UPDATE / DELETE / INSERT za tenanta B odepřeno'[39m[33m,[39m [35masync[39m (…
+    [90m 83| [39m    [35mfor[39m ([35mconst[39m c [35mof[39m [34mctxs[39m()) {
+    [90m 84| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`UPDATE catalog.events SET title='HACK' WHERE[39m…
+    [90m   | [39m                                                                                                                         [31m^[39m
+    [90m 85| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`DELETE FROM catalog.events WHERE id=$1`[39m[33m,[39m [[33mB[39m[33m.[39m…
+    [90m 86| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`INSERT INTO catalog.events (organizer_id, pr[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-v8-rls-write.live.test.ts[2m > [22mKrok 3A — V8: zápis a čtení cizího tenanta pod tixly_app odepřen[2m > [22mceny B: UPDATE ticket_types / INSERT typu do akce B / sedadla odepřeno
+[31m[1mAssertionError[22m: promotér A UPDATE price: expected 1 to satisfy [Function denied][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/fix-r2-v8-rls-write.live.test.ts:[2m94:132[22m[39m
+    [90m 92| [39m  [34mit[39m([32m'ceny B: UPDATE ticket_types / INSERT typu do akce B / sedadla od[39m…
+    [90m 93| [39m    [35mfor[39m ([35mconst[39m c [35mof[39m [34mctxs[39m()) {
+    [90m 94| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`UPDATE catalog.ticket_types SET base_price=1[39m…
+    [90m   | [39m                                                                                                                                   [31m^[39m
+    [90m 95| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`INSERT INTO catalog.ticket_types (event_id, [39m…
+    [90m 96| [39m                          VALUES ($1,'HACK','standing',1,100,100,'publ…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-v8-rls-write.live.test.ts[2m > [22mKrok 3A — V8: zápis a čtení cizího tenanta pod tixly_app odepřen[2m > [22mpromo kódy B: čtení i zápis odepřen
+[31m[1mAssertionError[22m: promotér A SELECT promo: expected 1 to satisfy [Function denied][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/fix-r2-v8-rls-write.live.test.ts:[2m104:118[22m[39m
+    [90m102| [39m  [34mit[39m([32m'promo kódy B: čtení i zápis odepřen'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m103| [39m    [35mfor[39m ([35mconst[39m c [35mof[39m [34mctxs[39m()) {
+    [90m104| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`SELECT 1 FROM marketing.promo_codes WHERE id[39m…
+    [90m   | [39m                                                                                                                     [31m^[39m
+    [90m105| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`UPDATE marketing.promo_codes SET discount_va[39m…
+    [90m106| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`DELETE FROM marketing.promo_codes WHERE id=$[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-v8-rls-write.live.test.ts[2m > [22mKrok 3A — V8: zápis a čtení cizího tenanta pod tixly_app odepřen[2m > [22mobjednávky a vstupenky na akci B: čtení, změna, vložení odepřeno
+[31m[1mAssertionError[22m: kupec A INSERT paid order do akce B: expected 1 to satisfy [Function denied][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/fix-r2-v8-rls-write.live.test.ts:[2m120:148[22m[39m
+    [90m118| [39m      [90m// vložení objednávky do akce B (kupec A ji vkládá „sám sobě")[39m
+    [90m119| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`INSERT INTO orders.orders (user_id, event_id[39m…
+    [90m120| [39m                          VALUES ($1,$2,'paid',0,'CZK',now()+interval …
+    [90m   | [39m                                                                                                                                                   [31m^[39m
+    [90m121| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`INSERT INTO orders.order_items (order_id, ti[39m…
+    [90m122| [39m        [[33mB[39m[33m.[39morderId[33m,[39m [33mB[39m[33m.[39mticketTypeId])[33m,[39m [32m`[39m[36m${[39mc[33m.[39mlabel[36m}[39m[32m INSERT order_item do[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (5)[39m
+[2m   Start at [22m 10:06:36
+[2m   Duration [22m 3.50s[2m (transform 315ms, setup 0ms, collect 525ms, tests 1.87s, environment 1ms, prepare 610ms)[22m
+

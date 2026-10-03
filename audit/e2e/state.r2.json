@@ -1,50 +1,51 @@
 {
-  "run": "mus32178",
+  "run": "mus4u8tf",
   "pw": "Audit2026!x",
-  "buyerEmail": "buyer-mus32178@audit.test",
-  "buyerId": "a8e88ea3-9228-49d3-a890-49b9d6dd22e3",
-  "adminEmail": "padmin-mus32178@audit.test",
+  "buyerEmail": "buyer-mus4u8tf@audit.test",
+  "buyerId": "f9bacebf-6b38-48d8-9587-58227ff44566",
+  "adminEmail": "padmin-mus4u8tf@audit.test",
   "promoterA": {
-    "email": "promoter-a-mus32178@audit.test",
-    "id": "620d0a4c-d7d1-4455-9af4-677724b77538"
+    "email": "promoter-a-mus4u8tf@audit.test",
+    "id": "053693dc-0059-4612-a68c-950ad60ab506"
   },
   "promoterB": {
-    "email": "promoter-b-mus32178@audit.test",
-    "id": "4521ed81-9ccf-4637-bc21-b6f61b14a447"
+    "email": "promoter-b-mus4u8tf@audit.test",
+    "id": "70b6f2c7-b353-4fae-943f-9bd97a78631b"
   },
-  "venueId": "e6cc5b7d-9d7a-4c99-9a0c-de6761b10b07",
-  "eventA": "a7bab2a3-4f44-4654-9356-ea6f49ad1279",
+  "venueId": "6b27ba05-5039-435e-ba6d-1a782d8c2a99",
+  "eventA": "7e46dcb0-1470-4dc9-a6d6-7a217c3295ed",
   "tt": {
-    "Stani": "5d8c42c3-7aa3-46db-b952-e299bed48b73",
-    "Posledni mista": "7e3e5ea1-67e3-471f-9f22-31b0c0e5516f",
-    "Limit 2 na osobu": "9d57e143-a2c2-4836-b3ee-2f6c2e8b43c3",
-    "Zdarma": "186b86ee-d642-4689-b91a-e05ff1dc8d4d"
+    "Stani": "91be67d7-6344-4dd0-b00c-ed6e7f71597d",
+    "Posledni mista": "2f5b20ca-689a-467f-a933-b3a22d9beede",
+    "Limit 2 na osobu": "cca5cc2f-c8a3-4b27-bf7a-fb7bd9087895",
+    "Zdarma": "183cc0cc-8534-461d-bc66-bd646e05013c"
   },
-  "eventB": "c91c63c9-dc83-4bc3-9587-32bc2cca76cb",
-  "ttB": "0ec9c5b0-f5fa-4f0b-be20-2c2afad40353",
+  "eventB": "37d39ee1-a428-4a37-9be9-2d28b8b06c76",
+  "ttB": "21ff630e-1a6c-46d6-87e0-14c07bbf12a2",
   "eventStatusA": "pending_review",
   "eventStatusB": "pending_review",
-  "promo": "AUDIT20MUS32178",
-  "otherEmail": "other-mus32178@audit.test",
-  "guestEmail": "guest-mus32178@audit.test",
-  "guestOrder": "d38c3acf-e9d5-4149-a294-68c0f35d1500",
+  "promo": "AUDIT20MUS4U8TF",
+  "otherEmail": "other-mus4u8tf@audit.test",
+  "guestEmail": "guest-mus4u8tf@audit.test",
+  "guestOrder": "db3165a2-5b6f-4394-b430-a439c5b4100a",
   "lastSeatsOrders": [
-    "26049a1a-e902-4c68-9856-766f93089420",
-    "375ecdc1-3abc-4996-9429-14bc52923ef1"
+    "21188e87-11fe-44fa-91c5-5cee95b669da",
+    "fc62c5f2-7344-49c1-a336-1eacfd55526f"
   ],
   "orders": {
-    "o1": "a406147a-760e-4a6e-b3fb-43ab93ebebd4",
-    "o2": "8c8970a1-cb3c-44c9-946b-28fcdfd1ef58",
-    "o3": "be7b9b63-1423-4820-a756-206e0c4c055e",
-    "o4": "d38c3acf-e9d5-4149-a294-68c0f35d1500",
-    "o5": "12e46a65-c951-41ad-8b26-35be60e4bb71",
-    "o6": "b22aec4c-7909-4d8c-9f19-e4b2ca28eb31"
+    "o1": "74c3be8c-131a-41e0-b4fb-b8559022dc36",
+    "o2": "541fcc2b-6332-4f3e-925b-9c08eb0516ab",
+    "o3": "3fede519-3921-4254-b940-fb46face832f",
+    "o4": "db3165a2-5b6f-4394-b430-a439c5b4100a",
+    "o5": "d4c93df4-1d98-4bd3-afa1-4a59433e362c",
+    "o6": "fd4dc766-7935-4b81-b8bb-fe79bd9cb4b2"
   },
   "pids": {
-    "pid1": "3012120478",
-    "pid2": "3012120479",
-    "pid3": "3012120480",
-    "pid4": "3012120481",
-    "pid6": "3012120488"
-  }
+    "pid1": "3012120532",
+    "pid2": "3012120533",
+    "pid3": "3012120534",
+    "pid4": "3012120535",
+    "pid6": "3012120542"
+  },
+  "eventA2": "c7c2035a-1dd4-4bb1-a58c-49ce7c822fef"
 }

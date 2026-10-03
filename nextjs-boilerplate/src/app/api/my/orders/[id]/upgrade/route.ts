@@ -6,7 +6,7 @@
  * Vrací upgrade ID + payment URL (pokud je upgrade_fee > 0)
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db, runWithUserContext } from '@/lib/db/rls-pool';
+import { asSystemInTx, db, runWithUserContext } from '@/lib/db/rls-pool';
 
 export async function POST(
   req: NextRequest,
@@ -57,11 +57,13 @@ export async function POST(
       }
 
       // Get new ticket type price
-      const ttRes = await client.query<{ base_price: number; name: string }>(
+      // Kolo 2 / V8: zámek řádku kapacity je systémová operace (kupec ticket_types
+      // zamykat/měnit nesmí) — vlastnictví vstupenky ověřeno výše pod kontextem kupce.
+      const ttRes = await asSystemInTx(client, () => client.query<{ base_price: number; name: string }>(
         `SELECT base_price, name FROM catalog.ticket_types
           WHERE id=$1 AND event_id=$2 AND remaining_qty>0 FOR UPDATE`,
         [body.newTicketTypeId, ticket.event_id],
-      );
+      ));
       if (ttRes.rowCount === 0) {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'TICKET_TYPE_UNAVAILABLE' }, { status: 409 });
