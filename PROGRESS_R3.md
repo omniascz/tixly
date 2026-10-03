@@ -20,8 +20,8 @@ Při startu nové session: přečíst tento soubor a pokračovat prvním nehotov
 | 2 R5, R6, mobile rate limit, guard trigger, X7 | HOTOVO | f800b76 d58c3ef 799bfa0 b275ecf b110d66 b1c9b72 055b631 |
 | 3 54 eskalací | HOTOVO (ESKALACE_R3.md; test 17/17; unit 513/0; live 151/0) | db3bffe |
 | 4 K4d, K3a, K5, K8a, V9b | HOTOVO | 1e5c3da 9fdd575 bc5db9a 2043fbb 7f56371 |
-| 5 reseller print, admin/import, X6 | rozpracováno | |
-| Závěr + FIX_REPORT_R3 | čeká | |
+| 5 reseller print, admin/import, X6 | HOTOVO (X6 ověřit v auditu 04) | cae14fe 6510989 + X6 audit |
+| Závěr + FIX_REPORT_R3 | rozpracováno | |
 
 ## Krok 0 — výsledek (logs/r3/0_*)
 Před opravou: 05 C1a/C1b/C2a/C2c FAIL = REGRESE kola 2 (sloučení poolů v R-56 → deadlock vnořených výpůjček, 98/100 500).
@@ -51,3 +51,11 @@ P1, P5d, C2b, P13, V12, D3a PASS; C1a, C2a PASS.
 - K3a HOTOVO 9fdd575 (recompute + refresh-spotify CRON_SECRET; 2 fail-open opraveny; správné počty: 6× CRON_SECRET, 2× helper, 29× inline fail-closed = 37; commit msg má překlep 4/31)
 - K5 HOTOVO bc5db9a (CSRF; test 9/9; audit klient posílá Origin)
 - K8a HOTOVO 2043fbb; V9b HOTOVO 7f56371 (mobile-promoter netypováno — bez node_modules; vizuální kontrola skeneru v Závěru)
+
+## Krok 5 — průběh
+- reseller print HOTOVO cae14fe (API + token type reseller; QR pseudo-matice → report)
+- admin/import HOTOVO 6510989 (42501 identity.users + 23502 NOT NULL)
+- X6: žádný volající GET /api/buyer/orders → audit 04 X6 na /api/buyer/my-tickets; mobil volá neexistující /api/v1/buyer/orders → report
+
+## Závěr — plán
+typecheck → unit → live → build+start app → audit 01..12 (po jednom) → vizuální kontrola skeneru + tisku prodejce → FIX_REPORT_R3.md
