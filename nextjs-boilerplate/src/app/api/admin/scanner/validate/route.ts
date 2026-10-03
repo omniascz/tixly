@@ -18,6 +18,7 @@ import { z } from 'zod';
 import { decryptSecret } from '@/lib/crypto';
 import { verifyTotpCode } from '@/lib/totp/verify';
 import { parsePrintToken, verifyPrintTokenForEvent } from '@/lib/tickets/print-token';
+import { qrPolicyDecision } from '@/lib/scanner/qr-policy';
 
 
 const schema = z
@@ -160,37 +161,16 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
 
-    // QR policy enforcement (migrace 265):
-    //   static_allowed  → TOTP volitelný (offline/static QR funguje vždy)
-    //   rotating_24h    → TOTP volitelný DO 24h před akcí, pak POVINNÝ
-    //   rotating_only   → TOTP POVINNÝ vždy (jen mobile QR)
-    //   photo_required  → TOTP POVINNÝ + foto check ručně u brány
-    const qrPolicy = t.event_qr_policy ?? 'rotating_24h'; // kolo 2: výchozí = rotující TOTP
-    let totpRequired = qrPolicy === 'rotating_only' || qrPolicy === 'photo_required';
-    if (qrPolicy === 'rotating_24h' && t.event_date_start) {
-      const eventTimeMs = new Date(t.event_date_start).getTime();
-      const twentyFourHoursMs = 24 * 60 * 60 * 1000;
-      if (eventTimeMs - Date.now() <= twentyFourHoursMs) {
-        totpRequired = true;
-      }
-    }
-
-    // Kolo 4: tištěná vstupenka s podepsaným tokenem TXP2 (vázaným na tuto akci) TOTP mít
-    // nemůže; u static_allowed a rotating_24h ho nahrazuje. rotating_only / photo_required ne.
-    if (printVerifiedForEvent && (qrPolicy === 'static_allowed' || qrPolicy === 'rotating_24h')) {
-      totpRequired = false;
-    }
-
-    if (totpRequired && !parsed.data.totpCode) {
+    // QR policy enforcement (migrace 265) — rozhodnutí sdílí s průchodem (lib/scanner/qr-policy, kolo 5).
+    const qr = qrPolicyDecision({
+      qrPolicy: t.event_qr_policy,
+      eventDateStart: t.event_date_start,
+      printVerifiedForEvent,
+    });
+    if (qr.totpRequired && !parsed.data.totpCode) {
       await client.query('ROLLBACK');
-      const msg =
-        qrPolicy === 'photo_required'
-          ? 'Tento lístek vyžaduje rotující QR + fotokontrolu u brány. Použij mobilní vstupenku.'
-          : qrPolicy === 'rotating_24h'
-            ? 'Tato akce vyžaduje rotující QR od 24h před začátkem. PDF nestačí, použij mobilní vstupenku.'
-            : 'Tato akce vyžaduje rotující QR. Použij mobilní vstupenku, ne PDF.';
       return NextResponse.json(
-        { result: 'totp_required', qrPolicy, message: msg },
+        { result: 'totp_required', qrPolicy: qr.qrPolicy, message: qr.message },
         { status: 401 },
       );
     }

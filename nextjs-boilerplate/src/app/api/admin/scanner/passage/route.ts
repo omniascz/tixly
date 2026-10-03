@@ -15,7 +15,10 @@
  *   • brána může mít směr natvrdo
  *   • odpověď nese aktuální obsazenost
  *
- * Body: { ticketId, totpCode?, gateId? }
+ * Body: { ticketId | printToken, totpCode?, gateId? }
+ *
+ * Kolo 5: politika QR (rotující TOTP / tištěný TXP2) se vynucuje stejně jako ve validate —
+ * dřív průchod pustil holé UUID i tam, kde akce vyžaduje rotující QR (lib/scanner/qr-policy).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -30,15 +33,21 @@ import {
   type GateDirection,
   type PassageState,
 } from '@/lib/scanner/passage';
+import { qrPolicyDecision } from '@/lib/scanner/qr-policy';
+import { parsePrintToken, verifyPrintTokenForEvent } from '@/lib/tickets/print-token';
 import { verifyTotpCode } from '@/lib/totp/verify';
 
 export const dynamic = 'force-dynamic';
 
-const schema = z.object({
-  ticketId: z.string().regex(/^[0-9a-f-]{36}$/i),
-  totpCode: z.string().regex(/^\d{6}$/).optional(),
-  gateId: z.string().uuid().optional(),
-});
+const schema = z
+  .object({
+    ticketId: z.string().regex(/^[0-9a-f-]{36}$/i).optional(),
+    /** Tištěná vstupenka (TXP2 vázaný na akci) — skener ho posílá místo ticketId. */
+    printToken: z.string().min(8).max(80).optional(),
+    totpCode: z.string().regex(/^\d{6}$/).optional(),
+    gateId: z.string().uuid().optional(),
+  })
+  .refine((d) => d.ticketId || d.printToken, { message: 'ticketId nebo printToken je vyžadován' });
 
 interface TicketRow {
   id: string;
@@ -49,6 +58,8 @@ interface TicketRow {
   event_id: string;
   event_title: string;
   event_promoter_id: string;
+  event_qr_policy: string | null;
+  event_date_start: string | null;
   reentry_allowed: boolean;
   reentry_max: number;
   cooldown_seconds: number;
@@ -67,7 +78,20 @@ export async function POST(req: NextRequest): Promise<Response> {
     if (!parsed.success) {
       return NextResponse.json({ error: 'BAD_INPUT', issues: parsed.error.issues }, { status: 422 });
     }
-    const { ticketId, totpCode, gateId } = parsed.data;
+    const { totpCode, gateId } = parsed.data;
+    // Tištěná vstupenka: token se tady jen rozparsuje, podpis jde ověřit až proti akci z DB.
+    let ticketId = parsed.data.ticketId;
+    const printToken = !ticketId && parsed.data.printToken ? parsed.data.printToken : null;
+    if (printToken) {
+      const pt = parsePrintToken(printToken);
+      if (!pt) {
+        return NextResponse.json(
+          { result: 'invalid_token', message: 'Neplatný kód vstupenky (podpis nesedí).' },
+          { status: 401 },
+        );
+      }
+      ticketId = pt.ticketId;
+    }
 
     const client = await db().connect();
     try {
@@ -79,6 +103,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         `SELECT t.id, t.status, t.scan_count, t.currently_inside, t.totp_secret_encrypted,
                 t.holder_name,
                 e.id AS event_id, e.title AS event_title, e.promoter_id AS event_promoter_id,
+                e.qr_policy AS event_qr_policy, e.date_start AS event_date_start,
                 COALESCE(e.reentry_allowed, FALSE) AS reentry_allowed,
                 COALESCE(e.reentry_max_count, 3) AS reentry_max,
                 COALESCE(e.reentry_cooldown_seconds, 10) AS cooldown_seconds,
@@ -121,6 +146,31 @@ export async function POST(req: NextRequest): Promise<Response> {
       if (t.status !== 'valid') {
         await client.query('ROLLBACK');
         return NextResponse.json({ result: 'invalid_status', status: t.status }, { status: 409 });
+      }
+
+      let printVerifiedForEvent = false;
+      if (printToken) {
+        const pv = verifyPrintTokenForEvent(printToken, t.event_id);
+        if (!pv.ok) {
+          await client.query('ROLLBACK');
+          return NextResponse.json(
+            { result: 'invalid_token', message: 'Neplatný kód vstupenky (podpis nesedí).' },
+            { status: 401 },
+          );
+        }
+        printVerifiedForEvent = pv.scheme === 'TXP2';
+      }
+      const qr = qrPolicyDecision({
+        qrPolicy: t.event_qr_policy,
+        eventDateStart: t.event_date_start,
+        printVerifiedForEvent,
+      });
+      if (qr.totpRequired && !totpCode) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { result: 'totp_required', qrPolicy: qr.qrPolicy, message: qr.message },
+          { status: 401 },
+        );
       }
 
       if (totpCode) {

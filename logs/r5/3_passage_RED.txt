@@ -1,0 +1,76 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r5-passage-qr-policy.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[33m 540[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r5-passage-qr-policy.live.test.ts[2m > [22mKolo 5 — průchod (passage) dodržuje politiku QR jako validate[2m > [22mrotating_24h 1 h před akcí: holé UUID bez TOTP → 401 totp_required, vstupenka zůstane venku[39m
+[31m     → {"result":"admitted","direction":"entry","label":"VSTUP","feedback":{"tone":"in","vibrate":[100]},"scanEventId":"57f7b83f-9243-4cc4-9cfe-e54542b3c3ea","scanCount":1,"remainingEntries":2,"occupancy":1,"ticket":{"ticketId":"55f5cee7-901c-415b-bf29-d83dab903630","eventTitle":"Test Akce","ticketTypeName":"Standard","holderName":null,"holderEmail":"buyer-1791063506369-owq7c@tixly.test","seat":null}}: expected 200 to be 401 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r5-passage-qr-policy.live.test.ts[2m > [22mKolo 5 — průchod (passage) dodržuje politiku QR jako validate[2m > [22mtištěná vstupenka TXP2 této akce nahradí TOTP → 200 admitted[39m
+[31m     → {"error":"BAD_INPUT","issues":[{"code":"invalid_type","expected":"string","received":"undefined","path":["ticketId"],"message":"Required"}]}: expected 422 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r5-passage-qr-policy.live.test.ts[2m > [22mKolo 5 — průchod (passage) dodržuje politiku QR jako validate[2m > [22mpadělaný / cizí tiskový token → 401, vstupenka zůstane venku[39m
+[31m     → {"error":"BAD_INPUT","issues":[{"code":"invalid_type","expected":"string","received":"undefined","path":["ticketId"],"message":"Required"}]}: expected 422 to be 401 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r5-passage-qr-policy.live.test.ts[2m > [22mKolo 5 — průchod (passage) dodržuje politiku QR jako validate[2m > [22mrotating_24h 1 h před akcí: holé UUID bez TOTP → 401 totp_required, vstupenka zůstane venku
+[31m[1mAssertionError[22m: {"result":"admitted","direction":"entry","label":"VSTUP","feedback":{"tone":"in","vibrate":[100]},"scanEventId":"57f7b83f-9243-4cc4-9cfe-e54542b3c3ea","scanCount":1,"remainingEntries":2,"occupancy":1,"ticket":{"ticketId":"55f5cee7-901c-415b-bf29-d83dab903630","eventTitle":"Test Akce","ticketTypeName":"Standard","holderName":null,"holderEmail":"buyer-1791063506369-owq7c@tixly.test","seat":null}}: expected 200 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r5-passage-qr-policy.live.test.ts:[2m60:30[22m[39m
+    [90m 58| [39m    [34mexpect[39m(tickets[33m.[39mlength)[33m.[39m[34mtoBeGreaterThanOrEqual[39m([34m1[39m)[33m;[39m
+    [90m 59| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mpassage[39m({ ticketId[33m:[39m tickets[[34m0[39m] })[33m;[39m
+    [90m 60| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m 61| [39m    [34mexpect[39m(r[33m.[39mbody)[33m.[39m[34mtoMatch[39m([36m/totp_required/[39m)[33m;[39m
+    [90m 62| [39m    [34mexpect[39m([35mawait[39m [34minside[39m(tickets[[34m0[39m]))[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r5-passage-qr-policy.live.test.ts[2m > [22mKolo 5 — průchod (passage) dodržuje politiku QR jako validate[2m > [22mtištěná vstupenka TXP2 této akce nahradí TOTP → 200 admitted
+[31m[1mAssertionError[22m: {"error":"BAD_INPUT","issues":[{"code":"invalid_type","expected":"string","received":"undefined","path":["ticketId"],"message":"Required"}]}: expected 422 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 422[39m
+
+[36m [2m❯[22m tests/fix-r5-passage-qr-policy.live.test.ts:[2m68:30[22m[39m
+    [90m 66| [39m    [35mconst[39m { signEventPrintToken } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/lib/tickets/print-[39m…
+    [90m 67| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mpassage[39m({ printToken[33m:[39m [34msignEventPrintToken[39m(tickets[…
+    [90m 68| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m 69| [39m    [34mexpect[39m(r[33m.[39mbody)[33m.[39m[34mtoMatch[39m([36m/admitted/[39m)[33m;[39m
+    [90m 70| [39m    [34mexpect[39m([35mawait[39m [34minside[39m(tickets[[34m0[39m]))[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r5-passage-qr-policy.live.test.ts[2m > [22mKolo 5 — průchod (passage) dodržuje politiku QR jako validate[2m > [22mpadělaný / cizí tiskový token → 401, vstupenka zůstane venku
+[31m[1mAssertionError[22m: {"error":"BAD_INPUT","issues":[{"code":"invalid_type","expected":"string","received":"undefined","path":["ticketId"],"message":"Required"}]}: expected 422 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 422[39m
+
+[36m [2m❯[22m tests/fix-r5-passage-qr-policy.live.test.ts:[2m78:30[22m[39m
+    [90m 76| [39m    [35mconst[39m foreignEvent [33m=[39m [32m'00000000-0000-4000-8000-000000000001'[39m[33m;[39m
+    [90m 77| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mpassage[39m({ printToken[33m:[39m [34msignEventPrintToken[39m(other[33m,[39m f…
+    [90m 78| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m 79| [39m    [35mif[39m (tickets[[34m1[39m]) [34mexpect[39m([35mawait[39m [34minside[39m(tickets[[34m1[39m]))[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m 80| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (4)[39m
+[2m   Start at [22m 23:38:25
+[2m   Duration [22m 1.18s[2m (transform 158ms, setup 0ms, collect 112ms, tests 540ms, environment 0ms, prepare 109ms)[22m
+
