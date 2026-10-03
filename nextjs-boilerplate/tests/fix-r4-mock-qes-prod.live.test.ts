@@ -41,7 +41,7 @@ run('Krok 2 (kolo 4) — mock-qes je v produkci zablokované', () => {
     return throughMiddleware(new Request(`http://localhost/api/mock-qes/${reqId}`, {
       method, headers: method === 'POST' ? { 'content-type': 'application/json' } : {},
       body: method === 'POST' ? JSON.stringify({ action: 'sign' }) : undefined,
-    }), (mod as Record<string, H>)[method], { params: { requestId: reqId } });
+    }), (mod as unknown as Record<string, H>)[method], { params: { requestId: reqId } });
   };
 
   it('produkce: GET 403 bez dokumentu, POST 403 a žádost zůstane pending', async () => {

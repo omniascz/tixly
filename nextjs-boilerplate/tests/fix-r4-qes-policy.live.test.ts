@@ -44,7 +44,7 @@ run('Krok 2 (kolo 4) — qes_signing_requests pod tixly_app (migrace 489)', () =
 
   it('mock-qes mimo produkci: GET 200, POST sign → signed', async () => {
     env.NODE_ENV = 'development';
-    const mod = (await import('@/app/api/mock-qes/[requestId]/route')) as Record<string, H>;
+    const mod = (await import('@/app/api/mock-qes/[requestId]/route')) as unknown as Record<string, H>;
     const g = await throughMiddleware(new Request(`http://localhost/api/mock-qes/${reqId}`), mod.GET, { params: { requestId: reqId } });
     expect(g.status, await g.clone().text()).toBe(200);
     const p = await throughMiddleware(new Request(`http://localhost/api/mock-qes/${reqId}`, {
