@@ -5,12 +5,13 @@
  * Unique differentiator: neither Eventim nor Ticketmaster does this automatically.
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { isInternalTokenAuthorized } from '@/lib/security/cron-auth';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const token = req.headers.get('x-internal-token');
-  const expected = process.env.INTERNAL_SERVICE_TOKEN;
-  if (!token || (expected && token !== expected)) {
+  // Kolo 3 (K3a kontrola cron rout): dřív se při chybějícím env token neporovnával → bez
+  // INTERNAL_SERVICE_TOKEN v env prošel jakýkoli token. Fail-closed sdíleným helperem.
+  if (!isInternalTokenAuthorized(req)) {
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
   }
 

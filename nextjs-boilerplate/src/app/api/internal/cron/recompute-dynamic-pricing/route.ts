@@ -13,7 +13,8 @@
  *
  * Cap: 500 rules per run (chrání proti runaway).
  */
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
+import { isCronAuthorized } from '@/lib/security/cron-auth';
 import { db, runWithPlatformAdminContext } from '@/lib/db/rls-pool';
 import { computeDynamicPrice } from '@/lib/dynamic-pricing/compute';
 
@@ -74,9 +75,12 @@ async function runRecompute(): Promise<Response> {
 }
 
 // Vercel dispatcher POSTuje; manual test může GET.
-export async function POST(): Promise<Response> {
+export async function POST(req: NextRequest): Promise<Response> {
+  // FIX K3a: bez autorizace mohl kdokoli spouštět cron (přepis cen / tokenů).
+  if (!isCronAuthorized(req)) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
   return runRecompute();
 }
-export async function GET(): Promise<Response> {
+export async function GET(req: NextRequest): Promise<Response> {
+  if (!isCronAuthorized(req)) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
   return runRecompute();
 }

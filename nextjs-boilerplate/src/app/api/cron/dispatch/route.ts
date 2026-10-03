@@ -15,6 +15,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { isCronAuthorized } from '@/lib/security/cron-auth';
 
 // ── VYPNUTO (F6/F7) ─────────────────────────────────────────────────────────
 // 'seat-upgrade-notify'  — ZUSTAVA VYPNUTY. Premisa "chybi seat_assignments"
@@ -75,17 +76,10 @@ const ALLOWED_JOBS = new Set([
 
 export async function GET(req: NextRequest): Promise<Response> {
   // 1) Verify Vercel cron auth
-  const authHeader = req.headers.get('authorization') ?? '';
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const expected = `Bearer ${cronSecret}`;
-    if (authHeader !== expected) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-  } else {
-    // Kolo 2: bez CRON_SECRET fail-closed. Dřív stačila hlavička x-vercel-cron,
-    // kterou pošle kdokoli (middleware ji teď navíc zahazuje).
-    return NextResponse.json({ error: 'CRON_SECRET not configured' }, { status: 403 });
+  // Kolo 2: bez CRON_SECRET fail-closed (x-vercel-cron pošle kdokoli). Kolo 3: sdílený
+  // helper lib/security/cron-auth.ts (porovnání v konstantním čase).
+  if (!isCronAuthorized(req)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const job = req.nextUrl.searchParams.get('job');
@@ -103,6 +97,9 @@ export async function GET(req: NextRequest): Promise<Response> {
       headers: {
         'Content-Type': 'application/json',
         'x-internal-token': internalToken,
+        // Kolo 3 (K3a): cron routy autorizované CRON_SECRET (recompute-dynamic-pricing,
+        // refresh-spotify) ho dostanou dál; ostatní berou x-internal-token.
+        authorization: `Bearer ${process.env.CRON_SECRET ?? ''}`,
       },
       body: '{}',
     });
