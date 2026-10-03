@@ -2209,6 +2209,27 @@ export async function POST(req: NextRequest): Promise<Response> {
       giftClaimToken = gcRes.rows[0].claim_token;
     }
 
+    // ── Kolo 2 / V6: objednávka s NULOVOU SERVEROVĚ SPOČTENOU cenou ───────────
+    // totalAmount je výsledek serverového výpočtu (cena typu z DB × množství − ověřené slevy
+    // − uvnitř této transakce už ODEČTENÉ vouchery/karty/kredity + poplatky). Hodnoty od klienta
+    // se do něj nedostanou, takže placený typ sem nikdy nespadne. Dřív se pro 0 Kč zakládala
+    // platba u brány a objednávka zůstala navždy pending bez vstupenky.
+    const isFreeOrder = totalAmount === 0 && input.paymentMethod !== 'b2b_credit';
+    if (isFreeOrder) {
+      await client.query(
+        `UPDATE orders.orders
+            SET status = 'paid', paid_at = NOW(), payment_provider = 'free', updated_at = NOW()
+          WHERE id = $1 AND status = 'pending'`,
+        [orderId],
+      );
+      await client.query(
+        `INSERT INTO orders.payment_events (order_id, event_type, gopay_status, amount, raw_payload, payment_provider)
+         VALUES ($1, 'payment_paid', 'FREE', 0, $2::jsonb, 'free')
+         ON CONFLICT DO NOTHING`,
+        [orderId, JSON.stringify({ reason: 'zero_total_server_computed', subtotalAmount, discountAmount, voucherRedeemedHalire, giftCardRedeemedHalire, restwertAppliedHalire, loyaltyDiscountHalire })],
+      );
+    }
+
     await client.query('COMMIT');
 
     // Splátkový plán (mig 094/232) — attach plan after COMMIT, reduce charge to deposit only.
@@ -2274,6 +2295,52 @@ export async function POST(req: NextRequest): Promise<Response> {
     // program_price_halire/is_published, ktere na catalog.event_programs
     // NIKDY NEEXISTOVALY — ta tabulka je rozvrhova (starts_at, artist_name).
     const programAccessToken: string | undefined = undefined;
+
+    // Kolo 2 / V6: zdarma → bez brány; vystavení vstupenek + e-mail stejnou cestou jako po
+    // zaplacení (handler internal/order-completed, in-process — nezávisí na dostupnosti APP_URL).
+    if (isFreeOrder) {
+      let ticketsIssued = false;
+      try {
+        const { POST: completeOrder } = await import('@/app/api/internal/order-completed/route');
+        const done = await completeOrder(new NextRequest(
+          `${process.env.APP_URL ?? 'http://localhost:3000'}/api/internal/order-completed`,
+          {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', 'x-internal-token': process.env.INTERNAL_SERVICE_TOKEN ?? '' },
+            body: JSON.stringify({ orderId }),
+          },
+        ));
+        ticketsIssued = done.ok;
+        if (!done.ok) console.error('[checkout] free order completion failed', orderId, done.status);
+      } catch (e) {
+        console.error('[checkout] free order completion threw', orderId, e);
+      }
+      return NextResponse.json({
+        orderId,
+        paymentId: null,
+        gatewayUrl: `${process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/cs/order/${orderId}/confirmation`,
+        provider: 'free',
+        ticketsIssued,
+        variableSymbol: null,
+        subtotalAmount,
+        discountAmount,
+        volumeDiscountAmount,
+        volumeDiscountPct,
+        addonsSubtotal,
+        bundleDiscountAmount,
+        bundleId,
+        voucherRedeemedHalire,
+        giftCardApplied: giftCardRedeemedHalire,
+        restwertAppliedHalire,
+        restwertHolders,
+        loyaltyDiscountHalire,
+        loyaltyRedeemed,
+        loyaltyMaxPointsAvailable,
+        totalAmount,
+        promoCodeApplied: promoCodeId !== null,
+        ...(giftClaimToken ? { giftClaimToken } : {}),
+      });
+    }
 
     // B2B credit — žádná platební brána. Objednávka je ihned 'paid', přesměruj na potvrzení.
     if (input.paymentMethod === 'b2b_credit') {
