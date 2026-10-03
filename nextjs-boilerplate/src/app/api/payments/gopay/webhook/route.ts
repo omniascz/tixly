@@ -101,6 +101,13 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
   }
 
   const client = await db().connect();
+  // Kolo 3 (závěr): klienta pustit HNED po COMMITu. Práce po commitu (order-completed in-process,
+  // executeOrderRefund) si bere další spojení ze stejného poolu — kdyby webhook svého klienta
+  // dál držel, souběžné webhooky pool vyčerpají („timeout exceeded when trying to connect").
+  let released = false;
+  const releaseClient = (): void => {
+    if (!released) { released = true; client.release(); }
+  };
   try {
     await client.query('BEGIN');
 
@@ -244,6 +251,7 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
     }
 
     await client.query('COMMIT');
+    releaseClient();
 
     let refundOutcome: string | null = null;
     if (externalRefund) {
@@ -318,11 +326,11 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
       ...(refundOutcome ? { refundOutcome } : {}),
     });
   } catch (err) {
-    await client.query('ROLLBACK');
+    if (!released) await client.query('ROLLBACK').catch(() => undefined);
     console.error('[gopay webhook] processing failed:', err);
     return NextResponse.json({ error: 'INTERNAL' }, { status: 500 });
   } finally {
-    client.release();
+    releaseClient();
   }
 }
 
