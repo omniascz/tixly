@@ -1,0 +1,27 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r3-migration-numbers.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[90m 9[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-migration-numbers.live.test.ts[2m > [22mKrok 1 (kolo 3) — čísla migrací[2m > [22mrefund migrace kola 1 má číslo 479 (472 je obsazeno necommitnutou prací v tixly/)[39m
+[31m     → expected [ '000_baseline_20260730.sql', …(32) ] to include '479_refund_gateway_state.sql'[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-migration-numbers.live.test.ts[2m > [22mKrok 1 (kolo 3) — čísla migrací[2m > [22mrefund migrace kola 1 má číslo 479 (472 je obsazeno necommitnutou prací v tixly/)
+[31m[1mAssertionError[22m: expected [ '000_baseline_20260730.sql', …(32) ] to include '479_refund_gateway_state.sql'[39m
+[36m [2m❯[22m tests/fix-r3-migration-numbers.live.test.ts:[2m24:19[22m[39m
+    [90m 22| [39m  [34mit[39m([32m'refund migrace kola 1 má číslo 479 (472 je obsazeno necommitnuto[39m…
+    [90m 23| [39m    [35mconst[39m files [33m=[39m [34mreaddirSync[39m([33mDIR[39m)[33m;[39m
+    [90m 24| [39m    [34mexpect[39m(files)[33m.[39m[34mtoContain[39m([32m'479_refund_gateway_state.sql'[39m)[33m;[39m
+    [90m   | [39m                  [31m^[39m
+    [90m 25| [39m    [34mexpect[39m(files)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'472_refund_gateway_state.sql'[39m)[33m;[39m
+    [90m 26| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m   Start at [22m 12:54:27
+[2m   Duration [22m 719ms[2m (transform 56ms, setup 0ms, collect 91ms, tests 9ms, environment 0ms, prepare 118ms)[22m
+

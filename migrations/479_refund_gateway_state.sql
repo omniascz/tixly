@@ -1,4 +1,4 @@
--- 472_refund_gateway_state.sql
+-- 479_refund_gateway_state.sql  (kolo 3: přečíslováno z 472 — kolize s necommitnutou 472_royalty_agreements_currency.sql v tixly/)
 -- FIX K2: refund musí projít platební bránou a stav 'refunded' se smí nastavit
 -- AŽ po jejím potvrzení. K tomu:
 --   1) dva mezistavy objednávky: 'refund_pending' (voláme bránu / čekáme na ni)
