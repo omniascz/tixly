@@ -4,6 +4,7 @@
 // Pouziti: node audit/r4/classify-routes.mjs
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { DECISIONS, PUBLIC_CALLERS } from './route-decisions.mjs';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')), '../..');
 const APP = path.join(ROOT, 'nextjs-boilerplate/src/app');
@@ -47,7 +48,8 @@ const GUARDS = [
   ['reseller', /requireReseller|verifyResellerToken/],
   ['service', /isCronAuthorized|verifyInternalToken|isInternalTokenAuthorized|CRON_SECRET|INTERNAL_SERVICE_TOKEN|INTERNAL_API_TOKEN|verifyCron/],
   ['webhook', /verify[A-Za-z]*Signature|createHmac|timingSafeEqual|webhook.?secret|WEBHOOK_SECRET|verifyNotification|signature/i],
-  ['partner', /requireApiKey|verifyApiKey|requireOAuth|verifyPartner|requirePartner|api[_-]?key|x-api-key|requireTenant|verifyTenant|requireB2B|requireDistribution|verifyDeviceKey|deviceKey/i],
+  ['partner', /requireApiKey|verifyApiKey|requireOAuth|verifyPartner|requirePartner|api[_-]?key|x-api-key|requireTenant|verifyTenant|requireB2B|requireDistribution|verifyDeviceKey|deviceKey|verifyWlToken|verifyDistributionToken|requireApiAuth|authenticateB2B|verifyB2B|b2bAuth|resolveB2B|verifySecureEntryToken|verifyClientSecret|ApplePass|authenticationToken/i],
+  ['demo-off', /demoPathDisabledResponse\(\)/],
   ['buyer', /runAsUser|x-user-id/],
 ];
 
@@ -59,14 +61,16 @@ for (const f of files) {
   const src = readFileSync(f, 'utf8');
   const methods = [...src.matchAll(/export\s+(?:async\s+)?function\s+(GET|POST|PUT|PATCH|DELETE)\b|export\s+const\s+(GET|POST|PUT|PATCH|DELETE)\s*=/g)].map((m) => m[1] ?? m[2]);
   const guards = GUARDS.filter(([, re]) => re.test(src)).map(([k]) => k);
-  const capability = /\[(token|code|slug|hash|key|shareToken|accessToken)\]/.test(route);
+  const capability = /\[(token|code|hash|key|shareToken|accessToken|passToken|inviteToken)\]/i.test(route);
   const reads401 = /status:\s*401|UNAUTHORIZED|runAsUser/.test(src);
   for (const method of [...new Set(methods)]) {
     const z = zone(route, method);
     let caller;
     let protection;
-    if (z === 'mw-platform') { caller = 'admin'; protection = 'middleware: platform admin'; }
+    if (z === 'auth') { caller = 'veřejná (auth)'; protection = 'přihlašovací tok'; }
+    else if (z === 'mw-platform') { caller = 'admin'; protection = 'middleware: platform admin'; }
     else if (z === 'mw-promoter') { caller = guards.includes('admin') && !guards.includes('promoter') ? 'admin' : 'pořadatel'; protection = 'middleware: přihlášení + členství'; }
+    else if (guards.includes('demo-off') && !guards.some((g) => ['admin', 'promoter', 'reseller', 'service', 'webhook', 'partner'].includes(g))) { caller = 'vypnuto (demo)'; protection = 'demo cesta vypnutá (FIX K1)'; }
     else if (guards.includes('admin')) { caller = 'admin'; protection = 'handler: platform admin'; }
     else if (guards.includes('promoter')) { caller = 'pořadatel'; protection = 'handler: pořadatel'; }
     else if (guards.includes('reseller')) { caller = 'prodejce'; protection = 'handler: prodejce (Bearer)'; }
@@ -77,7 +81,13 @@ for (const f of files) {
     else if (capability) { caller = 'veřejná (capability)'; protection = 'tajný token v URL'; }
     else if (z === 'auth') { caller = 'veřejná (auth)'; protection = 'přihlašovací tok'; }
     else { caller = 'veřejná?'; protection = 'žádná'; }
-    rows.push({ route, method, zone: z, caller, protection, guards: guards.join('+') });
+    const d = DECISIONS[`${method} ${route}`];
+    let reason = '';
+    if (d) ({ caller, protection, reason } = d);
+    else if (caller === 'veřejná?' && (z === 'public-get' || (z === 'public-prefix' && method === 'GET'))) {
+      caller = 'veřejná (GET)'; protection = 'veřejné čtení (prefix middlewaru)';
+    }
+    rows.push({ route, method, zone: z, caller, protection, guards: guards.join('+'), reason, isPublic: PUBLIC_CALLERS.has(caller) });
   }
 }
 rows.sort((a, b) => (a.route + a.method).localeCompare(b.route + b.method));

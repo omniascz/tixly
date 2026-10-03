@@ -1,0 +1,8 @@
+{
+ "tested": 790,
+ "ok": 789,
+ "harness": [
+  "POST /api/oauth/authorize"
+ ],
+ "bad": []
+}

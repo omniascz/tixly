@@ -1,0 +1,985 @@
+routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
+/api/admin/2fa/disable	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	buyer
+/api/admin/2fa/setup	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	buyer
+/api/admin/2fa/setup	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	buyer
+/api/admin/2fa/verify	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	buyer
+/api/admin/ab-price-tests	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ab-price-tests	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/access-codes/[id]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/access-codes	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/access-codes	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/accounting/export	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ad-auction-stats	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ads/campaigns/[id]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ads/campaigns/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ads/campaigns	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ads/campaigns	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/affiliates	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/affiliates	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ai/auto-tag	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ai/cover-image	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+partner
+/api/admin/ai/description	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ai/moderate	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ai/price-suggestion	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ai/social-posts	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/alerts/[id]/ack	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/alerts	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/anti-scalping/overview	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/artist-payouts/[payoutId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/artist-payouts/[payoutId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/artist-payouts/calculate	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/artist-payouts	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/artists	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/artists	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/audit-log	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/b2b/[accountId]/deposit	POST	admin	middleware: přihlášení + členství	mw-promoter	admin
+/api/admin/b2b/[accountId]/users	DELETE	admin	middleware: přihlášení + členství	mw-promoter	admin
+/api/admin/b2b/[accountId]/users	GET	admin	middleware: přihlášení + členství	mw-promoter	admin
+/api/admin/b2b/[accountId]/users	POST	admin	middleware: přihlášení + členství	mw-promoter	admin
+/api/admin/b2b	GET	admin	middleware: přihlášení + členství	mw-promoter	admin
+/api/admin/b2b	PATCH	admin	middleware: přihlášení + členství	mw-promoter	admin
+/api/admin/b2b	POST	admin	middleware: přihlášení + členství	mw-promoter	admin
+/api/admin/backstage/notify	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/bank-credentials/psd2/authorize	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/bank-credentials/psd2/callback	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	
+/api/admin/bank-transfers/reconcile	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
+/api/admin/brand-connect/proposals/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/brand-connect/proposals	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/branding	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/branding	PUT	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/broadcasts/[id]/preview	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/broadcasts/[id]/send	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
+/api/admin/broadcasts	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/broadcasts	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/call-center/order	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service+webhook
+/api/admin/call-center/order	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service+webhook
+/api/admin/call-center/orders	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/campaigns/smart-send-time	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/campaigns	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/campaigns	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/collections/[id]/events	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/collections/[id]/events	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/collections	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/collections	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/commemorative/send	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service+webhook
+/api/admin/crm/rfm/compute	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/crm/rfm	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/cross-passes	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/cross-passes	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/customers/[email]	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/customers/[email]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/customers/export	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/customers/import	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/customers	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/dashboards/[key]	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/dashboards/[key]	PUT	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/domains/[id]/verify	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/domains	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/domains	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/email-templates/preview	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/email-templates	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/email-templates	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/event-groups/[id]/bulk-edit	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/event-groups/[id]/coordinate-onsale	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/event-groups/[id]/members	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/event-groups/[id]/members	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/event-groups/[id]/shares	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/event-groups/[id]/shares	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/event-groups/[id]	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/event-groups/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/event-groups	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/event-groups	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/event-templates/[id]/apply	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/event-templates	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/event-templates	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/access-matrix	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/access-matrix	PUT	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/accessible-entrances	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/accessible-entrances	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/accommodation-bundle/[offerId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/accommodation-bundle/[offerId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/accommodation-bundle	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/accommodation-bundle	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/accreditation/[reqId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/accreditation	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/addons/[addonId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/addons/[addonId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/addons	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/addons	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/advance-payout	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/advance-payout	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/ai-description	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+partner
+/api/admin/events/[id]/analytics	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/artists	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/artists	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/audience-map	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/backstage	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/backstage	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/backstage	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/backstage	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/box-office/sell	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/box-office/sessions/[sessionId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/box-office/sessions/[sessionId]	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/box-office	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/box-office	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/broadcast	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
+/api/admin/events/[id]/broadcast	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
+/api/admin/events/[id]/bundles/[bundleId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/bundles/[bundleId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/bundles	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/bundles	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/cast	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/cast	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/cast	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/cast	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/clone	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/commemorative	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/commemorative	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/comps	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/comps	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/custom-fields/[fieldId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/custom-fields/[fieldId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/custom-fields	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/custom-fields	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/days/[dayId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/days/[dayId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/days	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/days	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/demand-forecast	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/demand-forecast	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/demographics	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/distribution	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/distribution	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/donation-campaign	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/donation-campaign	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/dynamic-pricing/suggest	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+partner
+/api/admin/events/[id]/dynamic-pricing	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/dynamic-pricing	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/dynamic-pricing	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/emergency	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/emergency	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/entry-slots/[slotId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/entry-slots/[slotId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/entry-slots	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/entry-slots	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/fan-bonus	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/fan-bonus	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/fan-ticket/artwork	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/fan-ticket	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/fan-ticket	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/foyer-menu	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/foyer-menu	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/foyer-menu	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/foyer-menu	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/foyer-orders	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/gifts	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/group-discounts	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/group-discounts	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/group-discounts	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/guestlist/checkin	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/guestlist	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/guestlist	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/guestlist	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/guestlist	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/holds	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/holds	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/holds	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/hospitality	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/hospitality	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/hot-mode	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/hot-mode	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/channel-prices	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/channel-prices	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/channel-prices	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/lastminute	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/lastminute	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/lastminute	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/lastminute	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/live-ops	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/live	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/lotteries/[lotteryId]/draw	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
+/api/admin/events/[id]/lotteries	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/lotteries	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/lottery	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/lottery	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/lottery	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/marketing-qr/[campaignId]/png	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/marketing-qr	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/marketing-qr	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/parking-bundle/[offerId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/parking-bundle/[offerId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/parking-bundle	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/parking-bundle	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/payment-plans	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/payment-plans	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/postpone	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/postpone	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/press/settings	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/press	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/press	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/price-scenarios	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/price-scenarios	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/pricing-windows	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/pricing-windows	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/publish-facebook	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/publish-facebook	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/queue	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/queue	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/queue	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/resale-marketplace/[listingId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/resale-marketplace	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/resale-marketplace	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/resale-policy	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/resale-policy	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/reschedule/stats	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/reschedule	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/reschedule	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/reviews	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/reviews	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/rfid/devices/[deviceId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/rfid/devices/[deviceId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/rfid/devices	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+partner
+/api/admin/events/[id]/rfid/devices	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+partner
+/api/admin/events/[id]/rfid/stats	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/rfid/zones/[zoneId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/rfid/zones/[zoneId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/rfid/zones	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/rfid/zones	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/royalties/[agreementId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/royalties/[agreementId]	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/royalties/[agreementId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/royalties	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/royalties	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/sales-report	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/save-as-template	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/seats/live	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/seats	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/seats	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/seats	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/social-distancing	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/social-distancing	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/sponsors/[sponsorId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/sponsors/[sponsorId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/sponsors	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/sponsors	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/stream	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/stream	PUT	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/superfan-experiences	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/superfan-experiences	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/superfan-experiences	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/table-seating	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/table-seating	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/table-seating	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/ticket-types/[ttId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/ticket-types/[ttId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/ticket-types	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/ticket-types	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/transit-combo	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/transit-combo	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/travel-links/[linkId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/travel-links/[linkId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/travel-links	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/travel-links	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/travel/[packageId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/travel/[packageId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/travel	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/travel	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/verified-fan	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/verified-fan	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/view-photos	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/view-photos	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/waitlist/[entryId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/waitlist	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/waitlist	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/wallet-modules	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/wallet-modules	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/wallet-modules	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/wallet-push	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/wallet-push	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/will-call/pickup	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/will-call	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/will-call	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/batch-import	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+buyer
+/api/admin/events	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+buyer
+/api/admin/facebook/oauth/callback	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+webhook
+/api/admin/facebook/oauth/start	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	webhook+buyer
+/api/admin/facebook/pages/[pageId]/disconnect	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/facebook/pages	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/films/[id]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/films/[id]	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/films/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/films	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/films	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/fraud-queue	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/gdpr/dpa	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/gift-cards	GET	admin	middleware: přihlášení + členství	mw-promoter	admin
+/api/admin/gift-cards	POST	admin	middleware: přihlášení + členství	mw-promoter	admin
+/api/admin/hospitality-inquiries/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/chargebacks	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/charity/allocations/[id]/slots	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/charity/allocations	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/charity/allocations	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/import/preview	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/import	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/import	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/invoices/[id]/isdoc	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/invoices/[id]/pdf	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/invoices/export	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/invoices	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/invoices	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/kyc/aml-check	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	partner+buyer
+/api/admin/kyc/documents	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/kyc/documents	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/kyc	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/kyc	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/lastminute/check	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service+webhook
+/api/admin/lottery/[campaignId]/advance	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
+/api/admin/lottery/[campaignId]/draw	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
+/api/admin/marketing/overview	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/member-groups/[groupId]/users	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/member-groups/[groupId]/users	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/member-groups	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/member-groups	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/member-pricing-rules	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/member-pricing-rules	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/member-pricing-rules	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/notifications/[id]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/notifications/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/notifications	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/notifications	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/oauth-apps/[id]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/oauth-apps/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/oauth-apps	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/oauth-apps	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/onboarding/step/[step]	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+webhook
+/api/admin/onboarding	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/onboarding	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/onboarding	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/orders/[orderId]/print-labels	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/orders/[orderId]/refund	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/orders/[orderId]/support-action	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
+/api/admin/orders/[orderId]/support-action	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
+/api/admin/orders/bulk-refund	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/orders/export	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	buyer
+/api/admin/orders	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	buyer
+/api/admin/partner-applications/[id]	PATCH	admin	middleware: přihlášení + členství	mw-promoter	admin
+/api/admin/partner-applications	GET	admin	middleware: přihlášení + členství	mw-promoter	admin
+/api/admin/payouts/execute	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	buyer
+/api/admin/payouts/export	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/payouts/settle	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/payouts	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/pos/events	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/pos/print	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/pos/sale	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/pos/terminals/[id]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/pos/terminals/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/pos/terminals	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/pos/terminals	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/pricing-elasticity	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/productions/[id]/events	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/productions/[id]/events	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/productions/[id]/events	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/productions	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/productions	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/promo-codes/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/promo-codes	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/promo-codes	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/qes/sign-request	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/qes/sign-request	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/refund-requests/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/refund-requests	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/reports/nipos	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/reports/pohoda	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/reports/run	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/resale-guarantee	GET	admin	middleware: přihlášení + členství	mw-promoter	admin
+/api/admin/resale-guarantee	PATCH	admin	middleware: přihlášení + členství	mw-promoter	admin
+/api/admin/resellers/[id]/settle	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	
+/api/admin/resellers	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	
+/api/admin/resellers	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	
+/api/admin/resellers	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	
+/api/admin/reservations	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/reviews/send-requests	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/sales-stream	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/scanner/cross-pass	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/scanner/devices/[deviceId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/scanner/devices/[deviceId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/scanner/devices	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+partner
+/api/admin/scanner/devices	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+partner
+/api/admin/scanner/export	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/scanner/gates	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/scanner/manifest	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/scanner/reentry	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/scanner/validate-group	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/scanner/validate-nfc	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+webhook
+/api/admin/scanner/validate	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
+/api/admin/season-pass-products	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/season-pass-products	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/season-pass-products	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/season-pass-products	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/season-passes/sold	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/season	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/settings	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/settings	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/school-bookings/[id]/qr	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/school-bookings/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/sms-campaigns	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/sms-campaigns	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/sport-teams/[id]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/sport-teams/[id]	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/sport-teams/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/sport-teams	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/sport-teams	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/staff/[userId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/staff/[userId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/staff	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
+/api/admin/staff	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
+/api/admin/subscription-plans/[id]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/subscription-plans/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/subscription-plans	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/subscription-plans	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/subscriptions/packages/[id]	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/subscriptions/packages/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/subscriptions/packages	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/subscriptions/packages	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/support-faq	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/support-faq	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/team/[memberId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/team/[memberId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/team	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
+/api/admin/team	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
+/api/admin/ticket-changes/[changeId]	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ticket-types/[id]/dynamic-pricing	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ticket-types/[id]/dynamic-pricing	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ticket-types/[id]/dynamic-pricing	PUT	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ticket-types/[id]/flex-settings	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ticket-types/[id]/flex-settings	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ticket-types/[id]/flex-settings	PUT	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ticket-types/[id]/volume-discount	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ticket-types/[id]/volume-discount	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/ticket-types/[id]/volume-discount	PUT	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/tracking-pixels/[id]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/tracking-pixels/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/tracking-pixels	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/tracking-pixels	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/uploads/cover-image	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/venues/[venueId]/gates/[gateId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/venues/[venueId]/gates/[gateId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/venues/[venueId]/gates	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/venues/[venueId]/gates	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/venues/[venueId]/screens/[screenId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/venues/[venueId]/screens/[screenId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/venues/[venueId]/screens	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/venues/[venueId]/screens	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/venues/[venueId]/seating-chart	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/venues/[venueId]/seating-chart	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/venues	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/vouchers	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/vouchers	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/webhooks/[id]/deliveries	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/webhooks/[id]/test	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+webhook
+/api/admin/webhooks/[id]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/webhooks/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/webhooks	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/webhooks	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/widgets/catalog	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/wristbands/[uid]/charge	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/wristbands/[uid]/topup	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/wristbands/[uid]	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/wristbands/bind	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/ads/click/[campaignId]	GET	veřejná	bez přihlášení (záměr)	unlisted	buyer
+/api/agent/purchase-intent	POST	partner	handler: API klíč/token partnera	unlisted	partner
+/api/artists/[slug]	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/auth/forgot-password	POST	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/login-history	GET	veřejná (auth)	přihlašovací tok	auth	buyer
+/api/auth/login	POST	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/logout	POST	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/magic-link/request	POST	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/magic-link/verify	GET	veřejná (auth)	přihlašovací tok	auth	admin
+/api/auth/me	GET	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/oauth/apple	GET	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/oauth/callback/apple	POST	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/oauth/callback/facebook	GET	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/oauth/callback/google	GET	veřejná (auth)	přihlašovací tok	auth	webhook
+/api/auth/oauth/facebook	GET	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/oauth/google	GET	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/refresh	GET	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/refresh	POST	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/register-promoter	POST	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/register	POST	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/reset-password	POST	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/send-verification-email	POST	veřejná (auth)	přihlašovací tok	auth	buyer
+/api/auth/sessions	DELETE	veřejná (auth)	přihlašovací tok	auth	buyer
+/api/auth/sessions	GET	veřejná (auth)	přihlašovací tok	auth	buyer
+/api/auth/unsubscribe	GET	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/unsubscribe	POST	veřejná (auth)	přihlašovací tok	auth	
+/api/auth/verify-email	GET	veřejná (auth)	přihlašovací tok	auth	
+/api/b2b/account/login	POST	veřejná (auth)	přihlašovací tok B2B	unlisted	partner
+/api/b2b/account	GET	partner	handler: API klíč/token partnera	unlisted	partner
+/api/b2b/verify	POST	kupec	handler: přihlášený člen B2B účtu (kolo 4)	unlisted	partner+buyer
+/api/backstage/[eventId]	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/blog	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/brand-connect/event/[id]	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/brand-connect/track	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	
+/api/buyer/agents/[id]/mandate	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/agents/register	POST	partner	handler: API klíč/token partnera	optional	partner+buyer
+/api/buyer/announcements/[token]/respond	POST	veřejná (capability)	tajný token v URL	optional	
+/api/buyer/artists/[id]/follow	DELETE	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/artists/[id]/follow	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/artists	GET	veřejná	bez přihlášení (záměr)	optional	buyer
+/api/buyer/connected-apps	DELETE	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/connected-apps	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/cross-passes/[membershipId]/code	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/cross-passes/[membershipId]/wallet/apple	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/cross-passes/[membershipId]/wallet/pdf	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/cross-passes/my-memberships	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/cross-passes/purchase	POST	veřejná (zápis hosta)	validace vstupu / rate limit	optional	buyer
+/api/buyer/discover/events	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/fan-bonus	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/fan-profile	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/fan-profile	PUT	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/following	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/follows	DELETE	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/follows	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/gdpr/delete	DELETE	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/gdpr/delete	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/gdpr/delete	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/gdpr/export	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/gift-cards/[code]	GET	veřejná (capability)	tajný token v URL	optional	
+/api/buyer/group-invitations/[token]/claim	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/group-invitations/reserve	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/group-invitations	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/loyalty/transactions	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/loyalty	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/me	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/me	PATCH	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/modular-pass/checkout	POST	veřejná (zápis hosta)	validace vstupu / rate limit	optional	
+/api/buyer/my-tickets	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/notification-preferences	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/notification-preferences	PUT	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/orders/[orderId]/calendar.ics	GET	veřejná (capability)	UUID objednávky (host po platbě); cizí přihlášený 403	optional	buyer
+/api/buyer/orders/[orderId]/cancel	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/orders/[orderId]/group-qr	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/orders/[orderId]/insurance-claim	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/orders/[orderId]/invoice	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/orders/[orderId]/payment-plan	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/orders/[orderId]/refund	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/orders/[orderId]/tan/verify	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/orders/[orderId]/tan	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/orders/[orderId]/ticket-pdf	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/orders/[orderId]/transit-pass	GET	servis	handler: podpis/tajemství	optional	webhook+buyer
+/api/buyer/otp/request	POST	veřejná (zápis hosta)	validace vstupu / rate limit	optional	
+/api/buyer/otp/verify	POST	veřejná (zápis hosta)	validace vstupu / rate limit	optional	
+/api/buyer/passkeys/authenticate	GET	veřejná (auth)	WebAuthn challenge	optional	webhook
+/api/buyer/passkeys/authenticate	POST	veřejná (auth)	WebAuthn assertion	optional	webhook
+/api/buyer/passkeys/register	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/passkeys/register	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/passkeys	DELETE	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/passkeys	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/phone-verification	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/push/subscribe	DELETE	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/push/subscribe	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/recommendations	GET	veřejná	bez přihlášení (záměr)	optional	buyer
+/api/buyer/refund-requests	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/refund-requests	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/resale-guarantee/claim	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/resale/buy	POST	vypnuto (demo)	demo cesta vypnutá (FIX K1)	optional	demo-off+buyer
+/api/buyer/resale/list/[id]/cancel	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/resale/list	GET	veřejná	bez přihlášení (záměr)	optional	buyer
+/api/buyer/resale/list	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/resale	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/restwert-balance	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/reviews	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/rsvp	DELETE	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/rsvp	GET	veřejná	bez přihlášení (záměr)	optional	buyer
+/api/buyer/rsvp	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/saved-payment-methods/[id]	DELETE	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/saved-payment-methods/[id]	PATCH	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/saved-payment-methods	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/spotify/callback	GET	veřejná (OAuth)	OAuth state	optional	
+/api/buyer/spotify/connect	DELETE	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/spotify/connect	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/spotify/connect	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/subscriptions/[id]/pick/[eventId]	DELETE	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/subscriptions/[id]/pick	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/subscriptions/[id]/pick	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/subscriptions/[id]/refund-prorata	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/subscriptions/[id]	DELETE	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/subscriptions	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/subscriptions	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/attendee	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/attendee	PATCH	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/bind-device	DELETE	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/bind-device	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/calendar	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/exchange	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/exchange	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/change-request	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/list-for-resale	DELETE	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/list-for-resale	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/nfc-payload	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/picks	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/picks	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/rights	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/stream-access	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/totp	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/transfer-invite	DELETE	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/transfer-invite	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/transfer	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/upgrade	GET	vypnuto (demo)	demo cesta vypnutá (FIX K1)	optional	demo-off+buyer
+/api/buyer/tickets/[ticketId]/upgrade	POST	vypnuto (demo)	demo cesta vypnutá (FIX K1)	optional	demo-off+buyer
+/api/buyer/tickets/[ticketId]/wallet-content	GET	veřejná	bez přihlášení (záměr)	optional	
+/api/buyer/tickets/[ticketId]/wallet/apple	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/tickets/[ticketId]/wallet/google	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/verifications	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/verifications	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/vouchers/lookup	POST	veřejná (capability)	kód poukazu v těle	optional	
+/api/carbon-offset-settings	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/cinema/films/[id]	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/cinema/now-playing	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/consent	GET	kupec	handler: x-user-id (401)	unlisted	buyer
+/api/consent	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	buyer
+/api/cron/dispatch	GET	servis	handler: tajemství (cron/interní)	unlisted	service
+/api/cron/inventory-refresh	GET	servis	handler: tajemství (cron/interní)	unlisted	service
+/api/cron/pricing-engine	GET	servis	handler: tajemství (cron/interní)	unlisted	service
+/api/cron/resale-payouts	GET	servis	handler: tajemství (cron/interní)	unlisted	service
+/api/cross-passes/[id]	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/discover	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/distribution/catalog	GET	partner	handler: API klíč/token partnera	unlisted	partner
+/api/distribution/google-feed	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/dsa/report	GET	veřejná	bez přihlášení (záměr)	unlisted	buyer
+/api/dsa/report	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	buyer
+/api/editorial/articles/[slug]	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/editorial/articles	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/eudi/presentation-request	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	
+/api/eudi/verify	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	
+/api/events/[id]/accreditation	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	
+/api/events/[id]/addons	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/alert	DELETE	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	buyer
+/api/events/[id]/alert	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	buyer
+/api/events/[id]/bundles	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/calendar	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/entry-slots	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/foyer-menu	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/hospitality	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/hospitality	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	
+/api/events/[id]/lotteries/[lotteryId]/enter	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	buyer
+/api/events/[id]/lotteries	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/modular-pass	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/parking-offers	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/payment-plans	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/recommendations	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/resale-listings	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/reviews	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/seat-view-photos	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/seatmap	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/seats/hold	DELETE	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	buyer
+/api/events/[id]/seats/hold	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	buyer
+/api/events/[id]/seats/preview.svg	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/seats/stream	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/seats	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/social-context	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	buyer
+/api/events/[id]/sponsors	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/superfan-experiences	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/ticket-types	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/top-picks	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/travel-bundles	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/travel-links	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/travel-packages	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/unlock-access-code	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	
+/api/events/[id]/verified-fan	POST	kupec	handler: x-user-id (401)	unlisted	buyer
+/api/events/[id]/waitlist	DELETE	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	
+/api/events/[id]/waitlist	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/waitlist	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	
+/api/events/featured	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/nearby	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/foyer-orders/[id]/status	PATCH	pořadatel	handler: pořadatel	unlisted	promoter
+/api/foyer-orders	GET	kupec	handler: x-user-id (401)	unlisted	buyer
+/api/foyer-orders	POST	kupec	handler: x-user-id (401)	unlisted	buyer
+/api/gift/[token]	GET	veřejná (capability)	tajný token v URL	public-prefix	
+/api/gift/[token]	POST	veřejná (capability)	tajný token v URL	public-prefix	
+/api/gift/redeem	GET	veřejná (capability)	kód dárku	public-prefix	
+/api/gift/redeem	POST	veřejná (capability)	kód dárku	public-prefix	
+/api/graphql/schema	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/graphql	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/graphql	POST	veřejná	bez přihlášení (záměr)	unlisted	
+/api/group-invitations/[token]	GET	veřejná (capability)	tajný token v URL	public-prefix	
+/api/hardware/scan	POST	partner	handler: API klíč/token partnera	unlisted	partner
+/api/health/db	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-prefix	
+/api/health/external	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-prefix	
+/api/health/providers	GET	veřejná	bez přihlášení (záměr)	public-prefix	partner
+/api/health/ready	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-prefix	
+/api/health/redis	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-prefix	
+/api/health	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-prefix	
+/api/charity/claim/[token]	GET	veřejná (capability)	tajný token v URL	public-prefix	
+/api/charity/claim/[token]	POST	veřejná (capability)	tajný token v URL	public-prefix	
+/api/checkout/bundle	POST	veřejná (zápis hosta)	validace vstupu / rate limit	optional	
+/api/checkout/party-split/[token]	GET	veřejná (capability)	tajný token v URL	optional	
+/api/checkout/party-split/[token]	POST	veřejná (capability)	tajný token v URL	optional	
+/api/checkout/party-split	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/checkout/pay-by-link/[orderId]	GET	servis	handler: tajemství (cron/interní)	optional	service+webhook
+/api/checkout	POST	veřejná (zápis hosta)	validace vstupu / rate limit	optional	service+partner+buyer
+/api/internal/broadcast-send	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/abandoned-cart	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/anomaly-detect	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/audience-geo-snapshot	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/bank-sync-fio	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/consent-log-purge	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/daily-stats	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/demand-forecast	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/event-payout-release	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/expire-pending-orders	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/forgemsg-dispatch	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/forgemsg-provision	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/forgemsg-sync-events	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/charge-installments	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/music-distribute	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/newsletter-digest	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/onboarding-reminder	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/payouts-auto-settle	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/payouts-execute	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/process-gdpr-deletions	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/promoter-tier-evaluate	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/publish-notify	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/push-reminders	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/recompute-dynamic-pricing	GET	admin	handler: platform admin	public-prefix	admin+service
+/api/internal/cron/recompute-dynamic-pricing	POST	admin	handler: platform admin	public-prefix	admin+service
+/api/internal/cron/refresh-spotify	GET	admin	handler: platform admin	public-prefix	admin+service
+/api/internal/cron/refresh-spotify	POST	admin	handler: platform admin	public-prefix	admin+service
+/api/internal/cron/release-expired-seat-holds	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/release-group-invite-holds	POST	servis	handler: tajemství (cron/interní)	public-prefix	service
+/api/internal/cron/release-rolling-reserves	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/renew-subscriptions	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/seat-upgrade-notify	POST	servis	handler: tajemství (cron/interní)	public-prefix	service
+/api/internal/cron/send-commemorative	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/send-reminders	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/verify-event-completion	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/waitlist-notify	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/lottery-winner-email	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/order-completed	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/pricing/recalculate	POST	servis	handler: tajemství (cron/interní)	public-prefix	service
+/api/internal/resale/complete-transfer	POST	servis	handler: tajemství (cron/interní)	public-prefix	service
+/api/internal/royalties/accrue	POST	servis	handler: tajemství (cron/interní)	public-prefix	service
+/api/internal/team-invite-email	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/waitlist-email	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/web-vitals	POST	veřejná (zápis hosta)	validace vstupu / rate limit	public-prefix	
+/api/kiosk/order	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	buyer
+/api/lottery/[campaignId]/enter	POST	veřejná (zápis hosta)	validace vstupu / rate limit	public-prefix	
+/api/lottery/entry/[token]	GET	veřejná (capability)	tajný token v URL	public-prefix	
+/api/lottery/redeem	GET	veřejná (capability)	token výhry	public-prefix	
+/api/lottery/redeem	POST	veřejná (capability)	token výhry	public-prefix	
+/api/mobile/order-confirm	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/mobile/payment-intent	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/mock-bnpl/[provider]/[paymentId]/confirm	POST	servis	handler: tajemství (cron/interní)	public-prefix	service
+/api/mock-crypto/[paymentId]	GET	servis	handler: tajemství (cron/interní)	unlisted	service+partner
+/api/mock-crypto/[paymentId]	POST	servis	handler: tajemství (cron/interní)	unlisted	service+partner
+/api/mock-gopay/[paymentId]	POST	servis	handler: tajemství (cron/interní)	public-prefix	service
+/api/mock-przelewy24/[paymentId]	POST	servis	handler: tajemství (cron/interní)	unlisted	service
+/api/mock-qes/[requestId]	GET	servis	handler: podpis/tajemství	unlisted	webhook
+/api/mock-qes/[requestId]	POST	servis	handler: podpis/tajemství	unlisted	webhook
+/api/mock-wero/[paymentId]	GET	servis	handler: tajemství (cron/interní)	unlisted	service
+/api/mock-wero/[paymentId]	POST	servis	handler: tajemství (cron/interní)	unlisted	service
+/api/my/identity-verification	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/my/identity-verification	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/my/orders/[id]/upgrade-options	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/my/orders/[id]/upgrade	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/my/superfan-bookings	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/my/superfan-bookings	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/my/tickets/[ticketId]/transfer	DELETE	kupec	handler: x-user-id (401)	optional	buyer
+/api/my/tickets/[ticketId]/transfer	GET	kupec	handler: x-user-id (401)	optional	buyer
+/api/my/tickets/[ticketId]/transfer	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/newsletter/confirm	GET	veřejná (capability)	potvrzovací token	public-prefix	
+/api/newsletter/subscribe	POST	veřejná (zápis hosta)	validace vstupu / rate limit	public-prefix	
+/api/oauth/authorize	POST	kupec	handler: přihlášení uživatele (session JWT)	unlisted	
+/api/oauth/token	POST	partner	handler: API klíč/token partnera	unlisted	partner
+/api/orders	GET	kupec	handler: x-user-id (401)	unlisted	buyer
+/api/organizer/events	GET	partner	handler: API klíč/token partnera	unlisted	partner
+/api/organizer/events	POST	partner	handler: API klíč/token partnera	unlisted	partner
+/api/p/[slug]/vouchers/checkout	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	
+/api/partner/apply	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	
+/api/partner/sales	POST	partner	handler: API klíč/token partnera	unlisted	partner
+/api/payments/benefit/callback	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/payments/benefit/pluxee/callback	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/payments/comgate/webhook	POST	brána (webhook)	ověření stavu u brány / podpis	unlisted	service+webhook
+/api/payments/gopay/webhook	GET	brána (webhook)	stav se čte z brány podle ID (ne z těla)	unlisted	service
+/api/payments/gopay/webhook	POST	brána (webhook)	stav se čte z brány podle ID (ne z těla)	unlisted	service
+/api/payments/mollie/webhook	POST	brána (webhook)	stav se čte z brány podle ID	unlisted	service
+/api/payments/paypal/capture	GET	brána (webhook)	ověření objednávky u brány	unlisted	service
+/api/payments/paypal/webhook	POST	servis	handler: tajemství (cron/interní)	unlisted	service+webhook
+/api/payments/przelewy24/webhook	POST	servis	handler: tajemství (cron/interní)	unlisted	service+webhook
+/api/payments/stripe/webhook	POST	servis	handler: tajemství (cron/interní)	unlisted	service+webhook
+/api/payments/triplea/webhook	POST	servis	handler: tajemství (cron/interní)	unlisted	service+webhook
+/api/payments/wise/webhook	POST	servis	handler: podpis/tajemství	unlisted	webhook
+/api/platform/admin/events/[id]/feature	DELETE	admin	middleware: platform admin	mw-platform	admin
+/api/platform/admin/events/[id]/feature	POST	admin	middleware: platform admin	mw-platform	admin
+/api/platform/admin/invoices	GET	admin	middleware: platform admin	mw-platform	admin
+/api/platform/analytics	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/artists	GET	admin	middleware: platform admin	mw-platform	admin
+/api/platform/audit-log	GET	admin	middleware: platform admin	mw-platform	admin
+/api/platform/brand-connect/advertisers	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/brand-connect/advertisers	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/brand-connect/campaigns/[id]/match	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/brand-connect/campaigns/[id]	DELETE	admin	middleware: platform admin	mw-platform	
+/api/platform/brand-connect/campaigns/[id]	PATCH	admin	middleware: platform admin	mw-platform	
+/api/platform/brand-connect/campaigns	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/brand-connect/campaigns	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/distribution-partners/[id]	PATCH	admin	middleware: platform admin	mw-platform	
+/api/platform/distribution-partners	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/distribution-partners	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/editorial	GET	admin	middleware: platform admin	mw-platform	admin+service+webhook
+/api/platform/editorial	POST	admin	middleware: platform admin	mw-platform	admin+service+webhook
+/api/platform/identity-verifications	GET	admin	middleware: platform admin	mw-platform	admin
+/api/platform/identity-verifications	PATCH	admin	middleware: platform admin	mw-platform	admin
+/api/platform/incidents/[id]/updates	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/incidents/[id]	DELETE	admin	middleware: platform admin	mw-platform	
+/api/platform/incidents/[id]	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/incidents/[id]	PATCH	admin	middleware: platform admin	mw-platform	
+/api/platform/incidents	GET	admin	middleware: platform admin	mw-platform	admin
+/api/platform/incidents	POST	admin	middleware: platform admin	mw-platform	admin
+/api/platform/kyc/[promoterId]	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/kyc	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/moderation/[eventId]/approve	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/moderation/[eventId]/reject	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/moderation/queue	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/partners	GET	admin	middleware: platform admin	mw-platform	admin+service+webhook
+/api/platform/partners	POST	admin	middleware: platform admin	mw-platform	admin+service+webhook
+/api/platform/postal/[id]	PATCH	admin	middleware: platform admin	mw-platform	admin
+/api/platform/postal	GET	admin	middleware: platform admin	mw-platform	admin
+/api/platform/promoters/[id]/approve	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/promoters/[id]/suspend	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/promoters/[id]	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/promoters/[id]	PATCH	admin	middleware: platform admin	mw-platform	
+/api/platform/promoters	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/reports/[id]	PATCH	admin	middleware: platform admin	mw-platform	
+/api/platform/reports	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/travel/hotels/[hotelId]/rooms	GET	admin	middleware: platform admin	mw-platform	admin
+/api/platform/travel/hotels/[hotelId]/rooms	POST	admin	middleware: platform admin	mw-platform	admin
+/api/platform/travel/hotels/[hotelId]	DELETE	admin	middleware: platform admin	mw-platform	admin
+/api/platform/travel/hotels/[hotelId]	GET	admin	middleware: platform admin	mw-platform	admin
+/api/platform/travel/hotels/[hotelId]	PATCH	admin	middleware: platform admin	mw-platform	admin
+/api/platform/travel/hotels	GET	admin	middleware: platform admin	mw-platform	admin
+/api/platform/travel/hotels	POST	admin	middleware: platform admin	mw-platform	admin
+/api/platform/venues/[id]/seat-view-photos/[photoId]	DELETE	admin	middleware: platform admin	mw-platform	admin
+/api/platform/venues/[id]/seat-view-photos/upload	POST	admin	middleware: platform admin	mw-platform	admin
+/api/platform/venues/[id]/seat-view-photos	GET	admin	middleware: platform admin	mw-platform	admin
+/api/platform/venues/[id]/seat-view-photos	POST	admin	middleware: platform admin	mw-platform	admin
+/api/platform/venues/[id]/seating-chart/diff	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/venues/[id]/seating-chart/from-image	POST	admin	middleware: platform admin	mw-platform	partner
+/api/platform/venues/[id]/seating-chart/from-text-stadium	POST	admin	middleware: platform admin	mw-platform	partner
+/api/platform/venues/[id]/seating-chart/from-text	POST	admin	middleware: platform admin	mw-platform	partner
+/api/platform/venues/[id]/seating-chart/import	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/venues/[id]/seating-chart/overlap-check	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/venues/[id]/seating-chart/summary	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/venues/[id]/seating-chart/transform	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/venues/[id]/seating-chart/transform	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/venues/[id]/seating-chart/versions/[chartId]/restore	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/venues/[id]/seating-chart/versions	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/venues/[id]/seating-chart	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/venues/[id]/seating-chart	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/venues/[id]	DELETE	admin	middleware: platform admin	mw-platform	
+/api/platform/venues/[id]	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/venues/[id]	PATCH	admin	middleware: platform admin	mw-platform	
+/api/platform/venues	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/venues	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/verifications/[id]	POST	admin	middleware: platform admin	mw-platform	
+/api/platform/verifications	GET	admin	middleware: platform admin	mw-platform	
+/api/platform/webhooks	GET	admin	middleware: platform admin	mw-platform	
+/api/postal-fees	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/press/accreditation	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	
+/api/press/event/[id]	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/promo-codes/validate	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	
+/api/public/artists/[slug]	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/public/branding	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/public/collections/[slug]	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/public/events/[id]/buyer-cap-check	GET	kupec	handler: x-user-id (401)	public-get	buyer
+/api/public/events/[id]/co2	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/public/events/[id]/custom-fields	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/public/events/[id]/kiosk	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/public/events/[id]/og-data	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/public/events/[id]/pixels	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/public/events/[id]/price-preview	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/public/events	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/public/incidents	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/public/insurance-plans	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/public/push/vapid-key	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/public/reports	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	buyer
+/api/public/tickets/[token]/totp	GET	veřejná (capability)	tajný token v URL	public-get	buyer
+/api/qes/webhook	POST	servis	handler: podpis/tajemství	unlisted	webhook
+/api/qr/[slug]	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/queue/[eventId]/join	POST	veřejná (zápis hosta)	validace vstupu / rate limit	optional	buyer
+/api/queue/[eventId]/status/[token]	GET	veřejná (capability)	tajný token v URL	optional	
+/api/resale/marketplace	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/resale/purchase/[listingId]	POST	kupec	handler: x-user-id (401)	unlisted	buyer
+/api/reseller/auth	POST	veřejná (auth)	přihlašovací tok prodejce	public-prefix	
+/api/reseller/dashboard	GET	prodejce	handler: prodejce (Bearer)	public-prefix	reseller
+/api/reseller/events	GET	prodejce	handler: prodejce (Bearer)	public-prefix	reseller
+/api/reseller/orders/[orderId]/tickets	GET	prodejce	handler: prodejce (Bearer)	public-prefix	reseller
+/api/reseller/sale	POST	prodejce	handler: prodejce (Bearer)	public-prefix	reseller
+/api/reschedule/[token]	GET	veřejná (capability)	tajný token v URL	unlisted	
+/api/reschedule/[token]	POST	veřejná (capability)	tajný token v URL	unlisted	
+/api/reviews/[token]	GET	veřejná (capability)	tajný token v URL	unlisted	
+/api/reviews/[token]	POST	veřejná (capability)	tajný token v URL	unlisted	
+/api/rfid/scan	POST	partner	handler: API klíč/token partnera	unlisted	partner
+/api/scanner/school-group	POST	pořadatel	NÁLEZ → opraveno: obsluha skeneru (pořadatel akce)	unlisted	promoter
+/api/search	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/season-passes/[passToken]	GET	veřejná (capability)	tajný token v URL	unlisted	
+/api/season-passes/[passToken]	POST	veřejná (capability)	tajný token v URL	unlisted	
+/api/season-passes	GET	veřejná	bez přihlášení (záměr)	unlisted	buyer
+/api/season-passes	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	buyer
+/api/sellers	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/school-bookings	GET	pořadatel	handler: pořadatel	unlisted	promoter
+/api/school-bookings	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	promoter
+/api/social/friend-requests/[id]	DELETE	kupec	handler: x-user-id (401)	unlisted	buyer
+/api/social/friend-requests/[id]	POST	kupec	handler: x-user-id (401)	unlisted	buyer
+/api/social/friend-requests	GET	kupec	handler: x-user-id (401)	unlisted	buyer
+/api/social/friends	GET	kupec	handler: x-user-id (401)	unlisted	buyer
+/api/social/friends	POST	kupec	handler: x-user-id (401)	unlisted	buyer
+/api/sports/matches	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/sports/teams/[id]	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/subscriptions/holders/[paymentId]/confirm	POST	vypnuto (demo)	demo cesta vypnutá (FIX K1)	optional	demo-off
+/api/subscriptions/checkout	POST	veřejná (zápis hosta)	validace vstupu / rate limit	optional	buyer
+/api/subscriptions/packages/[slug]	GET	veřejná	bez přihlášení (záměr)	optional	
+/api/subscriptions/plans	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/subscriptions/subscribe	POST	veřejná (zápis hosta)	validace vstupu / rate limit	optional	buyer
+/api/support/chat	POST	veřejná (zápis hosta)	validace vstupu / rate limit	public-prefix	
+/api/tax/vies-check	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/team/accept	POST	veřejná (capability)	token pozvánky	public-prefix	
+/api/tickets/[id]/memory	GET	kupec	handler: x-user-id (401)	unlisted	buyer
+/api/tickets/transfer/[token]	GET	veřejná (capability)	token převodu	unlisted	buyer
+/api/tickets/transfer/[token]	POST	kupec	handler: x-user-id (401)	unlisted	buyer
+/api/transfer/accept/[token]	GET	veřejná (capability)	token převodu	optional	buyer
+/api/transfer/accept/[token]	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/travel/rail/search	POST	veřejná	bez přihlášení (záměr)	unlisted	partner
+/api/v1/events	GET	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v1/feed/events.ics	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/v1/feed/events.rss	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/v1/feed/events	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/v1/feed/meta-catalog.json	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/v1/feed/tiktok-catalog.json	GET	veřejná	bez přihlášení (záměr)	unlisted	
+/api/v1/publish/events/[externalId]	DELETE	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v1/publish/events/[externalId]	PUT	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v1/publish/events	GET	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v1/publish/events	POST	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v1/wl/config	GET	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v1/wl/events	GET	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v1/wl/orders	POST	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v2/distribution/events/[id]/inventory	GET	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v2/distribution/events	GET	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v2/distribution/token	POST	veřejná (auth)	client_id + client_secret (OAuth client credentials)	unlisted	
+/api/v3/events/[id]/ticket_classes	GET	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v3/events/[id]	GET	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v3/inventory/status	GET	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v3/organizations/[id]/events	GET	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v3/presence/sign-in	POST	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v3/secure-entry/barcode	GET	veřejná (capability)	podepsaný secure-entry token v dotazu	unlisted	partner
+/api/v3/tickets/[id]/secure-entry-token	POST	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v3/users/me	GET	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v3/webhooks	GET	partner	handler: API klíč/token partnera	unlisted	partner
+/api/v3/webhooks	POST	partner	handler: API klíč/token partnera	unlisted	partner
+/api/vouchers/[code]/pdf	GET	veřejná (capability)	tajný token v URL	unlisted	
+/api/vouchers/holders/[paymentId]/confirm	POST	vypnuto (demo)	demo cesta vypnutá (FIX K1)	unlisted	demo-off
+/api/wallet/apple/v1/devices/[deviceLibraryId]/registrations/[passTypeId]/[serialNumber]	DELETE	partner	handler: API klíč/token partnera	unlisted	partner
+/api/wallet/apple/v1/devices/[deviceLibraryId]/registrations/[passTypeId]/[serialNumber]	POST	partner	handler: API klíč/token partnera	unlisted	partner
+/api/wallet/apple/v1/devices/[deviceLibraryId]/registrations/[passTypeId]	GET	veřejná	bez přihlášení (záměr)	unlisted	
