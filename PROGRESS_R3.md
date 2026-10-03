@@ -17,8 +17,8 @@ Při startu nové session: přečíst tento soubor a pokračovat prvním nehotov
 |---|---|---|
 | 0 závěrečné ověření kola 2 | HOTOVO — regrese (deadlock poolu) opravena 91a1316, skripty 2d80acc | 91a1316, 2d80acc |
 | 1 kolize migrace 472 → 479 | HOTOVO | e78c5cc |
-| 2 R5, R6, mobile rate limit, guard trigger, X7 | rozpracováno | |
-| 3 54 eskalací | čeká | |
+| 2 R5, R6, mobile rate limit, guard trigger, X7 | HOTOVO | f800b76 d58c3ef 799bfa0 b275ecf b110d66 b1c9b72 + X7 |
+| 3 54 eskalací | rozpracováno | |
 | 4 K4d, K3a, K5, K8a, V9b | čeká | |
 | 5 reseller print, admin/import, X6 | čeká | |
 | Závěr + FIX_REPORT_R3 | čeká | |
@@ -36,4 +36,4 @@ P1, P5d, C2b, P13, V12, D3a PASS; C1a, C2a PASS.
 - mobile rate limit HOTOVO (viz git log fix(R3-mobile-rl))
 - my auth HOTOVO b110d66 (/api/my/* bez identity; upgrade-options padá na catalog.seat_maps → report)
 - guard trigger HOTOVO b1c9b72 (migrace 486; test 23/23; RED bez triggeru 12, bez rout 6; live 132/0)
-- X7 — rozpracováno (migrace 487)
+- X7 HOTOVO (migrace 487; test 2/2) — KROK 2 HOTOVÝ
