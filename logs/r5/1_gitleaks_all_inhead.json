@@ -1,0 +1,569 @@
+[
+ {
+  "fp": "f945e9bba3a86aa9ce93fbd906e6152ea92b043b:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "f945e9bb",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "f945e9bba3a86aa9ce93fbd906e6152ea92b043b:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "f945e9bb",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "f945e9bba3a86aa9ce93fbd906e6152ea92b043b:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "f945e9bb",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "f945e9bba3a86aa9ce93fbd906e6152ea92b043b:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "f945e9bb",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "f945e9bba3a86aa9ce93fbd906e6152ea92b043b:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "f945e9bb",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "f945e9bba3a86aa9ce93fbd906e6152ea92b043b:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "f945e9bb",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "e5789d749ab185999403f26e4bcbad1e50991a75:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "e5789d74",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "e5789d749ab185999403f26e4bcbad1e50991a75:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "e5789d74",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "e5789d749ab185999403f26e4bcbad1e50991a75:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "e5789d74",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "e5789d749ab185999403f26e4bcbad1e50991a75:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "e5789d74",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "e5789d749ab185999403f26e4bcbad1e50991a75:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "e5789d74",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "e5789d749ab185999403f26e4bcbad1e50991a75:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "e5789d74",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "2d80acca0018c1a36b024d8ea9db66e3076ea6db:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "2d80acca",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "2d80acca0018c1a36b024d8ea9db66e3076ea6db:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "2d80acca",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "2d80acca0018c1a36b024d8ea9db66e3076ea6db:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "2d80acca",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "2d80acca0018c1a36b024d8ea9db66e3076ea6db:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "2d80acca",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "2d80acca0018c1a36b024d8ea9db66e3076ea6db:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "2d80acca",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "2d80acca0018c1a36b024d8ea9db66e3076ea6db:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "2d80acca",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "8c868d313d4e63440da4f2340bc5576d47f059a5:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "8c868d31",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "8c868d313d4e63440da4f2340bc5576d47f059a5:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "8c868d31",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "8c868d313d4e63440da4f2340bc5576d47f059a5:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "8c868d31",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "8c868d313d4e63440da4f2340bc5576d47f059a5:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "8c868d31",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "8c868d313d4e63440da4f2340bc5576d47f059a5:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "8c868d31",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "8c868d313d4e63440da4f2340bc5576d47f059a5:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "8c868d31",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "2e389672f661d78bd760e3461d1bec77bf505329:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "2e389672",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "2e389672f661d78bd760e3461d1bec77bf505329:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "2e389672",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "2e389672f661d78bd760e3461d1bec77bf505329:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "2e389672",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "2e389672f661d78bd760e3461d1bec77bf505329:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "2e389672",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "2e389672f661d78bd760e3461d1bec77bf505329:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "2e389672",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "2e389672f661d78bd760e3461d1bec77bf505329:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "2e389672",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "8d97de9f2c3e08a405096fd023f629518729e4c3:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "8d97de9f",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "8d97de9f2c3e08a405096fd023f629518729e4c3:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "8d97de9f",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "8d97de9f2c3e08a405096fd023f629518729e4c3:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "8d97de9f",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "8d97de9f2c3e08a405096fd023f629518729e4c3:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "8d97de9f",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "8d97de9f2c3e08a405096fd023f629518729e4c3:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "8d97de9f",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "8d97de9f2c3e08a405096fd023f629518729e4c3:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4",
+  "rule": "generic-api-key",
+  "file": "audit/logs/r2_e2e_03_refund_scan.jsonl",
+  "line": 4,
+  "commit": "8d97de9f",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "ne"
+ },
+ {
+  "fp": "2e4d0c1512152ce9de25765c0eb8e8ec3be070d7:audit/logs/13_gitleaks.json:generic-api-key:19",
+  "rule": "generic-api-key",
+  "file": "audit/logs/13_gitleaks.json",
+  "line": 19,
+  "commit": "2e4d0c15",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "soubor ne"
+ },
+ {
+  "fp": "2dc58dbf8e111b81147456b61ff127eaae935e13:FINDINGS_SCHEMA_REALITY.md:generic-api-key:2739",
+  "rule": "generic-api-key",
+  "file": "FINDINGS_SCHEMA_REALITY.md",
+  "line": 2739,
+  "commit": "2dc58dbf",
+  "master": "ANO",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "e63a729a0ef2fd671906facecbe73cbd216ea724:nextjs-boilerplate/scripts/seed-e2e-fixtures.sql:generic-api-key:12",
+  "rule": "generic-api-key",
+  "file": "nextjs-boilerplate/scripts/seed-e2e-fixtures.sql",
+  "line": 12,
+  "commit": "e63a729a",
+  "master": "ANO",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "e63a729a0ef2fd671906facecbe73cbd216ea724:nextjs-boilerplate/scripts/seed-e2e-fixtures.sql:generic-api-key:13",
+  "rule": "generic-api-key",
+  "file": "nextjs-boilerplate/scripts/seed-e2e-fixtures.sql",
+  "line": 13,
+  "commit": "e63a729a",
+  "master": "ANO",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "e63a729a0ef2fd671906facecbe73cbd216ea724:nextjs-boilerplate/scripts/seed-e2e-fixtures.sql:generic-api-key:20",
+  "rule": "generic-api-key",
+  "file": "nextjs-boilerplate/scripts/seed-e2e-fixtures.sql",
+  "line": 20,
+  "commit": "e63a729a",
+  "master": "ANO",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "e63a729a0ef2fd671906facecbe73cbd216ea724:nextjs-boilerplate/scripts/seed-e2e-fixtures.sql:generic-api-key:21",
+  "rule": "generic-api-key",
+  "file": "nextjs-boilerplate/scripts/seed-e2e-fixtures.sql",
+  "line": 21,
+  "commit": "e63a729a",
+  "master": "ANO",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "d5d38951abfde95db1043f57d8b851e0f9a911e7:nextjs-boilerplate/src/app/api/admin/settings/route.ts:generic-api-key:88",
+  "rule": "generic-api-key",
+  "file": "nextjs-boilerplate/src/app/api/admin/settings/route.ts",
+  "line": 88,
+  "commit": "d5d38951",
+  "master": "ANO",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "8a2822c89b9d7a601922bb6b8531ffe391eacdcf:migrations/000_baseline_20260730.sql:generic-api-key:3554",
+  "rule": "generic-api-key",
+  "file": "migrations/000_baseline_20260730.sql",
+  "line": 3554,
+  "commit": "8a2822c8",
+  "master": "ANO",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "8a2822c89b9d7a601922bb6b8531ffe391eacdcf:migrations/000_baseline_20260730.sql:generic-api-key:10942",
+  "rule": "generic-api-key",
+  "file": "migrations/000_baseline_20260730.sql",
+  "line": 10942,
+  "commit": "8a2822c8",
+  "master": "ANO",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "c74adc9172262a000511d509209179457e5dfe50:e2e/tests/golden-path-benefit-pluxee-callback.spec.ts:generic-api-key:19",
+  "rule": "generic-api-key",
+  "file": "e2e/tests/golden-path-benefit-pluxee-callback.spec.ts",
+  "line": 19,
+  "commit": "c74adc91",
+  "master": "ANO",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "811e5d601e0aef7b7a9296de45ee494bcf5623bf:docs/TIXLY-SYSTEM-MAP.md:generic-api-key:812",
+  "rule": "generic-api-key",
+  "file": "docs/TIXLY-SYSTEM-MAP.md",
+  "line": 812,
+  "commit": "811e5d60",
+  "master": "ANO",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "811e5d601e0aef7b7a9296de45ee494bcf5623bf:docs/TIXLY-SYSTEM-MAP.md:curl-auth-header:814",
+  "rule": "curl-auth-header",
+  "file": "docs/TIXLY-SYSTEM-MAP.md",
+  "line": 814,
+  "commit": "811e5d60",
+  "master": "ANO",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "ee818484473773583cbbbe9eb4c28e5628c07713:db/baseline.sql:generic-api-key:3068",
+  "rule": "generic-api-key",
+  "file": "db/baseline.sql",
+  "line": 3068,
+  "commit": "ee818484",
+  "master": "ANO",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "b6b0e55719e289c82102fcee4ad6cd6973953f05:nextjs-boilerplate/.env.example:generic-api-key:53",
+  "rule": "generic-api-key",
+  "file": "nextjs-boilerplate/.env.example",
+  "line": 53,
+  "commit": "b6b0e557",
+  "master": "ANO",
+  "fix/round4-2026-10-03": "ANO"
+ },
+ {
+  "fp": "a402161459abfd83e075284d4eb5d654ef780120:b2b-api/b2b-api/src/__tests__/middleware.test.ts:generic-api-key:165",
+  "rule": "generic-api-key",
+  "file": "b2b-api/b2b-api/src/__tests__/middleware.test.ts",
+  "line": 165,
+  "commit": "a4021614",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "soubor ne"
+ },
+ {
+  "fp": "a402161459abfd83e075284d4eb5d654ef780120:b2b-api/src/__tests__/middleware.test.ts:generic-api-key:165",
+  "rule": "generic-api-key",
+  "file": "b2b-api/src/__tests__/middleware.test.ts",
+  "line": 165,
+  "commit": "a4021614",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "soubor ne"
+ },
+ {
+  "fp": "a402161459abfd83e075284d4eb5d654ef780120:email-templates/email-templates/examples/usage-examples.ts:generic-api-key:22",
+  "rule": "generic-api-key",
+  "file": "email-templates/email-templates/examples/usage-examples.ts",
+  "line": 22,
+  "commit": "a4021614",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "soubor ne"
+ },
+ {
+  "fp": "a402161459abfd83e075284d4eb5d654ef780120:email-templates/email-templates/examples/usage-examples.ts:generic-api-key:80",
+  "rule": "generic-api-key",
+  "file": "email-templates/email-templates/examples/usage-examples.ts",
+  "line": 80,
+  "commit": "a4021614",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "soubor ne"
+ },
+ {
+  "fp": "a402161459abfd83e075284d4eb5d654ef780120:email-templates/examples/usage-examples.ts:generic-api-key:22",
+  "rule": "generic-api-key",
+  "file": "email-templates/examples/usage-examples.ts",
+  "line": 22,
+  "commit": "a4021614",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "soubor ne"
+ },
+ {
+  "fp": "a402161459abfd83e075284d4eb5d654ef780120:email-templates/examples/usage-examples.ts:generic-api-key:80",
+  "rule": "generic-api-key",
+  "file": "email-templates/examples/usage-examples.ts",
+  "line": 80,
+  "commit": "a4021614",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "soubor ne"
+ },
+ {
+  "fp": "a402161459abfd83e075284d4eb5d654ef780120:friend-invites/src/__tests__/friend-invite.test.ts:generic-api-key:14",
+  "rule": "generic-api-key",
+  "file": "friend-invites/src/__tests__/friend-invite.test.ts",
+  "line": 14,
+  "commit": "a4021614",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "soubor ne"
+ },
+ {
+  "fp": "a402161459abfd83e075284d4eb5d654ef780120:resale-api/src/__tests__/discovery-feed.service.test.ts:generic-api-key:15",
+  "rule": "generic-api-key",
+  "file": "resale-api/src/__tests__/discovery-feed.service.test.ts",
+  "line": 15,
+  "commit": "a4021614",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "soubor ne"
+ },
+ {
+  "fp": "a402161459abfd83e075284d4eb5d654ef780120:resale-api/src/__tests__/retailer.service.test.ts:generic-api-key:24",
+  "rule": "generic-api-key",
+  "file": "resale-api/src/__tests__/retailer.service.test.ts",
+  "line": 24,
+  "commit": "a4021614",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "soubor ne"
+ },
+ {
+  "fp": "a402161459abfd83e075284d4eb5d654ef780120:stripe-payments/src/__tests__/stripe.test.ts:generic-api-key:42",
+  "rule": "generic-api-key",
+  "file": "stripe-payments/src/__tests__/stripe.test.ts",
+  "line": 42,
+  "commit": "a4021614",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "soubor ne"
+ },
+ {
+  "fp": "a402161459abfd83e075284d4eb5d654ef780120:wallet-passes/src/lib/wallet.test.ts:private-key:118",
+  "rule": "private-key",
+  "file": "wallet-passes/src/lib/wallet.test.ts",
+  "line": 118,
+  "commit": "a4021614",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "soubor ne"
+ },
+ {
+  "fp": "a402161459abfd83e075284d4eb5d654ef780120:wallet-passes/src/lib/wallet.test.ts:private-key:330",
+  "rule": "private-key",
+  "file": "wallet-passes/src/lib/wallet.test.ts",
+  "line": 330,
+  "commit": "a4021614",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "soubor ne"
+ },
+ {
+  "fp": "a402161459abfd83e075284d4eb5d654ef780120:wallet-passes/src/lib/wallet.test.ts:private-key:118",
+  "rule": "private-key",
+  "file": "wallet-passes/src/lib/wallet.test.ts",
+  "line": 118,
+  "commit": "a4021614",
+  "master": "soubor ne",
+  "fix/round4-2026-10-03": "soubor ne"
+ }
+]

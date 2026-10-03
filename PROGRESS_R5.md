@@ -8,7 +8,7 @@ hodnoty tajemství se nikdy nevypisují (soubor, řádek, typ, max. 4 znaky). V�
 ## Stav kroků
 | Krok | Stav | Commit |
 |---|---|---|
-| 1 triáž gitleaks | rozpracováno | |
+| 1 triáž gitleaks | HOTOVO — master 26, --all 63; skutečné 0, nejasné 0, testovací/falešné 63 (logs/r5/1_triage.md) | |
 | 2 snímek tixly/ | čeká | |
 | 3 integrační větev | čeká | |
 | 4 ověření integrace | čeká | |
@@ -16,3 +16,4 @@ hodnoty tajemství se nikdy nevypisují (soubor, řádek, typ, max. 4 znaky). V�
 | Závěr INTEGRATION_REPORT.md | čeká | |
 
 ## Poznámky
+- Krok 1: .gitleaksignore (63 fingerprintů z logs/r5/1_gitleaks_all.json) přidat na integrate/2026-10-04; po integraci znovu skenovat (snímek WIP může přinést nové nálezy).
