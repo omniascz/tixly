@@ -1,7 +1,7 @@
 // E2E 02: nakup — kosik, rezervace, platba (simulovany GoPay + skutecny webhook handler), vystaveni,
 // e-mail, idempotence webhooku, podplaceni, vyprodani, limity, promo, expirace rezervace.
 import { readFileSync, writeFileSync } from 'node:fs';
-import { Client, q, owner, check, ev, startLog, summary, gopayCtl, gopayPayments, gopayLog, mails, waitFor, sleep, INTERNAL_TOKEN, BASE } from './lib.mjs';
+import { Client, q, owner, check, ev, startLog, summary, gopayCtl, gopayPayments, gopayLog, mails, waitFor, sleep, INTERNAL_TOKEN, BASE, scenarioBuyer } from './lib.mjs';
 
 startLog('02_purchase');
 const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
@@ -96,7 +96,9 @@ r = await buyer.get(`/api/buyer/orders/${o1}/ticket-pdf`);
 check('P7d', 'vlastnik stahne PDF vstupenek', r.status === 200 && r.text.startsWith('%PDF'), { status: r.status, contentType: r.headers.get('content-type'), bytes: r.text.length });
 
 // ---------- P8 podplaceni ----------
-r = await co(buyer, { ticketTypeId: S.tt['Stani'], quantity: 1 });
+// kolo 2: vlastni kupec na scenar (per-e-mail limit pending objednavek z K3)
+const s8 = await scenarioBuyer(S, 'P8');
+r = await co(s8.c, { ticketTypeId: S.tt['Stani'], quantity: 1, buyerEmail: s8.email });
 const o3 = r.json?.orderId, pid3 = r.json?.paymentId;
 await gopayCtl(pid3, { state: 'PAID', amount: 100 });
 r = await webhook(pid3); await sleep(1500);
@@ -124,24 +126,27 @@ S.guestEmail = gEmail; S.guestOrder = o4;
 
 // ---------- P11 vyprodani (Posledni mista, kapacita 5) ----------
 const L = S.tt['Posledni mista'];
-const a = await co(buyer, { ticketTypeId: L, quantity: 3 });
-const b = await co(buyer, { ticketTypeId: L, quantity: 3 });
-const c = await co(buyer, { ticketTypeId: L, quantity: 2 });
-const d = await co(buyer, { ticketTypeId: L, quantity: 1 });
+const s11 = await scenarioBuyer(S, 'P11');
+const a = await co(s11.c, { ticketTypeId: L, quantity: 3, buyerEmail: s11.email });
+const b = await co(s11.c, { ticketTypeId: L, quantity: 3, buyerEmail: s11.email });
+const c = await co(s11.c, { ticketTypeId: L, quantity: 2, buyerEmail: s11.email });
+const d = await co(s11.c, { ticketTypeId: L, quantity: 1, buyerEmail: s11.email });
 const rem = await tt(L);
 check('P11', 'vyprodani: 3 OK, dalsi 3 odmitnuty, 2 OK, 1 odmitnut; remaining_qty = 0', a.status === 200 && b.status >= 400 && c.status === 200 && d.status >= 400 && rem.remaining_qty === 0, { a: a.status, b: ev(b), c: c.status, d: ev(d), remaining: rem });
 S.lastSeatsOrders = [a.json?.orderId, c.json?.orderId];
 
 // ---------- P12 limit na osobu ----------
 const M = S.tt['Limit 2 na osobu'];
-const m1 = await co(buyer, { ticketTypeId: M, quantity: 2 });
-const m2 = await co(buyer, { ticketTypeId: M, quantity: 1 });
+const s12 = await scenarioBuyer(S, 'P12');
+const m1 = await co(s12.c, { ticketTypeId: M, quantity: 2, buyerEmail: s12.email });
+const m2 = await co(s12.c, { ticketTypeId: M, quantity: 1, buyerEmail: s12.email });
 check('P12', 'limit 2 ks/osobu: 2 OK, treti kus odmitnut', m1.status === 200 && m2.status >= 400 && m2.status < 500, { first: ev(m1), second: ev(m2) });
-const m3 = await co(buyer, { ticketTypeId: M, quantity: 3 });
+const m3 = await co(s12.c, { ticketTypeId: M, quantity: 3, buyerEmail: s12.email });
 check('P12b', 'limit 2 ks/osobu: 3 ks naraz odmitnuto', m3.status >= 400 && m3.status < 500, ev(m3));
 
 // ---------- P13 vstupenka zdarma ----------
-r = await co(buyer, { ticketTypeId: S.tt['Zdarma'], quantity: 1 });
+const s13 = await scenarioBuyer(S, 'P13');
+r = await co(s13.c, { ticketTypeId: S.tt['Zdarma'], quantity: 1, buyerEmail: s13.email });
 const o5 = r.json?.orderId;
 await sleep(4000);
 od = o5 ? await order(o5) : null;
@@ -149,12 +154,14 @@ check('P13', 'vstupenka zdarma (0 Kc): objednavka dokoncena a vstupenka vystaven
 
 // ---------- P14 promo: max 3 pouziti ----------
 const pr = [];
-for (let i = 0; i < 3; i++) { const x = await co(buyer, { ticketTypeId: S.tt['Stani'], quantity: 1, promoCode: S.promo }); pr.push({ status: x.status, applied: x.json?.promoCodeApplied, total: x.json?.totalAmount, err: x.json?.error }); }
+const s14 = await scenarioBuyer(S, 'P14');
+for (let i = 0; i < 3; i++) { const x = await co(s14.c, { ticketTypeId: S.tt['Stani'], quantity: 1, promoCode: S.promo, buyerEmail: s14.email }); pr.push({ status: x.status, applied: x.json?.promoCodeApplied, total: x.json?.totalAmount, err: x.json?.error }); }
 const uses = (await q(`SELECT uses_count, max_uses FROM marketing.promo_codes WHERE upper(code)=$1`, [S.promo]))[0];
 check('P14', 'promo kod max 3 pouziti: 1 (P2) + 2 dalsi OK, pak odmitnut/neaplikovan; uses_count <= 3', uses.uses_count <= 3 && pr[2].applied !== true, { attempts: pr, db: uses });
 
 // ---------- P15 expirace rezervace ----------
-r = await co(buyer, { ticketTypeId: S.tt['Stani'], quantity: 4 });
+const s15 = await scenarioBuyer(S, 'P15');
+r = await co(s15.c, { ticketTypeId: S.tt['Stani'], quantity: 4, buyerEmail: s15.email });
 const o6 = r.json?.orderId, pid6 = r.json?.paymentId;
 const remBefore = await tt(S.tt['Stani']);
 await q(`UPDATE orders.orders SET expires_at = NOW() - INTERVAL '1 minute' WHERE id=$1`, [o6]);

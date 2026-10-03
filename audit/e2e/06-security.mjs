@@ -1,7 +1,7 @@
 // E2E 06: bezpecnost — neautentizovane "demo" cesty v produkcnim rezimu, tokeny, CSRF, rate limit loginu,
 // interni/cron endpointy, uvolneni mist po zruseni platby, validace vstupu.
 import { readFileSync } from 'node:fs';
-import { Client, q, owner, check, ev, startLog, summary, gopayCtl, sleep, mails, waitFor, INTERNAL_TOKEN, BASE } from './lib.mjs';
+import { Client, q, owner, check, ev, startLog, summary, gopayCtl, sleep, mails, waitFor, INTERNAL_TOKEN, BASE, scenarioBuyer } from './lib.mjs';
 
 startLog('06_security');
 const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
@@ -66,7 +66,9 @@ const sc = lg.headers.getSetCookie();
 check('K4e', 'auth cookies: HttpOnly + SameSite (+Secure v produkci)', sc.length > 0 && sc.every((c) => /httponly/i.test(c) && /samesite=(lax|strict)/i.test(c)), sc.map((c) => c.replace(/=[^;]+/, '=<redacted>')));
 
 // ---------- K5: CSRF ----------
-r = await buyer.post('/api/checkout', { eventId: S.eventA, ticketTypeId: S.tt['Stani'], quantity: 1, buyerEmail: S.buyerEmail, buyerName: 'Kupec Audit' }, { origin: 'https://evil.example', referer: 'https://evil.example/x' });
+// kolo 2: vlastni kupec na scenar (per-e-mail/per-IP limit checkoutu z K3)
+const sK5 = await scenarioBuyer(S, `K5-${Date.now().toString(36)}`);
+r = await sK5.c.post('/api/checkout', { eventId: S.eventA, ticketTypeId: S.tt['Stani'], quantity: 1, buyerEmail: sK5.email, buyerName: 'Kupec Audit' }, { origin: 'https://evil.example', referer: 'https://evil.example/x' });
 check('K5', 'CSRF: stavovy POST s cookie a cizim Origin (https://evil.example) odmitnut serverem', r.status === 403, { status: r.status, note: 'ochrana stoji jen na SameSite cookie; server Origin neoveruje', body: JSON.stringify(r.json).slice(0, 120) });
 
 // ---------- K6: rate limit loginu ----------
@@ -78,7 +80,8 @@ check('K6b', 'rate limit loginu per ucet: 14 pokusu na 1 ucet z 14 ruznych IP ->
 
 // ---------- K7: zruseni platby u brany uvolni mista? ----------
 const before = await ttRow(S.tt['Stani']);
-r = await buyer.post('/api/checkout', { eventId: S.eventA, ticketTypeId: S.tt['Stani'], quantity: 3, buyerEmail: S.buyerEmail, buyerName: 'Kupec Audit' });
+const sK7 = await scenarioBuyer(S, `K7-${Date.now().toString(36)}`);
+r = await sK7.c.post('/api/checkout', { eventId: S.eventA, ticketTypeId: S.tt['Stani'], quantity: 3, buyerEmail: sK7.email, buyerName: 'Kupec Audit' });
 await gopayCtl(r.json.paymentId, { state: 'CANCELED' });
 const wh = await anon().get(`/api/payments/gopay/webhook?id=${r.json.paymentId}`);
 const st = (await q(`SELECT status FROM orders.orders WHERE id=$1`, [r.json.orderId]))[0].status;

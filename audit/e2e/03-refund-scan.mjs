@@ -1,11 +1,10 @@
 // E2E 03: refund/storno (penize vs stav), pozdni platba po expiraci, vstup (sken) vcetne soubehu a cizi akce.
 import { readFileSync, writeFileSync } from 'node:fs';
-import { Client, q, owner, check, ev, startLog, summary, gopayCtl, gopayLog, gopayPayments, waitFor, sleep } from './lib.mjs';
+import { Client, q, owner, check, ev, startLog, summary, gopayCtl, gopayLog, gopayPayments, waitFor, sleep, scenarioBuyer } from './lib.mjs';
 
 startLog('03_refund_scan');
 const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
 const login = async (name, email) => { const c = new Client(name); const r = await c.post('/api/auth/login', { email, password: S.pw }); if (r.status !== 200) throw new Error(`login ${email} ${r.status} ${r.text}`); return c; };
-const buyer = await login('buyer', S.buyerEmail);
 const PA = await login('promoterA', S.promoterA.email);
 const PB = await login('promoterB', S.promoterB.email);
 
@@ -25,7 +24,9 @@ async function buy(c, email, qty, ttId = S.tt['Stani'], eventId = S.eventA) {
 
 // ================= REFUND / STORNO =================
 // R1: admin refund zaplacene objednavky
-const A = await buy(buyer, S.buyerEmail, 2);
+// kolo 2: kazdy scenar ma vlastniho kupce (per-e-mail/per-IP limit checkoutu z K3)
+const sR1 = await scenarioBuyer(S, 'R1');
+const A = await buy(sR1.c, sR1.email, 2);
 const remB = await tt(S.tt['Stani']);
 let r = await PB.post(`/api/admin/orders/${A.orderId}/refund`, { reason: 'customer_request' });
 check('R0', 'poradatel B refunduje objednavku poradatele A -> odmitnuto', r.status === 403 || r.status === 404, ev(r));
@@ -36,23 +37,27 @@ let rc = await refundCalls(A.pid);
 const gp = (await gopayPayments()).find((p) => p.id === A.pid);
 check('R1b', 'PENIZE: admin refund zavolal refund u platebni brany', rc.length === 1, { refundCallsToGateway: rc.length, gatewayPaymentState: gp?.state, gatewayRefunds: gp?.refunds, note: 'DB rika refunded; brana stale PAID = zakaznik penize nedostal' });
 const rr = await q(`SELECT count(*)::int n FROM orders.refund_requests WHERE order_id=$1`, [A.orderId]).catch((e) => [{ err: e.message }]);
-const al = await q(`SELECT action, actor_type FROM audit.audit_log WHERE entity_id=$1 ORDER BY created_at`, [A.orderId]).catch((e) => [{ err: e.message }]);
+// kolo 2: puvodni dotaz cetl neexistujici sloupec `entity_id` (42703 -> kontrola nemohla nikdy projit).
+// audit.audit_log klicuje zaznam pres (schema_name, table_name, record_id); druh akce je v new_values.kind.
+const al = await q(`SELECT action, actor_type, new_values FROM audit.audit_log WHERE schema_name='orders' AND table_name='orders' AND record_id=$1 ORDER BY created_at`, [A.orderId]).catch((e) => [{ err: e.message }]);
 const pev = await q(`SELECT event_type, amount FROM orders.payment_events WHERE order_id=$1 ORDER BY created_at`, [A.orderId]);
-check('R1c', 'refund ma auditni stopu (audit_log / payment_events)', al.some((x) => /refund/i.test(x.action ?? '')) || pev.some((x) => /refund/i.test(x.event_type)), { audit_log: al, payment_events: pev, refund_requests: rr });
+check('R1c', 'refund ma auditni stopu (audit_log / payment_events)', !al[0]?.err && (al.some((x) => x.new_values?.kind === 'refund') || pev.some((x) => /refund/i.test(x.event_type))), { audit_log: al, payment_events: pev, refund_requests: rr });
 r = await PA.post(`/api/admin/orders/${A.orderId}/refund`, { reason: 'customer_request' });
 check('R1d', 'opakovany refund teze objednavky odmitnut / idempotentni (mista se nevrati 2x)', (await tt(S.tt['Stani'])) - remB === 2, { ...ev(r), remAfter: await tt(S.tt['Stani']) });
 
 // R2: buyer self-refund
-const B = await buy(buyer, S.buyerEmail, 1);
-r = await buyer.post(`/api/buyer/orders/${B.orderId}/refund`, { reason: 'audit self refund' });
+const sR2 = await scenarioBuyer(S, 'R2');
+const B = await buy(sR2.c, sR2.email, 1);
+r = await sR2.c.post(`/api/buyer/orders/${B.orderId}/refund`, { reason: 'audit self refund' });
 od = await order(B.orderId);
 check('R2a', 'buyer self-refund (vychozi nastaveni poradatele)', null, { ...ev(r), orderStatus: od.status, tickets: (await tickets(B.orderId)).map((t) => t.status) });
 rc = await refundCalls(B.pid);
 check('R2b', 'pokud self-refund probehl, zavolal branu?', od.status !== 'refunded' ? null : rc.length === 1, { orderStatus: od.status, refundCallsToGateway: rc.length });
 
 // R3: buyer cancel zaplacene objednavky
-const C = await buy(buyer, S.buyerEmail, 1);
-r = await buyer.post(`/api/buyer/orders/${C.orderId}/cancel`, { reason: 'audit cancel' });
+const sR3 = await scenarioBuyer(S, 'R3');
+const C = await buy(sR3.c, sR3.email, 1);
+r = await sR3.c.post(`/api/buyer/orders/${C.orderId}/cancel`, { reason: 'audit cancel' });
 od = await order(C.orderId); tk = await tickets(C.orderId);
 const rr3 = await q(`SELECT status, refunded_halire FROM orders.refund_requests WHERE order_id=$1`, [C.orderId]).catch((e) => [{ err: e.message }]);
 check('R3a', 'buyer storno zaplacene objednavky: odpoved vs skutecny stav v DB (tichy refund?)', r.status !== 200 ? null : (od.status === 'cancelled' && tk.every((t) => t.status !== 'valid')), { ...ev(r), orderStatusInDb: od.status, tickets: tk.map((t) => t.status), refund_requests: rr3 });
@@ -60,7 +65,8 @@ check('R3b', 'storno zaplacene objednavky zanechalo zaznam o naroku na vraceni p
 
 // R4: cizi kupec
 const other = await login('other', S.otherEmail);
-const D = await buy(buyer, S.buyerEmail, 1);
+const sR4 = await scenarioBuyer(S, 'R4');
+const D = await buy(sR4.c, sR4.email, 1);
 r = await other.post(`/api/buyer/orders/${D.orderId}/cancel`, { reason: 'x' });
 const r2 = await other.post(`/api/buyer/orders/${D.orderId}/refund`, { reason: 'x' });
 check('R4', 'CIZI kupec nemuze stornovat/refundovat cizi objednavku (IDOR)', [403, 404].includes(r.status) && [403, 404].includes(r2.status) && (await order(D.orderId)).status === 'paid', { cancel: ev(r), refund: ev(r2), status: (await order(D.orderId)).status });
@@ -72,7 +78,8 @@ od = await order(D.orderId); tk = await tickets(D.orderId);
 check('R5', 'brana ohlasi REFUNDED (refund z portalu brany / chargeback): objednavka refunded A vstupenky zneplatneny', od.status === 'refunded' && tk.every((t) => t.status !== 'valid'), { ...ev(r), orderStatus: od.status, tickets: tk.map((t) => t.status), note: 'pokud tickets=valid: zakaznik ma penize zpet i platnou vstupenku' });
 
 // R6: pozdni platba na EXPIROVANOU objednavku (cron je rozbity -> stav nastaven SQL jako by cron fungoval)
-r = await buyer.post('/api/checkout', { eventId: S.eventA, ticketTypeId: S.tt['Stani'], quantity: 1, buyerEmail: S.buyerEmail, buyerName: 'Kupec Audit' });
+const sR6 = await scenarioBuyer(S, 'R6');
+r = await sR6.c.post('/api/checkout', { eventId: S.eventA, ticketTypeId: S.tt['Stani'], quantity: 1, buyerEmail: sR6.email, buyerName: 'Kupec Audit' });
 const E = { orderId: r.json.orderId, pid: r.json.paymentId };
 await q(`UPDATE orders.orders SET status='expired' WHERE id=$1`, [E.orderId]);
 await gopayCtl(E.pid, { state: 'PAID' });
@@ -82,7 +89,9 @@ const pev6 = await q(`SELECT event_type, gopay_status FROM orders.payment_events
 check('R6', 'zaplaceno po expiraci: zakaznik zaplatil, objednavka expired -> existuje mechanismus (auto-refund / fronta k reseni)?', (await refundCalls(E.pid)).length > 0 || od.status === 'paid', { ...ev(r), orderStatus: od.status, tickets: tk.length, payment_events: pev6, gatewayRefundCalls: (await refundCalls(E.pid)).length });
 
 // ================= VSTUP (SKEN) =================
-const G = await buy(buyer, S.buyerEmail, 3);
+const sV = await scenarioBuyer(S, 'V');
+const buyer = sV.c;
+const G = await buy(sV.c, sV.email, 3);
 const gt = await tickets(G.orderId);
 const scan = (c, body) => c.post('/api/admin/scanner/validate', body);
 const qr = (await q(`SELECT qr_policy FROM catalog.events WHERE id=$1`, [S.eventA]))[0].qr_policy;

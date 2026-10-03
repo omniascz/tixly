@@ -4,7 +4,7 @@
 // Predpoklad: bezi app na :3100 (tixly_app, NODE_ENV=production), fake-gopay na :3999 (nesmi byt volano).
 import { readFileSync } from 'node:fs';
 import { randomUUID as randomUUIDish } from 'node:crypto';
-import { Client, q, owner, check, ev, startLog, summary, gopayLog } from './lib.mjs';
+import { Client, q, owner, check, ev, startLog, summary, gopayLog, scenarioBuyer } from './lib.mjs';
 
 startLog('10_demo_paths');
 const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
@@ -12,7 +12,9 @@ const login = async (email) => { const c = new Client('u'); const r = await c.po
 const anon = () => new Client('anon');
 const gopayCallCount = async () => (await gopayLog()).filter((x) => x.path?.startsWith('/api/payments/payment')).length;
 
-const buyer = await login(S.buyerEmail);
+// kolo 2: vlastni kupec na scenar (per-e-mail/per-IP limit checkoutu z K3)
+const sD = await scenarioBuyer(S, `D-${Date.now().toString(36)}`);
+const buyer = sD.c;
 const PA = await login(S.promoterA.email);
 const slug = (await q(`SELECT slug FROM platform.promoters WHERE id=$1`, [S.promoterA.id]))[0].slug;
 
@@ -20,7 +22,7 @@ const slug = (await q(`SELECT slug FROM platform.promoters WHERE id=$1`, [S.prom
 const webhook = (pid) => new Client('gopay-notify').get(`/api/payments/gopay/webhook?id=${pid}`);
 async function buyOne(ticketTypeId) {
   const gopayCtl = async (id, body) => (await fetch(`${process.env.FAKE_GOPAY ?? 'http://localhost:3999'}/_ctl/${id}`, { method: 'POST', body: JSON.stringify(body) })).json();
-  const r = await buyer.post('/api/checkout', { eventId: S.eventA, ticketTypeId, quantity: 1, buyerEmail: S.buyerEmail, buyerName: 'Kupec Audit' });
+  const r = await buyer.post('/api/checkout', { eventId: S.eventA, ticketTypeId, quantity: 1, buyerEmail: sD.email, buyerName: 'Kupec Audit' });
   if (r.status !== 200) throw new Error('buyOne checkout ' + r.status + ' ' + r.text);
   await gopayCtl(r.json.paymentId, { state: 'PAID' });
   await webhook(r.json.paymentId);
@@ -35,7 +37,7 @@ const vipId = vip.json?.id;
 const base = await buyOne(S.tt['Stani']); // valid Stani ticket (500 Kc)
 const before1 = await gopayCallCount();
 // Neprihlaseny utocnik zna jen UUID listku + e-mail vlastnika (oboji unika napr. pres IDOR upgrade GET, viz S2).
-let r = await anon().post(`/api/buyer/tickets/${base.ticketId}/upgrade`, { targetTicketTypeId: vipId, ownerEmail: S.buyerEmail });
+let r = await anon().post(`/api/buyer/tickets/${base.ticketId}/upgrade`, { targetTicketTypeId: vipId, ownerEmail: sD.email });
 let tkAfter = (await q(`SELECT tt.name, tt2.base_price FROM tickets.tickets t JOIN catalog.ticket_types tt2 ON tt2.id=t.ticket_type_id JOIN catalog.ticket_types tt ON tt.id=t.ticket_type_id WHERE t.id=$1`, [base.ticketId]))[0];
 let upOrder = (await q(`SELECT status, payment_provider, total_amount FROM orders.orders WHERE idempotency_key IS NOT NULL AND id IN (SELECT order_id FROM orders.order_items WHERE ticket_type_id=$1) AND status='paid' ORDER BY created_at DESC LIMIT 1`, [vipId]))[0] ?? null;
 const after1 = await gopayCallCount();
@@ -68,7 +70,7 @@ check('D3a', 'SUBSCRIPTION: oficiální checkout /api/subscriptions/checkout fun
 // Checkout 500-uje (ON CONFLICT drift) → holder nevznikne cestou aplikace. Abychom overili SAMOTNY
 // neautentizovany confirm endpoint, nasadime holder v pending stavu primo (owner/bypass) a zavolame confirm jako anon.
 const sPid = randomUUIDish();
-const buyerRow = (await q(`SELECT id FROM identity.users WHERE email=$1`, [S.buyerEmail]))[0];
+const buyerRow = (await q(`SELECT id FROM identity.users WHERE email=$1`, [sD.email]))[0];
 await q(`INSERT INTO subscriptions.holders (id, package_id, user_id, holder_name, holder_email, valid_until, price_paid_halire, currency, status, payment_status, payment_id, payment_provider)
          VALUES (gen_random_uuid(), $1, $2, 'Abo Direct', $3, NOW()+INTERVAL '1 year', 300000, 'CZK', 'pending_payment', 'pending', $4, 'mock')`,
         [pkgId, buyerRow.id, `abo-direct-${S.run}@audit.test`, sPid]).catch((e) => check('D3-seed', 'seed holderu', false, { err: e.message }));
@@ -97,6 +99,24 @@ const after4 = await gopayCallCount();
 check('D4', 'RESALE: guest (jen buyerEmail) převezme aktivní listing → nový valid lístek + paid objednávka, listing sold, BEZ platby',
   !(r.status === 200 && newTicket?.status === 'valid' && newTicket?.order_status === 'paid' && soldListing?.status === 'sold' && after4 === before4),
   { listReqStatus: listRes.status, listingId, buyStatus: r.status, newTicket, listing: soldListing, gopayCallsDelta: after4 - before4 });
+
+// ============ D5/D6: kiosk/order (K1) + podvrzena identitni hlavicka ============
+// D5: nepřihlášený POST /api/kiosk/order -> 401, žádná objednávka.
+// D6: nepřihlášený POST s RUČNĚ nastaveným x-user-id (+ x-user-roles / x-promoter-id) EXISTUJÍCÍ obsluhy
+//     (člen promotéra A) -> 401, žádná objednávka. Middleware musí identitní hlavičky z příchozího
+//     požadavku zahodit a nastavovat je výhradně z ověřené session.
+const kioskBody = (tag) => ({ promoterSlug: slug, eventId: S.eventA, ticketTypeId: S.tt['Stani'], quantity: 2, buyerEmail: `kiosk-${tag}-${S.run}-${Date.now()}@audit.test`, buyerName: 'Kiosk Utocnik' });
+const kioskOrders = async (email) => (await q(`SELECT o.id, o.status FROM orders.orders o JOIN identity.users u ON u.id=o.user_id WHERE lower(u.email)=lower($1)`, [email]));
+const staff = (await q(`SELECT m.user_id FROM platform.promoter_members m WHERE m.promoter_id=$1 LIMIT 1`, [S.promoterA.id]).catch(() => []))[0]?.user_id
+  ?? (await q(`SELECT id FROM identity.users WHERE lower(email)=lower($1)`, [S.promoterA.email]))[0]?.id;
+let kb = kioskBody('anon');
+r = await anon().post('/api/kiosk/order', kb);
+let ko = await kioskOrders(kb.buyerEmail);
+check('D5', 'KIOSK: nepřihlášený POST /api/kiosk/order -> 401 a žádná objednávka', r.status === 401 && ko.length === 0, { ...ev(r), ordersInDb: ko });
+kb = kioskBody('forged');
+r = await anon().post('/api/kiosk/order', kb, { 'x-user-id': staff, 'x-user-roles': 'promoter', 'x-promoter-id': S.promoterA.id, 'x-user-email': S.promoterA.email, 'x-is-platform-admin': 'true' });
+ko = await kioskOrders(kb.buyerEmail);
+check('D6', 'KIOSK: nepřihlášený POST s podvrženým x-user-id existující obsluhy -> 401 a žádná objednávka', r.status === 401 && ko.length === 0, { staffUserId: staff, ...ev(r), ordersInDb: ko });
 
 summary();
 await owner.end();

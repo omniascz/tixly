@@ -1,0 +1,59 @@
+# E2E 03_refund_scan  base=http://localhost:3200  2026-10-03T06:59:46.865Z
+PASS R0  poradatel B refunduje objednavku poradatele A -> odmitnuto
+       {"status":404,"body":"{\"error\":\"Order not found\"}"}
+PASS R1a  admin refund: objednavka refunded, vstupenky zneplatneny, mista vracena
+       {"status":200,"body":"{\"ok\":true,\"orderId\":\"b3dc7bd0-5b9c-4c92-bd85-2006eec3c989\",\"refundedAmountHalire\":100000,\"gatewaySkipped\":false,\"revokedTickets\":2,\"reason\":\"customer_request\"}","order":{"status":"refunded","total_amount":100000,"gopay_payment_id":"3000000057"},"tickets":["revoked","revoked"],"remBefore":29,"remAfter":31}
+PASS R1b  PENIZE: admin refund zavolal refund u platebni brany
+       {"refundCallsToGateway":1,"gatewayPaymentState":"REFUNDED","gatewayRefunds":[100000],"note":"DB rika refunded; brana stale PAID = zakaznik penize nedostal"}
+PASS R1c  refund ma auditni stopu (audit_log / payment_events)
+       {"audit_log":[{"action":"INSERT","actor_type":"system","new_values":{"id":"b3dc7bd0-5b9c-4c92-bd85-2006eec3c989","locale":"cs","status":"pending","is_gift":false,"paid_at":null,"user_id":"76224901-f3a1-4e5b-b412-68c0c10e793b","currency":"CZK","event_id":"3e28d10f-8b3c-4081-b2f5-5b6d23f47323","comp_type":null,"comp_notes":null,"created_at":"2026-10-03T06:59:48.971372+00:00","expires_at":"2026-10-03…
+PASS R1d  opakovany refund teze objednavky odmitnut / idempotentni (mista se nevrati 2x)
+       {"status":200,"body":"{\"ok\":true,\"alreadyRefunded\":true,\"orderId\":\"b3dc7bd0-5b9c-4c92-bd85-2006eec3c989\",\"revokedTickets\":0,\"reason\":\"customer_request\"}","remAfter":31}
+INFO R2a  buyer self-refund (vychozi nastaveni poradatele)
+       {"status":403,"body":"{\"error\":\"SELF_REFUND_DISABLED\",\"message\":\"Tento pořadatel nepovoluje self-service refund. Kontaktuj pořadatele přímo.\"}","orderStatus":"paid","tickets":["valid"]}
+INFO R2b  pokud self-refund probehl, zavolal branu?
+       {"orderStatus":"paid","refundCallsToGateway":0}
+INFO R3a  buyer storno zaplacene objednavky: odpoved vs skutecny stav v DB (tichy refund?)
+       {"status":500,"body":"{\"error\":\"DB_ERROR\"}","orderStatusInDb":"paid","tickets":["valid"],"refund_requests":[]}
+INFO R3b  storno zaplacene objednavky zanechalo zaznam o naroku na vraceni penez (refund_request) nebo volani brany
+       {"refund_requests":[],"gatewayRefundCalls":0}
+PASS R4  CIZI kupec nemuze stornovat/refundovat cizi objednavku (IDOR)
+       {"cancel":{"status":404,"body":"{\"error\":\"NOT_FOUND\"}"},"refund":{"status":404,"body":"{\"error\":\"NOT_FOUND\"}"},"status":"paid"}
+FAIL R5  brana ohlasi REFUNDED (refund z portalu brany / chargeback): objednavka refunded A vstupenky zneplatneny
+       {"status":200,"body":"{\"ok\":true,\"orderId\":\"500e19a1-294b-4aad-a18c-b67beb78a07f\",\"state\":\"REFUNDED\",\"newStatus\":\"refunded\"}","orderStatus":"refunded","tickets":["valid"],"note":"pokud tickets=valid: zakaznik ma penize zpet i platnou vstupenku"}
+FAIL R6  zaplaceno po expiraci: zakaznik zaplatil, objednavka expired -> existuje mechanismus (auto-refund / fronta k reseni)?
+       {"status":200,"body":"{\"ok\":true,\"orderId\":\"cb144dae-01f9-4a27-8d68-33c02adddbdd\",\"state\":\"PAID\",\"newStatus\":\"paid\"}","orderStatus":"expired","tickets":0,"payment_events":[{"event_type":"payment_paid","gopay_status":"PAID"}],"gatewayRefundCalls":0}
+INFO V0  vychozi QR politika akce
+       {"qr_policy":"static_allowed"}
+PASS V1  zakaznik (ne-poradatel) nemuze volat skener
+       {"status":403,"body":"{\"error\":{\"code\":\"PROMOTER_REQUIRED\",\"message\":\"Promoter membership required\"}}"}
+PASS V2  skener CIZIHO poradatele vstupenku odmitne a neoznaci ji jako pouzitou
+       {"status":404,"body":"{\"result\":\"not_found\",\"message\":\"Lístek nenalezen.\"}","ticketStatus":"valid"}
+PASS V3  platna vstupenka -> admitted, stav used
+       {"status":200,"body":"{\"result\":\"admitted\",\"kind\":\"single_use\",\"ticket\":{\"ticketId\":\"1af1975c-666f-44c3-a123-96ba9f280f4b\",\"eventTitle\":\"Audit Koncert A mus1ielw\",\"ticketTypeName\":\"Stani\",\"holderEmail\":\"buyer-v-mus1ielw@audit.test\",\"holderName\":\"Kupec V\"},\"admittedAt\":\"2026-10-03T07:00:01.785Z\"}","ticket":{"status":"used","used_at":"2026-10-03T07:00:01.743Z"}}
+PASS V4  dvojity sken -> already_used (ne admitted)
+       {"status":200,"body":"{\"result\":\"already_used\",\"usedAt\":\"2026-10-03T07:00:01.743Z\",\"ticket\":{\"ticketId\":\"1af1975c-666f-44c3-a123-96ba9f280f4b\",\"eventTitle\":\"Audit Koncert A mus1ielw\",\"ticketTypeName\":\"Stani\",\"holderEmail\":\"buyer-v-mus1ielw@audit.test\",\"holderName\":\"Kupec V\"},\"message\":\"Lístek už byl použit 3. 10. 2026 9:00:01.\"}"}
+PASS V5  neexistujici vstupenka -> not_found
+       {"status":404,"body":"{\"result\":\"not_found\",\"message\":\"Lístek nenalezen.\"}"}
+PASS V6  spatny TOTP kod -> totp_mismatch, vstupenka zustava valid
+       {"status":401,"body":"{\"result\":\"totp_mismatch\",\"message\":\"TOTP kód neodpovídá.\"}","ticketStatus":"valid"}
+PASS V7  20 soubeznych skenu jedne vstupenky -> prave 1x admitted
+       {"200:admitted":1,"200:already_used":19}
+PASS V8  sken vstupenky z REFUNDOVANE objednavky -> odmitnuto
+       {"status":409,"body":"{\"result\":\"revoked\",\"revokedAt\":\"2026-10-03T06:59:49.815Z\",\"ticket\":{\"ticketId\":\"36ca02ad-aef8-4ab2-845c-44b166c62d28\",\"eventTitle\":\"Audit Koncert A mus1ielw\",\"ticketTypeName\":\"Stani\",\"holderEmail\":\"buyer-r1-mus1ielw@audit.test\",\"holderName\":\"Kupec R1\"},\"message\":\"Lístek byl zrušen (refund/transfer).\"}"}
+PASS V9a  offline manifest akce A2 neobsahuje vstupenky akce A
+       {"status":200,"body":"{\"eventId\":\"554ab932-c1f2-482d-b9c8-856b1407ce0d\",\"ticketIds\":[],\"count\":0,\"generatedAt\":\"2026-10-03T07:00:02.361Z\"}"}
+FAIL V9b  SKEN CIZI AKCE: vstupenka akce A u brany akce A2 (tyz poradatel) — API neumi rict, kterou akci brana obsluhuje
+       {"status":200,"body":"{\"result\":\"admitted\",\"kind\":\"single_use\",\"ticket\":{\"ticketId\":\"dcda31f0-c53b-45da-a397-2dd69b7e3caf\",\"eventTitle\":\"Audit Koncert A mus1ielw\",\"ticketTypeName\":\"Stani\",\"holderEmail\":\"buyer-v-mus1ielw@audit.test\",\"holderName\":\"Kupec V\"},\"admittedAt\":\"2026-10-03T07:00:02.418Z\"}","ticketStatus":"used","note":"schema /api/admin/scanner/validate nem…
+PASS V10  offline manifest akce A: jen platne vstupenky (neobsahuje pouzitou gt[0] ani refundovanou)
+       {"status":200,"count":25,"keys":["eventId","ticketIds","count","generatedAt"]}
+PASS V11  poradatel B nestahne manifest akce A
+       {"status":404,"body":"{\"error\":\"Not found\"}"}
+FAIL V12  skeny jsou zaznamenany ve scan_logs
+       [{"err":"column \"result\" does not exist"}]
+
+# SUMMARY {"PASS":17,"FAIL":4,"INFO":5}
+  FAIL R5 brana ohlasi REFUNDED (refund z portalu brany / chargeback): objednavka refunded A vstupenky zneplatneny
+  FAIL R6 zaplaceno po expiraci: zakaznik zaplatil, objednavka expired -> existuje mechanismus (auto-refund / fronta k reseni)?
+  FAIL V9b SKEN CIZI AKCE: vstupenka akce A u brany akce A2 (tyz poradatel) — API neumi rict, kterou akci brana obsluhuje
+  FAIL V12 skeny jsou zaznamenany ve scan_logs

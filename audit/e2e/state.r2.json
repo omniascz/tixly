@@ -1,0 +1,51 @@
+{
+  "run": "mus1ielw",
+  "pw": "Audit2026!x",
+  "buyerEmail": "buyer-mus1ielw@audit.test",
+  "buyerId": "cf4074e7-7baf-4743-af36-9c1014fef949",
+  "adminEmail": "padmin-mus1ielw@audit.test",
+  "promoterA": {
+    "email": "promoter-a-mus1ielw@audit.test",
+    "id": "78194f93-e0cf-49fa-9823-839c5ca2d94b"
+  },
+  "promoterB": {
+    "email": "promoter-b-mus1ielw@audit.test",
+    "id": "0bd1979e-d178-4009-bccf-6bc167caf39f"
+  },
+  "venueId": "5937639a-4f3d-4fd8-be0c-12b28cc6513f",
+  "eventA": "3e28d10f-8b3c-4081-b2f5-5b6d23f47323",
+  "tt": {
+    "Stani": "b70c2e80-5400-405f-b8d5-6009b0ae083b",
+    "Posledni mista": "b84171e1-514d-462f-ab0c-7effbed8f291",
+    "Limit 2 na osobu": "112d17d6-ccd7-4392-a4bf-7bb4153d02e0",
+    "Zdarma": "015f59d7-f08a-48b8-9632-3e85bc014399"
+  },
+  "eventB": "00bdce53-0bc7-4fe3-b25e-214f9885d740",
+  "ttB": "fce385d1-43e0-4cad-94a0-d654b5aa9b99",
+  "eventStatusA": "pending_review",
+  "eventStatusB": "pending_review",
+  "promo": "AUDIT20MUS1IELW",
+  "otherEmail": "other-mus1ielw@audit.test",
+  "guestEmail": "guest-mus1ielw@audit.test",
+  "guestOrder": "9ce78157-6e6b-4381-b57e-2cb476357372",
+  "lastSeatsOrders": [
+    "df80b555-5aee-482e-9b69-2d4a0740ff9f",
+    "61f39bb6-9899-4d19-ae59-8e768e9d08a5"
+  ],
+  "orders": {
+    "o1": "c87af1a4-2e88-4ecf-a448-073c3ecb568e",
+    "o2": "dbc0a7e9-f823-42c5-a80b-fa2080d29367",
+    "o3": "6accd21f-7283-4eb6-b2fa-322f940e1e23",
+    "o4": "9ce78157-6e6b-4381-b57e-2cb476357372",
+    "o5": "12269e38-f9be-442d-b254-d8c55c606dac",
+    "o6": "c77e52ce-ecc0-4fcc-97ad-b3155cdcb8c5"
+  },
+  "pids": {
+    "pid1": "3000000001",
+    "pid2": "3000000002",
+    "pid3": "3000000003",
+    "pid4": "3000000004",
+    "pid6": "3000000011"
+  },
+  "eventA2": "554ab932-c1f2-482d-b9c8-856b1407ce0d"
+}

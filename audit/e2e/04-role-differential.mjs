@@ -4,19 +4,21 @@
 // Pouziti: AUDIT_BASE=http://localhost:3100 node audit/e2e/04-role-differential.mjs app
 //          AUDIT_BASE=http://localhost:3101 node audit/e2e/04-role-differential.mjs owner
 import { readFileSync } from 'node:fs';
-import { Client, q, owner, check, ev, startLog, summary, gopayCtl, waitFor, sleep, INTERNAL_TOKEN, BASE } from './lib.mjs';
+import { Client, q, owner, check, ev, startLog, summary, gopayCtl, waitFor, sleep, INTERNAL_TOKEN, BASE, scenarioBuyer } from './lib.mjs';
 
 const label = process.argv[2] ?? 'app';
 startLog(`04_differential_${label}`);
 const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
 const login = async (name, email) => { const c = new Client(name); const r = await c.post('/api/auth/login', { email, password: S.pw }); if (r.status !== 200) throw new Error(`login ${email} ${r.status} ${r.text}`); return c; };
-const buyer = await login('buyer', S.buyerEmail);
+// kolo 2: vlastni kupec na scenar (per-e-mail/per-IP limit checkoutu z K3)
+const sX = await scenarioBuyer(S, `X-${label}-${Date.now().toString(36)}`);
+const buyer = sX.c;
 const PA = await login('promoterA', S.promoterA.email);
 const tickets = async (oid) => q(`SELECT id, status FROM tickets.tickets WHERE order_id=$1`, [oid]);
 const order = async (id) => (await q(`SELECT status FROM orders.orders WHERE id=$1`, [id]))[0];
 const webhook = (pid) => new Client('gopay-notify').get(`/api/payments/gopay/webhook?id=${pid}`);
 async function buy(qty) {
-  const r = await buyer.post('/api/checkout', { eventId: S.eventA, ticketTypeId: S.tt['Stani'], quantity: qty, buyerEmail: S.buyerEmail, buyerName: 'Kupec Audit' });
+  const r = await buyer.post('/api/checkout', { eventId: S.eventA, ticketTypeId: S.tt['Stani'], quantity: qty, buyerEmail: sX.email, buyerName: 'Kupec Audit' });
   if (r.status !== 200) return { err: ev(r) };
   await gopayCtl(r.json.paymentId, { state: 'PAID' }); await webhook(r.json.paymentId);
   await waitFor(async () => (await tickets(r.json.orderId)).length >= qty, 20000);

@@ -3,7 +3,7 @@
 // Vse pres HTTP; ground truth z DB pres owner (bypass RLS).
 import { createHmac } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { Client, q, owner, check, ev, startLog, summary, gopayLog } from './lib.mjs';
+import { Client, q, owner, check, ev, startLog, summary, gopayLog, scenarioBuyer } from './lib.mjs';
 
 startLog('11_operations');
 const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
@@ -63,11 +63,13 @@ await q(`DELETE FROM identity.user_2fa WHERE user_id=(SELECT id FROM identity.us
 
 // ============ R: self-refund po povolení promoterem ============
 const gopayRefundsBefore = (await gopayLog()).filter((x) => /\/refund$/.test(x.path ?? '')).length;
-const buyer = (await login(S.buyerEmail)).c;
+// kolo 2: vlastni kupec na scenar (per-e-mail/per-IP limit checkoutu z K3)
+const sOP5 = await scenarioBuyer(S, `OP5-${Date.now().toString(36)}`);
+const buyer = sOP5.c;
 // čerstvá zaplacená objednávka
 const gopayCtl = async (id, body) => (await fetch(`${process.env.FAKE_GOPAY ?? 'http://localhost:3999'}/_ctl/${id}`, { method: 'POST', body: JSON.stringify(body) })).json();
 const webhook = (pid) => new Client('gopay-notify').get(`/api/payments/gopay/webhook?id=${pid}`);
-const co = await buyer.post('/api/checkout', { eventId: S.eventA, ticketTypeId: S.tt['Stani'], quantity: 1, buyerEmail: S.buyerEmail, buyerName: 'Kupec Audit' });
+const co = await buyer.post('/api/checkout', { eventId: S.eventA, ticketTypeId: S.tt['Stani'], quantity: 1, buyerEmail: sOP5.email, buyerName: 'Kupec Audit' });
 await gopayCtl(co.json.paymentId, { state: 'PAID' }); await webhook(co.json.paymentId);
 let orderId = co.json.orderId; for (let i = 0; i < 40 && (await q(`SELECT 1 FROM tickets.tickets WHERE order_id=$1`, [orderId])).length === 0; i++) await new Promise((x) => setTimeout(x, 500));
 // povolit self-refund pro promotéra A

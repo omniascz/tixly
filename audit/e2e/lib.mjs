@@ -12,9 +12,11 @@ export const INTERNAL_TOKEN = process.env.INTERNAL_SERVICE_TOKEN ?? 'audit-inter
 export const owner = new pg.Pool({ connectionString: OWNER_URL, max: 4 });
 export const q = async (sql, params) => (await owner.query(sql, params)).rows;
 
-let ipSeq = 10;
-/** Unikatni IP na klienta (rate-limit je per IP) — x-forwarded-for. */
-export const nextIp = () => `10.77.${Math.floor(ipSeq / 250)}.${(ipSeq++ % 250) + 1}`;
+// Kolo 2: start sekvence je nahodny — kazdy beh skriptu (novy proces) by jinak znovu
+// pouzil tytez IP a narazil na per-IP rate limit checkoutu (K3: 10 / 10 min) z PREDCHOZIHO behu.
+let ipSeq = Math.floor(Math.random() * 4_000_000);
+/** Unikatni IP na klienta (rate-limit je per IP) — x-real-ip / x-forwarded-for. */
+export const nextIp = () => { const n = ipSeq++; return `10.${(n >> 16) & 63 | 64}.${(n >> 8) & 255}.${(n & 255) || 1}`; };
 
 export class Client {
   constructor(name) { this.name = name; this.cookies = new Map(); this.ip = nextIp(); this.token = null; }
@@ -78,4 +80,22 @@ export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export async function waitFor(fn, ms = 15000, step = 500) {
   const t = Date.now();
   for (;;) { const v = await fn(); if (v) return v; if (Date.now() - t > ms) return v; await sleep(step); }
+}
+
+// ---- kolo 2: unikatni kupec na scenar --------------------------------------
+// Checkout ma od K3 per-e-mail limit (max 5 soucasne zivych pending objednavek na e-mail)
+// a per-IP limit (10 / 10 min). Skripty psane pred K3 hromadily nezaplacene objednavky na
+// JEDEN e-mail (S.buyerEmail) a z JEDNE IP -> 429 nesouvisejici s testovanou vlastnosti.
+// Kazdy scenar proto dostane vlastniho zaregistrovaneho a prihlaseneho kupce (vlastni
+// e-mail i IP). Objednavka zalozena s buyerEmail = jeho e-mail patri jemu (createOrGetGuestUser
+// vraci existujiciho uzivatele), takze vlastnicke kontroly (PDF, storno, refund) plati.
+export async function scenarioBuyer(S, tag) {
+  const email = `buyer-${String(tag).toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${S.run}@audit.test`;
+  const c = new Client(`buyer-${tag}`);
+  const reg = await c.post('/api/auth/register', { email, password: S.pw, name: `Kupec ${tag}` });
+  if (reg.status !== 200 && reg.status !== 409) throw new Error(`scenarioBuyer register ${email} ${reg.status} ${reg.text}`);
+  const lg = await c.post('/api/auth/login', { email, password: S.pw });
+  if (lg.status !== 200) throw new Error(`scenarioBuyer login ${email} ${lg.status} ${lg.text}`);
+  const id = (await q(`SELECT id FROM identity.users WHERE lower(email)=lower($1)`, [email]))[0]?.id;
+  return { c, email, id };
 }

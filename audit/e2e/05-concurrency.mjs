@@ -1,13 +1,12 @@
 // E2E 05: SOUBEH — 100 paralelnich nakupu poslednich 10 mist, soubezne webhooky + order-completed,
 // zavod na promo kodu (max_uses) a na limitu na osobu. Ground truth z DB.
 import { readFileSync } from 'node:fs';
-import { Client, q, owner, check, ev, startLog, summary, gopayCtl, sleep, INTERNAL_TOKEN } from './lib.mjs';
+import { Client, q, owner, check, ev, startLog, summary, gopayCtl, sleep, INTERNAL_TOKEN, scenarioBuyer } from './lib.mjs';
 
 startLog('05_concurrency');
 const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
 const login = async (name, email) => { const c = new Client(name); const r = await c.post('/api/auth/login', { email, password: S.pw }); if (r.status !== 200) throw new Error(`login ${email} ${r.status} ${r.text}`); return c; };
 const PA = await login('promoterA', S.promoterA.email);
-const buyer = await login('buyer', S.buyerEmail);
 const hist = (arr, f) => { const h = {}; for (const x of arr) { const k = f(x); h[k] = (h[k] ?? 0) + 1; } return h; };
 const key = (x) => `${x.status}:${x.json?.error ?? (x.json?.orderId ? 'OK' : (x.text ?? '').slice(0, 40))}`;
 const webhook = (pid) => new Client('gopay-notify').get(`/api/payments/gopay/webhook?id=${pid}`);
@@ -62,8 +61,11 @@ check('C3', 'zavod: 40 soubeznych pouziti promo kodu s max_uses=5 -> sleva aplik
 
 // ---------- C4: zavod na limit na osobu (max 2) ----------
 const lim = await mkType(`Limit race ${Date.now()}`, 500, { maxPerUser: 2 });
-const lr = await Promise.all(Array.from({ length: 15 }, () => buyer.post('/api/checkout', { eventId: S.eventA, ticketTypeId: lim, quantity: 1, buyerEmail: S.buyerEmail, buyerName: 'Kupec Audit' })));
-const got = (await q(`SELECT COALESCE(sum(oi.quantity),0)::int n FROM orders.orders o JOIN orders.order_items oi ON oi.order_id=o.id WHERE oi.ticket_type_id=$1 AND o.user_id=$2 AND o.status IN ('pending','paid')`, [lim, S.buyerId]))[0].n;
+// kolo 2: vlastni kupec na scenar (per-e-mail/per-IP limit checkoutu z K3)
+// Soubeh tehoz uzivatele: 15 pozadavku z ruznych IP (jinak by per-IP limit 10 zkreslil, co se meri).
+const sC4 = await scenarioBuyer(S, `C4-${Date.now().toString(36)}`);
+const lr = await Promise.all(Array.from({ length: 15 }, () => { const ip = new Client('ip').ip; return sC4.c.post('/api/checkout', { eventId: S.eventA, ticketTypeId: lim, quantity: 1, buyerEmail: sC4.email, buyerName: 'Kupec Audit' }, { 'x-real-ip': ip, 'x-forwarded-for': ip }); }));
+const got = (await q(`SELECT COALESCE(sum(oi.quantity),0)::int n FROM orders.orders o JOIN orders.order_items oi ON oi.order_id=o.id WHERE oi.ticket_type_id=$1 AND o.user_id=$2 AND o.status IN ('pending','paid')`, [lim, sC4.id]))[0].n;
 check('C4', 'zavod: 15 soubeznych nakupu tehoz uzivatele pri limitu 2 ks/osobu -> max 2 ks', got <= 2, { boughtQty: got, responses: hist(lr, key) });
 
 // ---------- C5: checkout nema rate limit? ----------
