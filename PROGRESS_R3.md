@@ -45,3 +45,8 @@ P1, P5d, C2b, P13, V12, D3a PASS; C1a, C2a PASS.
   seat_upgrades UPDATE/INSERT politika `true`, postal_deliveries/travel_bookings INSERT `true`; group-invitations/[token] veřejně vrací e-mail organizátora;
   subscriptions.holders restwert_credit_halire měnitelné kupcem pod RLS (vlastní řádek); exchange mění event_id celé objednávky, ne lístku;
   free upgrade nemění kapacitu typů; my/orders upgrade-options → catalog.seat_maps neexistuje; 25 rout bez identity (logs/r3/2_unlisted_auth_routes.txt).
+
+## Krok 4 — průběh
+- K4d HOTOVO 1e5c3da (type claim; test 7/7)
+- K3a HOTOVO 9fdd575 (recompute + refresh-spotify CRON_SECRET; 2 fail-open opraveny; správné počty: 6× CRON_SECRET, 2× helper, 29× inline fail-closed = 37; commit msg má překlep 4/31)
+- K5 HOTOVO bc5db9a (CSRF; test 9/9; audit klient posílá Origin)
