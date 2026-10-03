@@ -31,9 +31,11 @@ on:
       - '.github/actions/db-from-migrations/**'
       - '.github/workflows/schema-drift-guard.yml'
   workflow_dispatch:
+  # Kolo 5: deploy.yml volá guard jako tvrdou podmínku nasazení (bez filtru cest).
+  workflow_call:
 
 concurrency:
-  group: schema-drift-${{ github.ref }}
+  group: schema-drift-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
