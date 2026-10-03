@@ -20,6 +20,7 @@ Prostředí: izolovaná DB z migrací, PgBouncer transaction mode, fake-gopay, M
 | B2B kredit jen podle kódu účtu (verify + checkout) | checkout strhl kredit firmy bez ověření kupujícího; verify vracel zůstatek komukoli s kódem | jen přihlášený člen účtu (joined/admin); verify 401/403; checkout pre-check + debit FOR UPDATE | fix-r4-b2b-credit-auth | 2 fail (zůstatek 200, nákup na firmu 200) → 4/4 | 1bdd439 |
 | seat-upgrade-notify (R3 bod 4) | čte `catalog.seats` (sedadla sálu) a `seat_upgrades.order_id/notified_at` — neexistují; e-mail jen logoval | `event_seats`, lepší volné místo téhož typu a sektoru, skutečný e-mail, log v nové tabulce (migrace 490) | fix-r4-seat-upgrade-notify | 500 → 2/2; od nuly OK, 2× OK | 9524f6e |
 | RLS politiky `true` (R3 bod 4) | 19 politik s `true`: 7 zápisových dovolovalo cizí řádek; čtení ukazovalo koncepty akcí a neaktivní pořadatele (bankovní účet, KYC) | migrace 491: zápis servis/vlastník, čtení jen publikované/aktivní; 10 veřejných ponecháno s důvodem; routy alert/upgrade servisně | fix-r4-true-policies | 2 fail (4× cizí INSERT, koncept/pending vidět) → 3/3 | 3fa3b71 |
+| převzetí převodu vstupenky (odhaleno při 3b) | UPDATE vlastníka v kontextu příjemce → 0 řádků, přesto 200 claimed | `asSystemInTx` po ověření, podmínka owner_id = odesílatel, jinak 409 a převod pending | fix-r4-transfer-claim | 2 fail (vlastník beze změny, tiché claimed) → 2/2 | 4fea477 |
 <!-- /nalezy -->
 
 **Krok 1 — audit 08 po opravách:** I1 PASS (154 GET rout × 3 cizí aktéři, 0 úniků), I2 PASS (0 odpovědí 5xx). `logs/r4/1c_r2_e2e_08.out`.
