@@ -22,7 +22,7 @@ Infrastruktura jako v kole 3 (viz PROGRESS_R3.md). Výstupy: logs/r4/.
 | 3h QR tištěné vstupenky | HOTOVO 6a7bdf7d (vizuální kontrola v závěru) | |
 | 3i mobile-promoter typecheck | HOTOVO db6e8542 — tsc 0; předexistující: package-lock nesynchronizovaný (npm ci EUSAGE) | |
 | 4 CI a provoz | HOTOVO — ci 4fb049ed, lint 525998ac, drift eecb95e3, rls fe4e3d7b, backup 6cdce801, README 67f126df | |
-| Závěr | čeká | |
+| Závěr | HOTOVO — typecheck/unit/live/build zelené, audity 01–12 vč. 07b/08 0 FAIL, vizuál QR+skener OK | f945e9bb |
 
 ## Poznámky
 - Krok 2 rozpracováno: klasifikátor audit/r4/classify-routes.mjs (984 routa+metoda); nález scanner/school-group bez ověření obsluhy.

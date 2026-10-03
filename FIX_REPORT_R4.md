@@ -103,3 +103,16 @@ Opravené routy v kroku 2: 25 rout bez identity (middleware), `scanner/school-gr
 - záloha: `DATABASE_URL` (sslmode=require, role s právem číst vše), `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_S3_BUCKET`, `AWS_REGION`, `BACKUP_ENCRYPTION_KEY`; volitelně `SLACK_WEBHOOK_URL`
 - noční RLS gate produkce: `DATABASE_URL` (role **tixly_app**) a `NEON_API_KEY` (project-scoped, jen noční sken); dokud nejsou, noční běh **selže** (záměrně)
 - `deploy.yml` se nespustí, dokud se spouštěč neshoduje s výchozí větví `master`
+
+## Závěr — sady po jednom (izolovaná DB z migrací, PgBouncer, fake-gopay, Mailpit, Redis; tixly_app)
+| Sada | Výsledek | Log |
+|---|---|---|
+| typecheck | CI varianta (čistý checkout, bez `.next/types`) exit 0; lokálně 1 předexistující chyba jen v generovaném `.next/types/app/api/rfid/scan` (export `generateRfidDeviceKey` z route souboru; build ji ignoruje `ignoreBuildErrors`) | logs/r4/z_tsc*.txt |
+| unit | 54/54 souborů, 517 ✓ / 4 skip | logs/r4/z_unit.txt |
+| live | 57 ✓ / 19 skip (soubory jen na Neon klonu, bez lokální dráhy) / 0 ✗; i proti čisté DB ze CI skriptu stejně | logs/r4/z_live.txt, 4_live_ci_check.txt |
+| build | exit 0 | logs/r2/build_last.txt |
+| audity 01–12 | 01 26/0 · 02 36/0 · 03 23/0 · 04 14/0 · 05 8/0 · 06 21/0 · 07 6/0 · 07b 0 zapsaných řádků v 5 pokusech · 08 2/0 (154 rout × 3 aktéři, 0 úniků, 0× 5xx) · 09 12/0 · 10 7/0 · 11 8/0 · 12 5/0 (PASS/FAIL) | logs/r4/z_audit_*.txt, audit/logs/r2_e2e_*.out |
+| HTTP | anonymní `POST /api/oauth/authorize` → 401 (i s parametry / formulářem); `GET /api/v1/buyer/orders` bez identity → 401 | — |
+| vizuál | tisk prodejce: 2 skutečné QR, dekódované ZE SCREENSHOTU = TXP2; vložení do skeneru (akce za 1 h, rotating_24h) → „Vstup povolen“, vstupenka `used` | logs/r4/z_visual_*.png |
+
+`tixly/`: `git -C ../tixly status --porcelain | wc -l` = 110. Překryv se soubory měněnými ve větvích fix/*: 4 — `admin/scanner/page.tsx` (round3, round4), `api/internal/order-completed/route.ts` (round3), `api/subscriptions/checkout/route.test.ts` (round2, round3), `middleware.ts` (critical, round2–4). Migrace 479 kolidují (řeší se při slučování).
