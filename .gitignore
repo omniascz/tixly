@@ -91,3 +91,7 @@ screenshots/
 # PDF exporty dokumentace generované v rootu.
 # ZÁMĚRNĚ jen root (`/`) — `docs/*.pdf` jsou tracked a mají zůstat commitovatelné.
 /*.pdf
+
+# Kolo 2: auditni sada ve worktree (node_modules = junction na nextjs-boilerplate)
+audit/node_modules
+audit/db/_mig_tmp/
