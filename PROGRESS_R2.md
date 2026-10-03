@@ -25,7 +25,7 @@ Základ: `fix/critical-2026-09-30` @ `1a6e96d`. Worktree `../tixly-fix`. `tixly/
 | 3A V8 (zápis akce/ceny/promo/objednávky/vstupenky) | HOTOVO | 2e38967 |
 | 3B 156 tabulek bez RLS | HOTOVO | 8c868d3 (tabulka logs/r2/3B_tables_decision.md) |
 | 4 V9 R-56 | HOTOVO | 8713d13 |
-| 5 V4/S1/V6/S8/P1/QR | rozpracováno | |
+| 5 V4/S1/V6/S8/P1/QR | rozpracováno: V4 68c4090, S1 bc098b6 hotovo; zbývá V6, S8, P1, QR | |
 | Závěr + FIX_REPORT_R2 | čeká | |
 
 ## Krok 0 — výsledky (2026-10-03, app :3200 pod tixly_app)
