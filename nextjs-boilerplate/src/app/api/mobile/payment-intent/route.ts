@@ -46,11 +46,11 @@ async function stripePost<T>(
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    return NextResponse.json({ error: 'STRIPE_NOT_CONFIGURED' }, { status: 503 });
-  }
-
+  // Kolo 4: přihlášení před kontrolou konfigurace (anonym dřív dostal 503).
   return runAsUser(req, async (userId) => {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json({ error: 'STRIPE_NOT_CONFIGURED' }, { status: 503 });
+    }
     const body: unknown = await req.json().catch(() => ({}));
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
