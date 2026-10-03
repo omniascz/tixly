@@ -16,6 +16,7 @@ Prostředí: izolovaná DB z migrací, PgBouncer transaction mode, fake-gopay, M
 | qes_signing_requests R-58 (při 2c) | policy čte `app.bypass_rls`; QES pod tixly_app nefunguje | migrace 489: admin/servis/vlastní pořadatel | fix-r4-qes-policy | 2 fail (servis 0 řádků, 404) → 2/2; od nuly OK, 2× OK | 06bfdbf |
 | přeprodej přes `ownerEmail` (inventura) | vlastnictví podle e-mailu z těla; anonym vystavil cizí vstupenku za 1 Kč a stáhl cizí inzerát | ověřená identita, nebo host s UUID své objednávky (capability stránky potvrzení); tlačítko posílá orderId | fix-r4-resale-owner-email | 2 fail (201 za 1 Kč, 200 stažení) → 4/4 | 3676a27 |
 | pamětní vstupenka `?token=` cokoli (inventura) | `hasQueryToken = !!queryToken` — token se neověřoval ani nevydával | vlastník nebo HMAC token této vstupenky; ověření před dotazem; e-mail nese token | fix-r4-memory-token | 3 fail (?token=x → data) → 3/3 | 7203bc8 |
+| konfigurace před přihlášením (wallet/apple, mobile/payment-intent) | kontrola env před `runAsUser` → anonym 503 | kontrola uvnitř `runAsUser` | fix-r4-auth-before-config | anonym 503 → 401 (přihlášený 503) | 7d600b7 |
 <!-- /nalezy -->
 
 **Krok 1 — audit 08 po opravách:** I1 PASS (154 GET rout × 3 cizí aktéři, 0 úniků), I2 PASS (0 odpovědí 5xx). `logs/r4/1c_r2_e2e_08.out`.
