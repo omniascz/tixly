@@ -740,6 +740,46 @@
   "isPublic": false
  },
  {
+  "route": "/api/admin/date-holds/[holdId]/confirm",
+  "method": "POST",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/date-holds/[holdId]",
+  "method": "DELETE",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/date-holds",
+  "method": "GET",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/date-holds",
+  "method": "POST",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
   "route": "/api/admin/domains/[id]/verify",
   "method": "POST",
   "zone": "mw-promoter",
@@ -1110,6 +1150,46 @@
   "isPublic": false
  },
  {
+  "route": "/api/admin/events/[id]/artist-settlements/[settlementId]/close",
+  "method": "POST",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/events/[id]/artist-settlements/[settlementId]",
+  "method": "GET",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/events/[id]/artist-settlements",
+  "method": "GET",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/events/[id]/artist-settlements",
+  "method": "POST",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
   "route": "/api/admin/events/[id]/artists",
   "method": "DELETE",
   "zone": "mw-promoter",
@@ -1222,6 +1302,16 @@
  {
   "route": "/api/admin/events/[id]/box-office",
   "method": "POST",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/events/[id]/break-even",
+  "method": "GET",
   "zone": "mw-promoter",
   "caller": "pořadatel",
   "protection": "middleware: přihlášení + členství",
@@ -1371,6 +1461,46 @@
  },
  {
   "route": "/api/admin/events/[id]/comps",
+  "method": "POST",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/events/[id]/costs/[costId]",
+  "method": "DELETE",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/events/[id]/costs/[costId]",
+  "method": "PATCH",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/events/[id]/costs",
+  "method": "GET",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/events/[id]/costs",
   "method": "POST",
   "zone": "mw-promoter",
   "caller": "pořadatel",
@@ -1820,6 +1950,16 @@
   "isPublic": false
  },
  {
+  "route": "/api/admin/events/[id]/holds/issue",
+  "method": "POST",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
   "route": "/api/admin/events/[id]/holds",
   "method": "DELETE",
   "zone": "mw-promoter",
@@ -2061,6 +2201,46 @@
  },
  {
   "route": "/api/admin/events/[id]/marketing-qr",
+  "method": "POST",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/events/[id]/occupancy",
+  "method": "GET",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/events/[id]/offers/[offerId]/send",
+  "method": "POST",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/events/[id]/offers",
+  "method": "GET",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/events/[id]/offers",
   "method": "POST",
   "zone": "mw-promoter",
   "caller": "pořadatel",
@@ -2452,6 +2632,16 @@
  {
   "route": "/api/admin/events/[id]/rfid/zones",
   "method": "POST",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/events/[id]/royalties/[agreementId]/preview",
+  "method": "GET",
   "zone": "mw-promoter",
   "caller": "pořadatel",
   "protection": "middleware: přihlášení + členství",
@@ -3610,6 +3800,16 @@
   "isPublic": false
  },
  {
+  "route": "/api/admin/orders/[orderId]/send-tickets",
+  "method": "POST",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
   "route": "/api/admin/orders/[orderId]/support-action",
   "method": "GET",
   "zone": "mw-promoter",
@@ -4120,6 +4320,26 @@
   "isPublic": false
  },
  {
+  "route": "/api/admin/scanner/passage/undo",
+  "method": "POST",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/scanner/passage",
+  "method": "POST",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
+  "reason": "",
+  "isPublic": false
+ },
+ {
   "route": "/api/admin/scanner/reentry",
   "method": "POST",
   "zone": "mw-promoter",
@@ -4366,6 +4586,16 @@
   "caller": "pořadatel",
   "protection": "middleware: přihlášení + členství",
   "guards": "promoter+service",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/admin/stats/overview",
+  "method": "GET",
+  "zone": "mw-promoter",
+  "caller": "pořadatel",
+  "protection": "middleware: přihlášení + členství",
+  "guards": "promoter",
   "reason": "",
   "isPublic": false
  },
@@ -6760,6 +6990,16 @@
   "isPublic": true
  },
  {
+  "route": "/api/events/[id]/seats/best-available",
+  "method": "POST",
+  "zone": "unlisted",
+  "caller": "veřejná",
+  "protection": "bez přihlášení (záměr)",
+  "guards": "",
+  "reason": "návrh nejlepších volných míst publikované akce; jen čtení, nic nedrží (držení jde přes seats/hold)",
+  "isPublic": true
+ },
+ {
   "route": "/api/events/[id]/seats/hold",
   "method": "DELETE",
   "zone": "unlisted",
@@ -7306,6 +7546,16 @@
   "caller": "servis",
   "protection": "handler: tajemství (cron/interní)",
   "guards": "service+webhook",
+  "reason": "",
+  "isPublic": false
+ },
+ {
+  "route": "/api/internal/cron/expire-date-holds",
+  "method": "POST",
+  "zone": "public-prefix",
+  "caller": "servis",
+  "protection": "handler: tajemství (cron/interní)",
+  "guards": "service",
   "reason": "",
   "isPublic": false
  },
@@ -7948,6 +8198,26 @@
   "guards": "partner",
   "reason": "",
   "isPublic": false
+ },
+ {
+  "route": "/api/offers/[token]/respond",
+  "method": "POST",
+  "zone": "public-prefix",
+  "caller": "veřejná (capability)",
+  "protection": "jednorázový token nabídky (v DB jen hash, platnost, stav)",
+  "guards": "webhook",
+  "reason": "agent bez účtu přijme / odmítne / protinavrhne nabídku",
+  "isPublic": true
+ },
+ {
+  "route": "/api/offers/[token]",
+  "method": "GET",
+  "zone": "public-prefix",
+  "caller": "veřejná (capability)",
+  "protection": "tajný token v URL",
+  "guards": "",
+  "reason": "",
+  "isPublic": true
  },
  {
   "route": "/api/orders",

@@ -151,6 +151,47 @@ run('Krok 3B — tabulky bez RLS: data tenantu a uživatelů izolována', () => 
     expect(await as({ promoter: a.promoterId }, `INSERT INTO audit.audit_log (schema_name, table_name, record_id, action, actor_type) VALUES ('x','y','z','INSERT','promoter')`)).toBe(1);
   });
 
+  // Kolo 5 (integrace): tabulky z rozpracované práce vlastníka (migrace 473–477 + 488 pro royalty_*).
+  // Generované: pro každou tabulku řádek tenantu B → pořadatel A, kupec i veřejnost nečtou / nemění /
+  // nevloží; pořadatel B čte i mění; servisní kontext čte.
+  type OwnerSpec = { t: string; ins: (b: Awaited<ReturnType<LocalClone['seed']['fullChain']>>, agr: string) => [string, unknown[]]; upd: string };
+  const OWNER_TABLES: OwnerSpec[] = [
+    { t: 'catalog.event_costs', upd: `description='hack'`,
+      ins: (b) => [`INSERT INTO catalog.event_costs (event_id, promoter_id, category, description, amount_minor) VALUES ($1,$2,'venue','Sál',100000) RETURNING id`, [b.eventId, b.promoterId]] },
+    { t: 'catalog.venue_date_holds', upd: `title='hack'`,
+      ins: (b) => [`INSERT INTO catalog.venue_date_holds (venue_id, promoter_id, hold_date, title) VALUES ($1,$2,CURRENT_DATE + 60,'Opce') RETURNING id`, [b.venueId, b.promoterId]] },
+    { t: 'lineups.artist_offers', upd: `artist_name='hack'`,
+      ins: (b) => [`INSERT INTO lineups.artist_offers (promoter_id, event_id, artist_name) VALUES ($1,$2,'Umělec') RETURNING id`, [b.promoterId, b.eventId]] },
+    { t: 'lineups.royalty_agreements', upd: `artist_name='hack'`,
+      ins: (b) => [`INSERT INTO lineups.royalty_agreements (event_id, promoter_id, artist_name) VALUES ($1,$2,'Umělec 2') RETURNING id`, [b.eventId, b.promoterId]] },
+    { t: 'lineups.artist_settlements', upd: `artist_name='hack'`,
+      ins: (b, agr) => [`INSERT INTO lineups.artist_settlements (event_id, promoter_id, agreement_id, artist_name) VALUES ($1,$2,$3,'Umělec') RETURNING id`, [b.eventId, b.promoterId, agr]] },
+    { t: 'lineups.artist_payouts', upd: `artist_name='hack'`,
+      ins: (b, agr) => [`INSERT INTO lineups.artist_payouts (agreement_id, promoter_id, artist_name) VALUES ($1,$2,'Umělec') RETURNING id`, [agr, b.promoterId]] },
+    { t: 'lineups.royalty_ledger', upd: `order_id=order_id`,
+      ins: (b, agr) => [`INSERT INTO lineups.royalty_ledger (agreement_id, order_id) VALUES ($1,$2) RETURNING id`, [agr, b.orderId]] },
+  ];
+  for (const spec of OWNER_TABLES) {
+    it(`tenant (kód vlastníka): ${spec.t} — pořadatel A, kupec ani veřejnost nečte/nemění; pořadatel B ano`, async () => {
+      const b = await clone.seed.fullChain();
+      const a = await clone.seed.chain();
+      const agr = (await owner.query<{ id: string }>(
+        `INSERT INTO lineups.royalty_agreements (event_id, promoter_id, artist_name) VALUES ($1,$2,'Smlouva B') RETURNING id`, [b.eventId, b.promoterId])).rows[0].id;
+      const [sql, params] = spec.ins(b, agr);
+      const id = (await owner.query<{ id: string }>(sql, params)).rows[0].id;
+      for (const c of [{ promoter: a.promoterId }, { user: b.userId }, {}] as Ctx[]) {
+        expect(await as(c, `SELECT 1 FROM ${spec.t} WHERE id=$1`, [id]), `${spec.t} SELECT ${JSON.stringify(c)}`).toSatisfy(denied);
+        expect(await as(c, `UPDATE ${spec.t} SET ${spec.upd} WHERE id=$1`, [id]), `${spec.t} UPDATE ${JSON.stringify(c)}`).toSatisfy(denied);
+        expect(await as(c, `DELETE FROM ${spec.t} WHERE id=$1`, [id]), `${spec.t} DELETE ${JSON.stringify(c)}`).toSatisfy(denied);
+      }
+      // INSERT řádku tenantu B z kontextu A musí narazit na WITH CHECK
+      const [insSql, insParams] = spec.ins(b, agr);
+      expect(await as({ promoter: a.promoterId }, insSql.replace(/ RETURNING id$/, ''), insParams), `${spec.t} INSERT za B`).toSatisfy(denied);
+      expect(await as({ promoter: b.promoterId }, `SELECT 1 FROM ${spec.t} WHERE id=$1`, [id]), `${spec.t} vlastník čte`).toBe(1);
+      expect(await as({ promoter: b.promoterId }, `UPDATE ${spec.t} SET ${spec.upd} WHERE id=$1`, [id]), `${spec.t} vlastník mění`).toBe(1);
+    });
+  }
+
   it('systémová tabulka: čtení ano, zápis bez práva', async () => {
     expect(await as({}, `SELECT 1 FROM platform.currencies LIMIT 1`)).not.toBe('DENIED');
     expect(await as({ promoter: randomUUID() }, `INSERT INTO platform.currencies (code, name) VALUES ('XXX','Hack')`)).toBe('DENIED');

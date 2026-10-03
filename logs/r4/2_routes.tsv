@@ -73,6 +73,10 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/admin/customers	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/dashboards/[key]	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/dashboards/[key]	PUT	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/date-holds/[holdId]/confirm	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/date-holds/[holdId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/date-holds	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/date-holds	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/domains/[id]/verify	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/domains	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/domains	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
@@ -110,6 +114,10 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/admin/events/[id]/advance-payout	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/ai-description	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+partner
 /api/admin/events/[id]/analytics	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/artist-settlements/[settlementId]/close	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/artist-settlements/[settlementId]	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/artist-settlements	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/artist-settlements	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/artists	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/artists	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/audience-map	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
@@ -122,6 +130,7 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/admin/events/[id]/box-office/sessions/[sessionId]	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/box-office	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/box-office	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/break-even	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/broadcast	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
 /api/admin/events/[id]/broadcast	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
 /api/admin/events/[id]/bundles/[bundleId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
@@ -137,6 +146,10 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/admin/events/[id]/commemorative	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/comps	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/comps	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/costs/[costId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/costs/[costId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/costs	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/costs	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/custom-fields/[fieldId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/custom-fields/[fieldId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/custom-fields	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
@@ -181,6 +194,7 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/admin/events/[id]/guestlist	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/guestlist	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/guestlist	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/holds/issue	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/holds	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/holds	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/holds	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
@@ -206,6 +220,10 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/admin/events/[id]/marketing-qr/[campaignId]/png	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/marketing-qr	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/marketing-qr	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/occupancy	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/offers/[offerId]/send	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/offers	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/offers	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/parking-bundle/[offerId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/parking-bundle/[offerId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/parking-bundle	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
@@ -245,6 +263,7 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/admin/events/[id]/rfid/zones/[zoneId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/rfid/zones	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/rfid/zones	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/events/[id]/royalties/[agreementId]/preview	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/royalties/[agreementId]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/royalties/[agreementId]	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/events/[id]/royalties/[agreementId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
@@ -360,6 +379,7 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/admin/onboarding	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/orders/[orderId]/print-labels	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/orders/[orderId]/refund	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/orders/[orderId]/send-tickets	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/orders/[orderId]/support-action	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
 /api/admin/orders/[orderId]/support-action	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
 /api/admin/orders/bulk-refund	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
@@ -411,6 +431,8 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/admin/scanner/export	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/scanner/gates	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/scanner/manifest	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/scanner/passage/undo	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
+/api/admin/scanner/passage	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/scanner/reentry	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/scanner/validate-group	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/scanner/validate-nfc	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+webhook
@@ -436,6 +458,7 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/admin/staff/[userId]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/staff	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
 /api/admin/staff	POST	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter+service
+/api/admin/stats/overview	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/subscription-plans/[id]	DELETE	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/subscription-plans/[id]	PATCH	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
 /api/admin/subscription-plans	GET	pořadatel	middleware: přihlášení + členství	mw-promoter	promoter
@@ -675,6 +698,7 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/events/[id]/reviews	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
 /api/events/[id]/seat-view-photos	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
 /api/events/[id]/seatmap	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
+/api/events/[id]/seats/best-available	POST	veřejná	bez přihlášení (záměr)	unlisted	
 /api/events/[id]/seats/hold	DELETE	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	buyer
 /api/events/[id]/seats/hold	POST	veřejná (zápis hosta)	validace vstupu / rate limit	unlisted	buyer
 /api/events/[id]/seats/preview.svg	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
@@ -730,6 +754,7 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/internal/cron/daily-stats	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
 /api/internal/cron/demand-forecast	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
 /api/internal/cron/event-payout-release	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
+/api/internal/cron/expire-date-holds	POST	servis	handler: tajemství (cron/interní)	public-prefix	service
 /api/internal/cron/expire-pending-orders	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
 /api/internal/cron/forgemsg-dispatch	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
 /api/internal/cron/forgemsg-provision	POST	servis	handler: tajemství (cron/interní)	public-prefix	service+webhook
@@ -794,6 +819,8 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/newsletter/subscribe	POST	veřejná (zápis hosta)	validace vstupu / rate limit	public-prefix	
 /api/oauth/authorize	POST	kupec	handler: přihlášení uživatele (session JWT)	unlisted	
 /api/oauth/token	POST	partner	handler: API klíč/token partnera	unlisted	partner
+/api/offers/[token]/respond	POST	veřejná (capability)	jednorázový token nabídky (v DB jen hash, platnost, stav)	public-prefix	webhook
+/api/offers/[token]	GET	veřejná (capability)	tajný token v URL	public-prefix	
 /api/orders	GET	kupec	handler: x-user-id (401)	unlisted	buyer
 /api/organizer/events	GET	partner	handler: API klíč/token partnera	unlisted	partner
 /api/organizer/events	POST	partner	handler: API klíč/token partnera	unlisted	partner

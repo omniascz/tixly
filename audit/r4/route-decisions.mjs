@@ -105,6 +105,9 @@ export const DECISIONS = {
   'GET /api/payments/gopay/webhook': { caller: 'brána (webhook)', protection: 'stav se čte z brány podle ID (ne z těla)', reason: 'webhook brány' },
   'POST /api/payments/gopay/webhook': { caller: 'brána (webhook)', protection: 'stav se čte z brány podle ID (ne z těla)', reason: 'webhook brány' },
   'POST /api/payments/mollie/webhook': { caller: 'brána (webhook)', protection: 'stav se čte z brány podle ID', reason: 'webhook brány' },
+  // Kolo 5 (integrace) — routy z rozpracované práce vlastníka
+  'POST /api/events/[id]/seats/best-available': PUB('návrh nejlepších volných míst publikované akce; jen čtení, nic nedrží (držení jde přes seats/hold)'),
+  'POST /api/offers/[token]/respond': { caller: 'veřejná (capability)', protection: 'jednorázový token nabídky (v DB jen hash, platnost, stav)', reason: 'agent bez účtu přijme / odmítne / protinavrhne nabídku' },
 };
 
 /** Veřejné typy volajícího — generovaný test u nich anonymní 401/403 nečeká. */
