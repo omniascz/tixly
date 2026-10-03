@@ -11,9 +11,9 @@ hodnoty tajemství se nikdy nevypisují (soubor, řádek, typ, max. 4 znaky). V�
 | 1 triáž gitleaks | HOTOVO — master 26, --all 63; skutečné 0, nejasné 0, testovací/falešné 63 (logs/r5/1_triage.md) | |
 | 2 snímek tixly/ | HOTOVO — wip/snapshot-2026-10-04 = 8635723d (strom a44ccdb3, 5523 souborů, 125 změn: 81 A / 44 M); status před = po (110); 0 souborů změněno za 15 min | |
 | 3 integrační větev | HOTOVO — integrate/2026-10-04: merge ed318f9b (0 textových konfliktů), 479→488 4ee368ae, gitleaksignore db600693, testy b65a04ff, passage QR 66bd9bce, send-tickets d01a00a3 | |
-| 4 ověření integrace | čeká | |
-| 5 deploy.yml | čeká | |
-| Závěr INTEGRATION_REPORT.md | čeká | |
+| 4 ověření integrace | HOTOVO — migrace 45/45, tsc 0, lint 1008 (22 import/order opraveno), unit 66/670, live 59/0/21skip, build OK, audity 01–12 vč. 07b/08 0 FAIL | 28bfd516, ec9382b0 |
+| 5 deploy.yml | HOTOVO — master + needs ci/schema-drift/rls-gate | ddebe2e5 |
+| Závěr INTEGRATION_REPORT.md | HOTOVO | (tento commit) |
 
 ## Poznámky
 - Krok 1: .gitleaksignore (63 fingerprintů z logs/r5/1_gitleaks_all.json) přidat na integrate/2026-10-04; po integraci znovu skenovat (snímek WIP může přinést nové nálezy).
