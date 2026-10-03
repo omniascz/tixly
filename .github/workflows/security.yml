@@ -1,40 +1,47 @@
 name: Security
 
+# Kolo 6: matice auditovala neexistující adresáře (jwt-auth, totp-qr, resale-api, rls-multitenancy)
+# → 19/19 běhů selhalo už na `working-directory`. Teď jen balíčky, které v repu jsou a mají lockfile.
+# `npm audit --package-lock-only` čte lockfile bez instalace (npm ci u mobile-promoter padá na
+# nesynchronizovaném lockfilu — samostatný nález). Gitleaks bere .gitleaksignore (triáž kola 5).
+
 on:
   schedule:
     - cron: '0 6 * * 1'   # každé pondělí v 6:00 UTC
   push:
-    branches: [main]
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Audit závislostí (npm audit)
+  # Audit závislostí (npm audit) — high + critical shodí job
   # ---------------------------------------------------------------------------
   audit:
-    name: Dependency audit
+    name: Dependency audit (${{ matrix.module }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         module:
           - nextjs-boilerplate
-          - jwt-auth
-          - totp-qr
-          - resale-api
-          - rls-multitenancy
+          - mobile
+          - mobile-promoter
+          - e2e
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
-      - name: Install dependencies
-        run: npm ci
-        working-directory: ${{ matrix.module }}
-
-      - name: npm audit (high + critical)
-        run: npm audit --audit-level=high
+      - name: npm audit (high + critical, z lockfilu)
+        run: npm audit --audit-level=high --package-lock-only
         working-directory: ${{ matrix.module }}
 
   # ---------------------------------------------------------------------------
