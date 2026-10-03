@@ -1,0 +1,9 @@
+.next/types/app/api/rfid/scan/route.ts(8,13): error TS2344: Type 'OmitWithTag<typeof import("C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/src/app/api/rfid/scan/route"), "POST" | "GET" | "DELETE" | "PATCH" | "config" | "PUT" | "generateStaticParams" | ... 8 more ... | "OPTIONS", "">' does not satisfy the constraint '{ [x: string]: never; }'.
+  Property 'generateRfidDeviceKey' is incompatible with index signature.
+    Type '() => string' is not assignable to type 'never'.
+tests/fix-r4-mock-qes-prod.live.test.ts(44,10): error TS2352: Conversion of type 'typeof import("C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/src/app/api/mock-qes/[requestId]/route")' to type 'Record<string, H>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'dynamic' is incompatible with index signature.
+    Type 'string' is not comparable to type 'H'.
+tests/fix-r4-qes-policy.live.test.ts(47,17): error TS2352: Conversion of type 'typeof import("C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/src/app/api/mock-qes/[requestId]/route")' to type 'Record<string, H>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'dynamic' is incompatible with index signature.
+    Type 'string' is not comparable to type 'H'.

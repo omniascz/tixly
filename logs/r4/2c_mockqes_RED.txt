@@ -1,0 +1,55 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r4-mock-qes-prod.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[90m 288[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-mock-qes-prod.live.test.ts[2m > [22mKrok 2 (kolo 4) — mock-qes je v produkci zablokované[2m > [22mprodukce: GET 403 bez dokumentu, POST 403 a žádost zůstane pending[39m
+[31m     → {"error":"Not found"}: expected 404 to be 403 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r4-mock-qes-prod.live.test.ts[2m > [22mKrok 2 (kolo 4) — mock-qes je v produkci zablokované[2m > [22mmimo produkci mock dál funguje (GET 200)[39m
+[31m     → {"error":"Not found"}: expected 404 to be 200 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-mock-qes-prod.live.test.ts[2m > [22mKrok 2 (kolo 4) — mock-qes je v produkci zablokované[2m > [22mprodukce: GET 403 bez dokumentu, POST 403 a žádost zůstane pending
+[31m[1mAssertionError[22m: {"error":"Not found"}: expected 404 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m tests/fix-r4-mock-qes-prod.live.test.ts:[2m51:26[22m[39m
+    [90m 49| [39m    [35mconst[39m g [33m=[39m [35mawait[39m [34mcall[39m([32m'GET'[39m)[33m;[39m
+    [90m 50| [39m    [35mconst[39m gb [33m=[39m [35mawait[39m g[33m.[39m[34mtext[39m()[33m;[39m
+    [90m 51| [39m    [34mexpect[39m(g[33m.[39mstatus[33m,[39m gb)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m 52| [39m    [34mexpect[39m(gb)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'podpis@poradatel.test'[39m)[33m;[39m
+    [90m 53| [39m    [35mconst[39m p [33m=[39m [35mawait[39m [34mcall[39m([32m'POST'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-mock-qes-prod.live.test.ts[2m > [22mKrok 2 (kolo 4) — mock-qes je v produkci zablokované[2m > [22mmimo produkci mock dál funguje (GET 200)
+[31m[1mAssertionError[22m: {"error":"Not found"}: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m tests/fix-r4-mock-qes-prod.live.test.ts:[2m62:46[22m[39m
+    [90m 60| [39m    env[33m.[39m[33mNODE_ENV[39m [33m=[39m [32m'development'[39m[33m;[39m
+    [90m 61| [39m    [35mconst[39m g [33m=[39m [35mawait[39m [34mcall[39m([32m'GET'[39m)[33m;[39m
+    [90m 62| [39m    [34mexpect[39m(g[33m.[39mstatus[33m,[39m [35mawait[39m g[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                             [31m^[39m
+    [90m 63| [39m  })[33m;[39m
+    [90m 64| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 20:23:19
+[2m   Duration [22m 939ms[2m (transform 135ms, setup 0ms, collect 152ms, tests 288ms, environment 0ms, prepare 316ms)[22m
+
