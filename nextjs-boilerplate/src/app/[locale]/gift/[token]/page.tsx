@@ -16,7 +16,7 @@ interface EventOption {
 interface GiftDetail {
   recipientName: string | null;
   giftMessage: string | null;
-  fromName: string;
+  fromName: string | null;
   eventTitle: string;
   eventDateStart: string;
   expiresAt: string;
@@ -186,7 +186,7 @@ export default function GiftTokenPage() {
         <h1 className="text-2xl font-bold">
           {gift.recipientName ? `${gift.recipientName}, máš dárek!` : 'Máš dárkovou vstupenku!'}
         </h1>
-        <p className="text-sm text-muted-foreground">od {gift.fromName}</p>
+        <p className="text-sm text-muted-foreground">od {gift.fromName ?? 'dárce'}</p>
       </div>
 
       <Card className="border-pink-200 bg-gradient-to-br from-pink-50 to-rose-50">

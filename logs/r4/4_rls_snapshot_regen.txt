@@ -1,0 +1,1 @@
+[snapshot] 850 policies, 573 tabulek s RLS, 2 helperů → C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/rls-snapshot.json

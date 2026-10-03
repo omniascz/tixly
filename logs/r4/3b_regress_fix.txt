@@ -1,0 +1,20 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [32m✓[39m tests/fix-r3-guard-trigger.live.test.ts [2m ([22m[2m23 tests[22m[2m)[22m[33m 3376[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-3b-tables-rls.live.test.ts [2m ([22m[2m8 tests[22m[2m)[22m[33m 614[2mms[22m[39m
+[90mstdout[2m | tests/fix-r4-true-policies.live.test.ts[2m > [22m[2mKrok 3b (kolo 4) — politiky s podmínkou true[2m > [22m[2mzápis s true: kupec nezapíše/nezmění cizí řádek[22m[39m
+[3b zápis] {"alertInsertForeignUser":"42501","alertUpdateForeign":0,"postalInsertForeign":"42501","seatUpgradeInsertForeign":"42501","seatUpgradeUpdateForeign":0,"transferUpdateForeign":0,"travelInsertForeign":"42501"}
+
+[90mstdout[2m | tests/fix-r4-true-policies.live.test.ts[2m > [22m[2mKrok 3b (kolo 4) — politiky s podmínkou true[2m > [22m[2mčtení: nabídky nepublikované akce a neaktivní pořadatel nejsou veřejně vidět; publikované/aktivní ano[22m[39m
+[3b čtení] {"superfanDraft":0,"superfanPub":1,"promoterPending":0,"promoterActive":1,"superfanDraftOwner":1,"promoterPendingSelf":1,"promoterPendingMember":1}
+
+ [32m✓[39m tests/fix-r4-true-policies.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 564[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-seat-upgrade-notify.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 823[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[32m36 passed[39m[22m[90m (36)[39m
+[2m   Start at [22m 21:05:37
+[2m   Duration [22m 8.72s[2m (transform 333ms, setup 0ms, collect 720ms, tests 5.38s, environment 2ms, prepare 1.28s)[22m
+

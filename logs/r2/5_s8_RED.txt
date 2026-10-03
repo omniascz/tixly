@@ -1,0 +1,117 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r2-s8-subscription-checkout.live.test.ts[2m > [22m[2mKrok 5 — S8: checkout předplatného proti skutečnému schématu[2m > [22m[2mnový kupec (guest): 200, holder pending_payment, platební odkaz[22m[39m
+[POST /api/subscriptions/checkout] error: there is no unique or exclusion constraint matching the ON CONFLICT specification
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\subscriptions\checkout\route.ts:124:23
+    at post [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r2-s8-subscription-checkout.live.test.ts:33:15[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r2-s8-subscription-checkout.live.test.ts:42:15
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3) {
+  length: [33m148[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42P10'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'plancat.c'[39m,
+  line: [32m'943'[39m,
+  routine: [32m'infer_arbiter_indexes'[39m
+}
+
+[90mstderr[2m | tests/fix-r2-s8-subscription-checkout.live.test.ts[2m > [22m[2mKrok 5 — S8: checkout předplatného proti skutečnému schématu[2m > [22m[2mexistující účet se stejným e-mailem: použije se, jméno účtu se z anonymního požadavku NEpřepíše[22m[39m
+[POST /api/subscriptions/checkout] error: there is no unique or exclusion constraint matching the ON CONFLICT specification
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\subscriptions\checkout\route.ts:124:23
+    at post [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r2-s8-subscription-checkout.live.test.ts:33:15[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r2-s8-subscription-checkout.live.test.ts:53:15
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3) {
+  length: [33m148[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42P10'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'plancat.c'[39m,
+  line: [32m'943'[39m,
+  routine: [32m'infer_arbiter_indexes'[39m
+}
+
+ [33m❯[39m tests/fix-r2-s8-subscription-checkout.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 2359[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r2-s8-subscription-checkout.live.test.ts[2m > [22mKrok 5 — S8: checkout předplatného proti skutečnému schématu[2m > [22mnový kupec (guest): 200, holder pending_payment, platební odkaz[39m
+[31m     → {"error":"INTERNAL"}: expected 500 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r2-s8-subscription-checkout.live.test.ts[2m > [22mKrok 5 — S8: checkout předplatného proti skutečnému schématu[2m > [22mexistující účet se stejným e-mailem: použije se, jméno účtu se z anonymního požadavku NEpřepíše[39m
+[31m     → {"error":"INTERNAL"}: expected 500 to be 200 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-s8-subscription-checkout.live.test.ts[2m > [22mKrok 5 — S8: checkout předplatného proti skutečnému schématu[2m > [22mnový kupec (guest): 200, holder pending_payment, platební odkaz
+[31m[1mAssertionError[22m: {"error":"INTERNAL"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r2-s8-subscription-checkout.live.test.ts:[2m43:46[22m[39m
+    [90m 41| [39m    [35mconst[39m email [33m=[39m [32m`abo-[39m[36m${[39m[34mrandomUUID[39m()[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m8[39m)[36m}[39m[32m@x.test`[39m[33m;[39m
+    [90m 42| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mpost[39m({ packageId[33m,[39m buyerEmail[33m:[39m email[33m,[39m buyerName[33m:[39m [32m'A[39m…
+    [90m 43| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(r[33m.[39mjson))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                             [31m^[39m
+    [90m 44| [39m    [34mexpect[39m(r[33m.[39mjson[33m.[39mholderId)[33m.[39m[34mtoBeTruthy[39m()[33m;[39m
+    [90m 45| [39m    [35mconst[39m h [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39mquery[33m<[39m{ status[33m:[39m string[33m;[39m payment_status…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-s8-subscription-checkout.live.test.ts[2m > [22mKrok 5 — S8: checkout předplatného proti skutečnému schématu[2m > [22mexistující účet se stejným e-mailem: použije se, jméno účtu se z anonymního požadavku NEpřepíše
+[31m[1mAssertionError[22m: {"error":"INTERNAL"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r2-s8-subscription-checkout.live.test.ts:[2m54:46[22m[39m
+    [90m 52| [39m    [35mconst[39m u [33m=[39m [35mawait[39m clone[33m.[39mseed[33m.[39m[34muser[39m([32m'abo-exist'[39m[33m,[39m [32m'Původní Jméno'[39m)[33m;[39m
+    [90m 53| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mpost[39m({ packageId[33m,[39m buyerEmail[33m:[39m u[33m.[39memail[33m,[39m buyerName[33m:[39m …
+    [90m 54| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(r[33m.[39mjson))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                             [31m^[39m
+    [90m 55| [39m    [35mconst[39m holderUser [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39mquery[33m<[39m{ user_id[33m:[39m string }[33m>[39m([32m`S[39m…
+    [90m 56| [39m    [34mexpect[39m(holderUser)[33m.[39m[34mtoBe[39m(u[33m.[39mid)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 11:24:55
+[2m   Duration [22m 8.15s[2m (transform 3.16s, setup 0ms, collect 3.39s, tests 2.36s, environment 1ms, prepare 934ms)[22m
+

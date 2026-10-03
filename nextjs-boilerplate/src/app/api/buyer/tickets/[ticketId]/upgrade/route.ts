@@ -7,7 +7,7 @@
  *   2. Promotér má jiný ticket_type_id = Y (např. VIP) v rámci stejné akce
  *      s vyšší cenou
  *   3. Kupec klikne "Upgrade na VIP" → POST endpoint:
- *      a) Validuje ownership (ownerEmail nebo x-user-id)
+ *      a) Validuje ownership (ověřené x-user-id z middleware; cizí lístek = 404)
  *      b) Validuje, že ticket je 'valid' a status 'paid' v orderu
  *      c) Validuje, že target ticket_type je v stejné akci a má vyšší cenu
  *      d) Validuje, že target má dostupnou kapacitu (remaining_qty > 0)
@@ -19,9 +19,10 @@
  */
 
 import { randomUUID } from 'crypto';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext, runWithUserContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { demoPathDisabledResponse } from '@/lib/payment/demo-path-guard';
 
 
 interface TicketRow {
@@ -36,15 +37,33 @@ interface TicketRow {
 }
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { ticketId: string } },
 ): Promise<Response> {
-  return runWithServiceContext(async () => {
-
   if (!/^[0-9a-f-]{36}$/i.test(params.ticketId)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }
+  // S2 (kolo 4): dřív servisní kontext bez kontroly vlastníka — stav, typ a cenu
+  // vstupenky dostal kdokoli se znalostí UUID. Vlastnictví se teď ověřuje pod RLS
+  // kontextem přihlášeného kupce; cizí vstupenka = 404 bez jakýchkoli dat.
+  const userId = req.headers.get('x-user-id');
+  if (!userId) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
 
+  const owned = await runWithUserContext(userId, () =>
+    db().query<{ id: string; status: string; ticket_type_id: string; order_id: string }>(
+      `SELECT t.id, t.status, t.ticket_type_id, t.order_id
+       FROM tickets.tickets t
+       WHERE t.id = $1 AND t.owner_id = $2`,
+      [params.ticketId, userId],
+    ),
+  );
+  if (owned.rows.length === 0) {
+    return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
+  }
+
+  return runWithServiceContext(async () => {
+  // Vlastnictví ověřeno výše; servisně se čte jen typ a stav objednávky TÉTO vstupenky
+  // (u převedené vstupenky patří objednávka původnímu kupci a pod RLS nového vlastníka není vidět).
   const t = await db().query<TicketRow>(
     `SELECT t.id, t.status, t.ticket_type_id, t.owner_id,
             tt.base_price AS current_price, tt.name AS current_name,
@@ -104,6 +123,10 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { ticketId: string } },
 ): Promise<Response> {
+  // FIX K1: „demo upgrade" měnil typ lístku a zakládal paid upgrade objednávku BEZ
+  // doplatku (stačil ownerEmail). Vypnuto do napojení na platební tok (FIX_REPORT_K.md).
+  const disabled = demoPathDisabledResponse();
+  if (disabled) return disabled;
   return runWithServiceContext(async () => {
 
   if (!/^[0-9a-f-]{36}$/i.test(params.ticketId)) {
@@ -142,17 +165,13 @@ export async function POST(
       owner_email: string;
     };
 
-    // Ownership check
-    const ownerOk =
-      (headerUserId && headerUserId === ticket.owner_id) ||
-      (parsed.data.ownerEmail &&
-        parsed.data.ownerEmail.toLowerCase() === ticket.owner_email.toLowerCase());
+    // Ownership check — jen ověřená identita z middleware (ownerEmail z těla požadavku
+    // vlastnictví nedokazuje). Cizí vstupenka = 404 jako neexistující, aby odpověď
+    // neprozrazovala, že UUID patří skutečné vstupence (S2, kolo 4).
+    const ownerOk = Boolean(headerUserId) && headerUserId === ticket.owner_id;
     if (!ownerOk) {
       await client.query('ROLLBACK');
-      return NextResponse.json(
-        { error: 'NOT_OWNER', message: 'Můžeš upgradnout jen vlastní lístek.' },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
     }
 
     if (ticket.status !== 'valid') {

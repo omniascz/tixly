@@ -1,0 +1,341 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r3-guard-trigger.live.test.ts[2m > [22m[2mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22m[2mC — legitimní cesty kupce fungují dál[2m > [22m[2mmobilní platba: payment-intent → order-confirm → paid + lístky[22m[39m
+[mobile/order-confirm] error: new row violates row-level security policy for table "tickets"
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at Module.issueTicketsForOrder [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\tickets\demo-issuer.ts:159:19[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\mobile\order-confirm\route.ts:86:23
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r3-guard-trigger.live.test.ts:207:18
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5) {
+  length: [33m130[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42501'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'execMain.c'[39m,
+  line: [32m'2159'[39m,
+  routine: [32m'ExecWithCheckOptions'[39m
+}
+
+ [33m❯[39m tests/fix-r3-guard-trigger.live.test.ts [2m ([22m[2m23 tests[22m [2m|[22m [31m15 failed[39m[2m)[22m[33m 2919[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.status → 42501[39m
+[31m     → kupec změnil status: expected null to be '42501' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.total_amount → 42501[39m
+[31m     → kupec změnil total_amount: expected null to be '42501' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.currency → 42501[39m
+[31m     → kupec změnil currency: expected null to be '42501' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.gopay_payment_id → 42501[39m
+[31m     → kupec změnil gopay_payment_id: expected null to be '42501' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.payment_provider → 42501[39m
+[31m     → kupec změnil payment_provider: expected null to be '42501' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.stripe_payment_intent_id → 42501[39m
+[31m     → kupec změnil stripe_payment_intent_id: expected null to be '42501' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.paid_at → 42501[39m
+[31m     → kupec změnil paid_at: expected null to be '42501' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.discount_halire → 42501[39m
+[31m     → kupec změnil discount_halire: expected null to be '42501' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.refunded_amount_halire → 42501[39m
+[31m     → kupec změnil refunded_amount_halire: expected null to be '42501' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.event_id (vazba na akci) → 42501[39m
+[31m     → expected null to be '42501' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22mtickets.tickets status / ticket_type_id / original_price → 42501[39m
+[31m     → UPDATE tickets.tickets SET status='valid' WHERE id=$1: expected null to be '42501' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.order_items unit_price / quantity → 42501[39m
+[31m     → expected null to be '42501' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mC — legitimní cesty kupce fungují dál[2m > [22mvýměna vstupenky na jiný termín téže produkce[39m
+[31m     → new row for relation "ticket_types" violates check constraint "catalog_ticket_types_kind_check"[39m
+[31m   [33m❯[31m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mC — legitimní cesty kupce fungují dál[2m > [22mupgrade lístku (zdarma) → ticket_type_id změněn[39m
+[31m     → new row for relation "ticket_types" violates check constraint "catalog_ticket_types_kind_check"[39m
+[31m   [33m❯[31m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mC — legitimní cesty kupce fungují dál[2m > [22mmobilní platba: payment-intent → order-confirm → paid + lístky[39m
+[31m     → {"error":"INTERNAL_ERROR"}: expected 500 to be 200 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 15 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.status → 42501
+[31m[1mAssertionError[22m: kupec změnil status: expected null to be '42501' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"42501"
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m tests/fix-r3-guard-trigger.live.test.ts:[2m81:45[22m[39m
+    [90m 79| [39m      [35mawait[39m owner[33m.[39m[34mquery[39m([32m`UPDATE orders.orders SET status='pending', pa[39m…
+    [90m 80| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34masCtx[39m([34mbuyerCtx[39m(o[33m.[39muserId)[33m,[39m [32m`UPDATE orders.orders [39m…
+    [90m 81| [39m      [34mexpect[39m(r[33m.[39mcode[33m,[39m [32m`kupec změnil [39m[36m${[39mcol[36m}[39m[32m`[39m)[33m.[39m[34mtoBe[39m([32m'42501'[39m)[33m;[39m
+    [90m   | [39m                                            [31m^[39m
+    [90m 82| [39m    })[33m;[39m
+    [90m 83| [39m    [34mit[39m([32m'orders.orders.event_id (vazba na akci) → 42501'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/15]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.total_amount → 42501
+[31m[1mAssertionError[22m: kupec změnil total_amount: expected null to be '42501' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"42501"
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m tests/fix-r3-guard-trigger.live.test.ts:[2m81:45[22m[39m
+    [90m 79| [39m      [35mawait[39m owner[33m.[39m[34mquery[39m([32m`UPDATE orders.orders SET status='pending', pa[39m…
+    [90m 80| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34masCtx[39m([34mbuyerCtx[39m(o[33m.[39muserId)[33m,[39m [32m`UPDATE orders.orders [39m…
+    [90m 81| [39m      [34mexpect[39m(r[33m.[39mcode[33m,[39m [32m`kupec změnil [39m[36m${[39mcol[36m}[39m[32m`[39m)[33m.[39m[34mtoBe[39m([32m'42501'[39m)[33m;[39m
+    [90m   | [39m                                            [31m^[39m
+    [90m 82| [39m    })[33m;[39m
+    [90m 83| [39m    [34mit[39m([32m'orders.orders.event_id (vazba na akci) → 42501'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/15]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.currency → 42501
+[31m[1mAssertionError[22m: kupec změnil currency: expected null to be '42501' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"42501"
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m tests/fix-r3-guard-trigger.live.test.ts:[2m81:45[22m[39m
+    [90m 79| [39m      [35mawait[39m owner[33m.[39m[34mquery[39m([32m`UPDATE orders.orders SET status='pending', pa[39m…
+    [90m 80| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34masCtx[39m([34mbuyerCtx[39m(o[33m.[39muserId)[33m,[39m [32m`UPDATE orders.orders [39m…
+    [90m 81| [39m      [34mexpect[39m(r[33m.[39mcode[33m,[39m [32m`kupec změnil [39m[36m${[39mcol[36m}[39m[32m`[39m)[33m.[39m[34mtoBe[39m([32m'42501'[39m)[33m;[39m
+    [90m   | [39m                                            [31m^[39m
+    [90m 82| [39m    })[33m;[39m
+    [90m 83| [39m    [34mit[39m([32m'orders.orders.event_id (vazba na akci) → 42501'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/15]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.gopay_payment_id → 42501
+[31m[1mAssertionError[22m: kupec změnil gopay_payment_id: expected null to be '42501' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"42501"
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m tests/fix-r3-guard-trigger.live.test.ts:[2m81:45[22m[39m
+    [90m 79| [39m      [35mawait[39m owner[33m.[39m[34mquery[39m([32m`UPDATE orders.orders SET status='pending', pa[39m…
+    [90m 80| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34masCtx[39m([34mbuyerCtx[39m(o[33m.[39muserId)[33m,[39m [32m`UPDATE orders.orders [39m…
+    [90m 81| [39m      [34mexpect[39m(r[33m.[39mcode[33m,[39m [32m`kupec změnil [39m[36m${[39mcol[36m}[39m[32m`[39m)[33m.[39m[34mtoBe[39m([32m'42501'[39m)[33m;[39m
+    [90m   | [39m                                            [31m^[39m
+    [90m 82| [39m    })[33m;[39m
+    [90m 83| [39m    [34mit[39m([32m'orders.orders.event_id (vazba na akci) → 42501'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/15]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.payment_provider → 42501
+[31m[1mAssertionError[22m: kupec změnil payment_provider: expected null to be '42501' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"42501"
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m tests/fix-r3-guard-trigger.live.test.ts:[2m81:45[22m[39m
+    [90m 79| [39m      [35mawait[39m owner[33m.[39m[34mquery[39m([32m`UPDATE orders.orders SET status='pending', pa[39m…
+    [90m 80| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34masCtx[39m([34mbuyerCtx[39m(o[33m.[39muserId)[33m,[39m [32m`UPDATE orders.orders [39m…
+    [90m 81| [39m      [34mexpect[39m(r[33m.[39mcode[33m,[39m [32m`kupec změnil [39m[36m${[39mcol[36m}[39m[32m`[39m)[33m.[39m[34mtoBe[39m([32m'42501'[39m)[33m;[39m
+    [90m   | [39m                                            [31m^[39m
+    [90m 82| [39m    })[33m;[39m
+    [90m 83| [39m    [34mit[39m([32m'orders.orders.event_id (vazba na akci) → 42501'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/15]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.stripe_payment_intent_id → 42501
+[31m[1mAssertionError[22m: kupec změnil stripe_payment_intent_id: expected null to be '42501' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"42501"
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m tests/fix-r3-guard-trigger.live.test.ts:[2m81:45[22m[39m
+    [90m 79| [39m      [35mawait[39m owner[33m.[39m[34mquery[39m([32m`UPDATE orders.orders SET status='pending', pa[39m…
+    [90m 80| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34masCtx[39m([34mbuyerCtx[39m(o[33m.[39muserId)[33m,[39m [32m`UPDATE orders.orders [39m…
+    [90m 81| [39m      [34mexpect[39m(r[33m.[39mcode[33m,[39m [32m`kupec změnil [39m[36m${[39mcol[36m}[39m[32m`[39m)[33m.[39m[34mtoBe[39m([32m'42501'[39m)[33m;[39m
+    [90m   | [39m                                            [31m^[39m
+    [90m 82| [39m    })[33m;[39m
+    [90m 83| [39m    [34mit[39m([32m'orders.orders.event_id (vazba na akci) → 42501'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/15]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.paid_at → 42501
+[31m[1mAssertionError[22m: kupec změnil paid_at: expected null to be '42501' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"42501"
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m tests/fix-r3-guard-trigger.live.test.ts:[2m81:45[22m[39m
+    [90m 79| [39m      [35mawait[39m owner[33m.[39m[34mquery[39m([32m`UPDATE orders.orders SET status='pending', pa[39m…
+    [90m 80| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34masCtx[39m([34mbuyerCtx[39m(o[33m.[39muserId)[33m,[39m [32m`UPDATE orders.orders [39m…
+    [90m 81| [39m      [34mexpect[39m(r[33m.[39mcode[33m,[39m [32m`kupec změnil [39m[36m${[39mcol[36m}[39m[32m`[39m)[33m.[39m[34mtoBe[39m([32m'42501'[39m)[33m;[39m
+    [90m   | [39m                                            [31m^[39m
+    [90m 82| [39m    })[33m;[39m
+    [90m 83| [39m    [34mit[39m([32m'orders.orders.event_id (vazba na akci) → 42501'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/15]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.discount_halire → 42501
+[31m[1mAssertionError[22m: kupec změnil discount_halire: expected null to be '42501' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"42501"
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m tests/fix-r3-guard-trigger.live.test.ts:[2m81:45[22m[39m
+    [90m 79| [39m      [35mawait[39m owner[33m.[39m[34mquery[39m([32m`UPDATE orders.orders SET status='pending', pa[39m…
+    [90m 80| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34masCtx[39m([34mbuyerCtx[39m(o[33m.[39muserId)[33m,[39m [32m`UPDATE orders.orders [39m…
+    [90m 81| [39m      [34mexpect[39m(r[33m.[39mcode[33m,[39m [32m`kupec změnil [39m[36m${[39mcol[36m}[39m[32m`[39m)[33m.[39m[34mtoBe[39m([32m'42501'[39m)[33m;[39m
+    [90m   | [39m                                            [31m^[39m
+    [90m 82| [39m    })[33m;[39m
+    [90m 83| [39m    [34mit[39m([32m'orders.orders.event_id (vazba na akci) → 42501'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/15]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.refunded_amount_halire → 42501
+[31m[1mAssertionError[22m: kupec změnil refunded_amount_halire: expected null to be '42501' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"42501"
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m tests/fix-r3-guard-trigger.live.test.ts:[2m81:45[22m[39m
+    [90m 79| [39m      [35mawait[39m owner[33m.[39m[34mquery[39m([32m`UPDATE orders.orders SET status='pending', pa[39m…
+    [90m 80| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34masCtx[39m([34mbuyerCtx[39m(o[33m.[39muserId)[33m,[39m [32m`UPDATE orders.orders [39m…
+    [90m 81| [39m      [34mexpect[39m(r[33m.[39mcode[33m,[39m [32m`kupec změnil [39m[36m${[39mcol[36m}[39m[32m`[39m)[33m.[39m[34mtoBe[39m([32m'42501'[39m)[33m;[39m
+    [90m   | [39m                                            [31m^[39m
+    [90m 82| [39m    })[33m;[39m
+    [90m 83| [39m    [34mit[39m([32m'orders.orders.event_id (vazba na akci) → 42501'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/15]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.orders.event_id (vazba na akci) → 42501
+[31m[1mAssertionError[22m: expected null to be '42501' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"42501"
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m tests/fix-r3-guard-trigger.live.test.ts:[2m86:22[22m[39m
+    [90m 84| [39m      [35mconst[39m o [33m=[39m [35mawait[39m [34mpaidOrder[39m()[33m;[39m [35mconst[39m other [33m=[39m [35mawait[39m clone[33m.[39mseed[33m.[39m[34mchai[39m…
+    [90m 85| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34masCtx[39m([34mbuyerCtx[39m(o[33m.[39muserId)[33m,[39m [32m`UPDATE orders.orders [39m…
+    [90m 86| [39m      [34mexpect[39m(r[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m'42501'[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m 87| [39m    })[33m;[39m
+    [90m 88| [39m    [34mit[39m([32m'tickets.tickets status / ticket_type_id / original_price → 425[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/15]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22mtickets.tickets status / ticket_type_id / original_price → 42501
+[31m[1mAssertionError[22m: UPDATE tickets.tickets SET status='valid' WHERE id=$1: expected null to be '42501' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"42501"
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m tests/fix-r3-guard-trigger.live.test.ts:[2m97:29[22m[39m
+    [90m 95| [39m        [35mawait[39m owner[33m.[39m[34mquery[39m([32m`UPDATE tickets.tickets SET status='revoked'[39m…
+    [90m 96| [39m        [35mconst[39m r [33m=[39m [35mawait[39m [34masCtx[39m([34mbuyerCtx[39m(o[33m.[39muserId)[33m,[39m sql[33m,[39m p)[33m;[39m
+    [90m 97| [39m        [34mexpect[39m(r[33m.[39mcode[33m,[39m sql)[33m.[39m[34mtoBe[39m([32m'42501'[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 98| [39m      }
+    [90m 99| [39m    })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/15]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mA — kupec (tixly_app, app.role=user) chráněné sloupce měnit nesmí[2m > [22morders.order_items unit_price / quantity → 42501
+[31m[1mAssertionError[22m: expected null to be '42501' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"42501"
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m tests/fix-r3-guard-trigger.live.test.ts:[2m102:146[22m[39m
+    [90m100| [39m    [34mit[39m([32m'orders.order_items unit_price / quantity → 42501'[39m[33m,[39m [35masync[39m () [33m=>[39m…
+    [90m101| [39m      [35mconst[39m o [33m=[39m [35mawait[39m [34mpaidOrder[39m()[33m;[39m
+    [90m102| [39m      [34mexpect[39m(([35mawait[39m [34masCtx[39m([34mbuyerCtx[39m(o[33m.[39muserId)[33m,[39m [32m`UPDATE orders.order_ite[39m…
+    [90m   | [39m                                                                                                                                                 [31m^[39m
+    [90m103| [39m      [34mexpect[39m(([35mawait[39m [34masCtx[39m([34mbuyerCtx[39m(o[33m.[39muserId)[33m,[39m [32m`UPDATE orders.order_ite[39m…
+    [90m104| [39m    })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/15]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mC — legitimní cesty kupce fungují dál[2m > [22mvýměna vstupenky na jiný termín téže produkce
+[31m[1merror[22m: new row for relation "ticket_types" violates check constraint "catalog_ticket_types_kind_check"[39m
+[90m [2m❯[22m ../../tixly-audit/nextjs-boilerplate/node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m tests/fix-r3-guard-trigger.live.test.ts:[2m180:7[22m[39m
+
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 510, severity: 'ERROR', code: '23514', detail: 'Failing row contains (68d8f1b2-028c-4c4c-85d1-28af86f334e8, acb4bfbc-7912-4e44-b5ef-847d6bd0dcb8, Std, ga, 25000, 10, 10, null, null, 2026-10-03 11:12:52.305835+00, t, physical, t, public, f, f, null, null, null, f, null, f, null, f, f, 0, live, f, null, null, null, null, null, f, null, null).', hint: undefined, position: undefined, internalPosition: undefined, internalQuery: undefined, where: undefined, schema: 'catalog', table: 'ticket_types', column: undefined, dataType: undefined, constraint: 'catalog_ticket_types_kind_check', file: 'execMain.c', line: '2034', routine: 'ExecConstraints' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/15]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mC — legitimní cesty kupce fungují dál[2m > [22mupgrade lístku (zdarma) → ticket_type_id změněn
+[31m[1merror[22m: new row for relation "ticket_types" violates check constraint "catalog_ticket_types_kind_check"[39m
+[90m [2m❯[22m ../../tixly-audit/nextjs-boilerplate/node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m tests/fix-r3-guard-trigger.live.test.ts:[2m191:7[22m[39m
+
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 513, severity: 'ERROR', code: '23514', detail: 'Failing row contains (4b72c0c4-0aab-4498-98ed-c2ebaabdfaae, 1ed5754e-d0da-4442-8b6f-fa85fe834084, Balkon, ga, 20000, 10, 10, null, null, 2026-10-03 11:12:52.395726+00, t, physical, t, public, f, f, null, null, null, f, null, f, null, f, f, 0, live, f, null, null, null, null, null, f, null, null).', hint: undefined, position: undefined, internalPosition: undefined, internalQuery: undefined, where: undefined, schema: 'catalog', table: 'ticket_types', column: undefined, dataType: undefined, constraint: 'catalog_ticket_types_kind_check', file: 'execMain.c', line: '2034', routine: 'ExecConstraints' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/15]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-guard-trigger.live.test.ts[2m > [22mKrok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků[2m > [22mC — legitimní cesty kupce fungují dál[2m > [22mmobilní platba: payment-intent → order-confirm → paid + lístky
+[31m[1mAssertionError[22m: {"error":"INTERNAL_ERROR"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r3-guard-trigger.live.test.ts:[2m208:50[22m[39m
+    [90m206| [39m      [35mconst[39m { [33mPOST[39m[33m:[39m confirm } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/app/api/mobile/order-c[39m…
+    [90m207| [39m      [35mconst[39m r2 [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mawait[39m [34mreq[39m([32m'POST'[39m[33m,[39m [32m'/api/mobil[39m…
+    [90m208| [39m      [34mexpect[39m(r2[33m.[39mstatus[33m,[39m [35mawait[39m r2[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                                 [31m^[39m
+    [90m209| [39m      [34mexpect[39m([35mawait[39m [34mstatus[39m(orderId))[33m.[39m[34mtoBe[39m([32m'paid'[39m)[33m;[39m
+    [90m210| [39m      [34mexpect[39m(([35mawait[39m owner[33m.[39m[34mquery[39m([32m`SELECT count(*)::int n FROM tickets.t[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/15]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m15 failed[39m[22m[2m | [22m[1m[32m8 passed[39m[22m[90m (23)[39m
+[2m   Start at [22m 13:12:49
+[2m   Duration [22m 3.56s[2m (transform 209ms, setup 0ms, collect 146ms, tests 2.92s, environment 0ms, prepare 92ms)[22m
+

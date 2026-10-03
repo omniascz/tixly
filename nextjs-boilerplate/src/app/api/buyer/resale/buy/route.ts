@@ -20,6 +20,7 @@ import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { reissueTicket, enqueueSellerPayout } from '@/lib/resale/reissue';
+import { demoPathDisabledResponse } from '@/lib/payment/demo-path-guard';
 
 
 const schema = z.object({
@@ -39,6 +40,10 @@ interface ListingRow {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // FIX K1: „demo resale buy" vytvářel paid objednávku + převydal lístek BEZ platby
+  // (guest jen s buyerEmail). Vypnuto do doby napojení na platební tok (viz FIX_REPORT_K.md).
+  const disabled = demoPathDisabledResponse();
+  if (disabled) return disabled;
   return runWithServiceContext(async () => {
 
   const body: unknown = await req.json().catch(() => ({}));

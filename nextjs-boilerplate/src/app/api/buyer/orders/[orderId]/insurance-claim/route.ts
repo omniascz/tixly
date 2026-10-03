@@ -9,7 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 import { z } from 'zod';
 
@@ -89,16 +89,20 @@ export async function POST(
        WHERE id = $1`,
       [ins.rows[0].id, claimAmount, parsed.data.reason],
     );
-    await client.query(
-      `UPDATE orders.orders SET status = 'refunded', updated_at = NOW() WHERE id = $1`,
-      [ord.rows[0].id],
-    );
-    // Revoke tickets so they can't be scanned
-    await client.query(
-      `UPDATE tickets.tickets SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
-       WHERE order_id = $1 AND status = 'valid'`,
-      [ord.rows[0].id],
-    );
+    // Kolo 3 (guard 486): status objednávky a revoke lístků = systémový efekt schválené
+    // pojistné události; objednávka ověřena výše (user_id = kupec, FOR UPDATE).
+    await asSystemInTx(client, async () => {
+      await client.query(
+        `UPDATE orders.orders SET status = 'refunded', updated_at = NOW() WHERE id = $1`,
+        [ord.rows[0].id],
+      );
+      // Revoke tickets so they can't be scanned
+      await client.query(
+        `UPDATE tickets.tickets SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
+         WHERE order_id = $1 AND status = 'valid'`,
+        [ord.rows[0].id],
+      );
+    });
 
     await client.query('COMMIT');
     return NextResponse.json({

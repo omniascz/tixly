@@ -1,0 +1,132 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal[2m > [22m[2mchybějící PAYPAL_WEBHOOK_ID → 4xx, nic se nezmění[22m[39m
+[paypal webhook] PAYPAL_WEBHOOK_ID / API credentials missing — rejecting
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal[2m > [22m[2mbez podpisu / se špatným podpisem → 4xx[22m[39m
+[paypal webhook] invalid signature
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal[2m > [22m[2mbez podpisu / se špatným podpisem → 4xx[22m[39m
+[paypal webhook] invalid signature
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mWise (výplaty)[2m > [22m[2mchybějící klíč / bez podpisu / špatný podpis / HMAC místo RSA → 4xx, výplata beze změny[22m[39m
+[wise webhook] WISE_WEBHOOK_PUBLIC_KEY / API credentials missing — rejecting
+
+[90mstdout[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mWise (výplaty)[2m > [22m[2mlegitimní: platný RSA podpis + API outgoing_payment_sent → paid[22m[39m
+[wise webhook] paid transferId=21386431 rowsUpdated=1
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mGoPay[2m > [22m[2mnenakonfigurovaná brána (i mimo produkci: DEV_STUB) → 4xx, nic se nezmění[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mGoPay[2m > [22m[2mnenakonfigurovaná brána (i mimo produkci: DEV_STUB) → 4xx, nic se nezmění[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mGoPay[2m > [22m[2mAPI brány hlásí PAID s nulovou částkou → nezaplaceno[22m[39m
+[gopay webhook] amount/currency mismatch order=22ba8e1e-ab77-4eb0-a837-a4fdb2bfc9d4 expected=50000CZK paid=0CZK
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mComGate[2m > [22m[2mchybějící tajemství / špatné tajemství → 4xx, nic se nezmění[22m[39m
+[payment] ComGate není nakonfigurovaný — checkout poběží v mock režimu. Nastavte COMGATE_MERCHANT, COMGATE_SECRET.
+[comgate webhook] not configured — rejecting
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mStripe[2m > [22m[2mplatný podpis, ale API session nezaplacená / nižší částka → nezaplaceno[22m[39m
+[stripe webhook] session cs_ab2e3fdc NOT confirmed by API for order ab867383-a07d-43c0-95a0-953d1d9cedee
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mStripe[2m > [22m[2mplatný podpis, ale API session nezaplacená / nižší částka → nezaplaceno[22m[39m
+[stripe webhook] session cs_ab2e3fdc NOT confirmed by API for order ab867383-a07d-43c0-95a0-953d1d9cedee
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mTriple-A[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[payment] Triple-A není nakonfigurovaný — krypto platba poběží v mock režimu. Nastavte TRIPLEA_CLIENT_ID, TRIPLEA_CLIENT_SECRET, TRIPLEA_API_ID, TRIPLEA_NOTIFY_SECRET.
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mTriple-A[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[triplea webhook] podpis neplatný: NO_SIGNATURE
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mTriple-A[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[triplea webhook] podpis neplatný: SIGNATURE_MISMATCH
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mMollie[2m > [22m[2mchybějící API klíč / platba u brány neexistuje → 4xx[22m[39m
+[mollie webhook] getMolliePayment failed: Error: Mollie GET tr_dbd6af69 → HTTP 404
+    at Module.getMolliePayment [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\payment\mollie.ts:112:25[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\payments\mollie\webhook\route.ts:53:17
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r2-webhooks.live.test.ts:344:29
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3) {
+  httpStatus: [33m404[39m
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPrzelewy24[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[p24 webhook] invalid signature for sessionId 827dc3c3-ddf2-4977-80db-eb6a00b3a230
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal capture: PayPal objednávka jiné Tixly objednávky nezaplatí tuto[22m[39m
+[paypal capture] token does not belong to order 6d71004f-b753-4811-bb53-9c545253600c
+
+ [32m✓[39m tests/fix-r2-webhooks.live.test.ts [2m ([22m[2m29 tests[22m[2m)[22m[33m 12633[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/admin-guest.live.test.ts [2m ([22m[2m6 tests[22m [2m|[22m [33m6 skipped[39m[2m)[22m
+ [2m[90m↓[39m[22m tests/buyer-policies.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [33m1 skipped[39m[2m)[22m
+ [2m[90m↓[39m[22m tests/wrapped-routes.live.test.ts [2m ([22m[2m11 tests[22m [2m|[22m [33m11 skipped[39m[2m)[22m
+ [32m✓[39m tests/fix-r2-v2-tixly-app.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 7823[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/cron-contract.live.test.ts [2m ([22m[2m10 tests[22m [2m|[22m [33m10 skipped[39m[2m)[22m
+ [2m[90m↓[39m[22m tests/party-split.live.test.ts [2m ([22m[2m7 tests[22m [2m|[22m [33m7 skipped[39m[2m)[22m
+ [2m[90m↓[39m[22m tests/checkout-guest.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [33m4 skipped[39m[2m)[22m
+ [2m[90m↓[39m[22m tests/guest-user.live.test.ts [2m ([22m[2m12 tests[22m [2m|[22m [33m12 skipped[39m[2m)[22m
+ [32m✓[39m tests/fix-r2-3b-tables-rls.live.test.ts [2m ([22m[2m8 tests[22m[2m)[22m[33m 2258[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/public-routes.live.test.ts [2m ([22m[2m10 tests[22m [2m|[22m [33m10 skipped[39m[2m)[22m
+ [32m✓[39m tests/fix-r2-identity-headers.live.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[33m 2336[2mms[22m[39m
+ [32m✓[39m tests/fix-k2-refund.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 16773[2mms[22m[39m
+ [32m✓[39m tests/fix-k1-payment-bypass.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 1595[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-v8-rls-write.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 1883[2mms[22m[39m
+ [32m✓[39m tests/fix-k3-capacity.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 8483[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/mig455.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [33m1 skipped[39m[2m)[22m
+ [2m[90m↓[39m[22m tests/auth-reset-password.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [33m4 skipped[39m[2m)[22m
+[90mstdout[2m | tests/fix-r2-r56-pool.live.test.ts[2m > [22m[2mKrok 4 — R-56: kontext jen v transakci, na pooleru bez DATABASE_URL_DIRECT[2m > [22m[2mquery: 200 souběžných requestů (100 uživatelů / 10 tenantů) → 0 vidí cizí data[22m[39m
+[R56] {"kind":"query","N_REQ":200,"bad":0,"errors":0,"samples":[]}
+
+[90mstdout[2m | tests/fix-r2-r56-pool.live.test.ts[2m > [22m[2mKrok 4 — R-56: kontext jen v transakci, na pooleru bez DATABASE_URL_DIRECT[2m > [22m[2mconnect-tx: 200 souběžných requestů (100 uživatelů / 10 tenantů) → 0 vidí cizí data[22m[39m
+[R56] {"kind":"connect-tx","N_REQ":200,"bad":0,"errors":0,"samples":[]}
+
+[90mstdout[2m | tests/fix-r2-r56-pool.live.test.ts[2m > [22m[2mKrok 4 — R-56: kontext jen v transakci, na pooleru bez DATABASE_URL_DIRECT[2m > [22m[2mconnect-autocommit: 200 souběžných requestů (100 uživatelů / 10 tenantů) → 0 vidí cizí data[22m[39m
+[R56] {"kind":"connect-autocommit","N_REQ":200,"bad":0,"errors":0,"samples":[]}
+
+ [32m✓[39m tests/fix-r2-r56-pool.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 10365[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/rls-pool-pooler.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [33m2 skipped[39m[2m)[22m
+ [2m[90m↓[39m[22m tests/checkout-stress.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [33m1 skipped[39m[2m)[22m
+ [32m✓[39m tests/fix-r2-qr-default.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 2596[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/fan-bonus-r57.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [33m2 skipped[39m[2m)[22m
+ [32m✓[39m tests/fix-r2-v4-scan-logs.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 3285[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/payouts-select.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [33m4 skipped[39m[2m)[22m
+ [2m[90m↓[39m[22m tests/live-fixture.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [33m4 skipped[39m[2m)[22m
+ [32m✓[39m tests/fix-v1-reset.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 23764[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-v6-free-ticket.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 10604[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/publish-events.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [33m1 skipped[39m[2m)[22m
+ [2m[90m↓[39m[22m tests/red-green-470-471.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [33m1 skipped[39m[2m)[22m
+ [32m✓[39m tests/fix-r2-s1-payment-paid-once.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 2989[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-onboarding.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 1862[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-s8-subscription-checkout.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 1936[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/consent-purge.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [33m4 skipped[39m[2m)[22m
+ [2m[90m↓[39m[22m tests/payouts-processing.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [33m2 skipped[39m[2m)[22m
+ [32m✓[39m tests/fix-regression-scan.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 1358[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-p1-cart-validate.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 13864[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m18 passed[39m[22m[2m | [22m[33m19 skipped[39m[90m (37)[39m
+[2m      Tests [22m [1m[32m93 passed[39m[22m[2m | [22m[33m87 skipped[39m[90m (180)[39m
+[2m   Start at [22m 11:56:17
+[2m   Duration [22m 215.69s[2m (transform 12.16s, setup 12ms, collect 22.88s, tests 126.41s, environment 60ms, prepare 32.08s)[22m
+

@@ -31,6 +31,7 @@ type ScanResult = {
     | 'not_found'
     | 'invalid_token'
     | 'wrong_promoter'
+    | 'wrong_event'
     | 'totp_mismatch'
     | 'invalid_status'
     | 'wrong_zone_or_day'
@@ -106,7 +107,7 @@ export default function ScannerPage() {
 
   // QR payload parser:
   //   `tixly:<uuid>:<6-digit>`  → ticketId + TOTP (mobilní rotující QR)
-  //   `TXP1.<...>`              → print token z TIŠTĚNÉ vstupenky (104mm label)
+  //   `TXP1.<...>` / `TXP2.<...>` → print token z TIŠTĚNÉ vstupenky (TXP2 je vázaný i na akci)
   //   `<uuid>`                  → holý ticketId (manual mode)
   function setTicketIdSmart(raw: string) {
     const trimmed = raw.trim();
@@ -117,7 +118,7 @@ export default function ScannerPage() {
       return;
     }
     // Print token: necháme v inputu jako celek, TOTP nemá smysl.
-    if (trimmed.startsWith('TXP1.')) {
+    if (/^TXP[12]\./.test(trimmed)) {
       setTicketId(trimmed);
       setTotpCode('');
       return;
@@ -326,12 +327,14 @@ export default function ScannerPage() {
     setLoading(true);
     setResult(null);
     const raw = ticketId.trim();
-    const isPrintToken = raw.startsWith('TXP1.');
+    const isPrintToken = /^TXP[12]\./.test(raw);
     const code = totpCode.trim();
 
     const payload = {
       ...(isPrintToken ? { printToken: raw } : { ticketId: raw }),
       ...(code && !isPrintToken ? { totpCode: code } : {}),
+      // Kolo 3 (V9b): akce brány → API odmítne lístek jiné akce (wrong_event).
+      ...(gate.eventId ? { eventId: gate.eventId } : {}),
       ...(gate.eventDayId ? { eventDayId: gate.eventDayId } : {}),
       ...(gate.zoneId ? { zoneId: gate.zoneId } : {}),
     };
@@ -681,9 +684,9 @@ export default function ScannerPage() {
                   <Input
                     value={ticketId}
                     onChange={(e) => setTicketIdSmart(e.target.value)}
-                    placeholder="8a4f7b2e-… / tixly:…:123456 / TXP1.…"
+                    placeholder="8a4f7b2e-… / tixly:…:123456 / TXP2.…"
                     required
-                    pattern="([0-9a-fA-F-]{36}|TXP1\..+)"
+                    pattern="([0-9a-fA-F-]{36}|TXP[12]\..+)"
                     autoFocus
                     data-testid="scanner-ticket-input"
                     className="flex-1"
@@ -964,6 +967,8 @@ function labelFor(r: ScanResult['result']): string {
       return 'Neplatný kód vstupenky';
     case 'wrong_promoter':
       return 'Lístek jiného promotéra';
+    case 'wrong_event':
+      return 'Lístek na jinou akci';
     case 'totp_mismatch':
       return 'TOTP kód neodpovídá';
     case 'invalid_status':

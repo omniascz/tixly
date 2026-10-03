@@ -28,7 +28,7 @@ export async function PATCH(
     const client = await db().connect();
     try {
       await client.query('BEGIN');
-      await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+      // Kolo 3: admin kontext nastavuje runWithPlatformAdminContext (admin ověřen requirePlatformAdmin) — inline SET byl duplicitní.
       await client.query(
         `UPDATE orders.postal_deliveries
             SET status = COALESCE($1, status),

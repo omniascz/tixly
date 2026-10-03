@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { TOKEN_TYPE_ACCESS, TOKEN_TYPE_REFRESH } from '@/lib/security/token-type';
 import { SignJWT, jwtVerify, JWTPayload } from 'jose';
 import { NextResponse, type NextRequest } from 'next/server';
 import { db as rlsDb, runWithUserContext, runWithServiceContext } from './db/rls-pool';
@@ -108,6 +109,8 @@ export async function getUserRoles(userId: string): Promise<UserRoles> {
 export async function signAccessToken(user: AuthUser, roles: UserRoles): Promise<string> {
   return new SignJWT({
     sub: user.id,
+    // FIX K4d: typ tokenu — ověřování přihlášení bere jen `access` (lib/security/token-type).
+    type: TOKEN_TYPE_ACCESS,
     email: user.email,
     name: user.name,
     isAdmin: roles.isPlatformAdmin,
@@ -127,7 +130,7 @@ export async function signAccessToken(user: AuthUser, roles: UserRoles): Promise
 }
 
 export async function signRefreshToken(user: AuthUser): Promise<string> {
-  return new SignJWT({ sub: user.id, type: 'refresh' })
+  return new SignJWT({ sub: user.id, type: TOKEN_TYPE_REFRESH })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(`${REFRESH_TTL}s`)

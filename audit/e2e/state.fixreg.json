@@ -1,0 +1,28 @@
+{
+  "run": "muoqyjwu",
+  "pw": "Audit2026!x",
+  "buyerEmail": "buyer-muoqyjwu@audit.test",
+  "buyerId": "fa8a0532-502e-4a8e-8542-9f9015ea5807",
+  "adminEmail": "padmin-muoqyjwu@audit.test",
+  "promoterA": {
+    "email": "promoter-a-muoqyjwu@audit.test",
+    "id": "38e2d234-c206-4559-ba1b-1cf2c56703ba"
+  },
+  "promoterB": {
+    "email": "promoter-b-muoqyjwu@audit.test",
+    "id": "e76346e7-82d5-4e16-b595-d0f3b7f871d6"
+  },
+  "venueId": "6248ec10-eabd-4e75-a512-d4920586100e",
+  "eventA": "53a407f3-b545-429f-90aa-30e560086b9c",
+  "tt": {
+    "Stani": "cfdc3795-f59c-41e0-be3e-60ecef78aeac",
+    "Posledni mista": "204ca9c0-f179-4ea2-9670-84b974fb6174",
+    "Limit 2 na osobu": "9516f110-179f-4213-ad27-c0166114d95e",
+    "Zdarma": "003832ce-e444-487d-9ff3-75692f70ecce"
+  },
+  "eventB": "cdcc1c34-1597-4bf0-8b05-1a96b5d37ddf",
+  "ttB": "465c7286-8d83-446c-a926-f88363367b8a",
+  "eventStatusA": "pending_review",
+  "eventStatusB": "pending_review",
+  "promo": "AUDIT20MUOQYJWU"
+}

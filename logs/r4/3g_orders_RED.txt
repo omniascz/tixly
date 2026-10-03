@@ -1,0 +1,59 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r4-mobile-buyer-orders.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 432[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-mobile-buyer-orders.live.test.ts[2m > [22mKrok 3g (kolo 4) — GET /api/v1/buyer/orders pro mobilní appku[2m > [22mkupec dostane svoje objednávky ve tvaru appky, cizí ne[39m
+[31m     → Cannot find module '@/app/api/v1/buyer/orders/route' imported from 'C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/tests/fix-r4-mobile-buyer-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r4-mobile-buyer-orders.live.test.ts[2m > [22mKrok 3g (kolo 4) — GET /api/v1/buyer/orders pro mobilní appku[2m > [22mbez přihlášení 401[39m
+[31m     → Cannot find module '@/app/api/v1/buyer/orders/route' imported from 'C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/tests/fix-r4-mobile-buyer-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-mobile-buyer-orders.live.test.ts[2m > [22mKrok 3g (kolo 4) — GET /api/v1/buyer/orders pro mobilní appku[2m > [22mkupec dostane svoje objednávky ve tvaru appky, cizí ne
+[31m[1mError[22m: Cannot find module '@/app/api/v1/buyer/orders/route' imported from 'C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/tests/fix-r4-mobile-buyer-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r4-mobile-buyer-orders.live.test.ts:[2m34:18[22m[39m
+    [90m 32| [39m
+    [90m 33| [39m  [35mconst[39m call [33m=[39m [35masync[39m (h[33m:[39m [33mRecord[39m[33m<[39mstring[33m,[39m string[33m>[39m) [33m=>[39m {
+    [90m 34| [39m    [35mconst[39m mod [33m=[39m ([35mawait[39m [35mimport[39m([32m'@/app/api/v1/buyer/orders/route'[39m)) [35mas[39m u…
+    [90m   | [39m                 [31m^[39m
+    [90m 35| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m'http://localhost/ap[39m…
+    [90m 36| [39m    [35mreturn[39m { status[33m:[39m r[33m.[39mstatus[33m,[39m body[33m:[39m [35mawait[39m r[33m.[39m[34mtext[39m() }[33m;[39m
+[90m [2m❯[22m tests/fix-r4-mobile-buyer-orders.live.test.ts:[2m40:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-mobile-buyer-orders.live.test.ts[2m > [22mKrok 3g (kolo 4) — GET /api/v1/buyer/orders pro mobilní appku[2m > [22mbez přihlášení 401
+[31m[1mError[22m: Cannot find module '@/app/api/v1/buyer/orders/route' imported from 'C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/tests/fix-r4-mobile-buyer-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r4-mobile-buyer-orders.live.test.ts:[2m34:18[22m[39m
+    [90m 32| [39m
+    [90m 33| [39m  [35mconst[39m call [33m=[39m [35masync[39m (h[33m:[39m [33mRecord[39m[33m<[39mstring[33m,[39m string[33m>[39m) [33m=>[39m {
+    [90m 34| [39m    [35mconst[39m mod [33m=[39m ([35mawait[39m [35mimport[39m([32m'@/app/api/v1/buyer/orders/route'[39m)) [35mas[39m u…
+    [90m   | [39m                 [31m^[39m
+    [90m 35| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m'http://localhost/ap[39m…
+    [90m 36| [39m    [35mreturn[39m { status[33m:[39m r[33m.[39mstatus[33m,[39m body[33m:[39m [35mawait[39m r[33m.[39m[34mtext[39m() }[33m;[39m
+[90m [2m❯[22m tests/fix-r4-mobile-buyer-orders.live.test.ts:[2m51:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 21:20:50
+[2m   Duration [22m 1.04s[2m (transform 109ms, setup 0ms, collect 123ms, tests 432ms, environment 0ms, prepare 97ms)[22m
+

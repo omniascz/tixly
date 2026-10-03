@@ -1,0 +1,32 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r2-onboarding.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 556[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r2-onboarding.live.test.ts[2m > [22mOnboarding pořadatele — krok 4 a záznam kroků[2m > [22mkrok 4: první akce se založí s výchozí QR politikou a krok se zaznamená[39m
+[31m     → column "duration_minutes" of relation "events" does not exist[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-onboarding.live.test.ts[2m > [22mOnboarding pořadatele — krok 4 a záznam kroků[2m > [22mkrok 4: první akce se založí s výchozí QR politikou a krok se zaznamená
+[31m[1merror[22m: column "duration_minutes" of relation "events" does not exist[39m
+[90m [2m❯[22m ../../tixly-audit/nextjs-boilerplate/node_modules/pg/lib/client.js:[2m631:17[22m[39m
+[36m [2m❯[22m RlsAwarePool.query src/lib/db/rls-pool.ts:[2m253:22[22m[39m
+    [90m251| [39m        [35mawait[39m client[33m.[39m[34mquery[39m([32m`SET LOCAL app.role = '[39m[36m${[39mctx[33m.[39mrole[36m}[39m[32m'`[39m)[33m;[39m
+    [90m252| [39m      }
+    [90m253| [39m      [35mconst[39m result [33m=[39m [35mawait[39m client[33m.[39mquery[33m<[39m[33mR[39m[33m>[39m(text [35mas[39m string[33m,[39m params)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m254| [39m      [35mawait[39m client[33m.[39m[34mquery[39m([32m'COMMIT'[39m)[33m;[39m
+    [90m255| [39m      [35mreturn[39m result[33m;[39m
+[90m [2m❯[22m src/app/api/admin/onboarding/step/[step]/route.ts:[2m165:19[22m[39m
+[90m [2m❯[22m tests/fix-r2-onboarding.live.test.ts:[2m42:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 136, severity: 'ERROR', code: '42703', detail: undefined, hint: undefined, position: '145', internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'parse_target.c', line: '1065', routine: 'checkInsertTargets' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 11:39:55
+[2m   Duration [22m 2.48s[2m (transform 352ms, setup 0ms, collect 473ms, tests 556ms, environment 1ms, prepare 309ms)[22m
+

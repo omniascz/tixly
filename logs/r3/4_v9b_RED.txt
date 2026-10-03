@@ -1,0 +1,931 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r3-v9b-wrong-event.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [31m4 failed[39m[2m)[22m[33m 510[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-v9b-wrong-event.live.test.ts[2m > [22mKrok 4 (kolo 3) — V9b: sken vstupenky jiné akce téhož pořadatele[2m > [22mbrána akce A2 + vstupenka akce A → 409 wrong_event, vstupenka zůstane valid, sken zalogován[39m
+[31m     → expected 200 to be 409 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-v9b-wrong-event.live.test.ts[2m > [22mKrok 4 (kolo 3) — V9b: sken vstupenky jiné akce téhož pořadatele[2m > [22mbrána akce A + vstupenka akce A → admitted[39m
+[31m     → expected 'already_used' to be 'admitted' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-v9b-wrong-event.live.test.ts[2m > [22mKrok 4 (kolo 3) — V9b: sken vstupenky jiné akce téhož pořadatele[2m > [22mneplatné eventId → 422[39m
+[31m     → expected 200 to be 422 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-v9b-wrong-event.live.test.ts[2m > [22mKrok 4 (kolo 3) — V9b: sken vstupenky jiné akce téhož pořadatele[2m > [22mklienti skeneru eventId posílají (web admin, offline fronta, mobilní appka pořadatele)[39m
+[31m     → expected '\'use client\';\r\n\r\nimport { FormE…' to match /gate\.eventId \? \{ eventId: gate\.ev…/[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 4 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-v9b-wrong-event.live.test.ts[2m > [22mKrok 4 (kolo 3) — V9b: sken vstupenky jiné akce téhož pořadatele[2m > [22mbrána akce A2 + vstupenka akce A → 409 wrong_event, vstupenka zůstane valid, sken zalogován
+[31m[1mAssertionError[22m: expected 200 to be 409 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 409[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r3-v9b-wrong-event.live.test.ts:[2m54:22[22m[39m
+    [90m 52| [39m    [35mconst[39m t [33m=[39m [35mawait[39m [34mticketId[39m()[33m;[39m
+    [90m 53| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mscan[39m({ ticketId[33m:[39m t[33m,[39m eventId[33m:[39m eventA2[33m,[39m deviceId[33m:[39m [32m'g[39m…
+    [90m 54| [39m    [34mexpect[39m(r[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m409[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m 55| [39m    [34mexpect[39m((([35mawait[39m r[33m.[39m[34mjson[39m()) [35mas[39m { result[33m:[39m string })[33m.[39mresult)[33m.[39m[34mtoBe[39m([32m'wron[39m…
+    [90m 56| [39m    [34mexpect[39m([35mawait[39m [34mstatus[39m(t))[33m.[39m[34mtoBe[39m([32m'valid'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-v9b-wrong-event.live.test.ts[2m > [22mKrok 4 (kolo 3) — V9b: sken vstupenky jiné akce téhož pořadatele[2m > [22mbrána akce A + vstupenka akce A → admitted
+[31m[1mAssertionError[22m: expected 'already_used' to be 'admitted' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- admitted[39m
+[31m+ already_used[39m
+
+[36m [2m❯[22m tests/fix-r3-v9b-wrong-event.live.test.ts:[2m65:61[22m[39m
+    [90m 63| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mscan[39m({ ticketId[33m:[39m t[33m,[39m eventId[33m:[39m fc[33m.[39meventId[33m,[39m deviceId[33m:[39m…
+    [90m 64| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m [35mawait[39m r[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m 65| [39m    [34mexpect[39m((([35mawait[39m r[33m.[39m[34mjson[39m()) [35mas[39m { result[33m:[39m string })[33m.[39mresult)[33m.[39m[34mtoBe[39m([32m'admi[39m…
+    [90m   | [39m                                                            [31m^[39m
+    [90m 66| [39m    [34mexpect[39m([35mawait[39m [34mstatus[39m(t))[33m.[39m[34mtoBe[39m([32m'used'[39m)[33m;[39m
+    [90m 67| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-v9b-wrong-event.live.test.ts[2m > [22mKrok 4 (kolo 3) — V9b: sken vstupenky jiné akce téhož pořadatele[2m > [22mneplatné eventId → 422
+[31m[1mAssertionError[22m: expected 200 to be 422 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 422[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r3-v9b-wrong-event.live.test.ts:[2m70:82[22m[39m
+    [90m 68| [39m
+    [90m 69| [39m  [34mit[39m([32m'neplatné eventId → 422'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 70| [39m    [34mexpect[39m(([35mawait[39m [34mscan[39m({ ticketId[33m:[39m [35mawait[39m [34mticketId[39m()[33m,[39m eventId[33m:[39m [32m'nope'[39m }…
+    [90m   | [39m                                                                                 [31m^[39m
+    [90m 71| [39m  })[33m;[39m
+    [90m 72| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-v9b-wrong-event.live.test.ts[2m > [22mKrok 4 (kolo 3) — V9b: sken vstupenky jiné akce téhož pořadatele[2m > [22mklienti skeneru eventId posílají (web admin, offline fronta, mobilní appka pořadatele)
+[31m[1mAssertionError[22m: expected '\'use client\';\r\n\r\nimport { FormE…' to match /gate\.eventId \? \{ eventId: gate\.ev…/[39m
+
+[32m- Expected:[39m 
+/gate\.eventId \? \{ eventId: gate\.eventId \}/
+
+[31m+ Received:[39m 
+"'use client';
+
+import { FormEvent, useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
+import { CheckCircle2, XCircle, AlertTriangle, ScanLine, Settings2, Wifi, WifiOff, Camera } from 'lucide-react';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { QrScannerCamera } from '@/components/admin/QrScannerCamera';
+import { GroupScanPanel } from '@/components/admin/GroupScanPanel';
+import {
+  enqueueScan,
+  flushQueue,
+  getPendingCount,
+  saveManifest,
+  getManifestMeta,
+  validateOffline,
+  decodePrintTokenUuid,
+  type FlushResult,
+  type ManifestMeta,
+  type OfflineCheck,
+} from '@/lib/scanner/offline-queue';
+
+type ScanResult = {
+  result:
+    | 'admitted'
+    | 'already_used'
+    | 'already_redeemed_today'
+    | 'revoked'
+    | 'not_found'
+    | 'invalid_token'
+    | 'wrong_promoter'
+    | 'totp_mismatch'
+    | 'invalid_status'
+    | 'wrong_zone_or_day'
+    | 'flex_limit_exhausted'
+    | 'day_not_picked'
+    | 'already_inside'
+    | 'reentry_limit_exceeded'
+    | 'not_inside'
+    | 'reentry_disabled'
+    | 'exited'
+    | 'error';
+  kind?: 'single_use' | 'multi_day_redemption' | 'entry' | 'reentry';
+  message?: string;
+  usedAt?: string;
+  revokedAt?: string;
+  admittedAt?: string;
+  exitedAt?: string;
+  scanCount?: number;
+  remaining?: number;
+  max?: number;
+  picksRequired?: number;
+  picksUsed?: number;
+  ticket?: {
+    ticketId: string;
+    eventTitle: string;
+    ticketTypeName: string;
+    holderEmail: string;
+    holderName: string | null;
+  };
+};
+
+interface GateEvent {
+  id: string;
+  title: string;
+  dateStart: string;
+  days: { id: string; label: string | null; startsAt: string; dayIndex: number }[];
+  zones: { id: string; name: string; zoneType: string }[];
+}
+
+interface GateState {
+  eventId: string | null;
+  eventDayId: string | null;
+  zoneId: string | null;
+}
+
+const STORAGE_KEY = 'tixly.scanner.gate';
+
+export default function ScannerPage() {
+  const [ticketId, setTicketId] = useState('');
+  const [totpCode, setTotpCode] = useState('');
+  const [scanMode, setScanMode] = useState<'auto' | 'reentry_entry' | 'reentry_exit'>('auto');
+  const [entryMode, setEntryMode] = useState<'single' | 'group'>('single');
+
+  // QR payload parser:
+  //   `tixly:<uuid>:<6-digit>`  → ticketId + TOTP (mobilní rotující QR)
+  //   `TXP1.<...>`              → print token z TIŠTĚNÉ vstupenky (104mm label)
+  //   `<uuid>`                  → holý ticketId (manual mode)
+  function setTicketIdSmart(raw: string) {
+    const trimmed = raw.trim();
+    const m = trimmed.match(/^tixly:([0-9a-f-]{36}):(\\d{6})$/i);
+    if (m) {
+      setTicketId(m[1]);
+      setTotpCode(m[2]);
+      return;
+    }
+    // Print token: necháme v inputu jako celek, TOTP nemá smysl.
+    if (trimmed.startsWith('TXP1.')) {
+      setTicketId(trimmed);
+      setTotpCode('');
+      return;
+    }
+    setTicketId(trimmed);
+  }
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [result, setResult] = useState<ScanResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [events, setEvents] = useState<GateEvent[]>([]);
+  const [gate, setGate] = useState<GateState>({ eventId: null, eventDayId: null, zoneId: null });
+  const [showSettings, setShowSettings] = useState(true);
+  // Haptic feedback on scan result (Vibration API — mobile browsers)
+  useEffect(() => {
+    if (!result || typeof navigator === 'undefined' || !navigator.vibrate) return;
+    const denied: ScanResult['result'][] = [
+      'already_used', 'already_redeemed_today', 'revoked', 'not_found',
+      'invalid_token', 'wrong_promoter', 'totp_mismatch', 'invalid_status',
+      'wrong_zone_or_day', 'flex_limit_exhausted', 'day_not_picked',
+      'already_inside', 'reentry_limit_exceeded', 'not_inside',
+      'reentry_disabled', 'error',
+    ];
+    if (result.result === 'admitted' || result.result === 'exited') {
+      navigator.vibrate(100); // krátká, čistá vibrace = úspěch
+    } else if (denied.includes(result.result)) {
+      navigator.vibrate([80, 60, 80]); // dvojitá vibrace = zamítnutí
+    }
+  }, [result]);
+
+  // Offline mode state
+  const [online, setOnline] = useState(true);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [flushReport, setFlushReport] = useState<FlushResult | null>(null);
+  const [manifestMeta, setManifestMeta] = useState<ManifestMeta | null>(null);
+  const [manifestLoading, setManifestLoading] = useState(false);
+
+  const refreshPending = useCallback(async () => {
+    try {
+      setPendingCount(await getPendingCount());
+    } catch {
+      // IndexedDB nedostupný (SSR / private mode) — silent fallback
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as GateState;
+        setGate(parsed);
+        setShowSettings(false);
+      }
+    } catch {
+      // ignore
+    }
+    void loadGates();
+    void refreshPending();
+
+    // Online/offline detection
+    setOnline(typeof navigator !== 'undefined' ? navigator.onLine : true);
+    function onOnline() { setOnline(true); }
+    function onOffline() { setOnline(false); }
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
+  }, [refreshPending]);
+
+  // Když se vrátí spojení a queue není prázdná, automaticky flushni.
+  useEffect(() => {
+    if (online && pendingCount > 0) {
+      void handleFlush();
+    }
+    // handleFlush dependency by tu způsobila smyčku — disable eslint
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [online, pendingCount]);
+
+  async function handleFlush() {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const report = await flushQueue(token);
+      setFlushReport(report);
+      await refreshPending();
+    } catch {
+      // ignore
+    }
+  }
+
+  async function loadGates() {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch('/api/admin/scanner/gates', {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      if (!res.ok) return;
+      const json = (await res.json()) as { events: GateEvent[] };
+      setEvents(json.events);
+    } catch {
+      // ignore
+    }
+  }
+
+  // Stav staženého offline whitelistu pro zvolenou akci.
+  const refreshManifestMeta = useCallback(async (eventId: string | null) => {
+    if (!eventId) {
+      setManifestMeta(null);
+      return;
+    }
+    try {
+      setManifestMeta(await getManifestMeta(eventId));
+    } catch {
+      setManifestMeta(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshManifestMeta(gate.eventId);
+  }, [gate.eventId, refreshManifestMeta]);
+
+  // Stáhne seznam platných lístků pro akci a uloží do IndexedDB (nutno udělat
+  // ONLINE, ideálně před začátkem představení). Offline pak skener ověřuje proti němu.
+  async function downloadManifest() {
+    if (!gate.eventId) return;
+    setManifestLoading(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/admin/scanner/manifest?eventId=${gate.eventId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      if (!res.ok) {
+        setResult({ result: 'error', message: `Stažení seznamu selhalo (HTTP ${res.status}).` });
+        return;
+      }
+      const json = (await res.json()) as { ticketIds: string[]; generatedAt: string };
+      await saveManifest(gate.eventId, json.ticketIds, json.generatedAt);
+      await refreshManifestMeta(gate.eventId);
+    } catch {
+      setResult({ result: 'error', message: 'Stažení seznamu selhalo (síť).' });
+    } finally {
+      setManifestLoading(false);
+    }
+  }
+
+  function persistGate(next: GateState) {
+    setGate(next);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // ignore
+    }
+  }
+
+  const selectedEvent = events.find((e) => e.id === gate.eventId) ?? null;
+  const selectedDay = selectedEvent?.days.find((d) => d.id === gate.eventDayId) ?? null;
+  const selectedZone = selectedEvent?.zones.find((z) => z.id === gate.zoneId) ?? null;
+  const gateLabel = selectedEvent
+    ? `${selectedEvent.title}${selectedDay ? ' · ' + (selectedDay.label ?? `Den ${selectedDay.dayIndex + 1}`) : ''}${selectedZone ? ' · ' + selectedZone.name : ''}`
+    : 'Žádná brána zvolena';
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setResult(null);
+    const raw = ticketId.trim();
+    const isPrintToken = raw.startsWith('TXP1.');
+    const code = totpCode.trim();
+
+    const payload = {
+      ...(isPrintToken ? { printToken: raw } : { ticketId: raw }),
+      ...(code && !isPrintToken ? { totpCode: code } : {}),
+      ...(gate.eventDayId ? { eventDayId: gate.eventDayId } : {}),
+      ...(gate.zoneId ? { zoneId: gate.zoneId } : {}),
+    };
+
+    // Offline: zapiš do queue (kvůli serverové rekonciliaci) a pokud máme stažený
+    // whitelist pro akci, ověř proti němu — padělaný/cizí lístek odmítni, dvojí
+    // vstup zachyť lokálně. Bez whitelistu padáme na optimistic accept (provoz nestojí).
+    if (!online) {
+      try {
+        await enqueueScan(payload, gateLabel);
+        await refreshPending();
+
+        const offlineTicketId = isPrintToken
+          ? decodePrintTokenUuid(raw) ?? undefined
+          : raw;
+        let check: OfflineCheck = 'no_manifest';
+        if (gate.eventId && offlineTicketId) {
+          check = await validateOffline(gate.eventId, offlineTicketId);
+        }
+
+        if (check === 'not_found') {
+          setResult({
+            result: 'not_found',
+            message: 'OFFLINE: lístek NENÍ ve staženém seznamu platných — NEVPOUŠTĚT.',
+          });
+        } else if (check === 'already_used') {
+          setResult({
+            result: 'already_used',
+            message: 'OFFLINE: tento lístek už byl tímto zařízením odbaven.',
+          });
+        } else if (check === 'admitted') {
+          setResult({
+            result: 'admitted',
+            message: 'Přijato offline (ověřeno proti staženému seznamu). Sync po obnovení.',
+          });
+          setTicketId('');
+          setTotpCode('');
+        } else {
+          // no_manifest → optimistic accept, ale jasně upozorni, že NEbylo ověřeno
+          setResult({
+            result: 'admitted',
+            message: '⚠ Přijato offline BEZ ověření (není stažený seznam). Sync po obnovení.',
+          });
+          setTicketId('');
+          setTotpCode('');
+        }
+      } catch {
+        setResult({ result: 'error', message: 'Offline queue selhala (IndexedDB nedostupný).' });
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      const useReentry = scanMode === 'reentry_entry' || scanMode === 'reentry_exit';
+      const endpoint = useReentry ? '/api/admin/scanner/reentry' : '/api/admin/scanner/validate';
+      const reentryBody = useReentry
+        ? { ...payload, mode: scanMode === 'reentry_entry' ? 'entry' : 'exit' }
+        : payload;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(reentryBody),
+      });
+      const data = (await res.json().catch(() => ({}))) as ScanResult;
+      setResult({ ...data, result: data.result ?? 'error' });
+      if (
+        res.ok &&
+        (data.result === 'admitted' || (data.result as string) === 'exited')
+      ) {
+        setTicketId('');
+        setTotpCode('');
+      }
+    } catch {
+      // Síť spadla mezi click a fetch — fallback do queue
+      try {
+        await enqueueScan(payload, gateLabel);
+        await refreshPending();
+        setResult({
+          result: 'admitted',
+          message: 'Síť spadla — uloženo do offline queue. Sync po obnovení.',
+        });
+        setTicketId('');
+        setTotpCode('');
+        setOnline(false);
+      } catch {
+        setResult({ result: 'error', message: 'Síťová chyba i offline queue selhala.' });
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className=\"space-y-6\">
+      <PageHeader
+        title=\"Scanner\"
+        description=\"Manuální validace QR lístku. Pro festivaly nastav bránu (akce + den + zóna) a scanner bude validovat per gate.\"
+        actions={
+          <Link href=\"/admin/scanner/guide\" className=\"text-sm text-primary hover:underline\">
+            📋 Průvodce pro personál
+          </Link>
+        }
+      />
+
+      {/* Online/offline status badge */}
+      <div
+        className={`flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm ${
+          online
+            ? 'border-emerald-300 bg-emerald-50 text-emerald-900'
+            : 'border-amber-400 bg-amber-50 text-amber-900'
+        }`}
+      >
+        <span className=\"flex items-center gap-2 font-medium\">
+          {online ? <Wifi className=\"h-4 w-4\" aria-hidden /> : <WifiOff className=\"h-4 w-4\" aria-hidden />}
+          {online ? 'Online — server validuje každý sken' : 'Offline — skeny jdou do lokální fronty'}
+        </span>
+        {pendingCount > 0 ? (
+          <span className=\"flex items-center gap-2\">
+            <span className=\"font-semibold\">{pendingCount} čeká na sync</span>
+            <Button
+              type=\"button\"
+              size=\"sm\"
+              variant=\"outline\"
+              onClick={() => void handleFlush()}
+              disabled={!online}
+            >
+              Synchronizovat
+            </Button>
+          </span>
+        ) : null}
+      </div>
+
+      {flushReport && (flushReport.attempted > 0 || flushReport.conflicts.length > 0) ? (
+        <div className=\"rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-800\">
+          Sync: <strong>{flushReport.synced}</strong> přeneseno, <strong>{flushReport.failed}</strong> selhalo
+          {flushReport.conflicts.length > 0
+            ? `, ${flushReport.conflicts.length} konfliktů (lístek byl mezitím neplatný — viz audit)`
+            : ''}
+          .
+          <button
+            type=\"button\"
+            onClick={() => setFlushReport(null)}
+            className=\"ml-2 text-slate-500 hover:underline\"
+          >
+            zavřít
+          </button>
+        </div>
+      ) : null}
+
+      {/* Offline připravenost: stažený whitelist platných lístků pro zvolenou akci. */}
+      {gate.eventId ? (
+        <div className=\"flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm\">
+          <span className=\"text-muted-foreground\">
+            {manifestMeta ? (
+              <>
+                Offline seznam: <strong className=\"text-foreground\">{manifestMeta.count.toLocaleString('cs-CZ')}</strong>{' '}
+                lístků · staženo {new Date(manifestMeta.savedAt).toLocaleString('cs-CZ')}
+              </>
+            ) : (
+              <>⚠ Offline seznam není stažený — offline sken nepůjde ověřit. Stáhni před akcí (online).</>
+            )}
+          </span>
+          <Button
+            type=\"button\"
+            size=\"sm\"
+            variant=\"outline\"
+            onClick={() => void downloadManifest()}
+            disabled={manifestLoading || !online}
+            title={!online ? 'Stažení vyžaduje připojení' : undefined}
+          >
+            {manifestLoading ? 'Stahuji…' : manifestMeta ? 'Aktualizovat' : 'Stáhnout offline seznam'}
+          </Button>
+        </div>
+      ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className=\"flex items-center justify-between gap-2\">
+            <span className=\"flex items-center gap-2\">
+              <Settings2 className=\"h-5 w-5\" aria-hidden /> Brána
+            </span>
+            <button
+              type=\"button\"
+              className=\"text-xs font-normal text-primary hover:underline\"
+              onClick={() => setShowSettings((s) => !s)}
+            >
+              {showSettings ? 'Skrýt' : 'Změnit'}
+            </button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!showSettings ? (
+            <div className=\"rounded-md bg-muted/40 px-3 py-2 text-sm\">
+              <span className=\"font-medium\">{gateLabel}</span>
+            </div>
+          ) : events.length === 0 ? (
+            <p className=\"text-sm text-muted-foreground\">
+              Načítání akcí… Pokud nemáš žádnou nadcházející akci, vytvoř ji
+              v sekci „Akce\".
+            </p>
+          ) : (
+            <div className=\"space-y-3\">
+              <div>
+                <label className=\"mb-1 block text-xs font-medium uppercase text-muted-foreground\">
+                  Akce
+                </label>
+                <select
+                  value={gate.eventId ?? ''}
+                  onChange={(e) =>
+                    persistGate({
+                      eventId: e.target.value || null,
+                      eventDayId: null,
+                      zoneId: null,
+                    })
+                  }
+                  className=\"w-full rounded-md border bg-background px-3 py-2 text-sm\"
+                >
+                  <option value=\"\">— vyber akci —</option>
+                  {events.map((ev) => (
+                    <option key={ev.id} value={ev.id}>
+                      {ev.title} ({new Date(ev.dateStart).toLocaleDateString('cs-CZ')})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedEvent && selectedEvent.days.length > 0 ? (
+                <div>
+                  <label className=\"mb-1 block text-xs font-medium uppercase text-muted-foreground\">
+                    Den{selectedEvent.days.length > 1 ? ' (povinné pro multi-day)' : ''}
+                  </label>
+                  <div className=\"flex flex-wrap gap-1\">
+                    <ChipButton
+                      active={gate.eventDayId === null}
+                      onClick={() => persistGate({ ...gate, eventDayId: null })}
+                      label=\"Vše\"
+                    />
+                    {selectedEvent.days.map((d) => (
+                      <ChipButton
+                        key={d.id}
+                        active={gate.eventDayId === d.id}
+                        onClick={() => persistGate({ ...gate, eventDayId: d.id })}
+                        label={
+                          d.label ??
+                          new Date(d.startsAt).toLocaleDateString('cs-CZ', {
+                            weekday: 'short',
+                            day: 'numeric',
+                            month: 'short',
+                          })
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {selectedEvent && selectedEvent.zones.length > 0 ? (
+                <div>
+                  <label className=\"mb-1 block text-xs font-medium uppercase text-muted-foreground\">
+                    Zóna / scéna
+                  </label>
+                  <div className=\"flex flex-wrap gap-1\">
+                    <ChipButton
+                      active={gate.zoneId === null}
+                      onClick={() => persistGate({ ...gate, zoneId: null })}
+                      label=\"Vše\"
+                    />
+                    {selectedEvent.zones.map((z) => (
+                      <ChipButton
+                        key={z.id}
+                        active={gate.zoneId === z.id}
+                        onClick={() => persistGate({ ...gate, zoneId: z.id })}
+                        label={z.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              <div className=\"flex justify-end\">
+                <Button
+                  size=\"sm\"
+                  variant=\"outline\"
+                  onClick={() => setShowSettings(false)}
+                >
+                  Hotovo
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Přepínač: jednotlivý lístek vs. skupinové odbavení (1 QR = celá objednávka) */}
+      <div className=\"grid grid-cols-2 gap-1 rounded-md border p-1 text-sm\">
+        <button
+          type=\"button\"
+          className={`rounded px-3 py-2 font-medium ${entryMode === 'single' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+          onClick={() => setEntryMode('single')}
+          data-testid=\"mode-single\"
+        >
+          Jednotlivě
+        </button>
+        <button
+          type=\"button\"
+          className={`rounded px-3 py-2 font-medium ${entryMode === 'group' ? 'bg-indigo-600 text-white' : 'hover:bg-muted'}`}
+          onClick={() => setEntryMode('group')}
+          data-testid=\"mode-group\"
+        >
+          👥 Skupina
+        </button>
+      </div>
+
+      {entryMode === 'group' ? (
+        <GroupScanPanel />
+      ) : (
+      <div className=\"grid grid-cols-1 gap-6 lg:grid-cols-2\">
+        <Card>
+          <CardHeader>
+            <CardTitle className=\"flex items-center gap-2\">
+              <ScanLine className=\"h-5 w-5\" aria-hidden /> Validace
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className=\"space-y-3\">
+              <div>
+                <label className=\"mb-1 block text-xs font-medium\">
+                  Ticket ID nebo QR payload{' '}
+                  <code className=\"text-[11px] text-muted-foreground\">
+                    {'tixly:<id>:<code>'}
+                  </code>
+                </label>
+                <div className=\"flex gap-2\">
+                  <Input
+                    value={ticketId}
+                    onChange={(e) => setTicketIdSmart(e.target.value)}
+                    placeholder=\"8a4f7b2e-… / tixly:…:123456 / TXP1.…\"
+                    required
+                    pattern=\"([0-9a-fA-F-]{36}|TXP1\\..+)\"
+                    autoFocus
+                    data-testid=\"scanner-ticket-input\"
+                    className=\"flex-1\"
+                  />
+                  <Button
+                    type=\"button\"
+                    variant=\"outline\"
+                    onClick={() => setCameraOpen(true)}
+                    title=\"Otevřít kameru pro sken QR\"
+                    data-testid=\"scanner-open-camera\"
+                  >
+                    <Camera className=\"h-4 w-4\" aria-hidden />
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <label className=\"mb-1 block text-xs font-medium\">
+                  TOTP kód (volitelné, z autentikační appky)
+                </label>
+                <Input
+                  value={totpCode}
+                  onChange={(e) => setTotpCode(e.target.value)}
+                  placeholder=\"123456\"
+                  pattern=\"\\d{6}\"
+                  inputMode=\"numeric\"
+                  maxLength={6}
+                />
+              </div>
+              <div>
+                <label className=\"mb-1 block text-xs font-medium\">Režim skenování</label>
+                <div className=\"grid grid-cols-3 gap-1 rounded-md border p-1 text-xs\">
+                  <button
+                    type=\"button\"
+                    className={`rounded px-2 py-1.5 ${scanMode === 'auto' ? 'bg-emerald-600 text-white' : 'hover:bg-muted'}`}
+                    onClick={() => setScanMode('auto')}
+                  >
+                    Standard
+                  </button>
+                  <button
+                    type=\"button\"
+                    className={`rounded px-2 py-1.5 ${scanMode === 'reentry_entry' ? 'bg-blue-600 text-white' : 'hover:bg-muted'}`}
+                    onClick={() => setScanMode('reentry_entry')}
+                  >
+                    ↪ Vstup
+                  </button>
+                  <button
+                    type=\"button\"
+                    className={`rounded px-2 py-1.5 ${scanMode === 'reentry_exit' ? 'bg-amber-600 text-white' : 'hover:bg-muted'}`}
+                    onClick={() => setScanMode('reentry_exit')}
+                  >
+                    ↩ Výstup
+                  </button>
+                </div>
+                {scanMode !== 'auto' ? (
+                  <p className=\"mt-1 text-[11px] text-muted-foreground\">
+                    Re-entry režim pro festivaly / open-air. Vyžaduje event s
+                    <code className=\"mx-1\">reentry_allowed=TRUE</code>.
+                  </p>
+                ) : null}
+              </div>
+              <Button type=\"submit\" disabled={loading} className=\"w-full\">
+                {loading
+                  ? 'Validuji…'
+                  : scanMode === 'reentry_exit'
+                    ? 'Označit výstup'
+                    : 'Validovat lístek'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Výsledek</CardTitle>
+          </CardHeader>
+          <CardContent>{renderResult(result)}</CardContent>
+        </Card>
+      </div>
+      )}
+
+      <QrScannerCamera
+        open={cameraOpen}
+        onDetected={(raw) => {
+          setTicketIdSmart(raw);
+          setCameraOpen(false);
+        }}
+        onClose={() => setCameraOpen(false)}
+      />
+    </div>
+  );
+}
+
+function ChipButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type=\"button\"
+      onClick={onClick}
+      className={
+        active
+          ? 'rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground'
+          : 'rounded-full border bg-background px-3 py-1 text-xs font-medium hover:bg-muted'
+      }
+    >
+      {label}
+    </button>
+  );
+}
+
+function renderResult(r: ScanResult | null) {
+  if (!r) {
+    return (
+      <p className=\"text-sm text-muted-foreground\">
+        Naskenuj nebo vlož ticket ID, abys viděl výsledek.
+      </p>
+    );
+  }
+  if (r.result === 'admitted') {
+    return (
+      <div className=\"space-y-2 rounded-md border border-emerald-300 bg-emerald-50 p-3\">
+        <div className=\"flex items-center gap-2 text-emerald-900\">
+          <CheckCircle2 className=\"h-5 w-5\" />
+          <span className=\"font-semibold\">
+            Vstup povolen
+            {r.kind === 'multi_day_redemption' ? ' (multi-day)' : ''}
+          </span>
+        </div>
+        {r.ticket ? <TicketDetails t={r.ticket} /> : null}
+        {r.admittedAt ? (
+          <p className=\"text-xs text-emerald-700\">
+            Přijat: {new Date(r.admittedAt).toLocaleString('cs-CZ')}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+  if (r.result === 'already_used' || r.result === 'already_redeemed_today') {
+    return (
+      <div className=\"space-y-2 rounded-md border border-amber-300 bg-amber-50 p-3\">
+        <div className=\"flex items-center gap-2 text-amber-900\">
+          <AlertTriangle className=\"h-5 w-5\" />
+          <span className=\"font-semibold\">
+            {r.result === 'already_redeemed_today'
+              ? 'Pro tento den už použito'
+              : 'Lístek už byl použit'}
+          </span>
+        </div>
+        {r.ticket ? <TicketDetails t={r.ticket} /> : null}
+        {r.usedAt ? (
+          <p className=\"text-xs text-amber-800\">
+            Použit: {new Date(r.usedAt).toLocaleString('cs-CZ')}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+  return (
+    <div className=\"space-y-2 rounded-md border border-rose-300 bg-rose-50 p-3\">
+      <div className=\"flex items-center gap-2 text-rose-900\">
+        <XCircle className=\"h-5 w-5\" />
+        <span className=\"font-semibold\">{labelFor(r.result)}</span>
+      </div>
+      {r.message ? <p className=\"text-sm text-rose-800\">{r.message}</p> : null}
+      {r.picksRequired !== undefined && r.picksUsed !== undefined ? (
+        <p className=\"text-xs text-rose-800\">
+          Flex pass: {r.picksUsed}/{r.picksRequired} dní vyčerpáno
+        </p>
+      ) : null}
+      {r.ticket ? <TicketDetails t={r.ticket} /> : null}
+    </div>
+  );
+}
+
+function TicketDetails({ t }: { t: NonNullable<ScanResult['ticket']> }) {
+  return (
+    <div className=\"text-sm text-foreground\">
+      <div className=\"font-medium\">{t.eventTitle}</div>
+      <div className=\"text-xs text-muted-foreground\">{t.ticketTypeName}</div>
+      <div className=\"text-xs text-muted-foreground\">
+        {t.holderName ? `${t.holderName} · ` : ''}
+        {t.holderEmail}
+      </div>
+    </div>
+  );
+}
+
+function labelFor(r: ScanResult['result']): string {
+  switch (r) {
+    case 'revoked':
+      return 'Lístek zrušen';
+    case 'not_found':
+      return 'Lístek nenalezen';
+    case 'invalid_token':
+      return 'Neplatný kód vstupenky';
+    case 'wrong_promoter':
+      return 'Lístek jiného promotéra';
+    case 'totp_mismatch':
+      return 'TOTP kód neodpovídá';
+    case 'invalid_status':
+      return 'Neplatný stav';
+    case 'wrong_zone_or_day':
+      return 'Lístek nemá přístup do této zóny / dne';
+    case 'flex_limit_exhausted':
+      return 'Flex pass vyčerpán';
+    case 'day_not_picked':
+      return 'Tento den není mezi vybranými termíny';
+    default:
+      return 'Chyba';
+  }
+}
+"
+
+[36m [2m❯[22m tests/fix-r3-v9b-wrong-event.live.test.ts:[2m76:17[22m[39m
+    [90m 74| [39m    [35mconst[39m root [33m=[39m path[33m.[39m[34mresolve[39m(__dirname[33m,[39m [32m'../..'[39m)[33m;[39m
+    [90m 75| [39m    [35mconst[39m web [33m=[39m [34mreadFileSync[39m(path[33m.[39m[34mjoin[39m(root[33m,[39m [32m'nextjs-boilerplate/src/a[39m…
+    [90m 76| [39m    [34mexpect[39m(web)[33m.[39m[34mtoMatch[39m([36m/gate\.eventId \? \{ eventId: gate\.eventId \}[39m…
+    [90m   | [39m                [31m^[39m
+    [90m 77| [39m    [34mexpect[39m(web)[33m.[39m[34mtoMatch[39m([36m/case 'wrong_event':/[39m)[33m;[39m
+    [90m 78| [39m    [35mconst[39m queue [33m=[39m [34mreadFileSync[39m(path[33m.[39m[34mjoin[39m(root[33m,[39m [32m'nextjs-boilerplate/src[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[90m (4)[39m
+[2m   Start at [22m 14:00:06
+[2m   Duration [22m 1.34s[2m (transform 169ms, setup 0ms, collect 114ms, tests 510ms, environment 0ms, prepare 88ms)[22m
+

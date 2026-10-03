@@ -7,13 +7,19 @@
  * PayPal dashboard: Webhooks → add endpoint URL, select events.
  * Copy Webhook ID → PAYPAL_WEBHOOK_ID env var.
  *
- * Signature verification via PayPal REST API (server-side).
+ * Bezpečnost (kolo 2 — fail-closed):
+ *   1. Bez PAYPAL_WEBHOOK_ID / API přístupu → 401, nic se nezmění (dřív se podpis
+ *      při chybějícím WEBHOOK_ID vůbec neověřoval a událost se zpracovala).
+ *   2. Podpis ověřuje PayPal REST API (verify-webhook-signature); neplatný → 401.
+ *   3. Neznámý formát události → 400.
+ *   4. Před označením `paid` se stav objednávky ověří dotazem GET /v2/checkout/orders/{id}
+ *      (jako GoPay) — rozhoduje částka a stav z API, ne z notifikace.
  * Idempotency: skip if order already paid.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
-import { verifyPayPalWebhookSignature } from '@/lib/payment/paypal';
+import { getPayPalConfig, getPayPalOrder, verifyPayPalWebhookSignature } from '@/lib/payment/paypal';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,11 +39,22 @@ interface PayPalWebhookEvent {
   };
 }
 
+function isPayPalEvent(x: unknown): x is PayPalWebhookEvent {
+  const e = x as PayPalWebhookEvent | null;
+  return !!e && typeof e === 'object' && typeof e.id === 'string' && typeof e.event_type === 'string'
+    && !!e.resource && typeof e.resource === 'object';
+}
+
 export async function POST(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
     const rawBody = await req.text();
 
-    // Verify signature (skips if PAYPAL_WEBHOOK_ID not set)
+    const cfg = getPayPalConfig();
+    if (!cfg.webhookId || !cfg.isConfigured) {
+      console.warn('[paypal webhook] PAYPAL_WEBHOOK_ID / API credentials missing — rejecting');
+      return NextResponse.json({ error: 'WEBHOOK_NOT_CONFIGURED' }, { status: 401 });
+    }
+
     const verified = await verifyPayPalWebhookSignature({
       transmissionId: req.headers.get('paypal-transmission-id') ?? '',
       transmissionTime: req.headers.get('paypal-transmission-time') ?? '',
@@ -46,28 +63,36 @@ export async function POST(req: NextRequest): Promise<Response> {
       transmissionSig: req.headers.get('paypal-transmission-sig') ?? '',
       rawBody,
     });
-
-    if (!verified && process.env.PAYPAL_WEBHOOK_ID) {
+    if (!verified) {
       console.warn('[paypal webhook] invalid signature');
-      return NextResponse.json({ error: 'INVALID_SIGNATURE' }, { status: 400 });
+      return NextResponse.json({ error: 'INVALID_SIGNATURE' }, { status: 401 });
     }
 
-    let event: PayPalWebhookEvent;
+    let event: unknown;
     try {
-      event = JSON.parse(rawBody) as PayPalWebhookEvent;
+      event = JSON.parse(rawBody);
     } catch {
       return NextResponse.json({ error: 'INVALID_JSON' }, { status: 400 });
+    }
+    if (!isPayPalEvent(event)) {
+      return NextResponse.json({ error: 'UNKNOWN_EVENT_FORMAT' }, { status: 400 });
     }
 
     if (event.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
       const capture = event.resource;
       const paypalOrderId = capture.supplementary_data?.related_ids?.order_id;
       if (!paypalOrderId) {
-        return NextResponse.json({ ok: true, reason: 'NO_ORDER_ID' });
+        return NextResponse.json({ error: 'UNKNOWN_EVENT_FORMAT', reason: 'NO_ORDER_ID' }, { status: 400 });
       }
 
-      const capturedMinor = Math.round(parseFloat(capture.amount?.value ?? '0') * 100);
-      const currency = capture.amount?.currency_code ?? '';
+      // Autoritativní stav z PayPal API (ne z těla notifikace).
+      let pp;
+      try {
+        pp = await getPayPalOrder(paypalOrderId);
+      } catch (err) {
+        console.error('[paypal webhook] PayPal order lookup failed:', err);
+        return NextResponse.json({ error: 'PAYPAL_LOOKUP_FAILED' }, { status: 502 });
+      }
 
       const client = await db().connect();
       try {
@@ -92,29 +117,30 @@ export async function POST(req: NextRequest): Promise<Response> {
         }
 
         const order = orderRes.rows[0];
+        const apiPaid = pp.status === 'COMPLETED' && pp.completedMinor > 0
+          && pp.completedMinor >= order.total_amount && pp.currency === order.currency;
 
         await client.query(
           `INSERT INTO orders.payment_events
              (order_id, event_type, gopay_status, amount, raw_payload, payment_provider)
-           VALUES ($1, 'payment_paid', 'COMPLETED', $2, $3::jsonb, 'paypal')`,
-          [order.id, capturedMinor, JSON.stringify({ paypalOrderId, captureId: capture.id, receivedAt: new Date().toISOString() })],
+           VALUES ($1, $2, $3, $4, $5::jsonb, 'paypal')
+           ON CONFLICT DO NOTHING`,
+          [order.id, apiPaid ? 'payment_paid' : 'webhook_received', pp.status, pp.completedMinor,
+           JSON.stringify({ paypalOrderId, captureId: capture.id, apiStatus: pp.status, apiCurrency: pp.currency, receivedAt: new Date().toISOString() })],
         );
 
         let triggerOrderCompleted = false;
 
-        if (order.status === 'pending') {
-          const amountOk = capturedMinor >= order.total_amount && currency === order.currency;
-          if (amountOk) {
-            const upd = await client.query<{ id: string }>(
-              `UPDATE orders.orders
-               SET status = 'paid', paid_at = NOW(), updated_at = NOW(),
-                   payment_provider = 'paypal'
-               WHERE id = $1 AND status = 'pending'
-               RETURNING id`,
-              [order.id],
-            );
-            triggerOrderCompleted = upd.rows.length > 0;
-          }
+        if (order.status === 'pending' && apiPaid) {
+          const upd = await client.query<{ id: string }>(
+            `UPDATE orders.orders
+             SET status = 'paid', paid_at = NOW(), updated_at = NOW(),
+                 payment_provider = 'paypal'
+             WHERE id = $1 AND status = 'pending'
+             RETURNING id`,
+            [order.id],
+          );
+          triggerOrderCompleted = upd.rows.length > 0;
         }
 
         await client.query('COMMIT');
@@ -136,6 +162,9 @@ export async function POST(req: NextRequest): Promise<Response> {
           })();
         }
 
+        if (order.status === 'pending' && !apiPaid) {
+          return NextResponse.json({ ok: false, reason: 'NOT_CONFIRMED_BY_GATEWAY', orderId: order.id }, { status: 409 });
+        }
         return NextResponse.json({ ok: true, orderId: order.id });
       } catch (err) {
         await client.query('ROLLBACK');

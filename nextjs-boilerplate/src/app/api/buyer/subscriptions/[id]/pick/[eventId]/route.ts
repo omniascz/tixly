@@ -17,7 +17,7 @@
  * DACH parity #P0-2 dotažení (Reservix Restwert pattern).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 
 
@@ -29,10 +29,20 @@ export async function DELETE(
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: vlastnictví abonentky ověřeno níže pod kontextem kupce; zbytek jsou systémové příkazy (asSystemInTx).
+
+    // Kolo 3: vlastnictví abonentky pod kontextem kupce (RLS: holders.user_id = kupec).
+    const ownRes = await client.query(
+      `SELECT 1 FROM subscriptions.holders WHERE id = $1 AND user_id = $2 FOR UPDATE`,
+      [params.id, userId],
+    );
+    if (ownRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+    }
 
     // Load holder + package + redemption
-    const holderRes = await client.query<{
+    const holderRes = await asSystemInTx(client, () => client.query<{
       id: string;
       user_id: string | null;
       package_id: string;
@@ -48,7 +58,7 @@ export async function DELETE(
         WHERE h.id = $1
         FOR UPDATE OF h`,
       [params.id],
-    );
+    ));
     if (holderRes.rows.length === 0) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
@@ -67,7 +77,7 @@ export async function DELETE(
     }
 
     // Find redemption + event date
-    const redRes = await client.query<{
+    const redRes = await asSystemInTx(client, () => client.query<{
       ticket_id: string | null;
       event_date_start: string;
     }>(
@@ -76,7 +86,7 @@ export async function DELETE(
          JOIN catalog.events e ON e.id = r.event_id
         WHERE r.holder_id = $1 AND r.event_id = $2`,
       [holder.id, params.eventId],
-    );
+    ));
     if (redRes.rows.length === 0) {
       await client.query('ROLLBACK');
       return NextResponse.json(
@@ -95,29 +105,29 @@ export async function DELETE(
 
     // Revoke ticket (pokud existuje), smaž redemption, navýš credit
     if (red.ticket_id) {
-      await client.query(
+      await asSystemInTx(client, () => client.query(
         `UPDATE tickets.tickets
             SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
           WHERE id = $1`,
         [red.ticket_id],
-      );
+      ));
     }
-    await client.query(
+    await asSystemInTx(client, () => client.query(
       `DELETE FROM subscriptions.redemptions
         WHERE holder_id = $1 AND event_id = $2`,
       [holder.id, params.eventId],
-    );
+    ));
 
     // Restwert credit = per-pick proportional value
     const maxPicks = holder.max_picks_for_choice ?? 1;
     const perPickValue = Math.floor(holder.price_paid_halire / maxPicks);
     const newCredit = holder.restwert_credit_halire + perPickValue;
-    await client.query(
+    await asSystemInTx(client, () => client.query(
       `UPDATE subscriptions.holders
           SET restwert_credit_halire = $2
         WHERE id = $1`,
       [holder.id, newCredit],
-    );
+    ));
 
     await client.query('COMMIT');
 

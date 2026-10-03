@@ -1,0 +1,154 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r2-v4-scan-logs.live.test.ts[2m > [22m[2mKrok 5 — V4: N skenů → N řádků ve scan_logs[2m > [22m[2mvpuštěn / duplicitní / zneplatněná vstupenka, zařízení UUID / text / žádné → každý sken = 1 řádek[22m[39m
+[scanner/validate] logScan failed: error: new row for relation "scan_logs" violates check constraint "scan_logs_scan_result_check"
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at RlsAwarePool.query [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:253:22[90m)[39m {
+  length: [33m200[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'23514'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [32m'tickets'[39m,
+  table: [32m'scan_logs'[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [32m'scan_logs_scan_result_check'[39m,
+  file: [32m'execMain.c'[39m,
+  line: [32m'2034'[39m,
+  routine: [32m'ExecConstraints'[39m
+}
+
+[90mstderr[2m | tests/fix-r2-v4-scan-logs.live.test.ts[2m > [22m[2mKrok 5 — V4: N skenů → N řádků ve scan_logs[2m > [22m[2mvpuštěn / duplicitní / zneplatněná vstupenka, zařízení UUID / text / žádné → každý sken = 1 řádek[22m[39m
+[scanner/validate] logScan failed: error: new row for relation "scan_logs" violates check constraint "scan_logs_scan_result_check"
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at RlsAwarePool.query [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:253:22[90m)[39m {
+  length: [33m200[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'23514'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [32m'tickets'[39m,
+  table: [32m'scan_logs'[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [32m'scan_logs_scan_result_check'[39m,
+  file: [32m'execMain.c'[39m,
+  line: [32m'2034'[39m,
+  routine: [32m'ExecConstraints'[39m
+}
+
+[90mstderr[2m | tests/fix-r2-v4-scan-logs.live.test.ts[2m > [22m[2mKrok 5 — V4: N skenů → N řádků ve scan_logs[2m > [22m[2mvpuštěn / duplicitní / zneplatněná vstupenka, zařízení UUID / text / žádné → každý sken = 1 řádek[22m[39m
+[scanner/validate] logScan failed: error: null value in column "scanned_by_device_id" of relation "scan_logs" violates not-null constraint
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at RlsAwarePool.query [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:253:22[90m)[39m {
+  length: [33m201[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'23502'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [32m'tickets'[39m,
+  table: [32m'scan_logs'[39m,
+  column: [32m'scanned_by_device_id'[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'execMain.c'[39m,
+  line: [32m'1982'[39m,
+  routine: [32m'ExecConstraints'[39m
+}
+
+[90mstderr[2m | tests/fix-r2-v4-scan-logs.live.test.ts[2m > [22m[2mKrok 5 — V4: N skenů → N řádků ve scan_logs[2m > [22m[2mvpuštěn / duplicitní / zneplatněná vstupenka, zařízení UUID / text / žádné → každý sken = 1 řádek[22m[39m
+[scanner/validate] logScan failed: error: invalid input syntax for type uuid: "gate-1-tablet"
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at RlsAwarePool.query [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:253:22[90m)[39m {
+  length: [33m145[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'22P02'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [32m"unnamed portal parameter $3 = '...'"[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'uuid.c'[39m,
+  line: [32m'138'[39m,
+  routine: [32m'string_to_uuid'[39m
+}
+
+[90mstderr[2m | tests/fix-r2-v4-scan-logs.live.test.ts[2m > [22m[2mKrok 5 — V4: N skenů → N řádků ve scan_logs[22m[39m
+[scanner/validate] logScan failed: error: invalid input syntax for type uuid: "gate-2"
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at RlsAwarePool.query [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:253:22[90m)[39m {
+  length: [33m138[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'22P02'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [32m"unnamed portal parameter $3 = '...'"[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'uuid.c'[39m,
+  line: [32m'138'[39m,
+  routine: [32m'string_to_uuid'[39m
+}
+
+ [33m❯[39m tests/fix-r2-v4-scan-logs.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 1796[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r2-v4-scan-logs.live.test.ts[2m > [22mKrok 5 — V4: N skenů → N řádků ve scan_logs[2m > [22mvpuštěn / duplicitní / zneplatněná vstupenka, zařízení UUID / text / žádné → každý sken = 1 řádek[39m
+[31m     → každý sken = právě 1 řádek ve scan_logs: expected +0 to be 5 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-v4-scan-logs.live.test.ts[2m > [22mKrok 5 — V4: N skenů → N řádků ve scan_logs[2m > [22mvpuštěn / duplicitní / zneplatněná vstupenka, zařízení UUID / text / žádné → každý sken = 1 řádek
+[31m[1mAssertionError[22m: každý sken = právě 1 řádek ve scan_logs: expected +0 to be 5 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 5[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/fix-r2-v4-scan-logs.live.test.ts:[2m64:69[22m[39m
+    [90m 62| [39m
+    [90m 63| [39m    [35mconst[39m cnt [33m=[39m ([35mawait[39m pool[33m.[39mquery[33m<[39m{ n[33m:[39m number }[33m>[39m([32m`SELECT count(*)::int[39m…
+    [90m 64| [39m    [34mexpect[39m(cnt [33m-[39m before[33m,[39m [32m'každý sken = právě 1 řádek ve scan_logs'[39m)[33m.[39m[34mto[39m…
+    [90m   | [39m                                                                    [31m^[39m
+    [90m 65| [39m    [35mconst[39m rows [33m=[39m ([35mawait[39m pool[33m.[39mquery[33m<[39m{ ticket_id[33m:[39m string[33m;[39m scan_result[33m:[39m s…
+    [90m 66| [39m      [32m`SELECT ticket_id, scan_result, scanned_by_device_id::text dev, [39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 11:08:27
+[2m   Duration [22m 3.48s[2m (transform 430ms, setup 0ms, collect 394ms, tests 1.80s, environment 1ms, prepare 272ms)[22m
+

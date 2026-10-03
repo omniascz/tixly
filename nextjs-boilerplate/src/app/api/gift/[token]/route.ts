@@ -46,7 +46,7 @@ export async function GET(
               gc.claimed_at::text, gc.expires_at::text,
               e.title AS event_title,
               e.date_start::text AS event_date_start,
-              COALESCE(u.name, u.email) AS buyer_name,
+              u.name AS buyer_name, -- kolo 4: bez fallbacku na e-mail dárce
               o.status AS order_status
          FROM orders.gift_claims gc
          JOIN catalog.events e ON e.id = gc.event_id

@@ -1,0 +1,6 @@
+=== e2e/03-refund-scan.mjs 
+exit=0
+# SUMMARY {"PASS":21,"FAIL":3,"INFO":2}
+  FAIL R5 brana ohlasi REFUNDED (refund z portalu brany / chargeback): objednavka refunded A vstupenky zneplatneny
+  FAIL R6 zaplaceno po expiraci: zakaznik zaplatil, objednavka expired -> existuje mechanismus (auto-refund / fronta k reseni)?
+  FAIL V9b SKEN CIZI AKCE: vstupenka akce A u brany akce A2 (tyz poradatel) — API neumi rict, kterou akci brana obsluhuje

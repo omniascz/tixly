@@ -15,7 +15,7 @@
 import { join } from 'node:path';
 import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
-import { signPrintToken } from './print-token';
+import { signEventPrintToken, signPrintToken } from './print-token';
 
 const FONT_DIR = join(process.cwd(), 'src', 'lib', 'tickets', 'fonts');
 const FONT_REGULAR = join(FONT_DIR, 'NotoSans-Regular.ttf');
@@ -44,6 +44,8 @@ export interface LabelHeader {
   buyerName: string;
   promoterName?: string | null;
   brandColorHex?: string | null;
+  /** Akce vstupenek — s ní se tiskne token TXP2 vázaný na akci (kolo 4), jinak TXP1. */
+  eventId?: string | null;
 }
 
 function isValidHex(c: string | null | undefined): c is string {
@@ -125,7 +127,8 @@ export async function renderTicketLabelPdf(
       );
 
     // Pravý sloupec — QR s print tokenem
-    const token = signPrintToken(t.ticketId);
+    // Kolo 4: TXP2 (vstupenka + akce) skener přijme i pod qr_policy rotating_24h.
+    const token = header.eventId ? signEventPrintToken(t.ticketId, header.eventId) : signPrintToken(t.ticketId);
     const qrPng = await QRCode.toBuffer(token, {
       errorCorrectionLevel: 'M',
       margin: 0,

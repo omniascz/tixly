@@ -1,0 +1,65 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r4-upgrade-options.live.test.ts[2m > [22m[2mKrok 3f (kolo 4) — upgrade-options na skutečném schématu[2m > [22m[2mvlastník: 200, vlastní vstupenka a jen dražší veřejný typ s kapacitou (+ volné sedadlo)[22m[39m
+[GET /upgrade-options] error: relation "catalog.seat_maps" does not exist
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at Client.wrapped [as query] [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:348:19[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\my\orders\[id]\upgrade-options\route.ts:35:21
+    at call [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r4-upgrade-options.live.test.ts:50:15[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r4-upgrade-options.live.test.ts:57:15
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5) {
+  length: [33m116[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42P01'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [32m'46'[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'parse_relation.c'[39m,
+  line: [32m'1428'[39m,
+  routine: [32m'parserOpenTable'[39m
+}
+
+ [33m❯[39m tests/fix-r4-upgrade-options.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 365[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-upgrade-options.live.test.ts[2m > [22mKrok 3f (kolo 4) — upgrade-options na skutečném schématu[2m > [22mvlastník: 200, vlastní vstupenka a jen dražší veřejný typ s kapacitou (+ volné sedadlo)[39m
+[31m     → {"error":"INTERNAL"}: expected 500 to be 200 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-upgrade-options.live.test.ts[2m > [22mKrok 3f (kolo 4) — upgrade-options na skutečném schématu[2m > [22mvlastník: 200, vlastní vstupenka a jen dražší veřejný typ s kapacitou (+ volné sedadlo)
+[31m[1mAssertionError[22m: {"error":"INTERNAL"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r4-upgrade-options.live.test.ts:[2m58:30[22m[39m
+    [90m 56| [39m  [34mit[39m([32m'vlastník: 200, vlastní vstupenka a jen dražší veřejný typ s kapa[39m…
+    [90m 57| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mcall[39m(ownerTok)[33m;[39m
+    [90m 58| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m 59| [39m    [35mconst[39m j [33m=[39m [33mJSON[39m[33m.[39m[34mparse[39m(r[33m.[39mbody) [35mas[39m {
+    [90m 60| [39m      tickets[33m:[39m { ticketId[33m:[39m string }[][33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m   Start at [22m 21:17:47
+[2m   Duration [22m 991ms[2m (transform 118ms, setup 0ms, collect 118ms, tests 365ms, environment 0ms, prepare 110ms)[22m
+

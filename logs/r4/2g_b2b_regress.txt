@@ -1,0 +1,243 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-k2-refund.live.test.ts[2m > [22m[2mK2 refund přes bránu (izolovaná DB + fake-gopay)[2m > [22m[2múspěch: admin refund zavolá bránu 1×, order refunded, lístky revoked, odpověď brány uložena[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-k2-refund.live.test.ts[2m > [22m[2mK2 refund přes bránu (izolovaná DB + fake-gopay)[2m > [22m[2midempotence: druhý refund už bránu nevolá, zůstává jeden refund[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-k2-refund.live.test.ts[2m > [22m[2mK2 refund přes bránu (izolovaná DB + fake-gopay)[2m > [22m[2mchyba brány → refund_failed, žádné revoke, HTTP 502[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-k2-refund.live.test.ts[2m > [22m[2mK2 refund přes bránu (izolovaná DB + fake-gopay)[2m > [22m[2mtimeout brány → refund_failed[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-k2-refund.live.test.ts[2m > [22m[2mK2 refund přes bránu (izolovaná DB + fake-gopay)[2m > [22m[2mself-refund: NIKDY nenastaví refunded bez volání brány (invariant)[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-k2-refund.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 19900[2mms[22m[39m
+[90mstderr[2m | tests/fix-k3-capacity.live.test.ts[2m > [22m[2mK3 kapacita — expirace, zrušená platba, rate limit (izolovaná DB)[2m > [22m[2m1) expirace vrátí GA kapacitu i promo uses_count; cron nepadá na 42703[22m[39m
+[expire-pending-orders] error: new row for relation "ticket_types" violates check constraint "chk_catalog_ticket_types_remaining"
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at Module.releaseOrderCapacity [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\orders\release-capacity.ts:32:14[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\internal\cron\expire-pending-orders\route.ts:66:19
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-k3-capacity.live.test.ts:77:18
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3) {
+  length: [33m220[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'23514'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [32m'catalog'[39m,
+  table: [32m'ticket_types'[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [32m'chk_catalog_ticket_types_remaining'[39m,
+  file: [32m'execMain.c'[39m,
+  line: [32m'2034'[39m,
+  routine: [32m'ExecConstraints'[39m
+}
+
+[90mstderr[2m | tests/fix-k3-capacity.live.test.ts[2m > [22m[2mK3 kapacita — expirace, zrušená platba, rate limit (izolovaná DB)[2m > [22m[2m1b) expirace uvolní i SEDADLA (prošlý hold → available)[22m[39m
+[expire-pending-orders] error: new row for relation "ticket_types" violates check constraint "chk_catalog_ticket_types_remaining"
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at Module.releaseOrderCapacity [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\orders\release-capacity.ts:32:14[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\internal\cron\expire-pending-orders\route.ts:66:19
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-k3-capacity.live.test.ts:94:18
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3) {
+  length: [33m220[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'23514'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [32m'catalog'[39m,
+  table: [32m'ticket_types'[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [32m'chk_catalog_ticket_types_remaining'[39m,
+  file: [32m'execMain.c'[39m,
+  line: [32m'2034'[39m,
+  routine: [32m'ExecConstraints'[39m
+}
+
+ [33m❯[39m tests/fix-k3-capacity.live.test.ts [2m ([22m[2m5 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 3718[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-k3-capacity.live.test.ts[2m > [22mK3 kapacita — expirace, zrušená platba, rate limit (izolovaná DB)[2m > [22m1) expirace vrátí GA kapacitu i promo uses_count; cron nepadá na 42703[39m
+[31m     → {"error":"INTERNAL_ERROR","message":"new row for relation \"ticket_types\" violates check constraint \"chk_catalog_ticket_types_remaining\""}: expected 500 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-k3-capacity.live.test.ts[2m > [22mK3 kapacita — expirace, zrušená platba, rate limit (izolovaná DB)[2m > [22m1b) expirace uvolní i SEDADLA (prošlý hold → available)[39m
+[31m     → expected 500 to be 200 // Object.is equality[39m
+[90mstderr[2m | tests/fix-r3-k3a-cron-auth.live.test.ts[2m > [22m[2mKrok 4 (kolo 3) — K3a: cron autorizace naživo[2m > [22m[2mseat-upgrade-notify: bez INTERNAL_SERVICE_TOKEN v env je fail-closed (libovolný token → 403)[22m[39m
+[seat-upgrade-notify cron] error: column s.zone_name does not exist
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\internal\cron\seat-upgrade-notify\route.ts:28:29
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r3-k3a-cron-auth.live.test.ts:92:15
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3)
+    at file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4mvitest[24m/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:116:7 {
+  length: [33m110[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42703'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [32m'222'[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'parse_relation.c'[39m,
+  line: [32m'3716'[39m,
+  routine: [32m'errorMissingColumn'[39m
+}
+
+ [32m✓[39m tests/fix-r3-k3a-cron-auth.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 920[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-b2b-credit-auth.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 1664[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-mobile-rate-limit.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 2325[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-s8-subscription-checkout.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 426[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-k3-capacity.live.test.ts[2m > [22mK3 kapacita — expirace, zrušená platba, rate limit (izolovaná DB)[2m > [22m1) expirace vrátí GA kapacitu i promo uses_count; cron nepadá na 42703
+[31m[1mAssertionError[22m: {"error":"INTERNAL_ERROR","message":"new row for relation \"ticket_types\" violates check constraint \"chk_catalog_ticket_types_remaining\""}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-k3-capacity.live.test.ts:[2m79:52[22m[39m
+    [90m 77| [39m    [35mconst[39m cron [33m=[39m [35mawait[39m [34mexpirePOST[39m([34mreqJSON[39m([32m'POST'[39m[33m,[39m [32m'/api/internal/cron/[39m…
+    [90m 78| [39m    [90m// PŘED opravou: 500 (column "event_seat_id" does not exist). PO o[39m…
+    [90m 79| [39m    [34mexpect[39m(cron[33m.[39mstatus[33m,[39m [35mawait[39m cron[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                                   [31m^[39m
+    [90m 80| [39m
+    [90m 81| [39m    [34mexpect[39m([35mawait[39m [34mremaining[39m(c[33m.[39mticketTypeId)[33m,[39m [32m'GA kapacita zpět'[39m)[33m.[39m[34mtoBe[39m([34m1[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-k3-capacity.live.test.ts[2m > [22mK3 kapacita — expirace, zrušená platba, rate limit (izolovaná DB)[2m > [22m1b) expirace uvolní i SEDADLA (prošlý hold → available)
+[31m[1mAssertionError[22m: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-k3-capacity.live.test.ts:[2m95:25[22m[39m
+    [90m 93| [39m      [seatId[33m,[39m c[33m.[39meventId[33m,[39m c[33m.[39mticketTypeId])[33m;[39m
+    [90m 94| [39m    [35mconst[39m cron [33m=[39m [35mawait[39m [34mexpirePOST[39m([34mreqJSON[39m([32m'POST'[39m[33m,[39m [32m'/api/internal/cron/[39m…
+    [90m 95| [39m    [34mexpect[39m(cron[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                        [31m^[39m
+    [90m 96| [39m    [35mconst[39m st [33m=[39m ([35mawait[39m pool[33m.[39mquery[33m<[39m{ s[33m:[39m string }[33m>[39m([32m`SELECT status s FROM [39m…
+    [90m 97| [39m    [34mexpect[39m(st[33m,[39m [32m'prošlý seat hold uvolněn na available'[39m)[33m.[39m[34mtoBe[39m([32m'availabl[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m23 passed[39m[22m[90m (25)[39m
+[2m   Start at [22m 20:42:39
+[2m   Duration [22m 34.04s[2m (transform 1.29s, setup 1ms, collect 1.17s, tests 28.95s, environment 5ms, prepare 1.94s)[22m
+

@@ -11,7 +11,7 @@
  * CZ priority #9 (FR/UK/IT audit, Tickets for Good pattern).
  */
 import { randomBytes } from 'crypto';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -80,13 +80,13 @@ export async function POST(req: NextRequest): Promise<Response> {
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: kontext pořadatele; jen čtení schváleného partnera a vložení claim slotů jsou systémové (asSystemInTx).
 
     // Ověř že charity je approved
-    const ch = await client.query<{ id: string }>(
+    const ch = await asSystemInTx(client, () => client.query<{ id: string }>(
       `SELECT id FROM charity.partners WHERE id = $1 AND approved = true`,
       [input.charityId],
-    );
+    ));
     if (ch.rows.length === 0) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'CHARITY_NOT_APPROVED' }, { status: 422 });
@@ -133,10 +133,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     const values = slots
       .map((_s, i) => `($1, $${i + 2})`)
       .join(', ');
-    await client.query(
+    await asSystemInTx(client, () => client.query(
       `INSERT INTO charity.claim_slots (allocation_id, claim_token) VALUES ${values}`,
       [allocationId, ...slots.map((s) => s.claim_token)],
-    );
+    ));
 
     await client.query('COMMIT');
     return NextResponse.json(

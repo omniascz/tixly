@@ -1,0 +1,206 @@
+# schema-drift-guard - Varianta A (PREPARE parse-only)
+# zdroj pravdy: --url (DB postavena z migraci)
+# schemata v search_path: 80
+# statickych DML: 2398 | dynamickych (nekontrolovano): 136 | pokryti: 94.6 %
+
+=== DYNAMICKE SQL - NEKONTROLOVANO (136) - sledovatelna mezera ===
+  . src/app/api/admin/access-codes/route.ts:57
+  . src/app/api/admin/ads/campaigns/[id]/route.ts:59
+  . src/app/api/admin/alerts/route.ts:25
+  . src/app/api/admin/artist-payouts/[payoutId]/route.ts:78
+  . src/app/api/admin/artist-payouts/calculate/route.ts:37
+  . src/app/api/admin/audit-log/route.ts:85
+  . src/app/api/admin/b2b/route.ts:95
+  . src/app/api/admin/brand-connect/proposals/route.ts:26
+  . src/app/api/admin/call-center/order/route.ts:138
+  . src/app/api/admin/campaigns/route.ts:147
+  . src/app/api/admin/chargebacks/route.ts:35
+  . src/app/api/admin/charity/allocations/route.ts:137
+  . src/app/api/admin/crm/rfm/route.ts:54
+  . src/app/api/admin/customers/[email]/route.ts:127
+  . src/app/api/admin/customers/route.ts:53
+  . src/app/api/admin/events/[id]/accommodation-bundle/[offerId]/route.ts:36
+  . src/app/api/admin/events/[id]/accreditation/route.ts:42
+  . src/app/api/admin/events/[id]/addons/[addonId]/route.ts:61
+  . src/app/api/admin/events/[id]/broadcast/route.ts:91
+  . src/app/api/admin/events/[id]/bundles/[bundleId]/route.ts:56
+  . src/app/api/admin/events/[id]/cast/route.ts:149
+  . src/app/api/admin/events/[id]/custom-fields/[fieldId]/route.ts:48
+  . src/app/api/admin/events/[id]/days/[dayId]/route.ts:60
+  . src/app/api/admin/events/[id]/emergency/route.ts:141
+  . src/app/api/admin/events/[id]/entry-slots/[slotId]/route.ts:84
+  . src/app/api/admin/events/[id]/fan-bonus/route.ts:83
+  . src/app/api/admin/events/[id]/fan-ticket/route.ts:57
+  . src/app/api/admin/events/[id]/foyer-menu/route.ts:173
+  . src/app/api/admin/events/[id]/guestlist/route.ts:284
+  . src/app/api/admin/events/[id]/holds/route.ts:203
+  . src/app/api/admin/events/[id]/lottery/route.ts:203
+  . src/app/api/admin/events/[id]/parking-bundle/[offerId]/route.ts:36
+  . src/app/api/admin/events/[id]/press/settings/route.ts:52
+  . src/app/api/admin/events/[id]/queue/route.ts:138
+  . src/app/api/admin/events/[id]/resale-marketplace/route.ts:120
+  . src/app/api/admin/events/[id]/resale-policy/route.ts:101
+  . src/app/api/admin/events/[id]/rfid/devices/[deviceId]/route.ts:49
+  . src/app/api/admin/events/[id]/rfid/zones/[zoneId]/route.ts:53
+  . src/app/api/admin/events/[id]/royalties/[agreementId]/route.ts:43
+  . src/app/api/admin/events/[id]/superfan-experiences/route.ts:97
+  . src/app/api/admin/events/[id]/table-seating/route.ts:122
+  . src/app/api/admin/events/[id]/will-call/route.ts:85
+  . src/app/api/admin/films/[id]/route.ts:90
+  . src/app/api/admin/gift-cards/route.ts:71
+  . src/app/api/admin/lastminute/check/route.ts:37
+  . src/app/api/admin/member-pricing-rules/route.ts:44
+  . src/app/api/admin/notifications/[id]/route.ts:27
+  . src/app/api/admin/notifications/route.ts:44
+  . src/app/api/admin/oauth-apps/[id]/route.ts:42
+  . src/app/api/admin/onboarding/route.ts:85
+  . src/app/api/admin/pos/terminals/[id]/route.ts:57
+  . src/app/api/admin/promo-codes/[id]/route.ts:65
+  . src/app/api/admin/resale-guarantee/route.ts:45
+  . src/app/api/admin/resale-guarantee/route.ts:73
+  . src/app/api/admin/resellers/route.ts:108
+  . src/app/api/admin/scanner/devices/[deviceId]/route.ts:46
+  . src/app/api/admin/scanner/validate-group/route.ts:83
+  . src/app/api/admin/school-bookings/[id]/route.ts:57
+  . src/app/api/admin/season-pass-products/route.ts:138
+  . src/app/api/admin/settings/route.ts:241
+  . src/app/api/admin/sms-campaigns/route.ts:107
+  . src/app/api/admin/sport-teams/[id]/route.ts:92
+  . src/app/api/admin/subscription-plans/[id]/route.ts:59
+  . src/app/api/admin/subscriptions/packages/[id]/route.ts:134
+  . src/app/api/admin/subscriptions/packages/[id]/route.ts:147
+  . src/app/api/admin/subscriptions/packages/route.ts:170
+  . src/app/api/admin/tracking-pixels/[id]/route.ts:32
+  . src/app/api/admin/tracking-pixels/route.ts:44
+  . src/app/api/admin/venues/[venueId]/gates/[gateId]/route.ts:55
+  . src/app/api/admin/venues/[venueId]/screens/[screenId]/route.ts:38
+  . src/app/api/admin/webhooks/[id]/deliveries/route.ts:46
+  . src/app/api/admin/webhooks/[id]/route.ts:59
+  . src/app/api/auth/unsubscribe/route.ts:40
+  . src/app/api/blog/route.ts:63
+  . src/app/api/brand-connect/track/route.ts:38
+  . src/app/api/brand-connect/track/route.ts:45
+  . src/app/api/buyer/artists/route.ts:54
+  . src/app/api/buyer/me/route.ts:136
+  . src/app/api/discover/route.ts:67
+  . src/app/api/discover/route.ts:97
+  . src/app/api/editorial/articles/route.ts:33
+  . src/app/api/events/[id]/entry-slots/route.ts:41
+  . src/app/api/events/[id]/reviews/route.ts:51
+  . src/app/api/events/[id]/seats/route.ts:64
+  . src/app/api/events/[id]/seats/stream/route.ts:91
+  . src/app/api/events/[id]/seats/stream/route.ts:121
+  . src/app/api/events/nearby/route.ts:105
+  . src/app/api/internal/cron/renew-subscriptions/route.ts:72
+  . src/app/api/internal/cron/verify-event-completion/route.ts:125
+  . src/app/api/internal/cron/waitlist-notify/route.ts:76
+  . src/app/api/platform/audit-log/route.ts:82
+  . src/app/api/platform/audit-log/route.ts:136
+  . src/app/api/platform/brand-connect/campaigns/[id]/match/route.ts:80
+  . src/app/api/platform/brand-connect/campaigns/[id]/route.ts:43
+  . src/app/api/platform/incidents/[id]/route.ts:104
+  . src/app/api/platform/incidents/[id]/updates/route.ts:41
+  . src/app/api/platform/incidents/route.ts:51
+  . src/app/api/platform/promoters/[id]/route.ts:199
+  . src/app/api/platform/venues/[id]/route.ts:110
+  . src/app/api/platform/venues/route.ts:69
+  . src/app/api/platform/webhooks/route.ts:56
+  . src/app/api/public/collections/[slug]/route.ts:76
+  . src/app/api/public/events/[id]/price-preview/route.ts:75
+  . src/app/api/public/insurance-plans/route.ts:34
+  . src/app/api/queue/[eventId]/status/[token]/route.ts:188
+  . src/app/api/reschedule/[token]/route.ts:183
+  . src/app/api/school-bookings/route.ts:173
+  . src/app/api/sellers/route.ts:55
+  . src/app/api/subscriptions/plans/route.ts:28
+  . src/app/api/v1/feed/events.ics/route.ts:67
+  . src/app/api/v1/feed/events.rss/route.ts:47
+  . src/app/api/v1/feed/events/route.ts:51
+  . src/app/api/v1/feed/meta-catalog.json/route.ts:65
+  . src/app/api/v1/feed/tiktok-catalog.json/route.ts:63
+  . src/app/api/v1/publish/events/[externalId]/route.ts:94
+  . src/app/api/v1/publish/events/[externalId]/route.ts:107
+  . src/app/api/v1/publish/events/[externalId]/route.ts:139
+  . src/app/api/v1/wl/events/route.ts:89
+  . src/app/api/v2/distribution/events/route.ts:33
+  . src/app/api/v2/distribution/events/route.ts:61
+  . src/app/api/v3/inventory/status/route.ts:53
+  . src/app/api/v3/organizations/[id]/events/route.ts:58
+  . src/app/api/v3/webhooks/route.ts:43
+  . src/lib/ads/auction.ts:49
+  . src/lib/ads/auction.ts:221
+  . src/lib/ai/price-suggest.ts:56
+  . src/lib/ai/semantic-search.ts:295
+  . src/lib/ai/semantic-search.ts:319
+  . src/lib/ai/support-chat.ts:47
+  . src/lib/b2b/credit-authorization.ts:30
+  . src/lib/graphql/resolvers.ts:67
+  . src/lib/graphql/resolvers.ts:123
+  . src/lib/identity/guest-user.ts:131
+  . src/lib/oauth/guard.ts:121
+  . src/lib/oauth/guard.ts:148
+  . src/lib/pricing/resolve-price.ts:87
+
+=== INCONCLUSIVE (3) - ne-drift (multi-stmt/fn/group-by/param) ===
+  . src/app/api/checkout/route.ts:1860  [42601] syntax error at or near "UNION"
+  . src/app/api/editorial/articles/[slug]/route.ts:40  [42803] column "eae.display_order" must appear in the GROUP BY clause or be used in an aggregate f
+  . src/app/api/internal/cron/event-payout-release/route.ts:95  [42803] subquery uses ungrouped column "e.date_start" from outer query
+
+=== DRIFT nalezen (49) ===
+  x src/app/api/admin/events/[id]/clone/route.ts:55  [42703] column "image_url" does not exist
+  x src/app/api/admin/events/[id]/emergency/route.ts:117  [42703] column t.event_id does not exist
+  x src/app/api/admin/events/[id]/lastminute/route.ts:119  [42703] column "promoter_id" does not exist
+  x src/app/api/admin/events/[id]/lastminute/route.ts:144  [42703] column "promoter_id" does not exist
+  x src/app/api/admin/events/[id]/reschedule/stats/route.ts:64  [42703] column rr.user_id does not exist
+  x src/app/api/admin/events/[id]/save-as-template/route.ts:73  [42703] column "base_price" does not exist
+  x src/app/api/admin/events/[id]/ticket-types/[ttId]/route.ts:90  [42703] column "description" does not exist
+  x src/app/api/admin/marketing/overview/route.ts:29  [42703] column c.attribution_data does not exist
+  x src/app/api/admin/onboarding/step/[step]/route.ts:127  [42703] column "author" of relation "productions" does not exist
+  x src/app/api/admin/reviews/send-requests/route.ts:30  [42703] column e.starts_at does not exist
+  x src/app/api/admin/reviews/send-requests/route.ts:58  [42703] column "reviewer_email" of relation "event_reviews" does not exist
+  x src/app/api/buyer/announcements/[token]/respond/route.ts:35  [42703] column "order_id" does not exist
+  x src/app/api/buyer/announcements/[token]/respond/route.ts:49  [42703] column "responded_at" of relation "announcement_responses" does not exist
+  x src/app/api/buyer/cross-passes/[membershipId]/wallet/apple/route.ts:32  [42703] column m.membership_code does not exist
+  x src/app/api/buyer/cross-passes/[membershipId]/wallet/pdf/route.ts:30  [42703] column m.membership_code does not exist
+  x src/app/api/buyer/cross-passes/my-memberships/route.ts:19  [42703] column m.membership_code does not exist
+  x src/app/api/buyer/tickets/[ticketId]/list-for-resale/route.ts:30  [42703] column es.label does not exist
+  x src/app/api/checkout/pay-by-link/[orderId]/route.ts:62  [42703] column po.order_id does not exist
+  x src/app/api/checkout/route.ts:2052  [42703] column "price_halire" of relation "bundle_items" does not exist
+  x src/app/api/foyer-orders/route.ts:83  [42703] column "user_id" of relation "foyer_orders" does not exist
+  x src/app/api/foyer-orders/route.ts:95  [42P01] relation "orders.foyer_order_items" does not exist
+  x src/app/api/foyer-orders/route.ts:150  [42703] column "buyer_email" does not exist
+  x src/app/api/foyer-orders/route.ts:165  [42P01] relation "orders.foyer_order_items" does not exist
+  x src/app/api/internal/cron/demand-forecast/route.ts:148  [42703] column "tickets_sold" of relation "demand_forecasts" does not exist
+  x src/app/api/internal/cron/push-reminders/route.ts:161  [42703] column wl.user_id does not exist
+  x src/app/api/internal/cron/send-reminders/route.ts:101  [42703] column u.locale does not exist
+  x src/app/api/press/accreditation/route.ts:39  [42703] column "name" does not exist
+  x src/app/api/reschedule/[token]/route.ts:34  [42703] column rr.user_id does not exist
+  x src/app/api/reschedule/[token]/route.ts:106  [42703] column rr.user_id does not exist
+  x src/app/api/reschedule/[token]/route.ts:162  [42703] column "event_id" of relation "tickets" does not exist
+  x src/app/api/reseller/events/route.ts:34  [42703] column tt.is_active does not exist
+  x src/app/api/reviews/[token]/route.ts:24  [42703] column er.reviewer_name does not exist
+  x src/app/api/reviews/[token]/route.ts:69  [42703] column er.review_token does not exist
+  x src/app/api/season-passes/[passToken]/route.ts:38  [42703] column sp.status does not exist
+  x src/app/api/season-passes/[passToken]/route.ts:131  [42703] column "holder_user_id" does not exist
+  x src/app/api/season-passes/route.ts:133  [42703] column "holder_user_id" does not exist
+  x src/app/api/v1/publish/events/route.ts:135  [42703] column "description" of relation "productions" does not exist
+  x src/app/api/v1/wl/orders/route.ts:106  [42703] column p.default_payment_provider does not exist
+  x src/app/api/v3/events/[id]/route.ts:81  [42703] column "description" does not exist
+  x src/app/api/v3/events/[id]/route.ts:93  [42703] column "country_code" does not exist
+  x src/lib/__drift_probe_r4.ts:3  [42703] column o.neexistujici_sloupec_r4 does not exist
+  x src/lib/ai/smart-send-time.ts:74  [42P01] relation "marketing.campaign_recipient_events" does not exist
+  x src/lib/forgemsg/dispatch.ts:32  [42P01] relation "public.forgemsg_credentials" does not exist
+  x src/lib/forgemsg/provision.ts:32  [42P01] relation "public.forgemsg_credentials" does not exist
+  x src/lib/forgemsg/provision.ts:62  [42P01] relation "public.forgemsg_credentials" does not exist
+  x src/lib/forgemsg/provision.ts:83  [42P01] relation "public.forgemsg_credentials" does not exist
+  x src/lib/graphql/resolvers.ts:232  [42703] column "latitude" does not exist
+  x src/lib/graphql/resolvers.ts:280  [42703] column "cover_image" does not exist
+  x src/lib/pricing/resolve-price.ts:123  [42P01] relation "pricing.price_tiers" does not exist
+
+=== BASELINE compare (neblokujici) ===
+  baseline: 48 mist / 43 klicu (2026-10-03T19:37:21.959Z)
+  current:  49 mist / 44 klicu
+  NOVY drift nad baseline (1) - CI FAIL:
+     x src/lib/__drift_probe_r4.ts [42703] column o.neexistujici_sloupec_r4 does not exist  (base 0 -> nyni 1)
+
+# SUMMARY: drift=49 inconclusive=3 dynamic-uncovered=136 coverage=94.6%

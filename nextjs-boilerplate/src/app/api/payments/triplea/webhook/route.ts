@@ -14,7 +14,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
-import { verifyTripleAWebhook } from '@/lib/payment/triplea';
+import { getTripleAConfig, getTripleAPayment, verifyTripleAWebhook } from '@/lib/payment/triplea';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +31,10 @@ export async function POST(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
     // Syrové tělo NUTNÉ pro HMAC (před JSON.parse)
     const rawBody = await req.text();
+    // Kolo 2: bez kompletní konfigurace (tajemství + API přístup pro ověření stavu) fail-closed.
+    if (!getTripleAConfig().isConfigured) {
+      return NextResponse.json({ error: 'WEBHOOK_NOT_CONFIGURED' }, { status: 401 });
+    }
     const verification = verifyTripleAWebhook(
       rawBody,
       req.headers.get('triplea-signature'),
@@ -38,7 +42,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
     if (!verification.valid) {
       console.warn('[triplea webhook] podpis neplatný:', verification.reason);
-      return NextResponse.json({ error: 'INVALID_SIGNATURE', reason: verification.reason }, { status: 400 });
+      return NextResponse.json({ error: 'INVALID_SIGNATURE', reason: verification.reason }, { status: 401 });
     }
 
     let payload: TripleAPayload;
@@ -52,8 +56,16 @@ export async function POST(req: NextRequest): Promise<Response> {
     if (!paymentReference) {
       return NextResponse.json({ error: 'MISSING_PAYMENT_REFERENCE' }, { status: 400 });
     }
-    const status = payload.status ?? 'none';
-    const paid = status === 'good';
+    // Kolo 2: autoritativní stav + částka z Triple-A API (ne z těla notifikace) — jako GoPay.
+    let api;
+    try {
+      api = await getTripleAPayment(paymentReference);
+    } catch (err) {
+      console.error('[triplea webhook] payment lookup failed:', err);
+      return NextResponse.json({ error: 'TRIPLEA_LOOKUP_FAILED' }, { status: 502 });
+    }
+    const status = api.status || api.paymentTier || 'none';
+    const paid = api.status === 'good' || api.paymentTier === 'good';
 
     const client = await db().connect();
     try {
@@ -80,16 +92,18 @@ export async function POST(req: NextRequest): Promise<Response> {
       const order = orderRes.rows[0];
 
       // Integrita částky: order_amount (hlavní jednotky) → halíře, musí pokrýt total_amount
-      const paidMinor = typeof payload.order_amount === 'number' ? Math.round(payload.order_amount * 100) : null;
-      const amountCovers = paidMinor === null ? true : paidMinor >= order.total_amount;
-      const currencyMatches = !payload.order_currency || payload.order_currency === order.currency;
+      // chybějící / nulová částka NIKDY nepokrývá cenu (dřív `null → true`)
+      const paidMinor = api.orderAmount !== null ? Math.round(api.orderAmount * 100) : null;
+      const amountCovers = paidMinor !== null && paidMinor > 0 && paidMinor >= order.total_amount;
+      const currencyMatches = !!api.orderCurrency && api.orderCurrency === order.currency;
       const amountOk = amountCovers && currencyMatches;
       const effectivePaid = paid && amountOk;
 
       await client.query(
         `INSERT INTO orders.payment_events
            (order_id, event_type, gopay_status, amount, raw_payload, payment_provider)
-         VALUES ($1, $2, $3, $4, $5::jsonb, 'crypto')`,
+         VALUES ($1, $2, $3, $4, $5::jsonb, 'crypto')
+           ON CONFLICT DO NOTHING`,
         [
           order.id,
           effectivePaid ? 'payment_paid' : status === 'invalid' ? 'payment_failed' : 'webhook_received',

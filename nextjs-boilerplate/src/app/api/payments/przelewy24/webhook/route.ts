@@ -35,12 +35,21 @@ interface P24Notification {
 export async function POST(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
     const cfg = getP24Config();
+    // Kolo 2: bez CRC klíče nelze podpis ověřit → fail-closed 4xx.
+    if (!cfg.crcKey) {
+      return NextResponse.json({ error: 'WEBHOOK_NOT_CONFIGURED' }, { status: 401 });
+    }
 
     let body: P24Notification;
     try {
       body = await req.json() as P24Notification;
     } catch {
       return NextResponse.json({ error: 'INVALID_JSON' }, { status: 400 });
+    }
+    // Kolo 2: neznámý formát (dřív chybějící `sign` shodil handler výjimkou → 500).
+    if (!body || typeof body.sessionId !== 'string' || typeof body.sign !== 'string' || typeof body.currency !== 'string'
+        || !Number.isFinite(body.orderId) || !Number.isFinite(body.amount)) {
+      return NextResponse.json({ error: 'UNKNOWN_EVENT_FORMAT' }, { status: 400 });
     }
 
     // Verify signature
@@ -55,7 +64,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     if (!signOk) {
       console.warn('[p24 webhook] invalid signature for sessionId', body.sessionId);
-      return NextResponse.json({ error: 'INVALID_SIGNATURE' }, { status: 400 });
+      return NextResponse.json({ error: 'INVALID_SIGNATURE' }, { status: 401 });
     }
 
     // Lookup order (sessionId = our orderId = gopay_payment_id)
@@ -114,7 +123,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query(
         `INSERT INTO orders.payment_events
            (order_id, event_type, gopay_status, amount, raw_payload, payment_provider)
-         VALUES ($1, 'payment_paid', 'PAID', $2, $3::jsonb, 'przelewy24')`,
+         VALUES ($1, 'payment_paid', 'PAID', $2, $3::jsonb, 'przelewy24')
+           ON CONFLICT DO NOTHING`,
         [order.id, body.amount, JSON.stringify({ ...body, receivedAt: new Date().toISOString() })],
       );
 

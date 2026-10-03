@@ -1,0 +1,51 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r3-admin-import.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 556[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-admin-import.live.test.ts[2m > [22mKrok 5 (kolo 3) — admin/import pod tixly_app[2m > [22mprvní import: 2 kontakty založeny, 1 chybný řádek; existující uživatel nepřejmenován[39m
+[31m     → new row violates row-level security policy for table "users"[39m
+[31m   [33m❯[31m tests/fix-r3-admin-import.live.test.ts[2m > [22mKrok 5 (kolo 3) — admin/import pod tixly_app[2m > [22mopakovaný import: kontakty se aktualizují (skippedRows 2), nezdvojí[39m
+[31m     → new row violates row-level security policy for table "users"[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-admin-import.live.test.ts[2m > [22mKrok 5 (kolo 3) — admin/import pod tixly_app[2m > [22mprvní import: 2 kontakty založeny, 1 chybný řádek; existující uživatel nepřejmenován
+[31m[1merror[22m: new row violates row-level security policy for table "users"[39m
+[90m [2m❯[22m ../../tixly-audit/nextjs-boilerplate/node_modules/pg/lib/client.js:[2m631:17[22m[39m
+[36m [2m❯[22m RlsAwarePool.query src/lib/db/rls-pool.ts:[2m294:22[22m[39m
+    [90m292| [39m        [35mawait[39m client[33m.[39m[34mquery[39m([32m`SET LOCAL app.role = '[39m[36m${[39mctx[33m.[39mrole[36m}[39m[32m'`[39m)[33m;[39m
+    [90m293| [39m      }
+    [90m294| [39m      [35mconst[39m result [33m=[39m [35mawait[39m client[33m.[39mquery[33m<[39m[33mR[39m[33m>[39m(text [35mas[39m string[33m,[39m params)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m295| [39m      [35mawait[39m client[33m.[39m[34mquery[39m([32m'COMMIT'[39m)[33m;[39m
+    [90m296| [39m      [35mreturn[39m result[33m;[39m
+[90m [2m❯[22m src/app/api/admin/import/route.ts:[2m165:23[22m[39m
+[90m [2m❯[22m tests/fix-r3-admin-import.live.test.ts:[2m56:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 128, severity: 'ERROR', code: '42501', detail: undefined, hint: undefined, position: undefined, internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'execMain.c', line: '2159', routine: 'ExecWithCheckOptions' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-admin-import.live.test.ts[2m > [22mKrok 5 (kolo 3) — admin/import pod tixly_app[2m > [22mopakovaný import: kontakty se aktualizují (skippedRows 2), nezdvojí
+[31m[1merror[22m: new row violates row-level security policy for table "users"[39m
+[90m [2m❯[22m ../../tixly-audit/nextjs-boilerplate/node_modules/pg/lib/client.js:[2m631:17[22m[39m
+[36m [2m❯[22m RlsAwarePool.query src/lib/db/rls-pool.ts:[2m294:22[22m[39m
+    [90m292| [39m        [35mawait[39m client[33m.[39m[34mquery[39m([32m`SET LOCAL app.role = '[39m[36m${[39mctx[33m.[39mrole[36m}[39m[32m'`[39m)[33m;[39m
+    [90m293| [39m      }
+    [90m294| [39m      [35mconst[39m result [33m=[39m [35mawait[39m client[33m.[39mquery[33m<[39m[33mR[39m[33m>[39m(text [35mas[39m string[33m,[39m params)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m295| [39m      [35mawait[39m client[33m.[39m[34mquery[39m([32m'COMMIT'[39m)[33m;[39m
+    [90m296| [39m      [35mreturn[39m result[33m;[39m
+[90m [2m❯[22m src/app/api/admin/import/route.ts:[2m165:23[22m[39m
+[90m [2m❯[22m tests/fix-r3-admin-import.live.test.ts:[2m72:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 128, severity: 'ERROR', code: '42501', detail: undefined, hint: undefined, position: undefined, internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'execMain.c', line: '2159', routine: 'ExecWithCheckOptions' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 14:05:28
+[2m   Duration [22m 1.50s[2m (transform 197ms, setup 0ms, collect 189ms, tests 556ms, environment 0ms, prepare 128ms)[22m
+

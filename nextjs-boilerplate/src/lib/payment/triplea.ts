@@ -211,6 +211,34 @@ export function verifyTripleAWebhook(
 }
 
 /** Pro testy — vyčistit cache. */
+/**
+ * Kolo 2: autoritativní stav platby z Triple-A API — GET {base}/payment/{payment_reference}
+ * (Bearer OAuth token; endpoint i pole ověřeny z oficiálního pluginu triplea-dev/
+ * triplea-woocommerce-plugin a integrace kikobar/hikashoppayment-triplea).
+ */
+export async function getTripleAPayment(paymentReference: string): Promise<{
+  status: string;
+  paymentTier: string;
+  orderAmount: number | null;
+  orderCurrency: string;
+}> {
+  const config = getTripleAConfig();
+  if (!config.isConfigured) throw new Error('Triple-A not configured');
+  const token = await getAccessToken(config);
+  const res = await fetch(`${config.apiBaseUrl}/payment/${encodeURIComponent(paymentReference)}`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!res.ok) throw new Error(`Triple-A GET payment HTTP ${res.status}`);
+  const j = (await res.json()) as { status?: string; payment_tier?: string; order_amount?: number; order_currency?: string };
+  return {
+    status: j.status ?? '',
+    paymentTier: j.payment_tier ?? '',
+    orderAmount: typeof j.order_amount === 'number' ? j.order_amount : null,
+    orderCurrency: j.order_currency ?? '',
+  };
+}
+
 export function _resetTripleACacheForTests(): void {
   cachedConfig = null;
   cachedToken = null;

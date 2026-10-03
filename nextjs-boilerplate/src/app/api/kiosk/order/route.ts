@@ -1,11 +1,13 @@
 /**
  * POST /api/kiosk/order
  *
- * Vytvoří objednávku z kiosku (samoobslužný terminál).
- * Ekvivalent POS sale, ale bez promotér session — běží v service kontextu.
- * Kiosk je fyzické zařízení na místě → ověření přes promoterSlug + eventId.
+ * Vytvoří objednávku z kiosku (pokladní terminál).
+ * Ekvivalent POS sale. FIX K1: vyžaduje PŘIHLÁŠENOU OBSLUHU (x-user-id z JWT přes
+ * middleware) s oprávněním k dané akci (platform admin nebo člen promotéra).
+ * Fyzickou platbu (karta/hotovost) provádí obsluha na terminálu, jako u POS.
  *
  * Body: { promoterSlug, eventId, ticketTypeId, quantity, buyerEmail?, buyerName? }
+ * Auth: x-user-id (obsluha) — bez něj 401; bez oprávnění k akci 403.
  * Returns: { orderId, totalAmountHalire, currency, tickets[] }
  */
 import { randomUUID } from 'node:crypto';
@@ -31,14 +33,24 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
   const input = parsed.data;
 
+  // FIX K1: kiosk NEMĚL žádné ověření identity — kdokoli nepřihlášený přes něj
+  // dostal placené vstupenky zdarma (promoterSlug i eventId jsou veřejné). Nově
+  // vyžaduje přihlášenou obsluhu pokladny: `x-user-id` (injektuje middleware z JWT)
+  // + oprávnění k DANÉ akci (platform admin NEBO aktivní člen promotéra akce).
+  // Fyzickou platbu (karta/hotovost na terminálu) provádí obsluha, jako u POS.
+  const operatorId = req.headers.get('x-user-id');
+  if (!operatorId) {
+    return NextResponse.json({ error: 'UNAUTHORIZED', message: 'Přihlášení obsluhy pokladny je povinné.' }, { status: 401 });
+  }
+
   return runWithServiceContext(async () => {
     const client = await db().connect();
     try {
       await client.query('BEGIN');
 
       // 1) Ověř, že event patří promotérovi se zadaným slugem a je publikovaný
-      const evRes = await client.query<{ id: string; title: string; currency: string; promoter_slug: string }>(
-        `SELECT e.id, e.title, e.currency, p.slug AS promoter_slug
+      const evRes = await client.query<{ id: string; title: string; currency: string; promoter_slug: string; promoter_id: string }>(
+        `SELECT e.id, e.title, e.currency, p.slug AS promoter_slug, e.promoter_id
            FROM catalog.events e
            JOIN platform.promoters p ON p.id = e.promoter_id
           WHERE e.id = $1
@@ -51,6 +63,20 @@ export async function POST(req: NextRequest): Promise<Response> {
       if (!ev) {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'EVENT_NOT_FOUND' }, { status: 404 });
+      }
+
+      // 1b) Oprávnění obsluhy k této akci: platform admin NEBO aktivní člen promotéra.
+      const authRes = await client.query<{ ok: boolean }>(
+        `SELECT (
+           EXISTS (SELECT 1 FROM identity.users WHERE id = $1 AND is_platform_admin = TRUE)
+           OR EXISTS (SELECT 1 FROM platform.promoter_members
+                       WHERE user_id = $1 AND promoter_id = $2)
+         ) AS ok`,
+        [operatorId, ev.promoter_id],
+      );
+      if (!authRes.rows[0]?.ok) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'FORBIDDEN', message: 'Obsluha nemá oprávnění k prodeji na této akci.' }, { status: 403 });
       }
 
       // 2) Ticket type

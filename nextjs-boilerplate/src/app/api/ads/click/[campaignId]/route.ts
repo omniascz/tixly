@@ -9,6 +9,7 @@
  * budget nedekrementuje).
  */
 
+import { runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
 import { trackAdClick } from '@/lib/ads/auction';
 
@@ -16,6 +17,8 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { campaignId: string } },
 ): Promise<Response> {
+  // Kolo 2 / 3B: veřejný klik na reklamu = systémový zápis (ad_auction_log/ad_clicks pod RLS)
+  return runWithServiceContext(async () => {
   if (!/^[0-9a-f-]{36}$/i.test(params.campaignId)) {
     return NextResponse.redirect(new URL('/cs/events', req.url));
   }
@@ -42,4 +45,5 @@ export async function GET(
     ? `/cs/events/${result.eventSlug}`
     : `/cs/events/${result.eventId}`;
   return NextResponse.redirect(new URL(target, req.url), 302);
+  });
 }

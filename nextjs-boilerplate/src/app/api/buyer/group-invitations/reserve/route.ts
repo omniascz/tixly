@@ -8,7 +8,7 @@
  * nezaplacená sedadla se po 48 h uvolní (cron release-group-invite-holds).
  */
 import { randomBytes } from 'crypto';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const client = await db().connect();
     try {
       await client.query('BEGIN');
-      await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+      // Kolo 3: kontrola akce a typu pod kontextem kupce; zámek/držení sedadel a INSERT pozvánky jsou systémové (asSystemInTx).
 
       const ev = await client.query<{ id: string }>(
         `SELECT id FROM catalog.events WHERE id = $1 AND status = 'published'`,
@@ -48,9 +48,18 @@ export async function POST(req: NextRequest): Promise<Response> {
         return NextResponse.json({ error: 'EVENT_NOT_FOUND' }, { status: 404 });
       }
 
+      const tt = await client.query(
+        `SELECT 1 FROM catalog.ticket_types WHERE id = $1 AND event_id = $2`,
+        [ticketTypeId, eventId],
+      );
+      if (tt.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'TICKET_TYPE_NOT_IN_EVENT' }, { status: 422 });
+      }
+
       // Najdi řadu se ≥ seatCount volnými sedadly daného typu, vrať seatCount
       // z ní (seřazeno dle čísla sedadla = sousední). Lock FOR UPDATE.
-      const seats = await client.query<{ id: string; sector: string | null; row: string | null; seat_number: string | null }>(
+      const seats = await asSystemInTx(client, () => client.query<{ id: string; sector: string | null; row: string | null; seat_number: string | null }>(
         `SELECT s.id, s.sector, s.row, s.seat_number
            FROM catalog.event_seats s
            JOIN (
@@ -67,7 +76,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           LIMIT $3
           FOR UPDATE OF s`,
         [eventId, ticketTypeId, seatCount],
-      );
+      ));
       if (seats.rows.length < seatCount) {
         await client.query('ROLLBACK');
         return NextResponse.json(
@@ -78,23 +87,23 @@ export async function POST(req: NextRequest): Promise<Response> {
       const seatIds = seats.rows.map((s) => s.id);
 
       // Drž sedadla 48 h
-      await client.query(
+      await asSystemInTx(client, () => client.query(
         `UPDATE catalog.event_seats
             SET status = 'held', hold_kind = 'group_invite',
                 hold_until = NOW() + INTERVAL '48 hours', hold_user_id = $2,
                 updated_at = NOW()
           WHERE id = ANY($1::uuid[])`,
         [seatIds, userId],
-      );
+      ));
 
-      const inv = await client.query<{ id: string; expires_at: string }>(
+      const inv = await asSystemInTx(client, () => client.query<{ id: string; expires_at: string }>(
         `INSERT INTO orders.group_invitations
            (organizer_user_id, event_id, ticket_type_id, target_seats, invite_token, message,
             adjacent_reserve, held_seat_ids, hold_expires_at)
          VALUES ($1, $2, $3, $4, $5, $6, true, $7::uuid[], NOW() + INTERVAL '48 hours')
          RETURNING id, expires_at::text`,
         [userId, eventId, ticketTypeId, seatCount, inviteToken, message ?? null, seatIds],
-      );
+      ));
       await client.query('COMMIT');
 
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';

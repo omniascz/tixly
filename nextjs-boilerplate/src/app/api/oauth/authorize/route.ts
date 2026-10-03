@@ -5,6 +5,7 @@
  * Issues auth code, který se vrátí v redirect_uri jako query param.
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { isAccessTokenPayload } from '@/lib/security/token-type';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
@@ -30,6 +31,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   let userId = '';
   try {
     const payload = await verifyToken(token);
+    if (!isAccessTokenPayload(payload)) throw new Error('NOT_ACCESS_TOKEN'); // FIX K4d
     userId = (payload.sub as string) ?? '';
   } catch {
     return NextResponse.json({ error: 'invalid_session' }, { status: 401 });

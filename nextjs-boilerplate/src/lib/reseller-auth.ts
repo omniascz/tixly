@@ -21,8 +21,12 @@ export async function verifyResellerPassword(email: string, password: string): P
   return { partnerId: r.rows[0].id, partnerName: r.rows[0].name, commissionPct: r.rows[0].commission_pct }
 }
 
+// Kolo 3: typ tokenu prodejce. Bez RESELLER_JWT_SECRET sdílí klíč s přihlášením kupců —
+// verifyResellerToken proto bral jakýkoli JWT téhož klíče (i přístupový token kupce) jako relaci.
+const RESELLER_TOKEN_TYPE = 'reseller'
+
 export async function signResellerToken(session: ResellerSession): Promise<string> {
-  return new SignJWT({ ...session })
+  return new SignJWT({ ...session, type: RESELLER_TOKEN_TYPE })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('8h')
     .sign(getResellerSecret())
@@ -31,7 +35,9 @@ export async function signResellerToken(session: ResellerSession): Promise<strin
 export async function verifyResellerToken(token: string): Promise<ResellerSession | null> {
   try {
     const { payload } = await jwtVerify(token, getResellerSecret())
-    return payload as unknown as ResellerSession
+    const p = payload as unknown as Partial<ResellerSession> & { type?: unknown }
+    if (p.type !== RESELLER_TOKEN_TYPE || typeof p.partnerId !== 'string' || !p.partnerId) return null
+    return { partnerId: p.partnerId, partnerName: String(p.partnerName ?? ''), commissionPct: Number(p.commissionPct ?? 0) }
   } catch { return null }
 }
 

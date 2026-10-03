@@ -1,0 +1,59 @@
+# E2E 01_setup_roles  base=http://localhost:3200  2026-10-03T20:27:01.197Z
+PASS A1  registrace zakaznika
+       {"status":200,"body":"{\"user\":{\"id\":\"799c578d-1a83-402c-8264-a363dbe08357\",\"email\":\"buyer-musuezta@audit.test\",\"name\":\"Kupec Audit\"},\"roles\":{\"isPlatformAdmin\":false,\"promoterMemberships\":[]},\"accessToken\":\"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3OTljNTc4ZC0xYTgzLTQwMmMtODI2NC1hMzYzZGJlMDgzNTciLCJ0eXBlIjoiYWNjZXNzIiwiZW1haWwiOiJidXllci1tdXN1ZXp0YUBhdWRpdC50ZXN0IiwibmFtZSI6Ikt1cGVjI…
+PASS A2  duplicitni e-mail odmitnut (409)
+       {"status":409,"body":"{\"error\":\"Email already registered\"}"}
+PASS A3  slabe heslo odmitnuto (422)
+       {"status":422,"body":"{\"error\":\"Validation failed\",\"issues\":[{\"code\":\"too_small\",\"minimum\":8,\"type\":\"string\",\"inclusive\":true,\"exact\":false,\"message\":\"String must contain at least 8 character(s)\",\"path\":[\"password\"]}]}"}
+PASS A4  login spravnym heslem
+       {"status":200,"body":"{\"user\":{\"id\":\"799c578d-1a83-402c-8264-a363dbe08357\",\"email\":\"buyer-musuezta@audit.test\",\"name\":\"Kupec Audit\"},\"roles\":{\"isPlatformAdmin\":false,\"promoterMemberships\":[]},\"accessToken\":\"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3OTljNTc4ZC0xYTgzLTQwMmMtODI2NC1hMzYzZGJlMDgzNTciLCJ0eXBlIjoiYWNjZXNzIiwiZW1haWwiOiJidXllci1tdXN1ZXp0YUBhdWRpdC50ZXN0IiwibmFtZSI6Ikt1cGVjI…
+PASS A5  login spatnym heslem odmitnut (401)
+       {"status":401,"body":"{\"error\":\"Invalid credentials\"}"}
+PASS A6  heslo ulozeno jako bcrypt hash, ne plaintext
+       {"users":{"in_users":false},"user_secrets":{"prefix":"$2b$"}}
+PASS B1  platform admin login (role v JWT)
+       {"status":200,"body":"{\"user\":{\"id\":\"85ef6245-c6b1-41dd-997f-3e5e8fb92ec4\",\"email\":\"padmin-musuezta@audit.test\",\"name\":\"Platform Admin\"},\"roles\":{\"isPlatformAdmin\":true,\"promoterMemberships\":[]},\"accessToken\":\"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4NWVmNjI0NS1jNmIxLTQxZGQtOTk3Zi0zZTVlOGZiOTJlYzQiLCJ0eXBlIjoiYWNjZXNzIiwiZW1haWwiOiJwYWRtaW4tbXVzdWV6dGFAYXVkaXQudGVzdCIsIm5hbWUiOiJQbG…
+PASS C1a  registrace poradatele a
+       {"status":200,"body":"{\"user\":{\"id\":\"6b365b6b-6289-4c79-9114-ac0d29dd5037\",\"email\":\"promoter-a-musuezta@audit.test\",\"name\":\"Poradatel a\"},\"roles\":{\"isPlatformAdmin\":false,\"promoterMemberships\":[{\"promoterId\":\"40f5174c-bf0d-4419-9d98-5f41b2736f04\",\"promoterSlug\":\"audit-a-musuezta\",\"promoterName\":\"Audit a s.r.o.\",\"status\":\"pending\",\"role\":\"owner\"}]},\"promoter…
+PASS C1b  registrace poradatele b
+       {"status":200,"body":"{\"user\":{\"id\":\"d4e1176a-e2e8-48c2-8359-cb89126c0cb0\",\"email\":\"promoter-b-musuezta@audit.test\",\"name\":\"Poradatel b\"},\"roles\":{\"isPlatformAdmin\":false,\"promoterMemberships\":[{\"promoterId\":\"18054cc0-8fb1-40b8-a98a-a720f7fbb1f2\",\"promoterSlug\":\"audit-b-musuezta\",\"promoterName\":\"Audit b s.r.o.\",\"status\":\"pending\",\"role\":\"owner\"}]},\"promoter…
+PASS C2-a  schvaleni poradatele platform adminem (pred: pending)
+       {"status":200,"body":"{\"promoter\":{\"id\":\"40f5174c-bf0d-4419-9d98-5f41b2736f04\",\"status\":\"active\"}}","dbStatus":"active"}
+PASS C3-a  login poradatele — membership v JWT
+       {"status":200,"body":"{\"user\":{\"id\":\"6b365b6b-6289-4c79-9114-ac0d29dd5037\",\"email\":\"promoter-a-musuezta@audit.test\",\"name\":\"Poradatel a\"},\"roles\":{\"isPlatformAdmin\":false,\"promoterMemberships\":[{\"promoterId\":\"40f5174c-bf0d-4419-9d98-5f41b2736f04\",\"promoterSlug\":\"audit-a-musuezta\",\"promoterName\":\"Audit a s.r.o.\",\"status\":\"active\",\"role\":\"owner\"}]},\"accessTok…
+PASS C2-b  schvaleni poradatele platform adminem (pred: pending)
+       {"status":200,"body":"{\"promoter\":{\"id\":\"18054cc0-8fb1-40b8-a98a-a720f7fbb1f2\",\"status\":\"active\"}}","dbStatus":"active"}
+PASS C3-b  login poradatele — membership v JWT
+       {"status":200,"body":"{\"user\":{\"id\":\"d4e1176a-e2e8-48c2-8359-cb89126c0cb0\",\"email\":\"promoter-b-musuezta@audit.test\",\"name\":\"Poradatel b\"},\"roles\":{\"isPlatformAdmin\":false,\"promoterMemberships\":[{\"promoterId\":\"18054cc0-8fb1-40b8-a98a-a720f7fbb1f2\",\"promoterSlug\":\"audit-b-musuezta\",\"promoterName\":\"Audit b s.r.o.\",\"status\":\"active\",\"role\":\"owner\"}]},\"accessTok…
+PASS D1  vytvoreni mista (platform admin)
+       {"status":201,"body":"{\"id\":\"1073bf4c-f1a5-4b50-b88e-e14a29dedcf1\"}"}
+PASS D2  vytvoreni akce + 4 typy vstupenek (poradatel A)
+       {"status":201,"body":"{\"eventId\":\"49dd09f1-7db9-421f-9363-ddac3272a400\",\"status\":\"pending_review\",\"message\":\"Akce čeká na schválení master adminem. Po schválení půjde do prodeje.\",\"seatsCreated\":0,\"sectorsMapped\":0,\"sectorsSkipped\":[],\"seatsWarning\":null}","db":{"status":"pending_review","promoter_id":"40f5174c-bf0d-4419-9d98-5f41b2736f04"}}
+PASS D3  typy vstupenek v DB se spravnou cenou a kapacitou
+       [{"id":"f1ff9c79-a26e-4f3a-a907-e120e8a67955","name":"Stani","base_price":50000,"total_qty":50,"remaining_qty":50,"max_per_user":null},{"id":"5c96831f-7c87-45fd-ac37-b9e2eaf226e0","name":"Posledni mista","base_price":30000,"total_qty":5,"remaining_qty":5,"max_per_user":null},{"id":"744d483c-2cc7-410f-86a9-0514efe1e300","name":"Limit 2 na osobu","base_price":20000,"total_qty":100,"remaining_qty":10…
+PASS D4  vytvoreni akce poradatelem B
+       {"status":201,"body":"{\"eventId\":\"7bf6760f-4016-4adf-a31d-b219485d94f0\",\"status\":\"pending_review\",\"message\":\"Akce čeká na schválení master adminem. Po schválení půjde do prodeje.\",\"seatsCreated\":0,\"sectorsMapped\":0,\"sectorsSkipped\":[],\"seatsWarning\":null}","db":{"status":"pending_review","promoter_id":"18054cc0-8fb1-40b8-a98a-a720f7fbb1f2"}}
+INFO D5A  stav akce A po vytvoreni
+       {"status":"pending_review"}
+INFO D5B  stav akce B po vytvoreni
+       {"status":"pending_review"}
+PASS D6  vytvoreni slevoveho kodu 20 % (max 3 pouziti)
+       {"status":201,"body":"{\"id\":\"b21950ae-b2cd-4bd9-ba4b-150c2f871fcf\",\"code\":\"AUDIT20MUSUEZTA\"}","db":{"id":"b21950ae-b2cd-4bd9-ba4b-150c2f871fcf","code":"AUDIT20MUSUEZTA","type":"percentage","discount_value":20,"max_uses":3,"uses_count":0,"max_uses_per_user":null,"valid_from":"2026-10-03T20:27:05.370Z","valid_until":null,"min_quantity":1,"min_order_amount":0,"applicable_ticket_type_ids":null…
+PASS E1  neprihlaseny -> /api/admin/events odmitnut
+       {"status":401,"body":"{\"error\":{\"code\":\"TOKEN_MISSING\",\"message\":\"Authorization required\"}}"}
+PASS E2  zakaznik -> /api/admin/events odmitnut (403)
+       {"status":403,"body":"{\"error\":{\"code\":\"PROMOTER_REQUIRED\",\"message\":\"Promoter membership required\"}}"}
+PASS E3  poradatel -> /api/platform/* odmitnut (403)
+       {"status":403,"body":"{\"error\":{\"code\":\"PLATFORM_ADMIN_REQUIRED\",\"message\":\"Platform admin access required\"}}"}
+PASS E4  poradatel B cte akci poradatele A -> odmitnuto (403/404)
+       {"status":404,"body":"{\"error\":\"Not found\"}"}
+PASS E5  poradatel B meni akci A -> odmitnuto a title v DB nezmenen
+       {"status":404,"body":"{\"error\":\"Not found\"}","titleInDb":"Audit Koncert A musuezta"}
+PASS E6  poradatel B pridava typ vstupenky do akce A -> odmitnuto, pocet typu = 4
+       {"status":404,"body":"{\"error\":\"Not found\"}","ticketTypesInDb":4}
+PASS E7  seznam akci poradatele B neobsahuje akci A
+       {"status":200,"containsEventA":false}
+PASS E8  poradatel B nevidi promo kod poradatele A
+       {"status":200,"body":"{\"codes\":[]}"}
+
+# SUMMARY {"PASS":26,"FAIL":0,"INFO":2}

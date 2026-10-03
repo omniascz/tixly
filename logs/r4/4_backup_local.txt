@@ -1,0 +1,10 @@
+== kontrola secretu (prazdne)
+::error title=Záloha NEPROBĚHLA::chybí secrets: DATABASE_URL AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_S3_BUCKET AWS_REGION BACKUP_ENCRYPTION_KEY
+exit=1 (ocekavano 1)
+== dump + encrypt + smoke (testovaci DB ci_check)
+pg_dump (PostgreSQL) 17.10 (Debian 17.10-1.pgdg13+1)
+total 2.8M
+-rw-r--r-- 1 root root 2.8M Oct  3 20:19 tixly-2026-10-03T20-19-51Z.dump.enc
+✓ Backup tixly-2026-10-03T20-19-51Z.dump.enc: 1324 tabulek
+== spatny klic
+bad decrypt

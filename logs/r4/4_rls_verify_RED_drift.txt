@@ -1,0 +1,10 @@
+═══ RLS GATE ═══
+očekáváno 850 policies │ nalezeno 849
+tabulek s RLS: očekáváno 573 │ nalezeno 573
+
+🔴 GATE SELHAL — 2 rozdílů:
+
+  CHYBĚJÍCÍ POLICY (1):
+    • platform.qes_signing_requests|p_qes_signing_requests_scope
+  RLS BEZ POLICY (tichý deny) (1):
+    • platform.qes_signing_requests

@@ -47,7 +47,7 @@ export async function GET(
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: kontext pořadatele (runAsPromoter) — RLS scopuje na jeho akce; admin eskalace odstraněna.
 
     if (!(await verifyEventOwnership(client, params.id, promoter.promoterId))) {
       await client.query('ROLLBACK');
@@ -121,7 +121,7 @@ export async function POST(
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: kontext pořadatele (runAsPromoter) — RLS scopuje na jeho akce; admin eskalace odstraněna.
 
     if (!(await verifyEventOwnership(client, params.id, promoter.promoterId))) {
       await client.query('ROLLBACK');

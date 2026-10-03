@@ -35,3 +35,4 @@ scripts/e2e-smoke-results.txt
 
 # pdfjs worker — generuje ho `prebuild` (scripts/copy-pdf-worker.mjs) z node_modules; negitujeme binárník
 public/pdf.worker.min.mjs
+fix.app.env

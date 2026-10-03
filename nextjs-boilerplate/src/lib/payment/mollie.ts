@@ -10,7 +10,8 @@
  *   MOLLIE_API_KEY   — Live: live_xxx  /  Test: test_xxx
  */
 
-const MOLLIE_API = 'https://api.mollie.com/v2';
+// MOLLIE_API_BASE_URL přepíše cíl (testy proti simulátoru); čte se při každém volání.
+const mollieApi = (): string => process.env.MOLLIE_API_BASE_URL ?? 'https://api.mollie.com/v2';
 
 export type MollieMethod =
   | 'ideal'
@@ -65,7 +66,7 @@ export async function createMolliePayment(
   };
   if (input.method) body.method = input.method;
 
-  const res = await fetch(`${MOLLIE_API}/payments`, {
+  const res = await fetch(`${mollieApi()}/payments`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${cfg.apiKey}`,
@@ -103,11 +104,12 @@ export interface MolliePayment {
 
 export async function getMolliePayment(paymentId: string): Promise<MolliePayment> {
   const cfg = getMollieConfig();
-  const res = await fetch(`${MOLLIE_API}/payments/${paymentId}`, {
+  const res = await fetch(`${mollieApi()}/payments/${paymentId}`, {
     headers: { Authorization: `Bearer ${cfg.apiKey}` },
   });
   if (!res.ok) {
-    throw new Error(`Mollie GET ${paymentId} → HTTP ${res.status}`);
+    // httpStatus nese důvod (404 = platba u Mollie neexistuje → webhook odpoví 4xx, ne 5xx)
+    throw Object.assign(new Error(`Mollie GET ${paymentId} → HTTP ${res.status}`), { httpStatus: res.status });
   }
   return res.json() as Promise<MolliePayment>;
 }
@@ -119,7 +121,7 @@ export async function refundMolliePayment(params: {
   idempotencyKey: string;
 }): Promise<{ id: string; status: string }> {
   const cfg = getMollieConfig();
-  const res = await fetch(`${MOLLIE_API}/payments/${params.paymentId}/refunds`, {
+  const res = await fetch(`${mollieApi()}/payments/${params.paymentId}/refunds`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${cfg.apiKey}`,

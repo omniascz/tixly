@@ -1,0 +1,85 @@
+catalog.event_days | ALL | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM catalog.events e_ WHERE ((e_.id = event_days.event_id) AND (e_.promoter_id = app_current_promoter_id()))))) /WC/ 
+catalog.event_seat_view_photos | ALL | (app_is_platform_admin() OR (EXISTS ( SELECT 1 FROM (catalog.event_seats es JOIN catalog.events e ON ((e.id = es.event_id))) WHERE ((es.id = event_seat_view_photos.event_seat_id) AND (e.promoter_id = app_current_promoter_id()))))) /WC/ 
+catalog.event_seat_view_photos | ALL | app_is_service() /WC/ app_is_service()
+catalog.event_seats | ALL | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM catalog.events e WHERE ((e.id = event_seats.event_id) AND (e.promoter_id = app_current_promoter_id()))))) /WC/ (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM catalog.events e WHERE ((e.id = event_seats.event_id) AND (e.promoter_id = app_current_promoter_id())))))
+catalog.event_seats | SELECT | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM catalog.events e WHERE ((e.id = event_seats.event_id) AND ((e.promoter_id = app_current_promoter_id()) OR (e.status = 'published'::text)))))) /WC/ 
+catalog.event_travel_packages | ALL | ((current_setting('app.is_platform_admin'::text, true) = 'true'::text) OR (EXISTS ( SELECT 1 FROM (catalog.events e JOIN platform.promoter_members pm ON ((pm.promoter_id = e.promoter_id))) WHERE ((e.id = event_travel_packages.event_id) AND ((pm.user_id)::text = (app_current_user_id())::text))))) /WC/ 
+catalog.event_travel_packages | SELECT | true /WC/ 
+catalog.event_zones | ALL | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM catalog.events e_ WHERE ((e_.id = event_zones.event_id) AND (e_.promoter_id = app_current_promoter_id()))))) /WC/ 
+catalog.events | DELETE | (app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id())) /WC/ 
+catalog.events | INSERT |  /WC/ (app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))
+catalog.events | SELECT | (app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()) OR (status = 'published'::text)) /WC/ 
+catalog.events | UPDATE | (app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id())) /WC/ (app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))
+catalog.seat_view_photos | DELETE | (current_setting('app.is_platform_admin'::text, true) = 'true'::text) /WC/ 
+catalog.seat_view_photos | INSERT |  /WC/ (current_setting('app.is_platform_admin'::text, true) = 'true'::text)
+catalog.seat_view_photos | SELECT | true /WC/ 
+catalog.seat_view_photos | UPDATE | (current_setting('app.is_platform_admin'::text, true) = 'true'::text) /WC/ 
+catalog.seats | ALL | (EXISTS ( SELECT 1 FROM catalog.venues v WHERE ((v.id = seats.venue_id) AND (v.promoter_id = app_current_promoter_id())))) /WC/ (EXISTS ( SELECT 1 FROM catalog.venues v WHERE ((v.id = seats.venue_id) AND (v.promoter_id = app_current_promoter_id()))))
+catalog.seats | ALL | (app_is_platform_admin() OR app_is_service()) /WC/ (app_is_platform_admin() OR app_is_service())
+catalog.seats | SELECT | true /WC/ 
+catalog.ticket_modular_pricing | ALL | (EXISTS ( SELECT 1 FROM (catalog.ticket_types tt JOIN catalog.events e ON ((e.id = tt.event_id))) WHERE ((tt.id = ticket_modular_pricing.ticket_type_id) AND (e.promoter_id = app_current_promoter_id())))) /WC/ (EXISTS ( SELECT 1 FROM (catalog.ticket_types tt JOIN catalog.events e ON ((e.id = tt.event_id))) WHERE ((tt.id = ticket_modular_pricing.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))
+catalog.ticket_modular_pricing | ALL | (app_is_platform_admin() OR app_is_service()) /WC/ (app_is_platform_admin() OR app_is_service())
+catalog.ticket_modular_pricing | SELECT | (EXISTS ( SELECT 1 FROM (catalog.ticket_types tt JOIN catalog.events e ON ((e.id = tt.event_id))) WHERE ((tt.id = ticket_modular_pricing.ticket_type_id) AND (e.status = 'published'::text)))) /WC/ 
+catalog.ticket_types | ALL | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM catalog.events e WHERE ((e.id = ticket_types.event_id) AND (e.promoter_id = app_current_promoter_id()))))) /WC/ (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM catalog.events e WHERE ((e.id = ticket_types.event_id) AND (e.promoter_id = app_current_promoter_id())))))
+catalog.ticket_types | SELECT | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM catalog.events e WHERE ((e.id = ticket_types.event_id) AND ((e.promoter_id = app_current_promoter_id()) OR (e.status = 'published'::text)))))) /WC/ 
+catalog.travel_hotel_rooms | ALL | (current_setting('app.is_platform_admin'::text, true) = 'true'::text) /WC/ 
+catalog.travel_hotel_rooms | SELECT | true /WC/ 
+catalog.travel_hotels | ALL | (current_setting('app.is_platform_admin'::text, true) = 'true'::text) /WC/ 
+catalog.travel_hotels | SELECT | true /WC/ 
+catalog.venues | ALL | app_is_service() /WC/ app_is_service()
+catalog.venues | ALL | (app_is_platform_admin() OR (promoter_id = app_current_promoter_id())) /WC/ 
+charity.allocations | ALL | (app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id())) /WC/ 
+charity.claim_slots | ALL | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM orders.orders o_ WHERE ((o_.id = claim_slots.order_id) AND ((o_.user_id = app_current_user_id()) OR (EXISTS ( SELECT 1 FROM catalog.events ev_ WHERE ((ev_.id = o_.event_id) AND (ev_.promoter_id = app_current_promoter_id()))))))))) /WC/ 
+charity.partners | ALL | (app_is_service() OR app_is_platform_admin()) /WC/ 
+identity.users | ALL | (app_is_service() OR app_is_platform_admin() OR (id = app_current_user_id())) /WC/ (app_is_service() OR app_is_platform_admin() OR (id = app_current_user_id()))
+identity.users | INSERT |  /WC/ ((app_current_promoter_id() IS NOT NULL) AND (is_platform_admin IS NOT TRUE) AND ((password_hash IS NULL) OR ("left"(password_hash, 1) = '!'::text)))
+identity.users | SELECT | app_can_see_user_as_promoter(id) /WC/ 
+identity.users | SELECT | app_can_see_user_as_buyer(id) /WC/ 
+identity.users | SELECT | (app_is_service() OR app_is_platform_admin() OR (id = app_current_user_id())) /WC/ 
+lineups.artists | ALL | (app_is_platform_admin() OR (promoter_id = app_current_promoter_id()) OR (promoter_id IS NULL)) /WC/ 
+lineups.artists | ALL | app_is_service() /WC/ app_is_service()
+lineups.artists | SELECT | ((public = true) OR ((promoter_id)::text = current_setting('app.current_promoter_id'::text, true)) OR (current_setting('app.is_platform_admin'::text, true) = 'true'::text)) /WC/ 
+lineups.event_artists | ALL | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM catalog.events e_ WHERE ((e_.id = event_artists.event_id) AND (e_.promoter_id = app_current_promoter_id()))))) /WC/ 
+marketing.gift_vouchers | ALL | (app_is_platform_admin() OR (promoter_id = app_current_promoter_id())) /WC/ 
+marketing.gift_vouchers | ALL | app_is_service() /WC/ app_is_service()
+marketing.modular_pass_pending_selections | ALL | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM orders.orders o_ WHERE ((o_.id = modular_pass_pending_selections.order_id) AND ((o_.user_id = app_current_user_id()) OR (EXISTS ( SELECT 1 FROM catalog.events ev_ WHERE ((ev_.id = o_.event_id) AND (ev_.promoter_id = app_current_promoter_id()))))))))) /WC/ 
+marketing.otp_codes | ALL | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM catalog.events e_ WHERE ((e_.id = otp_codes.event_id) AND (e_.promoter_id = app_current_promoter_id()))))) /WC/ 
+marketing.spotify_oauth_pending | ALL | (app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id())) /WC/ 
+marketing.user_spotify_connections | ALL | (app_is_platform_admin() OR ((user_id)::text = current_setting('app.current_user_id'::text, true))) /WC/ 
+marketing.user_top_artists | ALL | (app_is_platform_admin() OR ((user_id)::text = current_setting('app.current_user_id'::text, true))) /WC/ 
+orders.group_invitations | ALL | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM catalog.events e_ WHERE ((e_.id = group_invitations.event_id) AND (e_.promoter_id = app_current_promoter_id()))))) /WC/ 
+orders.order_items | ALL | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM (orders.orders o JOIN catalog.events e ON ((e.id = o.event_id))) WHERE ((o.id = order_items.order_id) AND (e.promoter_id = app_current_promoter_id()))))) /WC/ (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM (orders.orders o JOIN catalog.events e ON ((e.id = o.event_id))) WHERE ((o.id = order_items.order_id) AND (e.promoter_id = app_current_promoter_id())))))
+orders.order_items | SELECT | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM orders.orders o WHERE ((o.id = order_items.order_id) AND ((o.user_id = app_current_user_id()) OR (EXISTS ( SELECT 1 FROM catalog.events e WHERE ((e.id = o.event_id) AND (e.promoter_id = app_current_promoter_id()))))))))) /WC/ 
+orders.orders | DELETE | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM catalog.events e WHERE ((e.id = orders.event_id) AND (e.promoter_id = app_current_promoter_id()))))) /WC/ 
+orders.orders | INSERT |  /WC/ (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM catalog.events e WHERE ((e.id = orders.event_id) AND (e.promoter_id = app_current_promoter_id())))))
+orders.orders | SELECT | (app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()) OR (EXISTS ( SELECT 1 FROM catalog.events e WHERE ((e.id = orders.event_id) AND (e.promoter_id = app_current_promoter_id()))))) /WC/ 
+orders.orders | UPDATE | (app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()) OR (EXISTS ( SELECT 1 FROM catalog.events e WHERE ((e.id = orders.event_id) AND (e.promoter_id = app_current_promoter_id()))))) /WC/ (app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()) OR (EXISTS ( SELECT 1 FROM catalog.events e WHERE ((e.id = orders.event_id) AND (e.promoter_id = app_current_promoter_id())))))
+orders.party_split_sessions | ALL | (app_is_platform_admin() OR app_is_service() OR (organizer_user_id = app_current_user_id())) /WC/ (app_is_platform_admin() OR app_is_service() OR (organizer_user_id = app_current_user_id()))
+orders.party_split_sessions | SELECT | (status = 'open'::text) /WC/ 
+orders.party_split_slots | ALL | (app_is_platform_admin() OR app_is_service() OR (session_id IN ( SELECT s.id FROM orders.party_split_sessions s WHERE (s.organizer_user_id = app_current_user_id())))) /WC/ (app_is_platform_admin() OR app_is_service() OR (session_id IN ( SELECT s.id FROM orders.party_split_sessions s WHERE (s.organizer_user_id = app_current_user_id()))))
+orders.party_split_slots | SELECT | (session_id IN ( SELECT party_split_sessions.id FROM orders.party_split_sessions WHERE ((party_split_sessions.organizer_user_id)::text = current_setting('app.current_user_id'::text, true)))) /WC/ 
+orders.postal_deliveries | INSERT |  /WC/ true
+orders.postal_deliveries | SELECT | ((current_setting('app.is_platform_admin'::text, true) = 'true'::text) OR (EXISTS ( SELECT 1 FROM orders.orders o WHERE ((o.id = postal_deliveries.order_id) AND ((o.user_id)::text = (app_current_user_id())::text))))) /WC/ 
+orders.postal_deliveries | UPDATE | (current_setting('app.is_platform_admin'::text, true) = 'true'::text) /WC/ 
+orders.seat_upgrades | INSERT |  /WC/ true
+orders.seat_upgrades | SELECT | ((current_setting('app.is_platform_admin'::text, true) = 'true'::text) OR (EXISTS ( SELECT 1 FROM orders.orders o WHERE ((o.id = seat_upgrades.original_order_id) AND ((o.user_id)::text = (app_current_user_id())::text))))) /WC/ 
+orders.seat_upgrades | UPDATE | true /WC/ 
+orders.travel_bookings | INSERT |  /WC/ true
+orders.travel_bookings | SELECT | ((current_setting('app.is_platform_admin'::text, true) = 'true'::text) OR (EXISTS ( SELECT 1 FROM orders.orders o WHERE ((o.id = travel_bookings.order_id) AND ((o.user_id)::text = (app_current_user_id())::text))))) /WC/ 
+orders.travel_bookings | UPDATE | (current_setting('app.is_platform_admin'::text, true) = 'true'::text) /WC/ 
+platform.promoter_branding | ALL | app_is_service() /WC/ app_is_service()
+platform.promoter_branding | ALL | (app_is_platform_admin() OR (promoter_id = app_current_promoter_id())) /WC/ 
+platform.promoter_domains | ALL | app_is_service() /WC/ app_is_service()
+platform.promoter_domains | ALL | (app_is_platform_admin() OR (promoter_id = app_current_promoter_id())) /WC/ 
+platform.promoters | ALL | (app_is_platform_admin() OR app_is_service() OR (id = app_current_promoter_id())) /WC/ (app_is_platform_admin() OR app_is_service() OR (id = app_current_promoter_id()))
+platform.promoters | SELECT | true /WC/ 
+subscriptions.holders | ALL | (app_is_service() OR app_is_platform_admin() OR (user_id = app_current_user_id()) OR (EXISTS ( SELECT 1 FROM (orders.orders o JOIN catalog.events e ON ((e.id = o.event_id))) WHERE ((o.id = holders.order_id) AND (e.promoter_id = app_current_promoter_id()))))) /WC/ 
+subscriptions.package_events | ALL | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM catalog.events e_ WHERE ((e_.id = package_events.event_id) AND (e_.promoter_id = app_current_promoter_id()))))) /WC/ 
+subscriptions.packages | ALL | app_is_service() /WC/ app_is_service()
+subscriptions.packages | ALL | (app_is_platform_admin() OR (promoter_id = app_current_promoter_id()) OR (promoter_id IS NULL)) /WC/ 
+subscriptions.redemptions | ALL | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM catalog.events e_ WHERE ((e_.id = redemptions.event_id) AND (e_.promoter_id = app_current_promoter_id()))))) /WC/ 
+tickets.ticket_modular_access | ALL | (app_is_service() OR app_is_platform_admin() OR (EXISTS ( SELECT 1 FROM (tickets.tickets tk JOIN orders.orders o ON ((o.id = tk.order_id))) WHERE ((tk.id = ticket_modular_access.ticket_id) AND ((o.user_id = app_current_user_id()) OR (EXISTS ( SELECT 1 FROM catalog.events e WHERE ((e.id = o.event_id) AND (e.promoter_id = app_current_promoter_id()))))))))) /WC/ 
+tickets.tickets | DELETE | (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM (orders.orders o JOIN catalog.events e ON ((e.id = o.event_id))) WHERE ((o.id = tickets.order_id) AND (e.promoter_id = app_current_promoter_id()))))) /WC/ 
+tickets.tickets | INSERT |  /WC/ (app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1 FROM (orders.orders o JOIN catalog.events e ON ((e.id = o.event_id))) WHERE ((o.id = tickets.order_id) AND (e.promoter_id = app_current_promoter_id())))))
+tickets.tickets | SELECT | (app_is_platform_admin() OR app_is_service() OR (owner_id = app_current_user_id()) OR (EXISTS ( SELECT 1 FROM (orders.orders o JOIN catalog.events e ON ((e.id = o.event_id))) WHERE ((o.id = tickets.order_id) AND (e.promoter_id = app_current_promoter_id()))))) /WC/ 
+tickets.tickets | UPDATE | (app_is_platform_admin() OR app_is_service() OR (owner_id = app_current_user_id()) OR (EXISTS ( SELECT 1 FROM (orders.orders o JOIN catalog.events e ON ((e.id = o.event_id))) WHERE ((o.id = tickets.order_id) AND (e.promoter_id = app_current_promoter_id()))))) /WC/ (app_is_platform_admin() OR app_is_service() OR (owner_id = app_current_user_id()) OR (EXISTS ( SELECT 1 FROM (orders.orders o JOIN catalog.events e ON ((e.id = o.event_id))) WHERE ((o.id = tickets.order_id) AND (e.promoter_id = app_current_promoter_id())))))

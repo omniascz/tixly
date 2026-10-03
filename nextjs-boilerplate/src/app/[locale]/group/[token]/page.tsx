@@ -17,7 +17,7 @@ type Preview = {
   invitationId: string;
   status: string;
   expired: boolean;
-  organizer: { userId: string; email: string; name: string | null };
+  organizer: { name: string | null };
   event: { id: string; title: string; dateStart: string };
   ticketTypeId: string | null;
   targetSeats: number;
@@ -105,7 +105,7 @@ export default function GroupClaimPage({
     );
   }
 
-  const organizerLabel = data.organizer.name ?? data.organizer.email;
+  const organizerLabel = data.organizer.name ?? 'Organizátor skupiny';
   const dateLabel = new Date(data.event.dateStart).toLocaleString('cs-CZ', {
     dateStyle: 'long',
     timeStyle: 'short',

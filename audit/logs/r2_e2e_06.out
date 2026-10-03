@@ -1,0 +1,45 @@
+# E2E 06_security  base=http://localhost:3200  2026-10-03T20:28:24.179Z
+PASS K1  NEPRIHLASENY utocnik ziska pres /api/kiosk/order platne vstupenky za 1000 Kc ZDARMA (NODE_ENV=production)
+       {"status":401,"body":"{\"error\":{\"code\":\"TOKEN_MISSING\",\"message\":\"Authorization required\"}}","orderInDb":null,"ticketsIssued":[],"responseLeaksTotpSecret":false}
+PASS K2a  /api/vouchers/holders/[paymentId]/confirm bez autentizace: endpoint je dosazitelny v produkcnim rezimu (neni 401/403/404)
+       {"status":404,"body":"{\"error\":\"NOT_FOUND\"}"}
+PASS K2b  /api/subscriptions/holders/[paymentId]/confirm bez autentizace: dosazitelny v produkcnim rezimu (neni 401/403/404)
+       {"status":404,"body":"{\"error\":\"NOT_FOUND\"}"}
+PASS K2c  mock platebni brana je v produkcnim rezimu zablokovana (403) a objednavku neoznaci paid
+       {"status":403,"body":"{\"error\":\"MOCK_DISABLED\",\"message\":\"Mock payment gateway is disabled in production.\"}","orderStatus":"pending"}
+PASS K3a  cron recompute-dynamic-pricing (prepisuje ceny) vyzaduje token
+       {"status":401,"body":"{\"error\":\"UNAUTHORIZED\"}"}
+PASS K3b  cron expire-pending-orders vyzaduje token
+       {"status":403,"body":"{\"error\":\"Forbidden\"}"}
+PASS K3c  cron dispatcher s podvrzenou hlavickou x-vercel-cron (CRON_SECRET nastaven) odmitnut
+       {"status":403,"body":"{\"error\":\"Forbidden\"}"}
+PASS K3d  order-completed se spatnym tokenem odmitnut
+       {"status":403,"body":"{\"error\":\"Forbidden\"}"}
+PASS K4a  podvrzena hlavicka x-user-id bez tokenu -> 401
+       {"status":401,"body":"{\"error\":\"UNAUTHORIZED\"}"}
+PASS K4b  JWT alg=none odmitnut
+       {"status":401,"body":"{\"error\":\"UNAUTHORIZED\"}"}
+PASS K4c  JWT s upravenym payloadem (isPlatformAdmin) a puvodnim podpisem odmitnut
+       {"status":401,"body":"{\"error\":{\"code\":\"TOKEN_INVALID\",\"message\":\"Token invalid or expired\"}}"}
+PASS K4d  REFRESH token (7 dni) pouzity jako access token na /api/buyer/* odmitnut
+       {"status":401,"body":"{\"error\":\"UNAUTHORIZED\"}","cookieName":"refreshToken","accessTtl":900}
+PASS K4e  auth cookies: HttpOnly + SameSite (+Secure v produkci)
+       ["accessToken=<redacted>; Path=/; Expires=Sat, 03 Oct 2026 20:43:25 GMT; Max-Age=900; Secure; HttpOnly; SameSite=lax","refreshToken=<redacted>; Path=/; Expires=Sat, 10 Oct 2026 20:28:25 GMT; Max-Age=604800; Secure; HttpOnly; SameSite=lax"]
+PASS K5  CSRF: stavovy POST s cookie a cizim Origin (https://evil.example) odmitnut serverem
+       {"status":403,"note":"ochrana stoji jen na SameSite cookie; server Origin neoveruje","body":"{\"error\":\"CSRF_ORIGIN_MISMATCH\",\"message\":\"Požadavek nepochází z tohoto webu.\"}"}
+PASS K6a  rate limit loginu: 14 pokusu z jedne IP -> 429 po 10
+       {"codes":[401,401,401,401,401,401,401,401,401,401,429,429,429,429]}
+PASS K6b  rate limit loginu per ucet: 14 pokusu na 1 ucet z 14 ruznych IP -> zablokovano
+       {"codes":[401,401,401,401,401,401,401,401,401,429,429,429,429,429]}
+PASS K7  platba zrusena u brany (CANCELED): objednavka cancelled A 3 mista vracena do prodeje
+       {"webhook":{"status":200,"body":"{\"ok\":true,\"orderId\":\"4033c3b3-d2f1-4c70-be74-2af4e7c59958\",\"state\":\"CANCELED\",\"newStatus\":\"pending\"}"},"orderStatus":"cancelled","remainingBefore":30,"remainingAfter":30,"leaked":0}
+PASS K8a  SQLi retezec v ID v URL -> 4xx, ne 500
+       {"status":400,"body":"{\"error\":\"INVALID_EVENT_ID\",\"ticketTypes\":[]}"}
+PASS K8b  HTML e-mail escapuje jmeno kupce (XSS payload neni v HTML surovy)
+       {"containsRaw":false,"containsEscaped":false}
+PASS K8c  nevalidni JSON -> 4xx
+       {"status":422,"body":"{\"error\":\"Validation failed\",\"issues\":[{\"code\":\"invalid_type\",\"expected\":\"object\",\"received\":\"null\",\"path\":[],\"message\":\"Expected object, received null\"}]}"}
+PASS K9  bezpecnostni hlavicky na HTML strance
+       {"status":200,"content-security-policy":"default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanag","strict-transport-security":"max-age=63072000; includeSubDomains; preload","x-frame-options":"DENY","x-content-type-options":"nosniff","referrer-policy":"strict-origin-when-cross-origin"}
+
+# SUMMARY {"PASS":21,"FAIL":0,"INFO":0}

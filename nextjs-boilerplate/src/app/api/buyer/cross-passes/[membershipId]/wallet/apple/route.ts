@@ -19,15 +19,15 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { membershipId: string } },
 ): Promise<Response> {
-  if (
-    !process.env.APPLE_PASS_TYPE_IDENTIFIER &&
-    !process.env.APPLE_PASS_CERT_PEM &&
-    !process.env.APPLE_TEAM_IDENTIFIER
-  ) {
-    return NextResponse.json({ error: 'WALLET_NOT_CONFIGURED' }, { status: 503 });
-  }
-
+  // Kolo 4: přihlášení před kontrolou konfigurace (anonym dřív dostal 503 a stav konfigurace).
   return runAsUser(req, async (userId) => {
+    if (
+      !process.env.APPLE_PASS_TYPE_IDENTIFIER &&
+      !process.env.APPLE_PASS_CERT_PEM &&
+      !process.env.APPLE_TEAM_IDENTIFIER
+    ) {
+      return NextResponse.json({ error: 'WALLET_NOT_CONFIGURED' }, { status: 503 });
+    }
     const r = await db().query<MembershipRow>(
       `SELECT m.id, m.membership_code, m.valid_until, m.user_id,
               b.name AS bundle_name, b.card_color,

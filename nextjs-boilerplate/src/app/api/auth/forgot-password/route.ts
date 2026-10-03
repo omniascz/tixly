@@ -89,9 +89,14 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
   const email = parsed.data.email.toLowerCase().trim();
 
-  // Lookup user
-  const userRes = await db().query<{ id: string; locale: string | null; name: string | null }>(
-    `SELECT id, locale, name FROM identity.users WHERE LOWER(email) = $1 LIMIT 1`,
+  // Lookup user.
+  // FIX V1: `identity.users` NEMÁ sloupec `locale` → `SELECT … locale …` padal na
+  // 42703 a celý handler vracel HTTP 500 (reset hesla nešel spustit). Per-user
+  // locale nikde jinde v kódu neexistuje (forgot-password byl jediný čtenář), tak
+  // fix odpovídající zbytku kódu je sloupec nevybírat a locale nechat na výchozím
+  // 'cs'. (Kdyby se per-user locale někdy zaváděl, přidá se migrací + zápisem.)
+  const userRes = await db().query<{ id: string; name: string | null }>(
+    `SELECT id, name FROM identity.users WHERE LOWER(email) = $1 LIMIT 1`,
     [email],
   );
   if (userRes.rows.length === 0) {
@@ -119,11 +124,8 @@ export async function POST(req: NextRequest): Promise<Response> {
     [user.id, tokenHash, expiresAt, ip, req.headers.get('user-agent')?.slice(0, 500) ?? null],
   );
 
-  // Pošli email
-  const locale = (user.locale === 'sk' ? 'sk' : user.locale === 'en' ? 'en' : 'cs') as
-    | 'cs'
-    | 'sk'
-    | 'en';
+  // Pošli email. Bez per-user locale posíláme výchozí 'cs' (viz pozn. u SELECTu).
+  const locale: 'cs' | 'sk' | 'en' = 'cs';
   const url = buildResetUrl(tokenPlain, locale);
   const html = emailHtml(url, locale);
 

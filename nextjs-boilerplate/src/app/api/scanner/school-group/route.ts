@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { z } from 'zod';
+import { runAsActivePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
 
 const schema = z.object({
   token: z.string().min(8).max(200),
@@ -9,7 +10,10 @@ const schema = z.object({
 const WINDOW_HOURS = 12;
 
 export async function POST(req: NextRequest): Promise<Response> {
-  return runWithServiceContext(async () => {
+  // Kolo 4: odbavení skupiny smí jen obsluha pořadatele, kterému rezervace patří (dřív
+  // bez ověření — kdokoli s QR tokenem dostal „admitted" + údaje o škole). Kontext
+  // pořadatele: cizí rezervace pod RLS není vidět → stejná odpověď jako neexistující token.
+  return runAsActivePromoter(req, async (promoter) => {
     const body: unknown = await req.json().catch(() => ({}));
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
@@ -31,8 +35,8 @@ export async function POST(req: NextRequest): Promise<Response> {
               e.title AS event_title, e.date_start AS event_date_start
          FROM orders.school_bookings sb
          JOIN catalog.events e ON e.id = sb.event_id
-        WHERE sb.group_qr_token = $1`,
-      [parsed.data.token],
+        WHERE sb.group_qr_token = $1 AND sb.promoter_id = $2`,
+      [parsed.data.token, promoter.promoterId],
     );
 
     if (r.rows.length === 0) {

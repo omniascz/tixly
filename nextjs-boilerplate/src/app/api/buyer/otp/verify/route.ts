@@ -40,7 +40,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
 
     const r = await client.query<{
       id: string;

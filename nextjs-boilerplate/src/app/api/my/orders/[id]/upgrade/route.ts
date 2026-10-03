@@ -6,7 +6,7 @@
  * Vrací upgrade ID + payment URL (pokud je upgrade_fee > 0)
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db, runWithUserContext } from '@/lib/db/rls-pool';
+import { asSystemInTx, db, runWithUserContext } from '@/lib/db/rls-pool';
 
 export async function POST(
   req: NextRequest,
@@ -32,9 +32,9 @@ export async function POST(
 
       // Verify ownership
       const ticketRes = await client.query<{
-        id: string; original_price: number; status: string; event_id: string;
+        id: string; original_price: number; status: string; event_id: string; ticket_type_id: string;
       }>(
-        `SELECT tt.id, tt.original_price, tt.status, o.event_id
+        `SELECT tt.id, tt.original_price, tt.status, o.event_id, tt.ticket_type_id
            FROM tickets.tickets tt
            JOIN orders.orders o ON o.id = tt.order_id
           WHERE tt.id = $1 AND tt.order_id = $2 AND o.user_id = $3 AND tt.status = 'valid'`,
@@ -57,11 +57,13 @@ export async function POST(
       }
 
       // Get new ticket type price
-      const ttRes = await client.query<{ base_price: number; name: string }>(
+      // Kolo 2 / V8: zámek řádku kapacity je systémová operace (kupec ticket_types
+      // zamykat/měnit nesmí) — vlastnictví vstupenky ověřeno výše pod kontextem kupce.
+      const ttRes = await asSystemInTx(client, () => client.query<{ base_price: number; name: string }>(
         `SELECT base_price, name FROM catalog.ticket_types
           WHERE id=$1 AND event_id=$2 AND remaining_qty>0 FOR UPDATE`,
         [body.newTicketTypeId, ticket.event_id],
-      );
+      ));
       if (ttRes.rowCount === 0) {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'TICKET_TYPE_UNAVAILABLE' }, { status: 409 });
@@ -87,8 +89,9 @@ export async function POST(
         }
       }
 
-      // Create upgrade record
-      const upgradeRes = await client.query<{ id: string }>(
+      // Create upgrade record — systémový záznam (kolo 4, migrace 491: seat_upgrades zapisuje
+      // jen servis/system; vlastnictví lístku ověřeno výše pod kontextem kupce).
+      const upgradeRes = await asSystemInTx(client, () => client.query<{ id: string }>(
         `INSERT INTO orders.seat_upgrades
            (original_order_id, original_ticket_id, original_seat_id,
             new_seat_id, new_ticket_type_id, upgrade_fee_halire, status)
@@ -97,25 +100,41 @@ export async function POST(
            $3,$4,$5,'pending')
          RETURNING id`,
         [params.id, body.ticketId, body.newSeatId ?? null, body.newTicketTypeId, upgradeFee],
-      );
+      ));
       const upgradeId = upgradeRes.rows[0].id;
 
       if (upgradeFee === 0) {
         // Free upgrade — apply immediately
-        if (body.newSeatId) {
+        // Kolo 3 (guard 486): sedadlo a typ lístku jsou chráněné sloupce — systémový efekt
+        // upgradu; lístek ověřen výše jako kupcův (o.user_id = kupec), cílový typ v téže akci.
+        await asSystemInTx(client, async () => {
+          if (body.newSeatId) {
+            await client.query(
+              `UPDATE tickets.tickets SET seat_id=$1 WHERE id=$2`,
+              [body.newSeatId, body.ticketId],
+            );
+          }
           await client.query(
-            `UPDATE tickets.tickets SET seat_id=$1 WHERE id=$2`,
-            [body.newSeatId, body.ticketId],
+            `UPDATE tickets.tickets SET ticket_type_id=$1 WHERE id=$2`,
+            [body.newTicketTypeId, body.ticketId],
           );
-        }
-        await client.query(
-          `UPDATE tickets.tickets SET ticket_type_id=$1 WHERE id=$2`,
-          [body.newTicketTypeId, body.ticketId],
-        );
-        await client.query(
-          `UPDATE orders.seat_upgrades SET status='paid', completed_at=now() WHERE id=$1`,
-          [upgradeId],
-        );
+          // Kolo 4: kapacita se přesouvá s lístkem (dřív se neměnila — cílový typ šlo
+          // přeprodat, zdrojový nedoprodat). Cílový typ je zamčený výše (FOR UPDATE).
+          if (ticket.ticket_type_id !== body.newTicketTypeId) {
+            await client.query(
+              `UPDATE catalog.ticket_types SET remaining_qty = remaining_qty - 1 WHERE id=$1`,
+              [body.newTicketTypeId],
+            );
+            await client.query(
+              `UPDATE catalog.ticket_types SET remaining_qty = remaining_qty + 1 WHERE id=$1`,
+              [ticket.ticket_type_id],
+            );
+          }
+          await client.query(
+            `UPDATE orders.seat_upgrades SET status='paid', completed_at=now() WHERE id=$1`,
+            [upgradeId],
+          );
+        });
         await client.query('COMMIT');
         return NextResponse.json({ upgradeId, upgradeFeeHalire: 0, applied: true });
       }

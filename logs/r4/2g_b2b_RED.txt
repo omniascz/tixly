@@ -1,0 +1,41 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r4-b2b-credit-auth.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 3910[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-b2b-credit-auth.live.test.ts[2m > [22mKrok 2 (kolo 4) — B2B kredit jen pro členy účtu[2m > [22mb2b/verify: anonym s kódem (i s e-mailem člena) nedostane zůstatek[39m
+[31m     → {"valid":true,"companyName":"Firma s.r.o.","balanceHalire":1000000}: expected [ 401, 403 ] to include 200[39m
+[31m   [33m❯[31m tests/fix-r4-b2b-credit-auth.live.test.ts[2m > [22mKrok 2 (kolo 4) — B2B kredit jen pro členy účtu[2m > [22mcheckout b2b_credit: anonym ani nečlen nezaplatí z kreditu firmy[39m
+[31m     → {"orderId":"cd9cdd13-8511-438d-87d8-637895883668","paymentId":null,"gatewayUrl":"http://localhost:3100/cs/order/cd9cdd13-8511-438d-87d8-637895883668/confirmation","provider":"b2b_credit","variableSymbol":null,"subtotalAmount":20000,"discountAmount":0,"volumeDiscountAmount":0,"volumeDiscountPct":0,"addonsSubtotal":0,"bundleDiscountAmount":0,"bundleId":null,"voucherRedeemedHalire":0,"giftCardApplied":0,"restwertAppliedHalire":0,"restwertHolders":[],"loyaltyDiscountHalire":0,"loyaltyRedeemed":0,"loyaltyMaxPointsAvailable":0,"totalAmount":20000,"promoCodeApplied":false,"b2bAccountId":"d95fa0a4-620a-443a-aa10-4be6384625b0"}: expected [ 401, 403 ] to include 200[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-b2b-credit-auth.live.test.ts[2m > [22mKrok 2 (kolo 4) — B2B kredit jen pro členy účtu[2m > [22mb2b/verify: anonym s kódem (i s e-mailem člena) nedostane zůstatek
+[31m[1mAssertionError[22m: {"valid":true,"companyName":"Firma s.r.o.","balanceHalire":1000000}: expected [ 401, 403 ] to include 200[39m
+[36m [2m❯[22m tests/fix-r4-b2b-credit-auth.live.test.ts:[2m79:29[22m[39m
+    [90m 77| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34mverify[39m({}[33m,[39m body)[33m;[39m
+    [90m 78| [39m      [35mconst[39m t [33m=[39m [35mawait[39m r[33m.[39m[34mtext[39m()[33m;[39m
+    [90m 79| [39m      [34mexpect[39m([[34m401[39m[33m,[39m [34m403[39m][33m,[39m t)[33m.[39m[34mtoContain[39m(r[33m.[39mstatus)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 80| [39m      [34mexpect[39m(t)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'1000000'[39m)[33m;[39m
+    [90m 81| [39m    }
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-b2b-credit-auth.live.test.ts[2m > [22mKrok 2 (kolo 4) — B2B kredit jen pro členy účtu[2m > [22mcheckout b2b_credit: anonym ani nečlen nezaplatí z kreditu firmy
+[31m[1mAssertionError[22m: {"orderId":"cd9cdd13-8511-438d-87d8-637895883668","paymentId":null,"gatewayUrl":"http://localhost:3100/cs/order/cd9cdd13-8511-438d-87d8-637895883668/confirmation","provider":"b2b_credit","variableSymbol":null,"subtotalAmount":20000,"discountAmount":0,"volumeDiscountAmount":0,"volumeDiscountPct":0,"addonsSubtotal":0,"bundleDiscountAmount":0,"bundleId":null,"voucherRedeemedHalire":0,"giftCardApplied":0,"restwertAppliedHalire":0,"restwertHolders":[],"loyaltyDiscountHalire":0,"loyaltyRedeemed":0,"loyaltyMaxPointsAvailable":0,"totalAmount":20000,"promoCodeApplied":false,"b2bAccountId":"d95fa0a4-620a-443a-aa10-4be6384625b0"}: expected [ 401, 403 ] to include 200[39m
+[36m [2m❯[22m tests/fix-r4-b2b-credit-auth.live.test.ts:[2m97:50[22m[39m
+    [90m 95| [39m    [35mfor[39m ([35mconst[39m h [35mof[39m [{}[33m,[39m { authorization[33m:[39m [32m`Bearer [39m[36m${[39moutsiderTok[36m}[39m[32m`[39m }]) {
+    [90m 96| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34mcheckout[39m(h)[33m;[39m
+    [90m 97| [39m      [34mexpect[39m([[34m401[39m[33m,[39m [34m403[39m][33m,[39m [35mawait[39m r[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoContain[39m(r[33m.[39mstatus)[33m;[39m
+    [90m   | [39m                                                 [31m^[39m
+    [90m 98| [39m    }
+    [90m 99| [39m    [34mexpect[39m([35mawait[39m [34mbalance[39m())[33m.[39m[34mtoBe[39m(before)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (4)[39m
+[2m   Start at [22m 20:40:49
+[2m   Duration [22m 26.98s[2m (transform 1.23s, setup 0ms, collect 727ms, tests 3.91s, environment 2ms, prepare 612ms)[22m
+

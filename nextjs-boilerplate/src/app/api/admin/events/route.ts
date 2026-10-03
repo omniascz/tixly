@@ -252,7 +252,8 @@ export async function POST(req: NextRequest): Promise<Response> {
     input.currency === 'CZK' && promoterCountry === 'SR' && pd?.primary_currency === 'EUR'
       ? 'EUR'
       : input.currency;
-  const effectiveQrPolicy = input.qrPolicy ?? 'static_allowed';
+  // Kolo 2: výchozí politika = rotující TOTP; statický QR jen jako explicitní volba pořadatele.
+  const effectiveQrPolicy = input.qrPolicy ?? 'rotating_24h';
   const effectiveVatCategory = input.vatCategory ?? 'cultural';
   // Refund deadline: tier 1 promotéři dostávají kratší default (7 dní), tier 2+ standardní
   const defaultRefundDeadline = promoterTier >= 2 ? 7 : 7;

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -60,6 +60,42 @@ function colValue(row: string[], headers: string[], key: string | undefined): st
     return undefined;
   }
   return row[idx] || undefined;
+}
+
+/**
+ * Kolo 3: uživatel kontaktu. Globální identita (identity.users) není pořadatelova — pořadatel ji pod
+ * RLS nesmí měnit ani číst cizí účty (dřív `ON CONFLICT … DO UPDATE SET name … RETURNING` →
+ * 42501 pod tixly_app, a navíc by import přepsal jméno existujícího uživatele platformy).
+ * Systémový krok (asSystemInTx): založ placeholder bez hesla, existující účet jen najdi.
+ */
+async function resolveContactUser(email: string, name: string | null): Promise<string> {
+  const client = await db().connect();
+  try {
+    await client.query('BEGIN');
+    const id = await asSystemInTx(client, async () => {
+      const ins = await client.query<{ id: string }>(
+        `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at)
+         VALUES ($1, $2, '!import-no-password', NOW())
+         ON CONFLICT (email) WHERE anonymized_at IS NULL DO NOTHING
+         RETURNING id`,
+        [email, name],
+      );
+      if (ins.rows[0]) return ins.rows[0].id;
+      const ex = await client.query<{ id: string }>(
+        `SELECT id FROM identity.users WHERE email = $1 AND anonymized_at IS NULL LIMIT 1`,
+        [email],
+      );
+      return ex.rows[0]?.id;
+    });
+    await client.query('COMMIT');
+    if (!id) throw new Error('USER_RESOLVE_FAILED');
+    return id;
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => undefined);
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
@@ -162,22 +198,21 @@ export async function POST(req: NextRequest): Promise<Response> {
       const first_purchase_at = firstPurchaseRaw ? new Date(firstPurchaseRaw) : null;
       const last_purchase_at = lastPurchaseRaw ? new Date(lastPurchaseRaw) : null;
 
-      const userRes = await db().query(
-        `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at)
-         VALUES ($1, $2, '$2b$10$placeholder_import_hash', NOW())
-         ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE SET name = COALESCE(EXCLUDED.name, identity.users.name)
-         RETURNING id`,
-        [email, name],
-      );
-      const userId: string = userRes.rows[0].id;
+      let userId: string;
+      let upsertRes;
+      try {
+      userId = await resolveContactUser(email, name);
 
-      const upsertRes = await db().query(
+      // Kontakt pořadatele: kontext pořadatele (RLS promoter_contacts.promoter_id = pořadatel).
+      upsertRes = await db().query(
         `INSERT INTO platform.promoter_contacts
            (promoter_id, user_id, email, name, phone,
             historical_purchases, historical_spend_halire,
             first_purchase_at, last_purchase_at,
             import_job_id, import_source)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+         -- Kolo 3: name / historical_* jsou NOT NULL (default 0) — nenamapovaný sloupec CSV
+         -- dřív posílal NULL → 23502 na každém řádku.
+         VALUES ($1,$2,$3,COALESCE($4, ''),$5,COALESCE($6, 0),COALESCE($7, 0),$8,$9,$10,$11)
          ON CONFLICT (promoter_id, email) DO UPDATE
            SET name                    = EXCLUDED.name,
                phone                   = EXCLUDED.phone,
@@ -202,6 +237,13 @@ export async function POST(req: NextRequest): Promise<Response> {
           source,
         ],
       );
+      } catch (rowErr) {
+        // Kolo 3: chyba jednoho řádku nesmí shodit celý import (job by zůstal „processing").
+        errorRows++;
+        if (errors.length < 10) errors.push({ row: rowNum, reason: 'Řádek se nepodařilo uložit.' });
+        console.error('[admin/import] row', rowNum, rowErr);
+        continue;
+      }
 
       if (upsertRes.rows[0].inserted) {
         importedUsers++;

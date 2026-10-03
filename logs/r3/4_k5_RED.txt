@@ -1,0 +1,118 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r3-k5-csrf.live.test.ts [2m ([22m[2m9 tests[22m [2m|[22m [31m5 failed[39m[2m)[22m[33m 330[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-k5-csrf.live.test.ts[2m > [22mKrok 4 (kolo 3) — K5 CSRF (Origin/Referer pro cookie-autentizované stavové požadavky)[2m > [22mcookie + cizí Origin → 403[39m
+[31m     → expected 'pass' to be 403 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-k5-csrf.live.test.ts[2m > [22mKrok 4 (kolo 3) — K5 CSRF (Origin/Referer pro cookie-autentizované stavové požadavky)[2m > [22mcookie + chybí Origin i Referer → 403[39m
+[31m     → expected 'pass' to be 403 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-k5-csrf.live.test.ts[2m > [22mKrok 4 (kolo 3) — K5 CSRF (Origin/Referer pro cookie-autentizované stavové požadavky)[2m > [22mcookie + cizí Referer (bez Origin) → 403; Origin "null" → 403[39m
+[31m     → expected 'pass' to be 403 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-k5-csrf.live.test.ts[2m > [22mKrok 4 (kolo 3) — K5 CSRF (Origin/Referer pro cookie-autentizované stavové požadavky)[2m > [22mBearer API (platný token, bez cookie) s cizím Origin → projde; neplatný Bearer + cookie → 403[39m
+[31m     → expected 'pass' to be 403 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-k5-csrf.live.test.ts[2m > [22mKrok 4 (kolo 3) — K5 CSRF (Origin/Referer pro cookie-autentizované stavové požadavky)[2m > [22mcelý průchod: storno objednávky z cizího webu s cookie → 403 a objednávka beze změny; z vlastního → 200[39m
+[31m     → expected 200 to be 403 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 5 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-k5-csrf.live.test.ts[2m > [22mKrok 4 (kolo 3) — K5 CSRF (Origin/Referer pro cookie-autentizované stavové požadavky)[2m > [22mcookie + cizí Origin → 403
+[31m[1mAssertionError[22m: expected 'pass' to be 403 // Object.is equality[39m
+
+[32m- Expected:[39m 
+403
+
+[31m+ Received:[39m 
+"pass"
+
+[36m [2m❯[22m tests/fix-r3-k5-csrf.live.test.ts:[2m43:78[22m[39m
+    [90m 41| [39m
+    [90m 42| [39m  [34mit[39m([32m'cookie + cizí Origin → 403'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 43| [39m    [34mexpect[39m([35mawait[39m [34mmw[39m([32m'POST'[39m[33m,[39m [32m'/api/checkout'[39m[33m,[39m { [33m...[39m[34mcookie[39m()[33m,[39m origin[33m:[39m [33mEV[39m…
+    [90m   | [39m                                                                             [31m^[39m
+    [90m 44| [39m    [34mexpect[39m([35mawait[39m [34mmw[39m([32m'DELETE'[39m[33m,[39m [32m'/api/buyer/spotify/connect'[39m[33m,[39m { [33m...[39m[34mcooki[39m…
+    [90m 45| [39m    [34mexpect[39m([35mawait[39m [34mmw[39m([32m'PATCH'[39m[33m,[39m [32m'/api/admin/events/x'[39m[33m,[39m { [33m...[39m[34mcookie[39m()[33m,[39m ori…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-k5-csrf.live.test.ts[2m > [22mKrok 4 (kolo 3) — K5 CSRF (Origin/Referer pro cookie-autentizované stavové požadavky)[2m > [22mcookie + chybí Origin i Referer → 403
+[31m[1mAssertionError[22m: expected 'pass' to be 403 // Object.is equality[39m
+
+[32m- Expected:[39m 
+403
+
+[31m+ Received:[39m 
+"pass"
+
+[36m [2m❯[22m tests/fix-r3-k5-csrf.live.test.ts:[2m49:57[22m[39m
+    [90m 47| [39m  })[33m;[39m
+    [90m 48| [39m  [34mit[39m([32m'cookie + chybí Origin i Referer → 403'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 49| [39m    [34mexpect[39m([35mawait[39m [34mmw[39m([32m'POST'[39m[33m,[39m [32m'/api/checkout'[39m[33m,[39m [34mcookie[39m()))[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                                                        [31m^[39m
+    [90m 50| [39m  })[33m;[39m
+    [90m 51| [39m  [34mit[39m([32m'cookie + cizí Referer (bez Origin) → 403; Origin "null" → 403'[39m[33m,[39m …
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-k5-csrf.live.test.ts[2m > [22mKrok 4 (kolo 3) — K5 CSRF (Origin/Referer pro cookie-autentizované stavové požadavky)[2m > [22mcookie + cizí Referer (bez Origin) → 403; Origin "null" → 403
+[31m[1mAssertionError[22m: expected 'pass' to be 403 // Object.is equality[39m
+
+[32m- Expected:[39m 
+403
+
+[31m+ Received:[39m 
+"pass"
+
+[36m [2m❯[22m tests/fix-r3-k5-csrf.live.test.ts:[2m52:86[22m[39m
+    [90m 50| [39m  })[33m;[39m
+    [90m 51| [39m  [34mit[39m([32m'cookie + cizí Referer (bez Origin) → 403; Origin "null" → 403'[39m[33m,[39m …
+    [90m 52| [39m    [34mexpect[39m([35mawait[39m [34mmw[39m([32m'POST'[39m[33m,[39m [32m'/api/checkout'[39m[33m,[39m { [33m...[39m[34mcookie[39m()[33m,[39m referer[33m:[39m [32m`[39m…
+    [90m   | [39m                                                                                     [31m^[39m
+    [90m 53| [39m    [34mexpect[39m([35mawait[39m [34mmw[39m([32m'POST'[39m[33m,[39m [32m'/api/checkout'[39m[33m,[39m { [33m...[39m[34mcookie[39m()[33m,[39m origin[33m:[39m [32m'n[39m…
+    [90m 54| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-k5-csrf.live.test.ts[2m > [22mKrok 4 (kolo 3) — K5 CSRF (Origin/Referer pro cookie-autentizované stavové požadavky)[2m > [22mBearer API (platný token, bez cookie) s cizím Origin → projde; neplatný Bearer + cookie → 403
+[31m[1mAssertionError[22m: expected 'pass' to be 403 // Object.is equality[39m
+
+[32m- Expected:[39m 
+403
+
+[31m+ Received:[39m 
+"pass"
+
+[36m [2m❯[22m tests/fix-r3-k5-csrf.live.test.ts:[2m64:112[22m[39m
+    [90m 62| [39m  [34mit[39m([32m'Bearer API (platný token, bez cookie) s cizím Origin → projde; n[39m…
+    [90m 63| [39m    [34mexpect[39m([35mawait[39m [34mmw[39m([32m'POST'[39m[33m,[39m [32m'/api/checkout'[39m[33m,[39m { authorization[33m:[39m [32m`Bearer [39m…
+    [90m 64| [39m    [34mexpect[39m([35mawait[39m [34mmw[39m([32m'POST'[39m[33m,[39m [32m'/api/checkout'[39m[33m,[39m { authorization[33m:[39m [32m'Bearer [39m…
+    [90m   | [39m                                                                                                               [31m^[39m
+    [90m 65| [39m  })[33m;[39m
+    [90m 66| [39m  [34mit[39m([32m'anonym bez auth cookie s cizím Origin → projde (není co zneužít)[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-k5-csrf.live.test.ts[2m > [22mKrok 4 (kolo 3) — K5 CSRF (Origin/Referer pro cookie-autentizované stavové požadavky)[2m > [22mcelý průchod: storno objednávky z cizího webu s cookie → 403 a objednávka beze změny; z vlastního → 200
+[31m[1mAssertionError[22m: expected 200 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r3-k5-csrf.live.test.ts:[2m80:39[22m[39m
+    [90m 78| [39m      method[33m:[39m [32m'POST'[39m[33m,[39m headers[33m:[39m { [32m'content-type'[39m[33m:[39m [32m'application/json'[39m[33m,[39m [33m.[39m…
+    [90m 79| [39m      [33mPOST[39m [35mas[39m [33mH[39m[33m,[39m { params[33m:[39m { orderId[33m:[39m fc[33m.[39morderId } })[33m;[39m
+    [90m 80| [39m    [34mexpect[39m(([35mawait[39m [34mcall[39m([33mEVIL[39m))[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                                      [31m^[39m
+    [90m 81| [39m    [34mexpect[39m(([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT status FROM orders.orders W[39m…
+    [90m 82| [39m    [35mconst[39m ok [33m=[39m [35mawait[39m [34mcall[39m([33mOWN[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m5 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 13:52:37
+[2m   Duration [22m 869ms[2m (transform 122ms, setup 0ms, collect 123ms, tests 330ms, environment 0ms, prepare 88ms)[22m
+

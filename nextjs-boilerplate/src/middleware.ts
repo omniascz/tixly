@@ -1,4 +1,6 @@
 import { jwtVerify } from 'jose';
+import { isAccessTokenPayload } from '@/lib/security/token-type';
+import { hasAuthCookie, isCsrfExemptPath, isSameOriginRequest, isStateChangingMethod } from '@/lib/security/csrf';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   detectLocale,
@@ -33,6 +35,8 @@ async function verifyTokenEdge(token: string): Promise<AccessPayload | null> {
     const { payload } = await jwtVerify(token, getSecret(), { algorithms: ['HS256'] });
     const sub = typeof payload.sub === 'string' ? payload.sub : null;
     if (!sub) return null;
+    // FIX K4d: přihlášení jen access tokenem (refresh token stejného klíče se odmítne).
+    if (!isAccessTokenPayload(payload)) return null;
     const roles = (payload as { roles?: JWTRoles }).roles ?? {};
     const isAdmin = roles.isPlatformAdmin === true;
     return { sub, isAdmin, roles };
@@ -55,13 +59,18 @@ const API_AUTH_PREFIX = '/api/auth/';
 
 const API_PUBLIC_GET_ROUTES = ['/api/events/', '/api/search', '/api/cross-passes/', '/api/subscriptions/plans', '/api/public/'];
 
-// API routes that require auth + admin (platform admin OR promoter membership)
-const API_PROMOTER_PREFIXES = ['/api/admin/', '/api/orders/'];
+// API routes that require auth + admin (platform admin OR promoter membership).
+// FIX K1: /api/kiosk/ přidáno — kiosk (pokladní terminál) musí běžet pod přihlášenou
+// obsluhou; middleware ověří JWT a injektuje x-user-id, handler pak ověří oprávnění
+// k dané akci. Bez tohohle byl kiosk veřejný (vstupenky zdarma bez přihlášení).
+const API_PROMOTER_PREFIXES = ['/api/admin/', '/api/orders/', '/api/kiosk/'];
 const API_PLATFORM_PREFIXES = ['/api/platform/'];
 // Optional auth: token if present propagates as x-user-id, otherwise pass through
 // /api/transfer/accept/ je tu (ne v PUBLIC): GET preview funguje bez tokenu,
 // ale POST accept potřebuje x-user-id → optional auth ho injektuje, je-li token.
-const API_OPTIONAL_AUTH_PREFIXES = ['/api/buyer/', '/api/checkout', '/api/subscriptions/', '/api/queue/', '/api/transfer/accept/'];
+// /api/mobile/, /api/my/ (kolo 3): bez prefixu tady se token nikdy neověřil a routy
+// (runAsUser / x-user-id) vracely vždy 401.
+const API_OPTIONAL_AUTH_PREFIXES = ['/api/buyer/', '/api/checkout', '/api/subscriptions/', '/api/queue/', '/api/transfer/accept/', '/api/mobile/', '/api/my/'];
 
 // Frontend routes (matched WITHOUT locale prefix)
 const FRONTEND_PROMOTER = ['/admin'];
@@ -101,8 +110,38 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     requestHeaders.delete('x-user-id');
     requestHeaders.delete('x-is-admin');
     requestHeaders.delete('x-is-platform-admin');
-    const passThrough = (): NextResponse =>
-      NextResponse.next({ request: { headers: requestHeaders } });
+    // Kolo 2: x-vercel-cron fungovalo jako „systémová role" (cron routy ho braly
+    // jako autentizaci) — klient ho podvrhne stejně snadno jako x-user-id.
+    requestHeaders.delete('x-vercel-cron');
+    // Kolo 4: identita z OVĚŘENÉHO access tokenu se předává u VŠECH /api cest, ne jen
+    // u vyjmenovaných prefixů. Dřív cesta mimo seznam prošla bez x-user-id a routy, které
+    // identitu potřebují, vracely vždy 401 i přihlášenému (25 rout, FIX_REPORT_R3). Zda je
+    // přihlášení povinné, rozhoduje dál prefix níže nebo handler; tady se jen nezahazuje.
+    const passThrough = async (): Promise<NextResponse> => {
+      const optionalAuthHeader = request.headers.get('Authorization');
+      const optionalBearer =
+        optionalAuthHeader && optionalAuthHeader.startsWith('Bearer ') ? optionalAuthHeader.split(' ')[1] : null;
+      const optionalCookie = request.cookies.get('accessToken')?.value ?? null;
+      let optionalPayload = optionalBearer ? await verifyTokenEdge(optionalBearer) : null;
+      if (!optionalPayload && optionalCookie && optionalCookie !== optionalBearer) {
+        optionalPayload = await verifyTokenEdge(optionalCookie);
+      }
+      if (optionalPayload) requestHeaders.set('x-user-id', optionalPayload.sub);
+      return NextResponse.next({ request: { headers: requestHeaders } });
+    };
+
+    // FIX K5 (kolo 3): CSRF — stavový požadavek autentizovaný cookie musí přijít z vlastního
+    // webu (Origin, jinak Referer); cizí / chybějící → 403. Výjimky a důvody: lib/security/csrf.ts.
+    // Platný Bearer token = API klient (hlavičku cizí stránka bez CORS neposlat neumí) → bez kontroly;
+    // neplatný Bearer nic neomlouvá (middleware by spadl zpět na cookie).
+    if (isStateChangingMethod(request.method) && !isCsrfExemptPath(pathname) && hasAuthCookie(request)) {
+      const authz = request.headers.get('authorization');
+      const bearerTok = authz && authz.startsWith('Bearer ') ? authz.slice(7) : null;
+      const bearerOk = bearerTok ? (await verifyTokenEdge(bearerTok)) !== null : false;
+      if (!bearerOk && !isSameOriginRequest(request)) {
+        return jsonResponse({ error: 'CSRF_ORIGIN_MISMATCH', message: 'Požadavek nepochází z tohoto webu.' }, 403);
+      }
+    }
 
     if (pathname.startsWith(API_AUTH_PREFIX)) {
       return passThrough();
@@ -128,20 +167,9 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
       return passThrough();
     }
 
-    // Optional auth: if token present propagate user, else pass through unauthenticated
+    // Optional auth: token (ověřený) → x-user-id, jinak bez identity — totéž dělá passThrough.
     if (isOptionalAuthApi) {
-      const authHeader = request.headers.get('Authorization');
-      const bearer =
-        authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
-      const cookieToken = request.cookies.get('accessToken')?.value ?? null;
-      if (!bearer && !cookieToken) return passThrough();
-      let payload = bearer ? await verifyTokenEdge(bearer) : null;
-      if (!payload && cookieToken && cookieToken !== bearer) {
-        payload = await verifyTokenEdge(cookieToken);
-      }
-      if (!payload) return passThrough();
-      requestHeaders.set('x-user-id', payload.sub);
-      return NextResponse.next({ request: { headers: requestHeaders } });
+      return passThrough();
     }
 
     // Token z Bearer headeru NEBO accessToken cookie. Bearer z localStorage může

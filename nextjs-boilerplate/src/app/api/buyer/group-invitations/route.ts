@@ -9,7 +9,7 @@
  * splitting, jen share link s "X z N already bought" attribution.
  */
 import { randomBytes } from 'crypto';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: kontrola akce a typu pod kontextem kupce; jen INSERT pozvánky je systémový (asSystemInTx).
 
     // Ověř že event je published
     const ev = await client.query<{ id: string }>(
@@ -57,7 +57,19 @@ export async function POST(req: NextRequest): Promise<Response> {
       return NextResponse.json({ error: 'EVENT_NOT_FOUND' }, { status: 404 });
     }
 
-    const r = await client.query<{ id: string; expires_at: string }>(
+    // Typ vstupenky musí patřit k akci (pod kontextem kupce: vidí jen typy publikovaných akcí).
+    if (parsed.data.ticketTypeId) {
+      const tt = await client.query(
+        `SELECT 1 FROM catalog.ticket_types WHERE id = $1 AND event_id = $2`,
+        [parsed.data.ticketTypeId, parsed.data.eventId],
+      );
+      if (tt.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'TICKET_TYPE_NOT_IN_EVENT' }, { status: 422 });
+      }
+    }
+
+    const r = await asSystemInTx(client, () => client.query<{ id: string; expires_at: string }>(
       `INSERT INTO orders.group_invitations
          (organizer_user_id, event_id, ticket_type_id, target_seats,
           invite_token, message)
@@ -71,7 +83,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         inviteToken,
         parsed.data.message ?? null,
       ],
-    );
+    ));
     await client.query('COMMIT');
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';

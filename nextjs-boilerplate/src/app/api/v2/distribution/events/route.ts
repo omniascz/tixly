@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { verifyDistributionToken } from '@/lib/distribution/auth';
 
 export async function GET(req: NextRequest): Promise<Response> {
+  // Kolo 2 / 3B: partner ověřen tokenem (lib/distribution/auth); distribution_* pod RLS jen svc/admin
+  return runWithServiceContext(async () => {
   const ctx = await verifyDistributionToken(req);
   if (!ctx) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
@@ -102,4 +104,5 @@ export async function GET(req: NextRequest): Promise<Response> {
   }));
 
   return NextResponse.json({ events, total, page, per_page: perPage });
+  });
 }

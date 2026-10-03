@@ -1,0 +1,83 @@
+═══ RLS GATE ═══
+očekáváno 631 policies │ nalezeno 850
+tabulek s RLS: očekáváno 436 │ nalezeno 573
+
+🔴 GATE SELHAL — 248 rozdílů:
+
+  CHYBĚJÍCÍ POLICY (7):
+    • catalog.event_seats|p_event_seats_event_scope
+    • catalog.events|p_events_promoter_scope
+    • catalog.ticket_types|p_ticket_types_event_scope
+    • orders.order_items|p_order_items_scope
+    • orders.orders|p_orders_scope
+    • platform.qes_signing_requests|qes_requests_svc
+    • tickets.tickets|p_tickets_scope
+  ZMĚNĚNÝ USING (7):
+    • catalog.event_travel_packages|event_travel_packages_select
+      očekáváno: true
+      nalezeno : (app_is_service() OR app_is_platform_admin() OR (EXISTS ( SELECT 1
+   FROM catalog.events e
+  WHERE ((e.id = e
+    • catalog.superfan_experiences|superfan_exp_public_read
+      očekáváno: true
+      nalezeno : (app_is_service() OR app_is_platform_admin() OR (EXISTS ( SELECT 1
+   FROM catalog.events e
+  WHERE ((e.id = s
+    • marketing.ticket_alerts|ticket_alerts_update
+      očekáváno: true
+      nalezeno : (app_is_service() OR app_is_platform_admin())
+    • orders.seat_upgrades|seat_upgrades_update
+      očekáváno: true
+      nalezeno : (app_is_service() OR app_is_platform_admin())
+    • orders.ticket_transfers|ticket_transfers_update
+      očekáváno: true
+      nalezeno : (app_is_service() OR app_is_platform_admin() OR (from_user_id = app_current_user_id()) OR ((to_email IS NOT NU
+    • orders.transit_passes|transit_passes_buyer_owns
+      očekáváno: ((order_id IN ( SELECT orders.id
+   FROM orders.orders
+  WHERE (orders.user_id = app_current_user_id()))) OR (
+      nalezeno : (app_is_platform_admin() OR (order_id IN ( SELECT o.id
+   FROM orders.orders o
+  WHERE (o.user_id = app_curren
+    • platform.promoters|p_promoters_read
+      očekáváno: true
+      nalezeno : ((status = 'active'::text) OR app_is_service() OR app_is_platform_admin() OR (id = app_current_promoter_id()) 
+  ZMĚNĚNÝ WITH CHECK (8):
+    • identity.users|p_users_promoter_insert
+      očekáváno: (app_current_promoter_id() IS NOT NULL)
+      nalezeno : ((app_current_promoter_id() IS NOT NULL) AND (is_platform_admin IS NOT TRUE) AND ((password_hash IS NULL) OR (
+    • marketing.ticket_alerts|ticket_alerts_insert
+      očekáváno: true
+      nalezeno : (app_is_service() OR app_is_platform_admin())
+    • marketing.ticket_alerts|ticket_alerts_update
+      očekáváno: 
+      nalezeno : (app_is_service() OR app_is_platform_admin())
+    • orders.postal_deliveries|postal_deliveries_insert
+      očekáváno: true
+      nalezeno : (app_is_service() OR app_is_platform_admin())
+    • orders.seat_upgrades|seat_upgrades_insert
+      očekáváno: true
+      nalezeno : (app_is_service() OR app_is_platform_admin())
+    • orders.seat_upgrades|seat_upgrades_update
+      očekáváno: 
+      nalezeno : (app_is_service() OR app_is_platform_admin())
+    • orders.ticket_transfers|ticket_transfers_update
+      očekáváno: 
+      nalezeno : (app_is_service() OR app_is_platform_admin() OR (from_user_id = app_current_user_id()) OR ((to_email IS NOT NU
+    • orders.travel_bookings|travel_bookings_insert
+      očekáváno: true
+      nalezeno : (app_is_service() OR app_is_platform_admin())
+  PŘEBÝVAJÍCÍ POLICY (226):
+    • accessibility.companion_pairs|svc_admin_companion_pairs
+    • accreditation.accreditation_scans|svc_admin_accreditation_scans
+    • affiliate.clicks|svc_admin_clicks
+    • affiliate.payouts|svc_admin_payouts
+    • ambassador.codes|svc_admin_codes
+    • ambassador.payouts|svc_admin_payouts
+    • analytics.audience_geo|owner_audience_geo
+    • analytics.audience_geo|svc_admin_audience_geo
+    • analytics.event_sales_snapshots|owner_event_sales_snapshots
+    • analytics.event_sales_snapshots|svc_admin_event_sales_snapshots
+    • audit.audit_log|append_audit_log
+    • audit.audit_log|svc_admin_audit_log
+    … a dalších 214

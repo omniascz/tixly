@@ -1,0 +1,3 @@
+.next/types/app/api/rfid/scan/route.ts(8,13): error TS2344: Type 'OmitWithTag<typeof import("C:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate/src/app/api/rfid/scan/route"), "POST" | "GET" | "DELETE" | "PATCH" | "config" | "PUT" | "generateStaticParams" | ... 8 more ... | "OPTIONS", "">' does not satisfy the constraint '{ [x: string]: never; }'.
+  Property 'generateRfidDeviceKey' is incompatible with index signature.
+    Type '() => string' is not assignable to type 'never'.

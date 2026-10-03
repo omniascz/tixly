@@ -222,7 +222,8 @@ export async function POST(req: NextRequest): Promise<Response> {
           // `payment_events` má `raw_payload` (NOT NULL), ne `data`.
           // PŘED: 42703 → ROLLBACK → 500. Ověřeno reálným během.
           `INSERT INTO orders.payment_events (order_id, event_type, raw_payload)
-           VALUES ($1, 'wl_order_created', $2)`,
+           VALUES ($1, 'wl_order_created', $2)
+           ON CONFLICT DO NOTHING`,
           [orderId, JSON.stringify({ tenantId: tenant.tenantId, tenantSlug: tenant.slug, callbackUrl, customerEmail: body.customerEmail })],
         );
       }

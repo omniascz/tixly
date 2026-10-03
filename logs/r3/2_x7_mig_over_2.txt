@@ -1,0 +1,3 @@
+psql:/tmp/487.sql:8: NOTICE:  constraint "invoices_invoice_number_key" of relation "invoices" does not exist, skipping
+ALTER TABLE
+DO

@@ -1,0 +1,97 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[payment] ComGate není nakonfigurovaný — checkout poběží v mock režimu. Nastavte COMGATE_MERCHANT, COMGATE_SECRET.
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[paypal webhook] PAYPAL_WEBHOOK_ID / API credentials missing — rejecting
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[payment] Triple-A není nakonfigurovaný — krypto platba poběží v mock režimu. Nastavte TRIPLEA_CLIENT_ID, TRIPLEA_CLIENT_SECRET, TRIPLEA_API_ID, TRIPLEA_NOTIFY_SECRET.
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[wise webhook] WISE_WEBHOOK_PUBLIC_KEY / API credentials missing — rejecting
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+<empty line>
+[90mstdout[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[routes-anon] tested=819 ok=777 bad=42 -> C:\Users\omnia\Documents\tixly-fix\logs\r4\2_routes_anon_result.json
+
+ [33m❯[39m tests/fix-r4-routes-anon.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 45914[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-routes-anon.live.test.ts[2m > [22mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22mkaždá neveřejná routa odmítne anonyma[39m
+[31m     → expected [ …(42) ] to deeply equal [][39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-routes-anon.live.test.ts[2m > [22mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22mkaždá neveřejná routa odmítne anonyma
+[31m[1mAssertionError[22m: expected [ …(42) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [][39m
+[31m+ Array [[39m
+[31m+   "GET /api/auth/magic-link/verify [admin] -> 302",[39m
+[31m+   "GET /api/auth/oauth/callback/google [servis] -> 307",[39m
+[31m+   "POST /api/b2b/account/login [partner] -> 422",[39m
+[31m+   "POST /api/b2b/verify [partner] -> 422",[39m
+[31m+   "GET /api/buyer/cross-passes/[membershipId]/wallet/apple [kupec] -> 503",[39m
+[31m+   "POST /api/buyer/cross-passes/purchase [kupec] -> 422",[39m
+[31m+   "GET /api/buyer/passkeys/authenticate [servis] -> 200",[39m
+[31m+   "POST /api/buyer/passkeys/authenticate [servis] -> 422",[39m
+[31m+   "GET /api/buyer/resale/list [kupec] -> 200",[39m
+[31m+   "POST /api/buyer/resale/list [kupec] -> 422",[39m
+[31m+   "GET /api/buyer/rsvp [kupec] -> 422",[39m
+[31m+   "POST /api/consent [kupec] -> 400",[39m
+[31m+   "GET /api/health/providers [partner] -> 200",[39m
+[31m+   "POST /api/checkout [servis] -> 422",[39m
+[31m+   "POST /api/mobile/payment-intent [kupec] -> 503",[39m
+[31m+   "POST /api/mock-bnpl/[provider]/[paymentId]/confirm [servis] -> 400",[39m
+[31m+   "GET /api/mock-crypto/[paymentId] [servis] -> 404",[39m
+[31m+   "POST /api/mock-crypto/[paymentId] [servis] -> 404",[39m
+[31m+   "POST /api/mock-gopay/[paymentId] [servis] -> 404",[39m
+[31m+   "POST /api/mock-przelewy24/[paymentId] [servis] -> 404",[39m
+[31m+   "GET /api/mock-qes/[requestId] [servis] -> 404",[39m
+[31m+   "POST /api/mock-qes/[requestId] [servis] -> 400",[39m
+[31m+   "GET /api/mock-wero/[paymentId] [servis] -> 404",[39m
+[31m+   "POST /api/mock-wero/[paymentId] [servis] -> 404",[39m
+[31m+   "POST /api/oauth/authorize [kupec] -> throw: `cookies` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context",[39m
+[31m+   "POST /api/payments/comgate/webhook [servis] -> 400",[39m
+[31m+   "GET /api/payments/gopay/webhook [servis] -> 400",[39m
+[31m+   "POST /api/payments/gopay/webhook [servis] -> 400",[39m
+[31m+   "POST /api/payments/mollie/webhook [servis] -> 400",[39m
+[31m+   "GET /api/payments/paypal/capture [servis] -> 307",[39m
+[31m+   "POST /api/qes/webhook [servis] -> 200",[39m
+[31m+   "POST /api/scanner/school-group [pořadatel] -> 422",[39m
+[31m+   "GET /api/season-passes [kupec] -> 400",[39m
+[31m+   "POST /api/season-passes [kupec] -> 422",[39m
+[31m+   "POST /api/school-bookings [pořadatel] -> 422",[39m
+[31m+   "POST /api/subscriptions/subscribe [kupec] -> 422",[39m
+[31m+   "GET /api/tickets/[id]/memory [kupec] -> 404",[39m
+[31m+   "GET /api/tickets/transfer/[token] [kupec] -> 404",[39m
+[31m+   "GET /api/transfer/accept/[token] [kupec] -> 404",[39m
+[31m+   "POST /api/travel/rail/search [partner] -> 503",[39m
+[31m+   "POST /api/v2/distribution/token [partner] -> 400",[39m
+[31m+   "GET /api/v3/secure-entry/barcode [partner] -> 400",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/fix-r4-routes-anon.live.test.ts:[2m80:83[22m[39m
+    [90m 78| [39m    [34mwriteFileSync[39m([33mOUT[39m[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m({ tested[33m:[39m rows[33m.[39mlength[33m,[39m ok[33m,[39m bad }…
+    [90m 79| [39m    console[33m.[39m[34mlog[39m([32m`[routes-anon] tested=[39m[36m${[39mrows[33m.[39mlength[36m}[39m[32m ok=[39m[36m${[39mok[36m}[39m[32m bad=[39m[36m${[39mba…
+    [90m 80| [39m    [34mexpect[39m(bad[33m.[39m[34mmap[39m((b) [33m=>[39m [32m`[39m[36m${[39mb[33m.[39mmethod[36m}[39m[32m [39m[36m${[39mb[33m.[39mroute[36m}[39m[32m [[39m[36m${[39mb[33m.[39mcaller[36m}[39m[32m] -> [39m[36m${[39mb…
+    [90m   | [39m                                                                                  [31m^[39m
+    [90m 81| [39m  }[33m,[39m [34m1_800_000[39m)[33m;[39m
+    [90m 82| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 20:17:50
+[2m   Duration [22m 47.00s[2m (transform 11.98s, setup 0ms, collect 271ms, tests 45.91s, environment 0ms, prepare 484ms)[22m
+

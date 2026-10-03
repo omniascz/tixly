@@ -18,11 +18,11 @@ interface PromoterRow {
 
 async function fetchPromoter(slug: string): Promise<PromoterRow | null> {
   if (!/^[a-z0-9-]{2,80}$/.test(slug)) return null;
-  // RLS bypass — public landing page (read-only metadata)
+  // Veřejná landing page (read-only metadata pořadatele; platform.promoters je čitelná všem)
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: anonymní čtení veřejných dat (published akce / veřejně čitelné tabulky); admin eskalace odstraněna.
     const r = await client.query<PromoterRow>(
       `SELECT id, slug, name, brand_color_hex, brand_logo_url
          FROM platform.promoters

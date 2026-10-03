@@ -1,0 +1,28 @@
+catalog.event_seats|p_event_seats_event_scope|ALL|(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1
+   FROM catalog.events e
+  WHERE ((e.id = event_seats.event_id) AND ((e.promoter_id = app_current_promoter_id()) OR (e.status = 'published'::text))))))|-
+catalog.events|p_events_promoter_scope|ALL|(app_is_platform_admin() OR (promoter_id = app_current_promoter_id()) OR (status = 'published'::text))|-
+catalog.ticket_types|p_ticket_types_event_scope|ALL|(app_is_platform_admin() OR (EXISTS ( SELECT 1
+   FROM catalog.events e
+  WHERE ((e.id = ticket_types.event_id) AND ((e.promoter_id = app_current_promoter_id()) OR (e.status = 'published'::text))))))|-
+catalog.venues|p_venues_tenant|ALL|(app_is_platform_admin() OR (promoter_id = app_current_promoter_id()))|-
+catalog.venues|svc_catalog_venues|ALL|app_is_service()|app_is_service()
+identity.users|p_users_promoter_insert|INSERT|-|(app_current_promoter_id() IS NOT NULL)
+identity.users|p_users_select_buyer|SELECT|app_can_see_user_as_buyer(id)|-
+identity.users|p_users_select_promoter|SELECT|app_can_see_user_as_promoter(id)|-
+identity.users|p_users_select_self|SELECT|(app_is_service() OR app_is_platform_admin() OR (id = app_current_user_id()))|-
+identity.users|p_users_write|ALL|(app_is_service() OR app_is_platform_admin() OR (id = app_current_user_id()))|(app_is_service() OR app_is_platform_admin() OR (id = app_current_user_id()))
+orders.order_items|p_order_items_scope|ALL|(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1
+   FROM orders.orders o
+  WHERE ((o.id = order_items.order_id) AND ((o.user_id = app_current_user_id()) OR (EXISTS ( SELECT 1
+           FROM catalog.events e
+          WHERE ((e.id = o.event_id) AND (e.promoter_id = app_current_promoter_id())))))))))|-
+orders.orders|p_orders_scope|ALL|(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()) OR (EXISTS ( SELECT 1
+   FROM catalog.events e
+  WHERE ((e.id = orders.event_id) AND (e.promoter_id = app_current_promoter_id())))))|-
+platform.promoters|p_promoters_read|SELECT|true|-
+platform.promoters|p_promoters_write|ALL|(app_is_platform_admin() OR app_is_service() OR (id = app_current_promoter_id()))|(app_is_platform_admin() OR app_is_service() OR (id = app_current_promoter_id()))
+tickets.tickets|p_tickets_scope|ALL|(app_is_platform_admin() OR app_is_service() OR (owner_id = app_current_user_id()) OR (EXISTS ( SELECT 1
+   FROM (orders.orders o
+     JOIN catalog.events e ON ((e.id = o.event_id)))
+  WHERE ((o.id = tickets.order_id) AND (e.promoter_id = app_current_promoter_id())))))|-

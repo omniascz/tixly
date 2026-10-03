@@ -1,0 +1,14 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/fix-r4-exchange-single-ticket.live.test.ts[2m > [22m[2mKrok 3e (kolo 4) — výměna mění jen vyměněnou vstupenku[2m > [22m[2mvymění jen jednu vstupenku ze dvou[22m[39m
+[3e] {"moved":{"event_id":"25212f9d-0156-40ce-bd4e-f9e8cf728c3d","ticket_type_id":"7f60fb35-8602-4a31-929a-a54c22db2c1c"},"stays":{"event_id":"f4d4efe5-d068-4d75-8061-9c2fbe144753","ticket_type_id":"c7fa9be2-f2b7-4379-b42a-42ef39a90be4"}}
+
+ [32m✓[39m tests/fix-r4-exchange-single-ticket.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 359[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m   Start at [22m 21:15:49
+[2m   Duration [22m 811ms[2m (transform 106ms, setup 0ms, collect 106ms, tests 359ms, environment 0ms, prepare 85ms)[22m
+

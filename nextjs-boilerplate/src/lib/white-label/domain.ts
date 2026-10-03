@@ -6,7 +6,7 @@
  *
  * Cache: 60s in-memory pro performance.
  */
-import { db } from "@/lib/db/rls-pool";
+import { asSystemInTx, db } from "@/lib/db/rls-pool";
 
 
 
@@ -43,8 +43,8 @@ export async function resolveWhiteLabel(host: string): Promise<WhiteLabelContext
     return cached.value;
   }
 
-  // RLS bypass — public read-only lookup, žádný session context není
-  // dostupný (host header arrives před auth resolution).
+  // Veřejný read-only lookup před autentizací (host header) — domény/branding čte jen
+  // systém (politiky: service / admin / pořadatel) → asSystemInTx, ne admin.
   const client = await db().connect();
   let r: { rows: Array<{
     promoter_id: string;
@@ -56,8 +56,8 @@ export async function resolveWhiteLabel(host: string): Promise<WhiteLabelContext
   }> };
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
-    r = await client.query<{
+    // Kolo 3: systémové čtení veřejných metadat domény (asSystemInTx), ne platform admin.
+    r = await asSystemInTx(client, () => client.query<{
       promoter_id: string;
       slug: string;
       name: string;
@@ -73,7 +73,7 @@ export async function resolveWhiteLabel(host: string): Promise<WhiteLabelContext
        WHERE LOWER(pd.domain) = $1 AND pd.verified_at IS NOT NULL
          AND p.status = 'active'`,
       [normalized],
-    );
+    ));
     await client.query('COMMIT');
   } finally {
     client.release();

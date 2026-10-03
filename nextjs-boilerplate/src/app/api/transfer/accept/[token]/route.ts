@@ -57,7 +57,8 @@ export async function GET(
 
   return NextResponse.json({
     invitationId: inv.id,
-    from: { email: inv.from_email, name: inv.from_name },
+    // Kolo 4: e-mail odesílatele se v náhledu podle tokenu nevrací — jen jméno.
+    from: { name: inv.from_name },
     toEmail: inv.to_email,
     message: inv.message,
     expiresAt: inv.expires_at,

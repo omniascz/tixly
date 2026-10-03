@@ -1,0 +1,217 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstderr[2m | src/app/api/subscriptions/checkout/route.test.ts[2m > [22m[2mPOST /api/subscriptions/checkout[2m > [22m[2m404 pokud package neexistuje[22m[39m
+[POST /api/subscriptions/checkout] TypeError: Cannot read properties of undefined (reading 'r0')
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:208:34
+    at Array.every (<anonymous>)
+    at beginWithGucs [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:208:13[90m)[39m
+    at Object.wrapped [as query] [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:297:19[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\subscriptions\checkout\route.ts:55:5
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\subscriptions\checkout\route.test.ts:64:17
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+
+[90mstderr[2m | src/app/api/subscriptions/checkout/route.test.ts[2m > [22m[2mPOST /api/subscriptions/checkout[2m > [22m[2m409 pokud package není on_sale[22m[39m
+[POST /api/subscriptions/checkout] Error: rls-pool: RLS kontext se nepodařilo nastavit v transakci
+    at beginWithGucs [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:210:11[90m)[39m
+    at Object.wrapped [as query] [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:297:19[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\subscriptions\checkout\route.ts:55:5
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\subscriptions\checkout\route.test.ts:87:17
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3)
+    at file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4mvitest[24m/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:116:7
+
+[90mstderr[2m | src/app/api/subscriptions/checkout/route.test.ts[2m > [22m[2mPOST /api/subscriptions/checkout[2m > [22m[2m409 pokud SOLD_OUT (capacity exhausted)[22m[39m
+[POST /api/subscriptions/checkout] Error: rls-pool: RLS kontext se nepodařilo nastavit v transakci
+    at beginWithGucs [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:210:11[90m)[39m
+    at Object.wrapped [as query] [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:297:19[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\subscriptions\checkout\route.ts:55:5
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\subscriptions\checkout\route.test.ts:112:17
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3)
+    at file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4mvitest[24m/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:116:7
+
+[90mstderr[2m | src/app/api/subscriptions/checkout/route.test.ts[2m > [22m[2mPOST /api/subscriptions/checkout[2m > [22m[2m200 happy path, vrátí holderId + gatewayUrl + price[22m[39m
+[POST /api/subscriptions/checkout] Error: rls-pool: RLS kontext se nepodařilo nastavit v transakci
+    at beginWithGucs [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:210:11[90m)[39m
+    at Object.wrapped [as query] [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:297:19[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\subscriptions\checkout\route.ts:55:5
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\subscriptions\checkout\route.test.ts:140:17
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3)
+    at file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4mvitest[24m/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:116:7
+
+[90mstderr[2m | src/app/api/subscriptions/checkout/route.test.ts[2m > [22m[2mPOST /api/subscriptions/checkout[2m > [22m[2mearly-bird cena aplikovaná pokud early_bird_until v budoucnosti[22m[39m
+[POST /api/subscriptions/checkout] Error: rls-pool: RLS kontext se nepodařilo nastavit v transakci
+    at beginWithGucs [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:210:11[90m)[39m
+    at Object.wrapped [as query] [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:297:19[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\subscriptions\checkout\route.ts:55:5
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\subscriptions\checkout\route.test.ts:172:17
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3)
+    at file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4mvitest[24m/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:116:7
+
+[90mstderr[2m | src/app/api/subscriptions/checkout/route.test.ts[2m > [22m[2mPOST /api/subscriptions/checkout[2m > [22m[2m409 SEAT_TAKEN při konfliktu uq constraint[22m[39m
+[POST /api/subscriptions/checkout] Error: rls-pool: RLS kontext se nepodařilo nastavit v transakci
+    at beginWithGucs [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:210:11[90m)[39m
+    at Object.wrapped [as query] [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:297:19[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\subscriptions\checkout\route.ts:55:5
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\subscriptions\checkout\route.test.ts:199:17
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3)
+    at file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4mvitest[24m/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:116:7
+
+ [33m❯[39m src/app/api/subscriptions/checkout/route.test.ts [2m ([22m[2m7 tests[22m [2m|[22m [31m6 failed[39m[2m)[22m[90m 135[2mms[22m[39m
+[31m   [33m❯[31m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m404 pokud package neexistuje[39m
+[31m     → expected 500 to be 404 // Object.is equality[39m
+[31m   [33m❯[31m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m409 pokud package není on_sale[39m
+[31m     → expected 500 to be 409 // Object.is equality[39m
+[31m   [33m❯[31m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m409 pokud SOLD_OUT (capacity exhausted)[39m
+[31m     → expected 500 to be 409 // Object.is equality[39m
+[31m   [33m❯[31m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m200 happy path, vrátí holderId + gatewayUrl + price[39m
+[31m     → expected 500 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22mearly-bird cena aplikovaná pokud early_bird_until v budoucnosti[39m
+[31m     → expected 500 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m409 SEAT_TAKEN při konfliktu uq constraint[39m
+[31m     → expected 500 to be 409 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 6 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m404 pokud package neexistuje
+[31m[1mAssertionError[22m: expected 500 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m src/app/api/subscriptions/checkout/route.test.ts:[2m65:24[22m[39m
+    [90m 63| [39m    dataQuery[33m.[39m[34mmockResolvedValueOnce[39m({ rows[33m:[39m [] })[33m;[39m [90m// SELECT package[39m
+    [90m 64| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [33mPOST[39m([34mmakeReq[39m([33mVALID_BODY[39m))[33m;[39m
+    [90m 65| [39m    [34mexpect[39m(res[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m404[39m)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m 66| [39m    [35mconst[39m json [33m=[39m [35mawait[39m res[33m.[39m[34mjson[39m()[33m;[39m
+    [90m 67| [39m    [34mexpect[39m(json[33m.[39merror)[33m.[39m[34mtoBe[39m([32m'PACKAGE_NOT_FOUND'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m409 pokud package není on_sale
+[31m[1mAssertionError[22m: expected 500 to be 409 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 409[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m src/app/api/subscriptions/checkout/route.test.ts:[2m88:24[22m[39m
+    [90m 86| [39m    })[33m;[39m
+    [90m 87| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [33mPOST[39m([34mmakeReq[39m([33mVALID_BODY[39m))[33m;[39m
+    [90m 88| [39m    [34mexpect[39m(res[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m409[39m)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m 89| [39m    [35mconst[39m json [33m=[39m [35mawait[39m res[33m.[39m[34mjson[39m()[33m;[39m
+    [90m 90| [39m    [34mexpect[39m(json[33m.[39merror)[33m.[39m[34mtoBe[39m([32m'NOT_ON_SALE'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m409 pokud SOLD_OUT (capacity exhausted)
+[31m[1mAssertionError[22m: expected 500 to be 409 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 409[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m src/app/api/subscriptions/checkout/route.test.ts:[2m113:24[22m[39m
+    [90m111| [39m      [33m.[39m[34mmockResolvedValueOnce[39m({ rows[33m:[39m [{ count[33m:[39m [32m'10'[39m }] })[33m;[39m [90m// sold cou[39m…
+    [90m112| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [33mPOST[39m([34mmakeReq[39m([33mVALID_BODY[39m))[33m;[39m
+    [90m113| [39m    [34mexpect[39m(res[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m409[39m)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m114| [39m    [35mconst[39m json [33m=[39m [35mawait[39m res[33m.[39m[34mjson[39m()[33m;[39m
+    [90m115| [39m    [34mexpect[39m(json[33m.[39merror)[33m.[39m[34mtoBe[39m([32m'SOLD_OUT'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m200 happy path, vrátí holderId + gatewayUrl + price
+[31m[1mAssertionError[22m: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m src/app/api/subscriptions/checkout/route.test.ts:[2m141:24[22m[39m
+    [90m139| [39m
+    [90m140| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [33mPOST[39m([34mmakeReq[39m([33mVALID_BODY[39m))[33m;[39m
+    [90m141| [39m    [34mexpect[39m(res[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m142| [39m    [35mconst[39m json [33m=[39m [35mawait[39m res[33m.[39m[34mjson[39m()[33m;[39m
+    [90m143| [39m    [34mexpect[39m(json[33m.[39mok)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22mearly-bird cena aplikovaná pokud early_bird_until v budoucnosti
+[31m[1mAssertionError[22m: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m src/app/api/subscriptions/checkout/route.test.ts:[2m173:24[22m[39m
+    [90m171| [39m
+    [90m172| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [33mPOST[39m([34mmakeReq[39m([33mVALID_BODY[39m))[33m;[39m
+    [90m173| [39m    [34mexpect[39m(res[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m174| [39m    [35mconst[39m json [33m=[39m [35mawait[39m res[33m.[39m[34mjson[39m()[33m;[39m
+    [90m175| [39m    [34mexpect[39m(json[33m.[39mpricePaidHalire)[33m.[39m[34mtoBe[39m([34m200000[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m409 SEAT_TAKEN při konfliktu uq constraint
+[31m[1mAssertionError[22m: expected 500 to be 409 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 409[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m src/app/api/subscriptions/checkout/route.test.ts:[2m205:24[22m[39m
+    [90m203| [39m      })[33m,[39m
+    [90m204| [39m    )[33m;[39m
+    [90m205| [39m    [34mexpect[39m(res[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m409[39m)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m206| [39m    [35mconst[39m json [33m=[39m [35mawait[39m res[33m.[39m[34mjson[39m()[33m;[39m
+    [90m207| [39m    [34mexpect[39m(json[33m.[39merror)[33m.[39m[34mtoBe[39m([32m'SEAT_TAKEN'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m6 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (7)[39m
+[2m   Start at [22m 11:18:26
+[2m   Duration [22m 67.86s[2m (transform 1.75s, setup 22.58s, collect 1.92s, tests 135ms, environment 40.10s, prepare 720ms)[22m
+

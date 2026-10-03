@@ -29,6 +29,18 @@ export async function GET(req: NextRequest): Promise<Response> {
       return NextResponse.redirect(`${appUrl}/cs/checkout?paypal_error=missing_params`);
     }
 
+    // Kolo 2: PayPal objednávka (token) musí PATŘIT této Tixly objednávce — checkout ukládá
+    // PayPal order ID do gopay_payment_id. Dřív se capture provedl a objednávka označila paid
+    // podle samotného ?orderId=, takže cizí schválená PayPal platba šla „přiřadit" jiné objednávce.
+    const bound = await db().query<{ id: string }>(
+      `SELECT id FROM orders.orders WHERE id::text = $1 AND gopay_payment_id = $2`,
+      [tixlyOrderId, paypalOrderId],
+    );
+    if (bound.rows.length === 0) {
+      console.warn('[paypal capture] token does not belong to order', tixlyOrderId);
+      return NextResponse.redirect(`${appUrl}/cs/checkout?paypal_error=order_mismatch&orderId=${tixlyOrderId}`);
+    }
+
     try {
       const capture = await capturePayPalOrder(paypalOrderId);
 
@@ -44,9 +56,9 @@ export async function GET(req: NextRequest): Promise<Response> {
         const orderRes = await client.query<{ id: string; status: string; total_amount: number; currency: string }>(
           `SELECT id, status, total_amount, currency
            FROM orders.orders
-           WHERE id = $1
+           WHERE id = $1 AND gopay_payment_id = $2
            FOR UPDATE`,
-          [tixlyOrderId],
+          [tixlyOrderId, paypalOrderId],
         );
 
         if (orderRes.rows.length === 0) {
@@ -74,7 +86,8 @@ export async function GET(req: NextRequest): Promise<Response> {
         await client.query(
           `INSERT INTO orders.payment_events
              (order_id, event_type, gopay_status, amount, raw_payload, payment_provider)
-           VALUES ($1, 'payment_paid', 'COMPLETED', $2, $3::jsonb, 'paypal')`,
+           VALUES ($1, 'payment_paid', 'COMPLETED', $2, $3::jsonb, 'paypal')
+           ON CONFLICT DO NOTHING`,
           [
             order.id,
             capturedMinor,

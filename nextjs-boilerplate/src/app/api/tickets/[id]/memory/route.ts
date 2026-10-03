@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { verifyTicketMagicToken } from '@/lib/tickets/magic-token';
 
 interface MemoryRow {
   id: string;
@@ -33,6 +34,15 @@ export async function GET(
   const queryToken = req.nextUrl.searchParams.get('token');
   const userId = req.headers.get('x-user-id');
 
+  // Kolo 4: dřív stačil JAKÝKOLI `?token=` (hasQueryToken = !!queryToken) — token se nikde
+  // nevydával ani neověřoval. Teď: vlastník (JWT), nebo podepsaný token TÉTO vstupenky
+  // (HMAC, stejný jako SMS odkaz /t/{token}; přikládá ho e-mail s pamětní vstupenkou).
+  // Ověření proběhne dřív, než se vstupenka vůbec hledá — anonym nezjistí ani existenci.
+  const tokenOk = !!queryToken && verifyTicketMagicToken(queryToken) === ticketId;
+  if (!userId && !tokenOk) {
+    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  }
+
   return runWithServiceContext(async () => {
     const r = await db().query<MemoryRow>(
       `SELECT t.id, t.status, t.used_at, t.commemorative_sent_at, t.owner_id,
@@ -60,11 +70,10 @@ export async function GET(
 
     const ticket = r.rows[0];
 
-    const isOwner = userId && userId === ticket.owner_id;
-    const hasQueryToken = !!queryToken;
-
-    if (!isOwner && !hasQueryToken) {
-      return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+    const isOwner = !!userId && userId === ticket.owner_id;
+    if (!isOwner && !tokenOk) {
+      // Cizí přihlášený: jako neexistující vstupenka (žádné prozrazení existence).
+      return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
     }
 
     const castRes = await db().query<CastRow>(

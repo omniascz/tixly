@@ -48,7 +48,8 @@ export async function POST(req: NextRequest): Promise<Response> {
   const config = getComGateConfig();
   if (!config.isConfigured) {
     console.error('[comgate webhook] not configured — rejecting');
-    return NextResponse.json({ error: 'NOT_CONFIGURED' }, { status: 503 });
+    // Kolo 2: 4xx (fail-closed) — bez konfigurace nelze notifikaci ověřit vůbec.
+    return NextResponse.json({ error: 'WEBHOOK_NOT_CONFIGURED' }, { status: 401 });
   }
   if (!safeEqual(providedSecret, config.secret)) {
     return NextResponse.json({ error: 'INVALID_SECRET' }, { status: 401 });
@@ -91,19 +92,19 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     // Integrita částky (halíře) + měna — viz gopay webhook. Underpayment se
     // nesmí proměnit ve vystavené vstupenky.
+    // Kolo 2: chybějící / nulová / nečíselná částka NIKDY nepokrývá cenu (dřív `true`
+    // → DEV_STUB nebo PAID s amount 0 označil objednávku zaplacenou). Měna musí sedět.
     const paidAmount = Number(status.amountHalire);
-    const amountCovers =
-      !Number.isFinite(paidAmount) || paidAmount <= 0
-        ? true
-        : paidAmount >= order.total_amount;
-    const currencyMatches = !status.currency || status.currency === order.currency;
+    const amountCovers = Number.isFinite(paidAmount) && paidAmount > 0 && paidAmount >= order.total_amount;
+    const currencyMatches = !!status.currency && status.currency === order.currency;
     const amountOk = amountCovers && currencyMatches;
     const effectivePaid = status.paid && amountOk;
 
     await client.query(
       `INSERT INTO orders.payment_events
          (order_id, event_type, gopay_status, amount, raw_payload, payment_provider)
-       VALUES ($1, $2, $3, $4, $5::jsonb, 'comgate')`,
+       VALUES ($1, $2, $3, $4, $5::jsonb, 'comgate')
+           ON CONFLICT DO NOTHING`,
       [
         order.id,
         effectivePaid ? 'payment_paid' : status.refunded ? 'payment_refunded' : 'webhook_received',

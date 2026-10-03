@@ -23,7 +23,7 @@ export async function GET(
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
 
     const inv = await client.query<{
       id: string;
@@ -96,9 +96,8 @@ export async function GET(
       invitationId: i.id,
       status: i.status,
       expired: new Date(i.expires_at).getTime() < Date.now(),
+      // Kolo 4: e-mail a ID organizátora (soukromá osoba) se veřejně nevrací — jen jméno.
       organizer: {
-        userId: i.organizer_user_id,
-        email: i.organizer_email,
         name: i.organizer_name,
       },
       event: {

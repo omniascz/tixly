@@ -1,0 +1,38 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r4-free-upgrade-capacity.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 527[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-free-upgrade-capacity.live.test.ts[2m > [22mKrok 3f (kolo 4) — bezplatný upgrade přesune kapacitu[2m > [22mcílový −1, zdrojový +1[39m
+[31m     → expected { tgt: 5, src: 9 } to deeply equal { tgt: 4, src: 10 }[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-free-upgrade-capacity.live.test.ts[2m > [22mKrok 3f (kolo 4) — bezplatný upgrade přesune kapacitu[2m > [22mcílový −1, zdrojový +1
+[31m[1mAssertionError[22m: expected { tgt: 5, src: 9 } to deeply equal { tgt: 4, src: 10 }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[32m-   "src": 10,[39m
+[32m-   "tgt": 4,[39m
+[31m+   "src": 9,[39m
+[31m+   "tgt": 5,[39m
+[2m  }[22m
+
+[36m [2m❯[22m tests/fix-r4-free-upgrade-capacity.live.test.ts:[2m50:73[22m[39m
+    [90m 48| [39m    [34mexpect[39m([33mJSON[39m[33m.[39m[34mparse[39m(body))[33m.[39m[34mtoMatchObject[39m({ applied[33m:[39m [35mtrue[39m[33m,[39m upgradeFee…
+    [90m 49| [39m    [34mexpect[39m(([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT ticket_type_id FROM tickets[39m…
+    [90m 50| [39m    [34mexpect[39m({ tgt[33m:[39m [35mawait[39m [34mrem[39m(target)[33m,[39m src[33m:[39m [35mawait[39m [34mrem[39m(fc[33m.[39mticketTypeId) }…
+    [90m   | [39m                                                                        [31m^[39m
+    [90m 51| [39m  })[33m;[39m
+    [90m 52| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 21:19:20
+[2m   Duration [22m 1.20s[2m (transform 184ms, setup 0ms, collect 148ms, tests 527ms, environment 1ms, prepare 154ms)[22m
+

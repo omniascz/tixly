@@ -1,0 +1,110 @@
+ M GO-LIVE-CHECKLIST.md
+ M nextjs-boilerplate/FINDINGS_RLS.md
+ M nextjs-boilerplate/src/app/[locale]/events/[id]/seats/SeatPicker.tsx
+ M nextjs-boilerplate/src/app/admin/events/[id]/EventDetailNav.tsx
+ M nextjs-boilerplate/src/app/admin/events/[id]/accreditation/page.tsx
+ M nextjs-boilerplate/src/app/admin/events/[id]/ai-description/page.tsx
+ M nextjs-boilerplate/src/app/admin/events/[id]/distribution/page.tsx
+ M nextjs-boilerplate/src/app/admin/events/[id]/embed/page.tsx
+ M nextjs-boilerplate/src/app/admin/events/[id]/guestlist/page.tsx
+ M nextjs-boilerplate/src/app/admin/events/[id]/holds/page.tsx
+ M nextjs-boilerplate/src/app/admin/events/[id]/press/page.tsx
+ M nextjs-boilerplate/src/app/admin/events/[id]/settings/page.tsx
+ M nextjs-boilerplate/src/app/admin/events/[id]/table-seating/page.tsx
+ M nextjs-boilerplate/src/app/admin/events/[id]/templates/page.tsx
+ M nextjs-boilerplate/src/app/admin/events/[id]/ticket-types/page.tsx
+ M nextjs-boilerplate/src/app/admin/events/[id]/volume-discounts/page.tsx
+ M nextjs-boilerplate/src/app/admin/events/new/page.tsx
+ M nextjs-boilerplate/src/app/admin/orders/[orderId]/SupportActions.tsx
+ M nextjs-boilerplate/src/app/admin/orders/[orderId]/page.tsx
+ M nextjs-boilerplate/src/app/admin/orders/page.tsx
+ M nextjs-boilerplate/src/app/admin/page.tsx
+ M nextjs-boilerplate/src/app/admin/scanner/page.tsx
+ M nextjs-boilerplate/src/app/api/admin/artist-payouts/calculate/route.ts
+ M nextjs-boilerplate/src/app/api/admin/events/[id]/comps/route.ts
+ M nextjs-boilerplate/src/app/api/admin/events/[id]/guestlist/checkin/route.ts
+ M nextjs-boilerplate/src/app/api/admin/events/[id]/guestlist/route.ts
+ M nextjs-boilerplate/src/app/api/admin/events/[id]/holds/route.ts
+ M nextjs-boilerplate/src/app/api/admin/events/[id]/route.ts
+ M nextjs-boilerplate/src/app/api/admin/events/[id]/royalties/[agreementId]/route.ts
+ M nextjs-boilerplate/src/app/api/admin/events/[id]/royalties/route.ts
+ M nextjs-boilerplate/src/app/api/admin/orders/route.ts
+ M nextjs-boilerplate/src/app/api/internal/cron/release-expired-seat-holds/route.ts
+ M nextjs-boilerplate/src/app/api/internal/order-completed/route.ts
+ M nextjs-boilerplate/src/app/api/internal/royalties/accrue/route.ts
+ M nextjs-boilerplate/src/app/api/rfid/scan/route.ts
+ M nextjs-boilerplate/src/app/api/subscriptions/checkout/route.test.ts
+ M nextjs-boilerplate/src/components/admin/DataTable.tsx
+ M nextjs-boilerplate/src/components/admin/Sidebar.tsx
+ M nextjs-boilerplate/src/components/admin/StatusBadge.tsx
+ M nextjs-boilerplate/src/lib/format.ts
+ M nextjs-boilerplate/src/lib/tax/__tests__/vat-rates.test.ts
+ M nextjs-boilerplate/src/lib/tax/vat-rates.ts
+ M nextjs-boilerplate/src/middleware.ts
+ M plan-oprav-ux.html
+?? UX-REMEDIACE.md
+?? migrations/472_royalty_agreements_currency.sql
+?? migrations/473_event_costs.sql
+?? migrations/474_royalty_deal_terms.sql
+?? migrations/475_artist_settlements.sql
+?? migrations/476_venue_date_holds.sql
+?? migrations/477_artist_offers.sql
+?? migrations/478_reentry_auto_direction.sql
+?? migrations/479_royalty_policies_guc_drift.sql
+?? nextjs-boilerplate/src/app/admin/calendar/
+?? nextjs-boilerplate/src/app/admin/events/[id]/ceny/
+?? nextjs-boilerplate/src/app/admin/events/[id]/marketing/
+?? nextjs-boilerplate/src/app/admin/events/[id]/nastaveni/
+?? nextjs-boilerplate/src/app/admin/events/[id]/offers/
+?? nextjs-boilerplate/src/app/admin/events/[id]/page.tsx
+?? nextjs-boilerplate/src/app/admin/events/[id]/planek/
+?? nextjs-boilerplate/src/app/admin/events/[id]/prodej/
+?? nextjs-boilerplate/src/app/admin/events/[id]/provoz/
+?? nextjs-boilerplate/src/app/admin/events/[id]/publikum/
+?? nextjs-boilerplate/src/app/admin/events/[id]/rozpocet/
+?? nextjs-boilerplate/src/app/admin/events/[id]/settlement/
+?? nextjs-boilerplate/src/app/admin/events/[id]/vstupenky/
+?? nextjs-boilerplate/src/app/admin/events/[id]/vyuctovani/
+?? nextjs-boilerplate/src/app/admin/venues/page.tsx
+?? nextjs-boilerplate/src/app/admin/vse/
+?? nextjs-boilerplate/src/app/api/admin/date-holds/
+?? nextjs-boilerplate/src/app/api/admin/events/[id]/artist-settlements/
+?? nextjs-boilerplate/src/app/api/admin/events/[id]/break-even/
+?? nextjs-boilerplate/src/app/api/admin/events/[id]/costs/
+?? nextjs-boilerplate/src/app/api/admin/events/[id]/holds/issue/
+?? nextjs-boilerplate/src/app/api/admin/events/[id]/occupancy/
+?? nextjs-boilerplate/src/app/api/admin/events/[id]/offers/
+?? nextjs-boilerplate/src/app/api/admin/events/[id]/royalties/[agreementId]/preview/
+?? nextjs-boilerplate/src/app/api/admin/orders/[orderId]/send-tickets/
+?? nextjs-boilerplate/src/app/api/admin/scanner/passage/
+?? nextjs-boilerplate/src/app/api/admin/stats/
+?? nextjs-boilerplate/src/app/api/events/[id]/seats/best-available/
+?? nextjs-boilerplate/src/app/api/internal/cron/expire-date-holds/
+?? nextjs-boilerplate/src/app/api/internal/royalties/accrue/route.test.ts
+?? nextjs-boilerplate/src/app/api/offers/
+?? nextjs-boilerplate/src/app/nabidka/
+?? nextjs-boilerplate/src/components/admin/RefundForm.tsx
+?? nextjs-boilerplate/src/components/admin/SectionHub.tsx
+?? nextjs-boilerplate/src/lib/admin/
+?? nextjs-boilerplate/src/lib/booking/
+?? nextjs-boilerplate/src/lib/budget/
+?? nextjs-boilerplate/src/lib/email/send-order-tickets.ts
+?? nextjs-boilerplate/src/lib/internal-auth.test.ts
+?? nextjs-boilerplate/src/lib/internal-auth.ts
+?? nextjs-boilerplate/src/lib/next/
+?? nextjs-boilerplate/src/lib/rfid/
+?? nextjs-boilerplate/src/lib/royalties/deal.test.ts
+?? nextjs-boilerplate/src/lib/royalties/deal.ts
+?? nextjs-boilerplate/src/lib/royalties/settlement-doc.test.ts
+?? nextjs-boilerplate/src/lib/royalties/settlement-doc.ts
+?? nextjs-boilerplate/src/lib/scanner/passage.test.ts
+?? nextjs-boilerplate/src/lib/scanner/passage.ts
+?? nextjs-boilerplate/src/lib/seating/best-available.test.ts
+?? nextjs-boilerplate/src/lib/seating/best-available.ts
+?? nextjs-boilerplate/src/lib/seating/seat-range.test.ts
+?? nextjs-boilerplate/src/lib/seating/seat-range.ts
+?? nextjs-boilerplate/tests/booking-settlement.live.test.ts
+?? nextjs-boilerplate/tests/red-green-479.live.test.ts
+?? plan-booking-settlement.html
+?? plan-dohnat-mezery.html
+?? srovnani-tixly-vs-trh.html

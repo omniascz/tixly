@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isRefreshTokenPayload } from '@/lib/security/token-type';
 import {
   signAccessToken,
   verifyToken,
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'Invalid refresh token' }, { status: 401 });
   }
 
-  if (payload['type'] !== 'refresh' || !payload.sub) {
+  if (!isRefreshTokenPayload(payload) || !payload.sub) {
     return NextResponse.json({ error: 'Invalid token type' }, { status: 401 });
   }
 
@@ -73,7 +74,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   } catch {
     return NextResponse.redirect(loginUrl);
   }
-  if (payload['type'] !== 'refresh' || !payload.sub) {
+  if (!isRefreshTokenPayload(payload) || !payload.sub) {
     return NextResponse.redirect(loginUrl);
   }
 

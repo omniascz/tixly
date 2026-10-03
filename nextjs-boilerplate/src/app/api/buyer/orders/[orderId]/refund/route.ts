@@ -17,8 +17,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
+import { executeOrderRefund } from '@/lib/payment/refund-order';
 import { z } from 'zod';
 
 
@@ -167,21 +168,23 @@ export async function POST(
       }
     }
 
-    // 4) Refund: full (default) nebo partial (ticketIds podset)
+    // 4) Refund: full (default) nebo partial (ticketIds podset).
+    // Zde už jen PŘIPRAVÍME (přečteme) — samotný přesun peněz a revoke řídí
+    // executeOrderRefund (FIX K2: přes platební bránu, refunded až po potvrzení).
     const isPartial = Array.isArray(parsed.data.ticketIds) && parsed.data.ticketIds.length > 0;
-
     let refundedHalire = 0;
-    let revokedCount = 0;
-    let remainingValid = 0;
     let revokedTicketIds: string[] = [];
+    const totalValid = Number(
+      (await client.query<{ c: string }>(
+        `SELECT COUNT(*)::text c FROM tickets.tickets WHERE order_id = $1 AND status = 'valid'`,
+        [params.orderId],
+      )).rows[0]?.c ?? 0,
+    );
 
     if (isPartial) {
-      // Validace: všechny tickety patří k orderu a jsou valid
       const eligRes = await client.query<{ id: string; original_price: number }>(
-        `SELECT id, original_price
-         FROM tickets.tickets
-         WHERE id = ANY($1::uuid[]) AND order_id = $2 AND status = 'valid'
-         FOR UPDATE`,
+        `SELECT id, original_price FROM tickets.tickets
+          WHERE id = ANY($1::uuid[]) AND order_id = $2 AND status = 'valid'`,
         [parsed.data.ticketIds, params.orderId],
       );
       if (eligRes.rows.length === 0) {
@@ -193,150 +196,97 @@ export async function POST(
       }
       revokedTicketIds = eligRes.rows.map((r) => r.id);
       refundedHalire = eligRes.rows.reduce((s, r) => s + r.original_price, 0);
-      revokedCount = eligRes.rows.length;
-
-      await client.query(
-        `UPDATE tickets.tickets
-         SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
-         WHERE id = ANY($1::uuid[])`,
-        [revokedTicketIds],
-      );
-
-      // Restore inventory per ticket_type podle revoked count
-      await client.query(
-        `UPDATE catalog.ticket_types tt
-         SET remaining_qty = remaining_qty + sub.qty
-         FROM (
-           SELECT ticket_type_id, COUNT(*)::int AS qty
-           FROM tickets.tickets
-           WHERE id = ANY($1::uuid[])
-           GROUP BY ticket_type_id
-         ) sub
-         WHERE tt.id = sub.ticket_type_id`,
-        [revokedTicketIds],
-      );
-
-      // Release sedadel pouze pro revoked tickety
-      await client.query(
-        `UPDATE catalog.event_seats
-           SET status = 'available', order_id = NULL, ticket_id = NULL,
-               hold_user_id = NULL, hold_until = NULL, updated_at = NOW()
-         WHERE ticket_id = ANY($1::uuid[])
-            OR id IN (SELECT seat_id FROM tickets.tickets
-                      WHERE id = ANY($1::uuid[]) AND seat_id IS NOT NULL)`,
-        [revokedTicketIds],
-      );
-
-      // Pokud po refundu nezůstal žádný valid lístek → order = refunded
-      const remainRes = await client.query<{ count: string }>(
-        `SELECT COUNT(*)::text AS count FROM tickets.tickets
-         WHERE order_id = $1 AND status = 'valid'`,
-        [params.orderId],
-      );
-      remainingValid = Number(remainRes.rows[0]?.count ?? 0);
-      if (remainingValid === 0) {
-        await client.query(
-          `UPDATE orders.orders SET status = 'refunded', updated_at = NOW() WHERE id = $1`,
-          [params.orderId],
-        );
-      }
     } else {
-      // Full refund (zachované původní chování)
       refundedHalire = o.total_amount;
-      await client.query(
-        `UPDATE orders.orders SET status = 'refunded', updated_at = NOW() WHERE id = $1`,
-        [params.orderId],
-      );
-      const ticketRes = await client.query<{ count: string }>(
-        `WITH revoked AS (
-           UPDATE tickets.tickets
-           SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
-           WHERE order_id = $1 AND status <> 'revoked'
-           RETURNING 1
-         )
-         SELECT COUNT(*)::text AS count FROM revoked`,
-        [params.orderId],
-      );
-      revokedCount = Number(ticketRes.rows[0]?.count ?? 0);
-
-      await client.query(
-        `UPDATE catalog.ticket_types tt
-         SET remaining_qty = remaining_qty + sub.qty
-         FROM (
-           SELECT ticket_type_id, SUM(quantity) AS qty
-           FROM orders.order_items
-           WHERE order_id = $1
-           GROUP BY ticket_type_id
-         ) sub
-         WHERE tt.id = sub.ticket_type_id`,
-        [params.orderId],
-      );
-
-      await client.query(
-        `UPDATE catalog.event_seats
-           SET status = 'available', order_id = NULL, ticket_id = NULL,
-               hold_user_id = NULL, hold_until = NULL, updated_at = NOW()
-         WHERE order_id = $1
-            OR id IN (SELECT seat_id FROM orders.order_items
-                      WHERE order_id = $1 AND seat_id IS NOT NULL)`,
-        [params.orderId],
-      );
     }
+    const revokedCount = isPartial ? revokedTicketIds.length : totalValid;
+    const remainingValid = isPartial ? Math.max(0, totalValid - revokedTicketIds.length) : 0;
 
     // Refund fee — per-event > platform default
-    const DEFAULT_FEE_BPS = 500; // 5 %
-    const DEFAULT_FEE_MIN_HALIRE_CZK = 3000; // 30 Kč
-    const DEFAULT_FEE_MIN_HALIRE_EUR = 120; // 1.20 EUR
+    const DEFAULT_FEE_BPS = 500;
+    const DEFAULT_FEE_MIN_HALIRE_CZK = 3000;
+    const DEFAULT_FEE_MIN_HALIRE_EUR = 120;
     const feeBps = o.event_refund_fee_pct ?? DEFAULT_FEE_BPS;
-    const feeMinHalire =
-      o.event_refund_fee_min_halire ??
-      (o.currency === 'EUR' ? DEFAULT_FEE_MIN_HALIRE_EUR : DEFAULT_FEE_MIN_HALIRE_CZK);
+    const feeMinHalire = o.event_refund_fee_min_halire ?? (o.currency === 'EUR' ? DEFAULT_FEE_MIN_HALIRE_EUR : DEFAULT_FEE_MIN_HALIRE_CZK);
     const percentFeeHalire = Math.floor((refundedHalire * feeBps) / 10000);
-    const refundFeeHalire =
-      refundedHalire > 0 ? Math.max(percentFeeHalire, feeMinHalire) : 0;
-    // Refund cap: fee nesmí být větší než refundovaná částka.
-    const finalFeeHalire = Math.min(refundFeeHalire, refundedHalire);
+    const finalFeeHalire = refundedHalire > 0 ? Math.min(Math.max(percentFeeHalire, feeMinHalire), refundedHalire) : 0;
     const netRefundHalire = refundedHalire - finalFeeHalire;
 
-    await client.query(
-      `INSERT INTO audit.audit_log
-         (schema_name, table_name, record_id, action, actor_id, actor_type, new_values)
-       VALUES ('orders', 'orders', $1, 'UPDATE', $2, 'user', $3::jsonb)`,
-      [
-        params.orderId,
-        userId,
-        JSON.stringify({
-          kind: isPartial ? 'self_refund_partial' : 'self_refund',
-          reason: parsed.data.reason ?? 'customer_self_service',
-          revokedTickets: revokedCount,
-          revokedTicketIds: isPartial ? revokedTicketIds : undefined,
-          remainingValid: isPartial ? remainingValid : 0,
-          grossRefundHalire: refundedHalire,
-          refundFeeHalire: finalFeeHalire,
-          refundFeeBps: feeBps,
-          netRefundHalire,
-        }),
-      ],
-    );
-
-    await client.query('COMMIT');
-
-    return NextResponse.json({
-      ok: true,
-      orderId: params.orderId,
-      partial: isPartial,
-      grossRefundHalire: refundedHalire,
-      refundFeeHalire: finalFeeHalire,
-      netRefundHalire,
-      revokedTickets: revokedCount,
-      remainingValid,
-    });
-  } catch (e) {
+    // Validace proběhla — pustíme zámek; peníze řeší executeOrderRefund vlastními
+    // transakcemi (pending → brána → refunded/failed).
     await client.query('ROLLBACK');
+    client.release();
+
+    const result = await executeOrderRefund({
+      pool: db() as unknown as import('pg').Pool,
+      orderId: params.orderId,
+      amountHalire: netRefundHalire,               // kupci se vrací net (fee zůstává)
+      finalStatus: remainingValid === 0 ? 'refunded' : 'paid',
+      // Kapacita a sedadla = systémový efekt (kupec je měnit nesmí, kolo 2 / V8) → asSystemInTx.
+      applyEffects: async (c) => {
+        if (isPartial) {
+          await c.query(
+            `UPDATE tickets.tickets SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
+              WHERE id = ANY($1::uuid[]) AND status = 'valid'`, [revokedTicketIds]);
+          await asSystemInTx(c, () => c.query(
+            `UPDATE catalog.ticket_types tt SET remaining_qty = remaining_qty + sub.qty
+               FROM (SELECT ticket_type_id, COUNT(*)::int AS qty FROM tickets.tickets
+                      WHERE id = ANY($1::uuid[]) GROUP BY ticket_type_id) sub
+              WHERE tt.id = sub.ticket_type_id`, [revokedTicketIds]));
+          await asSystemInTx(c, () => c.query(
+            `UPDATE catalog.event_seats SET status='available', order_id=NULL, ticket_id=NULL,
+                    hold_user_id=NULL, hold_until=NULL, updated_at=NOW()
+              WHERE ticket_id = ANY($1::uuid[])
+                 OR id IN (SELECT seat_id FROM tickets.tickets WHERE id = ANY($1::uuid[]) AND seat_id IS NOT NULL)`,
+            [revokedTicketIds]));
+        } else {
+          await c.query(
+            `UPDATE tickets.tickets SET status='revoked', revoked_at=NOW(), updated_at=NOW()
+              WHERE order_id = $1 AND status <> 'revoked'`, [params.orderId]);
+          await asSystemInTx(c, () => c.query(
+            `UPDATE catalog.ticket_types tt SET remaining_qty = remaining_qty + sub.qty
+               FROM (SELECT ticket_type_id, SUM(quantity) AS qty FROM orders.order_items
+                      WHERE order_id = $1 GROUP BY ticket_type_id) sub
+              WHERE tt.id = sub.ticket_type_id`, [params.orderId]));
+          await asSystemInTx(c, () => c.query(
+            `UPDATE catalog.event_seats SET status='available', order_id=NULL, ticket_id=NULL,
+                    hold_user_id=NULL, hold_until=NULL, updated_at=NOW()
+              WHERE order_id = $1
+                 OR id IN (SELECT seat_id FROM orders.order_items WHERE order_id = $1 AND seat_id IS NOT NULL)`,
+            [params.orderId]));
+        }
+      },
+      audit: async (c) => {
+        await c.query(
+          `INSERT INTO audit.audit_log
+             (schema_name, table_name, record_id, action, actor_id, actor_type, new_values)
+           VALUES ('orders', 'orders', $1, 'UPDATE', $2, 'user', $3::jsonb)`,
+          [params.orderId, userId, JSON.stringify({
+            kind: isPartial ? 'self_refund_partial' : 'self_refund',
+            reason: parsed.data.reason ?? 'customer_self_service',
+            revokedTickets: revokedCount, revokedTicketIds: isPartial ? revokedTicketIds : undefined,
+            remainingValid, grossRefundHalire: refundedHalire, refundFeeHalire: finalFeeHalire,
+            refundFeeBps: feeBps, netRefundHalire,
+          })]);
+      },
+    });
+
+    if (result.outcome === 'refunded' || result.outcome === 'partial') {
+      return NextResponse.json({
+        ok: true, orderId: params.orderId, partial: isPartial,
+        grossRefundHalire: refundedHalire, refundFeeHalire: finalFeeHalire,
+        netRefundHalire, revokedTickets: revokedCount, remainingValid,
+      });
+    }
+    return NextResponse.json(result.body, { status: result.http });
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => {});
     console.error('[POST /api/buyer/orders/[orderId]/refund]', e);
     return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
   } finally {
-    client.release();
+    // client už mohl být uvolněn po validaci (ROLLBACK+release výše) — release je
+    // v pg idempotentní/na uvolněném klientu no-op přes guard.
+    try { client.release(); } catch { /* už uvolněn */ }
   }
 
   });

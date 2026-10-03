@@ -1,0 +1,32 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [32m✓[39m tests/fix-k3-capacity.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 2572[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-mobile-rate-limit.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 1667[2mms[22m[39m
+[90mstderr[2m | tests/fix-r2-v6-free-ticket.live.test.ts[2m > [22m[2mKrok 5 — V6: vstupenka zdarma se dokončí bez brány; placený typ ne[2m > [22m[2mtyp za 0 Kč: objednávka paid bez brány, vstupenka vystavena, e-mail odeslán[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r2-v6-free-ticket.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 1892[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-mobile-auth.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 773[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[32m13 passed[39m[22m[90m (13)[39m
+[2m   Start at [22m 13:06:58
+[2m   Duration [22m 8.51s[2m (transform 544ms, setup 1ms, collect 357ms, tests 6.90s, environment 1ms, prepare 410ms)[22m
+

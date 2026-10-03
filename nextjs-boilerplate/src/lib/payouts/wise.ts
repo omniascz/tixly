@@ -21,9 +21,11 @@
  * Reference: https://docs.wise.com/api-docs/guides/send-money
  */
 
-const BASE_URL = process.env.WISE_SANDBOX === '1'
-  ? 'https://api.sandbox.transferwise.com'
-  : 'https://api.wise.com';
+import { constants as cryptoConstants, createPublicKey, verify as cryptoVerify } from 'crypto';
+
+// WISE_API_BASE_URL přepíše cíl (testy proti simulátoru); čte se při každém volání.
+const baseUrl = (): string => process.env.WISE_API_BASE_URL
+  ?? (process.env.WISE_SANDBOX === '1' ? 'https://api.sandbox.transferwise.com' : 'https://api.wise.com');
 
 export interface WiseConfig {
   apiKey: string;
@@ -43,7 +45,7 @@ async function wiseRequest<T>(
   body?: unknown,
 ): Promise<T> {
   const cfg = getWiseConfig();
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetch(`${baseUrl()}${path}`, {
     method,
     headers: {
       Authorization: `Bearer ${cfg.apiKey}`,
@@ -63,7 +65,7 @@ async function wiseRequest<T>(
 
 async function wisePost<T>(path: string, body: unknown, idempotencyKey?: string): Promise<T> {
   const cfg = getWiseConfig();
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetch(`${baseUrl()}${path}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${cfg.apiKey}`,
@@ -213,6 +215,27 @@ export async function createAndFundWiseTransfer(input: {
 /**
  * Get transfer status for webhook reconciliation.
  */
+/**
+ * Kolo 2: ověření podpisu Wise notifikace.
+ * Wise podepisuje tělo RSA klíčem (SHA256), podpis je Base64 v hlavičce X-Signature-SHA256;
+ * ověřuje se VEŘEJNÝM klíčem Wise (zvlášť produkční a sandbox) — viz oficiální příklad
+ * github.com/transferwise/digital-signatures-examples/verify-webhook-signature.
+ * Dřívější HMAC se sdíleným tajemstvím skutečné notifikace Wise nikdy neověřil.
+ * Bez WISE_WEBHOOK_PUBLIC_KEY (PEM) → false (fail-closed).
+ */
+export function verifyWiseWebhookSignature(rawBody: string, signatureB64: string | null): boolean {
+  const pem = process.env.WISE_WEBHOOK_PUBLIC_KEY ?? '';
+  if (!pem || !signatureB64) return false;
+  try {
+    // env často nese PEM na jednom řádku s doslovným "\n"
+    const key = createPublicKey({ key: pem.replace(/\\n/g, '\n'), format: 'pem' });
+    return cryptoVerify('RSA-SHA256', Buffer.from(rawBody), { key, padding: cryptoConstants.RSA_PKCS1_PADDING },
+      Buffer.from(signatureB64, 'base64'));
+  } catch {
+    return false;
+  }
+}
+
 export async function getWiseTransferStatus(transferId: number): Promise<string> {
   const t = await wiseRequest<WiseTransfer>('GET', `/v1/transfers/${transferId}`);
   return t.status;

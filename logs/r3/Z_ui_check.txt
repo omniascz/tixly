@@ -1,0 +1,27 @@
+vstupenka A: b62cbfee-9d77-40b6-8b48-530363c29f17 objednávka 868fa628-1dfd-4abb-bdba-685e4686d765
+login pořadatele A: 200:true
+brána: selected:7405a05a-c0bb-4439-ae80-6d5021977631
+výsledek skenu: wrong_event-shown
+stav vstupenky po skenu: valid
+💥 error: duplicate key value violates unique constraint "reseller_sales_order_id_key"
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async main (file:///C:/Users/omnia/AppData/Local/Temp/claude/C--Users-omnia-Documents-tixly/34768176-78c9-4f5f-a636-3ea4f7cae01c/scratchpad/cdp-r3.mjs:55:5) {
+  length: 264,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (order_id)=(868fa628-1dfd-4abb-bdba-685e4686d765) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'orders',
+  table: 'reseller_sales',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'reseller_sales_order_id_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}

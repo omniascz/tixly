@@ -1,0 +1,2 @@
+ESLint: 1041 chyb celkem (baseline 1041)
+žádná nová chyba nad baseline
