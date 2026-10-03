@@ -21,8 +21,8 @@ Základ: `fix/critical-2026-09-30` @ `1a6e96d`. Worktree `../tixly-fix`. `tixly/
 | A obnova | HOTOVO | 073b00f |
 | 0 audit skripty + ověření kola 1 + x-user-id | HOTOVO | 8d97de9 (skripty), 43871e0 (fix x-vercel-cron) |
 | 1 webhooky fail-closed | HOTOVO | 81aa2b7 (tabulka logs/r2/1_webhook_table.md) |
-| 2 V2 | rozpracováno: RED 5/5 (logs/r2/2_v2_RED.txt), migrace 480 napsána, PDF routa upravena | |
-| 3 V8 + 156 tabulek | čeká | |
+| 2 V2 | HOTOVO | c3c9b8e (+ tsc fix) |
+| 3 V8 + 156 tabulek | rozpracováno | |
 | 4 V9 R-56 | čeká | |
 | 5 V4/S1/V6/S8/P1/QR | čeká | |
 | Závěr + FIX_REPORT_R2 | čeká | |
@@ -39,3 +39,9 @@ Pozn.: tsc = 1 chyba v .next/types pro rfid/scan/route.ts (předexistující v d
 16+1 RED → GREEN 29/29 (`tests/fix-r2-webhooks.live.test.ts`); unit payment 63/63; HTTP audit 02 P4–P10b PASS po rebuildu.
 Neopraveno: Pluxee — dotaz na stav u vendor API (vendor dokumentaci nemáme, endpoint by byl odhad).
 Číslování migrací kola 2 od 480 (uživatel má necommitnuté 472–478; kolo 1 už kolidovalo na 472).
+
+## Krok 2 — výsledky
+RED 5/5 → GREEN 5/5 (`tests/fix-r2-v2-tixly-app.live.test.ts`), migrace 480 od nuly 26/26 + nad stávajícím 2×.
+POZOR pro krok 3: storno/self-refund vrací kapacitu `UPDATE catalog.ticket_types` pod kontextem kupce — funguje jen díky
+díře V8 (větev `status='published'` FOR ALL bez WITH CHECK). Test V2 kapacitu hlídá → po uzavření V8 musí zůstat zelený.
+Neověřeno: admin/import pod tixly_app (stejná třída RETURNING) — změněn jen sentinel hesla.
