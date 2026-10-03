@@ -28,6 +28,15 @@
    "wcheck": ""
   },
   {
+   "tbl": "accessibility.companion_pairs",
+   "pol": "svc_admin_companion_pairs",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "accreditation.accreditation_requests",
    "pol": "p_accreditation_requests_tenant",
    "cmd": "ALL",
@@ -44,6 +53,15 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "accreditation.accreditation_scans",
+   "pol": "svc_admin_accreditation_scans",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "ads.dynamic_creative_templates",
@@ -82,6 +100,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "affiliate.clicks",
+   "pol": "svc_admin_clicks",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "affiliate.conversions",
    "pol": "p_rls_conversions",
    "cmd": "ALL",
@@ -98,6 +125,15 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e_\n  WHERE ((e_.id = links.event_id) AND (e_.promoter_id = app_current_promoter_id())))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "affiliate.payouts",
+   "pol": "svc_admin_payouts",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "ai_ads.generated_ad_copies",
@@ -145,6 +181,42 @@
    "wcheck": ""
   },
   {
+   "tbl": "ambassador.codes",
+   "pol": "svc_admin_codes",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "ambassador.payouts",
+   "pol": "svc_admin_payouts",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "analytics.audience_geo",
+   "pol": "owner_audience_geo",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = audience_geo.event_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = audience_geo.event_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "analytics.audience_geo",
+   "pol": "svc_admin_audience_geo",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "analytics.demand_forecasts",
    "pol": "demand_forecasts_admin",
    "cmd": "ALL",
@@ -161,6 +233,24 @@
    "roles": "{public}",
    "qual": "(event_id IN ( SELECT events.id\n   FROM catalog.events\n  WHERE ((events.promoter_id)::text = current_setting('app.current_promoter_id'::text, true))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "analytics.event_sales_snapshots",
+   "pol": "owner_event_sales_snapshots",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = event_sales_snapshots.event_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = event_sales_snapshots.event_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "analytics.event_sales_snapshots",
+   "pol": "svc_admin_event_sales_snapshots",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "analytics.funnel_events",
@@ -217,6 +307,33 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "audit.audit_log",
+   "pol": "append_audit_log",
+   "cmd": "INSERT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "",
+   "wcheck": "true"
+  },
+  {
+   "tbl": "audit.audit_log",
+   "pol": "svc_admin_audit_log",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "audit.audit_log",
+   "pol": "tenant_read_audit_log",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "((EXISTS ( SELECT 1\n   FROM platform.promoter_members m\n  WHERE ((m.user_id = audit_log.actor_id) AND (m.promoter_id = app_current_promoter_id())))) OR ((schema_name = 'orders'::text) AND (table_name = 'orders'::text) AND (EXISTS ( SELECT 1\n   FROM (orders.orders o\n     JOIN catalog.events e ON ((e.id = o.event_id)))\n  WHERE (((o.id)::text = audit_log.record_id) AND (e.promoter_id = app_current_promoter_id()))))))",
+   "wcheck": ""
+  },
+  {
    "tbl": "audit.bot_detections",
    "pol": "p_scope",
    "cmd": "ALL",
@@ -244,6 +361,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "audit.content_reports_rate_limit",
+   "pol": "svc_admin_content_reports_rate_limit",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "audit.event_moderation_log",
    "pol": "p_scope",
    "cmd": "ALL",
@@ -269,6 +395,24 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "audit.support_actions",
+   "pol": "owner_support_actions",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(actor_promoter_id = app_current_promoter_id())",
+   "wcheck": "(actor_promoter_id = app_current_promoter_id())"
+  },
+  {
+   "tbl": "audit.support_actions",
+   "pol": "svc_admin_support_actions",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "auth.passkey_challenges",
@@ -307,6 +451,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "b2b.api_rate_limit_log",
+   "pol": "svc_admin_api_rate_limit_log",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "b2b.oauth_access_tokens",
    "pol": "p_oauth_access_tokens_tenant",
    "cmd": "ALL",
@@ -343,6 +496,33 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "b2b.oauth_clients",
+   "pol": "owner_oauth_clients",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "((owner_promoter_id = app_current_promoter_id()) OR (owner_user_id = app_current_user_id()))",
+   "wcheck": "((owner_promoter_id = app_current_promoter_id()) OR (owner_user_id = app_current_user_id()))"
+  },
+  {
+   "tbl": "b2b.oauth_clients",
+   "pol": "read_oauth_clients",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM b2b.oauth_access_tokens at\n  WHERE ((at.client_id = oauth_clients.id) AND (at.user_id = app_current_user_id()))))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "b2b.oauth_clients",
+   "pol": "svc_admin_oauth_clients",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "b2b.oauth_refresh_tokens",
    "pol": "p_oauth_refresh_tokens_tenant",
    "cmd": "ALL",
@@ -368,6 +548,24 @@
    "roles": "{public}",
    "qual": "(app_is_service() OR app_is_platform_admin() OR (EXISTS ( SELECT 1\n   FROM (tickets.tickets tk\n     JOIN orders.orders o ON ((o.id = tk.order_id)))\n  WHERE ((tk.id = secure_entry_tokens.ticket_id) AND ((o.user_id = app_current_user_id()) OR (EXISTS ( SELECT 1\n           FROM catalog.events e\n          WHERE ((e.id = o.event_id) AND (e.promoter_id = app_current_promoter_id())))))))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "b2b.webhook_deliveries",
+   "pol": "svc_admin_webhook_deliveries",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "b2b.webhook_subscriptions",
+   "pol": "svc_admin_webhook_subscriptions",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "b2b_orders.dunning_log",
@@ -451,6 +649,78 @@
    "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
   },
   {
+   "tbl": "brands.impressions",
+   "pol": "owner_impressions",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = impressions.event_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = impressions.event_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "brands.impressions",
+   "pol": "svc_admin_impressions",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "catalog.ab_price_assignments",
+   "pol": "owner_ab_price_assignments",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.ab_price_tests x\n  WHERE (x.id = ab_price_assignments.test_id)))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.ab_price_tests x\n  WHERE (x.id = ab_price_assignments.test_id)))"
+  },
+  {
+   "tbl": "catalog.ab_price_assignments",
+   "pol": "svc_admin_ab_price_assignments",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "catalog.ab_price_tests",
+   "pol": "owner_ab_price_tests",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = ab_price_tests.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = ab_price_tests.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.ab_price_tests",
+   "pol": "svc_admin_ab_price_tests",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "catalog.access_code_ticket_types",
+   "pol": "owner_access_code_ticket_types",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.access_codes ac\n  WHERE ((ac.id = access_code_ticket_types.access_code_id) AND (ac.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.access_codes ac\n  WHERE ((ac.id = access_code_ticket_types.access_code_id) AND (ac.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.access_code_ticket_types",
+   "pol": "svc_admin_access_code_ticket_types",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "catalog.access_codes",
    "pol": "p_access_codes_promoter",
    "cmd": "ALL",
@@ -487,6 +757,60 @@
    "wcheck": ""
   },
   {
+   "tbl": "catalog.backstage_moments",
+   "pol": "owner_backstage_moments",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = backstage_moments.event_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = backstage_moments.event_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.backstage_moments",
+   "pol": "read_backstage_moments",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = backstage_moments.event_id) AND (e.status = 'published'::text))))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "catalog.backstage_moments",
+   "pol": "svc_admin_backstage_moments",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "catalog.cinema_screens",
+   "pol": "owner_cinema_screens",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.venues v\n  WHERE ((v.id = cinema_screens.venue_id) AND (v.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.venues v\n  WHERE ((v.id = cinema_screens.venue_id) AND (v.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.cinema_screens",
+   "pol": "read_cinema_screens",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "true",
+   "wcheck": ""
+  },
+  {
+   "tbl": "catalog.cinema_screens",
+   "pol": "svc_admin_cinema_screens",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "catalog.collection_events",
    "pol": "p_rls_collection_events",
    "cmd": "ALL",
@@ -494,6 +818,24 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e_\n  WHERE ((e_.id = collection_events.event_id) AND (e_.promoter_id = app_current_promoter_id())))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "catalog.commemorative_templates",
+   "pol": "owner_commemorative_templates",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = commemorative_templates.event_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = commemorative_templates.event_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.commemorative_templates",
+   "pol": "svc_admin_commemorative_templates",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "catalog.cross_pass_bundles",
@@ -523,6 +865,24 @@
    "wcheck": ""
   },
   {
+   "tbl": "catalog.discount_pricing_rules",
+   "pol": "owner_discount_pricing_rules",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = discount_pricing_rules.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = discount_pricing_rules.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.discount_pricing_rules",
+   "pol": "svc_admin_discount_pricing_rules",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "catalog.donation_campaigns",
    "pol": "p_donation_campaigns_tenant",
    "cmd": "ALL",
@@ -550,6 +910,24 @@
    "wcheck": ""
   },
   {
+   "tbl": "catalog.dynamic_pricing_rules",
+   "pol": "owner_dynamic_pricing_rules",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = dynamic_pricing_rules.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = dynamic_pricing_rules.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.dynamic_pricing_rules",
+   "pol": "svc_admin_dynamic_pricing_rules",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "catalog.entry_slots",
    "pol": "p_rls_entry_slots",
    "cmd": "ALL",
@@ -557,6 +935,33 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e_\n  WHERE ((e_.id = entry_slots.event_id) AND (e_.promoter_id = app_current_promoter_id())))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "catalog.event_bundle_addons",
+   "pol": "owner_event_bundle_addons",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.event_bundles b\n     JOIN catalog.events e ON ((e.id = b.event_id)))\n  WHERE ((b.id = event_bundle_addons.bundle_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM (catalog.event_bundles b\n     JOIN catalog.events e ON ((e.id = b.event_id)))\n  WHERE ((b.id = event_bundle_addons.bundle_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.event_bundle_addons",
+   "pol": "read_event_bundle_addons",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.event_bundles b\n     JOIN catalog.events e ON ((e.id = b.event_id)))\n  WHERE ((b.id = event_bundle_addons.bundle_id) AND (e.status = 'published'::text))))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "catalog.event_bundle_addons",
+   "pol": "svc_admin_event_bundle_addons",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "catalog.event_bundles",
@@ -695,12 +1100,21 @@
   },
   {
    "tbl": "catalog.event_seats",
-   "pol": "p_event_seats_event_scope",
-   "cmd": "ALL",
+   "pol": "p_event_seats_read",
+   "cmd": "SELECT",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = event_seats.event_id) AND ((e.promoter_id = app_current_promoter_id()) OR (e.status = 'published'::text))))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "catalog.event_seats",
+   "pol": "p_event_seats_write",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = event_seats.event_id) AND (e.promoter_id = app_current_promoter_id())))))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = event_seats.event_id) AND (e.promoter_id = app_current_promoter_id())))))"
   },
   {
    "tbl": "catalog.event_sponsors",
@@ -807,7 +1221,7 @@
    "cmd": "SELECT",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
-   "qual": "true",
+   "qual": "(app_is_service() OR app_is_platform_admin() OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = event_travel_packages.event_id) AND ((e.status = ANY (ARRAY['published'::text, 'on_sale'::text])) OR (e.promoter_id = app_current_promoter_id()))))))",
    "wcheck": ""
   },
   {
@@ -830,12 +1244,39 @@
   },
   {
    "tbl": "catalog.events",
-   "pol": "p_events_promoter_scope",
-   "cmd": "ALL",
+   "pol": "p_events_delete",
+   "cmd": "DELETE",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
-   "qual": "(app_is_platform_admin() OR (promoter_id = app_current_promoter_id()) OR (status = 'published'::text))",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
    "wcheck": ""
+  },
+  {
+   "tbl": "catalog.events",
+   "pol": "p_events_insert",
+   "cmd": "INSERT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
+  },
+  {
+   "tbl": "catalog.events",
+   "pol": "p_events_read",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()) OR (status = 'published'::text))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "catalog.events",
+   "pol": "p_events_update",
+   "cmd": "UPDATE",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
   },
   {
    "tbl": "catalog.films",
@@ -845,6 +1286,87 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()) OR (promoter_id IS NULL))",
    "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
+  },
+  {
+   "tbl": "catalog.flex_pass_settings",
+   "pol": "owner_flex_pass_settings",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = flex_pass_settings.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = flex_pass_settings.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.flex_pass_settings",
+   "pol": "read_flex_pass_settings",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = flex_pass_settings.ticket_type_id) AND (e.status = 'published'::text))))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "catalog.flex_pass_settings",
+   "pol": "svc_admin_flex_pass_settings",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "catalog.foyer_menu_items",
+   "pol": "owner_foyer_menu_items",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = foyer_menu_items.event_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = foyer_menu_items.event_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.foyer_menu_items",
+   "pol": "read_foyer_menu_items",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = foyer_menu_items.event_id) AND (e.status = 'published'::text))))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "catalog.foyer_menu_items",
+   "pol": "svc_admin_foyer_menu_items",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "catalog.group_discount_tiers",
+   "pol": "owner_group_discount_tiers",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = group_discount_tiers.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = group_discount_tiers.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.group_discount_tiers",
+   "pol": "read_group_discount_tiers",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = group_discount_tiers.ticket_type_id) AND (e.status = 'published'::text))))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "catalog.group_discount_tiers",
+   "pol": "svc_admin_group_discount_tiers",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "catalog.hospitality_packages",
@@ -874,6 +1396,24 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "catalog.lastminute_rules",
+   "pol": "owner_lastminute_rules",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = lastminute_rules.event_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = lastminute_rules.event_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.lastminute_rules",
+   "pol": "svc_admin_lastminute_rules",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "catalog.lottery_entries",
    "pol": "p_rls_lottery_entries",
    "cmd": "ALL",
@@ -881,6 +1421,24 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()))",
    "wcheck": ""
+  },
+  {
+   "tbl": "catalog.member_pricing_rules",
+   "pol": "owner_member_pricing_rules",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = member_pricing_rules.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = member_pricing_rules.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.member_pricing_rules",
+   "pol": "svc_admin_member_pricing_rules",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "catalog.parking_offers",
@@ -928,6 +1486,42 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "catalog.pricing_rules",
+   "pol": "owner_pricing_rules",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = pricing_rules.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = pricing_rules.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.pricing_rules",
+   "pol": "svc_admin_pricing_rules",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "catalog.pricing_windows",
+   "pol": "owner_pricing_windows",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = pricing_windows.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = pricing_windows.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.pricing_windows",
+   "pol": "svc_admin_pricing_windows",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "catalog.productions",
    "pol": "p_productions_scope",
    "cmd": "ALL",
@@ -935,6 +1529,15 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
    "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
+  },
+  {
+   "tbl": "catalog.program_cast_entries",
+   "pol": "svc_admin_program_cast_entries",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "catalog.rfid_access_log",
@@ -1063,6 +1666,33 @@
    "wcheck": ""
   },
   {
+   "tbl": "catalog.seats",
+   "pol": "owner_seats",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.venues v\n  WHERE ((v.id = seats.venue_id) AND (v.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.venues v\n  WHERE ((v.id = seats.venue_id) AND (v.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.seats",
+   "pol": "read_seats",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "true",
+   "wcheck": ""
+  },
+  {
+   "tbl": "catalog.seats",
+   "pol": "svc_admin_seats",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "catalog.sport_teams",
    "pol": "p_sport_teams_scope",
    "cmd": "ALL",
@@ -1086,17 +1716,116 @@
    "cmd": "SELECT",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
-   "qual": "true",
+   "qual": "(app_is_service() OR app_is_platform_admin() OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = superfan_experiences.event_id) AND ((e.status = ANY (ARRAY['published'::text, 'on_sale'::text])) OR (e.promoter_id = app_current_promoter_id()))))))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "catalog.ticket_modular_pricing",
+   "pol": "owner_ticket_modular_pricing",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = ticket_modular_pricing.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = ticket_modular_pricing.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.ticket_modular_pricing",
+   "pol": "read_ticket_modular_pricing",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = ticket_modular_pricing.ticket_type_id) AND (e.status = 'published'::text))))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "catalog.ticket_modular_pricing",
+   "pol": "svc_admin_ticket_modular_pricing",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "catalog.ticket_type_access",
+   "pol": "owner_ticket_type_access",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = ticket_type_access.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = ticket_type_access.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.ticket_type_access",
+   "pol": "read_ticket_type_access",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = ticket_type_access.ticket_type_id) AND (e.status = 'published'::text))))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "catalog.ticket_type_access",
+   "pol": "svc_admin_ticket_type_access",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "catalog.ticket_type_channel_prices",
+   "pol": "owner_ticket_type_channel_prices",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = ticket_type_channel_prices.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = ticket_type_channel_prices.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.ticket_type_channel_prices",
+   "pol": "svc_admin_ticket_type_channel_prices",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "catalog.ticket_type_price_history",
+   "pol": "owner_ticket_type_price_history",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = ticket_type_price_history.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = ticket_type_price_history.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.ticket_type_price_history",
+   "pol": "svc_admin_ticket_type_price_history",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "catalog.ticket_types",
+   "pol": "p_ticket_types_read",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = ticket_types.event_id) AND ((e.promoter_id = app_current_promoter_id()) OR (e.status = 'published'::text))))))",
    "wcheck": ""
   },
   {
    "tbl": "catalog.ticket_types",
-   "pol": "p_ticket_types_event_scope",
+   "pol": "p_ticket_types_write",
    "cmd": "ALL",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
-   "qual": "(app_is_platform_admin() OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = ticket_types.event_id) AND ((e.promoter_id = app_current_promoter_id()) OR (e.status = 'published'::text))))))",
-   "wcheck": ""
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = ticket_types.event_id) AND (e.promoter_id = app_current_promoter_id())))))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = ticket_types.event_id) AND (e.promoter_id = app_current_promoter_id())))))"
   },
   {
    "tbl": "catalog.travel_hotel_rooms",
@@ -1153,6 +1882,33 @@
    "wcheck": ""
   },
   {
+   "tbl": "catalog.venue_seating_charts",
+   "pol": "owner_venue_seating_charts",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.venues v\n  WHERE ((v.id = venue_seating_charts.venue_id) AND (v.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.venues v\n  WHERE ((v.id = venue_seating_charts.venue_id) AND (v.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.venue_seating_charts",
+   "pol": "read_venue_seating_charts",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "true",
+   "wcheck": ""
+  },
+  {
+   "tbl": "catalog.venue_seating_charts",
+   "pol": "svc_admin_venue_seating_charts",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "catalog.venues",
    "pol": "p_venues_tenant",
    "cmd": "ALL",
@@ -1169,6 +1925,24 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "catalog.volume_discount_rules",
+   "pol": "owner_volume_discount_rules",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = volume_discount_rules.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM (catalog.ticket_types tt\n     JOIN catalog.events e ON ((e.id = tt.event_id)))\n  WHERE ((tt.id = volume_discount_rules.ticket_type_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "catalog.volume_discount_rules",
+   "pol": "svc_admin_volume_discount_rules",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "catalog.waitlist_entries",
@@ -1196,6 +1970,15 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "channels.sync_log",
+   "pol": "svc_admin_sync_log",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "charity.allocations",
@@ -1297,6 +2080,24 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "communications.announcement_responses",
+   "pol": "owner_announcement_responses",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM communications.emergency_announcements a\n  WHERE ((a.id = announcement_responses.announcement_id) AND (a.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM communications.emergency_announcements a\n  WHERE ((a.id = announcement_responses.announcement_id) AND (a.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "communications.announcement_responses",
+   "pol": "svc_admin_announcement_responses",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "communications.broadcasts",
    "pol": "p_broadcasts_scope",
    "cmd": "ALL",
@@ -1378,6 +2179,33 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "conference.badge_overrides",
+   "pol": "svc_admin_badge_overrides",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "conference.badge_print_jobs",
+   "pol": "svc_admin_badge_print_jobs",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "conference.badge_templates",
+   "pol": "svc_admin_badge_templates",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "conference.booth_assignments",
    "pol": "p_scope",
    "cmd": "ALL",
@@ -1387,6 +2215,24 @@
    "wcheck": ""
   },
   {
+   "tbl": "conference.booth_categories",
+   "pol": "svc_admin_booth_categories",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "conference.booths",
+   "pol": "svc_admin_booths",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "conference.conferences",
    "pol": "p_rls_conferences",
    "cmd": "ALL",
@@ -1394,6 +2240,15 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e_\n  WHERE ((e_.id = conferences.event_id) AND (e_.promoter_id = app_current_promoter_id())))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "conference.days",
+   "pol": "svc_admin_days",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "conference.exhibitor_sessions",
@@ -1432,6 +2287,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "conference.floor_maps",
+   "pol": "svc_admin_floor_maps",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "conference.multi_day_passes",
    "pol": "p_rls_multi_day_passes",
    "cmd": "ALL",
@@ -1450,6 +2314,24 @@
    "wcheck": ""
   },
   {
+   "tbl": "conference.session_speakers",
+   "pol": "svc_admin_session_speakers",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "conference.sessions",
+   "pol": "svc_admin_sessions",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "conference.speakers",
    "pol": "p_speakers_tenant",
    "cmd": "ALL",
@@ -1466,6 +2348,15 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "conference.tracks",
+   "pol": "svc_admin_tracks",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "cross_scanner.guest_lists",
@@ -1495,6 +2386,33 @@
    "wcheck": ""
   },
   {
+   "tbl": "cs.action_log",
+   "pol": "svc_admin_action_log",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "cs.notes",
+   "pol": "svc_admin_notes",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "discovery_feed.feed_access_log",
+   "pol": "svc_admin_feed_access_log",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "discovery_feed.feed_subscriptions",
    "pol": "p_scope",
    "cmd": "ALL",
@@ -1502,6 +2420,24 @@
    "roles": "{public}",
    "qual": "(app_is_service() OR app_is_platform_admin())",
    "wcheck": ""
+  },
+  {
+   "tbl": "event_groups.bulk_edits",
+   "pol": "owner_bulk_edits",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM event_groups.groups g\n  WHERE ((g.id = bulk_edits.group_id) AND (g.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM event_groups.groups g\n  WHERE ((g.id = bulk_edits.group_id) AND (g.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "event_groups.bulk_edits",
+   "pol": "svc_admin_bulk_edits",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "event_groups.groups",
@@ -1531,6 +2467,33 @@
    "wcheck": ""
   },
   {
+   "tbl": "event_groups.shares",
+   "pol": "owner_shares",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(owner_promoter_id = app_current_promoter_id())",
+   "wcheck": "(owner_promoter_id = app_current_promoter_id())"
+  },
+  {
+   "tbl": "event_groups.shares",
+   "pol": "read_shares",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(shared_with_promoter_id = app_current_promoter_id())",
+   "wcheck": ""
+  },
+  {
+   "tbl": "event_groups.shares",
+   "pol": "svc_admin_shares",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "eventim_export.export_jobs",
    "pol": "p_export_jobs_tenant",
    "cmd": "ALL",
@@ -1547,6 +2510,15 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "eventim_export.export_log",
+   "pol": "svc_admin_export_log",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "fan_share.campaigns",
@@ -1879,7 +2851,7 @@
    "permissive": "PERMISSIVE",
    "roles": "{public}",
    "qual": "",
-   "wcheck": "(app_current_promoter_id() IS NOT NULL)"
+   "wcheck": "((app_current_promoter_id() IS NOT NULL) AND (is_platform_admin IS NOT TRUE) AND ((password_hash IS NULL) OR (\"left\"(password_hash, 1) = '!'::text)))"
   },
   {
    "tbl": "identity.users",
@@ -1925,6 +2897,15 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()))",
    "wcheck": ""
+  },
+  {
+   "tbl": "identity.verified_persons",
+   "pol": "svc_admin_verified_persons",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "identity.webauthn_challenges",
@@ -1988,6 +2969,15 @@
    "roles": "{public}",
    "qual": "(current_setting('app.bypass_rls'::text, true) = 'on'::text)",
    "wcheck": ""
+  },
+  {
+   "tbl": "lineups.artist_profiles",
+   "pol": "svc_admin_artist_profiles",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "lineups.artists",
@@ -2105,6 +3095,24 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e_\n  WHERE ((e_.id = accreditation_requests.event_id) AND (e_.promoter_id = app_current_promoter_id())))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "marketing.ad_auction_log",
+   "pol": "read_ad_auction_log",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(shown_on_promoter_id = app_current_promoter_id())",
+   "wcheck": ""
+  },
+  {
+   "tbl": "marketing.ad_auction_log",
+   "pol": "svc_admin_ad_auction_log",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "marketing.ad_campaigns",
@@ -2260,6 +3268,24 @@
    "wcheck": ""
   },
   {
+   "tbl": "marketing.fan_bonus_issued",
+   "pol": "read_fan_bonus_issued",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "((user_id = app_current_user_id()) OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = fan_bonus_issued.event_id) AND (e.promoter_id = app_current_promoter_id())))))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "marketing.fan_bonus_issued",
+   "pol": "svc_admin_fan_bonus_issued",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "marketing.gift_voucher_redemptions",
    "pol": "p_rls_gift_voucher_redemptions",
    "cmd": "ALL",
@@ -2386,6 +3412,24 @@
    "wcheck": ""
   },
   {
+   "tbl": "marketing.promo_codes",
+   "pol": "p_promo_codes_tenant",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (created_by_organizer_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (created_by_organizer_id = app_current_promoter_id()))"
+  },
+  {
+   "tbl": "marketing.promo_codes",
+   "pol": "svc_admin_promo_codes",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "marketing.qr_campaigns",
    "pol": "qr_campaigns_promoter_isolation",
    "cmd": "ALL",
@@ -2393,6 +3437,24 @@
    "roles": "{public}",
    "qual": "(app_is_service() OR app_is_platform_admin() OR (event_id IN ( SELECT events.id\n   FROM catalog.events\n  WHERE (events.promoter_id = app_current_promoter_id()))) OR (event_id IN ( SELECT e.id\n   FROM (catalog.events e\n     JOIN platform.promoter_members pm ON ((pm.promoter_id = e.promoter_id)))\n  WHERE (pm.user_id = app_current_user_id()))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "marketing.qr_scans",
+   "pol": "read_qr_scans",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (marketing.qr_campaigns q\n     JOIN catalog.events e ON ((e.id = q.event_id)))\n  WHERE ((q.id = qr_scans.campaign_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "marketing.qr_scans",
+   "pol": "svc_admin_qr_scans",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "marketing.re_engagement_campaigns",
@@ -2482,7 +3544,7 @@
    "permissive": "PERMISSIVE",
    "roles": "{public}",
    "qual": "",
-   "wcheck": "true"
+   "wcheck": "(app_is_service() OR app_is_platform_admin())"
   },
   {
    "tbl": "marketing.ticket_alerts",
@@ -2499,8 +3561,8 @@
    "cmd": "UPDATE",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
-   "qual": "true",
-   "wcheck": ""
+   "qual": "(app_is_service() OR app_is_platform_admin())",
+   "wcheck": "(app_is_service() OR app_is_platform_admin())"
   },
   {
    "tbl": "marketing.tracking_events",
@@ -2764,6 +3826,42 @@
    "wcheck": ""
   },
   {
+   "tbl": "orders.foyer_orders",
+   "pol": "owner_foyer_orders",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "((EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = foyer_orders.event_id) AND (e.promoter_id = app_current_promoter_id())))) OR (EXISTS ( SELECT 1\n   FROM orders.orders o\n  WHERE (o.id = foyer_orders.order_id))))",
+   "wcheck": "((EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = foyer_orders.event_id) AND (e.promoter_id = app_current_promoter_id())))) OR (EXISTS ( SELECT 1\n   FROM orders.orders o\n  WHERE (o.id = foyer_orders.order_id))))"
+  },
+  {
+   "tbl": "orders.foyer_orders",
+   "pol": "svc_admin_foyer_orders",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "orders.gift_claims",
+   "pol": "owner_gift_claims",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM orders.orders o\n  WHERE (o.id = gift_claims.order_id)))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM orders.orders o\n  WHERE (o.id = gift_claims.order_id)))"
+  },
+  {
+   "tbl": "orders.gift_claims",
+   "pol": "svc_admin_gift_claims",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "orders.group_invitations",
    "pol": "p_rls_group_invitations",
    "cmd": "ALL",
@@ -2845,6 +3943,24 @@
    "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
   },
   {
+   "tbl": "orders.lottery_entries",
+   "pol": "owner_lottery_entries",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM orders.lottery_campaigns c\n  WHERE ((c.id = lottery_entries.campaign_id) AND (c.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM orders.lottery_campaigns c\n  WHERE ((c.id = lottery_entries.campaign_id) AND (c.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "orders.lottery_entries",
+   "pol": "svc_admin_lottery_entries",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "orders.order_currencies",
    "pol": "p_rls_order_currencies",
    "cmd": "ALL",
@@ -2873,12 +3989,21 @@
   },
   {
    "tbl": "orders.order_items",
-   "pol": "p_order_items_scope",
-   "cmd": "ALL",
+   "pol": "p_order_items_read",
+   "cmd": "SELECT",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM orders.orders o\n  WHERE ((o.id = order_items.order_id) AND ((o.user_id = app_current_user_id()) OR (EXISTS ( SELECT 1\n           FROM catalog.events e\n          WHERE ((e.id = o.event_id) AND (e.promoter_id = app_current_promoter_id())))))))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "orders.order_items",
+   "pol": "p_order_items_write",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM (orders.orders o\n     JOIN catalog.events e ON ((e.id = o.event_id)))\n  WHERE ((o.id = order_items.order_id) AND (e.promoter_id = app_current_promoter_id())))))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM (orders.orders o\n     JOIN catalog.events e ON ((e.id = o.event_id)))\n  WHERE ((o.id = order_items.order_id) AND (e.promoter_id = app_current_promoter_id())))))"
   },
   {
    "tbl": "orders.order_payment_plans",
@@ -2891,12 +4016,39 @@
   },
   {
    "tbl": "orders.orders",
-   "pol": "p_orders_scope",
-   "cmd": "ALL",
+   "pol": "p_orders_delete",
+   "cmd": "DELETE",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = orders.event_id) AND (e.promoter_id = app_current_promoter_id())))))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "orders.orders",
+   "pol": "p_orders_insert",
+   "cmd": "INSERT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = orders.event_id) AND (e.promoter_id = app_current_promoter_id())))))"
+  },
+  {
+   "tbl": "orders.orders",
+   "pol": "p_orders_read",
+   "cmd": "SELECT",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()) OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = orders.event_id) AND (e.promoter_id = app_current_promoter_id())))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "orders.orders",
+   "pol": "p_orders_update",
+   "cmd": "UPDATE",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()) OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = orders.event_id) AND (e.promoter_id = app_current_promoter_id())))))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()) OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = orders.event_id) AND (e.promoter_id = app_current_promoter_id())))))"
   },
   {
    "tbl": "orders.party_split_sessions",
@@ -2944,6 +4096,24 @@
    "wcheck": ""
   },
   {
+   "tbl": "orders.payment_installments",
+   "pol": "owner_payment_installments",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM (orders.order_payment_plans pp\n     JOIN orders.orders o ON ((o.id = pp.order_id)))\n  WHERE (pp.id = payment_installments.order_payment_plan_id)))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM (orders.order_payment_plans pp\n     JOIN orders.orders o ON ((o.id = pp.order_id)))\n  WHERE (pp.id = payment_installments.order_payment_plan_id)))"
+  },
+  {
+   "tbl": "orders.payment_installments",
+   "pol": "svc_admin_payment_installments",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "orders.phone_event_purchases",
    "pol": "p_rls_phone_event_purchases",
    "cmd": "ALL",
@@ -2986,7 +4156,7 @@
    "permissive": "PERMISSIVE",
    "roles": "{public}",
    "qual": "",
-   "wcheck": "true"
+   "wcheck": "(app_is_service() OR app_is_platform_admin())"
   },
   {
    "tbl": "orders.press_accreditations",
@@ -2996,6 +4166,33 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
    "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
+  },
+  {
+   "tbl": "orders.program_purchases",
+   "pol": "svc_admin_program_purchases",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "orders.refund_requests",
+   "pol": "p_refund_requests_buyer_insert",
+   "cmd": "INSERT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "",
+   "wcheck": "((user_id IS NOT NULL) AND (user_id = app_current_user_id()) AND (EXISTS ( SELECT 1\n   FROM (orders.orders o\n     JOIN catalog.events e ON ((e.id = o.event_id)))\n  WHERE ((o.id = refund_requests.order_id) AND (o.user_id = app_current_user_id()) AND (e.promoter_id = refund_requests.promoter_id)))))"
+  },
+  {
+   "tbl": "orders.refund_requests",
+   "pol": "p_refund_requests_buyer_select",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "((user_id IS NOT NULL) AND (user_id = app_current_user_id()))",
+   "wcheck": ""
   },
   {
    "tbl": "orders.refund_requests",
@@ -3043,6 +4240,42 @@
    "wcheck": ""
   },
   {
+   "tbl": "orders.reschedule_responses",
+   "pol": "owner_reschedule_responses",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM orders.orders o\n  WHERE (o.id = reschedule_responses.order_id)))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM orders.orders o\n  WHERE (o.id = reschedule_responses.order_id)))"
+  },
+  {
+   "tbl": "orders.reschedule_responses",
+   "pol": "svc_admin_reschedule_responses",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "orders.reseller_sales",
+   "pol": "owner_reseller_sales",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM orders.orders o\n  WHERE (o.id = reseller_sales.order_id)))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM orders.orders o\n  WHERE (o.id = reseller_sales.order_id)))"
+  },
+  {
+   "tbl": "orders.reseller_sales",
+   "pol": "svc_admin_reseller_sales",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "orders.school_bookings",
    "pol": "p_school_bookings_scope",
    "cmd": "ALL",
@@ -3050,6 +4283,51 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
    "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
+  },
+  {
+   "tbl": "orders.season_pass_uses",
+   "pol": "owner_season_pass_uses",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = season_pass_uses.event_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = season_pass_uses.event_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "orders.season_pass_uses",
+   "pol": "svc_admin_season_pass_uses",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "orders.season_passes",
+   "pol": "owner_season_passes",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM orders.orders o\n  WHERE (o.id = season_passes.order_id)))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM orders.orders o\n  WHERE (o.id = season_passes.order_id)))"
+  },
+  {
+   "tbl": "orders.season_passes",
+   "pol": "svc_admin_season_passes",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "orders.seat_upgrade_notifications",
+   "pol": "p_seat_upgrade_notifications_svc",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "orders.seat_upgrades",
@@ -3067,7 +4345,7 @@
    "permissive": "PERMISSIVE",
    "roles": "{public}",
    "qual": "",
-   "wcheck": "true"
+   "wcheck": "(app_is_service() OR app_is_platform_admin())"
   },
   {
    "tbl": "orders.seat_upgrades",
@@ -3075,8 +4353,8 @@
    "cmd": "UPDATE",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
-   "qual": "true",
-   "wcheck": ""
+   "qual": "(app_is_service() OR app_is_platform_admin())",
+   "wcheck": "(app_is_service() OR app_is_platform_admin())"
   },
   {
    "tbl": "orders.superfan_bookings",
@@ -3094,6 +4372,15 @@
    "permissive": "PERMISSIVE",
    "roles": "{public}",
    "qual": "(((user_id)::text = current_setting('app.current_user_id'::text, true)) OR (current_setting('app.is_platform_admin'::text, true) = 'true'::text))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "orders.ticket_transfers",
+   "pol": "p_ticket_transfers_service",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_service() OR app_is_platform_admin() OR ((to_email IS NOT NULL) AND (to_email = ( SELECT u.email\n   FROM identity.users u\n  WHERE (u.id = app_current_user_id())))))",
    "wcheck": ""
   },
   {
@@ -3120,8 +4407,8 @@
    "cmd": "UPDATE",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
-   "qual": "true",
-   "wcheck": ""
+   "qual": "(app_is_service() OR app_is_platform_admin() OR (from_user_id = app_current_user_id()) OR ((to_email IS NOT NULL) AND (lower(to_email) = ( SELECT lower(u.email) AS lower\n   FROM identity.users u\n  WHERE (u.id = app_current_user_id())))))",
+   "wcheck": "(app_is_service() OR app_is_platform_admin() OR (from_user_id = app_current_user_id()) OR ((to_email IS NOT NULL) AND (lower(to_email) = ( SELECT lower(u.email) AS lower\n   FROM identity.users u\n  WHERE (u.id = app_current_user_id())))))"
   },
   {
    "tbl": "orders.transit_passes",
@@ -3129,7 +4416,7 @@
    "cmd": "ALL",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
-   "qual": "((order_id IN ( SELECT orders.id\n   FROM orders.orders\n  WHERE (orders.user_id = app_current_user_id()))) OR (current_setting('app.platform_admin'::text, true) = 'true'::text))",
+   "qual": "(app_is_platform_admin() OR (order_id IN ( SELECT o.id\n   FROM orders.orders o\n  WHERE (o.user_id = app_current_user_id()))))",
    "wcheck": ""
   },
   {
@@ -3139,7 +4426,7 @@
    "permissive": "PERMISSIVE",
    "roles": "{public}",
    "qual": "",
-   "wcheck": "true"
+   "wcheck": "(app_is_service() OR app_is_platform_admin())"
   },
   {
    "tbl": "orders.travel_bookings",
@@ -3160,6 +4447,24 @@
    "wcheck": ""
   },
   {
+   "tbl": "orders.waiting_list",
+   "pol": "owner_waiting_list",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = waiting_list.event_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = waiting_list.event_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "orders.waiting_list",
+   "pol": "svc_admin_waiting_list",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "partner.partner_sales",
    "pol": "p_rls_partner_sales",
    "cmd": "ALL",
@@ -3167,6 +4472,24 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM orders.orders o_\n  WHERE ((o_.id = partner_sales.order_id) AND ((o_.user_id = app_current_user_id()) OR (EXISTS ( SELECT 1\n           FROM catalog.events ev_\n          WHERE ((ev_.id = o_.event_id) AND (ev_.promoter_id = app_current_promoter_id())))))))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "partner.partner_settlements",
+   "pol": "svc_admin_partner_settlements",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "partner.partner_tokens",
+   "pol": "svc_admin_partner_tokens",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "partner.partners",
@@ -3232,6 +4555,24 @@
    "wcheck": ""
   },
   {
+   "tbl": "platform.advance_payout_installments",
+   "pol": "owner_advance_payout_installments",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM platform.advance_payout_schedules s\n  WHERE ((s.id = advance_payout_installments.schedule_id) AND (s.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM platform.advance_payout_schedules s\n  WHERE ((s.id = advance_payout_installments.schedule_id) AND (s.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "platform.advance_payout_installments",
+   "pol": "svc_admin_advance_payout_installments",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "platform.advance_payout_schedules",
    "pol": "p_advance_payout_schedules_tenant",
    "cmd": "ALL",
@@ -3257,6 +4598,15 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()))",
    "wcheck": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()))"
+  },
+  {
+   "tbl": "platform.api_key_audit_log",
+   "pol": "svc_admin_api_key_audit_log",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "platform.api_keys",
@@ -3347,6 +4697,24 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "platform.distribution_access_tokens",
+   "pol": "svc_admin_distribution_access_tokens",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "platform.distribution_partners",
+   "pol": "svc_admin_distribution_partners",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "platform.email_templates",
@@ -3651,7 +5019,7 @@
    "cmd": "SELECT",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
-   "qual": "true",
+   "qual": "((status = 'active'::text) OR app_is_service() OR app_is_platform_admin() OR (id = app_current_promoter_id()) OR (EXISTS ( SELECT 1\n   FROM platform.promoter_members pm\n  WHERE ((pm.promoter_id = promoters.id) AND (pm.user_id = app_current_user_id())))))",
    "wcheck": ""
   },
   {
@@ -3664,13 +5032,49 @@
    "wcheck": "(app_is_platform_admin() OR app_is_service() OR (id = app_current_promoter_id()))"
   },
   {
-   "tbl": "platform.qes_signing_requests",
-   "pol": "qes_requests_svc",
+   "tbl": "platform.publish_sold_notifications",
+   "pol": "owner_publish_sold_notifications",
    "cmd": "ALL",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
-   "qual": "(current_setting('app.bypass_rls'::text, true) = 'on'::text)",
-   "wcheck": ""
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = publish_sold_notifications.event_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = publish_sold_notifications.event_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "platform.publish_sold_notifications",
+   "pol": "svc_admin_publish_sold_notifications",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "platform.purchase_agents",
+   "pol": "owner_purchase_agents",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(owner_user_id = app_current_user_id())",
+   "wcheck": "(owner_user_id = app_current_user_id())"
+  },
+  {
+   "tbl": "platform.purchase_agents",
+   "pol": "svc_admin_purchase_agents",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "platform.qes_signing_requests",
+   "pol": "p_qes_signing_requests_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
   },
   {
    "tbl": "platform.queue_tokens",
@@ -3679,6 +5083,15 @@
    "permissive": "PERMISSIVE",
    "roles": "{public}",
    "qual": "(app_is_service() OR app_is_platform_admin() OR (user_id = app_current_user_id()) OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = queue_tokens.event_id) AND (e.promoter_id = app_current_promoter_id())))))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "platform.refund_policies",
+   "pol": "p_refund_policies_buyer_read",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "((app_current_user_id() IS NOT NULL) AND (EXISTS ( SELECT 1\n   FROM (orders.orders o\n     JOIN catalog.events e ON ((e.id = o.event_id)))\n  WHERE ((o.user_id = app_current_user_id()) AND (e.promoter_id = refund_policies.promoter_id)))))",
    "wcheck": ""
   },
   {
@@ -3698,6 +5111,24 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "platform.reseller_partners",
+   "pol": "read_reseller_partners",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_current_promoter_id() IS NOT NULL)",
+   "wcheck": ""
+  },
+  {
+   "tbl": "platform.reseller_partners",
+   "pol": "svc_admin_reseller_partners",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "platform.rolling_reserves",
@@ -3736,6 +5167,24 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "platform.staff_permissions",
+   "pol": "svc_admin_staff_permissions",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "platform.staff_roles",
+   "pol": "svc_admin_staff_roles",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "platform.staff_shifts",
    "pol": "p_staff_shifts_tenant",
    "cmd": "ALL",
@@ -3772,6 +5221,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "platform.webhook_deliveries",
+   "pol": "svc_admin_webhook_deliveries",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "platform.webhook_endpoints",
    "pol": "p_webhook_endpoints_tenant",
    "cmd": "ALL",
@@ -3788,6 +5246,15 @@
    "roles": "{public}",
    "qual": "(current_setting('app.is_platform_admin'::text, true) = 'true'::text)",
    "wcheck": ""
+  },
+  {
+   "tbl": "pos.pos_reconciliations",
+   "pol": "svc_admin_pos_reconciliations",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "pos.pos_sessions",
@@ -3835,6 +5302,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "pos.tap_to_pay_transactions",
+   "pol": "svc_admin_tap_to_pay_transactions",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "pricing.dynamic_pricing_rules",
    "pol": "p_dynamic_pricing_rules_scope",
    "cmd": "ALL",
@@ -3860,6 +5336,24 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "pricing.price_adjustment_log",
+   "pol": "owner_price_adjustment_log",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = price_adjustment_log.event_id) AND (e.promoter_id = app_current_promoter_id()))))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = price_adjustment_log.event_id) AND (e.promoter_id = app_current_promoter_id()))))"
+  },
+  {
+   "tbl": "pricing.price_adjustment_log",
+   "pol": "svc_admin_price_adjustment_log",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "promo.bogo_rules",
@@ -4159,6 +5653,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "referral.clicks",
+   "pol": "svc_admin_clicks",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "referral.conversions",
    "pol": "p_rls_conversions",
    "cmd": "ALL",
@@ -4249,6 +5752,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "resale.resale_rules_overrides",
+   "pol": "svc_admin_resale_rules_overrides",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "resale.resale_watchlist",
    "pol": "p_scope",
    "cmd": "ALL",
@@ -4283,6 +5795,24 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "reservations.availability_overrides",
+   "pol": "svc_admin_availability_overrides",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "reservations.availability_rules",
+   "pol": "svc_admin_availability_rules",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "reservations.booking_holds",
@@ -4328,6 +5858,42 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "reservations.branch_closures",
+   "pol": "svc_admin_branch_closures",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "reservations.branch_hours",
+   "pol": "svc_admin_branch_hours",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "reservations.branch_service_availability",
+   "pol": "svc_admin_branch_service_availability",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "reservations.branch_settings",
+   "pol": "svc_admin_branch_settings",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "reservations.branch_staff",
@@ -4411,6 +5977,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "reservations.package_credit_balances",
+   "pol": "svc_admin_package_credit_balances",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "reservations.package_items",
    "pol": "p_scope",
    "cmd": "ALL",
@@ -4436,6 +6011,15 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "reservations.package_usage",
+   "pol": "svc_admin_package_usage",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "reservations.packages",
@@ -4474,6 +6058,24 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "reservations.rule_actions",
+   "pol": "svc_admin_rule_actions",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "reservations.rule_conditions",
+   "pol": "svc_admin_rule_conditions",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "reservations.rule_evaluations",
    "pol": "p_rls_rule_evaluations",
    "cmd": "ALL",
@@ -4501,6 +6103,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "reservations.service_addons",
+   "pol": "svc_admin_service_addons",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "reservations.service_categories",
    "pol": "p_service_categories_tenant",
    "cmd": "ALL",
@@ -4517,6 +6128,24 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "reservations.service_pricing_rules",
+   "pol": "svc_admin_service_pricing_rules",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "reservations.service_resources",
+   "pol": "svc_admin_service_resources",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "reservations.service_reviews",
@@ -4544,6 +6173,15 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "reservations.slots",
+   "pol": "svc_admin_slots",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "reservations.waitlist_entries",
@@ -4636,6 +6274,15 @@
    "wcheck": ""
   },
   {
+   "tbl": "retailer.settlements",
+   "pol": "svc_admin_settlements",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "revenue.impact_history",
    "pol": "p_rls_impact_history",
    "cmd": "ALL",
@@ -4717,6 +6364,24 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "rfid.rfid_taps",
+   "pol": "svc_admin_rfid_taps",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "rfid.rfid_top_ups",
+   "pol": "svc_admin_rfid_top_ups",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "rfid.rfid_wristbands",
    "pol": "p_rls_rfid_wristbands",
    "cmd": "ALL",
@@ -4751,6 +6416,15 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "risk.fraud_reviews",
+   "pol": "svc_admin_fraud_reviews",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "scanner.scanned_tokens",
@@ -4877,6 +6551,42 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (user_id = app_current_user_id()))",
    "wcheck": ""
+  },
+  {
+   "tbl": "social_graph.friend_requests",
+   "pol": "owner_friend_requests",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "((from_user_id = app_current_user_id()) OR (to_user_id = app_current_user_id()))",
+   "wcheck": "((from_user_id = app_current_user_id()) OR (to_user_id = app_current_user_id()))"
+  },
+  {
+   "tbl": "social_graph.friend_requests",
+   "pol": "svc_admin_friend_requests",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "social_graph.friendships",
+   "pol": "owner_friendships",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "((user_a = app_current_user_id()) OR (user_b = app_current_user_id()))",
+   "wcheck": "((user_a = app_current_user_id()) OR (user_b = app_current_user_id()))"
+  },
+  {
+   "tbl": "social_graph.friendships",
+   "pol": "svc_admin_friendships",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "social_graph.user_profiles",
@@ -5068,6 +6778,15 @@
    "wcheck": ""
   },
   {
+   "tbl": "support_chat.chat_messages",
+   "pol": "svc_admin_chat_messages",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "support_chat.chat_sessions",
    "pol": "p_scope",
    "cmd": "ALL",
@@ -5075,6 +6794,15 @@
    "roles": "{public}",
    "qual": "(app_is_service() OR app_is_platform_admin() OR (user_id = app_current_user_id()) OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = chat_sessions.event_id) AND (e.promoter_id = app_current_promoter_id())))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "support_chat.session_feedback",
+   "pol": "svc_admin_session_feedback",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "surveys.survey_responses",
@@ -5111,6 +6839,15 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e_\n  WHERE ((e_.id = event_metrics.event_id) AND (e_.promoter_id = app_current_promoter_id())))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "tickets.access_token_log",
+   "pol": "svc_admin_access_token_log",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "tickets.access_tokens",
@@ -5285,12 +7022,39 @@
   },
   {
    "tbl": "tickets.tickets",
-   "pol": "p_tickets_scope",
-   "cmd": "ALL",
+   "pol": "p_tickets_delete",
+   "cmd": "DELETE",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM (orders.orders o\n     JOIN catalog.events e ON ((e.id = o.event_id)))\n  WHERE ((o.id = tickets.order_id) AND (e.promoter_id = app_current_promoter_id())))))",
+   "wcheck": ""
+  },
+  {
+   "tbl": "tickets.tickets",
+   "pol": "p_tickets_insert",
+   "cmd": "INSERT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM (orders.orders o\n     JOIN catalog.events e ON ((e.id = o.event_id)))\n  WHERE ((o.id = tickets.order_id) AND (e.promoter_id = app_current_promoter_id())))))"
+  },
+  {
+   "tbl": "tickets.tickets",
+   "pol": "p_tickets_read",
+   "cmd": "SELECT",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (owner_id = app_current_user_id()) OR (EXISTS ( SELECT 1\n   FROM (orders.orders o\n     JOIN catalog.events e ON ((e.id = o.event_id)))\n  WHERE ((o.id = tickets.order_id) AND (e.promoter_id = app_current_promoter_id())))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "tickets.tickets",
+   "pol": "p_tickets_update",
+   "cmd": "UPDATE",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (owner_id = app_current_user_id()) OR (EXISTS ( SELECT 1\n   FROM (orders.orders o\n     JOIN catalog.events e ON ((e.id = o.event_id)))\n  WHERE ((o.id = tickets.order_id) AND (e.promoter_id = app_current_promoter_id())))))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (owner_id = app_current_user_id()) OR (EXISTS ( SELECT 1\n   FROM (orders.orders o\n     JOIN catalog.events e ON ((e.id = o.event_id)))\n  WHERE ((o.id = tickets.order_id) AND (e.promoter_id = app_current_promoter_id())))))"
   },
   {
    "tbl": "tickets.transfer_invitations",
@@ -5338,6 +7102,24 @@
    "wcheck": ""
   },
   {
+   "tbl": "tickets.wristband_transactions",
+   "pol": "owner_wristband_transactions",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(EXISTS ( SELECT 1\n   FROM tickets.wristbands w\n  WHERE (w.uid = wristband_transactions.wristband_uid)))",
+   "wcheck": "(EXISTS ( SELECT 1\n   FROM tickets.wristbands w\n  WHERE (w.uid = wristband_transactions.wristband_uid)))"
+  },
+  {
+   "tbl": "tickets.wristband_transactions",
+   "pol": "svc_admin_wristband_transactions",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "tickets.wristbands",
    "pol": "p_scope",
    "cmd": "ALL",
@@ -5372,6 +7154,24 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e_\n  WHERE ((e_.id = series_events.event_id) AND (e_.promoter_id = app_current_promoter_id())))))",
    "wcheck": ""
+  },
+  {
+   "tbl": "tours.series_metrics",
+   "pol": "svc_admin_series_metrics",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "tours.shared_seat_maps",
+   "pol": "svc_admin_shared_seat_maps",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "transfers.transfer_log",
@@ -5455,6 +7255,24 @@
    "wcheck": ""
   },
   {
+   "tbl": "venues.court_bookings",
+   "pol": "svc_admin_court_bookings",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "venues.courts",
+   "pol": "svc_admin_courts",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "venues.cultural_venues",
    "pol": "p_cultural_venues_tenant",
    "cmd": "ALL",
@@ -5471,6 +7289,24 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "venues.daily_capacity",
+   "pol": "svc_admin_daily_capacity",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "venues.daily_tickets",
+   "pol": "svc_admin_daily_tickets",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "venues.entry_bookings",
@@ -5491,6 +7327,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "venues.entry_slots",
+   "pol": "svc_admin_entry_slots",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "venues.escape_bookings",
    "pol": "p_scope",
    "cmd": "ALL",
@@ -5498,6 +7343,15 @@
    "roles": "{public}",
    "qual": "(app_is_service() OR app_is_platform_admin())",
    "wcheck": ""
+  },
+  {
+   "tbl": "venues.escape_rooms",
+   "pol": "svc_admin_escape_rooms",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "venues.escape_venues",
@@ -5516,6 +7370,60 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "venues.facility_zones",
+   "pol": "svc_admin_facility_zones",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "venues.game_results",
+   "pol": "svc_admin_game_results",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "venues.guest_passes",
+   "pol": "svc_admin_guest_passes",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "venues.leaderboard_entries",
+   "pol": "svc_admin_leaderboard_entries",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "venues.lift_scans",
+   "pol": "svc_admin_lift_scans",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "venues.locker_reservations",
+   "pol": "svc_admin_locker_reservations",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "venues.membership_cards",
@@ -5545,6 +7453,15 @@
    "wcheck": ""
   },
   {
+   "tbl": "venues.ski_pass_types",
+   "pol": "svc_admin_ski_pass_types",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "venues.ski_resorts",
    "pol": "p_ski_resorts_tenant",
    "cmd": "ALL",
@@ -5563,6 +7480,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "venues.ski_school_sessions",
+   "pol": "svc_admin_ski_school_sessions",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "venues.sports_clubs",
    "pol": "p_sports_clubs_tenant",
    "cmd": "ALL",
@@ -5579,6 +7505,24 @@
    "roles": "{public}",
    "qual": "app_is_service()",
    "wcheck": "app_is_service()"
+  },
+  {
+   "tbl": "venues.ticket_types",
+   "pol": "svc_admin_ticket_types",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "venues.venue_zones",
+   "pol": "svc_admin_venue_zones",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "venues.wellness_bookings",
@@ -5617,6 +7561,15 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "venues.zone_access",
+   "pol": "svc_admin_zone_access",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
    "tbl": "verified_fan.configs",
    "pol": "p_rls_configs",
    "cmd": "ALL",
@@ -5642,6 +7595,24 @@
    "roles": "{public}",
    "qual": "(user_id = app_current_user_id())",
    "wcheck": ""
+  },
+  {
+   "tbl": "virtual_venue.seat_previews",
+   "pol": "svc_admin_seat_previews",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "virtual_venue.section_panoramas",
+   "pol": "svc_admin_section_panoramas",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service())",
+   "wcheck": "(app_is_platform_admin() OR app_is_service())"
   },
   {
    "tbl": "waiting_room.position_snapshots",
@@ -5691,7 +7662,7 @@
   },
   {
    "tbl": "accessibility.companion_pairs",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "accreditation.accreditation_requests",
@@ -5699,7 +7670,7 @@
   },
   {
    "tbl": "accreditation.accreditation_scans",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "ads.dynamic_creative_templates",
@@ -5711,7 +7682,7 @@
   },
   {
    "tbl": "affiliate.clicks",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "affiliate.conversions",
@@ -5723,7 +7694,7 @@
   },
   {
    "tbl": "affiliate.payouts",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "ai_ads.generated_ad_copies",
@@ -5739,15 +7710,15 @@
   },
   {
    "tbl": "ambassador.codes",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "ambassador.payouts",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "analytics.audience_geo",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "analytics.demand_forecasts",
@@ -5755,7 +7726,7 @@
   },
   {
    "tbl": "analytics.event_sales_snapshots",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "analytics.funnel_events",
@@ -5779,7 +7750,7 @@
   },
   {
    "tbl": "audit.audit_log",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "audit.bot_detections",
@@ -5791,7 +7762,7 @@
   },
   {
    "tbl": "audit.content_reports_rate_limit",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "audit.event_moderation_log",
@@ -5803,7 +7774,7 @@
   },
   {
    "tbl": "audit.support_actions",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "auth.passkey_challenges",
@@ -5819,7 +7790,7 @@
   },
   {
    "tbl": "b2b.api_rate_limit_log",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "b2b.oauth_access_tokens",
@@ -5831,7 +7802,7 @@
   },
   {
    "tbl": "b2b.oauth_clients",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "b2b.oauth_refresh_tokens",
@@ -5847,11 +7818,11 @@
   },
   {
    "tbl": "b2b.webhook_deliveries",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "b2b.webhook_subscriptions",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "b2b_orders.dunning_log",
@@ -5895,19 +7866,19 @@
   },
   {
    "tbl": "brands.impressions",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.ab_price_assignments",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.ab_price_tests",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.access_code_ticket_types",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.access_codes",
@@ -5919,11 +7890,11 @@
   },
   {
    "tbl": "catalog.backstage_moments",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.cinema_screens",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.collection_events",
@@ -5931,7 +7902,7 @@
   },
   {
    "tbl": "catalog.commemorative_templates",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.cross_pass_bundles",
@@ -5943,7 +7914,7 @@
   },
   {
    "tbl": "catalog.discount_pricing_rules",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.donation_campaigns",
@@ -5955,7 +7926,7 @@
   },
   {
    "tbl": "catalog.dynamic_pricing_rules",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.entry_slots",
@@ -5963,7 +7934,7 @@
   },
   {
    "tbl": "catalog.event_bundle_addons",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.event_bundles",
@@ -6047,15 +8018,15 @@
   },
   {
    "tbl": "catalog.flex_pass_settings",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.foyer_menu_items",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.group_discount_tiers",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.hospitality_packages",
@@ -6067,7 +8038,7 @@
   },
   {
    "tbl": "catalog.lastminute_rules",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.lottery_entries",
@@ -6075,7 +8046,7 @@
   },
   {
    "tbl": "catalog.member_pricing_rules",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.moderation_blocklist",
@@ -6091,11 +8062,11 @@
   },
   {
    "tbl": "catalog.pricing_rules",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.pricing_windows",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.productions",
@@ -6103,7 +8074,7 @@
   },
   {
    "tbl": "catalog.program_cast_entries",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.rfid_access_log",
@@ -6139,7 +8110,7 @@
   },
   {
    "tbl": "catalog.seats",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.sport_teams",
@@ -6151,19 +8122,19 @@
   },
   {
    "tbl": "catalog.ticket_modular_pricing",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.ticket_type_access",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.ticket_type_channel_prices",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.ticket_type_price_history",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.ticket_types",
@@ -6183,7 +8154,7 @@
   },
   {
    "tbl": "catalog.venue_seating_charts",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.venues",
@@ -6191,7 +8162,7 @@
   },
   {
    "tbl": "catalog.volume_discount_rules",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "catalog.waitlist_entries",
@@ -6207,7 +8178,7 @@
   },
   {
    "tbl": "channels.sync_log",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "charity.allocations",
@@ -6247,7 +8218,7 @@
   },
   {
    "tbl": "communications.announcement_responses",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "communications.broadcasts",
@@ -6275,15 +8246,15 @@
   },
   {
    "tbl": "conference.badge_overrides",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "conference.badge_print_jobs",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "conference.badge_templates",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "conference.booth_assignments",
@@ -6291,11 +8262,11 @@
   },
   {
    "tbl": "conference.booth_categories",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "conference.booths",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "conference.conferences",
@@ -6303,7 +8274,7 @@
   },
   {
    "tbl": "conference.days",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "conference.exhibitor_sessions",
@@ -6319,7 +8290,7 @@
   },
   {
    "tbl": "conference.floor_maps",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "conference.multi_day_passes",
@@ -6331,11 +8302,11 @@
   },
   {
    "tbl": "conference.session_speakers",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "conference.sessions",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "conference.speakers",
@@ -6343,7 +8314,7 @@
   },
   {
    "tbl": "conference.tracks",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "cross_scanner.guest_lists",
@@ -6355,15 +8326,15 @@
   },
   {
    "tbl": "cs.action_log",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "cs.notes",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "discovery_feed.feed_access_log",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "discovery_feed.feed_subscriptions",
@@ -6371,7 +8342,7 @@
   },
   {
    "tbl": "event_groups.bulk_edits",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "event_groups.groups",
@@ -6383,7 +8354,7 @@
   },
   {
    "tbl": "event_groups.shares",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "eventim_export.export_jobs",
@@ -6391,7 +8362,7 @@
   },
   {
    "tbl": "eventim_export.export_log",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "fan_share.campaigns",
@@ -6527,7 +8498,7 @@
   },
   {
    "tbl": "identity.verified_persons",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "identity.webauthn_challenges",
@@ -6555,7 +8526,7 @@
   },
   {
    "tbl": "lineups.artist_profiles",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "lineups.artists",
@@ -6595,7 +8566,7 @@
   },
   {
    "tbl": "marketing.ad_auction_log",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "marketing.ad_campaigns",
@@ -6655,7 +8626,7 @@
   },
   {
    "tbl": "marketing.fan_bonus_issued",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "marketing.gift_voucher_redemptions",
@@ -6691,7 +8662,7 @@
   },
   {
    "tbl": "marketing.promo_codes",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "marketing.qr_campaigns",
@@ -6699,7 +8670,7 @@
   },
   {
    "tbl": "marketing.qr_scans",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "marketing.re_engagement_campaigns",
@@ -6835,11 +8806,11 @@
   },
   {
    "tbl": "orders.foyer_orders",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "orders.gift_claims",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "orders.group_invitations",
@@ -6867,7 +8838,7 @@
   },
   {
    "tbl": "orders.lottery_entries",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "orders.order_currencies",
@@ -6907,7 +8878,7 @@
   },
   {
    "tbl": "orders.payment_installments",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "orders.phone_event_purchases",
@@ -6927,7 +8898,7 @@
   },
   {
    "tbl": "orders.program_purchases",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "orders.refund_requests",
@@ -6943,11 +8914,11 @@
   },
   {
    "tbl": "orders.reschedule_responses",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "orders.reseller_sales",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "orders.school_bookings",
@@ -6955,11 +8926,15 @@
   },
   {
    "tbl": "orders.season_pass_uses",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "orders.season_passes",
-   "rls": false
+   "rls": true
+  },
+  {
+   "tbl": "orders.seat_upgrade_notifications",
+   "rls": true
   },
   {
    "tbl": "orders.seat_upgrades",
@@ -6983,7 +8958,7 @@
   },
   {
    "tbl": "orders.waiting_list",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "partner.partner_sales",
@@ -6991,11 +8966,11 @@
   },
   {
    "tbl": "partner.partner_settlements",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "partner.partner_tokens",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "partner.partners",
@@ -7027,7 +9002,7 @@
   },
   {
    "tbl": "platform.advance_payout_installments",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "platform.advance_payout_schedules",
@@ -7039,7 +9014,7 @@
   },
   {
    "tbl": "platform.api_key_audit_log",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "platform.api_keys",
@@ -7083,11 +9058,11 @@
   },
   {
    "tbl": "platform.distribution_access_tokens",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "platform.distribution_partners",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "platform.email_templates",
@@ -7183,11 +9158,11 @@
   },
   {
    "tbl": "platform.publish_sold_notifications",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "platform.purchase_agents",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "platform.qes_signing_requests",
@@ -7203,7 +9178,7 @@
   },
   {
    "tbl": "platform.reseller_partners",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "platform.rolling_reserves",
@@ -7215,11 +9190,11 @@
   },
   {
    "tbl": "platform.staff_permissions",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "platform.staff_roles",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "platform.staff_shifts",
@@ -7231,7 +9206,7 @@
   },
   {
    "tbl": "platform.webhook_deliveries",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "platform.webhook_endpoints",
@@ -7243,7 +9218,7 @@
   },
   {
    "tbl": "pos.pos_reconciliations",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "pos.pos_sessions",
@@ -7259,7 +9234,7 @@
   },
   {
    "tbl": "pos.tap_to_pay_transactions",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "pricing.dynamic_pricing_rules",
@@ -7271,7 +9246,7 @@
   },
   {
    "tbl": "pricing.price_adjustment_log",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "promo.bogo_rules",
@@ -7387,7 +9362,7 @@
   },
   {
    "tbl": "referral.clicks",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "referral.conversions",
@@ -7419,7 +9394,7 @@
   },
   {
    "tbl": "resale.resale_rules_overrides",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "resale.resale_watchlist",
@@ -7435,11 +9410,11 @@
   },
   {
    "tbl": "reservations.availability_overrides",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "reservations.availability_rules",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "reservations.booking_holds",
@@ -7455,19 +9430,19 @@
   },
   {
    "tbl": "reservations.branch_closures",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "reservations.branch_hours",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "reservations.branch_service_availability",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "reservations.branch_settings",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "reservations.branch_staff",
@@ -7491,7 +9466,7 @@
   },
   {
    "tbl": "reservations.package_credit_balances",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "reservations.package_items",
@@ -7503,7 +9478,7 @@
   },
   {
    "tbl": "reservations.package_usage",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "reservations.packages",
@@ -7515,11 +9490,11 @@
   },
   {
    "tbl": "reservations.rule_actions",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "reservations.rule_conditions",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "reservations.rule_evaluations",
@@ -7531,7 +9506,7 @@
   },
   {
    "tbl": "reservations.service_addons",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "reservations.service_categories",
@@ -7539,11 +9514,11 @@
   },
   {
    "tbl": "reservations.service_pricing_rules",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "reservations.service_resources",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "reservations.service_reviews",
@@ -7555,7 +9530,7 @@
   },
   {
    "tbl": "reservations.slots",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "reservations.waitlist_entries",
@@ -7591,7 +9566,7 @@
   },
   {
    "tbl": "retailer.settlements",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "revenue.impact_history",
@@ -7615,11 +9590,11 @@
   },
   {
    "tbl": "rfid.rfid_taps",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "rfid.rfid_top_ups",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "rfid.rfid_wristbands",
@@ -7635,7 +9610,7 @@
   },
   {
    "tbl": "risk.fraud_reviews",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "risk.fraud_rules",
@@ -7691,11 +9666,11 @@
   },
   {
    "tbl": "social_graph.friend_requests",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "social_graph.friendships",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "social_graph.user_profiles",
@@ -7759,7 +9734,7 @@
   },
   {
    "tbl": "support_chat.chat_messages",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "support_chat.chat_sessions",
@@ -7767,7 +9742,7 @@
   },
   {
    "tbl": "support_chat.session_feedback",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "surveys.survey_responses",
@@ -7783,7 +9758,7 @@
   },
   {
    "tbl": "tickets.access_token_log",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "tickets.access_tokens",
@@ -7887,7 +9862,7 @@
   },
   {
    "tbl": "tickets.wristband_transactions",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "tickets.wristbands",
@@ -7903,11 +9878,11 @@
   },
   {
    "tbl": "tours.series_metrics",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "tours.shared_seat_maps",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "transfers.transfer_log",
@@ -7943,11 +9918,11 @@
   },
   {
    "tbl": "venues.court_bookings",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.courts",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.cultural_venues",
@@ -7955,11 +9930,11 @@
   },
   {
    "tbl": "venues.daily_capacity",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.daily_tickets",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.entry_bookings",
@@ -7967,7 +9942,7 @@
   },
   {
    "tbl": "venues.entry_slots",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.escape_bookings",
@@ -7975,7 +9950,7 @@
   },
   {
    "tbl": "venues.escape_rooms",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.escape_venues",
@@ -7983,27 +9958,27 @@
   },
   {
    "tbl": "venues.facility_zones",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.game_results",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.guest_passes",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.leaderboard_entries",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.lift_scans",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.locker_reservations",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.membership_cards",
@@ -8019,7 +9994,7 @@
   },
   {
    "tbl": "venues.ski_pass_types",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.ski_resorts",
@@ -8027,7 +10002,7 @@
   },
   {
    "tbl": "venues.ski_school_sessions",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.sports_clubs",
@@ -8035,11 +10010,11 @@
   },
   {
    "tbl": "venues.ticket_types",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.venue_zones",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "venues.wellness_bookings",
@@ -8051,7 +10026,7 @@
   },
   {
    "tbl": "venues.zone_access",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "verified_fan.configs",
@@ -8063,11 +10038,11 @@
   },
   {
    "tbl": "virtual_venue.seat_previews",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "virtual_venue.section_panoramas",
-   "rls": false
+   "rls": true
   },
   {
    "tbl": "waiting_room.position_snapshots",
@@ -8094,5 +10069,5 @@
    "cfg": "search_path=pg_catalog, public"
   }
  ],
- "generatedFrom": "migrations: 000_baseline_20260730.sql + 000_baseline_globals.sql + 450_tickets_dedup_unique.sql + 451_orders_payment_provider_pos.sql + 452_tracking_events_provider_tiktok.sql + 453_users_select_scoped.sql + 454_rls_cast_nullif_fix.sql + 455_rls_namedrift_identity.sql + 456_drop_base64url_defaults.sql + 457_orders_payment_provider_channels.sql + 458_party_split_rls_service_branch.sql + 459_users_promoter_upsert.sql + 460_ticket_alerts_service_branch.sql + 461_mechanical_rls.sql + 462_shared_catalog_and_eudi_rls.sql + 463_b2b_service_branch.sql + 464_b2b_orders_correlate_invoice_orders.sql + 465_artists_event_id_nullable.sql + 466_rolling_reserves_policy.sql + 467_writable_policies_r30.sql"
+ "generatedFrom": "migrations: 000_baseline_20260730.sql + 000_baseline_globals.sql + 450_tickets_dedup_unique.sql + 451_orders_payment_provider_pos.sql + 452_tracking_events_provider_tiktok.sql + 453_users_select_scoped.sql + 454_rls_cast_nullif_fix.sql + 455_rls_namedrift_identity.sql + 456_drop_base64url_defaults.sql + 457_orders_payment_provider_channels.sql + 458_party_split_rls_service_branch.sql + 459_users_promoter_upsert.sql + 460_ticket_alerts_service_branch.sql + 461_mechanical_rls.sql + 462_shared_catalog_and_eudi_rls.sql + 463_b2b_service_branch.sql + 464_b2b_orders_correlate_invoice_orders.sql + 465_artists_event_id_nullable.sql + 466_rolling_reserves_policy.sql + 467_writable_policies_r30.sql + 468_payouts_status_processing.sql + 469_broadcasts_target_event.sql + 470_ticket_transfers_service_branch.sql + 471_transit_passes_admin_guc_drift.sql + 479_refund_gateway_state.sql + 480_v2_buyer_policies.sql + 481_v8_write_isolation.sql + 482_rls_tables_without_rls.sql + 483_scan_logs_writable.sql + 484_payment_paid_once.sql + 485_qr_policy_default_rotating.sql + 486_buyer_protected_columns_guard.sql + 487_invoice_number_per_promoter.sql + 489_qes_signing_requests_policy.sql + 490_seat_upgrade_notifications.sql + 491_true_policies_owner_scope.sql + 492_subscription_holders_protected_columns.sql"
 }

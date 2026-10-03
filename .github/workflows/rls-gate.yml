@@ -1,15 +1,16 @@
 name: RLS Gate
 
 # ── Proč tenhle workflow existuje ────────────────────────────────────────────
-# `BUNDLE_340-348_prod.sql` byl dosud jediné, co drift RLS vracelo zpět —
-# pouštěl se opakovaně a přepisoval, co se rozešlo. Baseline se aplikuje JEDNOU,
-# takže tahle samoopravná vlastnost zmizí. Bez tohohle gate by se drift projevil
-# až tím, že aplikace přestane vidět data (nebo je začne vidět všem).
+# `BUNDLE_340-348_prod.sql` byl dosud jediné, co drift RLS vracelo zpět. Baseline se aplikuje
+# JEDNOU, takže tuhle roli přebírá gate: porovná policies / RLS tabulky / helpery DB proti
+# `rls-snapshot.json`, který je vygenerovaný z MIGRACÍ (ne z produkce).
 #
-# Gate porovnává živou DB proti `rls-snapshot.json`, který je vygenerovaný
-# z MIGRACÍ, ne z produkce (jinak by ověřoval realitu proti realitě).
-#
-# Čím se liší od ostatních dvou kontrol — viz .github/workflows/README.md.
+# Kolo 4: gate dřív při chybějícím DATABASE_URL skončil `exit 0` s varováním → 50× "success",
+# ale nic nezkontroloval (repo nemá žádné secrets). Teď:
+#   • push / PR / ruční běh — gate běží VŽDY, proti DB postavené od nuly z migrací v service
+#     kontejneru (bez tajemství), pod rolí tixly_app. Zastaralý snapshot = selhání
+#     (PŘEBÝVAJÍCÍ/CHYBĚJÍCÍ POLICY), takže odpadá i samostatný job snapshot-drift na Neonu.
+#   • noční běh a volání z deploy.yml — kontrola produkce; chybějící secret = SELHÁNÍ, ne skip.
 
 on:
   # 1) noční kontrola produkce — chytí drift, který vznikl mimo deploy
@@ -22,65 +23,127 @@ on:
         description: 'popis cíle (jen do logu)'
         required: false
         type: string
+      production:
+        description: 'kontrolovat produkci (DATABASE_URL); volající deploy.yml nechává výchozí true'
+        required: false
+        type: boolean
+        default: true
     secrets:
       DATABASE_URL:
         required: true
       NEON_API_KEY:
-        # volitelny — potrebuje ho jen nocni sken, ne pre-deploy gate
         required: false
   # 3) na změnu čehokoli, co gate nebo očekávaný stav definuje
+  push:
+    branches: [main, master, 'fix/**']
+    paths:
+      - 'migrations/**'
+      - 'nextjs-boilerplate/rls-snapshot.json'
+      - 'nextjs-boilerplate/scripts/rls-verify.mjs'
+      - '.github/scripts/build-db-from-migrations.sh'
+      - '.github/actions/db-from-migrations/**'
+      - '.github/workflows/rls-gate.yml'
   pull_request:
     paths:
       - 'migrations/**'
       - 'nextjs-boilerplate/rls-snapshot.json'
       - 'nextjs-boilerplate/scripts/rls-verify.mjs'
+      - '.github/scripts/build-db-from-migrations.sh'
+      - '.github/actions/db-from-migrations/**'
       - '.github/workflows/rls-gate.yml'
   workflow_dispatch:
 
-concurrency:
-  group: rls-gate-${{ github.ref }}
-  cancel-in-progress: true
+# Bez `concurrency`: běh volaný z deploy.yml i běh z téhož pushe musí doběhnout oba — zrušení
+# pre-deploy gate souběžným během by shodilo nasazení.
 
 permissions:
   contents: read
 
 jobs:
-  verify:
-    name: RLS verify (policies vs snapshot)
+  # Migrace → DB → gate. Žádné tajemství, běží na každý push/PR, který se RLS týká.
+  verify-migrations:
+    name: RLS verify (DB z migrací vs snapshot)
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_USER: neondb_owner
+          POSTGRES_PASSWORD: fixowner   # heslo izolované testovací DB, ne produkční
+          POSTGRES_DB: neondb
+        ports: ['55632:5432']
+        options: >-
+          --health-cmd "pg_isready -U neondb_owner" --health-interval 5s --health-timeout 5s --health-retries 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: nextjs-boilerplate/package-lock.json
+
+      # Selže-li kterákoli migrace, skript vrátí nenulu a job skončí červeně (žádné `|| true`).
+      - name: DB od nuly z migrací (psql 17)
+        uses: ./.github/actions/db-from-migrations
+        with:
+          db: rls
 
       - name: Install deps
         working-directory: nextjs-boilerplate
         run: npm ci --no-audit --no-fund
 
-      # Repo zatim NEMA zadne secrets (overeno `gh secret list`), takze by gate
-      # spadl na chybejici DATABASE_URL a blokoval deploy natrvalo. Preskoci se
-      # tedy sam — ale HLASITE, aby se z docasneho stavu nestal trvaly.
-      # Az secret vznikne, gate se aktivuje bez dalsiho zasahu.
+      # Exit 1 = drift (včetně zastaralého snapshotu), 2 = chyba nástroje — obojí shodí job.
+      - name: RLS gate (tixly_app)
+        working-directory: nextjs-boilerplate
+        run: node scripts/rls-verify.mjs --url=postgresql://tixly_app:fixapp@localhost:55632/rls
+
+  # Produkce: noční běh + pre-deploy gate z deploy.yml. Bez secretu NESMÍ projít.
+  verify-production:
+    name: RLS verify (produkce vs snapshot)
+    if: github.event_name == 'schedule' || inputs.production == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: nextjs-boilerplate/package-lock.json
+
+      - name: Kontrola secretů
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NIGHTLY: ${{ github.event_name == 'schedule' }}
+        run: |
+          missing=()
+          [ -n "${DATABASE_URL:-}" ] || missing+=(DATABASE_URL)
+          if [ "$NIGHTLY" = "true" ] && [ -z "${NEON_API_KEY:-}" ]; then missing+=(NEON_API_KEY); fi
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error title=RLS gate NEMŮŽE BĚŽET::chybí secret: ${missing[*]} (Settings → Secrets and variables → Actions)"
+            {
+              echo "### 🔴 RLS gate selhal — chybí secret"
+              echo ""
+              echo "Chybí: \`${missing[*]}\`. Drift RLS produkce se bez něj **nekontroluje**, proto job padá."
+              echo ""
+              echo "- \`DATABASE_URL\` — produkční connection string s rolí **tixly_app** (sslmode=require)"
+              echo "- \`NEON_API_KEY\` — jen noční sken (project-scoped klíč: create/delete branch)"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Install deps
+        working-directory: nextjs-boilerplate
+        run: npm ci --no-audit --no-fund
+
       - name: RLS gate
         working-directory: nextjs-boilerplate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          if [ -z "${DATABASE_URL:-}" ]; then
-            echo "::warning title=RLS gate PRESKOCEN::chybi secret DATABASE_URL — RLS drift se NEKONTROLUJE"
-            {
-              echo "### ⚠️ RLS gate PŘESKOČEN"
-              echo ""
-              echo "Chybí secret \`DATABASE_URL\` → drift RLS se **nekontroluje**."
-              echo "Dokud secret nevznikne, nasazuje se bez pojistky, kterou dřív"
-              echo "suploval \`BUNDLE_340-348_prod.sql\`."
-              echo ""
-              echo "Nastav: Settings → Secrets → Actions → \`DATABASE_URL\` (role **tixly_app**)"
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          node scripts/rls-verify.mjs
+        run: node scripts/rls-verify.mjs
 
       # Sken je DRAHÝ (staví klon), proto jen v noci — ne před každým deployem.
       - name: Schema reality scan (jen noční běh)
@@ -88,58 +151,4 @@ jobs:
         working-directory: nextjs-boilerplate
         env:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
-        run: |
-          if [ -z "${NEON_API_KEY:-}" ]; then
-            echo "::warning title=Sken PRESKOCEN::chybi secret NEON_API_KEY"
-            exit 0
-          fi
-          node scripts/schema-reality-scan.mjs --ephemeral
-
-  # Snapshot musel dosud clovek pregenerovat rucne po kazde migraci menici RLS.
-  # Rucni krok, na ktery se zapomene, je tataz trida jako capacity_remaining —
-  # proto to hlida BUILD (ne deploy): postavi klon z migraci, vygeneruje
-  # snapshot a porovna s commitnutou verzi.
-  snapshot-drift:
-    name: Snapshot je aktualni vuci migracim
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      # Job vola psql (aplikuje 453/454/455 na klon) — ubuntu-latest ho NEMA.
-      # Bez tohohle kroku job spadne na `psql: command not found`.
-      - name: Install postgresql-client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
-
-      - name: Install deps
-        working-directory: nextjs-boilerplate
-        run: npm ci --no-audit --no-fund
-
-      - name: Postavit klon z migraci a porovnat snapshot
-        working-directory: nextjs-boilerplate
-        env:
-          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
-        run: |
-          set -euo pipefail
-          if [ -z "${NEON_API_KEY:-}" ]; then
-            echo "::warning title=Snapshot-drift PRESKOCEN::chybi secret NEON_API_KEY"
-            exit 0
-          fi
-          node scripts/baseline-clone.mjs /tmp/clone.json
-          node -e "
-            const {execSync}=require('child_process');
-            const c=require('/tmp/clone.json');
-            for (const f of ['453_users_select_scoped.sql','454_rls_cast_nullif_fix.sql','455_rls_namedrift_identity.sql'])
-              execSync('psql \"'+c.ownerUri+'\" -v ON_ERROR_STOP=1 -f ../migrations/'+f,{stdio:'inherit'});
-          "
-          node scripts/rls-verify.mjs --snapshot             --url="$(node -e "console.log(require('/tmp/clone.json').ownerUri)")"             --snapshot-file=/tmp/expected.json
-          node -e "
-            const a=require('/tmp/expected.json'), b=require('./rls-snapshot.json');
-            const k=o=>JSON.stringify({p:o.policies,r:o.rlsTables,h:o.helpers});
-            if (k(a)===k(b)) { console.log('snapshot je aktualni'); process.exit(0); }
-            console.error('rls-snapshot.json ZAOSTAVA za migracemi.');
-            console.error('Pregeneruj:  node scripts/rls-verify.mjs --snapshot --url=<klon>');
-            process.exit(1);
-          "
+        run: node scripts/schema-reality-scan.mjs --ephemeral
