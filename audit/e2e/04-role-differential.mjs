@@ -41,8 +41,12 @@ check('X4', `[${label}] cron expire-pending-orders`, r.status === 200, ev(r));
 r = await new Client('cron').post('/api/internal/cron/release-expired-seat-holds', {}, { 'x-internal-token': INTERNAL_TOKEN });
 check('X5', `[${label}] cron release-expired-seat-holds`, r.status === 200, ev(r));
 
-r = await buyer.get('/api/buyer/orders');
-check('X6', `[${label}] kupec vidi seznam svych objednavek`, r.status === 200, { status: r.status, body: (r.text ?? '').slice(0, 160) });
+// kolo 3 (X6): GET /api/buyer/orders zadna stranka ani komponenta nevola (grep src/, mobile/,
+// mobile-promoter/) — webovy seznam kupce („Moje vstupenky") stoji na GET /api/buyer/my-tickets
+// (vstupenky vc. order_id). Kontrola proto miri na skutecne pouzivany endpoint: vlastni objednavka
+// A je v seznamu. (Mobilni appka vola /api/v1/buyer/orders, ktery neexistuje — FIX_REPORT_R3.)
+r = await buyer.get('/api/buyer/my-tickets');
+check('X6', `[${label}] kupec vidi seznam svych vstupenek/objednavek (GET /api/buyer/my-tickets)`, r.status === 200 && Array.isArray(r.json?.tickets) && r.json.tickets.some((t) => t.order_id === A.orderId), { status: r.status, count: r.json?.tickets?.length, body: (r.text ?? '').slice(0, 160) });
 // kolo 2: X7 na VLASTNÍ zaplacené objednávce — A je po X3 stornovaná (storno pod tixly_app
 // dřív padalo, proto X7 „náhodou" běžel na zaplacené objednávce).
 const A7 = await buy(1);
