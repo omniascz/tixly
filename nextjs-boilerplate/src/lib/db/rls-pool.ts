@@ -138,6 +138,25 @@ export function runWithServiceContext<T>(callback: () => Promise<T>): Promise<T>
 }
 
 /**
+ * Kolo 3: zápis „jménem" konkrétního uživatele uvnitř transakce, jejíž identitu prokázal
+ * jiný mechanismus než session (např. OAuth `state` v callbacku, který běží bez přihlášení).
+ * Na dobu `fn` nastaví `app.current_user_id` = userId a `app.role` = 'user' (transakčně
+ * lokálně) → platí RLS politiky VLASTNÍCH řádků toho uživatele, nic víc. Pak vrátí původní.
+ */
+export async function asUserInTx<T>(client: PoolClient, userId: string, fn: () => Promise<T>): Promise<T> {
+  const prev = (await client.query<{ u: string | null; r: string | null }>(
+    `SELECT current_setting('app.current_user_id', true) AS u, current_setting('app.role', true) AS r`,
+  )).rows[0];
+  await client.query(`SELECT set_config('app.current_user_id', $1, true), set_config('app.role', 'user', true)`, [userId]);
+  try {
+    return await fn();
+  } finally {
+    await client.query(`SELECT set_config('app.current_user_id', $1, true), set_config('app.role', $2, true)`,
+      [prev?.u ?? '', prev?.r ?? '']).catch(() => undefined);
+  }
+}
+
+/**
  * Kolo 2 / V8: systémový vedlejší efekt akce kupce UVNITŘ jeho transakce.
  *
  * Politiky kupci záměrně nedovolí měnit kapacitu (`catalog.ticket_types`), sedadla

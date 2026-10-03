@@ -33,7 +33,7 @@ async function assertOwnership(
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: kontext pořadatele (runAsPromoter) — RLS scopuje na jeho akce; admin eskalace odstraněna.
     const r = await client.query<{ promoter_id: string }>(
       `SELECT promoter_id FROM subscriptions.packages WHERE id = $1`,
       [packageId],
@@ -125,8 +125,7 @@ export async function PATCH(
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    // RLS bypass — ownership ověřena v assertOwnership výš.
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: kontext pořadatele (runAsPromoter) — RLS scopuje na jeho akce; admin eskalace odstraněna.
 
     if (sets.length > 0) {
       sets.push(`updated_at = NOW()`);

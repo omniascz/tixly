@@ -432,7 +432,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       const loyaltyClient = await db().connect();
       try {
         await loyaltyClient.query('BEGIN');
-        await loyaltyClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+        // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
         await awardPointsForOrder(loyaltyClient, {
           userId: order.user_id,
           orderId,
@@ -452,7 +452,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       const fbClient = await db().connect();
       try {
         await fbClient.query('BEGIN');
-        await fbClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+        // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
         await issueFanBonus(fbClient, {
           orderId,
           eventId: order.event_id as string,
@@ -478,7 +478,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       const modClient = await db().connect();
       try {
         await modClient.query('BEGIN');
-        await modClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+        // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
         const pending = await modClient.query<{ selections: Array<{ dayId: string; zoneId: string }> }>(
           `SELECT selections FROM marketing.modular_pass_pending_selections
             WHERE order_id = $1`,
@@ -519,7 +519,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       const groupClient = await db().connect();
       try {
         await groupClient.query('BEGIN');
-        await groupClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+        // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
         await groupClient.query(
           `UPDATE orders.group_invitations gi
               SET status = 'completed'
@@ -547,7 +547,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       const partyClient = await db().connect();
       try {
         await partyClient.query('BEGIN');
-        await partyClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+        // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
 
         const slotUpd = await partyClient.query<{ session_id: string }>(
           `UPDATE orders.party_split_slots

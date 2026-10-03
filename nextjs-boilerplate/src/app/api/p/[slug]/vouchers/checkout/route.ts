@@ -62,12 +62,12 @@ export async function POST(
   const d = parsed.data;
   const amountHalire = d.amountKc * 100;
 
-  // RLS bypass — public endpoint, ownership není relevantní pro voucher
-  // checkout (kdokoliv si může koupit od kteréhokoliv aktivního promotéra).
+  // Veřejný endpoint (kdokoliv si může koupit poukaz od aktivního pořadatele) — běží
+  // v servisním kontextu routy, bez admin práv.
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
 
     const promoterRes = await client.query<{ id: string; name: string }>(
       `SELECT id, name FROM platform.promoters WHERE slug = $1 AND status = 'active'`,

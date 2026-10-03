@@ -63,7 +63,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const client = await db().connect();
     try {
       await client.query('BEGIN');
-      await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+      // Kolo 3: kontext kupce — RLS pokrývá jeho vlastní řádky; admin eskalace odstraněna.
       await client.query(
         `INSERT INTO marketing.spotify_oauth_pending
            (state, user_id, code_verifier)
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: kontext kupce — RLS pokrývá jeho vlastní řádky; admin eskalace odstraněna.
 
     // Upsert connection (mock)
     await client.query(
@@ -148,7 +148,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: kontext kupce — RLS pokrývá jeho vlastní řádky; admin eskalace odstraněna.
 
     const conn = await client.query<{
       spotify_display_name: string | null;
@@ -201,7 +201,7 @@ export async function DELETE(req: NextRequest): Promise<Response> {
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: kontext kupce — RLS pokrývá jeho vlastní řádky; admin eskalace odstraněna.
     await client.query(
       `DELETE FROM marketing.user_spotify_connections WHERE user_id = $1`,
       [userId],

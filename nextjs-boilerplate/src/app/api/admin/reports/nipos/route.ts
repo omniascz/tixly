@@ -52,7 +52,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: kontext pořadatele (runAsPromoter) — RLS scopuje na jeho akce; admin eskalace odstraněna.
 
     // Promoter name
     const pr = await client.query<{ name: string }>(

@@ -1,0 +1,613 @@
+[
+ {
+  "file": "app/api/admin/charity/allocations/route.ts",
+  "line": 83,
+  "fn": "POST",
+  "wrapper": "runAsActivePromoter",
+  "tables": [
+   "catalog.events",
+   "charity.allocations",
+   "charity.claim_slots",
+   "charity.partners"
+  ],
+  "seglen": 58
+ },
+ {
+  "file": "app/api/admin/events/[id]/view-photos/route.ts",
+  "line": 50,
+  "fn": "GET",
+  "wrapper": "runAsPromoter",
+  "tables": [
+   "catalog.event_seat_view_photos",
+   "catalog.event_seats"
+  ],
+  "seglen": 27
+ },
+ {
+  "file": "app/api/admin/events/[id]/view-photos/route.ts",
+  "line": 124,
+  "fn": "POST",
+  "wrapper": "runAsPromoter",
+  "tables": [
+   "catalog.event_seat_view_photos",
+   "catalog.event_seats"
+  ],
+  "seglen": 48
+ },
+ {
+  "file": "app/api/admin/reports/nipos/route.ts",
+  "line": 55,
+  "fn": "GET",
+  "wrapper": "runAsPromoter",
+  "tables": [
+   "catalog.events",
+   "orders.orders",
+   "platform.promoters",
+   "tickets.tickets"
+  ],
+  "seglen": 62
+ },
+ {
+  "file": "app/api/admin/subscriptions/packages/[id]/route.ts",
+  "line": 36,
+  "fn": "assertOwnership",
+  "wrapper": "",
+  "tables": [
+   "subscriptions.packages"
+  ],
+  "seglen": 5
+ },
+ {
+  "file": "app/api/admin/subscriptions/packages/[id]/route.ts",
+  "line": 129,
+  "fn": "PATCH",
+  "wrapper": "runAsPromoterNonStaff",
+  "tables": [
+   "subscriptions.package_events",
+   "subscriptions.packages"
+  ],
+  "seglen": 26
+ },
+ {
+  "file": "app/api/buyer/discover/events/route.ts",
+  "line": 30,
+  "fn": "GET",
+  "wrapper": "runAsUser",
+  "tables": [
+   "marketing.user_spotify_connections"
+  ],
+  "seglen": 8
+ },
+ {
+  "file": "app/api/buyer/fan-bonus/route.ts",
+  "line": 18,
+  "fn": "GET",
+  "wrapper": "runWithServiceContext",
+  "tables": [],
+  "seglen": 21
+ },
+ {
+  "file": "app/api/buyer/group-invitations/route.ts",
+  "line": 48,
+  "fn": "POST",
+  "wrapper": "runAsUser",
+  "tables": [
+   "catalog.events",
+   "orders.group_invitations"
+  ],
+  "seglen": 27
+ },
+ {
+  "file": "app/api/buyer/group-invitations/reserve/route.ts",
+  "line": 40,
+  "fn": "POST",
+  "wrapper": "runAsUser",
+  "tables": [
+   "catalog.event_seats",
+   "catalog.events",
+   "orders.group_invitations",
+   "s.row",
+   "s.sector"
+  ],
+  "seglen": 58
+ },
+ {
+  "file": "app/api/buyer/group-invitations/[token]/claim/route.ts",
+  "line": 40,
+  "fn": "POST",
+  "wrapper": "runAsUser",
+  "tables": [
+   "catalog.event_seats",
+   "catalog.events",
+   "catalog.ticket_types",
+   "identity.users",
+   "orders.group_invitations",
+   "orders.order_items",
+   "orders.orders"
+  ],
+  "seglen": 89
+ },
+ {
+  "file": "app/api/buyer/modular-pass/checkout/route.ts",
+  "line": 54,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "catalog.event_days",
+   "catalog.event_zones",
+   "catalog.events",
+   "catalog.ticket_modular_pricing",
+   "catalog.ticket_types",
+   "identity.users",
+   "orders.orders"
+  ],
+  "seglen": 119
+ },
+ {
+  "file": "app/api/buyer/modular-pass/checkout/route.ts",
+  "line": 226,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "marketing.modular_pass_pending_selections"
+  ],
+  "seglen": 14
+ },
+ {
+  "file": "app/api/buyer/otp/request/route.ts",
+  "line": 60,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "marketing.otp_codes"
+  ],
+  "seglen": 27
+ },
+ {
+  "file": "app/api/buyer/otp/verify/route.ts",
+  "line": 43,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "marketing.otp_codes"
+  ],
+  "seglen": 49
+ },
+ {
+  "file": "app/api/buyer/restwert-balance/route.ts",
+  "line": 24,
+  "fn": "GET",
+  "wrapper": "runAsUser",
+  "tables": [
+   "subscriptions.holders",
+   "subscriptions.packages"
+  ],
+  "seglen": 20
+ },
+ {
+  "file": "app/api/buyer/spotify/callback/route.ts",
+  "line": 52,
+  "fn": "GET",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "marketing.spotify_oauth_pending",
+   "marketing.user_spotify_connections",
+   "marketing.user_top_artists"
+  ],
+  "seglen": 82
+ },
+ {
+  "file": "app/api/buyer/spotify/connect/route.ts",
+  "line": 66,
+  "fn": "POST",
+  "wrapper": "runAsUser",
+  "tables": [
+   "marketing.spotify_oauth_pending"
+  ],
+  "seglen": 7
+ },
+ {
+  "file": "app/api/buyer/spotify/connect/route.ts",
+  "line": 88,
+  "fn": "POST",
+  "wrapper": "runAsUser",
+  "tables": [
+   "marketing.user_spotify_connections",
+   "marketing.user_top_artists"
+  ],
+  "seglen": 39
+ },
+ {
+  "file": "app/api/buyer/spotify/connect/route.ts",
+  "line": 151,
+  "fn": "GET",
+  "wrapper": "runAsUser",
+  "tables": [
+   "marketing.user_spotify_connections"
+  ],
+  "seglen": 15
+ },
+ {
+  "file": "app/api/buyer/spotify/connect/route.ts",
+  "line": 204,
+  "fn": "DELETE",
+  "wrapper": "runAsUser",
+  "tables": [
+   "marketing.user_spotify_connections"
+  ],
+  "seglen": 5
+ },
+ {
+  "file": "app/api/buyer/subscriptions/[id]/pick/route.ts",
+  "line": 145,
+  "fn": "POST",
+  "wrapper": "runAsUser",
+  "tables": [
+   "catalog.ticket_types",
+   "orders.orders",
+   "subscriptions.package_events",
+   "subscriptions.redemptions",
+   "tickets.tickets"
+  ],
+  "seglen": 119
+ },
+ {
+  "file": "app/api/buyer/subscriptions/[id]/pick/[eventId]/route.ts",
+  "line": 32,
+  "fn": "DELETE",
+  "wrapper": "runAsUser",
+  "tables": [
+   "catalog.events",
+   "subscriptions.holders",
+   "subscriptions.packages",
+   "subscriptions.redemptions",
+   "tickets.tickets"
+  ],
+  "seglen": 90
+ },
+ {
+  "file": "app/api/charity/claim/[token]/route.ts",
+  "line": 29,
+  "fn": "GET",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "catalog.events",
+   "charity.allocations",
+   "charity.claim_slots",
+   "charity.partners"
+  ],
+  "seglen": 24
+ },
+ {
+  "file": "app/api/charity/claim/[token]/route.ts",
+  "line": 108,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "catalog.events",
+   "catalog.ticket_types",
+   "charity.allocations",
+   "charity.claim_slots",
+   "identity.users",
+   "orders.order_items",
+   "orders.orders"
+  ],
+  "seglen": 119
+ },
+ {
+  "file": "app/api/events/[id]/seat-view-photos/route.ts",
+  "line": 24,
+  "fn": "GET",
+  "wrapper": "",
+  "tables": [
+   "catalog.events",
+   "catalog.seat_view_photos"
+  ],
+  "seglen": 33
+ },
+ {
+  "file": "app/api/group-invitations/[token]/route.ts",
+  "line": 26,
+  "fn": "GET",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "catalog.event_seats",
+   "catalog.events",
+   "identity.users",
+   "orders.group_invitations",
+   "orders.orders"
+  ],
+  "seglen": 67
+ },
+ {
+  "file": "app/api/internal/cron/release-group-invite-holds/route.ts",
+  "line": 24,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "catalog.event_seats",
+   "orders.group_invitations",
+   "orders.orders"
+  ],
+  "seglen": 45
+ },
+ {
+  "file": "app/api/internal/cron/seat-upgrade-notify/route.ts",
+  "line": 23,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "catalog.events",
+   "catalog.seats",
+   "catalog.ticket_types",
+   "identity.users",
+   "orders.order_items",
+   "orders.orders",
+   "orders.seat_upgrades"
+  ],
+  "seglen": 93
+ },
+ {
+  "file": "app/api/internal/order-completed/route.ts",
+  "line": 435,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [],
+  "seglen": 6
+ },
+ {
+  "file": "app/api/internal/order-completed/route.ts",
+  "line": 455,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [],
+  "seglen": 8
+ },
+ {
+  "file": "app/api/internal/order-completed/route.ts",
+  "line": 481,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "marketing.modular_pass_pending_selections",
+   "tickets.ticket_modular_access"
+  ],
+  "seglen": 25
+ },
+ {
+  "file": "app/api/internal/order-completed/route.ts",
+  "line": 522,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "orders.group_invitations",
+   "orders.orders"
+  ],
+  "seglen": 14
+ },
+ {
+  "file": "app/api/internal/order-completed/route.ts",
+  "line": 550,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "orders.party_split_sessions",
+   "orders.party_split_slots"
+  ],
+  "seglen": 25
+ },
+ {
+  "file": "app/api/mock-bnpl/[provider]/[paymentId]/confirm/route.ts",
+  "line": 47,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "orders.orders"
+  ],
+  "seglen": 32
+ },
+ {
+  "file": "app/api/p/[slug]/vouchers/checkout/route.ts",
+  "line": 70,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "identity.users",
+   "marketing.gift_vouchers",
+   "platform.promoters"
+  ],
+  "seglen": 76
+ },
+ {
+  "file": "app/api/platform/artists/route.ts",
+  "line": 18,
+  "fn": "GET",
+  "wrapper": "runWithPlatformAdminContext",
+  "tables": [
+   "lineups.artists",
+   "lineups.event_artists",
+   "platform.promoters"
+  ],
+  "seglen": 11
+ },
+ {
+  "file": "app/api/platform/postal/route.ts",
+  "line": 19,
+  "fn": "GET",
+  "wrapper": "runWithPlatformAdminContext",
+  "tables": [
+   "catalog.events",
+   "identity.users",
+   "orders.orders",
+   "orders.postal_deliveries"
+  ],
+  "seglen": 12
+ },
+ {
+  "file": "app/api/platform/postal/[id]/route.ts",
+  "line": 31,
+  "fn": "PATCH",
+  "wrapper": "runWithPlatformAdminContext",
+  "tables": [
+   "orders.postal_deliveries"
+  ],
+  "seglen": 11
+ },
+ {
+  "file": "app/api/platform/travel/hotels/route.ts",
+  "line": 16,
+  "fn": "GET",
+  "wrapper": "requirePlatformAdmin",
+  "tables": [
+   "catalog.travel_hotel_rooms",
+   "catalog.travel_hotels",
+   "catalog.venues"
+  ],
+  "seglen": 11
+ },
+ {
+  "file": "app/api/platform/travel/hotels/route.ts",
+  "line": 65,
+  "fn": "POST",
+  "wrapper": "requirePlatformAdmin",
+  "tables": [
+   "catalog.travel_hotels"
+  ],
+  "seglen": 21
+ },
+ {
+  "file": "app/api/platform/travel/hotels/[hotelId]/route.ts",
+  "line": 20,
+  "fn": "GET",
+  "wrapper": "requirePlatformAdmin",
+  "tables": [
+   "catalog.travel_hotel_rooms",
+   "catalog.travel_hotels",
+   "catalog.venues"
+  ],
+  "seglen": 11
+ },
+ {
+  "file": "app/api/platform/travel/hotels/[hotelId]/route.ts",
+  "line": 61,
+  "fn": "PATCH",
+  "wrapper": "requirePlatformAdmin",
+  "tables": [
+   "catalog.travel_hotels"
+  ],
+  "seglen": 31
+ },
+ {
+  "file": "app/api/platform/travel/hotels/[hotelId]/route.ts",
+  "line": 112,
+  "fn": "DELETE",
+  "wrapper": "requirePlatformAdmin",
+  "tables": [
+   "catalog.event_travel_packages",
+   "catalog.travel_hotels",
+   "orders.travel_bookings"
+  ],
+  "seglen": 14
+ },
+ {
+  "file": "app/api/platform/travel/hotels/[hotelId]/rooms/route.ts",
+  "line": 19,
+  "fn": "GET",
+  "wrapper": "requirePlatformAdmin",
+  "tables": [
+   "catalog.travel_hotel_rooms"
+  ],
+  "seglen": 5
+ },
+ {
+  "file": "app/api/platform/travel/hotels/[hotelId]/rooms/route.ts",
+  "line": 63,
+  "fn": "POST",
+  "wrapper": "requirePlatformAdmin",
+  "tables": [
+   "catalog.travel_hotel_rooms"
+  ],
+  "seglen": 18
+ },
+ {
+  "file": "app/api/platform/venues/[id]/seat-view-photos/route.ts",
+  "line": 33,
+  "fn": "GET",
+  "wrapper": "requirePlatformAdmin",
+  "tables": [
+   "catalog.seat_view_photos"
+  ],
+  "seglen": 10
+ },
+ {
+  "file": "app/api/platform/venues/[id]/seat-view-photos/route.ts",
+  "line": 89,
+  "fn": "POST",
+  "wrapper": "requirePlatformAdmin",
+  "tables": [
+   "catalog.seat_view_photos"
+  ],
+  "seglen": 27
+ },
+ {
+  "file": "app/api/platform/venues/[id]/seat-view-photos/[photoId]/route.ts",
+  "line": 20,
+  "fn": "DELETE",
+  "wrapper": "requirePlatformAdmin",
+  "tables": [
+   "catalog.seat_view_photos"
+  ],
+  "seglen": 8
+ },
+ {
+  "file": "app/api/subscriptions/holders/[paymentId]/confirm/route.ts",
+  "line": 49,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "subscriptions.holders",
+   "subscriptions.packages"
+  ],
+  "seglen": 48
+ },
+ {
+  "file": "app/api/vouchers/holders/[paymentId]/confirm/route.ts",
+  "line": 43,
+  "fn": "POST",
+  "wrapper": "runWithServiceContext",
+  "tables": [
+   "marketing.gift_vouchers"
+  ],
+  "seglen": 41
+ },
+ {
+  "file": "app/[locale]/p/[slug]/vouchers/page.tsx",
+  "line": 25,
+  "fn": "fetchPromoter",
+  "wrapper": "",
+  "tables": [
+   "platform.promoters"
+  ],
+  "seglen": 7
+ },
+ {
+  "file": "lib/db/with-context.ts",
+  "line": 75,
+  "fn": "withPlatformAdminDb",
+  "wrapper": "",
+  "tables": [],
+  "seglen": 2
+ },
+ {
+  "file": "lib/white-label/domain.ts",
+  "line": 59,
+  "fn": "resolveWhiteLabel",
+  "wrapper": "",
+  "tables": [
+   "platform.promoter_branding",
+   "platform.promoter_domains",
+   "platform.promoters"
+  ],
+  "seglen": 18
+ }
+]

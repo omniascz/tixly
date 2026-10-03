@@ -21,12 +21,12 @@ export interface PromoterContext {
  *
  * Bez session vars: app jako `tixly_app` user vidí jen `status='published'`.
  */
+// Kolo 3: withPlatformAdminDb / queryAsPlatformAdmin odstraněny — eskalovaly na platform
+// admina bez ověření volajícího a nikdo je nevolal. Admin routy: runAsPlatformAdmin (platform-auth).
 export {
   withPromoterDb,
-  withPlatformAdminDb,
   withAnonDb,
   queryAsPromoter,
-  queryAsPlatformAdmin,
   queryAnon,
 } from './db/with-context';
 

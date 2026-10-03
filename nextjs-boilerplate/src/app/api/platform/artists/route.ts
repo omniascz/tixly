@@ -15,7 +15,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     const client = await db().connect();
     try {
       await client.query('BEGIN');
-      await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+      // Kolo 3: admin kontext nastavuje runWithPlatformAdminContext (admin ověřen requirePlatformAdmin) — inline SET byl duplicitní.
       const r = await client.query(
         `SELECT a.id, a.name, a.slug, a.bio, a.cover_image_url, a.genres, a.country,
                 a.website_url, a.social_links, a.spotify_id, a.promoter_id,

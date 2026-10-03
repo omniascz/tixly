@@ -44,9 +44,7 @@ export async function POST(
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    // RLS bypass — payment_id je shared secret z mock-gopay flow.
-    // Holder ownership není v tomto endpointu vyžadováno (buyer prošel checkout).
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
 
     const holderRes = await client.query<{
       id: string;

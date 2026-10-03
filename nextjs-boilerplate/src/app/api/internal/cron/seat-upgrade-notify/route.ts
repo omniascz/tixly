@@ -20,7 +20,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const client = await db().connect();
     try {
       await client.query('BEGIN');
-      await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+      // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
 
       // Find paid orders with seating where better seats may now be available
       // "Better" = lower row number or lower seat price in same zone, same event

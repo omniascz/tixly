@@ -13,6 +13,7 @@
 //   Triple-A POST /triplea/oauth/token, GET /triplea/payment/:ref
 //   Wise     GET /wise/v1/transfers/:id
 //   Mollie   GET /mollie/v2/payments/:id
+//   Spotify  POST /spotify-accounts/api/token, GET /spotify-api/v1/me[/top/artists] (kolo 3)
 //   Řízení:  POST /_ctl/ext/:provider/:id  {…objekt vracený API…}
 //
 // Řízení z testu:
@@ -120,6 +121,18 @@ http.createServer(async (req, res) => {
     const pi = { id, client_secret: `${id}_secret_fake`, amount: Number(p.get('amount')), currency: p.get('currency'), status: 'requires_payment_method', metadata: { orderId: p.get('metadata[orderId]') } };
     ext.stripe.set(id, pi);
     return send(res, 200, pi);
+  }
+  // ---- Spotify (kolo 3 — OAuth callback) ----
+  if (req.method === 'POST' && url.pathname === '/spotify-accounts/api/token') {
+    return send(res, 200, { access_token: 'fake-sp-access', refresh_token: 'fake-sp-refresh', expires_in: 3600, token_type: 'Bearer', scope: 'user-top-read user-read-private' });
+  }
+  if (req.method === 'GET' && url.pathname === '/spotify-api/v1/me') {
+    if (!/^Bearer /.test(req.headers.authorization ?? '')) return send(res, 401, { error: 'no auth' });
+    return send(res, 200, { id: 'fix-spotify-user', display_name: 'Fix Spotify' });
+  }
+  if (req.method === 'GET' && url.pathname === '/spotify-api/v1/me/top/artists') {
+    if (!/^Bearer /.test(req.headers.authorization ?? '')) return send(res, 401, { error: 'no auth' });
+    return send(res, 200, { items: [{ id: 'sp-a1', name: 'Fix Kapela OAuth', genres: ['indie'] }, { id: 'sp-a2', name: 'Druhá Kapela', genres: ['rock'] }] });
   }
   if (url.pathname === '/_ctl/payments') return send(res, 200, [...payments.values()]);
   if (url.pathname === '/_ctl/log') return send(res, 200, calls);

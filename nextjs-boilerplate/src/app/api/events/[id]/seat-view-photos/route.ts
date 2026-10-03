@@ -21,7 +21,7 @@ export async function GET(
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: anonymní čtení veřejných dat (published akce / veřejně čitelné tabulky); admin eskalace odstraněna.
 
     // Event musí být published nebo v minulosti
     const ev = await client.query<{ venue_id: string | null; status: string }>(
