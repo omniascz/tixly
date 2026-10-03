@@ -34,3 +34,6 @@ P1, P5d, C2b, P13, V12, D3a PASS; C1a, C2a PASS.
 - R6 HOTOVO d58c3ef (reacquire-capacity / auto-refund + e-mail; test 3/3; regrese 52/52)
 - mobile auth HOTOVO 799bfa0 (nový nález: /api/mobile/* bez identity → vždy 401; +25 dalších rout se stejnou vadou → report, neopraveno)
 - mobile rate limit HOTOVO (viz git log fix(R3-mobile-rl))
+- my auth HOTOVO b110d66 (/api/my/* bez identity; upgrade-options padá na catalog.seat_maps → report)
+- guard trigger HOTOVO b1c9b72 (migrace 486; test 23/23; RED bez triggeru 12, bez rout 6; live 132/0)
+- X7 — rozpracováno (migrace 487)
