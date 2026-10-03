@@ -316,9 +316,11 @@ export async function validateOffline(eventId: string, ticketId: string): Promis
  */
 export function decodePrintTokenUuid(raw: string): string | null {
   const trimmed = raw.trim();
-  if (!trimmed.startsWith('TXP1.')) return null;
+  // TXP1 i TXP2 (kolo 4) mají na začátku 16 bajtů UUID vstupenky, liší se jen podpisem.
+  const scheme = /^TXP[12]\./.exec(trimmed)?.[0];
+  if (!scheme) return null;
   try {
-    const body = trimmed.slice('TXP1.'.length);
+    const body = trimmed.slice(scheme.length);
     const b64 = body.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (body.length % 4)) % 4);
     const bin = atob(b64);
     if (bin.length < 16) return null;

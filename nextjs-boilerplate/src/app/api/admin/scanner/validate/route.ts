@@ -17,7 +17,7 @@ import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
 import { decryptSecret } from '@/lib/crypto';
 import { verifyTotpCode } from '@/lib/totp/verify';
-import { verifyPrintToken } from '@/lib/tickets/print-token';
+import { parsePrintToken, verifyPrintTokenForEvent } from '@/lib/tickets/print-token';
 
 
 const schema = z
@@ -76,17 +76,21 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   // Tištěná vstupenka: ověř podpis tokenu a získej ticketId.
+  // Kolo 4: TXP2 je podepsaný i akcí — podpis jde ověřit až proti akci vstupenky z DB,
+  // proto se tady token jen rozparsuje (formát) a ověří se níže po načtení vstupenky.
   let ticketId = parsed.data.ticketId;
-  if (!ticketId && parsed.data.printToken) {
-    const pv = verifyPrintToken(parsed.data.printToken);
-    if (!pv.ok || !pv.ticketId) {
+  const printToken = !ticketId && parsed.data.printToken ? parsed.data.printToken : null;
+  if (printToken) {
+    const pt = parsePrintToken(printToken);
+    if (!pt) {
       return NextResponse.json(
         { result: 'invalid_token', message: 'Neplatný kód vstupenky (podpis nesedí).' },
         { status: 401 },
       );
     }
-    ticketId = pv.ticketId;
+    ticketId = pt.ticketId;
   }
+  let printVerifiedForEvent = false;
 
   const client = await db().connect();
   try {
@@ -121,6 +125,18 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
     const t = r.rows[0];
+
+    if (printToken) {
+      const pv = verifyPrintTokenForEvent(printToken, t.event_id);
+      if (!pv.ok) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { result: 'invalid_token', message: 'Neplatný kód vstupenky (podpis nesedí).' },
+          { status: 401 },
+        );
+      }
+      printVerifiedForEvent = pv.scheme === 'TXP2';
+    }
 
     if (t.event_promoter_id !== promoter.promoterId) {
       await client.query('ROLLBACK');
@@ -157,6 +173,12 @@ export async function POST(req: NextRequest): Promise<Response> {
       if (eventTimeMs - Date.now() <= twentyFourHoursMs) {
         totpRequired = true;
       }
+    }
+
+    // Kolo 4: tištěná vstupenka s podepsaným tokenem TXP2 (vázaným na tuto akci) TOTP mít
+    // nemůže; u static_allowed a rotating_24h ho nahrazuje. rotating_only / photo_required ne.
+    if (printVerifiedForEvent && (qrPolicy === 'static_allowed' || qrPolicy === 'rotating_24h')) {
+      totpRequired = false;
     }
 
     if (totpRequired && !parsed.data.totpCode) {

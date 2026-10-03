@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireReseller, type ResellerSession } from '@/lib/reseller-auth';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { signEventPrintToken } from '@/lib/tickets/print-token';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -36,11 +37,12 @@ export async function GET(
       return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
     }
     const r = await db().query<{
-      id: string; event_title: string; date_start: string; venue_name: string;
+      id: string; event_id: string; event_title: string; date_start: string; venue_name: string;
       ticket_type_name: string; seat_label: string | null; buyer_name: string | null;
       buyer_email: string; serial: string;
     }>(
       `SELECT t.id,
+              o.event_id,
               e.title AS event_title,
               e.date_start,
               v.name AS venue_name,
@@ -63,6 +65,10 @@ export async function GET(
         ORDER BY t.id`,
       [params.orderId],
     );
-    return NextResponse.json({ tickets: r.rows });
+    // Kolo 4: tištěná vstupenka nese podepsaný statický token TXP2 (vstupenka + akce), který
+    // skener ověří podpisem — i pod qr_policy rotating_24h, kde tištěný papír TOTP nemá.
+    return NextResponse.json({
+      tickets: r.rows.map((t) => ({ ...t, printToken: signEventPrintToken(t.id, t.event_id) })),
+    });
   });
 }

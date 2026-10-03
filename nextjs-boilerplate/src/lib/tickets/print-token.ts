@@ -100,3 +100,79 @@ export function verifyPrintToken(token: string): PrintTokenResult {
   }
   return { ok: true, ticketId: bytesToUuid(uuidBytes) };
 }
+
+// ── TXP2: tiskový token vázaný na vstupenku I akci (kolo 4) ─────────────────────
+//
+// Formát:  TXP2.<base64url( uuid16 ‖ hmac12 )>,  hmac = HMAC-SHA256(key, "TXP2" ‖ ticket16 ‖ event16)
+//
+// Akce v tokenu NENÍ — skener ji zná z DB (vstupenka → objednávka → akce) a podpis ověří
+// proti ní. Vstupenka převedená na jiný termín tak starým papírem neprojde (nový tisk).
+// Na rozdíl od TXP1 platný TXP2 nahrazuje TOTP u qr_policy static_allowed i rotating_24h:
+// tištěná vstupenka TOTP mít nemůže a podpis vázaný na akci je silnější než holé UUID.
+// rotating_only / photo_required ho dál odmítají (vyžadují živý mobilní QR).
+
+const SCHEME2 = 'TXP2';
+const HMAC2_BYTES = 12;
+
+function sign2(ticketBytes: Buffer, eventBytes: Buffer): Buffer {
+  return crypto
+    .createHmac('sha256', getKey())
+    .update(SCHEME2)
+    .update(ticketBytes)
+    .update(eventBytes)
+    .digest()
+    .subarray(0, HMAC2_BYTES);
+}
+
+export function signEventPrintToken(ticketId: string, eventId: string): string {
+  if (!UUID_RE.test(ticketId) || !UUID_RE.test(eventId)) {
+    throw new Error('signEventPrintToken: ticketId i eventId musí být UUID');
+  }
+  const t = uuidToBytes(ticketId);
+  return `${SCHEME2}.${b64url(Buffer.concat([t, sign2(t, uuidToBytes(eventId))]))}`;
+}
+
+export interface ParsedPrintToken {
+  scheme: 'TXP1' | 'TXP2';
+  ticketId: string;
+}
+
+/** Vyčte schéma a ID vstupenky BEZ ověření podpisu (podpis TXP2 potřebuje akci z DB). */
+export function parsePrintToken(token: string): ParsedPrintToken | null {
+  const trimmed = token.trim();
+  const scheme = trimmed.startsWith(`${SCHEME2}.`) ? SCHEME2 : trimmed.startsWith(`${SCHEME}.`) ? SCHEME : null;
+  if (!scheme) return null;
+  let raw: Buffer;
+  try {
+    raw = b64urlDecode(trimmed.slice(scheme.length + 1));
+  } catch {
+    return null;
+  }
+  const expected = 16 + (scheme === SCHEME2 ? HMAC2_BYTES : HMAC_BYTES);
+  if (raw.length !== expected) return null;
+  return { scheme, ticketId: bytesToUuid(raw.subarray(0, 16)) };
+}
+
+/**
+ * Ověří podpis tiskového tokenu pro akci, ke které vstupenka v DB patří.
+ * TXP1 (bez vazby na akci) se ověřuje jako dřív; TXP2 proti `eventId`.
+ */
+export function verifyPrintTokenForEvent(token: string, eventId: string): PrintTokenResult & { scheme?: 'TXP1' | 'TXP2' } {
+  const parsed = parsePrintToken(token);
+  if (!parsed) return { ok: false, reason: 'malformed' };
+  if (parsed.scheme === SCHEME) return { ...verifyPrintToken(token), scheme: SCHEME };
+  if (!UUID_RE.test(eventId)) return { ok: false, reason: 'invalid_signature' };
+  const raw = b64urlDecode(token.trim().slice(SCHEME2.length + 1));
+  const ticketBytes = raw.subarray(0, 16);
+  const provided = raw.subarray(16);
+  const expected = sign2(ticketBytes, uuidToBytes(eventId));
+  if (provided.length !== expected.length || !crypto.timingSafeEqual(provided, expected)) {
+    return { ok: false, reason: 'invalid_signature', scheme: SCHEME2 };
+  }
+  return { ok: true, ticketId: parsed.ticketId, scheme: SCHEME2 };
+}
+
+/** Klientský guard: vypadá text jako tiskový token (TXP1 nebo TXP2)? */
+export function looksLikeAnyPrintToken(raw: string): boolean {
+  return /^TXP[12]\./.test(raw.trim());
+}

@@ -57,7 +57,7 @@ function parsePayload(raw: string): { ticketId?: string; printToken?: string; to
   const s = raw.trim();
   const m = s.match(/^tixly:([0-9a-f-]{36}):(\d{6})$/i);
   if (m) return { ticketId: m[1], totpCode: m[2] };
-  if (s.startsWith('TXP1.')) return { printToken: s };
+  if (/^TXP[12]\./.test(s)) return { printToken: s };
   if (/^[0-9a-f-]{36}$/i.test(s)) return { ticketId: s };
   return null;
 }

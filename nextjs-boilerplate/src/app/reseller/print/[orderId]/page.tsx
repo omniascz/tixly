@@ -10,6 +10,7 @@
  */
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import QRCode from 'qrcode'
 
 interface TicketRow {
   id: string
@@ -21,6 +22,8 @@ interface TicketRow {
   buyer_name: string | null
   buyer_email: string
   serial: string
+  /** Podepsaný statický token TXP2 (vstupenka + akce) — obsah QR kódu. */
+  printToken: string
 }
 
 type LoadState =
@@ -147,7 +150,7 @@ export default function ResellerPrintPage({ params }: { params: { orderId: strin
                 <div className="ticket-serial">#{t.serial}</div>
               </div>
               <div className="ticket-qr">
-                <QrCode value={`TXP:${t.id}`} size={90} />
+                <QrCode value={t.printToken} size={90} />
                 <div className="qr-id">{t.id.slice(0, 8)}</div>
               </div>
             </div>
@@ -158,67 +161,20 @@ export default function ResellerPrintPage({ params }: { params: { orderId: strin
   )
 }
 
+/**
+ * Skutečný QR kód (knihovna `qrcode`, jako SMS vstupenka). Kolo 4: dřív se kreslila
+ * pseudo-matice z textu `TXP:<id>`, kterou žádná čtečka nepřečetla.
+ */
 function QrCode({ value, size }: { value: string; size: number }) {
-  const cells = buildQrMatrix(value)
-  const n = cells.length
-  const cellSize = size / n
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} xmlns="http://www.w3.org/2000/svg">
-      <rect width={size} height={size} fill="white" />
-      {cells.flatMap((row, r) =>
-        row.map((dark, c) =>
-          dark ? (
-            <rect
-              key={`${r}-${c}`}
-              x={c * cellSize}
-              y={r * cellSize}
-              width={cellSize}
-              height={cellSize}
-              fill="black"
-            />
-          ) : null,
-        ),
-      )}
-    </svg>
-  )
-}
-
-function buildQrMatrix(text: string): boolean[][] {
-  const size = 21
-  const grid: boolean[][] = Array.from({ length: size }, () => Array(size).fill(false) as boolean[])
-
-  function drawFinder(row: number, col: number) {
-    for (let r = -1; r <= 7; r++) {
-      for (let c = -1; c <= 7; c++) {
-        const tr = row + r
-        const tc = col + c
-        if (tr < 0 || tr >= size || tc < 0 || tc >= size) continue
-        const onBorder = r === -1 || r === 7 || c === -1 || c === 7
-        const onInner = r >= 1 && r <= 5 && c >= 1 && c <= 5
-        const onCore = r >= 2 && r <= 4 && c >= 2 && c <= 4
-        grid[tr][tc] = onBorder || onCore || (!onInner)
-      }
-    }
-  }
-
-  drawFinder(0, 0)
-  drawFinder(0, size - 7)
-  drawFinder(size - 7, 0)
-
-  const bytes = Array.from(text).map((ch) => ch.charCodeAt(0))
-  let bi = 0
-  for (let r = size - 1; r >= 0; r -= 2) {
-    for (let c = size - 1; c >= 0; c--) {
-      if (r < 8 && c < 8) continue
-      if (r < 8 && c >= size - 8) continue
-      if (r >= size - 8 && c < 8) continue
-      const byte = bytes[bi % bytes.length] ?? 0
-      const bit = (byte >> (7 - (bi % 8))) & 1
-      grid[r][c] = bit === 1
-      bi++
-    }
-  }
-
-  return grid
+  const [src, setSrc] = useState<string | null>(null)
+  useEffect(() => {
+    let alive = true
+    QRCode.toDataURL(value, { errorCorrectionLevel: 'M', margin: 0, width: size * 4 })
+      .then((url) => { if (alive) setSrc(url) })
+      .catch(() => { if (alive) setSrc(null) })
+    return () => { alive = false }
+  }, [value, size])
+  if (!src) return <div style={{ width: size, height: size }} />
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} width={size} height={size} alt="QR kód vstupenky" />
 }

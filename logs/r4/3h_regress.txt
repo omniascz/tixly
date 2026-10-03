@@ -1,0 +1,19 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [32m✓[39m tests/fix-r4-printed-qr.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 607[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-v9b-wrong-event.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 327[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-reseller-print.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 415[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-v4-scan-logs.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 853[2mms[22m[39m
+[90mstdout[2m | tests/fix-r4-school-group-scan.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — scanner/school-group vyžaduje obsluhu pořadatele[2m > [22m[2mvlastní pořadatel: admitted[22m[39m
+[scanner/school-group] ADMITTED booking 72d37f3f-1521-4fd8-8030-375044c224a8 school=ZŠ Testovací students=25 event=af19c277-9e72-4987-bcca-f5dc8c1949fb
+
+ [32m✓[39m tests/fix-r4-school-group-scan.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 541[2mms[22m[39m
+ [32m✓[39m tests/fix-regression-scan.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 534[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[32m18 passed[39m[22m[90m (18)[39m
+[2m   Start at [22m 21:27:30
+[2m   Duration [22m 6.48s[2m (transform 219ms, setup 2ms, collect 649ms, tests 3.28s, environment 2ms, prepare 1.17s)[22m
+

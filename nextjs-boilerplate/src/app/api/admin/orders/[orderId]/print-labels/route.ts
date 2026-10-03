@@ -15,6 +15,7 @@ import { renderTicketLabelPdf, type LabelTicket } from '@/lib/tickets/label-pdf'
 
 interface OrderRow {
   id: string;
+  event_id: string | null;
   buyer_name: string | null;
   buyer_email: string;
   event_title: string;
@@ -41,7 +42,7 @@ export async function GET(
     const { orderId } = await params;
 
     const orderRes = await db().query<OrderRow>(
-      `SELECT o.id,
+      `SELECT o.id, o.event_id,
               u.name AS buyer_name, u.email AS buyer_email,
               e.title AS event_title, e.date_start AS event_date_start,
               v.name AS venue_name,
@@ -96,6 +97,7 @@ export async function GET(
         buyerName: order.buyer_name ?? order.buyer_email,
         promoterName: order.promoter_name,
         brandColorHex: order.brand_color_hex,
+        eventId: order.event_id,
       },
       tickets,
     );
