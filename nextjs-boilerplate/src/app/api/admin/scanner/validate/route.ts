@@ -132,7 +132,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     //   rotating_24h    → TOTP volitelný DO 24h před akcí, pak POVINNÝ
     //   rotating_only   → TOTP POVINNÝ vždy (jen mobile QR)
     //   photo_required  → TOTP POVINNÝ + foto check ručně u brány
-    const qrPolicy = t.event_qr_policy ?? 'static_allowed';
+    const qrPolicy = t.event_qr_policy ?? 'rotating_24h'; // kolo 2: výchozí = rotující TOTP
     let totpRequired = qrPolicy === 'rotating_only' || qrPolicy === 'photo_required';
     if (qrPolicy === 'rotating_24h' && t.event_date_start) {
       const eventTimeMs = new Date(t.event_date_start).getTime();

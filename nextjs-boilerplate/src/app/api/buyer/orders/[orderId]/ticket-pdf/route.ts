@@ -47,7 +47,7 @@ export async function GET(
     `SELECT o.id, o.user_id,
             e.title AS event_title,
             e.date_start::text AS event_date_start,
-            COALESCE(e.qr_policy, 'static_allowed') AS qr_policy,
+            COALESCE(e.qr_policy, 'rotating_24h') AS qr_policy,
             e.fan_ticket_enabled,
             e.fan_artwork_url,
             v.name AS venue_name,
