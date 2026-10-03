@@ -26,7 +26,9 @@ async function stripePost<T>(
   idempotencyKey: string,
 ): Promise<T> {
   const secret = process.env.STRIPE_SECRET_KEY!;
-  const res = await fetch(`https://api.stripe.com/v1${path}`, {
+  // Kolo 3: základ API konfigurovatelný jako ve stripe/webhook (testy míří na simulátor).
+  const base = process.env.STRIPE_API_BASE_URL ?? 'https://api.stripe.com';
+  const res = await fetch(`${base}/v1${path}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${secret}`,

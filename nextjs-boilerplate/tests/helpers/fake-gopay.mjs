@@ -9,7 +9,7 @@
 // Kolo 2 (krok 1) — navíc simulace dalších bran pro ověření stavu platby dotazem na API:
 //   PayPal   POST /paypal/v2/checkout/orders/:id/capture, /paypal/v1/oauth2/token, /paypal/v1/notifications/verify-webhook-signature
 //            (SUCCESS jen pro transmission_sig === 'valid-sig'), GET /paypal/v2/checkout/orders/:id
-//   Stripe   GET /stripe/v1/checkout/sessions/:id
+//   Stripe   GET /stripe/v1/checkout/sessions/:id, POST /stripe/v1/payment_intents (kolo 3 — mobile/payment-intent)
 //   Triple-A POST /triplea/oauth/token, GET /triplea/payment/:ref
 //   Wise     GET /wise/v1/transfers/:id
 //   Mollie   GET /mollie/v2/payments/:id
@@ -112,6 +112,14 @@ http.createServer(async (req, res) => {
       const o = ext[prov].get(decodeURIComponent(m[1]));
       return o ? send(res, 200, o) : send(res, 404, { error: 'NOT_FOUND' });
     }
+  }
+  if (req.method === 'POST' && url.pathname === '/stripe/v1/payment_intents') {
+    if (!/^Bearer /.test(req.headers.authorization ?? '')) return send(res, 401, { error: { message: 'no auth' } });
+    const p = new URLSearchParams(body);
+    const id = `pi_fake_${++seq}`;
+    const pi = { id, client_secret: `${id}_secret_fake`, amount: Number(p.get('amount')), currency: p.get('currency'), status: 'requires_payment_method', metadata: { orderId: p.get('metadata[orderId]') } };
+    ext.stripe.set(id, pi);
+    return send(res, 200, pi);
   }
   if (url.pathname === '/_ctl/payments') return send(res, 200, [...payments.values()]);
   if (url.pathname === '/_ctl/log') return send(res, 200, calls);
