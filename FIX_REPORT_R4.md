@@ -116,3 +116,5 @@ Opravené routy v kroku 2: 25 rout bez identity (middleware), `scanner/school-gr
 | vizuál | tisk prodejce: 2 skutečné QR, dekódované ZE SCREENSHOTU = TXP2; vložení do skeneru (akce za 1 h, rotating_24h) → „Vstup povolen“, vstupenka `used` | logs/r4/z_visual_*.png |
 
 `tixly/`: `git -C ../tixly status --porcelain | wc -l` = 110. Překryv se soubory měněnými ve větvích fix/*: 4 — `admin/scanner/page.tsx` (round3, round4), `api/internal/order-completed/route.ts` (round3), `api/subscriptions/checkout/route.test.ts` (round2, round3), `middleware.ts` (critical, round2–4). Migrace 479 kolidují (řeší se při slučování).
+
+Pozn. k auditu 08: statistika `0xx` (1× na aktéra) = `GET /api/events/[id]/seats/stream` — SSE proud obsazenosti, nekončí, klient auditu ho přeruší timeoutem (ověřeno dočasnou kopií auditu s výpisem; kopie smazána). Není to vada.
