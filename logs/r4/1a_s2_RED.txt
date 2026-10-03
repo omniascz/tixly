@@ -1,0 +1,34 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r4-s2-upgrade-leak.live.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 5005[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-s2-upgrade-leak.live.test.ts[2m > [22mKrok 1 (kolo 4) — S2 upgrade únik[2m > [22mcizí kupec a cizí pořadatel → 404 bez dat; anonym → 401 bez dat[39m
+[31m     → cizí kupec: {"currentTicket":{"id":"200a7c96-4864-4933-92da-0e7da2c480e6","status":"valid","ticketTypeId":"85575c74-9592-4b61-b7c2-a68078a217d0","ticketTypeName":"Standard","pricePaidHalire":10000},"eligible":true,"upgrades":[]}: expected 200 to be 404 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-s2-upgrade-leak.live.test.ts[2m > [22mKrok 1 (kolo 4) — S2 upgrade únik[2m > [22mcizí kupec a cizí pořadatel → 404 bez dat; anonym → 401 bez dat
+[31m[1mAssertionError[22m: cizí kupec: {"currentTicket":{"id":"200a7c96-4864-4933-92da-0e7da2c480e6","status":"valid","ticketTypeId":"85575c74-9592-4b61-b7c2-a68078a217d0","ticketTypeName":"Standard","pricePaidHalire":10000},"eligible":true,"upgrades":[]}: expected 200 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r4-s2-upgrade-leak.live.test.ts:[2m67:43[22m[39m
+    [90m 65| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [35mget[39m(h)[33m;[39m
+    [90m 66| [39m      [35mconst[39m body [33m=[39m [35mawait[39m r[33m.[39m[34mtext[39m()[33m;[39m
+    [90m 67| [39m      [34mexpect[39m(r[33m.[39mstatus[33m,[39m [32m`[39m[36m${[39mwho[36m}[39m[32m: [39m[36m${[39mbody[36m}[39m[32m`[39m)[33m.[39m[34mtoBe[39m(want)[33m;[39m
+    [90m   | [39m                                          [31m^[39m
+    [90m 68| [39m      [34mexpect[39m(body[33m,[39m who)[33m.[39mnot[33m.[39m[34mtoContain[39m(ticketId)[33m;[39m
+    [90m 69| [39m      [34mexpect[39m(body[33m,[39m who)[33m.[39mnot[33m.[39m[34mtoMatch[39m([36m/ticketTypeId|pricePaidHalire|curr[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (3)[39m
+[2m   Start at [22m 19:59:40
+[2m   Duration [22m 29.06s[2m (transform 777ms, setup 0ms, collect 3.69s, tests 5.00s, environment 1ms, prepare 19.43s)[22m
+
