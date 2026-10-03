@@ -1,0 +1,64 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/fix-r2-r56-pool.live.test.ts[2m > [22m[2mKrok 4 — R-56: kontext jen v transakci, na pooleru bez DATABASE_URL_DIRECT[2m > [22m[2mquery: 200 souběžných requestů (100 uživatelů / 10 tenantů) → 0 vidí cizí data[22m[39m
+[R56] {"kind":"query","N_REQ":200,"bad":0,"errors":0,"samples":[]}
+
+[90mstdout[2m | tests/fix-r2-r56-pool.live.test.ts[2m > [22m[2mKrok 4 — R-56: kontext jen v transakci, na pooleru bez DATABASE_URL_DIRECT[2m > [22m[2mconnect-tx: 200 souběžných requestů (100 uživatelů / 10 tenantů) → 0 vidí cizí data[22m[39m
+[R56] {"kind":"connect-tx","N_REQ":200,"bad":173,"errors":0,"samples":["{\"i\":1,\"isUser\":false,\"gucOk\":false,\"foreign\":10,\"missing\":10}","{\"i\":0,\"isUser\":true,\"gucOk\":false,\"foreign\":10,\"missing\":1}","{\"i\":2,\"isUser\":true,\"gucOk\":false,\"foreign\":10,\"missing\":1}"]}
+
+[90mstdout[2m | tests/fix-r2-r56-pool.live.test.ts[2m > [22m[2mKrok 4 — R-56: kontext jen v transakci, na pooleru bez DATABASE_URL_DIRECT[2m > [22m[2mconnect-autocommit: 200 souběžných requestů (100 uživatelů / 10 tenantů) → 0 vidí cizí data[22m[39m
+[R56] {"kind":"connect-autocommit","N_REQ":200,"bad":193,"errors":0,"samples":["{\"i\":2,\"isUser\":true,\"gucOk\":false,\"foreign\":10,\"missing\":1}","{\"i\":1,\"isUser\":false,\"gucOk\":false,\"foreign\":10,\"missing\":10}","{\"i\":3,\"isUser\":false,\"gucOk\":false,\"foreign\":10,\"missing\":10}"]}
+
+ [33m❯[39m tests/fix-r2-r56-pool.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 9599[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r2-r56-pool.live.test.ts[2m > [22mKrok 4 — R-56: kontext jen v transakci, na pooleru bez DATABASE_URL_DIRECT[2m > [22mconnect-tx: 200 souběžných requestů (100 uživatelů / 10 tenantů) → 0 vidí cizí data[39m
+[31m     → {"i":1,"isUser":false,"gucOk":false,"foreign":10,"missing":10} | {"i":0,"isUser":true,"gucOk":false,"foreign":10,"missing":1} | {"i":2,"isUser":true,"gucOk":false,"foreign":10,"missing":1}: expected 173 to be +0 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r2-r56-pool.live.test.ts[2m > [22mKrok 4 — R-56: kontext jen v transakci, na pooleru bez DATABASE_URL_DIRECT[2m > [22mconnect-autocommit: 200 souběžných requestů (100 uživatelů / 10 tenantů) → 0 vidí cizí data[39m
+[31m     → {"i":2,"isUser":true,"gucOk":false,"foreign":10,"missing":1} | {"i":1,"isUser":false,"gucOk":false,"foreign":10,"missing":10} | {"i":3,"isUser":false,"gucOk":false,"foreign":10,"missing":10}: expected 193 to be +0 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-r56-pool.live.test.ts[2m > [22mKrok 4 — R-56: kontext jen v transakci, na pooleru bez DATABASE_URL_DIRECT[2m > [22mconnect-tx: 200 souběžných requestů (100 uživatelů / 10 tenantů) → 0 vidí cizí data
+[31m[1mAssertionError[22m: {"i":1,"isUser":false,"gucOk":false,"foreign":10,"missing":10} | {"i":0,"isUser":true,"gucOk":false,"foreign":10,"missing":1} | {"i":2,"isUser":true,"gucOk":false,"foreign":10,"missing":1}: expected 173 to be +0 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 0[39m
+[31m+ 173[39m
+
+[36m [2m❯[22m tests/fix-r2-r56-pool.live.test.ts:[2m114:44[22m[39m
+    [90m112| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34mprobe[39m(kind)[33m;[39m
+    [90m113| [39m      [34mexpect[39m(r[33m.[39merrors[33m,[39m r[33m.[39msamples[33m.[39m[34mjoin[39m([32m' | '[39m))[33m.[39m[34mtoBe[39m([34m0[39m)[33m;[39m
+    [90m114| [39m      [34mexpect[39m(r[33m.[39mbad[33m,[39m r[33m.[39msamples[33m.[39m[34mjoin[39m([32m' | '[39m))[33m.[39m[34mtoBe[39m([34m0[39m)[33m;[39m
+    [90m   | [39m                                           [31m^[39m
+    [90m115| [39m    }[33m,[39m [34m180_000[39m)[33m;[39m
+    [90m116| [39m  }
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-r56-pool.live.test.ts[2m > [22mKrok 4 — R-56: kontext jen v transakci, na pooleru bez DATABASE_URL_DIRECT[2m > [22mconnect-autocommit: 200 souběžných requestů (100 uživatelů / 10 tenantů) → 0 vidí cizí data
+[31m[1mAssertionError[22m: {"i":2,"isUser":true,"gucOk":false,"foreign":10,"missing":1} | {"i":1,"isUser":false,"gucOk":false,"foreign":10,"missing":10} | {"i":3,"isUser":false,"gucOk":false,"foreign":10,"missing":10}: expected 193 to be +0 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 0[39m
+[31m+ 193[39m
+
+[36m [2m❯[22m tests/fix-r2-r56-pool.live.test.ts:[2m114:44[22m[39m
+    [90m112| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34mprobe[39m(kind)[33m;[39m
+    [90m113| [39m      [34mexpect[39m(r[33m.[39merrors[33m,[39m r[33m.[39msamples[33m.[39m[34mjoin[39m([32m' | '[39m))[33m.[39m[34mtoBe[39m([34m0[39m)[33m;[39m
+    [90m114| [39m      [34mexpect[39m(r[33m.[39mbad[33m,[39m r[33m.[39msamples[33m.[39m[34mjoin[39m([32m' | '[39m))[33m.[39m[34mtoBe[39m([34m0[39m)[33m;[39m
+    [90m   | [39m                                           [31m^[39m
+    [90m115| [39m    }[33m,[39m [34m180_000[39m)[33m;[39m
+    [90m116| [39m  }
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (4)[39m
+[2m   Start at [22m 10:39:17
+[2m   Duration [22m 10.80s[2m (transform 162ms, setup 0ms, collect 215ms, tests 9.60s, environment 0ms, prepare 600ms)[22m
+

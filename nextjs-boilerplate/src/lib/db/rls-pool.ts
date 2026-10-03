@@ -42,55 +42,22 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const ROLE_RE = /^[a-z_]+$/; // allowlist tvar — SET LOCAL interpoluje string, nutná validace
 
 let pool: Pool | null = null;
-let directPool: Pool | null = null;
 
 /**
- * R-56 (§191–§194): na poolovanem endpointu se backend prideluje PER TRANSAKCI.
- * `query()` drzi `SET LOCAL` i dotaz v jedne transakci, takze je tesny (zmereno
- * 0/120). `connect()` nastavuje GUC session-level MIMO transakci, takze tam
- * dotaz volajiciho dorazi na jiny backend — zmereno 59/60 spatne na pooleru,
- * 0/60 na direct.
+ * R-56 (kolo 2, krok 4): RLS kontext platí VÝHRADNĚ v rámci transakce, ve všech cestách
+ * a bez podmínky na tvar URL.
  *
- * Oprava (kandidat (b) ze §192): kazda cesta ma svuj pool.
- *   query()   -> poolovany endpoint (levny: ~1 backend na 9 klientu)
- *   connect() -> primy endpoint     (drahy: 1 slot na spojeni -> skrbi se)
+ * Dřív: `query()` byl těsný (BEGIN + SET LOCAL + dotaz + COMMIT), ale `connect()` nastavoval
+ * GUC session-level (`set_config(..., false)`) a spoléhal na samostatný „přímý" pool
+ * (`DATABASE_URL_DIRECT` nebo host s `-pooler.`). Když se přímé URL neodvodilo, šel connect()
+ * přes transakční pooler a dotazy volajícího dorazily na backend s CIZÍM kontextem
+ * (audit V9: 40/60; test kola 2: 173/200 resp. 193/200 požadavků vidělo cizí data).
  *
- * Rozpocet slotu (§194, compute 0.25–2 CU): `max_connections=901`, minus
- * 6 superuser, minus baseline a backendy pooleru => ~855 pro direct pool.
- * Pri `max=4` to je ~213 soubeznych instanci. Proto je default 4, ne 10.
+ * Teď: obě cesty používají JEDEN pool a GUC se nastavují `set_config(..., true)` uvnitř
+ * transakce, ve které dotaz běží (u connect() hned po BEGIN volajícího; samostatné příkazy
+ * mimo transakci se obalí implicitní transakcí). Po COMMIT/ROLLBACK kontext zaniká sám —
+ * spojení vrácené do poolu (i backend v PgBounceru) žádný kontext nenese.
  */
-function directUrl(): string | undefined {
-  // 1) Explicitni promenna ma prednost — konvence DATABASE_URL_SUPER/OPS/APP.
-  const explicit = process.env.DATABASE_URL_DIRECT;
-  if (explicit) return explicit;
-  // 2) Jinak se odvodi z `DATABASE_URL` odstranenim `-pooler` z hostu. Tentyz
-  //    mechanismus pouziva `tests/rls-pool-pooler.live.test.ts` (opacnym smerem).
-  //    Kdyz `-pooler` v hostu neni, URL uz PRIMA je a vrati se beze zmeny —
-  //    v tom pripade oba pooly miri na tyz endpoint a chovani je dnesni.
-  return process.env.DATABASE_URL?.replace(/@([^.@/]+)-pooler\./, '@$1.');
-}
-
-function getDirectPool(): Pool {
-  if (!directPool) {
-    directPool = new Pool({
-      connectionString: directUrl(),
-      // Zamerne NIZSI nez u poolovaneho: na primem endpointu stoji kazde
-      // spojeni jeden slot z ~855. Ladi se pres env bez deploye kodu.
-      max: Number(process.env.PG_DIRECT_POOL_MAX ?? 4),
-      statement_timeout: Number(process.env.PG_STATEMENT_TIMEOUT_MS ?? 15000),
-      connectionTimeoutMillis: 8000,
-      // Kratsi nez u poolovaneho — necinne spojeni tu drzi vzacny slot.
-      // Ne agresivneji: reconnect stoji ~255 ms (horni odhad, §194) a 24 %
-      // volani `connect()` je na horkych cestach.
-      idleTimeoutMillis: Number(process.env.PG_DIRECT_IDLE_TIMEOUT_MS ?? 10000),
-    });
-    if (process.env.RLS_POOL_DEBUG === '1') {
-      directPool.on('error', (e) => console.warn('[DIRECT-POOL-ERROR]', (e as Error)?.message?.slice(0, 80)));
-    }
-  }
-  return directPool;
-}
-
 function getRawPool(): Pool {
   if (!pool) {
     pool = new Pool({
@@ -206,39 +173,54 @@ export function runWithUserContext<T>(
  */
 
 /**
- * Nastavi VSECHNY ctyri RLS GUC a v TEMZ dotazu je precte zpatky (§121).
+ * Nastaví VŠECHNY čtyři RLS GUC TRANSAKČNĚ LOKÁLNĚ (`set_config(..., true)`) a v TÉMŽ
+ * dotazu je přečte zpátky (§121). Volá se jen UVNITŘ transakce — po COMMIT/ROLLBACK
+ * hodnoty zaniknou, takže spojení vrácené do poolu nikdy nenese cizí kontext (R-56).
  *
- * Mereni (§117) ukazalo, ze se spojeni pod klientem muze vymenit mezi
- * nastavenim GUC a dotazem: setPid 778 -> queryPid 781. Na nove session zadny
- * SET neprobehl, vsechny GUC jsou NULL, app_is_service() je false a policy
- * nepusti nic — dotaz vrati TICHE PRAZDNO misto chyby.
- *
- * Nenastavene GUC se nastavuji na '' (prazdny retezec), NE se vynechavaji:
- * helpery delaji NULLIF(current_setting(...),'')::uuid, takze '' -> NULL a zadne
- * 22P02 (§111). Diky tomu je zpetne cteni jednoznacne — '' znamena "nastaveno
- * na prazdno", NULL znamena "tahle session o tom nevi".
+ * Nenastavené GUC se nastavují na '' (prázdný řetězec), NE se vynechávají:
+ * helpery dělají NULLIF(current_setting(...),'')::uuid, takže '' -> NULL a žádné
+ * 22P02 (§111). Zpětné čtení je tak jednoznačné.
  */
-async function applyGucs(
-  client: PoolClient,
+/** SQL literál; hodnoty jsou validované (UUID_RE / ROLE_RE / boolean), uvozovky přesto escapujeme. */
+const lit = (v: string): string => `'${v.replace(/'/g, "''")}'`;
+
+/**
+ * Jeden round-trip: `BEGIN` + set_config(..., true) všech čtyř GUC + zpětné čtení (§121).
+ * Simple-query multi-statement (bez parametrů) — proto literály z validovaných hodnot.
+ * Vrací výsledek `BEGIN` (pro volajícího, který ho poslal sám).
+ */
+async function beginWithGucs(
+  q: (text: string) => Promise<QueryResult | QueryResult[]>,
   ctx: { promoterId?: string; isPlatformAdmin?: boolean; currentUserId?: string; role?: string },
-): Promise<{ ok: boolean; pid: number }> {
-  const want: Record<string, string> = {
-    'app.current_promoter_id': ctx.promoterId ?? '',
-    'app.is_platform_admin': ctx.isPlatformAdmin ? 'true' : '',
-    'app.current_user_id': ctx.currentUserId ?? '',
-    'app.role': ctx.role ?? '',
-  };
-  const names = Object.keys(want);
-  const sets = names.map((_, i) => `set_config($${i + 1}, $${i + 5}, false) AS s${i}`);
-  const reads = names.map((_, i) => `current_setting($${i + 1}, true) AS r${i}`);
-  const r = await client.query(
-    `SELECT ${sets.join(', ')}, ${reads.join(', ')}, pg_backend_pid() AS pid`,
-    [...names, ...names.map((n) => want[n])],
-  );
-  const row = r.rows[0] as Record<string, string | null>;
-  const ok = names.every((n, i) => (row[`r${i}`] ?? null) === want[n]);
-  return { ok, pid: Number(row.pid) };
+  beginSql = 'BEGIN',
+): Promise<QueryResult> {
+  const want: Array<[string, string]> = [
+    ['app.current_promoter_id', ctx.promoterId ?? ''],
+    ['app.is_platform_admin', ctx.isPlatformAdmin ? 'true' : ''],
+    ['app.current_user_id', ctx.currentUserId ?? ''],
+    ['app.role', ctx.role ?? ''],
+  ];
+  const sets = want.map(([n, v], i) => `set_config(${lit(n)}, ${lit(v)}, true) AS s${i}`).join(', ');
+  const reads = want.map(([n], i) => `current_setting(${lit(n)}, true) AS r${i}`).join(', ');
+  const res = await q(`${beginSql.trim().replace(/;\s*$/, '')}; SELECT ${sets}; SELECT ${reads}`);
+  const arr = Array.isArray(res) ? res : [res];
+  const row = arr[arr.length - 1].rows[0] as Record<string, string | null>;
+  if (!want.every(([, v], i) => (row[`r${i}`] ?? null) === v)) {
+    // nikdy tiché prázdno / cizí kontext — chyba
+    throw new Error('rls-pool: RLS kontext se nepodařilo nastavit v transakci');
+  }
+  return arr[0];
 }
+
+// Originální client.query (pg-pool při vypůjčení obnovuje jen release(), query NE —
+// bez tohohle by se wrapper vrstvil na wrapper předchozího držitele spojení).
+const ORIG_QUERY = Symbol('rls-pool.origQuery');
+
+const hasCtx = (ctx: RlsContext | undefined): ctx is RlsContext =>
+  !!ctx && !!(ctx.promoterId || ctx.isPlatformAdmin || ctx.currentUserId || ctx.role);
+const TX_BEGIN_RE = /^\s*(BEGIN|START\s+TRANSACTION)\b/i;
+// ROLLBACK TO [SAVEPOINT] transakci NEukončuje
+const TX_END_RE = /^\s*(COMMIT|END|ABORT|ROLLBACK(?!\s+TO\b))\b/i;
 
 class RlsAwarePool {
   async query<R extends QueryResultRow = QueryResultRow>(
@@ -280,88 +262,73 @@ class RlsAwarePool {
   }
 
   /**
-   * Connect pro explicit transakce. Endpoint musí volat client.release().
-   * Caller je zodpovědný za BEGIN/COMMIT/ROLLBACK + SET LOCAL.
+   * Klient pro explicitní transakce. Endpoint musí volat client.release().
    *
-   * RLS session var se injectne automaticky před prvním query, pokud je
-   * context aktivní.
+   * R-56 (kolo 2): stejný pool jako query(); kontext (je-li aktivní) se nastaví
+   * TRANSAKČNĚ LOKÁLNĚ:
+   *   - `BEGIN` / `START TRANSACTION` volajícího → hned po něm set_config(..., true)
+   *   - příkaz MIMO transakci (autocommit) → obalí se implicitní transakcí
+   *     BEGIN; set_config(..., true); příkaz; COMMIT — kontext i příkaz na témže backendu
+   *   - release() s otevřenou transakcí → ROLLBACK před vrácením do poolu
+   * Session-level GUC se už nenastavují vůbec → není co resetovat a nic nemůže uniknout
+   * k dalšímu držiteli spojení (ani přes transakční pooler bez DATABASE_URL_DIRECT).
    */
-  async connect(attempt = 0): Promise<PoolClient> {
+  async connect(): Promise<PoolClient> {
     const ctx = tenantStore.getStore();
-    // R-56: PRIMY endpoint. Na poolovanem tahle cesta principialne nedrzi
-    // kontext — GUC se nastavuji mimo transakci volajiciho (§191).
-    const client = await getDirectPool().connect();
+    const client = await getRawPool().connect();
+    type Q = PoolClient['query'];
+    const holder = client as PoolClient & { [ORIG_QUERY]?: Q };
+    // vždy začít z čistého pg query (i když předchozí držitel spojení měl wrapper)
+    if (holder[ORIG_QUERY]) (client as { query: Q }).query = holder[ORIG_QUERY]!;
+    if (!hasCtx(ctx)) return client;
+    const snapshot = { ...ctx };
 
-    // ── DOCASNA DIAGNOSTIKA (RLS_POOL_DEBUG=1) — R-15 ────────────────────────
-    // Overuje hypotezu, ze se do poolu vraceji SPINAVA spojeni: reset GUC bezi
-    // fire-and-forget a jeho chyba se polyka. Kdyz spojeni pri akvizici uz nese
-    // cizi GUC, hypoteza plati.
-    if (process.env.RLS_POOL_DEBUG_ACQ === '1') {
-      const d = await client.query(
-        "SELECT current_setting('app.current_user_id', true) AS u," +
-        " current_setting('app.current_promoter_id', true) AS p," +
-        " current_setting('app.role', true) AS r," +
-        " current_setting('app.is_platform_admin', true) AS a",
-      );
-      const g = d.rows[0] as Record<string, string | null>;
-      const dirty = Object.entries(g).filter(([, v]) => v !== null && v !== '');
-      if (dirty.length) {
-        console.warn('[RLS-DIRTY] spojeni z poolu nese GUC:',
-          JSON.stringify(Object.fromEntries(dirty)),
-          '| kontext teto akvizice:', JSON.stringify(ctx ?? null));
-      }
-    }
+    holder[ORIG_QUERY] = client.query;
+    const origQuery = client.query.bind(client) as unknown as (t: unknown, p?: unknown) => Promise<QueryResult>;
+    const q = (t: string, p?: unknown[]) => origQuery(t, p);
+    const qs = (t: string) => origQuery(t) as Promise<QueryResult | QueryResult[]>;
+    let inTx = false;
 
-    if (ctx?.promoterId || ctx?.isPlatformAdmin || ctx?.currentUserId || ctx?.role) {
-      // Nastav a HNED OVER, ze GUC na te session opravdu jsou. Kdyz ne, spojeni
-      // se zahodi (release(true) ho z poolu odstrani) a zkusi se jine. Po
-      // vycerpani pokusu se vyhodi CHYBA — nikdy tiche prazdno.
-      const verified = await applyGucs(client, ctx);
-      if (!verified.ok) {
-        if (process.env.RLS_POOL_DEBUG === '1') {
-          console.warn('[RLS-GUC-MISMATCH] zahazuji spojeni pid=', verified.pid);
-        }
-        client.release(true);
-        if (attempt >= 2) {
-          throw new Error('rls-pool: GUC se nepodarilo nastavit ani na 3. spojeni');
-        }
-        return this.connect(attempt + 1);
+    const wrapped = (async (text: unknown, params?: unknown) => {
+      const sql = typeof text === 'string' ? text
+        : text && typeof (text as { text?: unknown }).text === 'string' ? (text as { text: string }).text : null;
+      if (sql === null) return origQuery(text, params); // Submittable (cursor/stream) — beze změny
+      if (TX_BEGIN_RE.test(sql) && params === undefined) {
+        const r = await beginWithGucs(qs, snapshot, sql);
+        inTx = true;
+        return r;
       }
-      // Wrap release aby vyresetoval session vars
-      const originalRelease = client.release.bind(client);
-      // Idempotentni release. Puvodne diagnostika k R-15: hypoteza byla, ze se
-      // release() vola dvakrat a druhy RESET dorazi do session NOVEHO drzitele.
-      // ZMERENO: [RLS-DOUBLE-RELEASE] se za 5 behu neobjevil ani jednou, zatimco
-      // pady pokracovaly (3 z 5) — hypoteza VYVRACENA. Straz tu zustava proto,
-      // ze dvojite release je chyba tak jako tak, ne proto, ze by neco resila.
-      let releasedOnce = false;
-      (client as PoolClient & { release: typeof originalRelease }).release = ((
-        err?: Error | boolean,
-      ): void => {
-        if (releasedOnce) {
-          if (process.env.RLS_POOL_DEBUG === '1') {
-            console.warn('[RLS-DOUBLE-RELEASE] release() volan podruhe;',
-              'RESET pujde do cizi session. ctx:', JSON.stringify(ctx));
-          }
-          return;
-        }
-        releasedOnce = true;
-        // Best-effort reset — connection se vrátí čistá do poolu
-        void client
-          .query(
-            'RESET app.current_promoter_id; RESET app.is_platform_admin; RESET app.current_user_id; RESET app.role;',
-          )
-          .catch((e: unknown) => {
-            // DOCASNA DIAGNOSTIKA — R-15. Drive: .catch(() => undefined),
-            // tedy selhani resetu bylo NEVIDITELNE.
-            if (process.env.RLS_POOL_DEBUG === '1') {
-              console.warn('[RLS-RESET-FAIL]', (e as { code?: string })?.code,
-                String((e as Error)?.message).slice(0, 90));
-            }
-          })
-          .finally(() => originalRelease(err));
-      }) as typeof originalRelease;
-    }
+      if (TX_END_RE.test(sql)) {
+        try { return await origQuery(text, params); } finally { inTx = false; }
+      }
+      if (inTx) return origQuery(text, params);
+      await beginWithGucs(qs, snapshot);
+      try {
+        const r = await origQuery(text, params);
+        await q('COMMIT');
+        return r;
+      } catch (e) {
+        await q('ROLLBACK').catch(() => undefined);
+        throw e;
+      }
+    }) as unknown as Q;
+    (client as { query: Q }).query = wrapped;
+
+    const originalRelease = client.release.bind(client);
+    let releasedOnce = false;
+    (client as PoolClient & { release: typeof originalRelease }).release = ((err?: Error | boolean): void => {
+      if (releasedOnce) return; // dvojité release je chyba volajícího — druhé ignorovat
+      releasedOnce = true;
+      const restore = () => { (client as { query: Q }).query = holder[ORIG_QUERY]!; };
+      if (inTx && !err) {
+        // volající zapomněl COMMIT/ROLLBACK — nevracet do poolu otevřenou transakci
+        inTx = false;
+        void q('ROLLBACK').catch(() => undefined).finally(() => { restore(); originalRelease(err); });
+        return;
+      }
+      restore();
+      originalRelease(err);
+    }) as typeof originalRelease;
 
     return client;
   }
@@ -370,14 +337,7 @@ class RlsAwarePool {
    * Pure pass-through pro existující code co `pool.end()` volá při shutdown.
    */
   async end(): Promise<void> {
-    // MUSI zavrit OBA pooly. Kdyby se zavrel jen `pool`, spojeni direct poolu
-    // zustanou viset — v testech to znamena „Connection terminated unexpectedly"
-    // pri mazani ephemeral vetve pod otevrenymi sockety (tataz trida, kvuli
-    // ktere `live-fixture.cleanup()` zavira `appDb().end()` pred DELETE).
-    const konce: Array<Promise<void>> = [];
-    if (pool) { konce.push(pool.end()); pool = null; }
-    if (directPool) { konce.push(directPool.end()); directPool = null; }
-    await Promise.all(konce);
+    if (pool) { const p = pool; pool = null; await p.end(); }
   }
 }
 
