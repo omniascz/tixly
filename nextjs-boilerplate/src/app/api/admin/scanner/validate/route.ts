@@ -1,7 +1,7 @@
 /**
  * POST /api/admin/scanner/validate
  *
- * Body: { ticketId: string, totpCode?: string }
+ * Body: { ticketId: string, totpCode?: string, eventId?: string }
  *
  * Demo scanner flow:
  *   1. Najde ticket podle ID
@@ -30,6 +30,9 @@ const schema = z
     // Day-aware + zone-aware (volitelné pro single events)
     eventDayId: z.string().uuid().nullable().optional(),
     zoneId: z.string().uuid().nullable().optional(),
+    // Kolo 3 (V9b): akce, kterou brána obsluhuje — vstupenka jiné akce → wrong_event.
+    // Volitelné kvůli starším klientům (bez něj se chová jako dřív).
+    eventId: z.string().uuid().optional(),
     // Identifikace skeneru pro scan_log
     deviceId: z.string().max(64).optional(),
     gateId: z.string().uuid().optional(),
@@ -124,6 +127,20 @@ export async function POST(req: NextRequest): Promise<Response> {
       return NextResponse.json(
         { result: 'wrong_promoter', message: 'Lístek patří k jinému promotérovi.' },
         { status: 403 },
+      );
+    }
+
+    // Kolo 3 (V9b): lístek jiné akce téhož pořadatele u brány této akce → nevpouštět.
+    if (parsed.data.eventId && t.event_id !== parsed.data.eventId) {
+      await client.query('ROLLBACK');
+      await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'wrong_event' });
+      return NextResponse.json(
+        {
+          result: 'wrong_event',
+          ticket: shortTicketInfo(t),
+          message: `Lístek je na jinou akci (${t.event_title}).`,
+        },
+        { status: 409 },
       );
     }
 

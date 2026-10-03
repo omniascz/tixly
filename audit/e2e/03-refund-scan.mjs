@@ -130,9 +130,10 @@ r = await PA.post('/api/admin/events', { title: `Audit Koncert A2 ${S.run}`, des
 S.eventA2 = r.json?.eventId;
 const man = await PA.get(`/api/admin/scanner/manifest?eventId=${S.eventA2}`);
 check('V9a', 'offline manifest akce A2 neobsahuje vstupenky akce A', man.status === 200 && !JSON.stringify(man.json).includes(gt[2].id), { status: man.status, body: JSON.stringify(man.json).slice(0, 200) });
-r = await scan(PA, { ticketId: gt[2].id, deviceId: 'gate-of-event-A2' });
+// kolo 3: klient skeneru posila eventId brany (web admin / offline fronta / mobilni appka) -> stejne tady
+r = await scan(PA, { ticketId: gt[2].id, deviceId: 'gate-of-event-A2', eventId: S.eventA2 });
 const st4 = (await q(`SELECT status FROM tickets.tickets WHERE id=$1`, [gt[2].id]))[0].status;
-check('V9b', 'SKEN CIZI AKCE: vstupenka akce A u brany akce A2 (tyz poradatel) — API neumi rict, kterou akci brana obsluhuje', r.json?.result !== 'admitted', { ...ev(r), ticketStatus: st4, note: 'schema /api/admin/scanner/validate nema eventId; online sken vpusti vstupenku jakekoli akce poradatele' });
+check('V9b', 'SKEN CIZI AKCE: vstupenka akce A u brany akce A2 (tyz poradatel) -> wrong_event, vstupenka zustava valid', r.json?.result === 'wrong_event' && st4 === 'valid', { ...ev(r), ticketStatus: st4 });
 
 const manA = await PA.get(`/api/admin/scanner/manifest?eventId=${S.eventA}`);
 const ids = JSON.stringify(manA.json);

@@ -44,6 +44,7 @@ const LABEL: Record<string, string> = {
   not_found: 'LÍSTEK NENALEZEN',
   invalid_token: 'NEPLATNÝ KÓD',
   wrong_promoter: 'CIZÍ POŘADATEL',
+  wrong_event: 'JINÁ AKCE',
   totp_mismatch: 'QR NESEDÍ',
   totp_required: 'VYŽADUJE MOBILNÍ QR',
   wrong_zone_or_day: 'ŠPATNÁ ZÓNA / DEN',
@@ -110,6 +111,8 @@ export default function ScannerScreen() {
         return;
       }
       const body: Record<string, unknown> = { ...parsed };
+      // Kolo 3 (V9b): akce brány → API odmítne lístek jiné akce (wrong_event).
+      if (eventId) body.eventId = eventId;
       if (dayId) body.eventDayId = dayId;
       if (zoneId) body.zoneId = zoneId;
       const endpoint = mode === 'standard' ? '/api/admin/scanner/validate' : '/api/admin/scanner/reentry';
@@ -132,7 +135,7 @@ export default function ScannerScreen() {
         setBusy(false);
       }
     },
-    [busy, result, showConfig, dayId, zoneId, mode, router],
+    [busy, result, showConfig, eventId, dayId, zoneId, mode, router],
   );
 
   function next() {

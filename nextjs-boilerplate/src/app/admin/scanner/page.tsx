@@ -31,6 +31,7 @@ type ScanResult = {
     | 'not_found'
     | 'invalid_token'
     | 'wrong_promoter'
+    | 'wrong_event'
     | 'totp_mismatch'
     | 'invalid_status'
     | 'wrong_zone_or_day'
@@ -270,6 +271,8 @@ export default function ScannerPage() {
     const payload = {
       ...(isPrintToken ? { printToken: raw } : { ticketId: raw }),
       ...(code && !isPrintToken ? { totpCode: code } : {}),
+      // Kolo 3 (V9b): akce brány → API odmítne lístek jiné akce (wrong_event).
+      ...(gate.eventId ? { eventId: gate.eventId } : {}),
       ...(gate.eventDayId ? { eventDayId: gate.eventDayId } : {}),
       ...(gate.zoneId ? { zoneId: gate.zoneId } : {}),
     };
@@ -818,6 +821,8 @@ function labelFor(r: ScanResult['result']): string {
       return 'Neplatný kód vstupenky';
     case 'wrong_promoter':
       return 'Lístek jiného promotéra';
+    case 'wrong_event':
+      return 'Lístek na jinou akci';
     case 'totp_mismatch':
       return 'TOTP kód neodpovídá';
     case 'invalid_status':

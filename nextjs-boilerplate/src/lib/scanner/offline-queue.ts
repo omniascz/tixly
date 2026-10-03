@@ -31,6 +31,8 @@ export interface ScanPayload {
   /** Podepsaný token z tištěné vstupenky (104mm label). */
   printToken?: string;
   totpCode?: string;
+  /** Kolo 3 (V9b): akce brány — server odmítne lístek jiné akce (wrong_event). */
+  eventId?: string;
   eventDayId?: string;
   zoneId?: string;
 }
