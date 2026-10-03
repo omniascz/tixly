@@ -14,7 +14,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { NextRequest } from 'next/server';
 import type { Pool } from 'pg';
-import { randomUUID } from 'crypto';
 import { createLocalClone, hasLocalDb, type LocalClone } from './helpers/local-fixture';
 import { throughMiddleware } from './helpers/through-middleware';
 
