@@ -32,3 +32,5 @@ P1, P5d, C2b, P13, V12, D3a PASS; C1a, C2a PASS.
 ## Krok 2 — průběh
 - R5 HOTOVO f800b76 (webhook REFUNDED → executeOrderRefund bez brány; test 3/3; regrese 37/37)
 - R6 HOTOVO d58c3ef (reacquire-capacity / auto-refund + e-mail; test 3/3; regrese 52/52)
+- mobile auth HOTOVO 799bfa0 (nový nález: /api/mobile/* bez identity → vždy 401; +25 dalších rout se stejnou vadou → report, neopraveno)
+- mobile rate limit HOTOVO (viz git log fix(R3-mobile-rl))
