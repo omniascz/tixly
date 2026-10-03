@@ -1,0 +1,55 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r4-qes-policy.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 341[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-qes-policy.live.test.ts[2m > [22mKrok 2 (kolo 4) — qes_signing_requests pod tixly_app (migrace 489)[2m > [22mservisní kontext žádost vidí; vlastní pořadatel ano, cizí ne[39m
+[31m     → expected +0 to be 1 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r4-qes-policy.live.test.ts[2m > [22mKrok 2 (kolo 4) — qes_signing_requests pod tixly_app (migrace 489)[2m > [22mmock-qes mimo produkci: GET 200, POST sign → signed[39m
+[31m     → {"error":"Not found"}: expected 404 to be 200 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-qes-policy.live.test.ts[2m > [22mKrok 2 (kolo 4) — qes_signing_requests pod tixly_app (migrace 489)[2m > [22mservisní kontext žádost vidí; vlastní pořadatel ano, cizí ne
+[31m[1mAssertionError[22m: expected +0 to be 1 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/fix-r4-qes-policy.live.test.ts:[2m40:83[22m[39m
+    [90m 38| [39m    [35mconst[39m { db[33m,[39m runWithServiceContext[33m,[39m runWithPromoterContext } [33m=[39m [35mawai[39m…
+    [90m 39| [39m    [35mconst[39m q [33m=[39m [32m`SELECT count(*)::int AS n FROM platform.qes_signing_req[39m…
+    [90m 40| [39m    [34mexpect[39m(([35mawait[39m [34mrunWithServiceContext[39m(() [33m=>[39m [34mdb[39m()[33m.[39m[34mquery[39m(q[33m,[39m [reqId])))…
+    [90m   | [39m                                                                                  [31m^[39m
+    [90m 41| [39m    [34mexpect[39m(([35mawait[39m [34mrunWithPromoterContext[39m(own[33m.[39mpromoterId[33m,[39m () [33m=>[39m [34mdb[39m()[33m.[39m[34mqu[39m…
+    [90m 42| [39m    [34mexpect[39m(([35mawait[39m [34mrunWithPromoterContext[39m(foreign[33m.[39mpromoterId[33m,[39m () [33m=>[39m [34mdb[39m(…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-qes-policy.live.test.ts[2m > [22mKrok 2 (kolo 4) — qes_signing_requests pod tixly_app (migrace 489)[2m > [22mmock-qes mimo produkci: GET 200, POST sign → signed
+[31m[1mAssertionError[22m: {"error":"Not found"}: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m tests/fix-r4-qes-policy.live.test.ts:[2m49:46[22m[39m
+    [90m 47| [39m    [35mconst[39m mod [33m=[39m ([35mawait[39m [35mimport[39m([32m'@/app/api/mock-qes/[requestId]/route'[39m))…
+    [90m 48| [39m    [35mconst[39m g [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost/ap[39m…
+    [90m 49| [39m    [34mexpect[39m(g[33m.[39mstatus[33m,[39m [35mawait[39m g[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                             [31m^[39m
+    [90m 50| [39m    [35mconst[39m p [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost/ap[39m…
+    [90m 51| [39m      method[33m:[39m [32m'POST'[39m[33m,[39m headers[33m:[39m { [32m'content-type'[39m[33m:[39m [32m'application/json'[39m }[33m,[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 20:25:24
+[2m   Duration [22m 1.13s[2m (transform 148ms, setup 0ms, collect 166ms, tests 341ms, environment 0ms, prepare 400ms)[22m
+
