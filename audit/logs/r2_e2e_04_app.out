@@ -1,24 +1,24 @@
-# E2E 04_differential_app  base=http://localhost:3200  2026-10-03T08:32:26.871Z
+# E2E 04_differential_app  base=http://localhost:3200  2026-10-03T08:42:36.602Z
 PASS X1  [app] checkout + platba + vystaveni
        {"tickets":1}
 PASS X2  [app] vlastnik stahne PDF vstupenek
-       {"status":200,"ct":"application/pdf","bytes":22439,"head":"%PDF-1.3\n%����\n7 0 obj\n<<\n/Type /Page\n/Parent 1 0 R\n/MediaBo"}
+       {"status":200,"ct":"application/pdf","bytes":22311,"head":"%PDF-1.3\n%����\n7 0 obj\n<<\n/Type /Page\n/Parent 1 0 R\n/MediaBo"}
 PASS X3  [app] buyer storno zaplacene objednavky: odpoved 200 <=> DB cancelled + vstupenky neplatne + refund_request
-       {"status":200,"body":"{\"ok\":true,\"orderId\":\"4b7025c9-0cde-47a8-abca-8275fbc0bf79\",\"refundAmount\":50000,\"refundPct\":100,\"beforeDeadline\":true,\"message\":\"Objednávka zrušena. Refund 500 Kč (100%) bude zpracován do 7 dní.\"}","orderStatusInDb":"cancelled","tickets":["revoked"],"refund_requests":[{"status":"pending","refunded_halire":50000,"has_user":true}]}
+       {"status":200,"body":"{\"ok\":true,\"orderId\":\"1fa19568-13b7-42a9-992c-3f24531c90ca\",\"refundAmount\":50000,\"refundPct\":100,\"beforeDeadline\":true,\"message\":\"Objednávka zrušena. Refund 500 Kč (100%) bude zpracován do 7 dní.\"}","orderStatusInDb":"cancelled","tickets":["revoked"],"refund_requests":[{"status":"pending","refunded_halire":50000,"has_user":true}]}
 PASS X4  [app] cron expire-pending-orders
-       {"status":200,"body":"{\"ok\":true,\"expiredCount\":15,\"seatsReleased\":0}"}
+       {"status":200,"body":"{\"ok\":true,\"expiredCount\":0,\"seatsReleased\":0}"}
 PASS X5  [app] cron release-expired-seat-holds
-       {"status":200,"body":"{\"releasedCount\":0,\"ts\":\"2026-10-03T08:32:32.165Z\"}"}
+       {"status":200,"body":"{\"releasedCount\":0,\"ts\":\"2026-10-03T08:42:39.647Z\"}"}
 FAIL X6  [app] kupec vidi seznam svych objednavek
        {"status":404,"body":"<!DOCTYPE html><html lang=\"cs\" class=\"__variable_1b85de\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewpo"}
 FAIL X7  [app] doklad/faktura k objednavce (kupec)
-       {"status":404,"ct":"application/json","head":"{\"error\":\"NOT_FOUND\"}"}
+       {"status":500,"ct":null,"head":""}
 PASS X8  [app] poradatel: seznam objednavek
-       {"status":200,"body":"{\"items\":[{\"orderId\":\"4b7025c9-0cde-47a8-abca-8275fbc0bf79\",\"orderNumber\":\"ORD-2026-0001\",\"createdAt\":\"2026-10-03T08:32:29.829Z\",\"buyerName\":\"Kupec X-app-mus4w1"}
+       {"status":200,"body":"{\"items\":[{\"orderId\":\"d06bd199-a050-4d98-9179-3968a3e3a12f\",\"orderNumber\":\"ORD-2026-0001\",\"createdAt\":\"2026-10-03T08:42:39.819Z\",\"buyerName\":\"Kupec X-app-mus594"}
 PASS X9  [app] poradatel: export objednavek
-       {"status":200,"ct":"text/csv; charset=utf-8","head":"Číslo,Datum,Jméno,Email,Telefon,Akce,Vstupenky,Částka,Stav\nORD-2026-0001,3. 10. 2026,Kupec X-app-mus4w1ry,buyer-x-app-mus4w1ry-mus4u8tf@audit.test,,Audit Koncer"}
+       {"status":200,"ct":"text/csv; charset=utf-8","head":"Číslo,Datum,Jméno,Email,Telefon,Akce,Vstupenky,Částka,Stav\nORD-2026-0001,3. 10. 2026,Kupec X-app-mus5948u,buyer-x-app-mus5948u-mus58133@audit.test,,Audit Koncer"}
 PASS X10  [app] poradatel: sales report akce
-       {"status":200,"body":"{\"event\":{\"id\":\"7e46dcb0-1470-4dc9-a6d6-7a217c3295ed\",\"title\":\"Audit Koncert A mus4u8tf\",\"currency\":\"CZK\"},\"byTicketType\":[{\"ticketTypeId\":\"183cc0cc-8534-461d-bc66-bd646e05013c\",\"name\":\"Zdarma\",\"soldQty\":1,\"grossHalire\":0,\"totalQty\":10,\"remainingQty\":9,\"occupancyPct\":10},{\"ticketTypeId\":\"cca5cc2f-c8"}
+       {"status":200,"body":"{\"event\":{\"id\":\"62e53273-4f65-482d-91c6-1e5c7482917f\",\"title\":\"Audit Koncert A mus58133\",\"currency\":\"CZK\"},\"byTicketType\":[{\"ticketTypeId\":\"4d8993d9-939b-4a38-b7fe-5e753530aa97\",\"name\":\"Zdarma\",\"soldQty\":1,\"grossHalire\":0,\"totalQty\":10,\"remainingQty\":9,\"occupancyPct\":10},{\"ticketTypeId\":\"e6445f17-f7"}
 PASS X11  [app] poradatel: faktury
        {"status":200,"body":"{\"invoices\":[]}"}
 PASS X12  [app] poradatel: vyplaty

@@ -1,0 +1,726 @@
+[
+ {
+  "t": "analytics.audience_geo",
+  "S": 1,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/internal/cron/audience-geo-snapshot/route.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "analytics.event_sales_snapshots",
+  "S": 0,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/internal/cron/audience-geo-snapshot/route.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "audit.audit_log",
+  "S": 6,
+  "I": 27,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/admin/events/[id]/accreditation/[reqId]/route.ts": "runWithServiceContext+runAsActivePromoter",
+   "app/api/admin/events/[id]/holds/route.ts": "runAsActivePromoter",
+   "app/api/admin/orders/bulk-refund/route.ts": "runAsActivePromoter",
+   "app/api/admin/orders/[orderId]/refund/route.ts": "runAsActivePromoter",
+   "app/api/admin/refund-requests/[id]/route.ts": "runAsActivePromoter",
+   "app/api/admin/reservations/route.ts": "runAsActivePromoter",
+   "app/api/admin/ticket-types/[id]/volume-discount/route.ts": "runAsActivePromoter",
+   "app/api/auth/reset-password/route.ts": "runWithServiceContext",
+   "app/api/buyer/orders/[orderId]/refund/route.ts": "runAsUser",
+   "app/api/buyer/orders/[orderId]/tan/verify/route.ts": "runAsUser",
+   "app/api/buyer/subscriptions/route.ts": "runAsUser",
+   "app/api/buyer/subscriptions/[id]/refund-prorata/route.ts": "runAsUser",
+   "app/api/buyer/tickets/[ticketId]/transfer/route.ts": "runWithServiceContext",
+   "app/api/buyer/tickets/[ticketId]/upgrade/route.ts": "runWithServiceContext",
+   "app/api/internal/cron/expire-pending-orders/route.ts": "runWithServiceContext",
+   "app/api/internal/cron/onboarding-reminder/route.ts": "runWithServiceContext",
+   "app/api/internal/cron/promoter-tier-evaluate/route.ts": "runWithServiceContext",
+   "app/api/internal/cron/release-rolling-reserves/route.ts": "runWithServiceContext",
+   "app/api/payments/stripe/webhook/route.ts": "runWithServiceContext",
+   "app/api/platform/promoters/[id]/route.ts": "runAsPlatformAdmin",
+   "app/api/platform/reports/[id]/route.ts": "runAsPlatformAdmin",
+   "lib/resale/reissue.ts": "NOCTX",
+   "lib/sms/bulkgate-mock.ts": "NOCTX"
+  }
+ },
+ {
+  "t": "audit.support_actions",
+  "S": 1,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/admin/orders/[orderId]/support-action/route.ts": "runAsActivePromoter+runAsPromoter"
+  }
+ },
+ {
+  "t": "b2b.api_rate_limit_log",
+  "S": 1,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "lib/oauth/guard.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "b2b.oauth_clients",
+  "S": 8,
+  "I": 1,
+  "U": 1,
+  "D": 1,
+  "writers": {
+   "app/api/admin/oauth-apps/route.ts": "runAsPromoter",
+   "app/api/admin/oauth-apps/[id]/route.ts": "runAsPromoter"
+  }
+ },
+ {
+  "t": "b2b.webhook_subscriptions",
+  "S": 1,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/v3/webhooks/route.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "brands.advertisers",
+  "S": 5,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/platform/brand-connect/advertisers/route.ts": "runAsPlatformAdmin"
+  }
+ },
+ {
+  "t": "brands.campaigns",
+  "S": 6,
+  "I": 1,
+  "U": 4,
+  "D": 0,
+  "writers": {
+   "app/api/admin/brand-connect/proposals/[id]/route.ts": "runAsActivePromoter",
+   "app/api/brand-connect/track/route.ts": "runWithServiceContext",
+   "app/api/platform/brand-connect/campaigns/route.ts": "runAsPlatformAdmin",
+   "app/api/platform/brand-connect/campaigns/[id]/route.ts": "runAsPlatformAdmin"
+  }
+ },
+ {
+  "t": "brands.impressions",
+  "S": 0,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/brand-connect/track/route.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "catalog.ab_price_assignments",
+  "S": 0,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "lib/pricing/rules-engine.ts": "NOCTX"
+  }
+ },
+ {
+  "t": "catalog.ab_price_tests",
+  "S": 2,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/admin/ab-price-tests/route.ts": "runAsPromoter"
+  }
+ },
+ {
+  "t": "catalog.access_code_ticket_types",
+  "S": 6,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/admin/access-codes/route.ts": "runAsPromoter"
+  }
+ },
+ {
+  "t": "catalog.backstage_moments",
+  "S": 6,
+  "I": 1,
+  "U": 1,
+  "D": 1,
+  "writers": {
+   "app/api/admin/events/[id]/backstage/route.ts": "runAsActivePromoter"
+  }
+ },
+ {
+  "t": "catalog.cinema_screens",
+  "S": 6,
+  "I": 1,
+  "U": 1,
+  "D": 1,
+  "writers": {
+   "app/api/admin/venues/[venueId]/screens/route.ts": "runAsPromoter",
+   "app/api/admin/venues/[venueId]/screens/[screenId]/route.ts": "runAsPromoter"
+  }
+ },
+ {
+  "t": "catalog.commemorative_templates",
+  "S": 4,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/admin/events/[id]/commemorative/route.ts": "runAsActivePromoter"
+  }
+ },
+ {
+  "t": "catalog.discount_pricing_rules",
+  "S": 1,
+  "I": 0,
+  "U": 0,
+  "D": 0,
+  "writers": {}
+ },
+ {
+  "t": "catalog.dynamic_pricing_rules",
+  "S": 5,
+  "I": 1,
+  "U": 0,
+  "D": 1,
+  "writers": {
+   "app/api/admin/ticket-types/[id]/dynamic-pricing/route.ts": "runAsPromoter"
+  }
+ },
+ {
+  "t": "catalog.event_bundle_addons",
+  "S": 5,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/admin/events/[id]/bundles/route.ts": "runAsActivePromoter+runAsPromoter"
+  }
+ },
+ {
+  "t": "catalog.flex_pass_settings",
+  "S": 7,
+  "I": 1,
+  "U": 0,
+  "D": 1,
+  "writers": {
+   "app/api/admin/ticket-types/[id]/flex-settings/route.ts": "runAsActivePromoter+runAsPromoter"
+  }
+ },
+ {
+  "t": "catalog.foyer_menu_items",
+  "S": 4,
+  "I": 1,
+  "U": 2,
+  "D": 1,
+  "writers": {
+   "app/api/admin/events/[id]/foyer-menu/route.ts": "runAsActivePromoter+runAsPromoter",
+   "app/api/foyer-orders/route.ts": "runWithServiceContext+runAsUser"
+  }
+ },
+ {
+  "t": "catalog.group_discount_tiers",
+  "S": 7,
+  "I": 2,
+  "U": 0,
+  "D": 1,
+  "writers": {
+   "app/api/admin/events/[id]/clone/route.ts": "runAsPromoter",
+   "app/api/admin/events/[id]/group-discounts/route.ts": "runAsPromoter"
+  }
+ },
+ {
+  "t": "catalog.lastminute_rules",
+  "S": 3,
+  "I": 1,
+  "U": 2,
+  "D": 1,
+  "writers": {
+   "app/api/admin/events/[id]/lastminute/route.ts": "runAsActivePromoter+runAsPromoter",
+   "app/api/admin/lastminute/check/route.ts": "runAsActivePromoter"
+  }
+ },
+ {
+  "t": "catalog.member_pricing_rules",
+  "S": 4,
+  "I": 1,
+  "U": 0,
+  "D": 1,
+  "writers": {
+   "app/api/admin/member-pricing-rules/route.ts": "runAsActivePromoter+runAsPromoter"
+  }
+ },
+ {
+  "t": "catalog.moderation_blocklist",
+  "S": 2,
+  "I": 0,
+  "U": 0,
+  "D": 0,
+  "writers": {}
+ },
+ {
+  "t": "catalog.pricing_rules",
+  "S": 1,
+  "I": 0,
+  "U": 0,
+  "D": 0,
+  "writers": {}
+ },
+ {
+  "t": "catalog.pricing_windows",
+  "S": 2,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/admin/events/[id]/pricing-windows/route.ts": "runAsPromoter"
+  }
+ },
+ {
+  "t": "catalog.seats",
+  "S": 5,
+  "I": 0,
+  "U": 5,
+  "D": 0,
+  "writers": {
+   "lib/seats/seat-lock.ts": "NOCTX"
+  }
+ },
+ {
+  "t": "catalog.ticket_modular_pricing",
+  "S": 2,
+  "I": 0,
+  "U": 0,
+  "D": 0,
+  "writers": {}
+ },
+ {
+  "t": "catalog.ticket_type_access",
+  "S": 4,
+  "I": 2,
+  "U": 0,
+  "D": 1,
+  "writers": {
+   "app/api/admin/events/route.ts": "runAsPromoter",
+   "app/api/admin/events/[id]/access-matrix/route.ts": "runAsActivePromoter+runAsPromoter"
+  }
+ },
+ {
+  "t": "catalog.ticket_type_channel_prices",
+  "S": 3,
+  "I": 1,
+  "U": 0,
+  "D": 1,
+  "writers": {
+   "app/api/admin/events/[id]/channel-prices/route.ts": "runAsPromoter"
+  }
+ },
+ {
+  "t": "catalog.ticket_type_price_history",
+  "S": 1,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "lib/pricing/rules-engine.ts": "NOCTX"
+  }
+ },
+ {
+  "t": "catalog.venue_seating_charts",
+  "S": 18,
+  "I": 5,
+  "U": 5,
+  "D": 0,
+  "writers": {
+   "app/api/admin/venues/[venueId]/seating-chart/route.ts": "runAsPromoter",
+   "app/api/platform/venues/[id]/seating-chart/import/route.ts": "runAsPlatformAdmin",
+   "app/api/platform/venues/[id]/seating-chart/route.ts": "runAsPlatformAdmin",
+   "app/api/platform/venues/[id]/seating-chart/transform/route.ts": "runAsPlatformAdmin",
+   "app/api/platform/venues/[id]/seating-chart/versions/[chartId]/restore/route.ts": "runAsPlatformAdmin"
+  }
+ },
+ {
+  "t": "catalog.volume_discount_rules",
+  "S": 4,
+  "I": 1,
+  "U": 0,
+  "D": 2,
+  "writers": {
+   "app/api/admin/ticket-types/[id]/volume-discount/route.ts": "runAsActivePromoter"
+  }
+ },
+ {
+  "t": "communications.announcement_responses",
+  "S": 2,
+  "I": 1,
+  "U": 1,
+  "D": 0,
+  "writers": {
+   "app/api/admin/events/[id]/emergency/route.ts": "runAsActivePromoter",
+   "app/api/buyer/announcements/[token]/respond/route.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "event_groups.bulk_edits",
+  "S": 0,
+  "I": 2,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/admin/event-groups/[id]/bulk-edit/route.ts": "runAsPromoter",
+   "app/api/admin/event-groups/[id]/coordinate-onsale/route.ts": "runAsPromoter"
+  }
+ },
+ {
+  "t": "event_groups.shares",
+  "S": 1,
+  "I": 1,
+  "U": 1,
+  "D": 0,
+  "writers": {
+   "app/api/admin/event-groups/[id]/shares/route.ts": "runAsPromoter"
+  }
+ },
+ {
+  "t": "marketing.ad_auction_log",
+  "S": 2,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "lib/ads/auction.ts": "NOCTX"
+  }
+ },
+ {
+  "t": "marketing.editorial_articles",
+  "S": 7,
+  "I": 1,
+  "U": 2,
+  "D": 0,
+  "writers": {
+   "app/api/blog/route.ts": "NOCTX",
+   "app/api/editorial/articles/[slug]/route.ts": "NOCTX",
+   "app/api/platform/editorial/route.ts": "runWithPlatformAdminContext"
+  }
+ },
+ {
+  "t": "marketing.fan_bonus_issued",
+  "S": 3,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "lib/fan-bonus/engine.ts": "NOCTX"
+  }
+ },
+ {
+  "t": "marketing.promo_codes",
+  "S": 11,
+  "I": 1,
+  "U": 4,
+  "D": 0,
+  "writers": {
+   "app/api/admin/promo-codes/route.ts": "runAsActivePromoter+runAsPromoter",
+   "app/api/admin/promo-codes/[id]/route.ts": "runAsActivePromoter",
+   "app/api/checkout/route.ts": "runWithServiceContext",
+   "lib/orders/release-capacity.ts": "NOCTX",
+   "lib/promo-code-handler.ts": "NOCTX"
+  }
+ },
+ {
+  "t": "marketing.qr_scans",
+  "S": 0,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/qr/[slug]/route.ts": "NOCTX"
+  }
+ },
+ {
+  "t": "marketing.transit_partners",
+  "S": 5,
+  "I": 0,
+  "U": 0,
+  "D": 0,
+  "writers": {}
+ },
+ {
+  "t": "marketing.web_vitals",
+  "S": 0,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/internal/web-vitals/route.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "orders.foyer_orders",
+  "S": 4,
+  "I": 1,
+  "U": 1,
+  "D": 0,
+  "writers": {
+   "app/api/foyer-orders/route.ts": "runWithServiceContext+runAsUser",
+   "app/api/foyer-orders/[id]/status/route.ts": "runAsActivePromoter"
+  }
+ },
+ {
+  "t": "orders.gift_claims",
+  "S": 3,
+  "I": 1,
+  "U": 1,
+  "D": 0,
+  "writers": {
+   "app/api/checkout/route.ts": "runWithServiceContext",
+   "app/api/gift/[token]/route.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "orders.lottery_entries",
+  "S": 11,
+  "I": 1,
+  "U": 5,
+  "D": 0,
+  "writers": {
+   "app/api/admin/lottery/[campaignId]/advance/route.ts": "runAsActivePromoter",
+   "app/api/admin/lottery/[campaignId]/draw/route.ts": "runAsActivePromoter",
+   "app/api/checkout/route.ts": "runWithServiceContext",
+   "app/api/lottery/[campaignId]/enter/route.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "orders.payment_installments",
+  "S": 5,
+  "I": 2,
+  "U": 3,
+  "D": 0,
+  "writers": {
+   "app/api/buyer/orders/[orderId]/payment-plan/route.ts": "runAsUser",
+   "app/api/checkout/route.ts": "runWithServiceContext",
+   "app/api/internal/cron/charge-installments/route.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "orders.reschedule_responses",
+  "S": 4,
+  "I": 1,
+  "U": 1,
+  "D": 0,
+  "writers": {
+   "app/api/admin/events/[id]/reschedule/route.ts": "runAsActivePromoter",
+   "app/api/reschedule/[token]/route.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "orders.reseller_sales",
+  "S": 4,
+  "I": 1,
+  "U": 1,
+  "D": 0,
+  "writers": {
+   "app/api/admin/resellers/[id]/settle/route.ts": "runAsPlatformAdmin",
+   "app/api/reseller/sale/route.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "orders.season_pass_uses",
+  "S": 1,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/season-passes/[passToken]/route.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "orders.season_passes",
+  "S": 6,
+  "I": 1,
+  "U": 1,
+  "D": 0,
+  "writers": {
+   "app/api/season-passes/route.ts": "runWithServiceContext",
+   "app/api/season-passes/[passToken]/route.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "orders.waiting_list",
+  "S": 11,
+  "I": 1,
+  "U": 5,
+  "D": 0,
+  "writers": {
+   "app/api/admin/events/[id]/waitlist/route.ts": "runAsActivePromoter",
+   "app/api/admin/events/[id]/waitlist/[entryId]/route.ts": "runWithServiceContext+runAsActivePromoter",
+   "app/api/events/[id]/waitlist/route.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "partner.partner_tokens",
+  "S": 2,
+  "I": 2,
+  "U": 1,
+  "D": 0,
+  "writers": {
+   "app/api/admin/partner-applications/[id]/route.ts": "runWithPlatformAdminContext+requirePlatformAdmin",
+   "app/api/platform/partners/route.ts": "runWithPlatformAdminContext",
+   "lib/partner/auth.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "platform.advance_payout_installments",
+  "S": 1,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/admin/events/[id]/advance-payout/route.ts": "runAsPromoter"
+  }
+ },
+ {
+  "t": "platform.dashboard_widgets",
+  "S": 1,
+  "I": 0,
+  "U": 0,
+  "D": 0,
+  "writers": {}
+ },
+ {
+  "t": "platform.distribution_access_tokens",
+  "S": 2,
+  "I": 1,
+  "U": 0,
+  "D": 1,
+  "writers": {
+   "app/api/v2/distribution/token/route.ts": "NOCTX"
+  }
+ },
+ {
+  "t": "platform.distribution_partners",
+  "S": 3,
+  "I": 1,
+  "U": 2,
+  "D": 0,
+  "writers": {
+   "app/api/platform/distribution-partners/route.ts": "runAsPlatformAdmin",
+   "app/api/platform/distribution-partners/[id]/route.ts": "runAsPlatformAdmin",
+   "lib/distribution/auth.ts": "NOCTX"
+  }
+ },
+ {
+  "t": "platform.incident_updates",
+  "S": 1,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/platform/incidents/[id]/updates/route.ts": "runAsPlatformAdmin"
+  }
+ },
+ {
+  "t": "platform.incidents",
+  "S": 4,
+  "I": 1,
+  "U": 2,
+  "D": 1,
+  "writers": {
+   "app/api/platform/incidents/route.ts": "runAsPlatformAdmin+requirePlatformAdmin",
+   "app/api/platform/incidents/[id]/route.ts": "runAsPlatformAdmin",
+   "app/api/platform/incidents/[id]/updates/route.ts": "runAsPlatformAdmin"
+  }
+ },
+ {
+  "t": "platform.publish_sold_notifications",
+  "S": 1,
+  "I": 1,
+  "U": 2,
+  "D": 0,
+  "writers": {
+   "lib/publish/sold-notify.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "platform.purchase_agents",
+  "S": 2,
+  "I": 1,
+  "U": 1,
+  "D": 0,
+  "writers": {
+   "app/api/agent/purchase-intent/route.ts": "runWithServiceContext",
+   "app/api/buyer/agents/register/route.ts": "runWithServiceContext+runAsUser"
+  }
+ },
+ {
+  "t": "platform.reseller_partners",
+  "S": 6,
+  "I": 1,
+  "U": 2,
+  "D": 0,
+  "writers": {
+   "app/api/admin/resellers/route.ts": "runAsPlatformAdmin",
+   "lib/reseller-auth.ts": "NOCTX"
+  }
+ },
+ {
+  "t": "pricing.price_adjustment_log",
+  "S": 1,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "lib/pricing/dynamic-engine.ts": "runWithServiceContext"
+  }
+ },
+ {
+  "t": "social_graph.friend_requests",
+  "S": 3,
+  "I": 1,
+  "U": 3,
+  "D": 0,
+  "writers": {
+   "app/api/social/friend-requests/[id]/route.ts": "runAsUser",
+   "app/api/social/friends/route.ts": "runAsUser"
+  }
+ },
+ {
+  "t": "social_graph.friendships",
+  "S": 3,
+  "I": 1,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/social/friend-requests/[id]/route.ts": "runAsUser"
+  }
+ },
+ {
+  "t": "tickets.wristband_transactions",
+  "S": 1,
+  "I": 3,
+  "U": 0,
+  "D": 0,
+  "writers": {
+   "app/api/admin/wristbands/bind/route.ts": "runAsActivePromoter",
+   "app/api/admin/wristbands/[uid]/charge/route.ts": "runAsActivePromoter",
+   "app/api/admin/wristbands/[uid]/topup/route.ts": "runAsActivePromoter"
+  }
+ }
+]

@@ -1,0 +1,336 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r2-3b-tables-rls.live.test.ts [2m ([22m[2m8 tests[22m [2m|[22m [31m8 failed[39m[2m)[22m[33m 1694[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mstrukturálně: bez RLS zůstaly jen systémové tabulky (20) s minimálními právy; TRUNCATE nikde[39m
+[31m     → expected [ …(155) ] to deeply equal [ 'b2b.sandbox_fixtures', …(19) ][39m
+[31m   [33m❯[31m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mtenant: čekací listina (e-maily) akce B — pořadatel A ani veřejnost nečte/nemění, pořadatel B ano[39m
+[31m     → expected 1 to satisfy [Function denied][39m
+[31m   [33m❯[31m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mtenant + veřejné čtení: menu foyer publikované akce B čte veřejnost, mění jen pořadatel B[39m
+[31m     → expected 1 to satisfy [Function denied][39m
+[31m   [33m❯[31m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mtenant: OAuth aplikace (secret) pořadatele B — pořadatel A nečte; kupec vidí jen aplikace, kterým udělil přístup[39m
+[31m     → expected 1 to satisfy [Function denied][39m
+[31m   [33m❯[31m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22muživatel: přátelství Y–Z nevidí ani nezmění X[39m
+[31m     → expected 1 to satisfy [Function denied][39m
+[31m   [33m❯[31m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mzamčená data (nepoužívaná kódem): výplaty affiliate — žádný tenantní ani uživatelský kontext[39m
+[31m     → expected 1 to satisfy [Function denied][39m
+[31m   [33m❯[31m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mauditní log: pořadatel A nečte stopu pořadatele B; zápis (append) smí[39m
+[31m     → expected 1 to satisfy [Function denied][39m
+[31m   [33m❯[31m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22msystémová tabulka: čtení ano, zápis bez práva[39m
+[31m     → expected 1 to be 'DENIED' // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 8 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mstrukturálně: bez RLS zůstaly jen systémové tabulky (20) s minimálními právy; TRUNCATE nikde
+[31m[1mAssertionError[22m: expected [ …(155) ] to deeply equal [ 'b2b.sandbox_fixtures', …(19) ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Array [[22m
+[31m+   "accessibility.companion_pairs",[39m
+[31m+   "accreditation.accreditation_scans",[39m
+[31m+   "affiliate.clicks",[39m
+[31m+   "affiliate.payouts",[39m
+[31m+   "ambassador.codes",[39m
+[31m+   "ambassador.payouts",[39m
+[31m+   "analytics.audience_geo",[39m
+[31m+   "analytics.event_sales_snapshots",[39m
+[31m+   "audit.audit_log",[39m
+[31m+   "audit.content_reports_rate_limit",[39m
+[31m+   "audit.support_actions",[39m
+[31m+   "b2b.api_rate_limit_log",[39m
+[31m+   "b2b.oauth_clients",[39m
+[2m    "b2b.sandbox_fixtures",[22m
+[31m+   "b2b.webhook_deliveries",[39m
+[31m+   "b2b.webhook_subscriptions",[39m
+[2m    "benefit_payments.providers",[22m
+[2m    "brands.advertisers",[22m
+[2m    "brands.campaigns",[22m
+[31m+   "brands.impressions",[39m
+[31m+   "catalog.ab_price_assignments",[39m
+[31m+   "catalog.ab_price_tests",[39m
+[31m+   "catalog.access_code_ticket_types",[39m
+[31m+   "catalog.backstage_moments",[39m
+[31m+   "catalog.cinema_screens",[39m
+[31m+   "catalog.commemorative_templates",[39m
+[31m+   "catalog.discount_pricing_rules",[39m
+[31m+   "catalog.dynamic_pricing_rules",[39m
+[31m+   "catalog.event_bundle_addons",[39m
+[31m+   "catalog.flex_pass_settings",[39m
+[31m+   "catalog.foyer_menu_items",[39m
+[31m+   "catalog.group_discount_tiers",[39m
+[31m+   "catalog.lastminute_rules",[39m
+[31m+   "catalog.member_pricing_rules",[39m
+[2m    "catalog.moderation_blocklist",[22m
+[31m+   "catalog.pricing_rules",[39m
+[31m+   "catalog.pricing_windows",[39m
+[31m+   "catalog.program_cast_entries",[39m
+[31m+   "catalog.seats",[39m
+[31m+   "catalog.ticket_modular_pricing",[39m
+[31m+   "catalog.ticket_type_access",[39m
+[31m+   "catalog.ticket_type_channel_prices",[39m
+[31m+   "catalog.ticket_type_price_history",[39m
+[31m+   "catalog.venue_seating_charts",[39m
+[31m+   "catalog.volume_discount_rules",[39m
+[2m    "channels.channel_providers",[22m
+[31m+   "channels.sync_log",[39m
+[31m+   "communications.announcement_responses",[39m
+[31m+   "conference.badge_overrides",[39m
+[31m+   "conference.badge_print_jobs",[39m
+[31m+   "conference.badge_templates",[39m
+[31m+   "conference.booth_categories",[39m
+[31m+   "conference.booths",[39m
+[31m+   "conference.days",[39m
+[31m+   "conference.floor_maps",[39m
+[31m+   "conference.session_speakers",[39m
+[31m+   "conference.sessions",[39m
+[31m+   "conference.tracks",[39m
+[31m+   "cs.action_log",[39m
+[31m+   "cs.notes",[39m
+[31m+   "discovery_feed.feed_access_log",[39m
+[31m+   "event_groups.bulk_edits",[39m
+[31m+   "event_groups.shares",[39m
+[31m+   "eventim_export.export_log",[39m
+[31m+   "identity.verified_persons",[39m
+[31m+   "lineups.artist_profiles",[39m
+[31m+   "marketing.ad_auction_log",[39m
+[2m    "marketing.editorial_articles",[22m
+[31m+   "marketing.fan_bonus_issued",[39m
+[31m+   "marketing.qr_scans",[39m
+[2m    "marketing.transit_partners",[22m
+[2m    "marketing.web_vitals",[22m
+[2m    "monitoring.status_incidents",[22m
+[2m    "monitoring.system_components",[22m
+[31m+   "orders.foyer_orders",[39m
+[31m+   "orders.gift_claims",[39m
+[31m+   "orders.lottery_entries",[39m
+[31m+   "orders.payment_installments",[39m
+[31m+   "orders.program_purchases",[39m
+[31m+   "orders.reschedule_responses",[39m
+[31m+   "orders.reseller_sales",[39m
+[31m+   "orders.season_pass_uses",[39m
+[31m+   "orders.season_passes",[39m
+[31m+   "orders.waiting_list",[39m
+[31m+   "partner.partner_settlements",[39m
+[31m+   "partner.partner_tokens",[39m
+[31m+   "platform.advance_payout_installments",[39m
+[31m+   "platform.api_key_audit_log",[39m
+[2m    "platform.config",[22m
+[2m    "platform.currencies",[22m
+[2m    "platform.dashboard_widgets",[22m
+[31m+   "platform.distribution_access_tokens",[39m
+[31m+   "platform.distribution_partners",[39m
+[2m    "platform.exchange_rates",[22m
+[2m    "platform.incident_updates",[22m
+[2m    "platform.incidents",[22m
+[31m+   "platform.publish_sold_notifications",[39m
+[31m+   "platform.purchase_agents",[39m
+[31m+   "platform.reseller_partners",[39m
+[31m+   "platform.staff_permissions",[39m
+[31m+   "platform.staff_roles",[39m
+[31m+   "platform.webhook_deliveries",[39m
+[31m+   "pos.pos_reconciliations",[39m
+[31m+   "pos.tap_to_pay_transactions",[39m
+[31m+   "pricing.price_adjustment_log",[39m
+[31m+   "referral.clicks",[39m
+[31m+   "resale.resale_rules_overrides",[39m
+[31m+   "reservations.availability_overrides",[39m
+[31m+   "reservations.availability_rules",[39m
+[31m+   "reservations.branch_closures",[39m
+[31m+   "reservations.branch_hours",[39m
+[31m+   "reservations.branch_service_availability",[39m
+[31m+   "reservations.branch_settings",[39m
+[31m+   "reservations.package_credit_balances",[39m
+[31m+   "reservations.package_usage",[39m
+[31m+   "reservations.rule_actions",[39m
+[31m+   "reservations.rule_conditions",[39m
+[31m+   "reservations.service_addons",[39m
+[31m+   "reservations.service_pricing_rules",[39m
+[31m+   "reservations.service_resources",[39m
+[31m+   "reservations.slots",[39m
+[2m    "resources.resource_hub",[22m
+[31m+   "retailer.settlements",[39m
+[31m+   "rfid.rfid_taps",[39m
+[31m+   "rfid.rfid_top_ups",[39m
+[31m+   "risk.fraud_reviews",[39m
+[2m    "risk.fraud_rules",[22m
+[2m    "risk.velocity_limits",[22m
+[31m+   "social_graph.friend_requests",[39m
+[31m+   "social_graph.friendships",[39m
+[31m+   "support_chat.chat_messages",[39m
+[31m+   "support_chat.session_feedback",[39m
+[31m+   "tickets.access_token_log",[39m
+[31m+   "tickets.wristband_transactions",[39m
+[31m+   "tours.series_metrics",[39m
+[31m+   "tours.shared_seat_maps",[39m
+[31m+   "venues.court_bookings",[39m
+[31m+   "venues.courts",[39m
+[31m+   "venues.daily_capacity",[39m
+[31m+   "venues.daily_tickets",[39m
+[31m+   "venues.entry_slots",[39m
+[31m+   "venues.escape_rooms",[39m
+[31m+   "venues.facility_zones",[39m
+[31m+   "venues.game_results",[39m
+[31m+   "venues.guest_passes",[39m
+[31m+   "venues.leaderboard_entries",[39m
+[31m+   "venues.lift_scans",[39m
+[31m+   "venues.locker_reservations",[39m
+[31m+   "venues.ski_pass_types",[39m
+[31m+   "venues.ski_school_sessions",[39m
+[31m+   "venues.ticket_types",[39m
+[31m+   "venues.venue_zones",[39m
+[31m+   "venues.zone_access",[39m
+[31m+   "virtual_venue.seat_previews",[39m
+[31m+   "virtual_venue.section_panoramas",[39m
+[2m  ][22m
+
+[36m [2m❯[22m tests/fix-r2-3b-tables-rls.live.test.ts:[2m71:19[22m[39m
+    [90m 69| [39m          AND n.nspname NOT IN ('pg_catalog','information_schema','pub…
+    [90m 70| [39m          AND has_table_privilege('tixly_app', c.oid, 'SELECT') ORDER …
+    [90m 71| [39m    [34mexpect[39m(noRls)[33m.[39m[34mtoEqual[39m([33mObject[39m[33m.[39m[34mkeys[39m([33mSYSTEM[39m)[33m.[39m[34msort[39m())[33m;[39m
+    [90m   | [39m                  [31m^[39m
+    [90m 72| [39m    [35mfor[39m ([35mconst[39m [t[33m,[39m grants] [35mof[39m [33mObject[39m[33m.[39m[34mentries[39m([33mSYSTEM[39m)) {
+    [90m 73| [39m      [35mconst[39m p [33m=[39m ([35mawait[39m owner[33m.[39mquery[33m<[39m{ i[33m:[39m boolean[33m;[39m u[33m:[39m boolean[33m;[39m d[33m:[39m boolea…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mtenant: čekací listina (e-maily) akce B — pořadatel A ani veřejnost nečte/nemění, pořadatel B ano
+[31m[1mAssertionError[22m: expected 1 to satisfy [Function denied][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/fix-r2-3b-tables-rls.live.test.ts:[2m89:82[22m[39m
+    [90m 87| [39m      [32m`INSERT INTO orders.waiting_list (event_id, email, name, positio[39m…
+    [90m 88| [39m    [35mfor[39m ([35mconst[39m c [35mof[39m [{ promoter[33m:[39m a[33m.[39mpromoterId }[33m,[39m {}] [35mas[39m [33mCtx[39m[]) {
+    [90m 89| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`SELECT 1 FROM orders.waiting_list WHERE id=$[39m…
+    [90m   | [39m                                                                                 [31m^[39m
+    [90m 90| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`UPDATE orders.waiting_list SET email='hack@x[39m…
+    [90m 91| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`INSERT INTO orders.waiting_list (event_id, e[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mtenant + veřejné čtení: menu foyer publikované akce B čte veřejnost, mění jen pořadatel B
+[31m[1mAssertionError[22m: expected 1 to satisfy [Function denied][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/fix-r2-3b-tables-rls.live.test.ts:[2m104:99[22m[39m
+    [90m102| [39m    [34mexpect[39m([35mawait[39m [35mas[39m({}[33m,[39m [32m`SELECT 1 FROM catalog.foyer_menu_items WHERE [39m…
+    [90m103| [39m    [35mfor[39m ([35mconst[39m c [35mof[39m [{ promoter[33m:[39m a[33m.[39mpromoterId }[33m,[39m {}] [35mas[39m [33mCtx[39m[]) {
+    [90m104| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`UPDATE catalog.foyer_menu_items SET price_ha[39m…
+    [90m   | [39m                                                                                                  [31m^[39m
+    [90m105| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`INSERT INTO catalog.foyer_menu_items (event_[39m…
+    [90m106| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`DELETE FROM catalog.foyer_menu_items WHERE i[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mtenant: OAuth aplikace (secret) pořadatele B — pořadatel A nečte; kupec vidí jen aplikace, kterým udělil přístup
+[31m[1mAssertionError[22m: expected 1 to satisfy [Function denied][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/fix-r2-3b-tables-rls.live.test.ts:[2m118:104[22m[39m
+    [90m116| [39m       VALUES ($1,$2,'h','App B',ARRAY['https://b.example/cb']) RETURN…
+    [90m117| [39m    [35mconst[39m u [33m=[39m [35mawait[39m clone[33m.[39mseed[33m.[39m[34muser[39m([32m'oauthu'[39m[33m,[39m [32m'U'[39m)[33m;[39m
+    [90m118| [39m    [34mexpect[39m([35mawait[39m [35mas[39m({ promoter[33m:[39m a[33m.[39mpromoterId }[33m,[39m [32m`SELECT 1 FROM b2b.oau[39m…
+    [90m   | [39m                                                                                                       [31m^[39m
+    [90m119| [39m    [34mexpect[39m([35mawait[39m [35mas[39m({ user[33m:[39m u[33m.[39mid }[33m,[39m [32m`SELECT 1 FROM b2b.oauth_clients W[39m…
+    [90m120| [39m    [34mexpect[39m([35mawait[39m [35mas[39m({ promoter[33m:[39m b[33m.[39mpromoterId }[33m,[39m [32m`SELECT 1 FROM b2b.oau[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22muživatel: přátelství Y–Z nevidí ani nezmění X
+[31m[1mAssertionError[22m: expected 1 to satisfy [Function denied][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/fix-r2-3b-tables-rls.live.test.ts:[2m127:120[22m[39m
+    [90m125| [39m    [35mconst[39m [ua[33m,[39m ub] [33m=[39m [y[33m.[39mid[33m,[39m z[33m.[39mid][33m.[39m[34msort[39m()[33m;[39m
+    [90m126| [39m    [35mawait[39m owner[33m.[39m[34mquery[39m([32m`INSERT INTO social_graph.friendships (user_a, u[39m…
+    [90m127| [39m    [34mexpect[39m([35mawait[39m [35mas[39m({ user[33m:[39m x[33m.[39mid }[33m,[39m [32m`SELECT 1 FROM social_graph.friend[39m…
+    [90m   | [39m                                                                                                                       [31m^[39m
+    [90m128| [39m    [34mexpect[39m([35mawait[39m [35mas[39m({ user[33m:[39m x[33m.[39mid }[33m,[39m [32m`DELETE FROM social_graph.friendsh[39m…
+    [90m129| [39m    [34mexpect[39m([35mawait[39m [35mas[39m({ user[33m:[39m y[33m.[39mid }[33m,[39m [32m`SELECT 1 FROM social_graph.friend[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mzamčená data (nepoužívaná kódem): výplaty affiliate — žádný tenantní ani uživatelský kontext
+[31m[1mAssertionError[22m: expected 1 to satisfy [Function denied][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/fix-r2-3b-tables-rls.live.test.ts:[2m138:81[22m[39m
+    [90m136| [39m    [35mconst[39m pid [33m=[39m ([35mawait[39m owner[33m.[39mquery[33m<[39m{ id[33m:[39m string }[33m>[39m([32m`INSERT INTO affili[39m…
+    [90m137| [39m    [35mfor[39m ([35mconst[39m c [35mof[39m [{ promoter[33m:[39m b[33m.[39mpromoterId }[33m,[39m { user[33m:[39m u[33m.[39mid }[33m,[39m {}] [35ma[39m…
+    [90m138| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`SELECT 1 FROM affiliate.payouts WHERE id=$1`[39m…
+    [90m   | [39m                                                                                [31m^[39m
+    [90m139| [39m      [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`UPDATE affiliate.payouts SET amount=999999 W[39m…
+    [90m140| [39m    }
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mauditní log: pořadatel A nečte stopu pořadatele B; zápis (append) smí
+[31m[1mAssertionError[22m: expected 1 to satisfy [Function denied][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/fix-r2-3b-tables-rls.live.test.ts:[2m149:109[22m[39m
+    [90m147| [39m      [32m`INSERT INTO audit.audit_log (schema_name, table_name, record_id[39m…
+    [90m148| [39m       VALUES ('catalog','events',$1,'UPDATE',$2,'promoter','{"x":1}')…
+    [90m149| [39m    [34mexpect[39m([35mawait[39m [35mas[39m({ promoter[33m:[39m a[33m.[39mpromoterId }[33m,[39m [32m`SELECT 1 FROM audit.a[39m…
+    [90m   | [39m                                                                                                            [31m^[39m
+    [90m150| [39m    [34mexpect[39m([35mawait[39m [35mas[39m({ promoter[33m:[39m b[33m.[39mpromoterId }[33m,[39m [32m`SELECT 1 FROM audit.a[39m…
+    [90m151| [39m    [34mexpect[39m([35mawait[39m [35mas[39m({ promoter[33m:[39m a[33m.[39mpromoterId }[33m,[39m [32m`INSERT INTO audit.aud[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22msystémová tabulka: čtení ano, zápis bez práva
+[31m[1mAssertionError[22m: expected 1 to be 'DENIED' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"DENIED"
+
+[31m+ Received:[39m 
+1
+
+[36m [2m❯[22m tests/fix-r2-3b-tables-rls.live.test.ts:[2m156:120[22m[39m
+    [90m154| [39m  [34mit[39m([32m'systémová tabulka: čtení ano, zápis bez práva'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m155| [39m    [34mexpect[39m([35mawait[39m [35mas[39m({}[33m,[39m [32m`SELECT 1 FROM platform.currencies LIMIT 1`[39m))[33m.[39m…
+    [90m156| [39m    [34mexpect[39m([35mawait[39m [35mas[39m({ promoter[33m:[39m [34mrandomUUID[39m() }[33m,[39m [32m`INSERT INTO platform.[39m…
+    [90m   | [39m                                                                                                                       [31m^[39m
+    [90m157| [39m    [34mexpect[39m([35mawait[39m [35mas[39m({}[33m,[39m [32m`UPDATE platform.config SET value=value`[39m))[33m.[39m[34mtoB[39m…
+    [90m158| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m8 failed[39m[22m[90m (8)[39m
+[2m   Start at [22m 10:37:10
+[2m   Duration [22m 6.16s[2m (transform 367ms, setup 1ms, collect 523ms, tests 1.69s, environment 1ms, prepare 3.12s)[22m
+

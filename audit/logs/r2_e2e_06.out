@@ -1,9 +1,9 @@
-# E2E 06_security  base=http://localhost:3200  2026-10-03T08:33:04.159Z
+# E2E 06_security  base=http://localhost:3200  2026-10-03T08:43:00.975Z
 PASS K1  NEPRIHLASENY utocnik ziska pres /api/kiosk/order platne vstupenky za 1000 Kc ZDARMA (NODE_ENV=production)
        {"status":401,"body":"{\"error\":{\"code\":\"TOKEN_MISSING\",\"message\":\"Authorization required\"}}","orderInDb":null,"ticketsIssued":[],"responseLeaksTotpSecret":false}
-FAIL K2a  /api/vouchers/holders/[paymentId]/confirm bez autentizace: endpoint je dosazitelny v produkcnim rezimu (neni 401/403)
+PASS K2a  /api/vouchers/holders/[paymentId]/confirm bez autentizace: endpoint je dosazitelny v produkcnim rezimu (neni 401/403/404)
        {"status":404,"body":"{\"error\":\"NOT_FOUND\"}"}
-FAIL K2b  /api/subscriptions/holders/[paymentId]/confirm bez autentizace: dosazitelny v produkcnim rezimu (neni 401/403)
+PASS K2b  /api/subscriptions/holders/[paymentId]/confirm bez autentizace: dosazitelny v produkcnim rezimu (neni 401/403/404)
        {"status":404,"body":"{\"error\":\"NOT_FOUND\"}"}
 PASS K2c  mock platebni brana je v produkcnim rezimu zablokovana (403) a objednavku neoznaci paid
        {"status":403,"body":"{\"error\":\"MOCK_DISABLED\",\"message\":\"Mock payment gateway is disabled in production.\"}","orderStatus":"pending"}
@@ -22,17 +22,17 @@ PASS K4b  JWT alg=none odmitnut
 PASS K4c  JWT s upravenym payloadem (isPlatformAdmin) a puvodnim podpisem odmitnut
        {"status":401,"body":"{\"error\":{\"code\":\"TOKEN_INVALID\",\"message\":\"Token invalid or expired\"}}"}
 FAIL K4d  REFRESH token (7 dni) pouzity jako access token na /api/buyer/* odmitnut
-       {"status":200,"body":"{\"ticketId\":\"a1ec8130-2f89-4d02-b0c3-fa558cdcb406\",\"revealed\":false,\"revealsAt\":\"2026-11-02T08:31:15.821Z\",\"minutesUntilReveal\":43199,\"message\":\"QR kód se zobrazí 0 minut před akcí.\",\"status\":\"valid\"}","cookieName":"refreshToken","accessTtl":900}
+       {"status":200,"body":"{\"ticketId\":\"fb56cbb4-64e0-4369-9675-3d798082d943\",\"revealed\":false,\"revealsAt\":\"2026-11-02T08:41:50.473Z\",\"minutesUntilReveal\":43199,\"message\":\"QR kód se zobrazí 0 minut před akcí.\",\"status\":\"valid\"}","cookieName":"refreshToken","accessTtl":900}
 PASS K4e  auth cookies: HttpOnly + SameSite (+Secure v produkci)
-       ["accessToken=<redacted>; Path=/; Expires=Sat, 03 Oct 2026 08:48:07 GMT; Max-Age=900; Secure; HttpOnly; SameSite=lax","refreshToken=<redacted>; Path=/; Expires=Sat, 10 Oct 2026 08:33:07 GMT; Max-Age=604800; Secure; HttpOnly; SameSite=lax"]
+       ["accessToken=<redacted>; Path=/; Expires=Sat, 03 Oct 2026 08:58:02 GMT; Max-Age=900; Secure; HttpOnly; SameSite=lax","refreshToken=<redacted>; Path=/; Expires=Sat, 10 Oct 2026 08:43:02 GMT; Max-Age=604800; Secure; HttpOnly; SameSite=lax"]
 FAIL K5  CSRF: stavovy POST s cookie a cizim Origin (https://evil.example) odmitnut serverem
-       {"status":200,"note":"ochrana stoji jen na SameSite cookie; server Origin neoveruje","body":"{\"orderId\":\"a271631d-9963-4825-ae5d-6c6f2eb8152a\",\"paymentId\":\"3012120577\",\"gatewayUrl\":\"http://localhost:3998/gw/301212"}
+       {"status":200,"note":"ochrana stoji jen na SameSite cookie; server Origin neoveruje","body":"{\"orderId\":\"2e6f0b0a-0197-450b-8071-e7ce6141e171\",\"paymentId\":\"3012120669\",\"gatewayUrl\":\"http://localhost:3998/gw/301212"}
 PASS K6a  rate limit loginu: 14 pokusu z jedne IP -> 429 po 10
        {"codes":[401,401,401,401,401,401,401,401,401,401,429,429,429,429]}
 PASS K6b  rate limit loginu per ucet: 14 pokusu na 1 ucet z 14 ruznych IP -> zablokovano
        {"codes":[401,401,401,401,401,401,401,401,401,429,429,429,429,429]}
 PASS K7  platba zrusena u brany (CANCELED): objednavka cancelled A 3 mista vracena do prodeje
-       {"webhook":{"status":200,"body":"{\"ok\":true,\"orderId\":\"37aa94f2-8915-4c26-b771-63a1f673bc3b\",\"state\":\"CANCELED\",\"newStatus\":\"pending\"}"},"orderStatus":"cancelled","remainingBefore":34,"remainingAfter":34,"leaked":0}
+       {"webhook":{"status":200,"body":"{\"ok\":true,\"orderId\":\"83f9b856-fab9-467d-8f7d-71ee3714a4b3\",\"state\":\"CANCELED\",\"newStatus\":\"pending\"}"},"orderStatus":"cancelled","remainingBefore":33,"remainingAfter":33,"leaked":0}
 FAIL K8a  SQLi retezec v ID v URL -> 4xx, ne 500
        {"status":200,"body":"{\"ticketTypes\":[]}"}
 PASS K8b  HTML e-mail escapuje jmeno kupce (XSS payload neni v HTML surovy)
@@ -42,9 +42,7 @@ PASS K8c  nevalidni JSON -> 4xx
 PASS K9  bezpecnostni hlavicky na HTML strance
        {"status":200,"content-security-policy":"default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanag","strict-transport-security":"max-age=63072000; includeSubDomains; preload","x-frame-options":"DENY","x-content-type-options":"nosniff","referrer-policy":"strict-origin-when-cross-origin"}
 
-# SUMMARY {"PASS":15,"FAIL":6,"INFO":0}
-  FAIL K2a /api/vouchers/holders/[paymentId]/confirm bez autentizace: endpoint je dosazitelny v produkcnim rezimu (neni 401/403)
-  FAIL K2b /api/subscriptions/holders/[paymentId]/confirm bez autentizace: dosazitelny v produkcnim rezimu (neni 401/403)
+# SUMMARY {"PASS":17,"FAIL":4,"INFO":0}
   FAIL K3a cron recompute-dynamic-pricing (prepisuje ceny) vyzaduje token
   FAIL K4d REFRESH token (7 dni) pouzity jako access token na /api/buyer/* odmitnut
   FAIL K5 CSRF: stavovy POST s cookie a cizim Origin (https://evil.example) odmitnut serverem

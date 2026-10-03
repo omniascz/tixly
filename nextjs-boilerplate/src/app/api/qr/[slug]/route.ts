@@ -13,7 +13,7 @@
  */
 
 import { createHash } from 'crypto';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
 
 
@@ -28,6 +28,8 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { slug: string } },
 ): Promise<Response> {
+  // Kolo 2 / 3B: veřejný sken QR = systémový zápis (qr_scans pod RLS)
+  return runWithServiceContext(async () => {
   const slug = params.slug.toLowerCase();
   if (!/^[a-z0-9-]{3,40}$/.test(slug)) {
     return NextResponse.redirect(new URL('/cs/events', req.url), { status: 302 });
@@ -91,4 +93,5 @@ export async function GET(
     path: '/',
   });
   return res;
+  });
 }
