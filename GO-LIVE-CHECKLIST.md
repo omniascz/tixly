@@ -146,12 +146,12 @@
   ⛔ **POŘADÍ JE PEVNÉ:** nejdřív nasadit opravu R-56 (už je v `master`), teprve pak
   přepnout roli. Obráceně vzniknou prázdné seznamy a 42501 napříč aplikací, které
   vypadají jako vada RLS — a hledaly by se v policies, kde nejsou (§209 bod 3).
-- [ ] **Migrace 472–479 na produkci** 🤖 (2026-10-03) — vrstva nabídka → rozpočet →
+- [ ] **Migrace 472–478 + 488 na produkci** 🤖 (2026-10-03; 488 = původní 479, přečíslováno při integraci 2026-10-04) — vrstva nabídka → rozpočet →
   vyúčtování → výplata umělci + opce na termín + re-entry (472–478) a oprava policies
-  `royalty_*` (479, R-58). **Na produkci dnes NEJSOU** (ověřeno `information_schema`).
+  `royalty_*` (488, R-58). **Na produkci dnes NEJSOU** (ověřeno `information_schema`).
   Všech 8 se na prod schéma aplikuje bez chyby (klon, `tests/booking-settlement.live.test.ts`
-  + `tests/red-green-479.live.test.ts`). Pořadí: migrace → deploy kódu.
-  ⚠️ **479 musí jít PŘED přepnutím na `tixly_app`** — bez ní pod produkční rolí nejde
+  + `tests/red-green-488.live.test.ts`). Pořadí: migrace → deploy kódu.
+  ⚠️ **488 musí jít PŘED přepnutím na `tixly_app`** — bez ní pod produkční rolí nejde
   založit smlouvu s umělcem (42501) ani přijmout nabídku agentem (500). FINDINGS_RLS §210.
 - [ ] **R-56: dva pooly — ověřit env na produkci** 🧑 — od R-56 jde `db().connect()` na
   **přímý** endpoint a `db().query()` na poolovaný (FINDINGS_RLS §191–§194). Přímé URI se

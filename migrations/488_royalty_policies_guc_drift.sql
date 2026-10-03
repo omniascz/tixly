@@ -1,5 +1,6 @@
 --
--- 479_royalty_policies_guc_drift.sql
+-- 488_royalty_policies_guc_drift.sql
+--   (v rozpracované práci vznikla jako 479; při integraci 2026-10-04 přečíslováno — 479 je refund z kola 1)
 --   lineups.royalty_agreements / royalty_ledger / artist_payouts — R-58 skupina royalty_*
 --
 -- ── Co bylo zmereno ──────────────────────────────────────────────────────────

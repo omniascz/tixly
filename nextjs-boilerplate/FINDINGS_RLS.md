@@ -5869,6 +5869,7 @@ jedna navsteva Neon konzole.
 Datum 2026-10-03. Kod z 14.–15. 8. byl overeny jen unit testy cistych funkci,
 `tsc` a buildem. Novy `tests/booking-settlement.live.test.ts` vola skutecne route
 handlery pod `tixly_app` na klonu produkce (fixture aplikuje 472–479).
+> Pozn. 2026-10-04 (integrace): migrace `479_royalty_policies_guc_drift.sql` přečíslována na **488** (479 = refund z kola 1); test `red-green-488.live.test.ts`.
 
 **Vsech 7 migraci 472–478 se na prod schema aplikuje bez chyby** (472–478 na
 produkci NEJSOU — overeno `information_schema`, 0 radku).
