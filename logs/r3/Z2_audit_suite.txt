@@ -1,0 +1,30 @@
+=== e2e/01-setup-roles.mjs 
+exit=0
+# SUMMARY {"PASS":26,"FAIL":0,"INFO":2}
+=== e2e/02-purchase.mjs 
+exit=0
+# SUMMARY {"PASS":36,"FAIL":0,"INFO":2}
+=== e2e/03-refund-scan.mjs 
+exit=0
+# SUMMARY {"PASS":23,"FAIL":0,"INFO":3}
+=== e2e/04-role-differential.mjs app
+exit=0
+# SUMMARY {"PASS":14,"FAIL":0,"INFO":0}
+=== e2e/05-concurrency.mjs 
+exit=0
+# SUMMARY {"PASS":8,"FAIL":0,"INFO":0}
+=== e2e/06-security.mjs 
+exit=0
+# SUMMARY {"PASS":21,"FAIL":0,"INFO":0}
+=== e2e/09-seated.mjs 
+exit=0
+# SUMMARY {"PASS":12,"FAIL":0,"INFO":0}
+=== e2e/10-demo-paths.mjs 
+exit=0
+# SUMMARY {"PASS":7,"FAIL":0,"INFO":0}
+=== e2e/11-operations.mjs 
+exit=0
+# SUMMARY {"PASS":8,"FAIL":0,"INFO":0}
+=== e2e/12-cron-expire-probe.mjs 
+exit=0
+# SUMMARY {"PASS":5,"FAIL":0,"INFO":1}

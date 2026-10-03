@@ -21,7 +21,7 @@ Při startu nové session: přečíst tento soubor a pokračovat prvním nehotov
 | 3 54 eskalací | HOTOVO (ESKALACE_R3.md; test 17/17; unit 513/0; live 151/0) | db3bffe |
 | 4 K4d, K3a, K5, K8a, V9b | HOTOVO | 1e5c3da 9fdd575 bc5db9a 2043fbb 7f56371 |
 | 5 reseller print, admin/import, X6 | HOTOVO (X6 ověřit v auditu 04) | cae14fe 6510989 + X6 audit |
-| Závěr + FIX_REPORT_R3 | rozpracováno | |
+| Závěr + FIX_REPORT_R3 | HOTOVO | viz git log (docs(R3): FIX_REPORT_R3) |
 
 ## Krok 0 — výsledek (logs/r3/0_*)
 Před opravou: 05 C1a/C1b/C2a/C2c FAIL = REGRESE kola 2 (sloučení poolů v R-56 → deadlock vnořených výpůjček, 98/100 500).
@@ -64,3 +64,8 @@ typecheck → unit → live → build+start app → audit 01..12 (po jednom) →
 - 1. běh: tsc (jen rfid), unit 513/0, live 188/0/87, audit 01 26/0, 02 36/0, 03 23/0, 04 14/0, 05 **6/2 REGRESE** (C2a/C2c — pool, z R6)
 - regrese opravena 60993ee (webhook releaseClient po COMMITu; test 2/2; regrese 48/48)
 - 2. běh: reset DB → live → build → audity 01..12 načisto
+- 2. běh HOTOVO (logs/r3/Z2_*): tsc jen rfid, unit 513/0, live 190/0/87, audity 01–07, 09–12 bez FAIL;
+  08 0/2 = shodné s původním auditem (S2 + 2× 5xx), ne regrese. Vizuální kontrola skeneru a tisku OK.
+- Session spadla před zápisem reportu; 2026-10-03 doplněno: FIX_REPORT_R3.md.
+- NOVÁ KOLIZE 479: tixly/ má od 2026-10-03 necommitnutou 479_royalty_policies_guc_drift.sql;
+  ve větvi neřešitelné (žádné volné číslo <480, 486 závisí na refund migraci) → report bod 1, rozhodne uživatel.
