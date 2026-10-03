@@ -6,6 +6,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 
 interface TtRow {
   id: string;
@@ -29,8 +31,11 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
-  if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
-    return NextResponse.json({ ticketTypes: [] });
+  // FIX K8a (kolo 3): neplatné ID je chyba vstupu → 400 (dřív 200 []); přesný tvar UUID —
+  // volné [0-9a-f-]{36} pustilo např. 36 pomlček až do SQL (uuid cast → 500). Tělo dál nese
+  // `ticketTypes: []`, které čtou volající (checkout, embed, mobil).
+  if (!UUID_RE.test(params.id)) {
+    return NextResponse.json({ error: 'INVALID_EVENT_ID', ticketTypes: [] }, { status: 400 });
   }
   // Jen typy PUBLIKOVANÉ akce — public endpoint nesmí prozradit/nabízet typy
   // draft/pending akce. Pod ENFORCED RLS to už hlídá public-read policy, ale
