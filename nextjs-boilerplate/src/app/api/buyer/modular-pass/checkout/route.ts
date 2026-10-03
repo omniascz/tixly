@@ -19,6 +19,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
+import { salesClosedResponse } from '@/lib/sales/cutoff';
 
 
 const schema = z.object({
@@ -47,6 +48,9 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
   const input = parsed.data;
+  // Kolo 7 (C-29): po uzávěrce online prodeje nový nákup nejde.
+  const salesClosed = await salesClosedResponse(db(), input.eventId, 'online');
+  if (salesClosed) return salesClosed;
 
   const client = await db().connect();
   try {

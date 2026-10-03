@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 import { runAsPromoter } from '@/lib/admin-auth';
+import { salesClosedResponse } from '@/lib/sales/cutoff';
 
 export async function POST(
   req: NextRequest,
@@ -33,6 +34,9 @@ export async function POST(
     if (!sessionId || !ticketTypeId) {
       return NextResponse.json({ error: 'MISSING_FIELDS' }, { status: 422 });
     }
+    // Kolo 7 (C-29): pokladna na místě prodává do konce akce (date_end, jinak začátek + 12 h).
+    const salesClosed = await salesClosedResponse(db(), params.id, 'box_office');
+    if (salesClosed) return salesClosed;
 
     const client = await db().connect();
     try {

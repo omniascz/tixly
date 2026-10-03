@@ -35,12 +35,13 @@
  *   POST { eventType: 'order.paid' | 'order.expired' | 'order.refunded', orderId, ... }
  */
 
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { randomUUID } from 'crypto';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
-import { verifyWlToken, wlResponseHeaders } from '@/lib/whitelabel/tenant-auth';
 import { createPayment } from '@/lib/payment/provider';
+import { salesClosedResponse } from '@/lib/sales/cutoff';
+import { verifyWlToken, wlResponseHeaders } from '@/lib/whitelabel/tenant-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -94,6 +95,9 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
+  // Kolo 7 (C-29): white-label prodej kupcům se řídí online uzávěrkou.
+  const salesClosed = await salesClosedResponse(db(), body.eventId, 'online');
+  if (salesClosed) return NextResponse.json(await salesClosed.json(), { status: salesClosed.status, headers: wlResponseHeaders(tenant) });
   return runWithServiceContext(async () => {
     const client = await db().connect();
     try {

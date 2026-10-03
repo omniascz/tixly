@@ -16,6 +16,7 @@ import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
 import { db } from '@/lib/db/rls-pool';
 import { runAiGate, TRUST_THRESHOLD_PUBLISHED_EVENTS } from '@/lib/moderation/ai-gate';
 import { notifyFollowers } from '@/lib/push/notify-followers';
+import { validateSalesEndAt } from '@/lib/sales/cutoff';
 
 
 interface EventDetailRow {
@@ -63,6 +64,8 @@ const editSchema = z.object({
   // Prodleva mezi dvěma průchody téže vstupenky. Chrání před dvojím načtením
   // kódu, kdy by se stav překlopil a naúčtoval průchod, který se nestal.
   reentryCooldownSeconds: z.number().int().min(0).max(3600).optional(),
+  // Kolo 7 (C-29): konec online prodeje; null = začátek akce. Nesmí být po konci akce.
+  salesEndAt: z.string().datetime().nullable().optional(),
   // Eventim Pass-style — kolik minut před eventem se QR kód odhalí buyerovi.
   // 0 = až při startu eventu, 999999 = okamžitě (vhodné pro standard kulturní akce).
   qrRevealMinutesBefore: z.number().int().min(0).max(999999).optional(),
@@ -107,7 +110,7 @@ export async function GET(
       vat_category: string;
     }
   >(
-    `SELECT id, title, description, date_start, status, min_age, promoter_id, venue_id,
+    `SELECT id, title, description, date_start, date_end, sales_end_at, status, min_age, promoter_id, venue_id,
             currency, queue_enabled, queue_max_concurrent, insurance_enabled, insurance_pct,
             refund_deadline_days, refund_fee_pct, refund_fee_min_halire,
             qr_policy, vat_category,
@@ -132,6 +135,8 @@ export async function GET(
     title: e.title,
     description: e.description,
     dateStart: e.date_start,
+    dateEnd: (e as { date_end?: string | null }).date_end ?? null,
+    salesEndAt: (e as { sales_end_at?: string | null }).sales_end_at ?? null,
     status: e.status,
     minAge: e.min_age,
     currency: e.currency,
@@ -183,7 +188,7 @@ export async function PATCH(
     await client.query('BEGIN');
 
     const cur = await client.query<EventDetailRow>(
-      `SELECT id, title, description, date_start, status, min_age, promoter_id, venue_id, cover_image_url
+      `SELECT id, title, description, date_start, date_end, sales_end_at, status, min_age, promoter_id, venue_id, cover_image_url
        FROM catalog.events WHERE id = $1 AND promoter_id = $2 FOR UPDATE`,
       [params.id, promoter.promoterId],
     );
@@ -197,6 +202,16 @@ export async function PATCH(
     const newDescription =
       input.description !== undefined ? input.description : event.description;
     const newDateStart = input.dateStart ?? event.date_start;
+    // Kolo 7 (C-29): uzávěrka online prodeje nesmí být po konci akce (bez konce akce po začátku + 12 h).
+    {
+      const ev = event as unknown as { date_end: string | null; sales_end_at: string | null };
+      const newSalesEnd = input.salesEndAt !== undefined ? input.salesEndAt : ev.sales_end_at;
+      const err = validateSalesEndAt(newSalesEnd, { date_start: newDateStart, date_end: ev.date_end });
+      if (err) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'INVALID_SALES_END', message: err }, { status: 422 });
+      }
+    }
     const newMinAge =
       input.minAge !== undefined ? (input.minAge && input.minAge > 0 ? input.minAge : null) : event.min_age;
 
@@ -268,6 +283,7 @@ export async function PATCH(
            require_phone_verified = COALESCE($21, require_phone_verified),
            max_tickets_per_buyer = CASE WHEN $22::int IS NOT NULL THEN $22 ELSE max_tickets_per_buyer END,
            reentry_cooldown_seconds = COALESCE($23, reentry_cooldown_seconds),
+           sales_end_at = CASE WHEN $24::boolean THEN $25::timestamptz ELSE sales_end_at END,
            updated_at = NOW()
        WHERE id = $6`,
       [
@@ -289,6 +305,8 @@ export async function PATCH(
         input.requirePhoneVerified ?? null,
         input.maxTicketsPerBuyer !== undefined ? (input.maxTicketsPerBuyer ?? null) : null,
         input.reentryCooldownSeconds ?? null,
+        input.salesEndAt !== undefined,
+        input.salesEndAt ?? null,
       ],
     );
 

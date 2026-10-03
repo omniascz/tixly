@@ -16,6 +16,7 @@ import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { salesClosedResponse } from '@/lib/sales/cutoff';
 
 const schema = z.object({ seatId: z.string().uuid() });
 
@@ -60,6 +61,12 @@ export async function POST(
       if (!inv.held_seat_ids.includes(seatId)) {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'SEAT_NOT_IN_INVITATION' }, { status: 422 });
+      }
+      // Kolo 7 (C-29): převzetí místa ze skupinové rezervace je nákup kupce — po uzávěrce online prodeje ne.
+      const salesClosed = await salesClosedResponse(client, inv.event_id, 'online');
+      if (salesClosed) {
+        await client.query('ROLLBACK');
+        return salesClosed;
       }
 
       // Sedadlo musí být stále drženo pro tento invite (ne už claimnuté)

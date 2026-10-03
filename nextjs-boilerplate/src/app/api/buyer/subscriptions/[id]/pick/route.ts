@@ -22,6 +22,7 @@ import type { Pool } from 'pg';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { encryptSecret } from '@/lib/crypto';
+import { salesClosedResponse } from '@/lib/sales/cutoff';
 
 
 const postSchema = z.object({
@@ -136,6 +137,9 @@ export async function POST(
     );
   }
   const { eventId } = parsed.data;
+  // Kolo 7 (C-29): výběr akce do abonentky po uzávěrce online prodeje nejde.
+  const salesClosed = await salesClosedResponse(db(), eventId, 'online');
+  if (salesClosed) return salesClosed;
 
   const client = await db().connect();
   try {

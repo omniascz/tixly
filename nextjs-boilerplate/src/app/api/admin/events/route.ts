@@ -15,6 +15,7 @@ import {
   TRUST_THRESHOLD_PUBLISHED_EVENTS,
 } from '@/lib/moderation/ai-gate';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
+import { validateSalesEndAt } from '@/lib/sales/cutoff';
 import { copyLayoutToEventSeats } from '@/lib/seats/copy-layout-to-event-seats';
 
 
@@ -231,6 +232,11 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
   const input = parsed.data;
+  // Kolo 7 (C-29): uzávěrka online prodeje (saleEndAt → sales_end_at) nesmí být po konci akce.
+  {
+    const err = validateSalesEndAt(input.saleEndAt ?? null, { date_start: input.dateStart, date_end: input.dateEnd ?? null });
+    if (err) return NextResponse.json({ error: 'INVALID_SALES_END', message: err }, { status: 422 });
+  }
   const client = await db().connect();
 
   // CZ/SK launch — fetch promoter country/currency pro default fields
@@ -344,7 +350,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       `INSERT INTO catalog.events (
          organizer_id, promoter_id, venue_id, title, description,
          category, subcategory, event_type, template,
-         date_start, date_end, sale_start_at, sale_end_at,
+         date_start, date_end, sale_start_at, sales_end_at,
          status, min_age, max_tickets_per_order,
          resale_allowed, cover_image_url,
          currency, timezone,

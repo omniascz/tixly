@@ -30,6 +30,7 @@ import {
   PriceMismatchError,
   PriceResolutionError,
 } from '@/lib/pricing/resolve-price';
+import { salesClosedResponse } from '@/lib/sales/cutoff';
 import { validateVatNumber, isReverseChargeApplicable } from '@/lib/tax/vies';
 
 
@@ -244,6 +245,11 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
   const input = parsed.data;
+
+  // Kolo 7 (C-29): po uzávěrce online prodeje (sales_end_at, jinak začátek akce) nový nákup nejde.
+  // Doplacení dříve založené objednávky jde přes webhook, ne sem.
+  const salesClosed = await salesClosedResponse(db(), input.eventId, 'online');
+  if (salesClosed) return salesClosed;
 
   // ── FIX K3: rate limit vytváření objednávek ────────────────────────────────
   // Bez limitu šlo z jedné IP / na jeden e-mail založit neomezeně nezaplacených
