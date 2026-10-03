@@ -1,0 +1,37 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/fix-r4-exchange-single-ticket.live.test.ts[2m > [22m[2mKrok 3e (kolo 4) — výměna mění jen vyměněnou vstupenku[2m > [22m[2mvymění jen jednu vstupenku ze dvou[22m[39m
+[3e] {"moved":{"event_id":"f6477370-9370-44b9-9cd0-b7ccb6989e26","ticket_type_id":"bb666478-6435-4e36-b8e8-f849190e387d"},"stays":{"event_id":"f6477370-9370-44b9-9cd0-b7ccb6989e26","ticket_type_id":"bb666478-6435-4e36-b8e8-f849190e387d"}}
+
+ [33m❯[39m tests/fix-r4-exchange-single-ticket.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 467[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-exchange-single-ticket.live.test.ts[2m > [22mKrok 3e (kolo 4) — výměna mění jen vyměněnou vstupenku[2m > [22mvymění jen jednu vstupenku ze dvou[39m
+[31m     → expected 'bb666478-6435-4e36-b8e8-f849190e387d' to be '63c1b213-922e-4b3f-9cd6-a4a6c8b6b69c' // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-exchange-single-ticket.live.test.ts[2m > [22mKrok 3e (kolo 4) — výměna mění jen vyměněnou vstupenku[2m > [22mvymění jen jednu vstupenku ze dvou
+[31m[1mAssertionError[22m: expected 'bb666478-6435-4e36-b8e8-f849190e387d' to be '63c1b213-922e-4b3f-9cd6-a4a6c8b6b69c' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 63c1b213-922e-4b3f-9cd6-a4a6c8b6b69c[39m
+[31m+ bb666478-6435-4e36-b8e8-f849190e387d[39m
+
+[36m [2m❯[22m tests/fix-r4-exchange-single-ticket.live.test.ts:[2m73:30[22m[39m
+    [90m 71| [39m    console[33m.[39m[34mlog[39m([32m'[3e]'[39m[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m({ moved[33m:[39m m[33m,[39m stays[33m:[39m s }))[33m;[39m
+    [90m 72| [39m    [34mexpect[39m(m[33m.[39mevent_id)[33m.[39m[34mtoBe[39m(tgtEventId)[33m;[39m
+    [90m 73| [39m    [34mexpect[39m(m[33m.[39mticket_type_id)[33m.[39m[34mtoBe[39m(tgtTypeId)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m 74| [39m    [34mexpect[39m(s[33m.[39mevent_id)[33m.[39m[34mtoBe[39m(src[33m.[39meventId)[33m;[39m
+    [90m 75| [39m    [34mexpect[39m(s[33m.[39mticket_type_id)[33m.[39m[34mtoBe[39m(src[33m.[39mticketTypeId)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 21:15:24
+[2m   Duration [22m 1.07s[2m (transform 120ms, setup 0ms, collect 108ms, tests 467ms, environment 0ms, prepare 88ms)[22m
+

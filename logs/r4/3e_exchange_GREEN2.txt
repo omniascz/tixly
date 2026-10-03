@@ -1,0 +1,15 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [32m✓[39m tests/fix-r3-guard-trigger.live.test.ts [2m ([22m[2m23 tests[22m[2m)[22m[33m 4014[2mms[22m[39m
+[90mstdout[2m | tests/fix-r4-exchange-single-ticket.live.test.ts[2m > [22m[2mKrok 3e (kolo 4) — výměna mění jen vyměněnou vstupenku[2m > [22m[2mvymění jen jednu vstupenku ze dvou[22m[39m
+[3e] {"moved":{"event_id":"52e94512-2604-471c-9c37-dd48853fb628","ticket_type_id":"2bf7d481-ea97-40fc-960f-28801ac04ac3"},"stays":{"event_id":"2063d63a-4ef7-41cc-9929-4e5f96928b1a","ticket_type_id":"91dc9e93-8705-435e-bb07-12a7d1aaacf1"}}
+
+ [32m✓[39m tests/fix-r4-exchange-single-ticket.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 695[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m25 passed[39m[22m[90m (25)[39m
+[2m   Start at [22m 21:16:06
+[2m   Duration [22m 5.85s[2m (transform 334ms, setup 1ms, collect 265ms, tests 4.71s, environment 1ms, prepare 281ms)[22m
+

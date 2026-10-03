@@ -288,12 +288,53 @@ export async function POST(
         [newSeatId, ticket.id],
       ));
 
-      await asSystemInTx(client, () => client.query(
-        `UPDATE orders.orders
-            SET event_id = $1, updated_at = NOW()
-          WHERE id = $2`,
-        [parsed.data.targetEventId, ticket.order_id],
-      ));
+      // Kolo 4: dřív `UPDATE orders SET event_id` pro CELOU objednávku — akce vstupenky se
+      // odvozuje z objednávky, takže na nový termín se „přestěhovaly" i ostatní vstupenky
+      // objednávky; vyměněná navíc zůstala typem původní akce.
+      //  - jediná vstupenka v objednávce → přepne se objednávka i typ lístku/položky;
+      //  - víc vstupenek → vyměněná se přesune do nové objednávky výměny (cílový termín,
+      //    cena 0 — zaplacené peníze zůstávají u původní objednávky), ostatní zůstanou.
+      const siblings = await client.query<{ n: number }>(
+        `SELECT COUNT(*)::int AS n FROM tickets.tickets WHERE order_id = $1 AND id <> $2`,
+        [ticket.order_id, ticket.id],
+      );
+      if ((siblings.rows[0]?.n ?? 0) === 0) {
+        await asSystemInTx(client, async () => {
+          await client.query(
+            `UPDATE orders.orders SET event_id = $1, updated_at = NOW() WHERE id = $2`,
+            [parsed.data.targetEventId, ticket.order_id],
+          );
+          await client.query(
+            `UPDATE orders.order_items SET ticket_type_id = $1 WHERE order_id = $2`,
+            [targetTt.id, ticket.order_id],
+          );
+          await client.query(
+            `UPDATE tickets.tickets SET ticket_type_id = $1, updated_at = NOW() WHERE id = $2`,
+            [targetTt.id, ticket.id],
+          );
+        });
+      } else {
+        await asSystemInTx(client, async () => {
+          const created = await client.query<{ id: string }>(
+            `INSERT INTO orders.orders
+               (user_id, event_id, status, total_amount, currency, payment_provider, paid_at, expires_at)
+             SELECT $1, $2, 'paid', 0, o.currency, 'free', NOW(), NOW()
+               FROM orders.orders o WHERE o.id = $3
+             RETURNING id`,
+            [userId, parsed.data.targetEventId, ticket.order_id],
+          );
+          const newOrderId = created.rows[0].id;
+          await client.query(
+            `INSERT INTO orders.order_items (order_id, ticket_type_id, quantity, unit_price, total_price)
+             VALUES ($1, $2, 1, 0, 0)`,
+            [newOrderId, targetTt.id],
+          );
+          await client.query(
+            `UPDATE tickets.tickets SET order_id = $1, ticket_type_id = $2, updated_at = NOW() WHERE id = $3`,
+            [newOrderId, targetTt.id, ticket.id],
+          );
+        });
+      }
 
       await asSystemInTx(client, () => client.query(
         `UPDATE catalog.ticket_types
