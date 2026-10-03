@@ -86,7 +86,8 @@ export async function GET(req: NextRequest): Promise<Response> {
         await client.query(
           `INSERT INTO orders.payment_events
              (order_id, event_type, gopay_status, amount, raw_payload, payment_provider)
-           VALUES ($1, 'payment_paid', 'COMPLETED', $2, $3::jsonb, 'paypal')`,
+           VALUES ($1, 'payment_paid', 'COMPLETED', $2, $3::jsonb, 'paypal')
+           ON CONFLICT DO NOTHING`,
           [
             order.id,
             capturedMinor,

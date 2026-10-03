@@ -91,7 +91,8 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
     await client.query(
       `INSERT INTO orders.payment_events
          (order_id, event_type, gopay_status, amount, raw_payload, payment_provider)
-       VALUES ($1, $2, $3, $4, $5::jsonb, 'gopay')`,
+       VALUES ($1, $2, $3, $4, $5::jsonb, 'gopay')
+           ON CONFLICT DO NOTHING`,
       [
         order.id,
         effectivePaid ? 'payment_paid' : status.refunded ? 'payment_refunded' : 'webhook_received',

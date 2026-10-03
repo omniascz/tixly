@@ -94,7 +94,8 @@ export async function POST(
       );
       await client.query(
         `INSERT INTO orders.payment_events (order_id, event_type, gopay_status, raw_payload, payment_provider)
-         VALUES ($1, 'CANCELED', 'CANCELED', $2::jsonb, 'wero')`,
+         VALUES ($1, 'CANCELED', 'CANCELED', $2::jsonb, 'wero')
+           ON CONFLICT DO NOTHING`,
         [order.id, JSON.stringify({ paymentId: params.paymentId, source: 'mock-wero' })],
       );
       await client.query('COMMIT');
@@ -107,7 +108,8 @@ export async function POST(
     );
     await client.query(
       `INSERT INTO orders.payment_events (order_id, event_type, gopay_status, raw_payload, payment_provider)
-       VALUES ($1, 'PAID', 'PAID', $2::jsonb, 'wero')`,
+       VALUES ($1, 'PAID', 'PAID', $2::jsonb, 'wero')
+           ON CONFLICT DO NOTHING`,
       [order.id, JSON.stringify({ paymentId: params.paymentId, source: 'mock-wero' })],
     );
     await client.query('COMMIT');

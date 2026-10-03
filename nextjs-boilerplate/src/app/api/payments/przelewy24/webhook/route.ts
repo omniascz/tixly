@@ -123,7 +123,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query(
         `INSERT INTO orders.payment_events
            (order_id, event_type, gopay_status, amount, raw_payload, payment_provider)
-         VALUES ($1, 'payment_paid', 'PAID', $2, $3::jsonb, 'przelewy24')`,
+         VALUES ($1, 'payment_paid', 'PAID', $2, $3::jsonb, 'przelewy24')
+           ON CONFLICT DO NOTHING`,
         [order.id, body.amount, JSON.stringify({ ...body, receivedAt: new Date().toISOString() })],
       );
 

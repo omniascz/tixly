@@ -102,7 +102,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query(
         `INSERT INTO orders.payment_events
            (order_id, event_type, gopay_status, amount, raw_payload, payment_provider)
-         VALUES ($1, $2, $3, $4, $5::jsonb, 'crypto')`,
+         VALUES ($1, $2, $3, $4, $5::jsonb, 'crypto')
+           ON CONFLICT DO NOTHING`,
         [
           order.id,
           effectivePaid ? 'payment_paid' : status === 'invalid' ? 'payment_failed' : 'webhook_received',
