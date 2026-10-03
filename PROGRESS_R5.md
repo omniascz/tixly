@@ -9,7 +9,7 @@ hodnoty tajemství se nikdy nevypisují (soubor, řádek, typ, max. 4 znaky). V�
 | Krok | Stav | Commit |
 |---|---|---|
 | 1 triáž gitleaks | HOTOVO — master 26, --all 63; skutečné 0, nejasné 0, testovací/falešné 63 (logs/r5/1_triage.md) | |
-| 2 snímek tixly/ | čeká | |
+| 2 snímek tixly/ | HOTOVO — wip/snapshot-2026-10-04 = 8635723d (strom a44ccdb3, 5523 souborů, 125 změn: 81 A / 44 M); status před = po (110); 0 souborů změněno za 15 min | |
 | 3 integrační větev | čeká | |
 | 4 ověření integrace | čeká | |
 | 5 deploy.yml | čeká | |
