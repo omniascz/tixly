@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
-import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
+import { runAsActivePromoter } from '@/lib/admin-auth';
+import { db } from '@/lib/db/rls-pool';
 
 const schema = z.object({
   token: z.string().min(8).max(200),

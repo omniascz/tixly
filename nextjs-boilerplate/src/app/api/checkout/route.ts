@@ -17,12 +17,12 @@
  * orders.seat_locks). Konsolidováno 26.4.2026 — broken kód smazán.
  */
 
-import { authorizeB2BCreditUser } from '@/lib/b2b/credit-authorization';
 import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { calculateAgeYears } from '@/lib/age/calculate';
+import { authorizeB2BCreditUser } from '@/lib/b2b/credit-authorization';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 import {

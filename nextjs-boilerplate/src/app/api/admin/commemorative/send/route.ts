@@ -1,9 +1,9 @@
 import { timingSafeEqual } from 'crypto';
-import { issueTicketMagicToken } from '@/lib/tickets/magic-token';
 import { NextRequest, NextResponse } from 'next/server';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
-import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
+import { runAsActivePromoter } from '@/lib/admin-auth';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { issueTicketMagicToken } from '@/lib/tickets/magic-token';
 
 function safeEqual(a: string, b: string): boolean {
   const ab = Buffer.from(a, 'utf8');

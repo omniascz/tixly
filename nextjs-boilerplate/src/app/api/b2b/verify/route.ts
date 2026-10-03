@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { authorizeB2BCreditUser } from '@/lib/b2b/credit-authorization';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 const schema = z.object({
   accountCode: z.string().min(4).max(20),

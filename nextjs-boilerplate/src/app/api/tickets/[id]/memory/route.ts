@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyTicketMagicToken } from '@/lib/tickets/magic-token';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { verifyTicketMagicToken } from '@/lib/tickets/magic-token';
 
 interface MemoryRow {
   id: string;
