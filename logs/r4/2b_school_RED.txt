@@ -1,0 +1,64 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/fix-r4-school-group-scan.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — scanner/school-group vyžaduje obsluhu pořadatele[2m > [22m[2manonym 401 bez údajů o škole[22m[39m
+[scanner/school-group] ADMITTED booking dbf4e8c4-bd45-429c-9859-1fdbeb80314a school=ZŠ Testovací students=25 event=fcdd7de8-1108-48e9-a0cc-86f1eeba4461
+
+[90mstdout[2m | tests/fix-r4-school-group-scan.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — scanner/school-group vyžaduje obsluhu pořadatele[2m > [22m[2mcizí pořadatel: nepustí, bez údajů o škole[22m[39m
+[scanner/school-group] ADMITTED booking dbf4e8c4-bd45-429c-9859-1fdbeb80314a school=ZŠ Testovací students=25 event=fcdd7de8-1108-48e9-a0cc-86f1eeba4461
+
+[90mstdout[2m | tests/fix-r4-school-group-scan.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — scanner/school-group vyžaduje obsluhu pořadatele[2m > [22m[2mvlastní pořadatel: admitted[22m[39m
+[scanner/school-group] ADMITTED booking dbf4e8c4-bd45-429c-9859-1fdbeb80314a school=ZŠ Testovací students=25 event=fcdd7de8-1108-48e9-a0cc-86f1eeba4461
+
+ [33m❯[39m tests/fix-r4-school-group-scan.live.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 488[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-school-group-scan.live.test.ts[2m > [22mKrok 2 (kolo 4) — scanner/school-group vyžaduje obsluhu pořadatele[2m > [22manonym 401 bez údajů o škole[39m
+[31m     → {"admitted":true,"bookingId":"dbf4e8c4-bd45-429c-9859-1fdbeb80314a","schoolName":"ZŠ Testovací","studentCount":25,"teacherCount":2,"eventTitle":"Test Akce","eventDate":"2026-10-03T19:21:45.966Z"}: expected 200 to be 401 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r4-school-group-scan.live.test.ts[2m > [22mKrok 2 (kolo 4) — scanner/school-group vyžaduje obsluhu pořadatele[2m > [22mcizí pořadatel: nepustí, bez údajů o škole[39m
+[31m     → expected '{"admitted":true,"bookingId":"dbf4e8c…' not to contain 'Testovací'[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-school-group-scan.live.test.ts[2m > [22mKrok 2 (kolo 4) — scanner/school-group vyžaduje obsluhu pořadatele[2m > [22manonym 401 bez údajů o škole
+[31m[1mAssertionError[22m: {"admitted":true,"bookingId":"dbf4e8c4-bd45-429c-9859-1fdbeb80314a","schoolName":"ZŠ Testovací","studentCount":25,"teacherCount":2,"eventTitle":"Test Akce","eventDate":"2026-10-03T19:21:45.966Z"}: expected 200 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r4-school-group-scan.live.test.ts:[2m59:28[22m[39m
+    [90m 57| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mscan[39m({})[33m;[39m
+    [90m 58| [39m    [35mconst[39m body [33m=[39m [35mawait[39m r[33m.[39m[34mtext[39m()[33m;[39m
+    [90m 59| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m body)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                           [31m^[39m
+    [90m 60| [39m    [34mexpect[39m(body)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'Testovací'[39m)[33m;[39m
+    [90m 61| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-school-group-scan.live.test.ts[2m > [22mKrok 2 (kolo 4) — scanner/school-group vyžaduje obsluhu pořadatele[2m > [22mcizí pořadatel: nepustí, bez údajů o škole
+[31m[1mAssertionError[22m: expected '{"admitted":true,"bookingId":"dbf4e8c…' not to contain 'Testovací'[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Testovací[39m
+[31m+ {"admitted":true,"bookingId":"dbf4e8c4-bd45-429c-9859-1fdbeb80314a","schoolName":"ZŠ Testovací","studentCount":25,"teacherCount":2,"eventTitle":"Test Akce","eventDate":"2026-10-03T19:21:45.966Z"}[39m
+
+[36m [2m❯[22m tests/fix-r4-school-group-scan.live.test.ts:[2m66:22[22m[39m
+    [90m 64| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mscan[39m({ authorization[33m:[39m [32m`Bearer [39m[36m${[39mforeignTok[36m}[39m[32m`[39m })[33m;[39m
+    [90m 65| [39m    [35mconst[39m body [33m=[39m [35mawait[39m r[33m.[39m[34mtext[39m()[33m;[39m
+    [90m 66| [39m    [34mexpect[39m(body)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'Testovací'[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m 67| [39m    [34mexpect[39m(body)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'"admitted":true'[39m)[33m;[39m
+    [90m 68| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (3)[39m
+[2m   Start at [22m 20:21:44
+[2m   Duration [22m 1.20s[2m (transform 165ms, setup 0ms, collect 161ms, tests 488ms, environment 0ms, prepare 341ms)[22m
+
