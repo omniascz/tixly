@@ -59,3 +59,8 @@ P1, P5d, C2b, P13, V12, D3a PASS; C1a, C2a PASS.
 
 ## Závěr — plán
 typecheck → unit → live → build+start app → audit 01..12 (po jednom) → vizuální kontrola skeneru + tisku prodejce → FIX_REPORT_R3.md
+
+## Závěr — průběh
+- 1. běh: tsc (jen rfid), unit 513/0, live 188/0/87, audit 01 26/0, 02 36/0, 03 23/0, 04 14/0, 05 **6/2 REGRESE** (C2a/C2c — pool, z R6)
+- regrese opravena 60993ee (webhook releaseClient po COMMITu; test 2/2; regrese 48/48)
+- 2. běh: reset DB → live → build → audity 01..12 načisto
