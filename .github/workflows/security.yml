@@ -50,6 +50,11 @@ jobs:
   secret-scan:
     name: Secret scan (Gitleaks)
     runs-on: ubuntu-latest
+    # gitleaks-action na pull_request čte seznam commitů PR (GET /pulls/{n}/commits) —
+    # bez pull-requests: read „Resource not accessible by integration" (kolo 6, 1. běh na GitHubu).
+    permissions:
+      contents: read
+      pull-requests: read
 
     steps:
       - uses: actions/checkout@v4
