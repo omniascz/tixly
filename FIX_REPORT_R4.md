@@ -25,6 +25,7 @@ Prostředí: izolovaná DB z migrací, PgBouncer transaction mode, fake-gopay, M
 | restwert abonentky (R3 bod 4) | politika pouští kupce na vlastní řádek, sloupce nehlídá → kupec si navýšil kredit/platnost | migrace 492: guard chráněných sloupců (vzor 486) | fix-r4-holders-guard | kredit 9 999 999 povolen → 42501 (2/2) | d235d8d |
 | výměna mění celou objednávku (R3 bod 4) | `UPDATE orders.event_id` pro celou objednávku → ostatní vstupenky na novém termínu; typ lístku původní akce | jediná vstupenka: přepnout objednávku + typ; více: přesun do nové objednávky výměny (cena 0) | fix-r4-exchange-single-ticket | obě vstupenky přesunuty → 2/2 | caad0e0 |
 | upgrade-options 500 (R3 bod 4) | dotazy na neexistující `seat_maps`, `seat_map_entries`, `seat_assignments`, `price_halire` | skutečné schéma: event_seats, base_price; jen dražší veřejné typy s kapacitou + volná sedadla | fix-r4-upgrade-options | 500 → 2/2 | f732a24 |
+| bezplatný upgrade nemění kapacitu (R3 bod 4) | změna typu lístku bez úpravy `remaining_qty` | cíl −1, zdroj +1 v systémové části upgradu | fix-r4-free-upgrade-capacity | kapacita beze změny → 1/1 | 34e7711 |
 <!-- /nalezy -->
 
 **Krok 1 — audit 08 po opravách:** I1 PASS (154 GET rout × 3 cizí aktéři, 0 úniků), I2 PASS (0 odpovědí 5xx). `logs/r4/1c_r2_e2e_08.out`.
