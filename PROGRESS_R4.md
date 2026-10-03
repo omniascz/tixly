@@ -17,7 +17,7 @@ Infrastruktura jako v kole 3 (viz PROGRESS_R3.md). Výstupy: logs/r4/.
 | 3c veřejný e-mail organizátora | HOTOVO 133dfc2 | |
 | 3d restwert | HOTOVO d235d8d | |
 | 3e exchange | HOTOVO caad0e0 | |
-| 3f upgrade-options 500 | čeká | |
+| 3f upgrade-options 500 | HOTOVO f732a24 | |
 | 3g mobil /api/v1/buyer/orders | čeká | |
 | 3h QR tištěné vstupenky | čeká | |
 | 3i mobile-promoter typecheck | čeká | |
