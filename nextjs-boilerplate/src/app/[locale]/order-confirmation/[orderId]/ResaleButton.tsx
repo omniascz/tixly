@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 interface Props {
-  buyerEmail: string;
+  /** UUID objednávky = capability hosta (kolo 4: místo e-mailu kupce). */
+  orderId: string;
   ticketIds: string[];
   originalPriceHalire: number;
 }
 
 export function ResaleButton({
-  buyerEmail,
+  orderId,
   ticketIds,
   originalPriceHalire,
 }: Props) {
@@ -53,7 +54,7 @@ export function ResaleButton({
       const r = await fetch('/api/buyer/resale/list', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ticketId, askPriceHalire, ownerEmail: buyerEmail }),
+        body: JSON.stringify({ ticketId, askPriceHalire, orderId }),
       });
       const data = await r.json();
       if (!r.ok) {
@@ -79,7 +80,7 @@ export function ResaleButton({
       const r = await fetch(`/api/buyer/resale/list/${listingId}/cancel`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ownerEmail: buyerEmail }),
+        body: JSON.stringify({ orderId }),
       });
       if (!r.ok) {
         const err = await r.json();

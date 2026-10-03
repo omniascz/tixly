@@ -1,0 +1,55 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r4-resale-owner-email.live.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 1327[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-resale-owner-email.live.test.ts[2m > [22mKrok 2 (kolo 4) — přeprodej jen s ověřenou identitou[2m > [22manonym s e-mailem oběti nevystaví inzerát (401, 0 inzerátů)[39m
+[31m     → {"listingId":"ca595b79-23ee-4b01-94ef-72f249ecc11a","ticketId":"a70e39b4-ce4f-4cef-a49c-02a80de42efa","askPriceHalire":100,"maxAllowedHalire":10000}: expected 201 to be 401 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r4-resale-owner-email.live.test.ts[2m > [22mKrok 2 (kolo 4) — přeprodej jen s ověřenou identitou[2m > [22manonym s e-mailem oběti nestáhne cizí inzerát (401, inzerát zůstane)[39m
+[31m     → {"ok":true,"listingId":"87d0e619-d9e5-4df5-ad4f-7b361150bc6f"}: expected 200 to be 401 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-resale-owner-email.live.test.ts[2m > [22mKrok 2 (kolo 4) — přeprodej jen s ověřenou identitou[2m > [22manonym s e-mailem oběti nevystaví inzerát (401, 0 inzerátů)
+[31m[1mAssertionError[22m: {"listingId":"ca595b79-23ee-4b01-94ef-72f249ecc11a","ticketId":"a70e39b4-ce4f-4cef-a49c-02a80de42efa","askPriceHalire":100,"maxAllowedHalire":10000}: expected 201 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 201[39m
+
+[36m [2m❯[22m tests/fix-r4-resale-owner-email.live.test.ts:[2m47:46[22m[39m
+    [90m 45| [39m  [34mit[39m([32m'anonym s e-mailem oběti nevystaví inzerát (401, 0 inzerátů)'[39m[33m,[39m [35mas[39m…
+    [90m 46| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mpost[39m([32m'/api/buyer/resale/list'[39m[33m,[39m [32m'@/app/api/buyer/re[39m…
+    [90m 47| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m [35mawait[39m r[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                                             [31m^[39m
+    [90m 48| [39m    [34mexpect[39m([35mawait[39m [34mlistings[39m())[33m.[39m[34mtoBe[39m([34m0[39m)[33m;[39m
+    [90m 49| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-resale-owner-email.live.test.ts[2m > [22mKrok 2 (kolo 4) — přeprodej jen s ověřenou identitou[2m > [22manonym s e-mailem oběti nestáhne cizí inzerát (401, inzerát zůstane)
+[31m[1mAssertionError[22m: {"ok":true,"listingId":"87d0e619-d9e5-4df5-ad4f-7b361150bc6f"}: expected 200 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r4-resale-owner-email.live.test.ts:[2m57:46[22m[39m
+    [90m 55| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mpost[39m([32m`/api/buyer/resale/list/[39m[36m${[39mid[36m}[39m[32m/cancel`[39m[33m,[39m [32m'@/app[39m…
+    [90m 56| [39m      { ownerEmail[33m:[39m victimEmail }[33m,[39m {}[33m,[39m { params[33m:[39m { id } })[33m;[39m
+    [90m 57| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m [35mawait[39m r[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                                             [31m^[39m
+    [90m 58| [39m    [34mexpect[39m([35mawait[39m [34mlistings[39m())[33m.[39m[34mtoBe[39m([34m1[39m)[33m;[39m
+    [90m 59| [39m    [90m// vlastník s JWT ho stáhnout smí[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (3)[39m
+[2m   Start at [22m 20:30:20
+[2m   Duration [22m 4.02s[2m (transform 304ms, setup 0ms, collect 337ms, tests 1.33s, environment 0ms, prepare 369ms)[22m
+

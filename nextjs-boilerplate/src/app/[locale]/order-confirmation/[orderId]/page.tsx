@@ -378,7 +378,7 @@ export default async function OrderConfirmationPage({
           {isPaid && tickets.length > 0 ? (
             <div className="space-y-2">
               <ResaleButton
-                buyerEmail={order.buyer_email}
+                orderId={order.id}
                 ticketIds={tickets.map((t) => t.id)}
                 originalPriceHalire={tickets[0].original_price}
               />
