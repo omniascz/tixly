@@ -32,9 +32,9 @@ export async function POST(
 
       // Verify ownership
       const ticketRes = await client.query<{
-        id: string; original_price: number; status: string; event_id: string;
+        id: string; original_price: number; status: string; event_id: string; ticket_type_id: string;
       }>(
-        `SELECT tt.id, tt.original_price, tt.status, o.event_id
+        `SELECT tt.id, tt.original_price, tt.status, o.event_id, tt.ticket_type_id
            FROM tickets.tickets tt
            JOIN orders.orders o ON o.id = tt.order_id
           WHERE tt.id = $1 AND tt.order_id = $2 AND o.user_id = $3 AND tt.status = 'valid'`,
@@ -118,6 +118,18 @@ export async function POST(
             `UPDATE tickets.tickets SET ticket_type_id=$1 WHERE id=$2`,
             [body.newTicketTypeId, body.ticketId],
           );
+          // Kolo 4: kapacita se přesouvá s lístkem (dřív se neměnila — cílový typ šlo
+          // přeprodat, zdrojový nedoprodat). Cílový typ je zamčený výše (FOR UPDATE).
+          if (ticket.ticket_type_id !== body.newTicketTypeId) {
+            await client.query(
+              `UPDATE catalog.ticket_types SET remaining_qty = remaining_qty - 1 WHERE id=$1`,
+              [body.newTicketTypeId],
+            );
+            await client.query(
+              `UPDATE catalog.ticket_types SET remaining_qty = remaining_qty + 1 WHERE id=$1`,
+              [ticket.ticket_type_id],
+            );
+          }
           await client.query(
             `UPDATE orders.seat_upgrades SET status='paid', completed_at=now() WHERE id=$1`,
             [upgradeId],

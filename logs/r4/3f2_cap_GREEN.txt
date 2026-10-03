@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [32m✓[39m tests/fix-r3-guard-trigger.live.test.ts [2m ([22m[2m23 tests[22m[2m)[22m[33m 4683[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-free-upgrade-capacity.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 665[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-my-auth.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 653[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+[2m      Tests [22m [1m[32m25 passed[39m[22m[90m (25)[39m
+[2m   Start at [22m 21:19:38
+[2m   Duration [22m 8.74s[2m (transform 408ms, setup 1ms, collect 602ms, tests 6.00s, environment 1ms, prepare 1.03s)[22m
+
