@@ -17,6 +17,7 @@
  * orders.seat_locks). Konsolidováno 26.4.2026 — broken kód smazán.
  */
 
+import { authorizeB2BCreditUser } from '@/lib/b2b/credit-authorization';
 import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -1305,6 +1306,17 @@ export async function POST(req: NextRequest): Promise<Response> {
           { status: 422 },
         );
       }
+      // Kolo 4: z kreditu firmy smí platit jen přihlášený člen účtu — dřív stačil kód účtu.
+      const b2bUserId = req.headers.get('x-user-id');
+      if (!b2bUserId) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'B2B_LOGIN_REQUIRED' }, { status: 401 });
+      }
+      const allowed = await authorizeB2BCreditUser(client, input.b2bAccountCode, b2bUserId);
+      if (!allowed) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'B2B_NOT_AUTHORIZED' }, { status: 403 });
+      }
     }
 
     // 4) Insert order + order_items
@@ -2110,21 +2122,15 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     // B2B credit debit (uvnitř transakce, těsně před COMMIT)
     if (input.paymentMethod === 'b2b_credit' && input.b2bAccountCode) {
-      const b2bRes = await client.query<{
-        id: string;
-        credit_balance_halire: string;
-      }>(
-        `SELECT id, credit_balance_halire
-         FROM platform.b2b_accounts
-         WHERE account_code = upper($1) AND status = 'active'
-         FOR UPDATE`,
-        [input.b2bAccountCode],
+      // Znovu s oprávněním a zámkem účtu (FOR UPDATE) — debit jen pro člena účtu.
+      const b2bAcc = await authorizeB2BCreditUser(
+        client, input.b2bAccountCode, req.headers.get('x-user-id'), { forUpdate: true },
       );
-      if (b2bRes.rows.length === 0) {
+      if (!b2bAcc) {
         await client.query('ROLLBACK');
-        return NextResponse.json({ error: 'B2B_ACCOUNT_INVALID' }, { status: 402 });
+        return NextResponse.json({ error: 'B2B_NOT_AUTHORIZED' }, { status: 403 });
       }
-      const b2bBalance = parseInt(b2bRes.rows[0].credit_balance_halire, 10);
+      const b2bBalance = b2bAcc.balanceHalire;
       if (b2bBalance < totalAmount) {
         await client.query('ROLLBACK');
         return NextResponse.json(
@@ -2132,7 +2138,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           { status: 402 },
         );
       }
-      b2bAccountId = b2bRes.rows[0].id;
+      b2bAccountId = b2bAcc.accountId;
       await client.query(
         `UPDATE platform.b2b_accounts
          SET credit_balance_halire = credit_balance_halire - $2

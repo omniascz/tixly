@@ -1,0 +1,43 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [32m✓[39m tests/fix-k3-capacity.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 1478[2mms[22m[39m
+[90mstderr[2m | tests/fix-r3-k3a-cron-auth.live.test.ts[2m > [22m[2mKrok 4 (kolo 3) — K3a: cron autorizace naživo[2m > [22m[2mseat-upgrade-notify: bez INTERNAL_SERVICE_TOKEN v env je fail-closed (libovolný token → 403)[22m[39m
+[seat-upgrade-notify cron] error: column s.zone_name does not exist
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\internal\cron\seat-upgrade-notify\route.ts:28:29
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r3-k3a-cron-auth.live.test.ts:92:15
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3)
+    at file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4mvitest[24m/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:116:7 {
+  length: [33m110[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42703'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [32m'222'[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'parse_relation.c'[39m,
+  line: [32m'3716'[39m,
+  routine: [32m'errorMissingColumn'[39m
+}
+
+ [32m✓[39m tests/fix-r3-k3a-cron-auth.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 343[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m11 passed[39m[22m[90m (11)[39m
+[2m   Start at [22m 20:45:55
+[2m   Duration [22m 2.73s[2m (transform 354ms, setup 1ms, collect 192ms, tests 1.82s, environment 0ms, prepare 244ms)[22m
+
