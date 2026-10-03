@@ -22,7 +22,8 @@ Základ: `fix/critical-2026-09-30` @ `1a6e96d`. Worktree `../tixly-fix`. `tixly/
 | 0 audit skripty + ověření kola 1 + x-user-id | HOTOVO | 8d97de9 (skripty), 43871e0 (fix x-vercel-cron) |
 | 1 webhooky fail-closed | HOTOVO | 81aa2b7 (tabulka logs/r2/1_webhook_table.md) |
 | 2 V2 | HOTOVO | c3c9b8e (+ tsc fix) |
-| 3 V8 + 156 tabulek | rozpracováno | |
+| 3A V8 (zápis akce/ceny/promo/objednávky/vstupenky) | HOTOVO | 2e38967 |
+| 3B 156 tabulek bez RLS | rozpracováno: migrace 482 vygenerována (audit/r2/gen-482.mjs), NOCTX routy zabaleny do servisu, chybí test + aplikace na e2e | |
 | 4 V9 R-56 | čeká | |
 | 5 V4/S1/V6/S8/P1/QR | čeká | |
 | Závěr + FIX_REPORT_R2 | čeká | |
@@ -45,3 +46,10 @@ RED 5/5 → GREEN 5/5 (`tests/fix-r2-v2-tixly-app.live.test.ts`), migrace 480 od
 POZOR pro krok 3: storno/self-refund vrací kapacitu `UPDATE catalog.ticket_types` pod kontextem kupce — funguje jen díky
 díře V8 (větev `status='published'` FOR ALL bez WITH CHECK). Test V2 kapacitu hlídá → po uzavření V8 musí zůstat zelený.
 Neověřeno: admin/import pod tixly_app (stejná třída RETURNING) — změněn jen sentinel hesla.
+
+## Krok 3A — výsledky
+RED 4/5 → GREEN 5/5 (`tests/fix-r2-v8-rls-write.live.test.ts`); migrace 481 od nuly + 2× nad stávajícím.
+Navazující opravy cest kupce (asSystemInTx): storno, self-refund, výměna, upgrade, mobilní platba.
+Audit HTTP po 3A: 11 8/8, 09 12/12, 12 5/5, 02 33/3 (P1/P5d/P13 = krok 5), 03 R5/R6/V9b mimo zadání, V12 = krok 5.
+Zjištěno mimo zadání (do reportu): 54 plošných eskalací `SET LOCAL app.is_platform_admin='true'` v kódu (logs/r2/3_inline_escalations.txt);
+mobile/payment-intent obchází rate-limity K3; S4 recompute-dynamic-pricing bez tokenu (06 K3a).
