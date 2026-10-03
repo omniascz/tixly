@@ -1,4 +1,5 @@
 import { timingSafeEqual } from 'crypto';
+import { issueTicketMagicToken } from '@/lib/tickets/magic-token';
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { runAsActivePromoter } from '@/lib/admin-auth';
@@ -96,7 +97,8 @@ async function executeSend(eventId: string): Promise<Response> {
         [ticket.id],
       );
 
-      const memoryUrl = `${appUrl}/cs/my-tickets/${ticket.id}/memory`;
+      // Kolo 4: host bez účtu otevře pamětní vstupenku podepsaným tokenem (route ho ověří).
+      const memoryUrl = `${appUrl}/cs/my-tickets/${ticket.id}/memory?token=${issueTicketMagicToken(ticket.id)}`;
       const eventDateStr = ticket.event_date_start
         ? new Date(ticket.event_date_start).toLocaleDateString('cs-CZ', {
             day: 'numeric', month: 'long', year: 'numeric',
