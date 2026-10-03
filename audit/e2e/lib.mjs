@@ -25,6 +25,9 @@ export class Client {
     const h = { 'x-real-ip': this.ip, 'x-forwarded-for': this.ip, ...headers };
     if (body !== undefined && !(typeof body === 'string')) h['content-type'] = 'application/json';
     if (this.cookies.size) h.cookie = this.cookieHeader();
+    // Kolo 3 (K5 CSRF): klient emuluje prohlížeč — fetch v prohlížeči posílá u stavových metod
+    // vždy Origin. Skript ho může přepsat (K5 posílá cizí Origin záměrně).
+    if (!['GET', 'HEAD'].includes(method) && !Object.keys(headers).some((k) => k.toLowerCase() === 'origin')) h.origin = new URL(BASE).origin;
     const res = await fetch(BASE + path, { method, headers: h, body: body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body), redirect: 'manual', signal: AbortSignal.timeout(Number(process.env.AUDIT_HTTP_TIMEOUT ?? 60000)) });
     for (const c of res.headers.getSetCookie?.() ?? []) {
       const [kv] = c.split(';'); const i = kv.indexOf('=');

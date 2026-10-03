@@ -1,5 +1,6 @@
 import { jwtVerify } from 'jose';
 import { isAccessTokenPayload } from '@/lib/security/token-type';
+import { hasAuthCookie, isCsrfExemptPath, isSameOriginRequest, isStateChangingMethod } from '@/lib/security/csrf';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   detectLocale,
@@ -112,6 +113,19 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     requestHeaders.delete('x-vercel-cron');
     const passThrough = (): NextResponse =>
       NextResponse.next({ request: { headers: requestHeaders } });
+
+    // FIX K5 (kolo 3): CSRF — stavový požadavek autentizovaný cookie musí přijít z vlastního
+    // webu (Origin, jinak Referer); cizí / chybějící → 403. Výjimky a důvody: lib/security/csrf.ts.
+    // Platný Bearer token = API klient (hlavičku cizí stránka bez CORS neposlat neumí) → bez kontroly;
+    // neplatný Bearer nic neomlouvá (middleware by spadl zpět na cookie).
+    if (isStateChangingMethod(request.method) && !isCsrfExemptPath(pathname) && hasAuthCookie(request)) {
+      const authz = request.headers.get('authorization');
+      const bearerTok = authz && authz.startsWith('Bearer ') ? authz.slice(7) : null;
+      const bearerOk = bearerTok ? (await verifyTokenEdge(bearerTok)) !== null : false;
+      if (!bearerOk && !isSameOriginRequest(request)) {
+        return jsonResponse({ error: 'CSRF_ORIGIN_MISMATCH', message: 'Požadavek nepochází z tohoto webu.' }, 403);
+      }
+    }
 
     if (pathname.startsWith(API_AUTH_PREFIX)) {
       return passThrough();
