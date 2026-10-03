@@ -102,6 +102,9 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     requestHeaders.delete('x-user-id');
     requestHeaders.delete('x-is-admin');
     requestHeaders.delete('x-is-platform-admin');
+    // Kolo 2: x-vercel-cron fungovalo jako „systémová role" (cron routy ho braly
+    // jako autentizaci) — klient ho podvrhne stejně snadno jako x-user-id.
+    requestHeaders.delete('x-vercel-cron');
     const passThrough = (): NextResponse =>
       NextResponse.next({ request: { headers: requestHeaders } });
 

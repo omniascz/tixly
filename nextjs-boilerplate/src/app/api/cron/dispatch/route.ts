@@ -82,13 +82,10 @@ export async function GET(req: NextRequest): Promise<Response> {
     if (authHeader !== expected) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-  } else if (!req.headers.get('x-vercel-cron')) {
-    // Žádný CRON_SECRET v env + není to Vercel cron → odmítni
-    // (dev test může volat ručně přes ?job=X bez Vercel headers; pak musí mít token)
-    return NextResponse.json(
-      { error: 'CRON_SECRET not configured and not a Vercel cron call' },
-      { status: 403 },
-    );
+  } else {
+    // Kolo 2: bez CRON_SECRET fail-closed. Dřív stačila hlavička x-vercel-cron,
+    // kterou pošle kdokoli (middleware ji teď navíc zahazuje).
+    return NextResponse.json({ error: 'CRON_SECRET not configured' }, { status: 403 });
   }
 
   const job = req.nextUrl.searchParams.get('job');
