@@ -13,6 +13,13 @@ const dataQuery = vi.fn();
 const mockClient = {
   query: vi.fn((sql: string, params?: unknown[]) => {
     const s = String(sql).trim().toUpperCase();
+    // rls-pool (kolo 2, R-56): kontext se nastavuje transakčně lokálně v JEDNOM round-tripu
+    // `BEGIN; SELECT set_config(..., true)...; SELECT current_setting(...)` a zpětně ověřuje.
+    // Je to řídicí příkaz jako BEGIN — mock ho „provede" ozvěnou nastavených hodnot.
+    if (s.startsWith('BEGIN') && s.includes('SET_CONFIG(')) {
+      const vals = [...String(sql).matchAll(/set_config\('[^']*', '((?:[^']|'')*)', true\)/g)].map((m) => m[1].replace(/''/g, "'"));
+      return Promise.resolve([{ rows: [] }, { rows: [{}] }, { rows: [Object.fromEntries(vals.map((v, i) => [`r${i}`, v]))] }]);
+    }
     if (s.startsWith('SET') || s.startsWith('RESET') || s === 'BEGIN' || s === 'COMMIT' || s === 'ROLLBACK') {
       return Promise.resolve({ rows: [] });
     }

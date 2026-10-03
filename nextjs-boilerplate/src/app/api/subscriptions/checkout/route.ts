@@ -120,17 +120,13 @@ export async function POST(req: NextRequest): Promise<Response> {
     // 3. Resolve user
     let userId = headerUserId;
     if (!userId) {
-      // Guest signup — vytvoř/najdi podle email
-      const userRes = await client.query<{ id: string }>(
-        `INSERT INTO identity.users (email, name, phone, password_hash)
-         VALUES ($1, $2, $3, '!guest')
-         ON CONFLICT (email)
-           DO UPDATE SET name = COALESCE(EXCLUDED.name, identity.users.name),
-                         phone = COALESCE(EXCLUDED.phone, identity.users.phone)
-         RETURNING id`,
-        [d.buyerEmail.toLowerCase(), d.buyerName, d.buyerPhone ?? null],
-      );
-      userId = userRes.rows[0].id;
+      // Guest signup — vytvoř/najdi podle e-mailu sdíleným helperem.
+      // Kolo 2 / S8: dřív `ON CONFLICT (email)` — unikátní index na e-mail je ale PARCIÁLNÍ
+      // (WHERE anonymized_at IS NULL), takže Postgres nenašel odpovídající constraint → 500
+      // u KAŽDÉHO checkoutu. Navíc DO UPDATE z anonymního požadavku přepisoval jméno/telefon
+      // existujícího účtu. Telefon kupce zůstává na holderu (holder_phone).
+      const { createOrGetGuestUser } = await import('@/lib/identity/guest-user');
+      userId = await createOrGetGuestUser(client, { email: d.buyerEmail, name: d.buyerName });
     }
 
     // 4. Valid until — konec sezóny (heuristika: 12 měsíců od sale_start)
