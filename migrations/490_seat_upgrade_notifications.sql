@@ -27,5 +27,7 @@ CREATE POLICY p_seat_upgrade_notifications_svc ON orders.seat_upgrade_notificati
   WITH CHECK (public.app_is_platform_admin() OR public.app_is_service());
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON orders.seat_upgrade_notifications TO tixly_app;
+-- ALTER DEFAULT PRIVILEGES dává novým tabulkám i TRUNCATE, který RLS obchází (kontrola 3B).
+REVOKE TRUNCATE ON orders.seat_upgrade_notifications FROM tixly_app;
 
 COMMIT;
