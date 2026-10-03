@@ -1,0 +1,127 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22m[2mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22m[2m2 objednávky: brána zavolána 1× u každé, obě refunded, lístky zneplatněny[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22m[2mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22m[2m2 objednávky: brána zavolána 1× u každé, obě refunded, lístky zneplatněny[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22m[2mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22m[2mchyba brány u jedné: ta zůstane refund_failed s platnými lístky a výsledek hlásí chybu[22m[39m
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22m[2mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22m[2mchyba brány u jedné: ta zůstane refund_failed s platnými lístky a výsledek hlásí chybu[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [33m❯[39m tests/fix-r6-bulk-refund-gateway.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 4903[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22m2 objednávky: brána zavolána 1× u každé, obě refunded, lístky zneplatněny[39m
+[31m     → brána u A {"processed":2,"refundedCount":2,"alreadyRefundedCount":0,"errorCount":0,"totalRefundedHalire":60000,"outcomes":[{"orderId":"ebfd3e92-e7b9-4ba3-b603-64c647b512f5","status":"refunded","amountHalire":30000},{"orderId":"6a8b9335-4495-4851-8f65-51ce25139735","status":"refunded","amountHalire":30000}]}: expected +0 to be 1 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22mchyba brány u jedné: ta zůstane refund_failed s platnými lístky a výsledek hlásí chybu[39m
+[31m     → expected 'refunded' to be 'refund_failed' // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22m2 objednávky: brána zavolána 1× u každé, obě refunded, lístky zneplatněny
+[31m[1mAssertionError[22m: brána u A {"processed":2,"refundedCount":2,"alreadyRefundedCount":0,"errorCount":0,"totalRefundedHalire":60000,"outcomes":[{"orderId":"ebfd3e92-e7b9-4ba3-b603-64c647b512f5","status":"refunded","amountHalire":30000},{"orderId":"6a8b9335-4495-4851-8f65-51ce25139735","status":"refunded","amountHalire":30000}]}: expected +0 to be 1 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/fix-r6-bulk-refund-gateway.live.test.ts:[2m78:81[22m[39m
+    [90m 76| [39m    [35mconst[39m body [33m=[39m [35mawait[39m r[33m.[39m[34mtext[39m()[33m;[39m
+    [90m 77| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m body)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m 78| [39m    [34mexpect[39m([35mawait[39m [34mrefundCallCount[39m(a[33m.[39mpaymentId) [33m-[39m before[[34m0[39m][33m,[39m [32m`brána u A [39m…
+    [90m   | [39m                                                                                [31m^[39m
+    [90m 79| [39m    [34mexpect[39m([35mawait[39m [34mrefundCallCount[39m(b[33m.[39mpaymentId) [33m-[39m before[[34m1[39m][33m,[39m [32m'brána u B'[39m…
+    [90m 80| [39m    [34mexpect[39m([35mawait[39m [34mstatus[39m(a[33m.[39morderId))[33m.[39m[34mtoBe[39m([32m'refunded'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22mchyba brány u jedné: ta zůstane refund_failed s platnými lístky a výsledek hlásí chybu
+[31m[1mAssertionError[22m: expected 'refunded' to be 'refund_failed' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- refund_failed[39m
+[31m+ refunded[39m
+
+[36m [2m❯[22m tests/fix-r6-bulk-refund-gateway.live.test.ts:[2m93:39[22m[39m
+    [90m 91| [39m    [35mconst[39m j [33m=[39m ([35mawait[39m r[33m.[39m[34mjson[39m()) [35mas[39m { outcomes[33m:[39m { orderId[33m:[39m string[33m;[39m statu…
+    [90m 92| [39m    [34mexpect[39m([35mawait[39m [34mstatus[39m(ok[33m.[39morderId))[33m.[39m[34mtoBe[39m([32m'refunded'[39m)[33m;[39m
+    [90m 93| [39m    [34mexpect[39m([35mawait[39m [34mstatus[39m(bad[33m.[39morderId))[33m.[39m[34mtoBe[39m([32m'refund_failed'[39m)[33m;[39m
+    [90m   | [39m                                      [31m^[39m
+    [90m 94| [39m    [34mexpect[39m([35mawait[39m [34mvalid[39m(bad[33m.[39morderId)[33m,[39m [32m'lístky při selhání brány zůstáva[39m…
+    [90m 95| [39m    [34mexpect[39m(j[33m.[39moutcomes[33m.[39m[34mfind[39m((o) [33m=>[39m o[33m.[39morderId [33m===[39m bad[33m.[39morderId)[33m?.[39mstatus)[33m.[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 01:08:09
+[2m   Duration [22m 5.45s[2m (transform 392ms, setup 0ms, collect 88ms, tests 4.90s, environment 0ms, prepare 81ms)[22m
+
