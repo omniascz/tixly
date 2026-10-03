@@ -1,0 +1,53 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r3-x7-invoice-number.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 489[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-x7-invoice-number.live.test.ts[2m > [22mKrok 2 (kolo 3) — X7: číslo faktury unikátní per pořadatel[2m > [22mprvní faktura dvou pořadatelů ve stejném roce → obě projdou se stejným číslem řady[39m
+[31m     → duplicate key value violates unique constraint "invoices_invoice_number_key"[39m
+[31m   [33m❯[31m tests/fix-r3-x7-invoice-number.live.test.ts[2m > [22mKrok 2 (kolo 3) — X7: číslo faktury unikátní per pořadatel[2m > [22mduplicitní číslo u TÉHOŽ pořadatele → DB odmítne (23505)[39m
+[31m     → duplicate key value violates unique constraint "invoices_invoice_number_key"[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-x7-invoice-number.live.test.ts[2m > [22mKrok 2 (kolo 3) — X7: číslo faktury unikátní per pořadatel[2m > [22mprvní faktura dvou pořadatelů ve stejném roce → obě projdou se stejným číslem řady
+[31m[1merror[22m: duplicate key value violates unique constraint "invoices_invoice_number_key"[39m
+[90m [2m❯[22m ../../tixly-audit/nextjs-boilerplate/node_modules/pg/lib/client.js:[2m631:17[22m[39m
+[36m [2m❯[22m RlsAwarePool.query src/lib/db/rls-pool.ts:[2m275:22[22m[39m
+    [90m273| [39m        [35mawait[39m client[33m.[39m[34mquery[39m([32m`SET LOCAL app.role = '[39m[36m${[39mctx[33m.[39mrole[36m}[39m[32m'`[39m)[33m;[39m
+    [90m274| [39m      }
+    [90m275| [39m      [35mconst[39m result [33m=[39m [35mawait[39m client[33m.[39mquery[33m<[39m[33mR[39m[33m>[39m(text [35mas[39m string[33m,[39m params)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m276| [39m      [35mawait[39m client[33m.[39m[34mquery[39m([32m'COMMIT'[39m)[33m;[39m
+    [90m277| [39m      [35mreturn[39m result[33m;[39m
+[90m [2m❯[22m src/app/api/buyer/orders/[orderId]/invoice/route.ts:[2m120:24[22m[39m
+[90m [2m❯[22m src/app/api/buyer/orders/[orderId]/invoice/route.ts:[2m87:21[22m[39m
+[90m [2m❯[22m tests/fix-r3-x7-invoice-number.live.test.ts:[2m46:16[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 187, severity: 'ERROR', code: '23505', detail: undefined, hint: undefined, position: undefined, internalPosition: undefined, internalQuery: undefined, where: undefined, schema: 'orders', table: 'invoices', column: undefined, dataType: undefined, constraint: 'invoices_invoice_number_key', file: 'nbtinsert.c', line: '666', routine: '_bt_check_unique' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-x7-invoice-number.live.test.ts[2m > [22mKrok 2 (kolo 3) — X7: číslo faktury unikátní per pořadatel[2m > [22mduplicitní číslo u TÉHOŽ pořadatele → DB odmítne (23505)
+[31m[1merror[22m: duplicate key value violates unique constraint "invoices_invoice_number_key"[39m
+[90m [2m❯[22m ../../tixly-audit/nextjs-boilerplate/node_modules/pg/lib/client.js:[2m631:17[22m[39m
+[36m [2m❯[22m RlsAwarePool.query src/lib/db/rls-pool.ts:[2m275:22[22m[39m
+    [90m273| [39m        [35mawait[39m client[33m.[39m[34mquery[39m([32m`SET LOCAL app.role = '[39m[36m${[39mctx[33m.[39mrole[36m}[39m[32m'`[39m)[33m;[39m
+    [90m274| [39m      }
+    [90m275| [39m      [35mconst[39m result [33m=[39m [35mawait[39m client[33m.[39mquery[33m<[39m[33mR[39m[33m>[39m(text [35mas[39m string[33m,[39m params)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m276| [39m      [35mawait[39m client[33m.[39m[34mquery[39m([32m'COMMIT'[39m)[33m;[39m
+    [90m277| [39m      [35mreturn[39m result[33m;[39m
+[90m [2m❯[22m src/app/api/buyer/orders/[orderId]/invoice/route.ts:[2m120:24[22m[39m
+[90m [2m❯[22m src/app/api/buyer/orders/[orderId]/invoice/route.ts:[2m87:21[22m[39m
+[90m [2m❯[22m tests/fix-r3-x7-invoice-number.live.test.ts:[2m56:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 187, severity: 'ERROR', code: '23505', detail: undefined, hint: undefined, position: undefined, internalPosition: undefined, internalQuery: undefined, where: undefined, schema: 'orders', table: 'invoices', column: undefined, dataType: undefined, constraint: 'invoices_invoice_number_key', file: 'nbtinsert.c', line: '666', routine: '_bt_check_unique' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 13:22:20
+[2m   Duration [22m 1.01s[2m (transform 126ms, setup 0ms, collect 121ms, tests 489ms, environment 0ms, prepare 266ms)[22m
+
