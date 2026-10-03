@@ -558,7 +558,7 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/buyer/cross-passes/[membershipId]/wallet/apple	GET	kupec	handler: x-user-id (401)	optional	buyer
 /api/buyer/cross-passes/[membershipId]/wallet/pdf	GET	kupec	handler: x-user-id (401)	optional	buyer
 /api/buyer/cross-passes/my-memberships	GET	kupec	handler: x-user-id (401)	optional	buyer
-/api/buyer/cross-passes/purchase	POST	veřejná (zápis hosta)	validace vstupu / rate limit	optional	buyer
+/api/buyer/cross-passes/purchase	POST	vypnuto (demo)	demo cesta vypnutá (kolo 6, hodnota bez platby)	optional	demo-off+buyer
 /api/buyer/discover/events	GET	kupec	handler: x-user-id (401)	optional	buyer
 /api/buyer/fan-bonus	GET	kupec	handler: x-user-id (401)	optional	buyer
 /api/buyer/fan-profile	GET	kupec	handler: x-user-id (401)	optional	buyer
@@ -630,8 +630,8 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/buyer/subscriptions/[id]/pick	POST	kupec	handler: x-user-id (401)	optional	buyer
 /api/buyer/subscriptions/[id]/refund-prorata	POST	kupec	handler: x-user-id (401)	optional	buyer
 /api/buyer/subscriptions/[id]	DELETE	kupec	handler: x-user-id (401)	optional	buyer
-/api/buyer/subscriptions	GET	kupec	handler: x-user-id (401)	optional	buyer
-/api/buyer/subscriptions	POST	kupec	handler: x-user-id (401)	optional	buyer
+/api/buyer/subscriptions	GET	kupec	runAsUser (vlastní předplatná)	optional	demo-off+buyer
+/api/buyer/subscriptions	POST	vypnuto (demo)	demo cesta vypnutá (kolo 6, hodnota bez platby)	optional	demo-off+buyer
 /api/buyer/tickets/[ticketId]/attendee	GET	kupec	handler: x-user-id (401)	optional	buyer
 /api/buyer/tickets/[ticketId]/attendee	PATCH	kupec	handler: x-user-id (401)	optional	buyer
 /api/buyer/tickets/[ticketId]/bind-device	DELETE	kupec	handler: x-user-id (401)	optional	buyer
@@ -969,7 +969,7 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/subscriptions/checkout	POST	veřejná (zápis hosta)	validace vstupu / rate limit	optional	buyer
 /api/subscriptions/packages/[slug]	GET	veřejná	bez přihlášení (záměr)	optional	
 /api/subscriptions/plans	GET	veřejná (GET)	veřejné čtení (prefix middlewaru)	public-get	
-/api/subscriptions/subscribe	POST	veřejná (zápis hosta)	validace vstupu / rate limit	optional	buyer
+/api/subscriptions/subscribe	POST	vypnuto (demo)	demo cesta vypnutá (kolo 6, hodnota bez platby)	optional	demo-off+buyer
 /api/support/chat	POST	veřejná (zápis hosta)	validace vstupu / rate limit	public-prefix	
 /api/tax/vies-check	GET	veřejná	bez přihlášení (záměr)	unlisted	
 /api/team/accept	POST	veřejná (capability)	token pozvánky	public-prefix	

@@ -5593,10 +5593,10 @@
   "route": "/api/buyer/cross-passes/purchase",
   "method": "POST",
   "zone": "optional",
-  "caller": "veřejná (zápis hosta)",
-  "protection": "validace vstupu / rate limit",
-  "guards": "buyer",
-  "reason": "nákup hosta (e-mail kupce)",
+  "caller": "vypnuto (demo)",
+  "protection": "demo cesta vypnutá (kolo 6, hodnota bez platby)",
+  "guards": "demo-off+buyer",
+  "reason": "aktivace bez platebního toku — vypnuto do napojení na bránu",
   "isPublic": true
  },
  {
@@ -6314,20 +6314,20 @@
   "method": "GET",
   "zone": "optional",
   "caller": "kupec",
-  "protection": "handler: x-user-id (401)",
-  "guards": "buyer",
-  "reason": "",
+  "protection": "runAsUser (vlastní předplatná)",
+  "guards": "demo-off+buyer",
+  "reason": "GET v souboru s vypnutým POST — guard platí jen pro POST",
   "isPublic": false
  },
  {
   "route": "/api/buyer/subscriptions",
   "method": "POST",
   "zone": "optional",
-  "caller": "kupec",
-  "protection": "handler: x-user-id (401)",
-  "guards": "buyer",
-  "reason": "",
-  "isPublic": false
+  "caller": "vypnuto (demo)",
+  "protection": "demo cesta vypnutá (kolo 6, hodnota bez platby)",
+  "guards": "demo-off+buyer",
+  "reason": "aktivace bez platebního toku — vypnuto do napojení na bránu",
+  "isPublic": true
  },
  {
   "route": "/api/buyer/tickets/[ticketId]/attendee",
@@ -9703,10 +9703,10 @@
   "route": "/api/subscriptions/subscribe",
   "method": "POST",
   "zone": "optional",
-  "caller": "veřejná (zápis hosta)",
-  "protection": "validace vstupu / rate limit",
-  "guards": "buyer",
-  "reason": "předplatné hosta (e-mail kupce)",
+  "caller": "vypnuto (demo)",
+  "protection": "demo cesta vypnutá (kolo 6, hodnota bez platby)",
+  "guards": "demo-off+buyer",
+  "reason": "aktivace bez platebního toku — vypnuto do napojení na bránu",
   "isPublic": true
  },
  {

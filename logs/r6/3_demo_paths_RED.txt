@@ -1,0 +1,76 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r6-demo-paths-value.live.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[33m 347[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r6-demo-paths-value.live.test.ts[2m > [22mKolo 6 — demo cesty k hodnotě bez platby jsou vypnuté[2m > [22mcross-pass purchase anonymně: 404 a žádné aktivní členství[39m
+[31m     → {"ok":true,"membershipId":"5e3e99fe-02dd-4f93-bb84-fd07c11ce5cd","pricePaidHalire":150000}: expected 201 to be 404 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r6-demo-paths-value.live.test.ts[2m > [22mKolo 6 — demo cesty k hodnotě bez platby jsou vypnuté[2m > [22msubscriptions/subscribe jako host: 404 a žádné aktivní předplatné[39m
+[31m     → {"ok":true,"subscriptionId":"45b1715d-b291-45b0-8864-0639903a0cc4","currentPeriodEnd":"2026-11-03T23:55:09.532Z"}: expected 201 to be 404 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r6-demo-paths-value.live.test.ts[2m > [22mKolo 6 — demo cesty k hodnotě bez platby jsou vypnuté[2m > [22mbuyer/subscriptions POST přihlášeně: 404 a žádné aktivní předplatné[39m
+[31m     → expected '{"error":"PLAN_NOT_FOUND"}' to be '{"error":"NOT_FOUND"}' // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r6-demo-paths-value.live.test.ts[2m > [22mKolo 6 — demo cesty k hodnotě bez platby jsou vypnuté[2m > [22mcross-pass purchase anonymně: 404 a žádné aktivní členství
+[31m[1mAssertionError[22m: {"ok":true,"membershipId":"5e3e99fe-02dd-4f93-bb84-fd07c11ce5cd","pricePaidHalire":150000}: expected 201 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 201[39m
+
+[36m [2m❯[22m tests/fix-r6-demo-paths-value.live.test.ts:[2m66:30[22m[39m
+    [90m 64| [39m    [35mconst[39m email [33m=[39m [32m`xpass-[39m[36m${[39m[33mDate[39m[33m.[39m[34mnow[39m()[36m}[39m[32m@fix.test`[39m[33m;[39m
+    [90m 65| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mpost[39m([32m'/api/buyer/cross-passes/purchase'[39m[33m,[39m [32m'xpass'[39m[33m,[39m …
+    [90m 66| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m404[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m 67| [39m    [90m// přesně odpověď demo-guardu — 404 z jiné příčiny (např. PLAN_NOT[39m…
+    [90m 68| [39m    [34mexpect[39m(r[33m.[39mbody)[33m.[39m[34mtoBe[39m([32m'{"error":"NOT_FOUND"}'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r6-demo-paths-value.live.test.ts[2m > [22mKolo 6 — demo cesty k hodnotě bez platby jsou vypnuté[2m > [22msubscriptions/subscribe jako host: 404 a žádné aktivní předplatné
+[31m[1mAssertionError[22m: {"ok":true,"subscriptionId":"45b1715d-b291-45b0-8864-0639903a0cc4","currentPeriodEnd":"2026-11-03T23:55:09.532Z"}: expected 201 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 201[39m
+
+[36m [2m❯[22m tests/fix-r6-demo-paths-value.live.test.ts:[2m76:30[22m[39m
+    [90m 74| [39m    [35mconst[39m email [33m=[39m [32m`sub-[39m[36m${[39m[33mDate[39m[33m.[39m[34mnow[39m()[36m}[39m[32m@fix.test`[39m[33m;[39m
+    [90m 75| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mpost[39m([32m'/api/subscriptions/subscribe'[39m[33m,[39m [32m'subscribe'[39m[33m,[39m …
+    [90m 76| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m404[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m 77| [39m    [90m// přesně odpověď demo-guardu — 404 z jiné příčiny (např. PLAN_NOT[39m…
+    [90m 78| [39m    [34mexpect[39m(r[33m.[39mbody)[33m.[39m[34mtoBe[39m([32m'{"error":"NOT_FOUND"}'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r6-demo-paths-value.live.test.ts[2m > [22mKolo 6 — demo cesty k hodnotě bez platby jsou vypnuté[2m > [22mbuyer/subscriptions POST přihlášeně: 404 a žádné aktivní předplatné
+[31m[1mAssertionError[22m: expected '{"error":"PLAN_NOT_FOUND"}' to be '{"error":"NOT_FOUND"}' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- {"error":"NOT_FOUND"}[39m
+[31m+ {"error":"PLAN_NOT_FOUND"}[39m
+
+[36m [2m❯[22m tests/fix-r6-demo-paths-value.live.test.ts:[2m88:20[22m[39m
+    [90m 86| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m404[39m)[33m;[39m
+    [90m 87| [39m    [90m// přesně odpověď demo-guardu — 404 z jiné příčiny (např. PLAN_NOT[39m…
+    [90m 88| [39m    [34mexpect[39m(r[33m.[39mbody)[33m.[39m[34mtoBe[39m([32m'{"error":"NOT_FOUND"}'[39m)[33m;[39m
+    [90m   | [39m                   [31m^[39m
+    [90m 89| [39m    [35mconst[39m n [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39mquery[33m<[39m{ n[33m:[39m number }[33m>[39m([32m`SELECT count(*):[39m…
+    [90m 90| [39m    [34mexpect[39m(n)[33m.[39m[34mtoBe[39m([34m0[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[90m (3)[39m
+[2m   Start at [22m 00:55:08
+[2m   Duration [22m 679ms[2m (transform 134ms, setup 0ms, collect 141ms, tests 347ms, environment 0ms, prepare 72ms)[22m
+
