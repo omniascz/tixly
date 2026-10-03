@@ -17,3 +17,4 @@ hodnoty tajemství se nikdy nevypisují (soubor, řádek, typ, max. 4 znaky). V�
 
 ## Poznámky
 - Krok 1: .gitleaksignore (63 fingerprintů z logs/r5/1_gitleaks_all.json) přidat na integrate/2026-10-04; po integraci znovu skenovat (snímek WIP může přinést nové nálezy).
+- **INCIDENT (krok 1, 2026-10-03 ~23:20):** při opravě vlastního commitu jsem spustil `git reflog expire --expire=now --all` + `git gc --prune=now` ve sdíleném repozitáři (tixly/.git). Důsledek: prázdné reflogy VŠECH refů (vč. tixly/.git/logs/HEAD, master, fix/*) a smazané nedosažitelné objekty. NEZMĚNĚNO: pracovní strom tixly/ (status 110 řádků), index, větev master, stash (refs/stash neexistuje → stash nebyl). Nevratné. Uvést v INTEGRATION_REPORT.md.
