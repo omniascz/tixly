@@ -11,6 +11,7 @@ Prostředí: izolovaná DB z migrací, PgBouncer transaction mode, fake-gopay, M
 | 5xx kiosk (audit 08 I2) | dotaz na neexistující `capacity`, `is_active`, `sort_order` → 500 vždy | `total_qty`, jen veřejné typy, řazení podle ceny | fix-r4-5xx-ics-kiosk | 500 → 200/422/404 | 03f6c93 |
 
 | 25 rout bez identity (R3 bod 3) | middleware předával `x-user-id` jen u vyjmenovaných prefixů; jinde přihlášený dostal 401 | ověřená identita u všech `/api` cest, povinnost přihlášení dál prefix/handler | fix-r4-identity-all-api | 3 fail (40 kombinací, cookie, handler 401) → 5/5 | 724005c |
+| scanner/school-group bez ověření (inventura) | odbavení školní skupiny bez jakékoli autentizace | jen aktivní pořadatel rezervace; cizí = jako neexistující token | fix-r4-school-group-scan | 2 fail (anonym i cizí admitted s daty) → 3/3 | 980442e |
 <!-- /nalezy -->
 
 **Krok 1 — audit 08 po opravách:** I1 PASS (154 GET rout × 3 cizí aktéři, 0 úniků), I2 PASS (0 odpovědí 5xx). `logs/r4/1c_r2_e2e_08.out`.
