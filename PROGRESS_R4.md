@@ -10,7 +10,7 @@ Infrastruktura jako v kole 3 (viz PROGRESS_R3.md). Výstupy: logs/r4/.
 |---|---|---|
 | 1a S2 upgrade únik | HOTOVO | 7b481c1 |
 | 1b 5xx calendar.ics, kiosk | HOTOVO | 03f6c93 |
-| 1c audit 08 bez FAIL | čeká | |
+| 1c audit 08 bez FAIL | HOTOVO — 2/0, 154 rout, 0 úniků, 0×5xx (logs/r4/1c_*) | |
 | 2 routy bez identity + tabulka všech rout + generovaný test | čeká | |
 | 3a seat-upgrade-notify | čeká | |
 | 3b RLS politiky true | čeká | |
@@ -25,3 +25,4 @@ Infrastruktura jako v kole 3 (viz PROGRESS_R3.md). Výstupy: logs/r4/.
 | Závěr | čeká | |
 
 ## Poznámky
+- Krok 2 rozpracováno: klasifikátor audit/r4/classify-routes.mjs (984 routa+metoda); nález scanner/school-group bez ověření obsluhy.
