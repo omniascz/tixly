@@ -28,3 +28,7 @@ Před opravou: 05 C1a/C1b/C2a/C2c FAIL = REGRESE kola 2 (sloučení poolů v R-5
 Po opravě + 2 opravách skriptů (V12 sloupec, C2c prefix): 01 26/0, 02 36/0, 03 21/3 (R5,R6,V9b), 04 13/1 (X6),
 05 8/0, 06 17/4 (K3a,K4d,K5,K8a), 09 12/0, 10 7/0, 11 8/0, 12 5/0. Live 94/0 (+87 skip Neon).
 P1, P5d, C2b, P13, V12, D3a PASS; C1a, C2a PASS.
+
+## Krok 2 — průběh
+- R5 HOTOVO f800b76 (webhook REFUNDED → executeOrderRefund bez brány; test 3/3; regrese 37/37)
+- R6 HOTOVO d58c3ef (reacquire-capacity / auto-refund + e-mail; test 3/3; regrese 52/52)
