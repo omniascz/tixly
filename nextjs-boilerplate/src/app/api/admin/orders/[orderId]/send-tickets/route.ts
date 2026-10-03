@@ -16,7 +16,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { runAsPromoter } from '@/lib/admin-auth';
+import { runAsActivePromoter } from '@/lib/admin-auth';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { sendOrderTickets } from '@/lib/email/send-order-tickets';
 
@@ -31,7 +31,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { orderId: string } },
 ): Promise<Response> {
-  return runAsPromoter(req, async (ctx) => {
+  // Kolo 5: jen AKTIVNÍ pořadatel — routa rozesílá vstupenky (i na toOverride), pozastavený je nesmí vyvést.
+  return runAsActivePromoter(req, async (ctx) => {
     if (!/^[0-9a-f-]{36}$/i.test(params.orderId)) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
