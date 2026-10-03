@@ -1,0 +1,47 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r3-pool-nested.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 8373[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-pool-nested.live.test.ts[2m > [22mKrok 0 (kolo 3) — vnořené výpůjčky connect() + query() pod souběhem[2m > [22m12 souběžných requestů (pool 4), každý drží transakci a vnořeně volá db().query() → 0 chyb, kontext těsný[39m
+[31m     → timeout exceeded when trying to connect | timeout exceeded when trying to connect | timeout exceeded when trying to connect: expected [ …(12) ] to deeply equal [][39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-pool-nested.live.test.ts[2m > [22mKrok 0 (kolo 3) — vnořené výpůjčky connect() + query() pod souběhem[2m > [22m12 souběžných requestů (pool 4), každý drží transakci a vnořeně volá db().query() → 0 chyb, kontext těsný
+[31m[1mAssertionError[22m: timeout exceeded when trying to connect | timeout exceeded when trying to connect | timeout exceeded when trying to connect: expected [ …(12) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [][39m
+[31m+ Array [[39m
+[31m+   "timeout exceeded when trying to connect",[39m
+[31m+   "timeout exceeded when trying to connect",[39m
+[31m+   "timeout exceeded when trying to connect",[39m
+[31m+   "timeout exceeded when trying to connect",[39m
+[31m+   "timeout exceeded when trying to connect",[39m
+[31m+   "timeout exceeded when trying to connect",[39m
+[31m+   "timeout exceeded when trying to connect",[39m
+[31m+   "timeout exceeded when trying to connect",[39m
+[31m+   "timeout exceeded when trying to connect",[39m
+[31m+   "timeout exceeded when trying to connect",[39m
+[31m+   "timeout exceeded when trying to connect",[39m
+[31m+   "timeout exceeded when trying to connect",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/fix-r3-pool-nested.live.test.ts:[2m56:52[22m[39m
+    [90m 54| [39m      } [35mcatch[39m (e) { errors[33m.[39m[34mpush[39m((e [35mas[39m [33mError[39m)[33m.[39mmessage)[33m;[39m }
+    [90m 55| [39m    })))[33m;[39m
+    [90m 56| [39m    [34mexpect[39m(errors[33m,[39m errors[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m3[39m)[33m.[39m[34mjoin[39m([32m' | '[39m))[33m.[39m[34mtoEqual[39m([])[33m;[39m
+    [90m   | [39m                                                   [31m^[39m
+    [90m 57| [39m    [34mexpect[39m(bad)[33m.[39m[34mtoBe[39m([34m0[39m)[33m;[39m
+    [90m 58| [39m  }[33m,[39m [34m60_000[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 12:44:51
+[2m   Duration [22m 20.00s[2m (transform 136ms, setup 0ms, collect 199ms, tests 8.37s, environment 0ms, prepare 10.98s)[22m
+

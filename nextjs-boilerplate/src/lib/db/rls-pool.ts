@@ -42,6 +42,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const ROLE_RE = /^[a-z_]+$/; // allowlist tvar — SET LOCAL interpoluje string, nutná validace
 
 let pool: Pool | null = null;
+let connectPool: Pool | null = null;
 
 /**
  * R-56 (kolo 2, krok 4): RLS kontext platí VÝHRADNĚ v rámci transakce, ve všech cestách
@@ -53,11 +54,32 @@ let pool: Pool | null = null;
  * přes transakční pooler a dotazy volajícího dorazily na backend s CIZÍM kontextem
  * (audit V9: 40/60; test kola 2: 173/200 resp. 193/200 požadavků vidělo cizí data).
  *
- * Teď: obě cesty používají JEDEN pool a GUC se nastavují `set_config(..., true)` uvnitř
+ * Teď: GUC se v obou cestách nastavují `set_config(..., true)` uvnitř
  * transakce, ve které dotaz běží (u connect() hned po BEGIN volajícího; samostatné příkazy
  * mimo transakci se obalí implicitní transakcí). Po COMMIT/ROLLBACK kontext zaniká sám —
  * spojení vrácené do poolu (i backend v PgBounceru) žádný kontext nenese.
  */
+/**
+ * Kolo 3 (regrese kola 2): connect() má VLASTNÍ pool. Routy drží klienta z connect() v transakci
+ * a uvnitř volají db().query() — se sdíleným poolem si pod souběhem všichni drželi jedno spojení
+ * a čekali na druhé → deadlock „timeout exceeded when trying to connect" (audit E2E 05: 98/100 500).
+ * Oddělené pooly vnořené výpůjčky nezablokují. Bezpečnost R-56 nese transakčně lokální kontext,
+ * takže na URL nezáleží: DATABASE_URL_DIRECT se použije, je-li nastaven (šetří pooler), jinak
+ * DATABASE_URL — oba jsou bezpečné.
+ */
+function getConnectPool(): Pool {
+  if (!connectPool) {
+    connectPool = new Pool({
+      connectionString: process.env.DATABASE_URL_DIRECT || process.env.DATABASE_URL,
+      max: Number(process.env.PG_DIRECT_POOL_MAX ?? 4),
+      statement_timeout: Number(process.env.PG_STATEMENT_TIMEOUT_MS ?? 15000),
+      connectionTimeoutMillis: 8000,
+      idleTimeoutMillis: Number(process.env.PG_DIRECT_IDLE_TIMEOUT_MS ?? 10000),
+    });
+  }
+  return connectPool;
+}
+
 function getRawPool(): Pool {
   if (!pool) {
     pool = new Pool({
@@ -275,7 +297,7 @@ class RlsAwarePool {
    */
   async connect(): Promise<PoolClient> {
     const ctx = tenantStore.getStore();
-    const client = await getRawPool().connect();
+    const client = await getConnectPool().connect();
     type Q = PoolClient['query'];
     const holder = client as PoolClient & { [ORIG_QUERY]?: Q };
     // vždy začít z čistého pg query (i když předchozí držitel spojení měl wrapper)
@@ -337,7 +359,10 @@ class RlsAwarePool {
    * Pure pass-through pro existující code co `pool.end()` volá při shutdown.
    */
   async end(): Promise<void> {
-    if (pool) { const p = pool; pool = null; await p.end(); }
+    const konce: Array<Promise<void>> = [];
+    if (pool) { konce.push(pool.end()); pool = null; }
+    if (connectPool) { konce.push(connectPool.end()); connectPool = null; }
+    await Promise.all(konce);
   }
 }
 
