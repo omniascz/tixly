@@ -65,7 +65,13 @@ afterAll(async () => {
   await appPool.end();
 });
 
-describe('RLS cross-tenant isolation', () => {
+// Kolo 6: test potřebuje vývojovou DB s rolí tixly_rls_test (docker tixly-postgres :5433). V CI
+// (checks job bez DB) padal na ECONNREFUSED → běží jen s výslovnou konfigurací. Izolaci tenantů
+// v CI hlídá live sada (fix-r2-3b-tables-rls proti DB z migrací pod tixly_app) a RLS gate.
+const HAS_RLS_TEST_DB =
+  process.env.RLS_TENANT_DB === '1' || !!process.env.DATABASE_URL_SUPER || !!process.env.DATABASE_URL_OPS;
+
+describe.skipIf(!HAS_RLS_TEST_DB)('RLS cross-tenant isolation', () => {
   it('test setup: 2 promotéři dostupní', () => {
     expect(promoterA).toMatch(/^[0-9a-f-]{36}$/i);
     expect(promoterB).toMatch(/^[0-9a-f-]{36}$/i);
