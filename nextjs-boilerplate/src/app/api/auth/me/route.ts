@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
+import { isAccessTokenPayload } from '@/lib/security/token-type';
 
 /**
  * GET /api/auth/me — vrátí REÁLNÝ stav přihlášení z accessToken cookie.
@@ -19,7 +20,8 @@ export async function GET(request: NextRequest): Promise<Response> {
   } catch {
     return NextResponse.json({ user: null }, { status: 200 });
   }
-  if (typeof payload.sub !== 'string') {
+  // FIX K4d: jen access token (refresh token podstrčený do accessToken cookie neplatí).
+  if (typeof payload.sub !== 'string' || !isAccessTokenPayload(payload)) {
     return NextResponse.json({ user: null }, { status: 200 });
   }
   return NextResponse.json({

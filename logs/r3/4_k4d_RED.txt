@@ -1,0 +1,90 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r3-k4d-token-type.live.test.ts [2m ([22m[2m7 tests[22m [2m|[22m [31m4 failed[39m[2m)[22m[33m 313[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-k4d-token-type.live.test.ts[2m > [22mKrok 4 (kolo 3) — K4d: typ tokenu access vs refresh[2m > [22mrefresh token jako Bearer → 401[39m
+[31m     → expected 200 to be 401 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-k4d-token-type.live.test.ts[2m > [22mKrok 4 (kolo 3) — K4d: typ tokenu access vs refresh[2m > [22mrefresh token podstrčený do accessToken cookie → 401[39m
+[31m     → expected 200 to be 401 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-k4d-token-type.live.test.ts[2m > [22mKrok 4 (kolo 3) — K4d: typ tokenu access vs refresh[2m > [22m/api/auth/me s refresh tokenem v accessToken cookie → user: null[39m
+[31m     → expected { …(3) } to be null[39m
+[31m   [33m❯[31m tests/fix-r3-k4d-token-type.live.test.ts[2m > [22mKrok 4 (kolo 3) — K4d: typ tokenu access vs refresh[2m > [22mnový access token z /api/auth/refresh nese type=access[39m
+[31m     → expected undefined to be 'access' // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 4 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-k4d-token-type.live.test.ts[2m > [22mKrok 4 (kolo 3) — K4d: typ tokenu access vs refresh[2m > [22mrefresh token jako Bearer → 401
+[31m[1mAssertionError[22m: expected 200 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r3-k4d-token-type.live.test.ts:[2m45:77[22m[39m
+    [90m 43| [39m
+    [90m 44| [39m  [34mit[39m([32m'refresh token jako Bearer → 401'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 45| [39m    [34mexpect[39m(([35mawait[39m [34mbuyerGet[39m({ authorization[33m:[39m [32m`Bearer [39m[36m${[39mrefresh[36m}[39m[32m`[39m }))[33m.[39mst…
+    [90m   | [39m                                                                            [31m^[39m
+    [90m 46| [39m  })[33m;[39m
+    [90m 47| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-k4d-token-type.live.test.ts[2m > [22mKrok 4 (kolo 3) — K4d: typ tokenu access vs refresh[2m > [22mrefresh token podstrčený do accessToken cookie → 401
+[31m[1mAssertionError[22m: expected 200 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r3-k4d-token-type.live.test.ts:[2m49:75[22m[39m
+    [90m 47| [39m
+    [90m 48| [39m  [34mit[39m([32m'refresh token podstrčený do accessToken cookie → 401'[39m[33m,[39m [35masync[39m () …
+    [90m 49| [39m    [34mexpect[39m(([35mawait[39m [34mbuyerGet[39m({ cookie[33m:[39m [32m`accessToken=[39m[36m${[39mrefresh[36m}[39m[32m`[39m }))[33m.[39mstat…
+    [90m   | [39m                                                                          [31m^[39m
+    [90m 50| [39m  })[33m;[39m
+    [90m 51| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-k4d-token-type.live.test.ts[2m > [22mKrok 4 (kolo 3) — K4d: typ tokenu access vs refresh[2m > [22m/api/auth/me s refresh tokenem v accessToken cookie → user: null
+[31m[1mAssertionError[22m: expected { …(3) } to be null[39m
+[36m [2m❯[22m tests/fix-r3-k4d-token-type.live.test.ts:[2m56:58[22m[39m
+    [90m 54| [39m    [35mconst[39m { [33mNextRequest[39m } [33m=[39m [35mawait[39m [35mimport[39m([32m'next/server'[39m)[33m;[39m
+    [90m 55| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [33mGET[39m([35mnew[39m [33mNextRequest[39m([32m'http://localhost/api/auth/me'[39m…
+    [90m 56| [39m    [34mexpect[39m((([35mawait[39m r[33m.[39m[34mjson[39m()) [35mas[39m { user[33m:[39m unknown })[33m.[39muser)[33m.[39m[34mtoBeNull[39m()[33m;[39m
+    [90m   | [39m                                                         [31m^[39m
+    [90m 57| [39m    [35mconst[39m ok [33m=[39m [35mawait[39m [33mGET[39m([35mnew[39m [33mNextRequest[39m([32m'http://localhost/api/auth/me[39m…
+    [90m 58| [39m    [34mexpect[39m((([35mawait[39m ok[33m.[39m[34mjson[39m()) [35mas[39m { user[33m:[39m { id[33m:[39m string } })[33m.[39muser[33m.[39mid)[33m.[39m[34mto[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-k4d-token-type.live.test.ts[2m > [22mKrok 4 (kolo 3) — K4d: typ tokenu access vs refresh[2m > [22mnový access token z /api/auth/refresh nese type=access
+[31m[1mAssertionError[22m: expected undefined to be 'access' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"access"
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/fix-r3-k4d-token-type.live.test.ts:[2m87:26[22m[39m
+    [90m 85| [39m    [35mconst[39m tok [33m=[39m setCookie[33m.[39m[34msplit[39m([32m';'[39m)[[34m0[39m][33m.[39m[34mslice[39m([32m'accessToken='[39m[33m.[39mlength)[33m;[39m
+    [90m 86| [39m    [35mconst[39m payload [33m=[39m [33mJSON[39m[33m.[39m[34mparse[39m([33mBuffer[39m[33m.[39m[35mfrom[39m(tok[33m.[39m[34msplit[39m([32m'.'[39m)[[34m1[39m][33m,[39m [32m'base64u[39m…
+    [90m 87| [39m    [34mexpect[39m(payload[33m.[39mtype)[33m.[39m[34mtoBe[39m([32m'access'[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m 88| [39m  })[33m;[39m
+    [90m 89| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (7)[39m
+[2m   Start at [22m 13:43:07
+[2m   Duration [22m 976ms[2m (transform 158ms, setup 1ms, collect 164ms, tests 313ms, environment 0ms, prepare 301ms)[22m
+

@@ -1,4 +1,5 @@
 import { jwtVerify } from 'jose';
+import { isAccessTokenPayload } from '@/lib/security/token-type';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   detectLocale,
@@ -33,6 +34,8 @@ async function verifyTokenEdge(token: string): Promise<AccessPayload | null> {
     const { payload } = await jwtVerify(token, getSecret(), { algorithms: ['HS256'] });
     const sub = typeof payload.sub === 'string' ? payload.sub : null;
     if (!sub) return null;
+    // FIX K4d: přihlášení jen access tokenem (refresh token stejného klíče se odmítne).
+    if (!isAccessTokenPayload(payload)) return null;
     const roles = (payload as { roles?: JWTRoles }).roles ?? {};
     const isAdmin = roles.isPlatformAdmin === true;
     return { sub, isAdmin, roles };

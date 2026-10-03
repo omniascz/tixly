@@ -1,6 +1,7 @@
 import { jwtVerify } from 'jose';
 import { NextRequest, NextResponse } from 'next/server';
 import { runWithPlatformAdminContext } from './db/rls-pool';
+import { isAccessTokenPayload } from './security/token-type';
 
 // Lazy JWT secret — v produkci povinný (žádný forge-able literal fallback),
 // v dev/test fallback kvůli lokálnímu běhu. Viz auth.ts getSecretKey().
@@ -19,6 +20,7 @@ async function verifyAdminToken(token: string | null | undefined): Promise<{ use
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, getSecretKey());
+    if (!isAccessTokenPayload(payload)) return null; // FIX K4d
     const roles = (payload as { roles?: { isPlatformAdmin?: boolean } }).roles;
     if (!roles?.isPlatformAdmin) return null;
     const sub = payload.sub;

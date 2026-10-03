@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { isAccessTokenPayload } from '@/lib/security/token-type';
 import { jwtVerify } from 'jose';
 import {
   db,
@@ -26,6 +27,7 @@ export async function getServerRoles(): Promise<{
     const { payload } = await jwtVerify(token, new TextEncoder().encode(secret), {
       algorithms: ['HS256'],
     });
+    if (!isAccessTokenPayload(payload)) return null; // FIX K4d
     const roles = (payload as {
       roles?: {
         isPlatformAdmin?: boolean;
@@ -60,6 +62,7 @@ async function getServerAuth(): Promise<{ userId: string; isPlatformAdmin: boole
     const { payload } = await jwtVerify(token, new TextEncoder().encode(secret), {
       algorithms: ['HS256'],
     });
+    if (!isAccessTokenPayload(payload)) return null; // FIX K4d
     const userId = typeof payload.sub === 'string' ? payload.sub : null;
     if (!userId) return null;
     const roles = (payload as { roles?: { isPlatformAdmin?: boolean } }).roles;
