@@ -11,16 +11,16 @@
  */
 
 import { timingSafeEqual } from 'crypto';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
-import { internalAuthHeaders } from '@/lib/internal-auth';
 import type { Pool } from 'pg';
-
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { issueFanBonus } from '@/lib/fan-bonus/engine';
 import { escapeHtml } from '@/lib/html-escape/escape';
+import { internalAuthHeaders } from '@/lib/internal-auth';
+
+import { awardPointsForOrder } from '@/lib/loyalty/engine';
 import { sendSms } from '@/lib/sms/bulkgate-mock';
 import { resolveVatRate, splitGrossToNetVat } from '@/lib/tax/vat-rates';
-import { awardPointsForOrder } from '@/lib/loyalty/engine';
-import { issueFanBonus } from '@/lib/fan-bonus/engine';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 import { renderTicketsPdf } from '@/lib/tickets/pdf-renderer';
 import { buildPkpass, type PassData } from '@/lib/wallet/apple-pass';

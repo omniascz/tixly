@@ -1,6 +1,6 @@
 {
  "note": "Existující chyby ESLint (soubor × pravidlo). CI blokuje jen nárůst. Snižovat průběžně, neopravovat hromadně.",
- "total": 1041,
+ "total": 1008,
  "files": {
   "src/app/[locale]/actors/[id]/page.tsx": {
    "import/order": 2
@@ -181,9 +181,6 @@
   "src/app/admin/events/[id]/demographics/page.tsx": {
    "import/order": 1
   },
-  "src/app/admin/events/[id]/distribution/page.tsx": {
-   "import/order": 3
-  },
   "src/app/admin/events/[id]/donation/page.tsx": {
    "import/order": 1
   },
@@ -208,9 +205,6 @@
   "src/app/admin/events/[id]/group-discounts/page.tsx": {
    "import/order": 1
   },
-  "src/app/admin/events/[id]/guestlist/page.tsx": {
-   "import/order": 1
-  },
   "src/app/admin/events/[id]/hot-mode/page.tsx": {
    "import/order": 1
   },
@@ -224,9 +218,6 @@
    "import/order": 1
   },
   "src/app/admin/events/[id]/postpone/page.tsx": {
-   "import/order": 1
-  },
-  "src/app/admin/events/[id]/press/page.tsx": {
    "import/order": 1
   },
   "src/app/admin/events/[id]/price-scenarios/page.tsx": {
@@ -255,12 +246,6 @@
   },
   "src/app/admin/events/[id]/superfan/page.tsx": {
    "import/order": 1
-  },
-  "src/app/admin/events/[id]/templates/page.tsx": {
-   "import/order": 3
-  },
-  "src/app/admin/events/[id]/ticket-types/page.tsx": {
-   "import/order": 2
   },
   "src/app/admin/events/[id]/tickets/[ticketId]/history/page.tsx": {
    "import/order": 2
@@ -301,9 +286,6 @@
   },
   "src/app/admin/onboarding/page.tsx": {
    "import/order": 1
-  },
-  "src/app/admin/orders/[orderId]/page.tsx": {
-   "import/order": 2
   },
   "src/app/admin/partner-applications/page.tsx": {
    "import/order": 1
@@ -590,9 +572,6 @@
   "src/app/api/admin/events/[id]/commemorative/route.ts": {
    "import/order": 2
   },
-  "src/app/api/admin/events/[id]/comps/route.ts": {
-   "import/order": 3
-  },
   "src/app/api/admin/events/[id]/custom-fields/[fieldId]/route.ts": {
    "import/order": 2
   },
@@ -653,15 +632,6 @@
    "import/order": 1
   },
   "src/app/api/admin/events/[id]/group-discounts/route.ts": {
-   "import/order": 2
-  },
-  "src/app/api/admin/events/[id]/guestlist/checkin/route.ts": {
-   "import/order": 2
-  },
-  "src/app/api/admin/events/[id]/guestlist/route.ts": {
-   "import/order": 3
-  },
-  "src/app/api/admin/events/[id]/holds/route.ts": {
    "import/order": 2
   },
   "src/app/api/admin/events/[id]/hospitality/route.ts": {
@@ -756,12 +726,6 @@
    "import/order": 1
   },
   "src/app/api/admin/events/[id]/rfid/zones/route.ts": {
-   "import/order": 1
-  },
-  "src/app/api/admin/events/[id]/royalties/[agreementId]/route.ts": {
-   "import/order": 1
-  },
-  "src/app/api/admin/events/[id]/royalties/route.ts": {
    "import/order": 1
   },
   "src/app/api/admin/events/[id]/sales-report/route.ts": {
@@ -1056,9 +1020,6 @@
   },
   "src/app/api/admin/scanner/validate-nfc/route.ts": {
    "import/order": 2
-  },
-  "src/app/api/admin/scanner/validate/route.ts": {
-   "import/order": 3
   },
   "src/app/api/admin/school-bookings/[id]/qr/route.ts": {
    "import/order": 1
@@ -1604,7 +1565,6 @@
    "import/order": 1
   },
   "src/app/api/internal/order-completed/route.ts": {
-   "import/order": 4,
    "prefer-const": 1,
    "@typescript-eslint/no-unnecessary-type-assertion": 1
   },
@@ -1773,9 +1733,6 @@
    "import/order": 2,
    "@typescript-eslint/no-unsafe-assignment": 1,
    "prefer-const": 1
-  },
-  "src/app/api/rfid/scan/route.ts": {
-   "import/order": 1
   },
   "src/app/api/school-bookings/route.ts": {
    "import/order": 3
@@ -2031,9 +1988,6 @@
   "src/lib/server-session.ts": {
    "import/order": 1,
    "@typescript-eslint/no-unnecessary-type-assertion": 2
-  },
-  "src/lib/tax/__tests__/vat-rates.test.ts": {
-   "import/order": 1
   },
   "src/lib/tracking/tiktok-capi.ts": {
    "import/order": 1,

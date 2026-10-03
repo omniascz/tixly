@@ -9,8 +9,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { runAsActivePromoter } from '@/lib/admin-auth';
-import { db } from '@/lib/db/rls-pool';
 import { COST_CATEGORIES } from '@/lib/budget/cost-categories';
+import { db } from '@/lib/db/rls-pool';
 
 const patchSchema = z.object({
   category: z.enum(COST_CATEGORIES).optional(),

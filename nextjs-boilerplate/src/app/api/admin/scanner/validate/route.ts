@@ -12,13 +12,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
-import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
+import { runAsActivePromoter } from '@/lib/admin-auth';
 import { decryptSecret } from '@/lib/crypto';
-import { verifyTotpCode } from '@/lib/totp/verify';
-import { parsePrintToken, verifyPrintTokenForEvent } from '@/lib/tickets/print-token';
+import { db } from '@/lib/db/rls-pool';
 import { qrPolicyDecision } from '@/lib/scanner/qr-policy';
+import { parsePrintToken, verifyPrintTokenForEvent } from '@/lib/tickets/print-token';
+import { verifyTotpCode } from '@/lib/totp/verify';
 
 
 const schema = z

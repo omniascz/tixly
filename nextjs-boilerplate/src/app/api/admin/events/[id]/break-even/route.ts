@@ -16,8 +16,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { runAsPromoter } from '@/lib/admin-auth';
 import { type TicketTypeSales } from '@/lib/budget/break-even';
 import { computeOutlook } from '@/lib/budget/outlook';
-import { AGREEMENT_TERMS_COLUMNS, toDealTerms, type AgreementTermsRow } from '@/lib/royalties/deal';
 import { db } from '@/lib/db/rls-pool';
+import { AGREEMENT_TERMS_COLUMNS, toDealTerms, type AgreementTermsRow } from '@/lib/royalties/deal';
 import { resolveVatRate } from '@/lib/tax/vat-rates';
 
 /** Výchozí provize platformy, když pořadatel nemá vlastní ceník. */

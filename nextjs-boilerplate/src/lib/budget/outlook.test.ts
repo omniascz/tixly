@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import type { DealTerms } from '@/lib/royalties/deal';
 import { computeBreakEven } from './break-even';
 import { computeOutlook, type OutlookInput } from './outlook';
-import type { DealTerms } from '@/lib/royalties/deal';
 
 /**
  * Základ jako v break-even.test.ts: pevné náklady 100 000 Kč, vstupenka 500 Kč

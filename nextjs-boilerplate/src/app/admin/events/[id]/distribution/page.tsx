@@ -9,13 +9,13 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useRouteParams } from '@/lib/next/route-params';
-import { PageHeader } from '@/components/admin/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Globe, Store, CheckCircle, Info } from 'lucide-react';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useRouteParams } from '@/lib/next/route-params';
 
 interface Partner {
   id: string;

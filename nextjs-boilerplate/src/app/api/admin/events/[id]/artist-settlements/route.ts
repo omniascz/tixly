@@ -16,8 +16,8 @@ import {
   toDealTerms,
   type AgreementTermsRow,
 } from '@/lib/royalties/deal';
-import { resolveVatRate } from '@/lib/tax/vat-rates';
 import { ALREADY_PAID_LINE_KEY, COMMITTED_PAYOUT_STATUSES_SQL } from '@/lib/royalties/settlement-doc';
+import { resolveVatRate } from '@/lib/tax/vat-rates';
 
 export const dynamic = 'force-dynamic';
 

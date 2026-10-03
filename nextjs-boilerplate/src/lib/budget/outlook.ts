@@ -16,6 +16,7 @@
  * průměrem cen podle zbývající kapacity.
  */
 
+import { computeArtistSettlement, type DealTerms } from '@/lib/royalties/deal';
 import {
   computeBreakEven,
   projectResult,
@@ -24,7 +25,6 @@ import {
   type BreakEvenResult,
   type CostItem,
 } from './break-even';
-import { computeArtistSettlement, type DealTerms } from '@/lib/royalties/deal';
 
 export interface LinkedCostItem extends CostItem {
   /** Smlouva s umělcem, ze které položka vznikla (garance z přijaté nabídky). */
