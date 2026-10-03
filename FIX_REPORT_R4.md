@@ -22,3 +22,33 @@ Prostředí: izolovaná DB z migrací, PgBouncer transaction mode, fake-gopay, M
 
 **Krok 1 — audit 08 po opravách:** I1 PASS (154 GET rout × 3 cizí aktéři, 0 úniků), I2 PASS (0 odpovědí 5xx). `logs/r4/1c_r2_e2e_08.out`.
 
+
+## Krok 2 — tabulka všech API rout (`logs/r4/2_routes.tsv`, klasifikátor `audit/r4/classify-routes.mjs`)
+
+696 souborů rout, 984 kombinací routa+metoda. Počty podle typu volajícího:
+
+| Typ volajícího | Počet |
+|---|---|
+| pořadatel | 481 |
+| kupec | 121 |
+| admin | 91 |
+| servis | 62 |
+| veřejná (GET) | 50 |
+| veřejná | 39 |
+| veřejná (zápis hosta) | 35 |
+| partner | 31 |
+| veřejná (capability) | 30 |
+| veřejná (auth) | 29 |
+| vypnuto (demo) | 5 |
+| brána (webhook) | 5 |
+| prodejce | 4 |
+| veřejná (OAuth) | 1 |
+
+Neveřejné (pořadatel, admin, kupec, servis, partner, prodejce) = **790**. Generovaný test `fix-r4-routes-anon`
+(produkční režim, skutečný middleware): **789 × 401/403**, 1 v harnessu nespustitelná (`POST /api/oauth/authorize`,
+`cookies()` z next/headers) — ověřena HTTP v závěru. RED před opravami: 42 jiných statusů
+(`logs/r4/2b_routes_anon_RED.txt`). Commit tabulky a testu: bea7c5d.
+
+Opravené routy v kroku 2: 25 rout bez identity (middleware), `scanner/school-group`, `mock-qes`, `buyer/resale/list` + `cancel`,
+`tickets/[id]/memory`, `buyer/cross-passes/[id]/wallet/apple`, `mobile/payment-intent`, `b2b/verify`, `checkout` (B2B kredit),
+`qes_signing_requests` (migrace 489).
