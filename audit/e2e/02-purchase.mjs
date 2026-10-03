@@ -26,7 +26,8 @@ check('P0c', 'verejny vypis typu vstupenek publikovane akce', r.status === 200 &
 
 // ---------- P1 kosik ----------
 r = await buyer.post('/api/cart/validate', { eventId: S.eventA, items: [{ ticketTypeId: S.tt['Stani'], quantity: 2 }] });
-check('P1', 'validace kosiku (/api/cart/validate)', r.status === 200, ev(r));
+// kolo 2: routa bez volajícího, která padala (price_halire), byla odstraněna → 404
+check('P1', 'validace kosiku (/api/cart/validate) — routa odstraněna (kolo 2), nepadá 500', r.status === 404, ev(r));
 
 // ---------- P2 checkout s promo kodem ----------
 const before = await tt(S.tt['Stani']);

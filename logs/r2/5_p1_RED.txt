@@ -1,0 +1,57 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r2-p1-cart-validate.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 3123[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r2-p1-cart-validate.live.test.ts[2m > [22mKrok 5 — P1: /api/cart/validate odstraněna[2m > [22mrouta neexistuje[39m
+[31m     → expected true to be false // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r2-p1-cart-validate.live.test.ts[2m > [22mKrok 5 — P1: /api/cart/validate odstraněna[2m > [22mnikdo ji nevolá (src/, mobile/)[39m
+[31m     → expected [ Array(1) ] to deeply equal [][39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-p1-cart-validate.live.test.ts[2m > [22mKrok 5 — P1: /api/cart/validate odstraněna[2m > [22mrouta neexistuje
+[31m[1mAssertionError[22m: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m tests/fix-r2-p1-cart-validate.live.test.ts:[2m28:79[22m[39m
+    [90m 26| [39m[34mrun[39m([32m'Krok 5 — P1: /api/cart/validate odstraněna'[39m[33m,[39m () [33m=>[39m {
+    [90m 27| [39m  [34mit[39m([32m'routa neexistuje'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 28| [39m    [34mexpect[39m([34mexistsSync[39m(path[33m.[39m[34mjoin[39m([33mROOT[39m[33m,[39m [32m'src/app/api/cart/validate/route[39m…
+    [90m   | [39m                                                                              [31m^[39m
+    [90m 29| [39m    [35mawait[39m [34mexpect[39m([35mimport[39m([90m/* @vite-ignore */[39m path[33m.[39m[34mjoin[39m([33mROOT[39m[33m,[39m [32m'src/app/ap[39m…
+    [90m 30| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-p1-cart-validate.live.test.ts[2m > [22mKrok 5 — P1: /api/cart/validate odstraněna[2m > [22mnikdo ji nevolá (src/, mobile/)
+[31m[1mAssertionError[22m: expected [ Array(1) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [][39m
+[31m+ Array [[39m
+[31m+   "C:\\Users\\omnia\\Documents\\tixly-fix\\nextjs-boilerplate\\src\\app\\api\\cart\\validate\\route.ts",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/fix-r2-p1-cart-validate.live.test.ts:[2m35:18[22m[39m
+    [90m 33| [39m    [35mconst[39m refs [33m=[39m [[33m...[39m[34mwalk[39m(path[33m.[39m[34mjoin[39m([33mROOT[39m[33m,[39m [32m'src'[39m))[33m,[39m [33m...[39m[34mwalk[39m(path[33m.[39m[34mjoin[39m([33mR[39m…
+    [90m 34| [39m      [33m.[39m[34mfilter[39m((f) [33m=>[39m [34mreadFileSync[39m(f[33m,[39m [32m'utf8'[39m)[33m.[39m[34mincludes[39m([32m'/api/cart/valid[39m…
+    [90m 35| [39m    [34mexpect[39m(refs)[33m.[39m[34mtoEqual[39m([])[33m;[39m
+    [90m   | [39m                 [31m^[39m
+    [90m 36| [39m  })[33m;[39m
+    [90m 37| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 11:31:03
+[2m   Duration [22m 31.91s[2m (transform 333ms, setup 0ms, collect 2.39s, tests 3.12s, environment 1ms, prepare 3.99s)[22m
+
