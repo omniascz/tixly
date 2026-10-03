@@ -19,8 +19,8 @@ Při startu nové session: přečíst tento soubor a pokračovat prvním nehotov
 | 1 kolize migrace 472 → 479 | HOTOVO | e78c5cc |
 | 2 R5, R6, mobile rate limit, guard trigger, X7 | HOTOVO | f800b76 d58c3ef 799bfa0 b275ecf b110d66 b1c9b72 055b631 |
 | 3 54 eskalací | HOTOVO (ESKALACE_R3.md; test 17/17; unit 513/0; live 151/0) | db3bffe |
-| 4 K4d, K3a, K5, K8a, V9b | rozpracováno | |
-| 5 reseller print, admin/import, X6 | čeká | |
+| 4 K4d, K3a, K5, K8a, V9b | HOTOVO | 1e5c3da 9fdd575 bc5db9a 2043fbb 7f56371 |
+| 5 reseller print, admin/import, X6 | rozpracováno | |
 | Závěr + FIX_REPORT_R3 | čeká | |
 
 ## Krok 0 — výsledek (logs/r3/0_*)
@@ -50,3 +50,4 @@ P1, P5d, C2b, P13, V12, D3a PASS; C1a, C2a PASS.
 - K4d HOTOVO 1e5c3da (type claim; test 7/7)
 - K3a HOTOVO 9fdd575 (recompute + refresh-spotify CRON_SECRET; 2 fail-open opraveny; správné počty: 6× CRON_SECRET, 2× helper, 29× inline fail-closed = 37; commit msg má překlep 4/31)
 - K5 HOTOVO bc5db9a (CSRF; test 9/9; audit klient posílá Origin)
+- K8a HOTOVO 2043fbb; V9b HOTOVO 7f56371 (mobile-promoter netypováno — bez node_modules; vizuální kontrola skeneru v Závěru)
