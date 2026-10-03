@@ -1,0 +1,34 @@
+# Kolo 5 (2026-10-04): triáž gitleaks — všech 63 nálezů je TESTOVACÍ/FALEŠNÉ (logs/r5/1_triage.md).
+# Skutečné tajemství: 0. Fingerprint = commit:soubor:pravidlo:řádek. Nový nález se sem NEPŘIDÁVÁ bez triáže.
+f945e9bba3a86aa9ce93fbd906e6152ea92b043b:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4
+e5789d749ab185999403f26e4bcbad1e50991a75:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4
+2d80acca0018c1a36b024d8ea9db66e3076ea6db:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4
+8c868d313d4e63440da4f2340bc5576d47f059a5:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4
+2e389672f661d78bd760e3461d1bec77bf505329:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4
+8d97de9f2c3e08a405096fd023f629518729e4c3:audit/logs/r2_e2e_03_refund_scan.jsonl:generic-api-key:4
+2e4d0c1512152ce9de25765c0eb8e8ec3be070d7:audit/logs/13_gitleaks.json:generic-api-key:19
+2dc58dbf8e111b81147456b61ff127eaae935e13:FINDINGS_SCHEMA_REALITY.md:generic-api-key:2739
+e63a729a0ef2fd671906facecbe73cbd216ea724:nextjs-boilerplate/scripts/seed-e2e-fixtures.sql:generic-api-key:12
+e63a729a0ef2fd671906facecbe73cbd216ea724:nextjs-boilerplate/scripts/seed-e2e-fixtures.sql:generic-api-key:13
+e63a729a0ef2fd671906facecbe73cbd216ea724:nextjs-boilerplate/scripts/seed-e2e-fixtures.sql:generic-api-key:20
+e63a729a0ef2fd671906facecbe73cbd216ea724:nextjs-boilerplate/scripts/seed-e2e-fixtures.sql:generic-api-key:21
+d5d38951abfde95db1043f57d8b851e0f9a911e7:nextjs-boilerplate/src/app/api/admin/settings/route.ts:generic-api-key:88
+8a2822c89b9d7a601922bb6b8531ffe391eacdcf:migrations/000_baseline_20260730.sql:generic-api-key:3554
+8a2822c89b9d7a601922bb6b8531ffe391eacdcf:migrations/000_baseline_20260730.sql:generic-api-key:10942
+c74adc9172262a000511d509209179457e5dfe50:e2e/tests/golden-path-benefit-pluxee-callback.spec.ts:generic-api-key:19
+811e5d601e0aef7b7a9296de45ee494bcf5623bf:docs/TIXLY-SYSTEM-MAP.md:generic-api-key:812
+811e5d601e0aef7b7a9296de45ee494bcf5623bf:docs/TIXLY-SYSTEM-MAP.md:curl-auth-header:814
+ee818484473773583cbbbe9eb4c28e5628c07713:db/baseline.sql:generic-api-key:3068
+b6b0e55719e289c82102fcee4ad6cd6973953f05:nextjs-boilerplate/.env.example:generic-api-key:53
+a402161459abfd83e075284d4eb5d654ef780120:b2b-api/b2b-api/src/__tests__/middleware.test.ts:generic-api-key:165
+a402161459abfd83e075284d4eb5d654ef780120:b2b-api/src/__tests__/middleware.test.ts:generic-api-key:165
+a402161459abfd83e075284d4eb5d654ef780120:email-templates/email-templates/examples/usage-examples.ts:generic-api-key:22
+a402161459abfd83e075284d4eb5d654ef780120:email-templates/email-templates/examples/usage-examples.ts:generic-api-key:80
+a402161459abfd83e075284d4eb5d654ef780120:email-templates/examples/usage-examples.ts:generic-api-key:22
+a402161459abfd83e075284d4eb5d654ef780120:email-templates/examples/usage-examples.ts:generic-api-key:80
+a402161459abfd83e075284d4eb5d654ef780120:friend-invites/src/__tests__/friend-invite.test.ts:generic-api-key:14
+a402161459abfd83e075284d4eb5d654ef780120:resale-api/src/__tests__/discovery-feed.service.test.ts:generic-api-key:15
+a402161459abfd83e075284d4eb5d654ef780120:resale-api/src/__tests__/retailer.service.test.ts:generic-api-key:24
+a402161459abfd83e075284d4eb5d654ef780120:stripe-payments/src/__tests__/stripe.test.ts:generic-api-key:42
+a402161459abfd83e075284d4eb5d654ef780120:wallet-passes/src/lib/wallet.test.ts:private-key:118
+a402161459abfd83e075284d4eb5d654ef780120:wallet-passes/src/lib/wallet.test.ts:private-key:330

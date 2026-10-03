@@ -1,0 +1,2 @@
+# Shell skripty musi mit LF i na Windows (core.autocrlf) — jinak bash: "set: pipefail: invalid option".
+*.sh text eol=lf
