@@ -12,9 +12,13 @@
  *
  * Idempotence: druhý (souběžný) požadavek narazí na `refund_pending`/`refunded`
  * a bránu NEVOLÁ. Po `refund_failed` je povolen retry.
+ *
+ * Kolo 3 (guard 486): přechody stavu a efekty jsou systémové operace automatu → běží přes
+ * asSystemInTx. Vlastnictví / oprávnění (kupec vs. pořadatel) ověřuje VOLAJÍCÍ před voláním.
  */
 import type { Pool } from 'pg';
 import { refundOrderViaGateway } from './gateway-refund';
+import { asSystemInTx } from '@/lib/db/rls-pool';
 
 export interface RefundOrderResult {
   http: number;
@@ -75,11 +79,11 @@ export async function executeOrderRefund(opts: RefundOrderOpts): Promise<RefundO
       return { http: 409, body: { error: `Order status is "${order.status}", cannot refund` }, outcome: 'invalid' };
     }
 
-    await c1.query(
+    await asSystemInTx(c1, () => c1.query(
       `UPDATE orders.orders SET status = 'refund_pending', refund_initiated_at = now(),
               refund_error = NULL, updated_at = now() WHERE id = $1`,
       [orderId],
-    );
+    ));
     await c1.query('COMMIT');
   } catch (e) {
     await c1.query('ROLLBACK').catch(() => {});
@@ -96,24 +100,26 @@ export async function executeOrderRefund(opts: RefundOrderOpts): Promise<RefundO
   try {
     await c2.query('BEGIN');
     if (!gw.ok) {
-      await c2.query(
+      await asSystemInTx(c2, () => c2.query(
         `UPDATE orders.orders SET status = 'refund_failed', refund_error = $2,
                 refund_gateway_response = $3::jsonb, updated_at = now() WHERE id = $1`,
         [orderId, gw.error ?? 'GATEWAY_REFUND_FAILED', JSON.stringify(gw.raw ?? null)],
-      );
+      ));
       await c2.query('COMMIT');
       return { http: 502, body: { error: 'REFUND_GATEWAY_FAILED', message: gw.error ?? 'Platební brána refund odmítla.', orderId }, outcome: 'failed' };
     }
 
-    await applyEffects(c2);
-    await c2.query(
-      `UPDATE orders.orders
-          SET status = $2, refund_completed_at = now(),
-              refunded_amount_halire = $3,
-              refund_gateway_response = $4::jsonb, refund_error = NULL, updated_at = now()
-        WHERE id = $1`,
-      [orderId, finalStatus, amountHalire, JSON.stringify(gw.raw ?? null)],
-    );
+    await asSystemInTx(c2, async () => {
+      await applyEffects(c2);
+      await c2.query(
+        `UPDATE orders.orders
+            SET status = $2, refund_completed_at = now(),
+                refunded_amount_halire = $3,
+                refund_gateway_response = $4::jsonb, refund_error = NULL, updated_at = now()
+          WHERE id = $1`,
+        [orderId, finalStatus, amountHalire, JSON.stringify(gw.raw ?? null)],
+      );
+    });
     if (audit) await audit(c2);
     await c2.query('COMMIT');
     return {
@@ -150,15 +156,17 @@ async function finalizeExternalRefund(opts: RefundOrderOpts, refundable: string[
       await c.query('ROLLBACK');
       return { http: 409, body: { error: `Order status is "${status}", cannot refund` }, outcome: 'invalid' };
     }
-    await applyEffects(c);
-    await c.query(
-      `UPDATE orders.orders
-          SET status = $2, refund_initiated_at = COALESCE(refund_initiated_at, now()), refund_completed_at = now(),
-              refunded_amount_halire = $3,
-              refund_gateway_response = $4::jsonb, refund_error = NULL, updated_at = now()
-        WHERE id = $1`,
-      [orderId, finalStatus, amountHalire, JSON.stringify(opts.gatewayRefundedExternally?.raw ?? null)],
-    );
+    await asSystemInTx(c, async () => {
+      await applyEffects(c);
+      await c.query(
+        `UPDATE orders.orders
+            SET status = $2, refund_initiated_at = COALESCE(refund_initiated_at, now()), refund_completed_at = now(),
+                refunded_amount_halire = $3,
+                refund_gateway_response = $4::jsonb, refund_error = NULL, updated_at = now()
+          WHERE id = $1`,
+        [orderId, finalStatus, amountHalire, JSON.stringify(opts.gatewayRefundedExternally?.raw ?? null)],
+      );
+    });
     if (audit) await audit(c);
     await c.query('COMMIT');
     return {

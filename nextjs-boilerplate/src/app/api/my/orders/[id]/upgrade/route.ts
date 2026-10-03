@@ -104,16 +104,20 @@ export async function POST(
 
       if (upgradeFee === 0) {
         // Free upgrade — apply immediately
-        if (body.newSeatId) {
+        // Kolo 3 (guard 486): sedadlo a typ lístku jsou chráněné sloupce — systémový efekt
+        // upgradu; lístek ověřen výše jako kupcův (o.user_id = kupec), cílový typ v téže akci.
+        await asSystemInTx(client, async () => {
+          if (body.newSeatId) {
+            await client.query(
+              `UPDATE tickets.tickets SET seat_id=$1 WHERE id=$2`,
+              [body.newSeatId, body.ticketId],
+            );
+          }
           await client.query(
-            `UPDATE tickets.tickets SET seat_id=$1 WHERE id=$2`,
-            [body.newSeatId, body.ticketId],
+            `UPDATE tickets.tickets SET ticket_type_id=$1 WHERE id=$2`,
+            [body.newTicketTypeId, body.ticketId],
           );
-        }
-        await client.query(
-          `UPDATE tickets.tickets SET ticket_type_id=$1 WHERE id=$2`,
-          [body.newTicketTypeId, body.ticketId],
-        );
+        });
         await client.query(
           `UPDATE orders.seat_upgrades SET status='paid', completed_at=now() WHERE id=$1`,
           [upgradeId],

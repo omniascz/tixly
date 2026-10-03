@@ -279,19 +279,21 @@ export async function POST(
         ));
       }
 
-      await client.query(
+      // Kolo 3 (guard 486): sedadlo lístku a akce objednávky jsou chráněné sloupce —
+      // systémový efekt výměny; vstupenka ověřena výše jako kupcova (FOR UPDATE OF t).
+      await asSystemInTx(client, () => client.query(
         `UPDATE tickets.tickets
             SET event_seat_id = $1, updated_at = NOW()
           WHERE id = $2`,
         [newSeatId, ticket.id],
-      );
+      ));
 
-      await client.query(
+      await asSystemInTx(client, () => client.query(
         `UPDATE orders.orders
             SET event_id = $1, updated_at = NOW()
           WHERE id = $2`,
         [parsed.data.targetEventId, ticket.order_id],
-      );
+      ));
 
       await asSystemInTx(client, () => client.query(
         `UPDATE catalog.ticket_types

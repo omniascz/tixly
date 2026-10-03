@@ -98,8 +98,9 @@ export async function POST(
       ? Math.round((order.total_amount * refundPct) / 100)
       : 0;
 
-    // Update order
-    await client.query(
+    // Update order — status a revoke lístků jsou chráněné sloupce (guard 486): systémový
+    // efekt storna, objednávka je výše ověřena jako kupcova pod jeho RLS kontextem.
+    await asSystemInTx(client, () => client.query(
       `UPDATE orders.orders
           SET status = 'cancelled',
               cancelled_by_buyer_at = now(),
@@ -112,15 +113,15 @@ export async function POST(
         refundAmount > 0 ? 'pending' : 'no_refund',
         params.orderId,
       ],
-    );
+    ));
 
     // Revoke tickety
-    await client.query(
+    await asSystemInTx(client, () => client.query(
       `UPDATE tickets.tickets
           SET status = 'revoked', updated_at = now()
         WHERE order_id = $1 AND status = 'valid'`,
       [params.orderId],
-    );
+    ));
 
     // Free up ticket_type stock — systémový efekt (kapacitu kupec měnit nesmí, kolo 2 / V8);
     // objednávka je výše ověřena jako kupcova pod jeho RLS kontextem.

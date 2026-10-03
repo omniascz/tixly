@@ -9,7 +9,7 @@
 // Kolo 2 (krok 1) — navíc simulace dalších bran pro ověření stavu platby dotazem na API:
 //   PayPal   POST /paypal/v2/checkout/orders/:id/capture, /paypal/v1/oauth2/token, /paypal/v1/notifications/verify-webhook-signature
 //            (SUCCESS jen pro transmission_sig === 'valid-sig'), GET /paypal/v2/checkout/orders/:id
-//   Stripe   GET /stripe/v1/checkout/sessions/:id, POST /stripe/v1/payment_intents (kolo 3 — mobile/payment-intent)
+//   Stripe   GET /stripe/v1/checkout/sessions/:id, POST + GET /stripe/v1/payment_intents[/:id] (kolo 3 — mobilní platba)
 //   Triple-A POST /triplea/oauth/token, GET /triplea/payment/:ref
 //   Wise     GET /wise/v1/transfers/:id
 //   Mollie   GET /mollie/v2/payments/:id
@@ -105,7 +105,7 @@ http.createServer(async (req, res) => {
     o.captured = true; o.status = 'COMPLETED';
     return send(res, 201, o);
   }
-  for (const [prov, re] of [['paypal', /^\/paypal\/v2\/checkout\/orders\/([^/]+)$/], ['stripe', /^\/stripe\/v1\/checkout\/sessions\/([^/]+)$/],
+  for (const [prov, re] of [['paypal', /^\/paypal\/v2\/checkout\/orders\/([^/]+)$/], ['stripe', /^\/stripe\/v1\/checkout\/sessions\/([^/]+)$/], ['stripe', /^\/stripe\/v1\/payment_intents\/([^/]+)$/],
     ['triplea', /^\/triplea\/payment\/([^/]+)$/], ['mollie', /^\/mollie\/v2\/payments\/([^/]+)$/], ['wise', /^\/wise\/v1\/transfers\/([^/]+)$/]]) {
     if (req.method === 'GET' && (m = url.pathname.match(re))) {
       if (!/^Bearer /.test(req.headers.authorization ?? '')) return send(res, 401, { error: 'no auth' });

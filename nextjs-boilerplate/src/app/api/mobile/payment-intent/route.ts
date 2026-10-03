@@ -129,10 +129,12 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
 
       // Uložit PI id do gopay_payment_id (sdílené pole pro payment reference)
-      await client.query(
+      // Kolo 3 (guard 486): platební identifikátor = chráněný sloupec; zapisuje ho systém
+      // (PI právě založený naším serverem pro tuto objednávku), ne kupec.
+      await asSystemInTx(client, () => client.query(
         `UPDATE orders.orders SET gopay_payment_id = $1 WHERE id = $2`,
         [pi.id, orderId],
-      );
+      ));
 
       await client.query('COMMIT');
 
