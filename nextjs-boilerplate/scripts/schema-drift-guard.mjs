@@ -12,7 +12,9 @@
  * Zdroj pravdy o schematu = CERSTVA prod-clone Neon vetev (schema-only staci).
  *
  * REZIMY:
- *   --ephemeral             vytvori docasnou vetev z produkce, po behu ji smaze (pro CI).
+ *   --url <conn>            zdroj pravdy = libovolna Postgres DB (kolo 4: CI service kontejner
+ *                           postaveny z migraci — bez produkcniho secretu NEON_API_KEY).
+ *   --ephemeral             vytvori docasnou vetev z produkce, po behu ji smaze.
  *                           jinak cte GUARD_BRANCH_ID z env (lokalni dev).
  *   --baseline <path>       NEBLOKUJICI: pada jen na NOVEM driftu nad baseline (regrese-ochrana).
  *                           existujici dluh (grandfathered) neshazuje CI. Kdyz current < baseline,
@@ -42,8 +44,9 @@ const EPHEMERAL = has('--ephemeral');
 const SELF_TEST = has('--self-test');
 const BASELINE_PATH = val('--baseline');
 const WRITE_BASELINE_PATH = val('--write-baseline');
+const DIRECT_URL = val('--url');
 
-if (!KEY) { console.error('need NEON_API_KEY'); process.exit(2); }
+if (!DIRECT_URL && !KEY) { console.error('need NEON_API_KEY (nebo --url <conn> pro DB z migraci)'); process.exit(2); }
 
 const DML = /^\s*(SELECT|INSERT|UPDATE|DELETE|WITH)\b/i;
 const DRIFT_CODES = new Set(['42703', '42P01', '42P17', '42704']); // undefined column/table/object
@@ -76,7 +79,10 @@ async function connUri(branchId) {
 
 // ---------- 1) EXTRACTION (TS AST) ----------
 function extract() {
-  const files = execSync('git ls-files "src/app/api/**/*.ts" "src/lib/**/*.ts"', { encoding: 'utf8' })
+  // Kolo 4: pathspec `src/lib/**/*.ts` v gitu vynechal soubory PŘÍMO v src/lib/ (auth.ts,
+  // admin-auth.ts, … — 22 souborů). Bez :(glob) magie `*` v gitu přechází i přes `/`,
+  // takže `src/lib/*.ts` vezme všechny úrovně.
+  const files = execSync('git ls-files "src/app/api/*.ts" "src/lib/*.ts"', { encoding: 'utf8' })
     .trim().split('\n').filter(Boolean);
   const staticQ = [], dynamicQ = [];
   for (const f of files) {
@@ -103,7 +109,7 @@ function extract() {
 
 // ---------- 2) CHECK (PREPARE parse-only) ----------
 async function openClient(branchId) {
-  const uri = await connUri(branchId);
+  const uri = DIRECT_URL ?? await connUri(branchId);
   let c, lastErr;
   for (let attempt = 0; attempt < 5; attempt++) {   // Neon compute cold-start retry
     c = new pg.Client({ connectionString: uri, connectionTimeoutMillis: 30000 });
@@ -155,7 +161,10 @@ function groupDrift(drift) {
   // se tak nehromadi po cervenych/spadlych bezech.
   let branchId, ephemeralCreated = false, exitCode = 0, client;
   try {
-    if (EPHEMERAL) {
+    if (DIRECT_URL) {
+      branchId = null;
+      console.log('# zdroj pravdy: --url (DB postavena z migraci)');
+    } else if (EPHEMERAL) {
       branchId = (await createBranch()).id; ephemeralCreated = true;
       console.log(`# ephemeral prod-clone vetev vytvorena: ${branchId}`);
     } else {
