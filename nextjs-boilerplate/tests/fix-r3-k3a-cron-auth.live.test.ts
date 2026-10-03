@@ -31,7 +31,11 @@ describe('Krok 4 (kolo 3) — K3a: inventura autorizace cron rout', () => {
         const cron = /isCronAuthorized\(req\)/.test(src);
         const internalHelper = /isInternalTokenAuthorized\(req\)/.test(src);
         const internalInline = /x-internal-token/.test(src) && /if \(!expected \|\| !safeEqual/.test(src);
-        if (!cron && !internalHelper && !internalInline) bad.push(`${dir}/${job}`);
+        // Kolo 5 (integrace): lib/internal-auth.ts (kód vlastníka) — verifyInternalToken je fail-closed
+        // (bez nastaveného tokenu `not_configured`, doloženo src/lib/internal-auth.test.ts); routa musí
+        // výsledek skutečně kontrolovat (`if (!auth.ok)`).
+        const internalAuthLib = /verifyInternalToken\(req\.headers\.get\('x-internal-token'\)\)/.test(src) && /if \(!auth\.ok\)/.test(src);
+        if (!cron && !internalHelper && !internalInline && !internalAuthLib) bad.push(`${dir}/${job}`);
         if (/\(expected && token !== expected\)/.test(src)) bad.push(`${dir}/${job} (fail-open)`);
       }
     }

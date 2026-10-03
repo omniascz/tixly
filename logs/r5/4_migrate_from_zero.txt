@@ -1,4 +1,3 @@
-NOTICE:  database "r5" does not exist, skipping
 OK   000_baseline_20260730.sql
 OK   000_baseline_globals.sql
 OK   450_tickets_dedup_unique.sql
