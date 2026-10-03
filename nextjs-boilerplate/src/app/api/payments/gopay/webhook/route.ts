@@ -23,6 +23,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { getGopayConfig, getGopayPaymentStatus } from '@/lib/payment/gopay-real';
 import { releaseOrderCapacity } from '@/lib/orders/release-capacity';
+import { executeOrderRefund } from '@/lib/payment/refund-order';
+import type { Pool } from 'pg';
+
+/** Stavy, ze kterých refund hlášený bránou dokončíme (pending: kapacita je ještě držená). */
+const EXTERNAL_REFUNDABLE = ['paid', 'paid_partial', 'refund_failed', 'pending'];
 
 
 export const dynamic = 'force-dynamic';
@@ -112,6 +117,7 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
     );
 
     let triggerOrderCompleted = false;
+    let externalRefund = false;
 
     if (status.paid && !amountOk && order.status === 'pending') {
       // Zaplaceno, ale částka/měna nesedí → necháme pending, zalogováno výše.
@@ -135,13 +141,15 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
         [order.id],
       );
       triggerOrderCompleted = upd.rows.length > 0;
-    } else if (status.refunded && order.status !== 'refunded') {
-      await client.query(
-        `UPDATE orders.orders
-         SET status = 'refunded', updated_at = NOW()
-         WHERE id = $1`,
-        [order.id],
-      );
+    } else if (status.state === 'REFUNDED' && EXTERNAL_REFUNDABLE.includes(order.status)) {
+      // Kolo 3 / R5: plný refund provedený bránou (portál brány, chargeback). Dokončí se
+      // PO commitu této transakce sdíleným automatem executeOrderRefund (ten si objednávku
+      // zamyká sám — tady ji držíme FOR UPDATE, takže uvnitř by to byl deadlock).
+      externalRefund = true;
+    } else if (status.state === 'PARTIALLY_REFUNDED') {
+      // Částečný refund u brány: nevíme, které lístky — objednávku NEoznačujeme jako
+      // celou refundovanou (dřív ano, s platnými lístky). Zalogováno v payment_events výše.
+      console.warn(`[gopay webhook] PARTIALLY_REFUNDED order=${order.id} — ponecháno k ručnímu dořešení`);
     } else if (
       (status.state === 'CANCELED' || status.state === 'TIMEOUTED') &&
       order.status === 'pending'
@@ -164,6 +172,30 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
     }
 
     await client.query('COMMIT');
+
+    let refundOutcome: string | null = null;
+    if (externalRefund) {
+      // Peníze už vrátila brána → executeOrderRefund BEZ volání brány; tytéž efekty jako
+      // refund z Tixly (revoke lístků + releaseOrderCapacity). Idempotentní: refunded → already,
+      // refund_pending (běží refund z Tixly) → in_progress, efekty dokončí ten.
+      const result = await executeOrderRefund({
+        pool: db() as unknown as Pool,
+        orderId: order.id,
+        amountHalire: order.total_amount,
+        finalStatus: 'refunded',
+        allowFromStatuses: EXTERNAL_REFUNDABLE,
+        gatewayRefundedExternally: { raw: { source: 'gopay_webhook', paymentId, state: status.state, amount: status.amountHalire } },
+        applyEffects: async (c) => {
+          await c.query(
+            `UPDATE tickets.tickets SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
+              WHERE order_id = $1 AND status <> 'revoked'`,
+            [order.id],
+          );
+          await releaseOrderCapacity(c, [order.id]);
+        },
+      });
+      refundOutcome = result.outcome;
+    }
 
     // Fire-and-forget — trigger PDF + email + SMS
     if (triggerOrderCompleted) {
@@ -193,7 +225,8 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
       ok: true,
       orderId: order.id,
       state: status.state,
-      newStatus: status.paid ? 'paid' : status.refunded ? 'refunded' : order.status,
+      newStatus: status.paid ? 'paid' : status.state === 'REFUNDED' ? 'refunded' : order.status,
+      ...(refundOutcome ? { refundOutcome } : {}),
     });
   } catch (err) {
     await client.query('ROLLBACK');

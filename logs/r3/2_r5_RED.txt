@@ -1,0 +1,91 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r3-r5-webhook-refunded.live.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[33m 1003[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-r5-webhook-refunded.live.test.ts[2m > [22mKrok 2 (kolo 3) — R5: webhook REFUNDED → refunded + revoke + kapacita, idempotentně, bez 2. refundu[2m > [22mREFUNDED: objednávka refunded, všechny lístky revoked, kapacita +2, 0 volání refundu u brány; 2. doručení nic nezdvojí[39m
+[31m     → expected [ 'valid', 'valid' ] to deeply equal [ 'revoked', 'revoked' ][39m
+[31m   [33m❯[31m tests/fix-r3-r5-webhook-refunded.live.test.ts[2m > [22mKrok 2 (kolo 3) — R5: webhook REFUNDED → refunded + revoke + kapacita, idempotentně, bez 2. refundu[2m > [22mREFUNDED doručený 3× souběžně → kapacita vrácena právě jednou[39m
+[31m     → expected [ 'valid', 'valid' ] to deeply equal [ 'revoked', 'revoked' ][39m
+[31m   [33m❯[31m tests/fix-r3-r5-webhook-refunded.live.test.ts[2m > [22mKrok 2 (kolo 3) — R5: webhook REFUNDED → refunded + revoke + kapacita, idempotentně, bez 2. refundu[2m > [22mPARTIALLY_REFUNDED: objednávka NENÍ označena jako celá refundovaná a lístky se hromadně nezneplatní[39m
+[31m     → expected { status: 'refunded', …(2) } to deeply equal { status: 'paid', …(2) }[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-r5-webhook-refunded.live.test.ts[2m > [22mKrok 2 (kolo 3) — R5: webhook REFUNDED → refunded + revoke + kapacita, idempotentně, bez 2. refundu[2m > [22mREFUNDED: objednávka refunded, všechny lístky revoked, kapacita +2, 0 volání refundu u brány; 2. doručení nic nezdvojí
+[31m[1mAssertionError[22m: expected [ 'valid', 'valid' ] to deeply equal [ 'revoked', 'revoked' ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Array [[22m
+[32m-   "revoked",[39m
+[32m-   "revoked",[39m
+[31m+   "valid",[39m
+[31m+   "valid",[39m
+[2m  ][22m
+
+[36m [2m❯[22m tests/fix-r3-r5-webhook-refunded.live.test.ts:[2m71:27[22m[39m
+    [90m 69| [39m    [35mconst[39m after [33m=[39m [35mawait[39m [34mstate[39m(o[33m.[39morderId[33m,[39m o[33m.[39mticketTypeId)[33m;[39m
+    [90m 70| [39m    [34mexpect[39m(after[33m.[39mstatus)[33m.[39m[34mtoBe[39m([32m'refunded'[39m)[33m;[39m
+    [90m 71| [39m    [34mexpect[39m(after[33m.[39mtickets)[33m.[39m[34mtoEqual[39m([[32m'revoked'[39m[33m,[39m [32m'revoked'[39m])[33m;[39m
+    [90m   | [39m                          [31m^[39m
+    [90m 72| [39m    [34mexpect[39m(after[33m.[39mremaining)[33m.[39m[34mtoBe[39m(before[33m.[39mremaining [33m+[39m [34m2[39m)[33m;[39m
+    [90m 73| [39m    [34mexpect[39m([35mawait[39m [34mrefundCalls[39m(o[33m.[39mpid))[33m.[39m[34mtoHaveLength[39m([34m0[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-r5-webhook-refunded.live.test.ts[2m > [22mKrok 2 (kolo 3) — R5: webhook REFUNDED → refunded + revoke + kapacita, idempotentně, bez 2. refundu[2m > [22mREFUNDED doručený 3× souběžně → kapacita vrácena právě jednou
+[31m[1mAssertionError[22m: expected [ 'valid', 'valid' ] to deeply equal [ 'revoked', 'revoked' ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Array [[22m
+[32m-   "revoked",[39m
+[32m-   "revoked",[39m
+[31m+   "valid",[39m
+[31m+   "valid",[39m
+[2m  ][22m
+
+[36m [2m❯[22m tests/fix-r3-r5-webhook-refunded.live.test.ts:[2m94:27[22m[39m
+    [90m 92| [39m    [35mconst[39m after [33m=[39m [35mawait[39m [34mstate[39m(o[33m.[39morderId[33m,[39m o[33m.[39mticketTypeId)[33m;[39m
+    [90m 93| [39m    [34mexpect[39m(after[33m.[39mstatus)[33m.[39m[34mtoBe[39m([32m'refunded'[39m)[33m;[39m
+    [90m 94| [39m    [34mexpect[39m(after[33m.[39mtickets)[33m.[39m[34mtoEqual[39m([[32m'revoked'[39m[33m,[39m [32m'revoked'[39m])[33m;[39m
+    [90m   | [39m                          [31m^[39m
+    [90m 95| [39m    [34mexpect[39m(after[33m.[39mremaining)[33m.[39m[34mtoBe[39m(before[33m.[39mremaining [33m+[39m [34m2[39m)[33m;[39m
+    [90m 96| [39m    [34mexpect[39m([35mawait[39m [34mrefundCalls[39m(o[33m.[39mpid))[33m.[39m[34mtoHaveLength[39m([34m0[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-r5-webhook-refunded.live.test.ts[2m > [22mKrok 2 (kolo 3) — R5: webhook REFUNDED → refunded + revoke + kapacita, idempotentně, bez 2. refundu[2m > [22mPARTIALLY_REFUNDED: objednávka NENÍ označena jako celá refundovaná a lístky se hromadně nezneplatní
+[31m[1mAssertionError[22m: expected { status: 'refunded', …(2) } to deeply equal { status: 'paid', …(2) }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[2m    "remaining": 10,[22m
+[32m-   "status": "paid",[39m
+[31m+   "status": "refunded",[39m
+[2m    "tickets": Array [[22m
+[2m      "valid",[22m
+[2m      "valid",[22m
+[2m    ],[22m
+[2m  }[22m
+
+[36m [2m❯[22m tests/fix-r3-r5-webhook-refunded.live.test.ts:[2m105:52[22m[39m
+    [90m103| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcallHook[39m(o[33m.[39mpid)[33m;[39m
+    [90m104| [39m    [34mexpect[39m(res[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m105| [39m    [34mexpect[39m([35mawait[39m [34mstate[39m(o[33m.[39morderId[33m,[39m o[33m.[39mticketTypeId))[33m.[39m[34mtoEqual[39m(before)[33m;[39m
+    [90m   | [39m                                                   [31m^[39m
+    [90m106| [39m    [35mconst[39m ev [33m=[39m ([35mawait[39m pool[33m.[39m[34mquery[39m([32m`SELECT event_type, gopay_status FROM[39m…
+    [90m107| [39m    [34mexpect[39m(ev)[33m.[39m[34mtoContainEqual[39m({ event_type[33m:[39m [32m'payment_refunded'[39m[33m,[39m gopay_…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[90m (3)[39m
+[2m   Start at [22m 12:57:29
+[2m   Duration [22m 1.64s[2m (transform 182ms, setup 0ms, collect 193ms, tests 1.00s, environment 0ms, prepare 98ms)[22m
+

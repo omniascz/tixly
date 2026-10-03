@@ -34,10 +34,26 @@ export interface RefundOrderOpts {
   applyEffects: (client: import('pg').PoolClient) => Promise<void>;
   /** Volitelný zápis do audit logu v úspěšné transakci. */
   audit?: (client: import('pg').PoolClient) => Promise<void>;
+  /**
+   * Kolo 3 / R5: refund už provedla brána sama (webhook REFUNDED — portál brány, chargeback).
+   * Bránu NEVOLÁME znovu; přechod + efekty + finální stav proběhnou v JEDNÉ transakci
+   * (není mezi nimi síťové volání, takže objednávka nemůže uvíznout v refund_pending).
+   * `raw` se uloží do refund_gateway_response.
+   */
+  gatewayRefundedExternally?: { raw: unknown };
+  /** Ze kterých stavů je refund povolen (default paid/paid_partial/refund_failed). */
+  allowFromStatuses?: string[];
 }
+
+const DEFAULT_REFUNDABLE = ['paid', 'paid_partial', 'refund_failed'];
 
 export async function executeOrderRefund(opts: RefundOrderOpts): Promise<RefundOrderResult> {
   const { pool, orderId, amountHalire, finalStatus, applyEffects, audit } = opts;
+  const refundable = opts.allowFromStatuses ?? DEFAULT_REFUNDABLE;
+
+  if (opts.gatewayRefundedExternally) {
+    return finalizeExternalRefund(opts, refundable);
+  }
 
   // ── txn1: idempotentní přechod paid → refund_pending ───────────────────────
   const c1 = await pool.connect();
@@ -54,7 +70,7 @@ export async function executeOrderRefund(opts: RefundOrderOpts): Promise<RefundO
 
     if (order.status === 'refunded') { await c1.query('ROLLBACK'); return { http: 200, body: { ok: true, alreadyRefunded: true, orderId }, outcome: 'already' }; }
     if (order.status === 'refund_pending') { await c1.query('ROLLBACK'); return { http: 409, body: { error: 'REFUND_IN_PROGRESS', orderId }, outcome: 'in_progress' }; }
-    if (!['paid', 'paid_partial', 'refund_failed'].includes(order.status)) {
+    if (!refundable.includes(order.status)) {
       await c1.query('ROLLBACK');
       return { http: 409, body: { error: `Order status is "${order.status}", cannot refund` }, outcome: 'invalid' };
     }
@@ -110,5 +126,50 @@ export async function executeOrderRefund(opts: RefundOrderOpts): Promise<RefundO
     throw e;
   } finally {
     c2.release();
+  }
+}
+
+/**
+ * Refund provedený bránou mimo Tixly: stejný stavový automat a tytéž efekty jako
+ * executeOrderRefund, ale bez volání brány a v jedné transakci.
+ * - `refunded` → already (idempotence opakovaného webhooku),
+ * - `refund_pending` → in_progress: běží refund z Tixly, jeho txn2 aplikuje efekty;
+ *   kdybychom je aplikovali i tady, kapacita by se vrátila dvakrát.
+ */
+async function finalizeExternalRefund(opts: RefundOrderOpts, refundable: string[]): Promise<RefundOrderResult> {
+  const { pool, orderId, amountHalire, finalStatus, applyEffects, audit } = opts;
+  const c = await pool.connect();
+  try {
+    await c.query('BEGIN');
+    const r = await c.query<{ status: string }>(`SELECT status FROM orders.orders WHERE id = $1 FOR UPDATE`, [orderId]);
+    if (r.rows.length === 0) { await c.query('ROLLBACK'); return { http: 404, body: { error: 'ORDER_NOT_FOUND' }, outcome: 'invalid' }; }
+    const status = r.rows[0].status;
+    if (status === 'refunded') { await c.query('ROLLBACK'); return { http: 200, body: { ok: true, alreadyRefunded: true, orderId }, outcome: 'already' }; }
+    if (status === 'refund_pending') { await c.query('ROLLBACK'); return { http: 409, body: { error: 'REFUND_IN_PROGRESS', orderId }, outcome: 'in_progress' }; }
+    if (!refundable.includes(status)) {
+      await c.query('ROLLBACK');
+      return { http: 409, body: { error: `Order status is "${status}", cannot refund` }, outcome: 'invalid' };
+    }
+    await applyEffects(c);
+    await c.query(
+      `UPDATE orders.orders
+          SET status = $2, refund_initiated_at = COALESCE(refund_initiated_at, now()), refund_completed_at = now(),
+              refunded_amount_halire = $3,
+              refund_gateway_response = $4::jsonb, refund_error = NULL, updated_at = now()
+        WHERE id = $1`,
+      [orderId, finalStatus, amountHalire, JSON.stringify(opts.gatewayRefundedExternally?.raw ?? null)],
+    );
+    if (audit) await audit(c);
+    await c.query('COMMIT');
+    return {
+      http: 200,
+      body: { ok: true, orderId, refundedAmountHalire: amountHalire, gatewayRefundedExternally: true },
+      outcome: finalStatus === 'refunded' ? 'refunded' : 'partial',
+    };
+  } catch (e) {
+    await c.query('ROLLBACK').catch(() => {});
+    throw e;
+  } finally {
+    c.release();
   }
 }
