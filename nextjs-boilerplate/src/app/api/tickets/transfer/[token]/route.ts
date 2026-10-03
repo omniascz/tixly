@@ -3,7 +3,7 @@
  * POST /api/tickets/transfer/[token] — accept přesunu (příjemce)
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db, runWithServiceContext, runWithUserContext } from '@/lib/db/rls-pool';
+import { asSystemInTx, db, runWithServiceContext, runWithUserContext } from '@/lib/db/rls-pool';
 
 async function GETImpl(
   _req: NextRequest,
@@ -88,16 +88,24 @@ async function POSTImpl(
       return NextResponse.json({ error: 'EMAIL_MISMATCH' }, { status: 403 });
     }
 
-    // Transfer ownership
-    await client.query(
+    // Transfer ownership — kolo 4: dřív v kontextu PŘÍJEMCE, který cizí vstupenku pod RLS
+    // nevidí → UPDATE zasáhl 0 řádků bez chyby a převod se přesto označil 'claimed'.
+    // Oprávnění je ověřené výše (platný pending převod, e-mail příjemce sedí), změna vlastníka
+    // je systémový efekt převodu. Podmínka owner_id = odesílatel brání převzetí vstupenky,
+    // která mezitím změnila majitele; nezasáhne-li UPDATE právě 1 řádek, převod se neprovede.
+    const moved = await asSystemInTx(client, () => client.query(
       `UPDATE tickets.tickets
           SET owner_id=$1,
               transferred_to_user_id=$1,
               transfer_status='transferred',
               transfer_count = transfer_count + 1
-        WHERE id=$2`,
-      [userId, tr.ticket_id],
-    );
+        WHERE id=$2 AND owner_id=$3 AND status='valid'`,
+      [userId, tr.ticket_id, tr.from_user_id],
+    ));
+    if (moved.rowCount !== 1) {
+      await client.query('ROLLBACK');
+      return NextResponse.json({ error: 'TICKET_NOT_TRANSFERABLE' }, { status: 409 });
+    }
 
     await client.query(
       `UPDATE orders.ticket_transfers SET status='claimed', claimed_at=now() WHERE id=$1`,
