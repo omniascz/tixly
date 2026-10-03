@@ -14,7 +14,7 @@ Infrastruktura jako v kole 3 (viz PROGRESS_R3.md). Výstupy: logs/r4/.
 | 2 routy bez identity + tabulka všech rout + generovaný test | HOTOVO — 2a–2g + tabulka/test bea7c5d; oauth/authorize ověřit HTTP v závěru | bea7c5d |
 | 3a seat-upgrade-notify | HOTOVO 9524f6e | |
 | 3b RLS politiky true | HOTOVO (+ převod vstupenky 4fea477) | |
-| 3c veřejný e-mail organizátora | čeká | |
+| 3c veřejný e-mail organizátora | HOTOVO 133dfc2 | |
 | 3d restwert | čeká | |
 | 3e exchange | čeká | |
 | 3f upgrade-options 500 | čeká | |
