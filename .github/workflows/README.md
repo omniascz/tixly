@@ -38,10 +38,16 @@ realitu proti realitě a drift by posvětil.
 ### Regenerace snapshotu (po každé migraci, která mění RLS)
 
 ```bash
-# klon s baseline + 453/454/455, pak:
-node scripts/rls-verify.mjs --snapshot --url="<clone-uri>"
+# DB od nuly z migrací (lokální Postgres 17 / CI service kontejner), pak:
+.github/scripts/build-db-from-migrations.sh postgresql://<owner>@localhost:55632/neondb rls
+node scripts/rls-verify.mjs --snapshot --url="postgresql://<owner>@localhost:55632/rls"
 git add nextjs-boilerplate/rls-snapshot.json
 ```
+
+Na push/PR to hlídá job `verify-migrations` v `rls-gate.yml`: postaví DB z migrací a pustí
+gate pod `tixly_app` — zapomenutá regenerace = PŘEBÝVAJÍCÍ/CHYBĚJÍCÍ POLICY = červený build.
+Kontrola produkce (noc + `deploy.yml`) bez secretu `DATABASE_URL` **selže**, nepřeskočí se.
+`schema-drift-guard` i `ci.yml` běží proti téže DB z migrací — žádný produkční secret.
 
 ## Pravidlo: nula z nástroje není nález, dokud není doložená
 
