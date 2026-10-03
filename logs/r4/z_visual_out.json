@@ -1,0 +1,23 @@
+{
+ "resellerLogin": "200:token,partnerName",
+ "printText": "Přeskočit na obsah\nVytisknout vstupenky\nAudit Koncert A musuezta\n03. 10. 2026 23:34\nAudit Sal musuezta\nSezeni 1791059508256\nSedadlo: A 12\nSedici Kupec\n#6E283F8E\n6e283f8e\nAudit Koncert A musuezta\n03. 10. 2026 23:34\nAudit Sal musuezta\nSezeni 1791059508256\nSedadlo: A 11\nSedici Kupec\n#BA224881\nba224881\n\nNainstalovat Tixly\n\nRychlý přístup ke vstupenkám i offline. Zabere 0,5 MB.\n\n×\nNe teď\nNainstalovat",
+ "qrCount": 2,
+ "qrDecoded": [
+  "TXP2.… (43 zn.)",
+  "TXP2.… (43 zn.)"
+ ],
+ "qrFormat": "TXP2 (všechny)",
+ "promoterLogin": 200,
+ "scanSubmit": "submitted",
+ "scannerText": "Přeskočit na obsah T Tixly Nová akce Akce Filmový katalog Sportovní týmy Dashboard PRODEJ Objednávky Pokladna (POS) Call Center Scanner Event Groups Produkce / reprízy Embed na web Abonentky Sezónní pasy Sezónní přehled PŘEHLED & ANALYTIKA Live prodej Pricemaster Inhouse reporty Účetní reporty SETUP Personál Nastavení Dokumenty (QES) FINANCE Výplaty Výplaty umělců Faktury ERP Export Bank výpisy MARKETING Promo kódy Dárkové poukazy Přístupové kódy Broadcasty SMS kampaně E-mail šablony Permanentky Marketplace Ads Kolekce Tracking Pixely Event templates Brand Connect PARTNEŘI Partnerská síť Affil",
+ "ticketStatuses": [
+  {
+   "status": "used",
+   "n": 1
+  },
+  {
+   "status": "valid",
+   "n": 1
+  }
+ ]
+}

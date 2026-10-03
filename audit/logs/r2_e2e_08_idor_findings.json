@@ -4,73 +4,14 @@
  "stat": {
   "promoterB:4xx": 106,
   "otherBuyer:4xx": 120,
-  "anon:4xx": 119,
-  "promoterB:2xx": 46,
-  "otherBuyer:2xx": 32,
-  "anon:2xx": 32,
-  "anon:5xx": 2,
+  "anon:4xx": 120,
+  "promoterB:2xx": 47,
+  "otherBuyer:2xx": 33,
+  "anon:2xx": 33,
   "promoterB:0xx": 1,
   "otherBuyer:0xx": 1,
-  "anon:0xx": 1,
-  "promoterB:5xx": 1,
-  "otherBuyer:5xx": 1
+  "anon:0xx": 1
  },
- "leaks": [
-  {
-   "kind": "LEAK",
-   "actor": "promoterB",
-   "route": "buyer/tickets/[ticketId]/upgrade",
-   "status": 200,
-   "markers": [
-    "19497fa7-f39b-447e-a123-e0ca80203092"
-   ],
-   "sample": "{\"currentTicket\":{\"id\":\"19497fa7-f39b-447e-a123-e0ca80203092\",\"status\":\"valid\",\"ticketTypeId\":\"c05fcb40-7747-4241-8674-2567f3881a90\",\"ticketTypeName\":\"Stani\",\"pricePaidHalire\":50000},\"eligible\":true,\""
-  },
-  {
-   "kind": "LEAK",
-   "actor": "otherBuyer",
-   "route": "buyer/tickets/[ticketId]/upgrade",
-   "status": 200,
-   "markers": [
-    "19497fa7-f39b-447e-a123-e0ca80203092"
-   ],
-   "sample": "{\"currentTicket\":{\"id\":\"19497fa7-f39b-447e-a123-e0ca80203092\",\"status\":\"valid\",\"ticketTypeId\":\"c05fcb40-7747-4241-8674-2567f3881a90\",\"ticketTypeName\":\"Stani\",\"pricePaidHalire\":50000},\"eligible\":true,\""
-  },
-  {
-   "kind": "LEAK",
-   "actor": "anon",
-   "route": "buyer/tickets/[ticketId]/upgrade",
-   "status": 200,
-   "markers": [
-    "19497fa7-f39b-447e-a123-e0ca80203092"
-   ],
-   "sample": "{\"currentTicket\":{\"id\":\"19497fa7-f39b-447e-a123-e0ca80203092\",\"status\":\"valid\",\"ticketTypeId\":\"c05fcb40-7747-4241-8674-2567f3881a90\",\"ticketTypeName\":\"Stani\",\"pricePaidHalire\":50000},\"eligible\":true,\""
-  }
- ],
- "errs": [
-  {
-   "kind": "5xx",
-   "actor": "anon",
-   "route": "buyer/orders/[orderId]/calendar.ics",
-   "status": 500
-  },
-  {
-   "kind": "5xx",
-   "actor": "promoterB",
-   "route": "public/events/[id]/kiosk",
-   "status": 500
-  },
-  {
-   "kind": "5xx",
-   "actor": "otherBuyer",
-   "route": "public/events/[id]/kiosk",
-   "status": 500
-  },
-  {
-   "kind": "5xx",
-   "actor": "anon",
-   "route": "public/events/[id]/kiosk",
-   "status": 500
-  }
- ]
+ "leaks": [],
+ "errs": []
 }

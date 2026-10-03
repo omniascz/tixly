@@ -9530,6 +9530,16 @@
   "isPublic": true
  },
  {
+  "route": "/api/v1/buyer/orders",
+  "method": "GET",
+  "zone": "unlisted",
+  "caller": "kupec",
+  "protection": "handler: x-user-id (401)",
+  "guards": "buyer",
+  "reason": "",
+  "isPublic": false
+ },
+ {
   "route": "/api/v1/events",
   "method": "GET",
   "zone": "unlisted",

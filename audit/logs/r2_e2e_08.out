@@ -1,9 +1,7 @@
-# E2E 08_idor_sweep  base=http://localhost:3200  2026-10-03T12:37:35.922Z
-FAIL I1  IDOR sweep: 154 GET rout s ID v URL x 3 cizi aktori — zadna odpoved 2xx s privatnimi daty obeti
-       {"tested":154,"skippedUnresolvedParam":55,"stat":{"promoterB:4xx":106,"otherBuyer:4xx":120,"anon:4xx":119,"promoterB:2xx":46,"otherBuyer:2xx":32,"anon:2xx":32,"anon:5xx":2,"promoterB:0xx":1,"otherBuyer:0xx":1,"anon:0xx":1,"promoterB:5xx":1,"otherBuyer:5xx":1},"leaks":["promoterB buyer/tickets/[ticketId]/upgrade [19497fa7-f39b-447e-a123-e0ca80203092]","otherBuyer buyer/tickets/[ticketId]/upgrade [1…
-FAIL I2  IDOR sweep: routy vracejici 5xx cizimu aktorovi (chyba misto 401/403/404)
-       {"count":4,"routes":["buyer/orders/[orderId]/calendar.ics","public/events/[id]/kiosk"]}
+# E2E 08_idor_sweep  base=http://localhost:3200  2026-10-03T20:28:42.125Z
+PASS I1  IDOR sweep: 154 GET rout s ID v URL x 3 cizi aktori — zadna odpoved 2xx s privatnimi daty obeti
+       {"tested":154,"skippedUnresolvedParam":55,"stat":{"promoterB:4xx":106,"otherBuyer:4xx":120,"anon:4xx":120,"promoterB:2xx":47,"otherBuyer:2xx":33,"anon:2xx":33,"promoterB:0xx":1,"otherBuyer:0xx":1,"anon:0xx":1},"leaks":[]}
+PASS I2  IDOR sweep: routy vracejici 5xx cizimu aktorovi (chyba misto 401/403/404)
+       {"count":0,"routes":[]}
 
-# SUMMARY {"PASS":0,"FAIL":2,"INFO":0}
-  FAIL I1 IDOR sweep: 154 GET rout s ID v URL x 3 cizi aktori — zadna odpoved 2xx s privatnimi daty obeti
-  FAIL I2 IDOR sweep: routy vracejici 5xx cizimu aktorovi (chyba misto 401/403/404)
+# SUMMARY {"PASS":2,"FAIL":0,"INFO":0}

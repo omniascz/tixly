@@ -1,0 +1,6 @@
+ESLint: 1045 chyb celkem (baseline 1041)
+
+NOVÉ chyby ESLint nad baseline (3):
+  x src/lib/__lint_probe_r4.ts  import/order  0 -> 1
+  x src/lib/__lint_probe_r4.ts  @typescript-eslint/explicit-module-boundary-types  0 -> 2
+  x src/lib/__lint_probe_r4.ts  @typescript-eslint/no-explicit-any  0 -> 1

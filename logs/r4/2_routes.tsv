@@ -952,6 +952,7 @@ routa	metoda	typ volajícího	ochrana	zóna middlewaru	guardy
 /api/transfer/accept/[token]	GET	veřejná (capability)	token převodu	optional	buyer
 /api/transfer/accept/[token]	POST	kupec	handler: x-user-id (401)	optional	buyer
 /api/travel/rail/search	POST	veřejná	bez přihlášení (záměr)	unlisted	partner
+/api/v1/buyer/orders	GET	kupec	handler: x-user-id (401)	unlisted	buyer
 /api/v1/events	GET	partner	handler: API klíč/token partnera	unlisted	partner
 /api/v1/feed/events.ics	GET	veřejná	bez přihlášení (záměr)	unlisted	
 /api/v1/feed/events.rss	GET	veřejná	bez přihlášení (záměr)	unlisted	
