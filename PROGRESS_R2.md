@@ -18,11 +18,19 @@ Základ: `fix/critical-2026-09-30` @ `1a6e96d`. Worktree `../tixly-fix`. `tixly/
 ## Stav kroků
 | Krok | Stav | Commit |
 |---|---|---|
-| A obnova | HOTOVO | (tento commit) |
-| 0 audit skripty + ověření kola 1 + x-user-id | rozpracováno | |
-| 1 webhooky fail-closed | čeká | |
+| A obnova | HOTOVO | 073b00f |
+| 0 audit skripty + ověření kola 1 + x-user-id | HOTOVO | 8d97de9 (skripty), 43871e0 (fix x-vercel-cron) |
+| 1 webhooky fail-closed | rozpracováno | |
 | 2 V2 | čeká | |
 | 3 V8 + 156 tabulek | čeká | |
 | 4 V9 R-56 | čeká | |
 | 5 V4/S1/V6/S8/P1/QR | čeká | |
 | Závěr + FIX_REPORT_R2 | čeká | |
+
+## Krok 0 — výsledky (2026-10-03, app :3200 pod tixly_app)
+Požadované kontroly: r2_e2e_02:P15a PASS, r2_e2e_03:R1b PASS, R1c PASS (opravený dotaz, kind=refund), r2_e2e_04_app:X14 PASS,
+r2_e2e_05:C5 PASS (10×200, 50×429), r2_e2e_10: D1 D2 D3b D4 D5 D6 PASS (D3a = S8, krok 5), r2_e2e_12 (sonda expirace) E1–E4 PASS.
+x-user-id: kiosk s podvrženým x-user-id existující obsluhy → 401, 0 objednávek (PASS hned). Navíc nalezeno a opraveno:
+x-vercel-cron nebyl stripován a 3 cron routy ho braly jako autentizaci (resale-payouts 200 bez tajemství) → 43871e0.
+Zbývající FAIL v audit sadě = nálezy kroků 2–5 (P1, P5d/C2b, P7d/X2/X3, P13, D3a, V12) + mimo zadání (R5, R6, V9b, X6).
+Pozn.: tsc = 1 chyba v .next/types pro rfid/scan/route.ts (předexistující v d4b43f4, soubor je mezi necommitnutými změnami v tixly/).
