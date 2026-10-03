@@ -17,9 +17,9 @@ Při startu nové session: přečíst tento soubor a pokračovat prvním nehotov
 |---|---|---|
 | 0 závěrečné ověření kola 2 | HOTOVO — regrese (deadlock poolu) opravena 91a1316, skripty 2d80acc | 91a1316, 2d80acc |
 | 1 kolize migrace 472 → 479 | HOTOVO | e78c5cc |
-| 2 R5, R6, mobile rate limit, guard trigger, X7 | HOTOVO | f800b76 d58c3ef 799bfa0 b275ecf b110d66 b1c9b72 + X7 |
-| 3 54 eskalací | rozpracováno | |
-| 4 K4d, K3a, K5, K8a, V9b | čeká | |
+| 2 R5, R6, mobile rate limit, guard trigger, X7 | HOTOVO | f800b76 d58c3ef 799bfa0 b275ecf b110d66 b1c9b72 055b631 |
+| 3 54 eskalací | HOTOVO (ESKALACE_R3.md; test 17/17; unit 513/0; live 151/0) | db3bffe |
+| 4 K4d, K3a, K5, K8a, V9b | rozpracováno | |
 | 5 reseller print, admin/import, X6 | čeká | |
 | Závěr + FIX_REPORT_R3 | čeká | |
 
@@ -37,3 +37,11 @@ P1, P5d, C2b, P13, V12, D3a PASS; C1a, C2a PASS.
 - my auth HOTOVO b110d66 (/api/my/* bez identity; upgrade-options padá na catalog.seat_maps → report)
 - guard trigger HOTOVO b1c9b72 (migrace 486; test 23/23; RED bez triggeru 12, bez rout 6; live 132/0)
 - X7 HOTOVO (migrace 487; test 2/2) — KROK 2 HOTOVÝ
+
+## Krok 3 — poznámky pro report
+- claim skupinové pozvánky: guard 486 blokoval zápis gopay_payment_id pod kupcem (regrese b1c9b72, live sada ji nezachytila) → opraveno v db3bffe.
+- K4d: platform-auth verifyAdminToken taky musí kontrolovat typ tokenu.
+- Nálezy mimo zadání: seat-upgrade-notify cron používá neexistující sloupce (seat_upgrades.order_id/notified_at, seats.row_label);
+  seat_upgrades UPDATE/INSERT politika `true`, postal_deliveries/travel_bookings INSERT `true`; group-invitations/[token] veřejně vrací e-mail organizátora;
+  subscriptions.holders restwert_credit_halire měnitelné kupcem pod RLS (vlastní řádek); exchange mění event_id celé objednávky, ne lístku;
+  free upgrade nemění kapacitu typů; my/orders upgrade-options → catalog.seat_maps neexistuje; 25 rout bez identity (logs/r3/2_unlisted_auth_routes.txt).
