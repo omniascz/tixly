@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { runAsUser } from '@/lib/auth';
 import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { z } from 'zod';
+import { enforceOrderCreationLimits } from '@/lib/orders/order-creation-limits';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,6 +57,11 @@ export async function POST(req: NextRequest): Promise<Response> {
       return NextResponse.json({ error: 'Validation failed', issues: parsed.error.issues }, { status: 422 });
     }
     const { eventId, ticketTypeId, qty } = parsed.data;
+
+    // Kolo 3: stejné limity vytváření objednávek jako web checkout (K3), sdílený mechanismus
+    // i sdílený IP klíč — route zadrží inventář a založí pending objednávku stejně jako checkout.
+    const limited = await enforceOrderCreationLimits(req, { userId });
+    if (limited) return limited;
 
     const client = await db().connect();
     try {

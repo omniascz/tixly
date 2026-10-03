@@ -246,36 +246,14 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   // ── FIX K3: rate limit vytváření objednávek ────────────────────────────────
   // Bez limitu šlo z jedné IP / na jeden e-mail založit neomezeně nezaplacených
-  // objednávek a zamknout jimi kapacitu (spolu s rozbitou expirací). Stejný
-  // mechanismus jako u loginu (checkRateLimit, sliding window přes Redis):
+  // objednávek a zamknout jimi kapacitu. Sdílený mechanismus (kolo 3) — tentýž
+  // limit i klíč používá mobile/payment-intent:
   //  - per IP: 10 objednávek / 10 min
   //  - per e-mail: max 5 SOUČASNĚ živých (nevypršelých) nezaplacených objednávek
   {
-    const { checkRateLimit, rateLimitResponse } = await import('@/lib/rate-limit/per-tenant');
-    const { clientIp } = await import('@/lib/security/client-ip');
-    const ip = clientIp(req);
-    const rl = await checkRateLimit(`checkout:ip:${ip}`, { limit: 10, windowMs: 10 * 60 * 1000 });
-    const rlResp = rateLimitResponse(rl, 'checkout');
-    if (rlResp) return rlResp;
-
-    const pendingRes = await db().query<{ n: number }>(
-      `SELECT COUNT(*)::int AS n
-         FROM orders.orders o
-         JOIN identity.users u ON u.id = o.user_id
-        WHERE LOWER(u.email) = LOWER($1)
-          AND o.status = 'pending'
-          AND o.expires_at > now()`,
-      [input.buyerEmail],
-    );
-    if ((pendingRes.rows[0]?.n ?? 0) >= 5) {
-      return NextResponse.json(
-        {
-          error: 'TOO_MANY_PENDING_ORDERS',
-          message: 'Máte příliš mnoho nezaplacených objednávek. Dokončete je, nebo počkejte, než vyprší.',
-        },
-        { status: 429 },
-      );
-    }
+    const { enforceOrderCreationLimits } = await import('@/lib/orders/order-creation-limits');
+    const limited = await enforceOrderCreationLimits(req, { email: input.buyerEmail });
+    if (limited) return limited;
   }
 
   // Early-guard: krypto bez nakonfigurovaného Triple-A nesmí v produkci založit
