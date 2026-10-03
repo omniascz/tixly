@@ -20,8 +20,8 @@ Základ: `fix/critical-2026-09-30` @ `1a6e96d`. Worktree `../tixly-fix`. `tixly/
 |---|---|---|
 | A obnova | HOTOVO | 073b00f |
 | 0 audit skripty + ověření kola 1 + x-user-id | HOTOVO | 8d97de9 (skripty), 43871e0 (fix x-vercel-cron) |
-| 1 webhooky fail-closed | rozpracováno | |
-| 2 V2 | čeká | |
+| 1 webhooky fail-closed | HOTOVO | 81aa2b7 (tabulka logs/r2/1_webhook_table.md) |
+| 2 V2 | rozpracováno: RED 5/5 (logs/r2/2_v2_RED.txt), migrace 480 napsána, PDF routa upravena | |
 | 3 V8 + 156 tabulek | čeká | |
 | 4 V9 R-56 | čeká | |
 | 5 V4/S1/V6/S8/P1/QR | čeká | |
@@ -34,3 +34,8 @@ x-user-id: kiosk s podvrženým x-user-id existující obsluhy → 401, 0 objedn
 x-vercel-cron nebyl stripován a 3 cron routy ho braly jako autentizaci (resale-payouts 200 bez tajemství) → 43871e0.
 Zbývající FAIL v audit sadě = nálezy kroků 2–5 (P1, P5d/C2b, P7d/X2/X3, P13, D3a, V12) + mimo zadání (R5, R6, V9b, X6).
 Pozn.: tsc = 1 chyba v .next/types pro rfid/scan/route.ts (předexistující v d4b43f4, soubor je mezi necommitnutými změnami v tixly/).
+
+## Krok 1 — výsledky
+16+1 RED → GREEN 29/29 (`tests/fix-r2-webhooks.live.test.ts`); unit payment 63/63; HTTP audit 02 P4–P10b PASS po rebuildu.
+Neopraveno: Pluxee — dotaz na stav u vendor API (vendor dokumentaci nemáme, endpoint by byl odhad).
+Číslování migrací kola 2 od 480 (uživatel má necommitnuté 472–478; kolo 1 už kolidovalo na 472).
