@@ -22,6 +22,7 @@ Prostředí: izolovaná DB z migrací, PgBouncer transaction mode, fake-gopay, M
 | RLS politiky `true` (R3 bod 4) | 19 politik s `true`: 7 zápisových dovolovalo cizí řádek; čtení ukazovalo koncepty akcí a neaktivní pořadatele (bankovní účet, KYC) | migrace 491: zápis servis/vlastník, čtení jen publikované/aktivní; 10 veřejných ponecháno s důvodem; routy alert/upgrade servisně | fix-r4-true-policies | 2 fail (4× cizí INSERT, koncept/pending vidět) → 3/3 | 3fa3b71 |
 | převzetí převodu vstupenky (odhaleno při 3b) | UPDATE vlastníka v kontextu příjemce → 0 řádků, přesto 200 claimed | `asSystemInTx` po ověření, podmínka owner_id = odesílatel, jinak 409 a převod pending | fix-r4-transfer-claim | 2 fail (vlastník beze změny, tiché claimed) → 2/2 | 4fea477 |
 | veřejný e-mail organizátora (R3 bod 4) | pozvánka do skupiny vracela e-mail a ID organizátora, náhled převodu e-mail odesílatele, dárek e-mail dárce bez jména | jen jméno, UI fallback na obecný text | fix-r4-public-contacts | 3 fail → 3/3 | 133dfc2 |
+| restwert abonentky (R3 bod 4) | politika pouští kupce na vlastní řádek, sloupce nehlídá → kupec si navýšil kredit/platnost | migrace 492: guard chráněných sloupců (vzor 486) | fix-r4-holders-guard | kredit 9 999 999 povolen → 42501 (2/2) | d235d8d |
 <!-- /nalezy -->
 
 **Krok 1 — audit 08 po opravách:** I1 PASS (154 GET rout × 3 cizí aktéři, 0 úniků), I2 PASS (0 odpovědí 5xx). `logs/r4/1c_r2_e2e_08.out`.
