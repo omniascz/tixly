@@ -9,7 +9,7 @@ Infrastruktura jako v kole 3 (viz PROGRESS_R3.md). Výstupy: logs/r4/.
 | Krok | Stav | Commit |
 |---|---|---|
 | 1a S2 upgrade únik | HOTOVO | 7b481c1 |
-| 1b 5xx calendar.ics, kiosk | čeká | |
+| 1b 5xx calendar.ics, kiosk | HOTOVO | 03f6c93 |
 | 1c audit 08 bez FAIL | čeká | |
 | 2 routy bez identity + tabulka všech rout + generovaný test | čeká | |
 | 3a seat-upgrade-notify | čeká | |
