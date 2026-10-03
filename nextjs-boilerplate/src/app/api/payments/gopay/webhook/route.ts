@@ -21,7 +21,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
-import { getGopayPaymentStatus } from '@/lib/payment/gopay-real';
+import { getGopayConfig, getGopayPaymentStatus } from '@/lib/payment/gopay-real';
 import { releaseOrderCapacity } from '@/lib/orders/release-capacity';
 
 
@@ -33,6 +33,12 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
 
   if (!paymentId) {
     return NextResponse.json({ error: 'MISSING_PAYMENT_ID' }, { status: 400 });
+  }
+
+  // Kolo 2: fail-closed bez konfigurace — mimo produkci by getGopayPaymentStatus vrátil
+  // DEV_STUB `paid:true` a kdokoli by přes ?id= označil objednávku zaplacenou.
+  if (!getGopayConfig().isConfigured) {
+    return NextResponse.json({ error: 'WEBHOOK_NOT_CONFIGURED' }, { status: 401 });
   }
 
   // Volání GoPay API pro ověření stavu (autoritativní zdroj)
@@ -73,12 +79,11 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
     // Integrita částky: GoPay-reportovaná zaplacená částka (halíře) musí pokrýt
     // order.total_amount (taky halíře) a měna sedět. Jinak NEoznačíme paid —
     // underpayment / manipulace by jinak vystavila vstupenky pod cenou.
+    // Kolo 2: chybějící / nulová / nečíselná částka NIKDY nepokrývá cenu (dřív `true`
+    // → DEV_STUB nebo PAID s amount 0 označil objednávku zaplacenou). Měna musí sedět.
     const paidAmount = Number(status.amountHalire);
-    const amountCovers =
-      !Number.isFinite(paidAmount) || paidAmount <= 0
-        ? true // 0/stub se řeší jinde (provider config gating), tady neblokujeme
-        : paidAmount >= order.total_amount;
-    const currencyMatches = !status.currency || status.currency === order.currency;
+    const amountCovers = Number.isFinite(paidAmount) && paidAmount > 0 && paidAmount >= order.total_amount;
+    const currencyMatches = !!status.currency && status.currency === order.currency;
     const amountOk = amountCovers && currencyMatches;
     const effectivePaid = status.paid && amountOk;
 

@@ -168,7 +168,13 @@ export async function handleBenefitCallback(input: {
   externalId: string;
   success: boolean;
   payload: Record<string, unknown>;
-}): Promise<{ orderId: string | null; status: 'paid' | 'failed' | 'duplicate' | 'not_found' }> {
+  /**
+   * Kolo 2: zaplacená částka (halíře) z ověřené notifikace providera. Je-li zadána
+   * (i `null`), musí pokrýt `benefit_payments.amount_halire`, jinak se NIC neoznačí
+   * zaplaceným (`amount_mismatch`). Neuvedená (undefined) = jen dev mock cesta.
+   */
+  paidAmountMinor?: number | null;
+}): Promise<{ orderId: string | null; status: 'paid' | 'failed' | 'duplicate' | 'not_found' | 'amount_mismatch' }> {
   const client = await db().connect();
   try {
     await client.query('BEGIN');
@@ -194,6 +200,14 @@ export async function handleBenefitCallback(input: {
     if (payment.status === 'paid') {
       await client.query('ROLLBACK');
       return { orderId: payment.order_id, status: 'duplicate' };
+    }
+
+    if (input.success && input.paidAmountMinor !== undefined) {
+      const paid = Number(input.paidAmountMinor);
+      if (!Number.isFinite(paid) || paid <= 0 || paid < payment.amount_halire) {
+        await client.query('ROLLBACK');
+        return { orderId: payment.order_id, status: 'amount_mismatch' };
+      }
     }
 
     const newStatus = input.success ? 'paid' : 'failed';

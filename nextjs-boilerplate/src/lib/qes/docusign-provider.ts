@@ -12,6 +12,7 @@
  * Namirial, Certinomis nebo LuxTrust). Nastavit signing_type="qualified" v envelope.
  */
 
+import { createHmac, timingSafeEqual } from 'crypto';
 import type {
   IQESProvider, CreateRequestOpts, CreateRequestResult,
   QESStatus, SignatureProof,
@@ -191,13 +192,15 @@ export class DocuSignProvider implements IQESProvider {
   }
 
   verifyWebhookSignature(rawBody: string, headers: Record<string, string>): boolean {
-    if (!this.hmacKey) return true; // skip v dev
+    // Kolo 2: bez HMAC klíče fail-closed (dřív `return true` = podpis se neověřoval vůbec).
+    if (!this.hmacKey) return false;
     try {
-      const { createHmac } = require('crypto') as typeof import('crypto');
       const sig = headers['x-docusign-signature-1'];
       if (!sig) return false;
       const expected = createHmac('sha256', this.hmacKey).update(rawBody).digest('base64');
-      return sig === expected;
+      const a = Buffer.from(sig, 'utf8');
+      const b = Buffer.from(expected, 'utf8');
+      return a.length === b.length && timingSafeEqual(a, b);
     } catch { return false; }
   }
 

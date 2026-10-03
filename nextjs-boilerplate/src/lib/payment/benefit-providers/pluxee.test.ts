@@ -55,8 +55,9 @@ describe('createPluxeePayment', () => {
     expect(body.merchantTransactionId).toBe('ext-uuid-1');
     expect(body.amountMinor).toBe(30000);
     expect(body.currency).toBe('CZK');
-    expect(body.callbackUrl).toContain('/api/payments/benefit/callback');
-    expect(body.callbackUrl).toContain('provider=pluxee');
+    // kolo 2: callback míří na per-provider routu s ověřením HMAC (generická je v produkci zakázaná)
+    expect(body.callbackUrl).toContain('/api/payments/benefit/pluxee/callback?external_id=');
+    expect(body.callbackUrl).toContain('external_id=ext-uuid-1');
   });
 
   it('hodí pokud vendor vrátí non-2xx', async () => {

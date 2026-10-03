@@ -34,8 +34,9 @@ export class MockQESProvider implements IQESProvider {
   }
 
   verifyWebhookSignature(_rawBody: string, _headers: Record<string, string>): boolean {
-    // Mock webhook nemá signaturu — vše povoleno (interní endpoint)
-    return true;
+    // Mock webhook nemá signaturu. Kolo 2: v produkci NIKDY — dřív kdokoli přes
+    // POST /api/qes/webhook označil smlouvu promotéra jako podepsanou (výchozí provider = mock).
+    return process.env.NODE_ENV !== 'production';
   }
 
   parseWebhook(rawBody: string): { externalRef: string; status: QESStatus; proof?: SignatureProof } | null {

@@ -19,9 +19,9 @@
 
 import { createHmac, timingSafeEqual } from 'crypto';
 
-const BASE = process.env.PAYPAL_SANDBOX === '1'
-  ? 'https://api-m.sandbox.paypal.com'
-  : 'https://api-m.paypal.com';
+// PAYPAL_API_BASE_URL přepíše cíl (testy proti simulátoru); čte se při každém volání.
+const base = (): string => process.env.PAYPAL_API_BASE_URL
+  ?? (process.env.PAYPAL_SANDBOX === '1' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com');
 
 export interface PayPalConfig {
   clientId: string;
@@ -47,7 +47,7 @@ async function getAccessToken(): Promise<string> {
 
   const cfg = getPayPalConfig();
   const creds = Buffer.from(`${cfg.clientId}:${cfg.clientSecret}`).toString('base64');
-  const res = await fetch(`${BASE}/v1/oauth2/token`, {
+  const res = await fetch(`${base()}/v1/oauth2/token`, {
     method: 'POST',
     headers: {
       Authorization: `Basic ${creds}`,
@@ -104,7 +104,7 @@ export async function createPayPalOrder(
     },
   };
 
-  const res = await fetch(`${BASE}/v2/checkout/orders`, {
+  const res = await fetch(`${base()}/v2/checkout/orders`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -141,7 +141,7 @@ export async function capturePayPalOrder(
 ): Promise<PayPalCaptureResult> {
   const token = await getAccessToken();
 
-  const res = await fetch(`${BASE}/v2/checkout/orders/${paypalOrderId}/capture`, {
+  const res = await fetch(`${base()}/v2/checkout/orders/${paypalOrderId}/capture`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -198,7 +198,7 @@ export async function verifyPayPalWebhookSignature(input: {
 
   try {
     const token = await getAccessToken();
-    const res = await fetch(`${BASE}/v1/notifications/verify-webhook-signature`, {
+    const res = await fetch(`${base()}/v1/notifications/verify-webhook-signature`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -222,6 +222,37 @@ export async function verifyPayPalWebhookSignature(input: {
   }
 }
 
+/**
+ * Kolo 2: autoritativní stav PayPal objednávky z REST API (GET /v2/checkout/orders/{id}).
+ * Webhook podle něj (ne podle obsahu notifikace) rozhoduje o `paid`.
+ * Vrací součet COMPLETED capture v minor units (halíře/centy) a jejich měnu.
+ */
+export async function getPayPalOrder(paypalOrderId: string): Promise<{
+  status: string;
+  referenceId: string;
+  completedMinor: number;
+  currency: string;
+}> {
+  const token = await getAccessToken();
+  const res = await fetch(`${base()}/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!res.ok) throw new Error(`PayPal GET order HTTP ${res.status}`);
+  const data = await res.json() as {
+    status?: string;
+    purchase_units?: Array<{ reference_id?: string; payments?: { captures?: Array<{ status?: string; amount?: { value?: string; currency_code?: string } }> } }>;
+  };
+  const unit = data.purchase_units?.[0];
+  const done = (unit?.payments?.captures ?? []).filter((c) => c.status === 'COMPLETED');
+  return {
+    status: data.status ?? '',
+    referenceId: unit?.reference_id ?? '',
+    completedMinor: done.reduce((a, c) => a + Math.round(parseFloat(c.amount?.value ?? '0') * 100), 0),
+    currency: done[0]?.amount?.currency_code ?? '',
+  };
+}
+
 /** Refund a captured PayPal payment. */
 export async function refundPayPalCapture(params: {
   captureId: string;
@@ -236,7 +267,7 @@ export async function refundPayPalCapture(params: {
     body.amount = { value: params.amountValue, currency_code: params.currency };
   }
 
-  const res = await fetch(`${BASE}/v2/payments/captures/${params.captureId}/refund`, {
+  const res = await fetch(`${base()}/v2/payments/captures/${params.captureId}/refund`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
