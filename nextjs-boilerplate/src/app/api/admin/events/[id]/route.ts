@@ -60,6 +60,9 @@ const editSchema = z.object({
   // reentryMaxCount = max počet entry scanů (1 = single, >1 = re-entry).
   reentryAllowed: z.boolean().optional(),
   reentryMaxCount: z.number().int().min(1).max(100).optional(),
+  // Prodleva mezi dvěma průchody téže vstupenky. Chrání před dvojím načtením
+  // kódu, kdy by se stav překlopil a naúčtoval průchod, který se nestal.
+  reentryCooldownSeconds: z.number().int().min(0).max(3600).optional(),
   // Eventim Pass-style — kolik minut před eventem se QR kód odhalí buyerovi.
   // 0 = až při startu eventu, 999999 = okamžitě (vhodné pro standard kulturní akce).
   qrRevealMinutesBefore: z.number().int().min(0).max(999999).optional(),
@@ -112,6 +115,7 @@ export async function GET(
             COALESCE(requires_otp_validation, FALSE) AS requires_otp_validation,
             COALESCE(reentry_allowed, FALSE) AS reentry_allowed,
             COALESCE(reentry_max_count, 3) AS reentry_max_count,
+            COALESCE(reentry_cooldown_seconds, 10) AS reentry_cooldown_seconds,
             max_tickets_per_buyer,
             (to_jsonb(events.*) ->> 'no_surge_pledge')::boolean AS no_surge_pledge,
             (to_jsonb(events.*) -> 'eudi_required') AS eudi_required,
@@ -144,6 +148,8 @@ export async function GET(
     vatCategory: e.vat_category,
     reentryAllowed: (e as { reentry_allowed?: boolean }).reentry_allowed ?? false,
     reentryMaxCount: (e as { reentry_max_count?: number }).reentry_max_count ?? 3,
+    reentryCooldownSeconds:
+      (e as { reentry_cooldown_seconds?: number }).reentry_cooldown_seconds ?? 10,
     maxTicketsPerBuyer: (e as { max_tickets_per_buyer?: number | null }).max_tickets_per_buyer ?? null,
     noSurgePledge: (e as { no_surge_pledge?: boolean | null }).no_surge_pledge ?? false,
     eudiRequired: (e as { eudi_required?: unknown }).eudi_required ?? null,
@@ -261,6 +267,7 @@ export async function PATCH(
            reentry_max_count = COALESCE($20, reentry_max_count),
            require_phone_verified = COALESCE($21, require_phone_verified),
            max_tickets_per_buyer = CASE WHEN $22::int IS NOT NULL THEN $22 ELSE max_tickets_per_buyer END,
+           reentry_cooldown_seconds = COALESCE($23, reentry_cooldown_seconds),
            updated_at = NOW()
        WHERE id = $6`,
       [
@@ -281,6 +288,7 @@ export async function PATCH(
         input.reentryMaxCount ?? null,
         input.requirePhoneVerified ?? null,
         input.maxTicketsPerBuyer !== undefined ? (input.maxTicketsPerBuyer ?? null) : null,
+        input.reentryCooldownSeconds ?? null,
       ],
     );
 

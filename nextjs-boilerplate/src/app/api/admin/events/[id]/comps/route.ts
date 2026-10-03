@@ -14,13 +14,14 @@
  * s comp_type pro accounting + audit. Inventory se dekrementuje normálně.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
-import { createOrGetGuestUser } from '@/lib/identity/guest-user';
-import { runAsActivePromoter } from '@/lib/admin-auth';
-import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
-import { z } from 'zod';
 import { randomUUID } from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { runAsActivePromoter } from '@/lib/admin-auth';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { sendOrderTickets } from '@/lib/email/send-order-tickets';
+import { createOrGetGuestUser } from '@/lib/identity/guest-user';
+import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 
 const COMP_TYPES = ['press', 'vip', 'artist', 'sponsor', 'staff', 'other'] as const;
 
@@ -239,6 +240,15 @@ export async function POST(
       const issued = await issueTicketsForOrder(orderId, client);
       await client.query('COMMIT');
 
+      // Volná vstupenka se posílá stejnou cestou jako placená. Dřív se adresa
+      // příjemce jen uložila a nikdo nic nedostal.
+      const mail = await runWithServiceContext(() =>
+        sendOrderTickets(orderId, {
+          toOverride: input.recipientEmail,
+          note: input.notes ?? 'Vstupenka pro vás od pořadatele.',
+        }),
+      );
+
       return NextResponse.json(
         {
           ok: true,
@@ -248,6 +258,10 @@ export async function POST(
           ticketTypeName: tt.name,
           quantity: input.quantity,
           ticketIds: issued.map((t) => t.ticketId),
+          emailSent: mail.sent,
+          message: mail.sent
+            ? `Vstupenky vydané a odeslané na ${mail.to}.`
+            : `Vstupenky vydané, ale e-mail neodešel: ${mail.reason ?? 'neznámý důvod'}.`,
         },
         { status: 201 },
       );

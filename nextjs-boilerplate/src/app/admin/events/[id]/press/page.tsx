@@ -1,6 +1,7 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouteParams } from '@/lib/next/route-params';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -67,7 +68,7 @@ export default function PressPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id: eventId } = use(params);
+  const { id: eventId } = useRouteParams(params);
 
   const [accreditations, setAccreditations] = useState<PressAccreditation[]>([]);
   const [settings, setSettings] = useState<PressSettings>({ press_seats_max: 0, press_deadline: null });

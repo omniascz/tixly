@@ -19,7 +19,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
-import { randomBytes } from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -249,7 +248,3 @@ async function processAccess(
   return 'admitted';
 }
 
-/** Generuj unikátní RFID device API klíč */
-export function generateRfidDeviceKey(): string {
-  return `tixly_rfid_${randomBytes(24).toString('hex')}`;
-}

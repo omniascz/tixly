@@ -230,6 +230,33 @@
   </div>
 </header>
 
+<section id="stav" style="padding-top:32px;padding-bottom:0">
+  <div class="callout">
+    <span class="label">Stav k 13. 8. 2026</span>
+    <p><strong>Vlny 0 až 3 jsou hotové</strong>, včetně čtyř položek ze čtyřky a šestky, které šlo ověřit bez dat. Průběžný soupis se stavem, předpoklady a způsobem ověření žije v repozitáři jako <code>UX-REMEDIACE.md</code> — tenhle dokument zůstává zadáním, ten soubor je pracovní seznam.</p>
+    <div class="table-scroll" style="margin-top:16px;margin-bottom:0">
+      <table>
+        <thead><tr><th style="width:34%">Vlna</th><th style="width:120px">Stav</th><th>Poznámka</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">0 — Hotfixy</td><td><span class="pill good">hotovo</span></td><td>6 ze 6</td></tr>
+          <tr><td class="t-name">1 — Přehled akce</td><td><span class="pill good">hotovo</span></td><td>Plus sály doplněné do menu</td></tr>
+          <tr><td class="t-name">2 — Dashboard na server</td><td><span class="pill good">hotovo</span></td><td>Navíc: měny se nesčítají, pokladní nevidí tržby</td></tr>
+          <tr><td class="t-name">3 — Navigace</td><td><span class="pill good">hotovo</span></td><td>74 odkazů → 10 záložek, 49 → 12 + rozcestník</td></tr>
+          <tr><td class="t-name">4 — Objednávka a peníze</td><td><span class="pill warn">částečně</span></td><td>Rozpad peněz a historie hotové. Výměna a částečný refund <strong>blokované chybějící databází s daty</strong>.</td></tr>
+          <tr><td class="t-name">5 — Provoz a mobil</td><td><span class="pill plain">zbývá</span></td><td>Potřebuje zařízení k ověření</td></tr>
+          <tr><td class="t-name">6 — Systémová hygiena</td><td><span class="pill warn">částečně</span></td><td>Autosave průvodce hotový. Tmavý režim čeká na rozhodnutí.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">Co se při realizaci ukázalo</span>
+    <p>Tři věci byly horší, než plán předpokládal. <strong>Číslo objednávky bylo vymyšlené</strong> — generovalo se z pořadí na stránce, měnilo se podle filtru a nešlo podle něj hledat. <strong>Odkaz „Lístky" v menu akce vedl na 404.</strong> A <strong>historie objednávky zamlčovala všechno kromě refundací</strong>, protože support akce se zapisují do jiné tabulky, kterou detail nečetl. Všechno tři opraveno.</p>
+    <p>Zároveň se potvrdila hodnota pravidla „ověřit, pak tvrdit": nový dotaz na historii prošel typovou kontrolou i buildem a proti Postgresu spadl na dvou nekompatibilních typech. Bez spuštění by shodil každý detail objednávky.</p>
+  </div>
+</section>
+
 <div class="layout">
 
 <nav class="toc" aria-label="Obsah">

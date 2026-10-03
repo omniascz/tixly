@@ -72,7 +72,9 @@ const FRONTEND_AUTH_ONLY = ['/login', '/register', '/register-promoter'];
 // GET /api/transfer/accept/[token] je public (recipient ještě nepřihlášený);
 // POST /api/transfer/accept/[token] vyžaduje x-user-id ale endpoint si to ověří
 // sám — middleware ho pustí.
-const PUBLIC_API_PREFIXES = ['/api/health', '/api/internal/', '/api/mock-gopay', '/api/mock-bnpl/', '/api/team/accept', '/api/lottery/', '/api/gift/', '/api/newsletter/', '/api/support/chat', '/api/group-invitations/', '/api/charity/claim/', '/api/payments/benefit/', '/api/reseller/'];
+// /api/offers/ — nabídka umělci se otevírá jednorázovým odkazem. Agent u nás
+// účet nemá a mít nemusí; oprávnění nese token v odkazu, ověřuje ho endpoint.
+const PUBLIC_API_PREFIXES = ['/api/health', '/api/internal/', '/api/mock-gopay', '/api/mock-bnpl/', '/api/team/accept', '/api/lottery/', '/api/gift/', '/api/newsletter/', '/api/support/chat', '/api/group-invitations/', '/api/charity/claim/', '/api/payments/benefit/', '/api/reseller/', '/api/offers/'];
 
 // ── Middleware ──────────────────────────────────────────────────────────────
 
@@ -257,6 +259,8 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     pathname.startsWith('/embed/') ||
     pathname.startsWith('/m/') ||
     pathname.startsWith('/reseller/') ||
+    // Nabídka umělci — agent ji otevírá odkazem, bez účtu a bez volby jazyka.
+    pathname.startsWith('/nabidka/') ||
     // Kiosk — samoobslužný terminál (bez locale prefix, bez auth)
     pathname.startsWith('/kiosk/')
   ) {

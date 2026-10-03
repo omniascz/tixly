@@ -1,16 +1,15 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import {
+  AlertTriangle,
   Banknote,
   CalendarDays,
   ShoppingCart,
-  Users,
-  TrendingUp,
   TrendingDown,
-  Ticket,
-  Calculator,
+  TrendingUp,
 } from 'lucide-react';
+import Link from 'next/link';
 import { DataTable, Column } from '@/components/admin/DataTable';
 import { OnboardingChecklist } from '@/components/admin/OnboardingChecklist';
 import { PageHeader } from '@/components/admin/PageHeader';
@@ -18,45 +17,65 @@ import { SalesSparkline } from '@/components/admin/SalesSparkline';
 import { StatCard } from '@/components/admin/StatCard';
 import { StatusBadge } from '@/components/admin/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { useAdminEvents, useAdminOrders } from '@/hooks/useAdminData';
+import { useAdminOrders } from '@/hooks/useAdminData';
 import { formatCzk, formatCzechDate } from '@/lib/format';
 import type { AdminOrder } from '@/types/admin';
 
-interface DailyBucket {
-  date: string;
-  value: number;
-}
+/**
+ * Přehled promotéra.
+ *
+ * Dřív se všechna čísla počítala v prohlížeči z posledních 100 objednávek —
+ * dnešní tržba, týdenní trend, čtrnáctidenní graf, průměrná objednávka,
+ * počet zákazníků i refund rate byly proto při vyšším objemu nepravdivé.
+ * Teď je počítá server nad celou databází (/api/admin/stats/overview) a
+ * stránka je jen zobrazuje.
+ *
+ * Karet je nahoře záměrně jen pět místo původních jedenácti: když nemá nic
+ * přednost, nevynikne nic.
+ */
 
-function buildDailyRevenue(orders: AdminOrder[], days = 14): DailyBucket[] {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const buckets: DailyBucket[] = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    buckets.push({ date: d.toISOString().slice(0, 10), value: 0 });
-  }
-
-  const index = new Map(buckets.map((b, i) => [b.date, i]));
-  for (const o of orders) {
-    if (o.status !== 'paid') continue;
-    const day = o.createdAt.slice(0, 10);
-    const idx = index.get(day);
-    if (idx !== undefined) {
-      buckets[idx].value += o.totalHalire / 100;
-    }
-  }
-  return buckets;
+/**
+ * Peněžní pole jsou null pro roli 'staff' — obsluha u dveří a na pokladně
+ * tržby vidět nemá. Server je proto vůbec neposílá.
+ */
+interface Overview {
+  currency: string;
+  hasOtherCurrencies: boolean;
+  feePercent: number;
+  showsMoney: boolean;
+  today: { grossHalire: number | null; ordersCount: number; tickets: number };
+  week: {
+    currentGrossHalire: number;
+    previousGrossHalire: number;
+    changePercent: number | null;
+  } | null;
+  totals: {
+    ordersCount: number;
+    customersCount: number | null;
+    grossHalire: number | null;
+    refundsHalire: number | null;
+    feeHalire: number | null;
+    netHalire: number | null;
+    avgOrderHalire: number | null;
+  };
+  daily: Array<{ date: string; grossHalire: number; ordersCount: number }>;
+  refundRate30d: number;
+  nextEvent: {
+    id: string;
+    title: string;
+    dateStart: string;
+    capacity: number | null;
+    sold: number | null;
+    sellThroughPercent: number | null;
+  } | null;
+  attention: { refundRequests: number; chargebacks: number };
 }
 
 const recentColumns: Column<AdminOrder>[] = [
   {
     key: 'order',
     header: 'Objednávka',
-    render: (row) => (
-      <div className="font-medium">{row.orderNumber}</div>
-    ),
+    render: (row) => <div className="font-medium">{row.orderNumber}</div>,
   },
   {
     key: 'buyer',
@@ -78,7 +97,7 @@ const recentColumns: Column<AdminOrder>[] = [
     header: 'Částka',
     className: 'text-right',
     render: (row) => (
-      <div className="text-right font-medium">{formatCzk(row.totalHalire)}</div>
+      <div className="text-right font-medium tabular-nums">{formatCzk(row.totalHalire)}</div>
     ),
   },
   {
@@ -96,294 +115,213 @@ const recentColumns: Column<AdminOrder>[] = [
 ];
 
 export default function AdminDashboardPage() {
-  const eventsQuery = useAdminEvents();
-  const ordersQuery = useAdminOrders({ limit: 100, page: 1 });
+  const [data, setData] = useState<Overview | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const orders = ordersQuery.data?.items ?? [];
-  const sparkline = useMemo(() => buildDailyRevenue(orders, 14), [orders]);
+  // Posledních 8 objednávek — jediné, k čemu se seznam objednávek na přehledu
+  // používá. Čísla už se z něj nepočítají.
+  const ordersQuery = useAdminOrders({ limit: 8, page: 1 });
+  const recent = ordersQuery.data?.items ?? [];
 
-  const totalRevenue = ordersQuery.data?.totalRevenueHalire ?? 0;
-  const totalOrders = ordersQuery.data?.total ?? 0;
-  const uniqueCustomers = useMemo(
-    () => new Set(orders.map((o) => o.buyerEmail)).size,
-    [orders],
-  );
-  const upcomingEvents = useMemo(() => {
-    const now = Date.now();
-    return (eventsQuery.data ?? []).filter((e) => new Date(e.date).getTime() >= now).length;
-  }, [eventsQuery.data]);
-
-  const today = useMemo(() => {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const ms = start.getTime();
-    return ms;
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    fetch('/api/admin/stats/overview', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`Přehled se nepodařilo načíst (HTTP ${res.status}).`);
+        return (await res.json()) as Overview;
+      })
+      .then(setData)
+      .catch((e: Error) => setError(e.message));
   }, []);
 
-  const todayStats = useMemo(() => {
-    const todays = orders.filter(
-      (o) => o.status === 'paid' && new Date(o.createdAt).getTime() >= today,
-    );
-    const revenue = todays.reduce((s, o) => s + o.totalHalire, 0);
-    const tickets = todays.reduce((s, o) => s + o.ticketCount, 0);
-    return { revenue, ordersCount: todays.length, tickets };
-  }, [orders, today]);
-
-  const aov = useMemo(() => {
-    const paid = orders.filter((o) => o.status === 'paid');
-    if (paid.length === 0) return 0;
-    return Math.round(paid.reduce((s, o) => s + o.totalHalire, 0) / paid.length);
-  }, [orders]);
-
-  const weekTrend = useMemo(() => {
-    const dayMs = 86_400_000;
-    const last7Start = today - 7 * dayMs;
-    const prev7Start = today - 14 * dayMs;
-    let last = 0;
-    let prev = 0;
-    for (const o of orders) {
-      if (o.status !== 'paid') continue;
-      const t = new Date(o.createdAt).getTime();
-      if (t >= last7Start && t < today + dayMs) last += o.totalHalire;
-      else if (t >= prev7Start && t < last7Start) prev += o.totalHalire;
-    }
-    if (prev === 0) return { last, prev, percent: null as number | null };
-    return { last, prev, percent: Math.round(((last - prev) / prev) * 100) };
-  }, [orders, today]);
-
-  const recent = orders.slice(0, 8);
-
-  // Top customers (by total spent across paid orders)
-  const topCustomers = useMemo(() => {
-    const byEmail = new Map<
-      string,
-      { email: string; name: string | null; total: number; count: number; lastAt: number }
-    >();
-    for (const o of orders) {
-      if (o.status !== 'paid') continue;
-      const t = new Date(o.createdAt).getTime();
-      const existing = byEmail.get(o.buyerEmail) ?? {
-        email: o.buyerEmail,
-        name: o.buyerName ?? null,
-        total: 0,
-        count: 0,
-        lastAt: 0,
-      };
-      existing.total += o.totalHalire;
-      existing.count += 1;
-      if (t > existing.lastAt) existing.lastAt = t;
-      byEmail.set(o.buyerEmail, existing);
-    }
-    return [...byEmail.values()].sort((a, b) => b.total - a.total).slice(0, 5);
-  }, [orders]);
-
-  // Churn signals — kupci co naposled koupili před 90+ dny
-  const churnSignals = useMemo(() => {
-    const cutoff = Date.now() - 90 * 86_400_000;
-    return topCustomers.filter((c) => c.count >= 2 && c.lastAt < cutoff);
-  }, [topCustomers]);
-
-  // Refund rate (last 30 days)
-  const refundRate = useMemo(() => {
-    const cutoff = Date.now() - 30 * 86_400_000;
-    const recent30 = orders.filter((o) => new Date(o.createdAt).getTime() > cutoff);
-    const paid = recent30.filter((o) => o.status === 'paid').length;
-    const refunded = recent30.filter((o) => o.status === 'refunded').length;
-    if (paid + refunded === 0) return 0;
-    return Math.round((refunded * 100) / (paid + refunded));
-  }, [orders]);
+  const attentionCount = data ? data.attention.refundRequests + data.attention.chargebacks : 0;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Přehled"
-        description="Souhrn vašich prodejů, objednávek a nadcházejících akcí."
+        description="Jak se prodává a co dnes vyžaduje pozornost."
       />
 
       <OnboardingChecklist />
 
-      <div>
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Dnes
-        </h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Dnešní tržby"
-            value={formatCzk(todayStats.revenue)}
-            hint="Zaplacené dnes"
-            icon={<Banknote className="h-4 w-4" />}
-          />
-          <StatCard
-            title="Dnešní objednávky"
-            value={String(todayStats.ordersCount)}
-            hint="Počet zaplacených"
-            icon={<ShoppingCart className="h-4 w-4" />}
-          />
-          <StatCard
-            title="Prodaných lístků"
-            value={String(todayStats.tickets)}
-            hint="Dnes"
-            icon={<Ticket className="h-4 w-4" />}
-          />
-          <StatCard
-            title="Trend (7d vs předchozích 7d)"
-            value={
-              weekTrend.percent === null
-                ? '—'
-                : `${weekTrend.percent >= 0 ? '+' : ''}${weekTrend.percent} %`
-            }
-            hint={`${formatCzk(weekTrend.last)} (předchozí: ${formatCzk(weekTrend.prev)})`}
-            icon={
-              weekTrend.percent !== null && weekTrend.percent < 0 ? (
-                <TrendingDown className="h-4 w-4" />
-              ) : (
-                <TrendingUp className="h-4 w-4" />
-              )
-            }
-          />
+      {error ? (
+        <div className="rounded-lg border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900">
+          {error} Zkus stránku načíst znovu.
         </div>
-      </div>
+      ) : null}
 
-      <div>
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Celkem
-        </h2>
+      {!data ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Tržby (celkem)"
-            value={formatCzk(totalRevenue)}
-            hint="Zaplacené objednávky"
-            icon={<Banknote className="h-4 w-4" />}
-          />
-          <StatCard
-            title="Objednávky"
-            value={String(totalOrders)}
-            hint="Všechny stavy"
-            icon={<ShoppingCart className="h-4 w-4" />}
-          />
-          <StatCard
-            title="Průměrná hodnota objednávky"
-            value={formatCzk(aov)}
-            hint="Z paid objednávek"
-            icon={<Calculator className="h-4 w-4" />}
-          />
-          <StatCard
-            title="Zákazníci"
-            value={String(uniqueCustomers)}
-            hint="Unikátní kupující"
-            icon={<Users className="h-4 w-4" />}
-          />
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-28 animate-pulse rounded-lg bg-muted" />
+          ))}
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <StatCard
-          title="Nadcházející akce"
-          value={String(upcomingEvents)}
-          hint="V příštích týdnech"
-          icon={<CalendarDays className="h-4 w-4" />}
-        />
-        <StatCard
-          title="Refund rate (30d)"
-          value={`${refundRate} %`}
-          hint={refundRate > 5 ? '⚠ vysoký' : 'v normě'}
-          icon={<TrendingDown className="h-4 w-4" />}
-        />
-        <StatCard
-          title="Churn signály"
-          value={String(churnSignals.length)}
-          hint={
-            churnSignals.length > 0
-              ? `kupci s 2+ nákupy >90 dní zpět`
-              : 'žádné riziko'
-          }
-          icon={<Users className="h-4 w-4" />}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>🏆 Top 5 zákazníků</CardTitle>
-            <CardDescription>Podle celkové utracené částky</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {topCustomers.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Žádní zákazníci.</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              title={data.showsMoney ? 'Tržby dnes' : 'Prodej dnes'}
+              value={
+                data.today.grossHalire !== null
+                  ? formatCzk(data.today.grossHalire)
+                  : `${data.today.tickets} vstupenek`
+              }
+              hint={`${data.today.ordersCount} objednávek · ${data.today.tickets} vstupenek`}
+              icon={<Banknote className="h-4 w-4" />}
+            />
+            <StatCard
+              title="Tempo 7 dní"
+              value={
+                !data.week || data.week.changePercent === null
+                  ? '—'
+                  : `${data.week.changePercent >= 0 ? '+' : ''}${data.week.changePercent} %`
+              }
+              hint={
+                data.week
+                  ? `${formatCzk(data.week.currentGrossHalire)} proti ${formatCzk(
+                      data.week.previousGrossHalire,
+                    )} v předchozích 7 dnech`
+                  : 'Dostupné pro vedení akce'
+              }
+              icon={
+                data.week && data.week.changePercent !== null && data.week.changePercent < 0 ? (
+                  <TrendingDown className="h-4 w-4" />
+                ) : (
+                  <TrendingUp className="h-4 w-4" />
+                )
+              }
+            />
+            {data.nextEvent ? (
+              <StatCard
+                title="Nejbližší akce"
+                value={
+                  data.nextEvent.sellThroughPercent !== null
+                    ? `${data.nextEvent.sellThroughPercent} %`
+                    : '—'
+                }
+                hint={`${data.nextEvent.title} · ${formatCzechDate(data.nextEvent.dateStart)}`}
+                icon={<CalendarDays className="h-4 w-4" />}
+              />
             ) : (
-              <ol className="space-y-2">
-                {topCustomers.map((c, i) => (
-                  <li
-                    key={c.email}
-                    className="flex items-center justify-between gap-2 rounded-md border p-2 text-sm"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">#{i + 1}</span>
-                        <span className="truncate font-medium">{c.name ?? c.email}</span>
-                      </div>
-                      <div className="ml-7 text-xs text-muted-foreground">
-                        {c.count}× · poslední {formatCzechDate(new Date(c.lastAt).toISOString())}
-                      </div>
-                    </div>
-                    <div className="text-right font-semibold">{formatCzk(c.total)}</div>
-                  </li>
-                ))}
-              </ol>
+              <StatCard
+                title="Nejbližší akce"
+                value="—"
+                hint="Žádná nadcházející akce"
+                icon={<CalendarDays className="h-4 w-4" />}
+              />
             )}
-          </CardContent>
-        </Card>
+            <StatCard
+              title="Vyžaduje pozornost"
+              value={String(attentionCount)}
+              hint={
+                attentionCount === 0
+                  ? 'Nic nečeká na vyřízení'
+                  : `${data.attention.refundRequests} žádostí o vrácení · ${data.attention.chargebacks} chargebacků`
+              }
+              icon={<AlertTriangle className="h-4 w-4" />}
+            />
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>⚠️ Churn risk — kupci k oslovení</CardTitle>
-            <CardDescription>
-              Loajálních zákazníků (2+ nákupů), kteří poslední 90+ dní nekoupili
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {churnSignals.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Žádný churn risk — všichni loajálnější zákazníci jsou aktivní.
-              </p>
-            ) : (
-              <ul className="space-y-2">
-                {churnSignals.map((c) => (
-                  <li
-                    key={c.email}
-                    className="flex items-center justify-between gap-2 rounded-md border border-amber-300 bg-amber-50 p-2 text-sm"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium">{c.name ?? c.email}</div>
-                      <div className="text-xs text-amber-800">
-                        {c.count}× nákupů · naposled {formatCzechDate(new Date(c.lastAt).toISOString())}
-                      </div>
-                    </div>
-                    <div className="text-right text-xs font-semibold">
-                      {formatCzk(c.total)}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+          {data.showsMoney &&
+          data.totals.netHalire !== null &&
+          data.totals.grossHalire !== null &&
+          data.totals.feeHalire !== null &&
+          data.totals.refundsHalire !== null ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Co vám zůstane</CardTitle>
+              <CardDescription>
+                Za celou dobu prodeje. Po odečtení provize {data.feePercent} % a refundací —
+                konečná výplata se může lišit o dočasně zadrženou částku, tu ukazují{' '}
+                <Link href="/admin/payouts" className="text-primary underline">
+                  Výplaty
+                </Link>
+                .
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap items-end gap-x-10 gap-y-4">
+                <div>
+                  <div className="text-3xl font-semibold tabular-nums">
+                    {formatCzk(data.totals.netHalire)}
+                  </div>
+                  <div className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+                    Čistá tržba
+                  </div>
+                </div>
+                <Figure label="Hrubá tržba" value={formatCzk(data.totals.grossHalire)} />
+                <Figure label="Provize" value={`− ${formatCzk(data.totals.feeHalire)}`} />
+                <Figure label="Refundace" value={`− ${formatCzk(data.totals.refundsHalire)}`} />
+              </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Tržby za posledních 14 dní</CardTitle>
-          <CardDescription>Denní součet zaplacených objednávek (Kč)</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SalesSparkline data={sparkline} />
-        </CardContent>
-      </Card>
+              {data.hasOtherCurrencies ? (
+                <p className="mt-4 text-xs text-muted-foreground">
+                  Zobrazeno v {data.currency}. Máte i objednávky v jiné měně — ty se do těchto
+                  čísel nezapočítávají, aby se neslučovaly různé měny.
+                </p>
+              ) : null}
+            </CardContent>
+          </Card>
+          ) : null}
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              title="Objednávky celkem"
+              value={String(data.totals.ordersCount)}
+              hint="Všechny stavy"
+              icon={<ShoppingCart className="h-4 w-4" />}
+            />
+            <StatCard
+              title="Průměrná objednávka"
+              value={
+                data.totals.avgOrderHalire !== null ? formatCzk(data.totals.avgOrderHalire) : '—'
+              }
+              hint="Hrubá tržba na objednávku"
+            />
+            <StatCard
+              title="Zákazníci"
+              value={
+                data.totals.customersCount !== null ? String(data.totals.customersCount) : '—'
+              }
+              hint="Kdo aspoň jednou zaplatil"
+            />
+            <StatCard
+              title="Podíl refundací"
+              value={`${data.refundRate30d} %`}
+              hint={data.refundRate30d > 5 ? 'Vyšší než obvyklé' : 'Za posledních 30 dní'}
+            />
+          </div>
+
+          {data.daily.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Tržby za posledních 14 dní</CardTitle>
+                <CardDescription>
+                  Denní součet zaplacených objednávek v {data.currency}.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SalesSparkline
+                  data={data.daily.map((d) => ({ date: d.date, value: d.grossHalire / 100 }))}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+        </>
+      )}
 
       <Card>
         <CardHeader>
           <CardTitle>Poslední objednávky</CardTitle>
-          <CardDescription>8 nejnovějších napříč všemi stavy</CardDescription>
+          <CardDescription>
+            Osm nejnovějších.{' '}
+            <Link href="/admin/orders" className="text-primary underline">
+              Zobrazit všechny
+            </Link>
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <DataTable
@@ -395,6 +333,15 @@ export default function AdminDashboardPage() {
           />
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function Figure({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-lg font-medium tabular-nums text-muted-foreground">{value}</div>
+      <div className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
     </div>
   );
 }

@@ -13,6 +13,7 @@
 import { timingSafeEqual } from 'crypto';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
+import { internalAuthHeaders } from '@/lib/internal-auth';
 import type { Pool } from 'pg';
 
 import { escapeHtml } from '@/lib/html-escape/escape';
@@ -201,7 +202,10 @@ function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: 
     ? 0
     : order.event_vat_category
       ? resolveVatRate({ country: order.promoter_country, vatCategory: order.event_vat_category })
-      : (order.promoter_vat_rate_pct ?? 10);
+      : // Záložní hodnota odvozená ze země pořadatele, ne natvrdo napsané číslo.
+        // Dřív tu bylo 10 % z doby před českou reformou sazeb z 1. 1. 2024.
+        (order.promoter_vat_rate_pct ??
+          resolveVatRate({ country: order.promoter_country, vatCategory: 'cultural' }));
   const vatRatePct = effectiveVatRateEmail;
   const { netHalire, vatHalire } = splitGrossToNetVat(order.total_amount, vatRatePct);
 
@@ -414,7 +418,10 @@ export async function POST(request: NextRequest): Promise<Response> {
     ? 0
     : order.event_vat_category
       ? resolveVatRate({ country: order.promoter_country, vatCategory: order.event_vat_category })
-      : (order.promoter_vat_rate_pct ?? 10);
+      : // Záložní hodnota odvozená ze země pořadatele, ne natvrdo napsané číslo.
+        // Dřív tu bylo 10 % z doby před českou reformou sazeb z 1. 1. 2024.
+        (order.promoter_vat_rate_pct ??
+          resolveVatRate({ country: order.promoter_country, vatCategory: 'cultural' }));
 
   // Issue tickets + render PDF + Apple Wallet passes.
   // Failures here must NOT block the email (best-effort) — order is already paid.
@@ -595,7 +602,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-internal-token': process.env.INTERNAL_API_TOKEN ?? process.env.INTERNAL_SERVICE_TOKEN ?? '',
+            ...internalAuthHeaders(),
           },
           body: JSON.stringify({ orderId }),
         },
@@ -608,7 +615,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-internal-token': process.env.INTERNAL_API_TOKEN ?? process.env.INTERNAL_SERVICE_TOKEN ?? '',
+            ...internalAuthHeaders(),
           },
           body: JSON.stringify({ orderId }),
         },

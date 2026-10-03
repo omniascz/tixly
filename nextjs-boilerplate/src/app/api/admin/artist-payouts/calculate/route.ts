@@ -46,6 +46,10 @@ export async function POST(req: NextRequest): Promise<Response> {
            AND l.created_at < $3
          WHERE a.promoter_id = $1
            AND a.status = 'active'
+           -- Po uzavřeném vyúčtování je honorář vyřízený jím; průběžná výplata
+           -- by ho vyplatila podruhé.
+           AND NOT EXISTS (SELECT 1 FROM lineups.artist_settlements s
+                           WHERE s.agreement_id = a.id AND s.status IN ('closed','signed'))
            ${b.agreementIds && b.agreementIds.length > 0 ? `AND a.id = ANY($4::uuid[])` : ''}
          GROUP BY a.id`,
         b.agreementIds && b.agreementIds.length > 0

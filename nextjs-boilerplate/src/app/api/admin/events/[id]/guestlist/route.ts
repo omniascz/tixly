@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
-import { createOrGetGuestUser } from '@/lib/identity/guest-user';
-import { runAsActivePromoter } from '@/lib/admin-auth';
-import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
-import { z } from 'zod';
 import { randomUUID } from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { runAsActivePromoter } from '@/lib/admin-auth';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { sendOrderTickets } from '@/lib/email/send-order-tickets';
+import { createOrGetGuestUser } from '@/lib/identity/guest-user';
+import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 
 const postSchema = z.object({
   guestName: z.string().min(1).max(200),
@@ -193,7 +194,26 @@ export async function POST(
       );
 
       await client.query('COMMIT');
-      return NextResponse.json({ entry: entryRes.rows[0] }, { status: 201 });
+
+      // Vstupenka hostovi se posílá stejnou cestou jako běžná — dřív se
+      // e-mailová adresa jen uložila a host nedostal nic.
+      const mail = await runWithServiceContext(() =>
+        sendOrderTickets(orderId, {
+          toOverride: parsed.data.guestEmail,
+          note: 'Jste na hostovské listině. Vstupenku najdete níže.',
+        }),
+      );
+
+      return NextResponse.json(
+        {
+          entry: entryRes.rows[0],
+          emailSent: mail.sent,
+          message: mail.sent
+            ? `Host přidán a vstupenka odeslána na ${mail.to}.`
+            : `Host přidán, ale e-mail neodešel: ${mail.reason ?? 'neznámý důvod'}.`,
+        },
+        { status: 201 },
+      );
     } catch (err) {
       await client.query('ROLLBACK');
       console.error('[POST guestlist]', err);

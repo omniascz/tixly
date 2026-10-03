@@ -1,6 +1,7 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouteParams } from '@/lib/next/route-params';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,26 +12,51 @@ interface HoldRow {
   sector: string;
   row: string;
   seatNumber: string;
-  kind: 'artist' | 'promoter' | 'comp' | 'production';
+  kind: Kind;
+  blocked: boolean;
   label: string | null;
   releaseAt: string | null;
+}
+
+interface MapRow {
+  label: string;
+  available: number;
+  held: number;
+  sold: number;
+  blocked: number;
+  firstSeat: string;
+  lastSeat: string;
+}
+
+interface MapSector {
+  name: string;
+  rows: MapRow[];
 }
 
 type Kind = 'artist' | 'promoter' | 'comp' | 'production';
 
 const KIND_LABELS: Record<Kind, string> = {
-  artist: '🎤 Artist hold',
-  promoter: '👤 Promoter hold',
-  comp: '🎁 Comp ticket',
-  production: '🔧 Production kill',
+  artist: 'Umělec',
+  promoter: 'Pořadatel a VIP',
+  comp: 'Volné vstupy',
+  production: 'Vyřazeno technikou',
+};
+
+const KIND_HINTS: Record<Kind, string> = {
+  artist: 'Místa pro kapelu, management a jejich hosty.',
+  promoter: 'Držená místa pro partnery, sponzory a tisk.',
+  comp: 'Místa rozdaná zdarma — soutěže, pozvánky.',
+  production: 'Místa, na kterých nejde sedět: zvuk, kamera, zakrytý výhled.',
 };
 
 const KIND_COLORS: Record<Kind, string> = {
   artist: 'bg-purple-100 text-purple-900 border-purple-300',
   promoter: 'bg-blue-100 text-blue-900 border-blue-300',
   comp: 'bg-emerald-100 text-emerald-900 border-emerald-300',
-  production: 'bg-slate-100 text-slate-900 border-slate-300',
+  production: 'bg-slate-200 text-slate-900 border-slate-400',
 };
+
+const ALL_KINDS: Kind[] = ['artist', 'promoter', 'comp', 'production'];
 
 function authFetch(url: string, init?: RequestInit): Promise<Response> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
@@ -49,33 +75,63 @@ export default function HoldsAdminPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id: eventId } = use(params);
+  const { id: eventId } = useRouteParams(params);
   const [holds, setHolds] = useState<HoldRow[]>([]);
+  const [sectors, setSectors] = useState<MapSector[]>([]);
   const [totals, setTotals] = useState<Record<string, number>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Form state
+  // Výběr míst — sektor, řada a rozsah čísel.
+  const [sector, setSector] = useState('');
+  const [row, setRow] = useState('');
+  const [fromSeat, setFromSeat] = useState('');
+  const [toSeat, setToSeat] = useState('');
   const [seatIdsRaw, setSeatIdsRaw] = useState('');
+  const [showIds, setShowIds] = useState(false);
+
   const [kind, setKind] = useState<Kind>('artist');
   const [label, setLabel] = useState('');
   const [releaseAt, setReleaseAt] = useState('');
 
+  // Vydání vstupenky na držené místo
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [issueNote, setIssueNote] = useState('');
+
+  const isKill = kind === 'production';
+
   useEffect(() => {
     void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
+
+  const rowsOfSector = useMemo<MapRow[]>(
+    () => sectors.find((s) => s.name === sector)?.rows ?? [],
+    [sectors, sector],
+  );
+  const selectedRow = useMemo<MapRow | undefined>(
+    () => rowsOfSector.find((r) => r.label === row),
+    [rowsOfSector, row],
+  );
 
   async function load(): Promise<void> {
     try {
       const res = await authFetch(`/api/admin/events/${eventId}/holds`);
       if (!res.ok) {
-        setError(`HTTP ${res.status}`);
+        setError(`Nepodařilo se načíst místa (HTTP ${res.status}).`);
         return;
       }
-      const j = (await res.json()) as { holds: HoldRow[]; totalsByKind: Record<string, number> };
+      const j = (await res.json()) as {
+        holds: HoldRow[];
+        totalsByKind: Record<string, number>;
+        sectors: MapSector[];
+      };
       setHolds(j.holds);
       setTotals(j.totalsByKind);
+      setSectors(j.sectors ?? []);
       setError(null);
     } catch (e) {
       setError((e as Error).message);
@@ -89,42 +145,99 @@ export default function HoldsAdminPage({
       .filter((s) => /^[0-9a-f-]{36}$/i.test(s));
   }
 
+  const manualIds = parseSeatIds(seatIdsRaw);
+  const canSubmit = sector !== '' || manualIds.length > 0;
+
   async function createHolds(): Promise<void> {
-    const seatIds = parseSeatIds(seatIdsRaw);
-    if (seatIds.length === 0) {
-      setError('Žádný platný seat ID (musí být UUID).');
+    setBusy(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const body: Record<string, unknown> = {
+        kind,
+        label: label.trim() || undefined,
+      };
+      if (sector !== '') {
+        body.selector = {
+          sector,
+          row: row || undefined,
+          from: fromSeat.trim() || undefined,
+          to: toSeat.trim() || undefined,
+        };
+      }
+      if (manualIds.length > 0) body.seatIds = manualIds;
+      if (!isKill && releaseAt) body.releaseAt = new Date(releaseAt).toISOString();
+
+      const res = await authFetch(`/api/admin/events/${eventId}/holds`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+      const j = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        message?: string;
+        error?: string;
+      };
+      if (!res.ok || !j.ok) {
+        setError(j.message ?? j.error ?? `Nepodařilo se uložit (HTTP ${res.status}).`);
+        return;
+      }
+      setSuccess(j.message ?? 'Uloženo.');
+      setSeatIdsRaw('');
+      setLabel('');
+      setReleaseAt('');
+      setFromSeat('');
+      setToSeat('');
+      await load();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function toggleSeat(seatId: string): void {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(seatId)) next.delete(seatId);
+      else next.add(seatId);
+      return next;
+    });
+  }
+
+  /**
+   * Z držených míst vydá vstupenky a pošle je. Když e-mail neodejde,
+   * vstupenky zůstanou platné — pošlou se znovu z detailu objednávky.
+   */
+  async function issueTickets(): Promise<void> {
+    if (selected.size === 0) {
+      setError('Vyber místa, na která se má vstupenka vydat.');
+      return;
+    }
+    if (!recipientName.trim() || !recipientEmail.trim()) {
+      setError('Vyplň jméno a e-mail příjemce.');
       return;
     }
     setBusy(true);
     setError(null);
     setSuccess(null);
     try {
-      const res = await authFetch(`/api/admin/events/${eventId}/holds`, {
+      const res = await authFetch(`/api/admin/events/${eventId}/holds/issue`, {
         method: 'POST',
         body: JSON.stringify({
-          seatIds,
-          kind,
-          label: label.trim() || undefined,
-          releaseAt: releaseAt ? new Date(releaseAt).toISOString() : undefined,
+          seatIds: [...selected],
+          recipientName: recipientName.trim(),
+          recipientEmail: recipientEmail.trim(),
+          note: issueNote.trim() || undefined,
         }),
       });
-      const j = (await res.json().catch(() => ({}))) as {
-        ok?: boolean;
-        held?: number;
-        requested?: number;
-        skipped?: number;
-        error?: string;
-      };
-      if (!res.ok || !j.ok) {
-        setError(j.error ?? `HTTP ${res.status}`);
+      const j = (await res.json().catch(() => ({}))) as { message?: string; error?: string };
+      if (!res.ok) {
+        setError(j.message ?? j.error ?? `Nepodařilo se vydat (HTTP ${res.status}).`);
         return;
       }
-      setSuccess(
-        `Zablokováno ${j.held}/${j.requested} sedadel (${j.skipped} přeskočeno — nejsou available nebo už drží jiný kind).`,
-      );
-      setSeatIdsRaw('');
-      setLabel('');
-      setReleaseAt('');
+      setSuccess(j.message ?? 'Vstupenky vydané.');
+      setSelected(new Set());
+      setRecipientName('');
+      setRecipientEmail('');
+      setIssueNote('');
       await load();
     } finally {
       setBusy(false);
@@ -132,7 +245,8 @@ export default function HoldsAdminPage({
   }
 
   async function releaseKind(kindToRelease: Kind): Promise<void> {
-    if (!confirm(`Opravdu uvolnit všech ${totals[kindToRelease] ?? 0} sedadel kindu „${KIND_LABELS[kindToRelease]}"?`)) {
+    const count = totals[kindToRelease] ?? 0;
+    if (!confirm(`Vrátit do prodeje ${count} míst v kategorii „${KIND_LABELS[kindToRelease]}"?`)) {
       return;
     }
     setBusy(true);
@@ -142,12 +256,12 @@ export default function HoldsAdminPage({
         method: 'DELETE',
         body: JSON.stringify({ kind: kindToRelease }),
       });
-      const j = (await res.json().catch(() => ({}))) as { released?: number; error?: string };
+      const j = (await res.json().catch(() => ({}))) as { message?: string; error?: string };
       if (!res.ok) {
-        setError(j.error ?? `HTTP ${res.status}`);
+        setError(j.error ?? `Nepodařilo se uvolnit (HTTP ${res.status}).`);
         return;
       }
-      setSuccess(`Uvolněno ${j.released} sedadel.`);
+      setSuccess(j.message ?? 'Vráceno do prodeje.');
       await load();
     } finally {
       setBusy(false);
@@ -164,7 +278,7 @@ export default function HoldsAdminPage({
       });
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(j.error ?? `HTTP ${res.status}`);
+        setError(j.error ?? `Nepodařilo se uvolnit (HTTP ${res.status}).`);
         return;
       }
       await load();
@@ -176,12 +290,12 @@ export default function HoldsAdminPage({
   return (
     <div className="space-y-6 p-6">
       <PageHeader
-        title="Holds & Kills"
-        description="Blokování sedadel pro umělce, VIP hosty, comp tickety nebo technické pozice (production kills). Nezasahuje do běžných buyer holds."
+        title="Držená a vyřazená místa"
+        description="Místa stranou pro umělce, partnery a volné vstupy — a místa, na kterých nejde sedět. Rezervací kupujících v košíku se to nedotkne."
       />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {(['artist', 'promoter', 'comp', 'production'] as Kind[]).map((k) => (
+        {ALL_KINDS.map((k) => (
           <div key={k} className={`rounded-md border p-3 ${KIND_COLORS[k]}`}>
             <div className="text-xs uppercase opacity-70">{KIND_LABELS[k]}</div>
             <div className="mt-1 flex items-baseline justify-between gap-2">
@@ -193,7 +307,7 @@ export default function HoldsAdminPage({
                   disabled={busy}
                   className="text-xs opacity-70 hover:underline"
                 >
-                  Uvolnit všechny
+                  Vrátit do prodeje
                 </button>
               ) : null}
             </div>
@@ -202,58 +316,145 @@ export default function HoldsAdminPage({
       </div>
 
       <Card>
-        <CardContent className="space-y-3 p-4">
-          <h2 className="text-sm font-semibold">Nová blokace</h2>
-          <div>
-            <label className="mb-1 block text-xs font-medium">
-              Seat IDs (UUID, odděl mezerou, čárkou nebo Enter)
-            </label>
-            <textarea
-              value={seatIdsRaw}
-              onChange={(e) => setSeatIdsRaw(e.target.value)}
-              rows={4}
-              className="w-full rounded-md border bg-background p-2 font-mono text-xs"
-              placeholder="00000000-0000-0000-0000-000000000001 00000000-..."
-            />
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              {parseSeatIds(seatIdsRaw).length} platných UUID rozpoznáno
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <CardContent className="space-y-4 p-4">
+          <h2 className="text-sm font-semibold">Vzít místa stranou</h2>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
             <div>
-              <label className="mb-1 block text-xs font-medium">Kind</label>
+              <label className="mb-1 block text-xs font-medium">Sektor</label>
               <select
-                value={kind}
-                onChange={(e) => setKind(e.target.value as Kind)}
+                value={sector}
+                onChange={(e) => {
+                  setSector(e.target.value);
+                  setRow('');
+                  setFromSeat('');
+                  setToSeat('');
+                }}
                 className="w-full rounded-md border bg-background px-3 py-2 text-sm"
               >
-                {(Object.keys(KIND_LABELS) as Kind[]).map((k) => (
-                  <option key={k} value={k}>
-                    {KIND_LABELS[k]}
+                <option value="">— vyber sektor —</option>
+                {sectors.map((s) => (
+                  <option key={s.name} value={s.name}>
+                    {s.name}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium">Label (volitelné)</label>
+              <label className="mb-1 block text-xs font-medium">Řada</label>
+              <select
+                value={row}
+                onChange={(e) => {
+                  setRow(e.target.value);
+                  setFromSeat('');
+                  setToSeat('');
+                }}
+                disabled={sector === ''}
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-50"
+              >
+                <option value="">celý sektor</option>
+                {rowsOfSector.map((r) => (
+                  <option key={r.label} value={r.label}>
+                    {r.label} — volných {r.available} z{' '}
+                    {r.available + r.held + r.sold + r.blocked}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium">Od místa</label>
+              <Input
+                value={fromSeat}
+                onChange={(e) => setFromSeat(e.target.value)}
+                disabled={sector === ''}
+                placeholder={selectedRow ? selectedRow.firstSeat : 'první'}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium">Do místa</label>
+              <Input
+                value={toSeat}
+                onChange={(e) => setToSeat(e.target.value)}
+                disabled={sector === ''}
+                placeholder={selectedRow ? selectedRow.lastSeat : 'poslední'}
+              />
+            </div>
+          </div>
+
+          {sector !== '' ? (
+            <p className="text-[11px] text-muted-foreground">
+              Prázdné pole „od" a „do" znamená celou řadu. Bez výběru řady se použije celý sektor.
+              Prodaná místa a místa, která má někdo právě v košíku, se nedotknou.
+            </p>
+          ) : null}
+
+          <div>
+            <button
+              type="button"
+              className="text-xs text-muted-foreground hover:underline"
+              onClick={() => setShowIds((v) => !v)}
+            >
+              {showIds ? 'Skrýt zadání podle ID' : 'Zadat konkrétní místa podle ID'}
+            </button>
+            {showIds ? (
+              <div className="mt-2">
+                <textarea
+                  value={seatIdsRaw}
+                  onChange={(e) => setSeatIdsRaw(e.target.value)}
+                  rows={3}
+                  className="w-full rounded-md border bg-background p-2 font-mono text-xs"
+                  placeholder="ID míst z plánku, oddělená mezerou nebo novým řádkem"
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Rozpoznáno {manualIds.length} míst.
+                </p>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium">Důvod</label>
+              <select
+                value={kind}
+                onChange={(e) => setKind(e.target.value as Kind)}
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+              >
+                {ALL_KINDS.map((k) => (
+                  <option key={k} value={k}>
+                    {KIND_LABELS[k]}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-[11px] text-muted-foreground">{KIND_HINTS[kind]}</p>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium">Poznámka</label>
               <Input
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 maxLength={120}
-                placeholder="např. Manager, Soutěž rádio…"
+                placeholder="např. management kapely, soutěž rádia"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium">Auto-release</label>
+              <label className="mb-1 block text-xs font-medium">Vrátit do prodeje dne</label>
               <Input
                 type="datetime-local"
                 value={releaseAt}
                 onChange={(e) => setReleaseAt(e.target.value)}
+                disabled={isKill}
               />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {isKill
+                  ? 'Vyřazené místo se samo nevrátí — technika podle kalendáře nezmizí.'
+                  : 'Nevyplněno = drží se, dokud ho nevrátíš ručně.'}
+              </p>
             </div>
           </div>
-          <Button onClick={createHolds} disabled={busy || parseSeatIds(seatIdsRaw).length === 0}>
-            {busy ? 'Zpracovávám…' : 'Zablokovat'}
+
+          <Button onClick={createHolds} disabled={busy || !canSubmit}>
+            {busy ? 'Zpracovávám…' : isKill ? 'Vyřadit z prodeje' : 'Vzít stranou'}
           </Button>
         </CardContent>
       </Card>
@@ -269,10 +470,58 @@ export default function HoldsAdminPage({
         </div>
       ) : null}
 
+      {selected.size > 0 ? (
+        <Card>
+          <CardContent className="space-y-3 p-4">
+            <h2 className="text-sm font-semibold">
+              Vydat vstupenku na {selected.size} vybraných míst
+            </h2>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium">Pro koho</label>
+                <Input
+                  value={recipientName}
+                  onChange={(e) => setRecipientName(e.target.value)}
+                  placeholder="Jan Novák"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium">E-mail</label>
+                <Input
+                  value={recipientEmail}
+                  onChange={(e) => setRecipientEmail(e.target.value)}
+                  placeholder="jan@example.com"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium">Vzkaz do e-mailu</label>
+                <Input
+                  value={issueNote}
+                  onChange={(e) => setIssueNote(e.target.value)}
+                  placeholder="Vstupenka pro management kapely"
+                />
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Vstupenka se vydá na konkrétní sedadla, místa přejdou na prodaná a odejde e-mail
+              s QR kódem v příloze.
+            </p>
+            <div className="flex gap-3">
+              <Button onClick={issueTickets} disabled={busy}>
+                {busy ? 'Vydávám…' : 'Vydat a poslat e-mailem'}
+              </Button>
+              <Button variant="outline" onClick={() => setSelected(new Set())} disabled={busy}>
+                Zrušit výběr
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
       {holds.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center text-sm text-muted-foreground">
-            Žádné aktivní hold-y mimo customer buyer holds.
+            Žádná místa nejsou stranou — celý sál je v prodeji.
           </CardContent>
         </Card>
       ) : (
@@ -280,29 +529,47 @@ export default function HoldsAdminPage({
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-left text-xs uppercase">
               <tr>
+                <th className="px-3 py-2"></th>
                 <th className="px-3 py-2">Sektor</th>
                 <th className="px-3 py-2">Řada</th>
                 <th className="px-3 py-2">Místo</th>
-                <th className="px-3 py-2">Kind</th>
-                <th className="px-3 py-2">Label</th>
-                <th className="px-3 py-2">Auto-release</th>
+                <th className="px-3 py-2">Důvod</th>
+                <th className="px-3 py-2">Poznámka</th>
+                <th className="px-3 py-2">Vrátit dne</th>
                 <th className="px-3 py-2"></th>
               </tr>
             </thead>
             <tbody>
               {holds.map((h) => (
                 <tr key={h.seatId} className="border-t text-xs">
+                  <td className="px-3 py-2">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(h.seatId)}
+                      onChange={() => toggleSeat(h.seatId)}
+                      disabled={h.blocked}
+                      title={
+                        h.blocked
+                          ? 'Vyřazené místo — vstupenka na něj nedává smysl'
+                          : 'Vybrat pro vydání vstupenky'
+                      }
+                    />
+                  </td>
                   <td className="px-3 py-2">{h.sector}</td>
                   <td className="px-3 py-2">{h.row}</td>
                   <td className="px-3 py-2">{h.seatNumber}</td>
                   <td className="px-3 py-2">
-                    <span className={`rounded-full px-2 py-0.5 ${KIND_COLORS[h.kind]}`}>
+                    <span className={`rounded-full border px-2 py-0.5 ${KIND_COLORS[h.kind]}`}>
                       {KIND_LABELS[h.kind]}
                     </span>
                   </td>
                   <td className="px-3 py-2">{h.label ?? '—'}</td>
                   <td className="px-3 py-2">
-                    {h.releaseAt ? new Date(h.releaseAt).toLocaleString('cs-CZ') : '—'}
+                    {h.blocked
+                      ? 'nevrací se'
+                      : h.releaseAt
+                        ? new Date(h.releaseAt).toLocaleString('cs-CZ')
+                        : 'ručně'}
                   </td>
                   <td className="px-3 py-2 text-right">
                     <button
@@ -311,7 +578,7 @@ export default function HoldsAdminPage({
                       disabled={busy}
                       className="text-rose-700 hover:underline"
                     >
-                      Uvolnit
+                      Vrátit do prodeje
                     </button>
                   </td>
                 </tr>

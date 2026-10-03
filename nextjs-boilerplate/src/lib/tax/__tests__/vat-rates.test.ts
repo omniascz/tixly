@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { getVatRate, splitGrossToNetVat, resolveVatRate, resolveEffectiveVatRate } from '../vat-rates';
-import { isReverseChargeApplicable, getCountryCodeFromVat } from '../vies';
 import { checkThresholdStatus, VAT_REGISTRATION_THRESHOLDS } from '../vat-thresholds';
+import { isReverseChargeApplicable, getCountryCodeFromVat } from '../vies';
 
 describe('getVatRate', () => {
-  it('CZ cultural = 10 %', () => {
-    expect(getVatRate('CZ', 'cultural')).toBe(10);
+  it('CZ cultural = 12 % (snizena sazba po reforme 1. 1. 2024)', () => {
+    expect(getVatRate('CZ', 'cultural')).toBe(12);
   });
 
-  it('SR cultural = 5 % (NE 10 jako CZ)', () => {
+  it('SR cultural = 5 % (NE 12 jako CZ)', () => {
     expect(getVatRate('SR', 'cultural')).toBe(5);
   });
 
@@ -69,7 +69,7 @@ describe('splitGrossToNetVat', () => {
 
 describe('resolveVatRate', () => {
   it('CZ promotér + cultural akce = 10 %', () => {
-    expect(resolveVatRate({ country: 'CZ', vatCategory: 'cultural' })).toBe(10);
+    expect(resolveVatRate({ country: 'CZ', vatCategory: 'cultural' })).toBe(12);
   });
 
   it('SR promotér + cultural akce = 5 % (key launch feature!)', () => {
@@ -81,18 +81,18 @@ describe('resolveVatRate', () => {
   });
 
   it('NULL category fallback na cultural', () => {
-    expect(resolveVatRate({ country: 'CZ', vatCategory: null })).toBe(10);
+    expect(resolveVatRate({ country: 'CZ', vatCategory: null })).toBe(12);
   });
 
   it('neznámá category fallback na cultural', () => {
-    expect(resolveVatRate({ country: 'CZ', vatCategory: 'bullshit' })).toBe(10);
+    expect(resolveVatRate({ country: 'CZ', vatCategory: 'bullshit' })).toBe(12);
   });
 });
 
 describe('resolveEffectiveVatRate — reverse charge', () => {
   it('CZ seller + CZ buyer = standard 10 % cultural (no RC)', () => {
     const r = resolveEffectiveVatRate({ sellerCountry: 'CZ', vatCategory: 'cultural', buyerVatCountry: 'CZ' });
-    expect(r.vatRatePct).toBe(10);
+    expect(r.vatRatePct).toBe(12);
     expect(r.isReverseCharge).toBe(false);
   });
 
@@ -111,14 +111,14 @@ describe('resolveEffectiveVatRate — reverse charge', () => {
 
   it('no buyerVatCountry = standard rate', () => {
     const r = resolveEffectiveVatRate({ sellerCountry: 'CZ', vatCategory: 'cultural' });
-    expect(r.vatRatePct).toBe(10);
+    expect(r.vatRatePct).toBe(12);
     expect(r.isReverseCharge).toBe(false);
   });
 
   it('UK buyer (non-EU) from CZ seller = no reverse charge', () => {
     const r = resolveEffectiveVatRate({ sellerCountry: 'CZ', vatCategory: 'cultural', buyerVatCountry: 'GB' });
     expect(r.isReverseCharge).toBe(false);
-    expect(r.vatRatePct).toBe(10);
+    expect(r.vatRatePct).toBe(12);
   });
 });
 

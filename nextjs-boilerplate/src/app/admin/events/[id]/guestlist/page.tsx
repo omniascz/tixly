@@ -1,6 +1,7 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouteParams } from '@/lib/next/route-params';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,7 +53,7 @@ export default function GuestlistPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id: eventId } = use(params);
+  const { id: eventId } = useRouteParams(params);
 
   const [entries, setEntries] = useState<GuestlistEntry[]>([]);
   const [totalGuests, setTotalGuests] = useState(0);

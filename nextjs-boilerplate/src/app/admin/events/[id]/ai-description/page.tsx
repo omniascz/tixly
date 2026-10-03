@@ -1,6 +1,7 @@
 'use client';
 
-import { use, useState } from 'react';
+import { useState } from 'react';
+import { useRouteParams } from '@/lib/next/route-params';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,7 +46,7 @@ export default function AiDescriptionPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id: eventId } = use(params);
+  const { id: eventId } = useRouteParams(params);
   const [keywordsRaw, setKeywordsRaw] = useState('');
   const [tone, setTone] = useState<'casual' | 'professional' | 'energetic'>('professional');
   const [language, setLanguage] = useState<'cs' | 'en'>('cs');

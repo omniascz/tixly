@@ -1,0 +1,512 @@
+<title>Od nabídky k výplatě</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #EBEDE6; --surface: #F9FAF6; --surface-2: #E1E5D9;
+    --ink: #121A15; --ink-soft: #34403A; --muted: #5F6C63;
+    --line: #C9D0C1; --line-soft: #DCE0D4;
+    --accent: #C4441A; --accent-ink: #90300F; --accent-wash: #F6E2D9;
+    --pine: #145446; --pine-wash: #DBE7E1;
+    --gold: #856410; --gold-wash: #EEE6CC;
+    --shadow: 0 1px 0 rgba(18,26,21,.05), 0 10px 24px -18px rgba(18,26,21,.45);
+    --display: "Arial Narrow", "Helvetica Neue Condensed", "Liberation Sans Narrow", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --body: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0E1310; --surface: #161D19; --surface-2: #1E2722;
+      --ink: #E8EBE3; --ink-soft: #C2CABE; --muted: #909C93;
+      --line: #2C372F; --line-soft: #232D27;
+      --accent: #F0663A; --accent-ink: #F79068; --accent-wash: #2E1A12;
+      --pine: #4FA791; --pine-wash: #12241F;
+      --gold: #C9A143; --gold-wash: #26200F;
+      --shadow: 0 1px 0 rgba(0,0,0,.3), 0 12px 28px -20px rgba(0,0,0,.9);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1310; --surface: #161D19; --surface-2: #1E2722;
+    --ink: #E8EBE3; --ink-soft: #C2CABE; --muted: #909C93;
+    --line: #2C372F; --line-soft: #232D27;
+    --accent: #F0663A; --accent-ink: #F79068; --accent-wash: #2E1A12;
+    --pine: #4FA791; --pine-wash: #12241F;
+    --gold: #C9A143; --gold-wash: #26200F;
+    --shadow: 0 1px 0 rgba(0,0,0,.3), 0 12px 28px -20px rgba(0,0,0,.9);
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.62; margin: 0; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px,4vw,48px) 96px; display: grid; grid-template-columns: 200px minmax(0,1fr); gap: clamp(24px,5vw,64px); align-items: start; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: minmax(0,1fr); } }
+
+  header.mast { border-bottom: 1px solid var(--line); background: var(--surface); }
+  .mast-in { max-width: 1180px; margin: 0 auto; padding: clamp(36px,7vw,76px) clamp(16px,4vw,48px) clamp(28px,5vw,48px); }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent-ink); margin: 0 0 18px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(42px,8.5vw,88px); line-height: .94; letter-spacing: -.015em; text-transform: uppercase; text-wrap: balance; margin: 0 0 22px; max-width: 16ch; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .standfirst { font-size: clamp(17px,2.1vw,21px); color: var(--ink-soft); max-width: 64ch; margin: 0 0 28px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 10px 28px; font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 18px; }
+
+  nav.toc { position: sticky; top: 24px; padding-top: 56px; font-family: var(--mono); font-size: 12px; line-height: 1.45; }
+  @media (max-width: 900px) { nav.toc { position: static; padding-top: 32px; border-bottom: 1px dashed var(--line); padding-bottom: 24px; } }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+  nav.toc a { color: var(--muted); text-decoration: none; display: grid; grid-template-columns: 22px 1fr; gap: 4px; }
+  nav.toc a span { color: var(--line); }
+  nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); }
+  nav.toc a:hover span, nav.toc a:focus-visible span { color: var(--accent); }
+
+  article { padding-top: 56px; min-width: 0; }
+  section + section { margin-top: 56px; border-top: 1px dashed var(--line); padding-top: 44px; }
+  h2 { font-family: var(--display); text-transform: uppercase; font-weight: 700; font-size: clamp(26px,4.2vw,38px); line-height: 1.04; letter-spacing: -.01em; margin: 0 0 8px; text-wrap: balance; }
+  .sec-no { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em; color: var(--accent); display: block; margin-bottom: 10px; }
+  h3 { font-family: var(--display); text-transform: uppercase; font-size: 19px; letter-spacing: .01em; font-weight: 700; margin: 34px 0 10px; }
+  h4 { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 24px 0 8px; font-weight: 400; }
+  p { margin: 0 0 16px; max-width: 68ch; }
+  .lede { font-size: 18.5px; color: var(--ink-soft); }
+  ul, ol.body { max-width: 68ch; padding-left: 20px; margin: 0 0 18px; }
+  li { margin-bottom: 8px; }
+  a { color: var(--accent-ink); }
+  code, .path { font-family: var(--mono); font-size: .84em; color: var(--muted); }
+
+  .stub { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 2px; padding: 18px 22px; margin: 22px 0; }
+  .stub p:last-child { margin-bottom: 0; }
+  .stub .k { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-ink); display: block; margin-bottom: 8px; }
+  .stub.calm { border-left-color: var(--pine); }
+  .stub.calm .k { color: var(--pine); }
+
+  /* ---- stav toku ---- */
+  .flow { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); margin: 26px 0; }
+  @media (min-width: 780px) { .flow { grid-template-columns: repeat(6, 1fr); } }
+  .step { background: var(--surface); padding: 14px 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .step .n { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; color: var(--muted); }
+  .step .t { font-family: var(--display); text-transform: uppercase; font-weight: 700; font-size: 15px; line-height: 1.15; }
+  .step .s { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; margin-top: auto; padding-top: 8px; }
+  .step.ok { background: var(--pine-wash); }
+  .step.ok .s { color: var(--pine); }
+  .step.bad { background: var(--accent-wash); }
+  .step.bad .s { color: var(--accent-ink); }
+  .step.none .s { color: var(--muted); }
+
+  .scroll { overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-family: var(--mono); font-size: 13px; min-width: 680px; }
+  caption { text-align: left; font-family: var(--mono); font-size: 11px; letter-spacing: .13em; text-transform: uppercase; color: var(--muted); padding: 14px 16px 10px; border-bottom: 1px solid var(--line-soft); }
+  th, td { padding: 10px 16px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line-soft); }
+  thead th { font-weight: 400; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); background: var(--surface-2); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .hi { color: var(--accent-ink); font-weight: 700; }
+  .ok { color: var(--pine); font-weight: 700; }
+
+  .task { background: var(--surface); border: 1px solid var(--line); border-radius: 2px; padding: 18px 20px; margin: 14px 0; box-shadow: var(--shadow); }
+  .task-head { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; margin-bottom: 10px; }
+  .task-id { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--accent-ink); }
+  .task-title { font-family: var(--display); text-transform: uppercase; font-size: 18px; font-weight: 700; letter-spacing: .01em; }
+  .task-est { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-left: auto; }
+  .task dl { margin: 0; display: grid; grid-template-columns: 92px minmax(0,1fr); gap: 6px 14px; font-size: 15.5px; }
+  @media (max-width: 620px) { .task dl { grid-template-columns: minmax(0,1fr); gap: 2px; } .task dt { margin-top: 8px; } }
+  .task dt { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 5px; }
+  .task dd { margin: 0; color: var(--ink-soft); }
+  .task dd.check { color: var(--ink); }
+
+  .kpis { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); margin: 24px 0; }
+  @media (min-width: 640px) { .kpis { grid-template-columns: repeat(4,1fr); } }
+  .kpi { background: var(--surface); padding: 16px 18px; }
+  .kpi .v { font-family: var(--display); font-size: 34px; line-height: 1; letter-spacing: -.01em; display: block; margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+  .kpi .l { font-family: var(--mono); font-size: 11px; letter-spacing: .07em; color: var(--muted); text-transform: uppercase; line-height: 1.35; display: block; }
+
+  footer.end { border-top: 1px dashed var(--line); margin-top: 56px; padding-top: 28px; font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 1.7; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+</style>
+
+<header class="mast">
+  <div class="mast-in">
+    <p class="eyebrow">Analýza a plán · 14. srpna 2026 · Tixly</p>
+    <h1>Od nabídky<br>k <em>výplatě</em></h1>
+    <p class="standfirst">Vrstva, kterou v Evropě nemá skoro nikdo a která z nás dělá provozní systém promotéra místo dalšího prodejce vstupenek: držení termínu v sále, nabídka umělci, rozpočet akce, vyúčtování a výplata honoráře. Prošel jsem, co z toho v kódu je — a je toho víc, než jsem čekal. Dvě věci z toho ale nefungují vůbec, protože se nikdy nespustily naostro.</p>
+    <div class="meta-row">
+      <span>6 kroků toku · 3 nálezy · 17 dní práce</span>
+      <span>Ověřeno čtením kódu a schématu</span>
+      <span>Bod 5 ze seznamu mezer</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Obsah">
+    <ol>
+      <li><a href="#s1"><span>01</span> Stav toku</a></li>
+      <li><a href="#s2"><span>02</span> Co je hotové</a></li>
+      <li><a href="#s3"><span>03</span> Co je rozbité</a></li>
+      <li><a href="#s4"><span>04</span> Co chybí</a></li>
+      <li><a href="#s5"><span>05</span> Jak to má fungovat</a></li>
+      <li><a href="#s6"><span>06</span> Plán po fázích</a></li>
+      <li><a href="#s7"><span>07</span> Pořadí a rizika</a></li>
+      <li><a href="#s8"><span>08</span> Co rozhodnout</a></li>
+    </ol>
+  </nav>
+
+  <article>
+
+    <section id="s1">
+      <span class="sec-no">01</span>
+      <h2>Stav toku</h2>
+      <p class="lede">Šest kroků, kterými projde každý koncert od prvního telefonátu po poslání peněz kapele. Barva ukazuje, co v kódu je, co je rozbité a co chybí.</p>
+
+      <div class="flow">
+        <div class="step none">
+          <span class="n">Krok 1</span>
+          <span class="t">Držení termínu v sále</span>
+          <span class="s">Chybí</span>
+        </div>
+        <div class="step none">
+          <span class="n">Krok 2</span>
+          <span class="t">Nabídka umělci</span>
+          <span class="s">Chybí</span>
+        </div>
+        <div class="step ok">
+          <span class="n">Krok 3</span>
+          <span class="t">Smlouva o podílu</span>
+          <span class="s">Hotovo</span>
+        </div>
+        <div class="step bad">
+          <span class="n">Krok 4</span>
+          <span class="t">Načítání podílu z prodeje</span>
+          <span class="s">Nefunguje</span>
+        </div>
+        <div class="step none">
+          <span class="n">Krok 5</span>
+          <span class="t">Rozpočet a bod zlomu</span>
+          <span class="s">Chybí</span>
+        </div>
+        <div class="step bad">
+          <span class="n">Krok 6</span>
+          <span class="t">Vyúčtování a výplata</span>
+          <span class="s">Nefunguje</span>
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><span class="v ok">6</span><span class="l">věcí je postavených, včetně výpočetního jádra</span></div>
+        <div class="kpi"><span class="v hi">3</span><span class="l">nálezy, kvůli kterým peníze umělcům nikdy nedojdou</span></div>
+        <div class="kpi"><span class="v">6</span><span class="l">věcí chybí úplně, dvě z nich denně potřebuje každý promotér</span></div>
+        <div class="kpi"><span class="v">1</span><span class="l">den práce zprovozní to, co už je napsané</span></div>
+      </div>
+
+      <p>Zkráceně: <strong>polovina téhle vrstvy je napsaná a nikdy nikdo neověřil, že funguje.</strong> Výpočet podílů, smlouvy i výplatní dávky existují — jenže načítání podílů z prodeje vrací 401 a výpočet výplat spadne na chybějícím sloupci v databázi. Obojí je fire-and-forget nebo jednorázová akce, takže si toho zatím nikdo nemohl všimnout.</p>
+    </section>
+
+    <section id="s2">
+      <span class="sec-no">02</span>
+      <h2>Co je hotové</h2>
+      <div class="scroll">
+        <table>
+          <caption>Existující stavební kameny — ověřeno ve schématu a kódu</caption>
+          <thead><tr><th>Co</th><th>Kde</th><th>Co to umí</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Umělci a sestava akce</strong></td>
+              <td><span class="path">lineups.artists</span>, <span class="path">artist_profiles</span>, <span class="path">event_artists</span></td>
+              <td>Profily, veřejné stránky, sledování fanouškem, propojení na Spotify. U akce pořadí vystoupení, headliner, čas a délka setu, stage.</td>
+            </tr>
+            <tr>
+              <td><strong>Smlouva o podílu</strong></td>
+              <td><span class="path">lineups.royalty_agreements</span> + administrace akce</td>
+              <td>Procento z tržby, pevná částka, částka na vstupenku nebo kombinace. K tomu <strong>minimální garance</strong>, <strong>strop</strong> a omezení jen na vybrané typy vstupenek. Bankovní spojení umělce.</td>
+            </tr>
+            <tr>
+              <td><strong>Výpočetní jádro</strong></td>
+              <td><span class="path">lib/royalties/compute.ts</span></td>
+              <td>Čistá funkce bez databáze — spočítá podíl na objednávku i celkovou částku za akci, ošetřuje garanci i strop.</td>
+            </tr>
+            <tr>
+              <td><strong>Průběžné načítání</strong></td>
+              <td><span class="path">lineups.royalty_ledger</span> + <span class="path">/internal/royalties/accrue</span></td>
+              <td>Po každé zaplacené objednávce se zapíše, kolik z ní umělci náleží. Volá se z dokončení objednávky.</td>
+            </tr>
+            <tr>
+              <td><strong>Výplatní dávky</strong></td>
+              <td><span class="path">lineups.artist_payouts</span> + administrace</td>
+              <td>Období, hrubý podíl, ruční úpravy, čistá částka, měna, stavy od čeká po zaplaceno, bankovní údaje, externí reference.</td>
+            </tr>
+            <tr>
+              <td><strong>Vyúčtování akce vůči nám</strong></td>
+              <td><span class="path">platform.event_settlements</span></td>
+              <td>Prodáno, hrubá tržba, naše poplatky, refundy, chargebacky, čistá tržba. Pozor — to je vyúčtování <em>platforma ↔ pořadatel</em>, ne pořadatel ↔ umělec.</td>
+            </tr>
+            <tr>
+              <td><strong>Výhled tržeb</strong></td>
+              <td><span class="path">revenue.projections</span></td>
+              <td>Pesimistický, střední a optimistický odhad tržby podle tempa prodeje.</td>
+            </tr>
+            <tr>
+              <td><strong>Elektronický podpis</strong></td>
+              <td><span class="path">lib/compliance/e-signature.ts</span></td>
+              <td>Prostý elektronický podpis podle eIDAS: souhlas, časové razítko, IP, otisk dokumentu. Postavené pro smlouvy s pořadateli — <strong>použitelné i pro nabídky umělcům</strong>.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s3">
+      <span class="sec-no">03</span>
+      <h2>Co je rozbité</h2>
+      <p class="lede">Tři nálezy z přímého čtení kódu. První dva znamenají, že honoráře umělcům by dnes vyšly nula — a nikdo by nevěděl proč.</p>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">N1</span><span class="task-title">Načítání podílů vrací 401 při každém prodeji</span><span class="task-est">tichá chyba</span></div>
+        <dl>
+          <dt>Co</dt><dd>Endpoint pro načítání podílů ověřuje heslo proti proměnné <span class="path">INTERNAL_API_TOKEN</span>. Nasazovací dokumentace i vzorový konfigurační soubor znají jen <span class="path">INTERNAL_SERVICE_TOKEN</span> — ten používá 71 dalších míst v kódu, tohle jediné se ptá po jiném jméně. Volající sice pošle, co má, ale příjemce porovnává s prázdnou hodnotou a odpoví 401.</dd>
+          <dt>Důsledek</dt><dd>Kniha podílů zůstane po každém prodeji prázdná. Volání je „pošli a zapomeň" s výpisem do konzole, takže se to navenek nijak neprojeví — dokud si někdo nevšimne, že umělci mají nárok na nulu.</dd>
+          <dt>Navíc</dt><dd>Chybí pojistka proti prázdnému heslu. Kdyby se proměnná nastavila jako prázdný řetězec, projde dovnitř kdokoli. Ostatní interní endpointy takovou pojistku mají.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">N2</span><span class="task-title">Výpočet výplat spadne na neexistujícím sloupci</span><span class="task-est">tvrdá chyba</span></div>
+        <dl>
+          <dt>Co</dt><dd>Výpočet výplatních dávek čte ze smluv o podílu sloupec <span class="path">currency</span>. Tabulka <span class="path">lineups.royalty_agreements</span> ale žádnou měnu nemá — je jen u výplat. Dotaz tedy skončí chybou databáze.</dd>
+          <dt>Důsledek</dt><dd>Tlačítko „spočítat výplaty umělcům" nefunguje vůbec, za žádných okolností.</dd>
+          <dt>Pozn.</dt><dd>Chybějící měna není jen překlep — smlouva s umělcem měnu potřebovat bude, jakmile začneme prodávat v eurech. Řešení je sloupec doplnit, ne dotaz osekat.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">N3</span><span class="task-title">Výplata umělci je jen ručně přepnutý stav</span><span class="task-est">záměr k rozhodnutí</span></div>
+        <dl>
+          <dt>Co</dt><dd>Zatímco pořadateli posíláme peníze doopravdy přes Wise nebo PayPal, u umělce se jen přepne stav na „zaplaceno". Žádný převod se neodesílá.</dd>
+          <dt>Poznámka</dt><dd>Nemusí to být chyba — honorář platí pořadatel ze svého, ne my. Ale pak je potřeba, aby systém odvedl to druhé: vygeneroval <strong>vyúčtování jako podepsatelný dokument</strong> a hlídal srážkovou daň. To dnes nedělá.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section id="s4">
+      <span class="sec-no">04</span>
+      <h2>Co chybí</h2>
+
+      <h3>1 · Kalendář sálu a opce na termín</h3>
+      <p>V kódu není nic — hledal jsem kalendář sálu, obsazenost i držení data a nenašel jsem žádnou tabulku ani endpoint. Přitom je to úplně první věc, která se v produkci děje: agent se ptá na 14. listopadu, sál dá první opci, za týden volá druhý zájemce a dostane druhou opci. Kdo má první, má lhůtu na potvrzení; když ji propásne, posouvá se druhý. Dnes to promotéři vedou v tabulce nebo v hlavě a překryté termíny jsou běžná havárie.</p>
+
+      <h3>2 · Nabídka umělci a cesta k jejímu schválení</h3>
+      <p>Existuje výsledek — smlouva o podílu — ale ne cesta k němu. Chybí sestavení nabídky, odeslání agentovi, verzování, protinávrh a podpis. Agent přitom nemá důvod si u nás zakládat účet, takže to musí jít odkazem.</p>
+
+      <h3>3 · Rozpočet akce a bod zlomu</h3>
+      <p>Hledal jsem náklady akce a bod zlomu; jediné, co jsem našel, jsou rozpočty reklamních kampaní. Náklady na zvuk, světla, pronájem, personál, dopravu, ubytování a marketing nemá kam zapsat, a bez nich nejde spočítat, kolik vstupenek chybí do pokrytí. Výhled tržeb existuje, ale výhled tržeb bez nákladů neodpovídá na jedinou otázku, kterou si promotér každý den klade.</p>
+
+      <h3>4 · Podmínky, jaké se v živé hudbě reálně sjednávají</h3>
+      <p>Dnešní smlouva umí procento, pevnou částku, částku na vstupenku, garanci a strop. To pokryje běžný klub. Nepokryje ale to, na čem stojí větší produkce:</p>
+      <ul>
+        <li><strong>Podíl až po pokrytí nákladů</strong> — garance a k tomu 70 % z toho, co zbude nad bodem zlomu. Nejběžnější model u větších jmen.</li>
+        <li><strong>Záloha</strong> zaplacená při podpisu a odečtená z konečného vyúčtování.</li>
+        <li><strong>Bonusové hladiny</strong> — při vyprodání příplatek.</li>
+        <li><strong>Dělení mezi více účinkujících</strong> — headliner, předkapela, DJ, každý jiným klíčem.</li>
+        <li><strong>Srážková daň u zahraničních umělců</strong> — v Česku se sráží u zdroje a odvádí za umělce. V kódu není ani zmínka; přitom u zahraniční kapely je to zákonná povinnost pořadatele.</li>
+      </ul>
+
+      <h3>5 · Vyúčtování jako dokument</h3>
+      <p>Po akci potřebuje agent jednu stránku: kapacita, prodáno po kategoriích, hrubá tržba, DPH, náklady, honorář podle smlouvy, odečtená záloha, srážková daň, k výplatě. Dnes takový dokument nevznikne — jsou jen čísla v administraci.</p>
+
+      <h3>6 · Propojení kroků</h3>
+      <p>I kdyby všechny části byly hotové, nikde není řetěz: ze schválené nabídky nevznikne smlouva, ze smlouvy nevznikne rozpočtová položka, z vyúčtování nevznikne výplata. Každý krok se dnes zadává znovu ručně a čísla se rozejdou.</p>
+    </section>
+
+    <section id="s5">
+      <span class="sec-no">05</span>
+      <h2>Jak to má fungovat</h2>
+      <p class="lede">Návrh je držet jeden princip: <strong>podmínky se zadají jednou, u nabídky — a všechno další z nich vzniká odvozením.</strong> Promotér nesmí opisovat honorář ze smlouvy do rozpočtu a z rozpočtu do vyúčtování; právě tam se rozcházejí čísla a končí důvěra.</p>
+
+      <div class="scroll">
+        <table>
+          <caption>Datový model — co přibude a co se rozšíří</caption>
+          <thead><tr><th>Entita</th><th>Stav</th><th>Klíčový obsah</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Opce na termín</strong></td><td class="hi">nová</td><td>Sál, datum, pořadí opce, kdo drží, do kdy, stav. Držení nezakládá akci — teprve potvrzení ji vytvoří.</td></tr>
+            <tr><td><strong>Nabídka</strong></td><td class="hi">nová</td><td>Verze, adresát, platnost, podmínky honoráře, stav (koncept, odesláno, protinávrh, schváleno, odmítnuto), podpis.</td></tr>
+            <tr><td><strong>Podmínky honoráře</strong></td><td>rozšíření <span class="path">royalty_agreements</span></td><td>Měna, záloha, podíl nad bodem zlomu, bonusové hladiny, klíč dělení mezi umělce, režim srážkové daně.</td></tr>
+            <tr><td><strong>Náklady akce</strong></td><td class="hi">nová</td><td>Kategorie, popis, částka bez DPH i s DPH, dodavatel, splatnost, zaplaceno, a hlavně <strong>pevný nebo na návštěvníka</strong> — bez toho nejde spočítat bod zlomu.</td></tr>
+            <tr><td><strong>Vyúčtování akce s umělcem</strong></td><td class="hi">nová</td><td>Uzavřený snímek: prodeje, tržba, náklady, honorář, záloha, daň, k výplatě. Po uzavření se nemění — kdo chce jiné číslo, vystaví dobropis.</td></tr>
+            <tr><td><strong>Výplata umělci</strong></td><td>existuje</td><td>Zůstává, jen vzniká z vyúčtování místo z ručního výpočtu.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="stub calm">
+        <span class="k">Jedno pravidlo, které rozhoduje o důvěryhodnosti</span>
+        <p>Vyúčtování musí být <strong>uzavřený snímek</strong>, ne živý dotaz. Když agent dostane papír s číslem a příští týden mu tentýž odkaz ukáže jiné číslo (protože přišel refund), je konec. Uzavřením se čísla zmrazí; pozdější změny jdou do dodatku, který je vidět zvlášť.</p>
+      </div>
+    </section>
+
+    <section id="s6">
+      <span class="sec-no">06</span>
+      <h2>Plán po fázích</h2>
+
+      <h3>Fáze A — zprovoznit, co už je napsané</h3>
+      <div class="task">
+        <div class="task-head"><span class="task-id">A1</span><span class="task-title">Sjednotit interní heslo a přidat pojistku</span><span class="task-est">0,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Endpoint pro načítání podílů má přijímat stejné heslo jako zbytek platformy a odmítnout provoz, když heslo není nastavené vůbec. Porovnání časově nezávislé, jako u ostatních interních endpointů.</dd>
+          <dt>Ověření</dt><dd class="check">Zaplacená objednávka na akci se smlouvou o podílu vytvoří řádek v knize podílů. Bez nastaveného hesla endpoint odmítne i prázdný požadavek.</dd>
+        </dl>
+      </div>
+      <div class="task">
+        <div class="task-head"><span class="task-id">A2</span><span class="task-title">Doplnit měnu do smlouvy o podílu</span><span class="task-est">0,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Migrace přidá měnu s výchozí hodnotou podle země pořadatele a výpočet výplat začne fungovat. Zároveň se tím připraví smlouva na prodej v eurech.</dd>
+          <dt>Ověření</dt><dd class="check">Výpočet výplat proběhne bez chyby a vytvoří dávku ve správné měně.</dd>
+        </dl>
+      </div>
+      <div class="task">
+        <div class="task-head"><span class="task-id">A3</span><span class="task-title">Test celé cesty peněz umělci</span><span class="task-est">0,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Automatický test od zaplacení objednávky po vzniklou výplatní dávku. Právě tenhle chybějící test způsobil, že dvě rozbité věci nikdo nezachytil.</dd>
+          <dt>Ověření</dt><dd class="check">Test selže, když se kterýkoli článek řetězu rozpojí.</dd>
+        </dl>
+      </div>
+
+      <h3>Fáze B — rozpočet akce a bod zlomu</h3>
+      <div class="task">
+        <div class="task-head"><span class="task-id">B1</span><span class="task-title">Náklady akce</span><span class="task-est">1,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Položkový rozpočet s kategoriemi (pronájem, technika, personál, marketing, doprava, ubytování, autorské poplatky, ostatní), rozlišením pevných nákladů a nákladů na návštěvníka, DPH a splatností. Šablona rozpočtu, ať se u desáté akce v sezóně nezadává znovu.</dd>
+          <dt>Ověření</dt><dd class="check">Součet rozpočtu sedí s ručním výpočtem včetně DPH a nákladů na návštěvníka při dané návštěvnosti.</dd>
+        </dl>
+      </div>
+      <div class="task">
+        <div class="task-head"><span class="task-id">B2</span><span class="task-title">Bod zlomu</span><span class="task-est">1 den</span></div>
+        <dl>
+          <dt>Co</dt><dd>Kolik vstupenek chybí do pokrytí nákladů, počítáno přes skutečný mix cenových hladin a se započtením naší provize i DPH. Zobrazit v detailu akce vedle tempa prodeje a v denním snímku, ať je vidět vývoj.</dd>
+          <dt>Ověření</dt><dd class="check">Bod zlomu se rovná ruční kontrole v tabulce u akce se třemi cenovými hladinami a jednou slevou.</dd>
+        </dl>
+      </div>
+      <div class="task">
+        <div class="task-head"><span class="task-id">B3</span><span class="task-title">Výhled výsledku, ne jen tržby</span><span class="task-est">0,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Stávající pesimistický, střední a optimistický odhad tržby doplnit o náklady a honorář, aby dával odhad <em>zisku</em>. Tržba bez nákladů promotérovi nic neříká.</dd>
+        </dl>
+      </div>
+
+      <h3>Fáze C — podmínky honoráře podle praxe</h3>
+      <div class="task">
+        <div class="task-head"><span class="task-id">C1</span><span class="task-title">Rozšířit model podmínek</span><span class="task-est">1,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Záloha, podíl nad bodem zlomu, bonusové hladiny, dělení mezi více účinkujících, měna, režim srážkové daně. Stávající jednodušší varianty musí dál fungovat beze změny.</dd>
+        </dl>
+      </div>
+      <div class="task">
+        <div class="task-head"><span class="task-id">C2</span><span class="task-title">Přepočet a testy na skutečných scénářích</span><span class="task-est">1 den</span></div>
+        <dl>
+          <dt>Co</dt><dd>Testy na případy z praxe: garance nebo procento podle toho, co je vyšší; garance plus 70 % nad bodem zlomu; strop při vyprodání; odečet zálohy; dvě kapely s různým klíčem.</dd>
+          <dt>Ověření</dt><dd class="check">Každý scénář má očekávané číslo spočítané ručně a test na něj.</dd>
+        </dl>
+      </div>
+      <div class="task">
+        <div class="task-head"><span class="task-id">C3</span><span class="task-title">Náhled „co dostane při…"</span><span class="task-est">0,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Přímo u podmínek tabulka, kolik umělec dostane při 30, 50, 70 a 100 procentech obsazenosti. Vyjednávací nástroj i kontrola, že podmínky nejsou nesmysl.</dd>
+        </dl>
+      </div>
+
+      <h3>Fáze D — vyúčtování jako dokument</h3>
+      <div class="task">
+        <div class="task-head"><span class="task-id">D1</span><span class="task-title">Uzavřené vyúčtování a jeho tisk</span><span class="task-est">1,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Uzavření zmrazí čísla a vygeneruje jednostránkový dokument: kapacita, prodáno po kategoriích, hrubá tržba, DPH, náklady, honorář podle podmínek, odečtená záloha, srážková daň, k výplatě. Podpis přes existující modul elektronického podpisu.</dd>
+          <dt>Ověření</dt><dd class="check">Dokument otevřený za měsíc ukazuje stejná čísla, i když mezitím přišel refund. Refund se objeví jako dodatek.</dd>
+        </dl>
+      </div>
+      <div class="task">
+        <div class="task-head"><span class="task-id">D2</span><span class="task-title">Srážková daň u zahraničních umělců</span><span class="task-est">0,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Podle daňového domicilu umělce se srazí a vykáže daň u zdroje; sazba a případná smlouva o zamezení dvojího zdanění jako nastavení, ne natvrdo v kódu.</dd>
+          <dt>Pozn.</dt><dd>Sazby a postup nechat potvrdit daňařem — tohle je jediná část plánu, kde bych se nespoléhal na to, co si přečtu.</dd>
+        </dl>
+      </div>
+
+      <h3>Fáze E — kalendář sálu a opce na termín</h3>
+      <div class="task">
+        <div class="task-head"><span class="task-id">E1</span><span class="task-title">Opce na termín</span><span class="task-est">2 dny</span></div>
+        <dl>
+          <dt>Co</dt><dd>Držení data v sále s pořadím opcí, lhůtou na potvrzení a automatickým propadnutím. Když první opce propadne, druhá se posouvá a drží se dostane upozornění.</dd>
+          <dt>Ověření</dt><dd class="check">Druhá opce se po propadnutí první stane první a odejde upozornění. Potvrzená opce blokuje sál a nejde ji obejít.</dd>
+        </dl>
+      </div>
+      <div class="task">
+        <div class="task-head"><span class="task-id">E2</span><span class="task-title">Kalendář sálu</span><span class="task-est">1,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Měsíční pohled se všemi opcemi a potvrzenými akcemi, upozornění na kolizi, filtr podle sálu. Pro pořadatele s více sály jeden pohled přes všechny.</dd>
+        </dl>
+      </div>
+      <div class="task">
+        <div class="task-head"><span class="task-id">E3</span><span class="task-title">Z potvrzené opce vznikne akce</span><span class="task-est">0,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Potvrzení opce založí koncept akce s předvyplněným sálem, datem a umělcem. Konec přepisování údajů.</dd>
+        </dl>
+      </div>
+
+      <h3>Fáze F — nabídka umělci</h3>
+      <div class="task">
+        <div class="task-head"><span class="task-id">F1</span><span class="task-title">Sestavení a verze nabídky</span><span class="task-est">1,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Nabídka nad podmínkami z fáze C, s platností a verzemi. Historie zůstává — kdo co kdy nabídl je při dohadování zásadní.</dd>
+        </dl>
+      </div>
+      <div class="task">
+        <div class="task-head"><span class="task-id">F2</span><span class="task-title">Odkaz pro agenta bez zakládání účtu</span><span class="task-est">1,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Jednorázový odkaz s omezenou platností: agent vidí nabídku, může ji přijmout, odmítnout nebo poslat protinávrh. Přijetí se podepíše existujícím modulem podpisu.</dd>
+          <dt>Ověření</dt><dd class="check">Agent projde celý postup bez registrace, po vypršení odkaz nic neukáže a podpis nese otisk konkrétní verze.</dd>
+        </dl>
+      </div>
+      <div class="task">
+        <div class="task-head"><span class="task-id">F3</span><span class="task-title">Ze schválené nabídky vznikne všechno ostatní</span><span class="task-est">1 den</span></div>
+        <dl>
+          <dt>Co</dt><dd>Schválení vytvoří podmínky honoráře u akce a zároveň nákladovou položku v rozpočtu, aby bod zlomu počítal s honorářem od první chvíle. Žádné přepisování čísel.</dd>
+          <dt>Ověření</dt><dd class="check">Honorář z nabídky se objeví v rozpočtu i ve vyúčtování ve stejné výši. Změna nabídky před podpisem se propíše, po podpisu už ne.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section id="s7">
+      <span class="sec-no">07</span>
+      <h2>Pořadí a rizika</h2>
+      <div class="scroll">
+        <table>
+          <caption>Fáze podle poměru užitku k práci</caption>
+          <thead><tr><th>Fáze</th><th class="n">Práce</th><th>Proč v tomhle pořadí</th></tr></thead>
+          <tbody>
+            <tr><td><strong>A · Zprovoznit napsané</strong></td><td class="n">1,5 dne</td><td>Nejlevnější položka v celém plánu. Bez ní je všechno ostatní stavba na nefunkčním základu.</td></tr>
+            <tr><td><strong>B · Rozpočet a bod zlomu</strong></td><td class="n">3 dny</td><td>To, na co se promotér dívá každý den. Funguje samostatně, i kdyby zbytek nikdy nevznikl.</td></tr>
+            <tr><td><strong>C · Podmínky honoráře</strong></td><td class="n">3 dny</td><td>Předpoklad pro vyúčtování i nabídku. Bez podílu nad bodem zlomu neuzavřeme větší jméno.</td></tr>
+            <tr><td><strong>D · Vyúčtování</strong></td><td class="n">2 dny</td><td>První věc, kterou uvidí agent — tedy náš marketing směrem k branži.</td></tr>
+            <tr><td><strong>E · Kalendář a opce</strong></td><td class="n">4 dny</td><td>Vysoká hodnota, ale samostatný ostrov. Jde odložit, aniž by to blokovalo peníze.</td></tr>
+            <tr><td><strong>F · Nabídka</strong></td><td class="n">4 dny</td><td>Až úplně nakonec — dává smysl teprve, když je na co navazovat.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Na co si dát pozor</h4>
+      <ul>
+        <li><strong>Rozpočet svádí ke zvětšování.</strong> Promotéři budou chtít objednávky, zálohové faktury a schvalování. Držet se jednoduchého seznamu položek; z rozpočtu akce nemá být účetní systém.</li>
+        <li><strong>Vyúčtování je právní dokument.</strong> Uzavřené číslo se nesmí měnit zpětně. Kdo chce jinou částku, dostane dodatek — jinak nám první spor sebere důvěryhodnost.</li>
+        <li><strong>Daně nechat potvrdit.</strong> Srážková daň u zahraničních umělců je jediné místo, kde bych nespoléhal na vlastní rešerši.</li>
+        <li><strong>Opce nesmí založit akci.</strong> Držení termínu není událost; kdyby zakládalo akci, začnou se objevovat v kalendářích a někdo je omylem pustí do prodeje.</li>
+        <li><strong>Nezapomenout na testy.</strong> Obě rozbité věci by odhalil jeden test celé cesty peněz. Ten je v plánu jako A3 a je to nejlevnější pojistka v celém dokumentu.</li>
+      </ul>
+    </section>
+
+    <section id="s8">
+      <span class="sec-no">08</span>
+      <h2>Co rozhodnout</h2>
+      <ol class="body">
+        <li><strong>Posíláme honorář umělci my, nebo ho platí pořadatel ze svého?</strong> Když my, je to další tok peněz přes nás — vyšší hodnota, ale i zodpovědnost a další regulace. Když pořadatel, stačí dokument a evidence. Doporučuji začít dokumentem a k převodům se vrátit, až o ně někdo požádá.</li>
+        <li><strong>Kalendář sálu pro pořadatele, nebo pro sál?</strong> Jsou to dva různé produkty. Pořadatel chce vidět své termíny napříč sály; sál chce vidět, kdo se u něj hlásí. Doporučuji začít pohledem pořadatele — je to náš platící zákazník.</li>
+        <li><strong>Jdeme do fáze A hned?</strong> Je to den a půl práce a bez ní nefunguje nic z toho, co už je napsané. Udělal bych ji dřív než cokoli jiného z celého seznamu mezer, protože je levná a odblokuje hotovou funkčnost.</li>
+      </ol>
+    </section>
+
+    <footer class="end">
+      <p><strong>Metodika.</strong> Všechna tvrzení o stavu Tixly pocházejí ze čtení kódu a schématu databáze 14. 8. 2026 — konkrétně <span class="path">lineups.royalty_agreements</span>, <span class="path">royalty_ledger</span>, <span class="path">artist_payouts</span>, <span class="path">event_artists</span>, <span class="path">platform.event_settlements</span>, <span class="path">revenue.projections</span>, <span class="path">lib/royalties/compute.ts</span>, <span class="path">api/internal/royalties/accrue</span>, <span class="path">api/admin/artist-payouts/*</span> a <span class="path">lib/compliance/e-signature.ts</span>. Nálezy N1 a N2 nejsou ověřené během proti databázi — ověří je test z úkolu A3. Odhady práce jsou odhady.</p>
+    </footer>
+
+  </article>
+</div>

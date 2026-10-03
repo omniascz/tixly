@@ -1,0 +1,504 @@
+<title>Plán uzavření mezer</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #EBEDE6; --surface: #F9FAF6; --surface-2: #E1E5D9;
+    --ink: #121A15; --ink-soft: #34403A; --muted: #5F6C63;
+    --line: #C9D0C1; --line-soft: #DCE0D4;
+    --accent: #C4441A; --accent-ink: #90300F; --accent-wash: #F6E2D9;
+    --pine: #145446; --pine-wash: #DBE7E1;
+    --gold: #856410; --gold-wash: #EEE6CC;
+    --shadow: 0 1px 0 rgba(18,26,21,.05), 0 10px 24px -18px rgba(18,26,21,.45);
+    --display: "Arial Narrow", "Helvetica Neue Condensed", "Liberation Sans Narrow", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --body: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0E1310; --surface: #161D19; --surface-2: #1E2722;
+      --ink: #E8EBE3; --ink-soft: #C2CABE; --muted: #909C93;
+      --line: #2C372F; --line-soft: #232D27;
+      --accent: #F0663A; --accent-ink: #F79068; --accent-wash: #2E1A12;
+      --pine: #4FA791; --pine-wash: #12241F;
+      --gold: #C9A143; --gold-wash: #26200F;
+      --shadow: 0 1px 0 rgba(0,0,0,.3), 0 12px 28px -20px rgba(0,0,0,.9);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1310; --surface: #161D19; --surface-2: #1E2722;
+    --ink: #E8EBE3; --ink-soft: #C2CABE; --muted: #909C93;
+    --line: #2C372F; --line-soft: #232D27;
+    --accent: #F0663A; --accent-ink: #F79068; --accent-wash: #2E1A12;
+    --pine: #4FA791; --pine-wash: #12241F;
+    --gold: #C9A143; --gold-wash: #26200F;
+    --shadow: 0 1px 0 rgba(0,0,0,.3), 0 12px 28px -20px rgba(0,0,0,.9);
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.62; margin: 0; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px,4vw,48px) 96px; display: grid; grid-template-columns: 210px minmax(0,1fr); gap: clamp(24px,5vw,64px); align-items: start; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: minmax(0,1fr); } }
+
+  header.mast { border-bottom: 1px solid var(--line); background: var(--surface); }
+  .mast-in { max-width: 1180px; margin: 0 auto; padding: clamp(36px,7vw,76px) clamp(16px,4vw,48px) clamp(28px,5vw,48px); }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent-ink); margin: 0 0 18px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(42px,8.5vw,88px); line-height: .94; letter-spacing: -.015em; text-transform: uppercase; text-wrap: balance; margin: 0 0 22px; max-width: 17ch; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .standfirst { font-size: clamp(17px,2.1vw,21px); color: var(--ink-soft); max-width: 64ch; margin: 0 0 28px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 10px 28px; font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 18px; }
+
+  nav.toc { position: sticky; top: 24px; padding-top: 56px; font-family: var(--mono); font-size: 12px; line-height: 1.45; }
+  @media (max-width: 900px) { nav.toc { position: static; padding-top: 32px; border-bottom: 1px dashed var(--line); padding-bottom: 24px; } }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+  nav.toc a { color: var(--muted); text-decoration: none; display: grid; grid-template-columns: 40px 1fr; gap: 4px; }
+  nav.toc a span { color: var(--line); }
+  nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); }
+  nav.toc a:hover span, nav.toc a:focus-visible span { color: var(--accent); }
+
+  article { padding-top: 56px; min-width: 0; }
+  section + section { margin-top: 56px; border-top: 1px dashed var(--line); padding-top: 44px; }
+  h2 { font-family: var(--display); text-transform: uppercase; font-weight: 700; font-size: clamp(26px,4.2vw,38px); line-height: 1.04; letter-spacing: -.01em; margin: 0 0 8px; text-wrap: balance; }
+  .sec-no { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em; color: var(--accent); display: block; margin-bottom: 10px; }
+  h3 { font-family: var(--display); text-transform: uppercase; font-size: 19px; letter-spacing: .01em; font-weight: 700; margin: 34px 0 10px; }
+  h4 { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 24px 0 8px; font-weight: 400; }
+  p { margin: 0 0 16px; max-width: 68ch; }
+  .lede { font-size: 18.5px; color: var(--ink-soft); }
+  ul, ol.body { max-width: 68ch; padding-left: 20px; margin: 0 0 18px; }
+  li { margin-bottom: 8px; }
+  a { color: var(--accent-ink); }
+  code, .path { font-family: var(--mono); font-size: .84em; color: var(--muted); }
+
+  .stub { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 2px; padding: 18px 22px; margin: 22px 0; }
+  .stub p:last-child { margin-bottom: 0; }
+  .stub .k { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-ink); display: block; margin-bottom: 8px; }
+  .stub.calm { border-left-color: var(--pine); }
+  .stub.calm .k { color: var(--pine); }
+
+  .scroll { overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-family: var(--mono); font-size: 13px; min-width: 700px; }
+  caption { text-align: left; font-family: var(--mono); font-size: 11px; letter-spacing: .13em; text-transform: uppercase; color: var(--muted); padding: 14px 16px 10px; border-bottom: 1px solid var(--line-soft); }
+  th, td { padding: 10px 16px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line-soft); }
+  thead th { font-weight: 400; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); background: var(--surface-2); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td.id { font-weight: 700; color: var(--accent-ink); white-space: nowrap; }
+  .hi { color: var(--accent-ink); font-weight: 700; }
+  .ok { color: var(--pine); font-weight: 700; }
+
+  .kpis { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); margin: 24px 0; }
+  @media (min-width: 640px) { .kpis { grid-template-columns: repeat(4,1fr); } }
+  .kpi { background: var(--surface); padding: 16px 18px; }
+  .kpi .v { font-family: var(--display); font-size: 34px; line-height: 1; letter-spacing: -.01em; display: block; margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+  .kpi .l { font-family: var(--mono); font-size: 11px; letter-spacing: .07em; color: var(--muted); text-transform: uppercase; line-height: 1.35; display: block; }
+
+  .task { background: var(--surface); border: 1px solid var(--line); border-radius: 2px; padding: 18px 20px; margin: 14px 0; box-shadow: var(--shadow); }
+  .task-head { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; margin-bottom: 10px; }
+  .task-id { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--accent-ink); }
+  .task-title { font-family: var(--display); text-transform: uppercase; font-size: 18px; font-weight: 700; letter-spacing: .01em; }
+  .task-est { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-left: auto; }
+  .task dl { margin: 0; display: grid; grid-template-columns: 92px minmax(0,1fr); gap: 6px 14px; font-size: 15.5px; }
+  @media (max-width: 620px) { .task dl { grid-template-columns: minmax(0,1fr); gap: 2px; } .task dt { margin-top: 8px; } }
+  .task dt { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 5px; }
+  .task dd { margin: 0; color: var(--ink-soft); }
+  .task dd.check { color: var(--ink); }
+
+  footer.end { border-top: 1px dashed var(--line); margin-top: 56px; padding-top: 28px; font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 1.7; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+</style>
+
+<header class="mast">
+  <div class="mast-in">
+    <p class="eyebrow">Pracovní plán · 13. srpna 2026 · Tixly</p>
+    <h1>Plán uzavření <em>mezer</em></h1>
+    <p class="standfirst">Devět mezer ze srovnání, rozepsaných na konkrétní úkoly: co změnit, ve kterém souboru, jak poznat, že je hotovo. Pořadí není podle velikosti, ale podle jediného kritéria — co nejrychleji vede k první ostré platbě a pak k prvnímu klientovi mimo Česko. Na začátku je nález, který se objevil při ověřování poplatků a který mění pořadí prací.</p>
+    <div class="meta-row">
+      <span>30 úkolů · 6 vln</span>
+      <span>Odhady jsou odhady, ne měření</span>
+      <span>Navazuje na srovnání Tixly proti trhu</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Obsah">
+    <ol>
+      <li><a href="#s0"><span>NÁLEZ</span> Poplatky</a></li>
+      <li><a href="#s1"><span>VLNA 0</span> Spuštění</a></li>
+      <li><a href="#s2"><span>VLNA 1</span> Peníze a ceník</a></li>
+      <li><a href="#s3"><span>VLNA 2</span> Prodej v zahraničí</a></li>
+      <li><a href="#s4"><span>VLNA 3</span> Sálová operativa</a></li>
+      <li><a href="#s5"><span>VLNA 4</span> Booking a settlement</a></li>
+      <li><a href="#s6"><span>VLNA 5</span> Provozní důvěra</a></li>
+      <li><a href="#s7"><span>VLNA 6</span> Riziko záloh</a></li>
+      <li><a href="#s8"><span>SOUHRN</span> Harmonogram</a></li>
+    </ol>
+  </nav>
+
+  <article>
+
+    <section id="s0">
+      <span class="sec-no">Nález</span>
+      <h2>Procenta umíme. Tři věci kolem nich ne.</h2>
+      <p class="lede">Provizi v procentech systém strhává — ale ne v checkoutu, nýbrž při vyúčtování, z tržby promotéra. Přesně model, jaký používá DICE. Default je <strong>5,00 %</strong>, per promotér se přepisuje v administraci. Fungující je i zádržné na chargebacky a výplaty přes Wise a PayPal.</p>
+
+      <div class="scroll">
+        <table>
+          <caption>Co poplatková tabulka umí a co z toho kód používá</caption>
+          <thead><tr><th>Sloupec / mechanismus</th><th>Ve schématu</th><th>V kódu</th><th>Důsledek</th></tr></thead>
+          <tbody>
+            <tr><td><span class="path">percentage_fee</span> (basis points)</td><td class="ok">ano</td><td class="ok">ano — <span class="path">fees = gross × bps / 10000</span></td><td>Provize funguje. Default 5 %, override per promotér a měnu.</td></tr>
+            <tr><td><span class="path">buyer_fee_halire</span> (poplatek kupci)</td><td class="ok">ano</td><td class="ok">ano — <span class="path">lib/fees/service-fee.ts</span></td><td>Funguje, ale jen jako pevná částka na vstupenku nebo objednávku.</td></tr>
+            <tr><td><span class="path">fixed_fee</span></td><td class="ok">ano</td><td class="hi">ne</td><td>Insert ho natvrdo ukládá jako 0 a výplata ho nepočítá. Kombinace „% + pevná částka“ nejde.</td></tr>
+            <tr><td><span class="path">max_fee</span> (strop)</td><td class="ok">ano</td><td class="hi">ne</td><td>U provize strop nechceme. Potřebuje ho ale <strong>servisní poplatek kupujícímu</strong>, který dnes umí jen pevnou částku — a hlavně mu chybí kontrola, že nepřekročí provizi sjednanou s pořadatelem.</td></tr>
+            <tr><td><span class="path">min_fee</span></td><td class="ok">ano</td><td class="hi">ne</td><td>U levných vstupenek nelze držet minimální výnos.</td></tr>
+            <tr><td>Měny poplatku</td><td class="hi">jen CZK a EUR</td><td>—</td><td>Databázová podmínka. Klient v Polsku nebo Británii nemá jak dostat ceník.</td></tr>
+            <tr><td>Měsíční předplatné (plán)</td><td class="hi">ne</td><td class="hi">ne</td><td>Plány Start / Pro / Scale z ceníku nemají kam se uložit.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="stub">
+        <span class="k">Nález, který stojí peníze — ověřit dřív než cokoli jiného</span>
+        <p>Oba výplatní procesy počítají hrubou tržbu promotéra jako <span class="path">SUM(orders.total_amount)</span> — <strong>bez odečtení <span class="path">service_fee_minor</span></strong>, tedy včetně našeho servisního poplatku, který zaplatil kupující. Náhled v administraci a statistiky ho přitom odečítají správně. Komentář v <span class="path">lib/fees/service-fee.ts</span> říká, že se ukládá zvlášť právě proto, „aby ho payout mohl vyloučit z promotérova gross“ — ale výplata to nedělá.</p>
+        <p><strong>Co to znamená v číslech:</strong> vstupenka 500 Kč + servisní poplatek 20 Kč. Kupující zaplatí 520. Výplata spočítá provizi z 520 (26 Kč) a promotérovi pošle 494 Kč. Správně má dostat 475 Kč (500 − 5 %) a nám má zůstat 45 Kč. Takto nám zůstane 26 Kč. <strong>Ztráta 19 Kč z každé objednávky</strong> — a zároveň si účtujeme provizi z vlastního poplatku, což je účetně špatně samo o sobě. Navíc administrace ukazuje jiné číslo, než jaké se skutečně vyplatí.</p>
+        <p>Dokud neteče ostrý provoz, je to oprava na hodinu. Po prvním reálném payoutu je to dohadování s klientem o penězích.</p>
+      </div>
+
+      <div class="stub calm">
+        <span class="k">Druhý nález — výplaty jsou pomalejší než u konkurence</span>
+        <p>Výchozí režim vyplácí až po akci: událost musí skončit, uplynout 14 dní evropské lhůty na odstoupení a být potvrzeno konání (sken ≥ 30 % nebo ruční schválení). Celkem tedy zhruba <strong>14–21 dní po akci</strong> — pomalejší než Eventbrite (10 dní) i Ticketmaster (7 dní).</p>
+        <p><strong>Rozhodnutí: peníze před akcí nevyplácíme.</strong> Zálohy z neuskutečněné akce jsou úvěr bez zajištění; při zrušení se obrací proti nám a fanoušek má nárok na vrácení bez ohledu na to, kde peníze skončily. Argument „peníze dřív“ proto stavíme na <em>rychlosti po akci</em>, ne na zálohách — a i tak s ním vyhrajeme, protože 48 hodin po akci je lepší než deset dní. Viz úkol <strong>F6</strong>.</p>
+      </div>
+    </section>
+
+    <section id="s1">
+      <span class="sec-no">Vlna 0 · teď hned</span>
+      <h2>Spuštění</h2>
+      <p>Není to vývoj, je to administrativa — a blokuje úplně všechno ostatní. Dokud tohle neběží, každá další funkce jen zvětšuje rozdíl mezi tím, co umíme, a tím, co prodáváme.</p>
+      <div class="scroll">
+        <table>
+          <caption>Externí závislosti — čekací doby běží paralelně</caption>
+          <thead><tr><th>Úkol</th><th>Kdo</th><th class="n">Doba</th><th>Bez toho</th></tr></thead>
+          <tbody>
+            <tr><td>GoPay smlouva a KYC</td><td>ty</td><td class="n">2–3 týdny</td><td>nelze vzít ani korunu</td></tr>
+            <tr><td>Resend — doména a DNS záznamy</td><td>ty</td><td class="n">1–2 dny</td><td>kupující nedostane vstupenku</td></tr>
+            <tr><td>CNAME <span class="path">app</span> → <span class="path">cname.vercel-dns.com</span></td><td>ty</td><td class="n">5 minut</td><td>systém nemá veřejnou adresu</td></tr>
+            <tr><td>Obchodní podmínky a GDPR (CZ + SK)</td><td>právník</td><td class="n">1–2 týdny</td><td>nelze uzavřít smlouvu s promotérem</td></tr>
+            <tr><td>Klíč pro moderaci obsahu</td><td>ty</td><td class="n">10 minut</td><td>kontrola plakátů běží jen na slovníku</td></tr>
+            <tr><td>Ověřit stabilitu šifrovacího klíče</td><td>ty</td><td class="n">15 minut</td><td>při jeho změně se vstupenky nenaskenují</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s2">
+      <span class="sec-no">Vlna 1 · týden 1–3</span>
+      <h2>Peníze a ceník</h2>
+      <p class="lede">Nejvyšší poměr hodnoty k práci v celém plánu. Odemyká navržený ceník, opravuje únik peněz a mění výplaty z „nejpomalejší na trhu“ na „nejrychlejší“.</p>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">F1</span><span class="task-title">Opravit hrubou tržbu ve výplatách</span><span class="task-est">0,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Ve výpočtu hrubé tržby odečíst servisní poplatek: <span class="path">SUM(o.total_amount − COALESCE(o.service_fee_minor, 0))</span>, stejně jako to už dělá náhled v administraci.</dd>
+          <dt>Kde</dt><dd><span class="path">app/api/internal/cron/payouts-auto-settle/route.ts</span> a <span class="path">app/api/internal/cron/event-payout-release/route.ts</span></dd>
+          <dt>Ověření</dt><dd class="check">Testovací objednávka s nenulovým servisním poplatkem: číslo v náhledu výplaty se rovná částce ve vygenerovaném záznamu výplaty. Do té doby se nerovnají.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">F2</span><span class="task-title">Jeden výpočet poplatku pro celý systém</span><span class="task-est">2 dny</span></div>
+        <dl>
+          <dt>Co</dt><dd>Vytáhnout výpočet do jediného modulu, který vrací rozpad položek a používají ho oba výplatní procesy, náhled i statistiky. Dnes je vzorec zkopírovaný na třech místech a každé počítá trochu jinak. <strong>Provize zůstává rovných 5 % bez stropu</strong> (individuální sazba u velkých objemů). Servisní poplatek kupujícímu umí procento, pevnou částku i strop, ale <strong>vždy jen jako přenesenou část téže provize</strong> — nikdy víc, viz F5.</dd>
+          <dt>Kde</dt><dd>nový <span class="path">lib/fees/platform-fee.ts</span>; volají ho tři existující místa</dd>
+          <dt>Ověření</dt><dd class="check">Jednotkové testy na hraniční případy: strop zabere u drahé vstupenky, minimum u levné, kombinace procento + pevná částka sedí na haléř. Tři volající místa vracejí shodná čísla pro stejný vstup.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">F8</span><span class="task-title">Opravit sazby DPH</span><span class="task-est">0,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Česká snížená sazba je od 1. 1. 2024 <strong>12 %</strong> — sloučila původní 10 % a 15 %. V tabulce sazeb je u české kultury <strong>10 %</strong> a stejná desítka je i jako záložní hodnota v potvrzovacím e-mailu. Rozpis DPH, který kupující dostane, je tedy dnes špatně. Projít celou tabulku zemí, ne jen Česko — Slovensko měnilo sazby k 1. 1. 2025.</dd>
+          <dt>Kde</dt><dd><span class="path">lib/tax/vat-rates.ts</span> (položka <span class="path">CZ.cultural</span>), <span class="path">app/api/internal/order-completed/route.ts</span> (záložní hodnota <span class="path">?? 10</span>)</dd>
+          <dt>Ověření</dt><dd class="check">Vstupenka za 1000 Kč rozepíše 892,86 základ a 107,14 DPH. Testy sazeb projdou pro všechny země s doloženým zdrojem u každé.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">F9</span><span class="task-title">Provize ze základu bez DPH + daňový doklad</span><span class="task-est">2 dny</span></div>
+        <dl>
+          <dt>Co</dt><dd>Provize se dnes počítá z ceny <em>včetně</em> DPH a žádná DPH se k ní nepřipočítává. Správně: základ pro provizi je cena bez DPH, k provizi se připočte 21 % (naše služba) a promotérovi se vystaví faktura, aby si mohl odečíst daň na vstupu. Zvlášť ošetřit rozpis DPH u servisního poplatku kupujícímu — ten je naše služba, tedy 21 %, ne sazba kultury, kterou se dnes rozepisuje celá objednávka.</dd>
+          <dt>Kde</dt><dd>oba výplatní procesy, <span class="path">lib/fees/</span>, fakturační modul (dnes umí jen faktury promotéra kupujícímu)</dd>
+          <dt>Ověření</dt><dd class="check">Na vstupence 1000 Kč vyjde provize 44,64 + 9,37 DPH = 54,01 a vygeneruje se faktura s tímto rozpisem. Součet vyplaceno + fakturováno + DPH odpovídá inkasu na haléř.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">F3</span><span class="task-title">Plány místo ručních dohod</span><span class="task-est">2–3 dny</span></div>
+        <dl>
+          <dt>Co</dt><dd>Rovných 5 % jako veřejná výchozí sazba, individuální sazba jako výjimka schválená správcem platformy s uvedeným důvodem — ten mechanismus už existuje, chybí mu jen pořádek: historie změn, platnost od–do a doklad, proč sleva vznikla. Žádné plány ani předplatné.</dd>
+          <dt>Kde</dt><dd><span class="path">platform.fee_schedules</span> + administrace promotéra</dd>
+          <dt>Ověření</dt><dd class="check">Nový promotér má 5 % bez zásahu. Sleva na 3,5 % jde nastavit jen s důvodem a je vidět v historii i v auditním logu.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">F4</span><span class="task-title">Poplatky i v jiných měnách než CZK a EUR</span><span class="task-est">0,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Uvolnit databázovou podmínku na seznam měn podle ISO 4217 (nebo alespoň přidat USD, GBP, PLN, HUF, CHF). Dnes nelze polskému ani britskému klientovi vůbec založit ceník.</dd>
+          <dt>Kde</dt><dd>migrace nad <span class="path">platform.fee_schedules</span> (podmínka <span class="path">fee_schedules_currency_check</span>)</dd>
+          <dt>Ověření</dt><dd class="check">Založím ceník v GBP, projde. Výplata v GBP se spáruje se správným ceníkem.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">F5</span><span class="task-title">Volba, kdo poplatek nese</span><span class="task-est">1,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Jediné nastavení: <strong>kolik procent z naší provize se přenese na kupujícího</strong>, od nuly do sta. Zbytek nese pořadatel. Servisní poplatek tedy není samostatná sazba, ale odvozená částka — a systém <strong>nesmí dovolit nastavit vyšší poplatek, než kolik pořadatel podle smlouvy platí nám</strong>. Vydělávat na poplatku není jeho živnost. Pokud se poplatek zadává jako procento, pevná částka a strop, musí se ta konfigurace při uložení ověřit proti cenám vstupenek dané akce, aby strop nepřekročil provizi ani u nejlevnější vstupenky.</dd>
+          <dt>Kde</dt><dd><span class="path">lib/fees/</span>, checkout, náhled ceny</dd>
+          <dt>Ověření</dt><dd class="check">Přepnu přenos z 0 na 100 % a částka, kterou kupující platí, se zvýší přesně o provizi včetně naší DPH; výplata pořadateli vzroste o totéž. <strong>Náš výnos je ve všech nastaveních stejný na haléř.</strong> Poplatek vyšší než smluvní provize nejde uložit.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">F6</span><span class="task-title">Výplata do 48 hodin po akci</span><span class="task-est">2 dny</span></div>
+        <dl>
+          <dt>Co</dt><dd>Zkrátit prodlevu po akci ze současných 14–21 dní na <strong>2 pracovní dny</strong> pro ověřené promotéry (stupeň 2 a výš), při zachování zádržného na chargebacky. Nové a rizikové necháme na delší lhůtě. Peníze před akcí se <strong>nevyplácejí za žádných okolností</strong> — zálohovou funkci vypnout a odstranit z nabídky, ať se omylem nezapne.</dd>
+          <dt>Kde</dt><dd><span class="path">payouts-auto-settle</span>, <span class="path">event-payout-release</span>, <span class="path">lib/payouts/holdback.ts</span>; deaktivovat <span class="path">advance_payout_schedules</span> včetně položky v administraci</dd>
+          <dt>Právní</dt><dd>Čtrnáctidenní lhůta v kódu je pravděpodobně přehnaně opatrná — evropská směrnice o právech spotřebitele vyjímá volnočasové služby s pevným termínem (čl. 16 písm. l) z práva na odstoupení. <strong>Nechat potvrdit právníkem</strong> u obchodních podmínek; pokud výjimka platí, lhůta odpadá a zbývá jen ověření konání akce.</dd>
+          <dt>Ověření</dt><dd class="check">Akce skončí v sobotu, ověřenému promotérovi odejdou peníze v úterý. Zálohu před akcí nelze zapnout ani přes rozhraní, ani přes API.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">F7</span><span class="task-title">Veřejný ceník a kalkulačka</span><span class="task-est">1,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>Stránka s ceníkem a kalkulačkou, která férově spočítá i konkurenci. Podle analýzy trhu je to nejlevnější trvalý přítok poptávek — na srovnávací dotazy typu „poplatky Eventbrite“ chodí značný provoz a nikdo z velkých hráčů ceny nezveřejňuje. S jednou sazbou bez stropu se to navíc vejde na jednu obrazovku.</dd>
+          <dt>Kde</dt><dd>veřejná část webu; počítá stejným modulem jako F2, aby se nerozešla s realitou</dd>
+          <dt>Ověření</dt><dd class="check">Zadám 40 000 vstupenek po 25 € a kalkulačka ukáže stejné číslo, jaké fakturuje systém.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section id="s3">
+      <span class="sec-no">Vlna 2 · týden 3–5</span>
+      <h2>Prodej v zahraničí</h2>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">G1</span><span class="task-title">Živé kurzy místo natvrdo zapsaných</span><span class="task-est">1 den</span></div>
+        <dl>
+          <dt>Co</dt><dd>Denní kurzovní feed (ČNB nebo ECB) do databáze, s uložením <strong>použitého kurzu k objednávce</strong> — aby se refund a účetnictví počítaly kurzem z okamžiku prodeje. Dnes jsou kurzy natvrdo v souboru, k dubnu 2026, a komentář to sám označuje za demo.</dd>
+          <dt>Kde</dt><dd><span class="path">lib/currency-rates.ts</span> + nová tabulka kurzů + sloupec u objednávky</dd>
+          <dt>Ověření</dt><dd class="check">Kurz v systému se rovná dnešnímu kurzu centrální banky. Objednávka z minulého týdne se refunduje kurzem z okamžiku prodeje, ne dnešním.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">G2</span><span class="task-title">Stripe jako plnohodnotná druhá noha</span><span class="task-est">3–4 dny</span></div>
+        <dl>
+          <dt>Co</dt><dd>Stripe je v kódu zapojený, ale jako záložní varianta. Pro zahraničí ho povýšit na hlavní: lokální platební metody podle země kupujícího, výplaty přes Stripe, párování s naší evidencí. Ke zvážení je i model, kdy jsme obchodníkem záznamu — vyšší marže a jednodušší daně výměnou za vyšší regulační zátěž.</dd>
+          <dt>Kde</dt><dd><span class="path">lib/payment/provider.ts</span>, <span class="path">lib/payment/stripe.ts</span>, <span class="path">lib/payouts/executor.ts</span></dd>
+          <dt>Ověření</dt><dd class="check">Testovací nákup z nečeské karty projde přes Stripe, výplata dorazí a v evidenci sedí na haléř včetně poplatku brány.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">G3</span><span class="task-title">Celková cena podle jurisdikce</span><span class="task-est">2–3 dny</span></div>
+        <dl>
+          <dt>Co</dt><dd>Režim zobrazení ceny podle země kupujícího: v USA celková cena včetně všech povinných poplatků <em>všude, kde se cena objeví</em> — ve výpisu akcí, ve widgetu, v odkazech, nejen v checkoutu. K tomu záznam o tom, jaká cena byla kdy komu zobrazena.</dd>
+          <dt>Kde</dt><dd>náhled ceny, výpisy akcí, embed widget, sdílené komponenty ceny</dd>
+          <dt>Ověření</dt><dd class="check">Přepnutím země se změní cena ve všech třech místech zároveň a zapíše se do auditní stopy. Rozdíl mezi zobrazenou a účtovanou cenou je nula.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">G4</span><span class="task-title">Přednastavení přeprodeje podle země</span><span class="task-est">1 den</span></div>
+        <dl>
+          <dt>Co</dt><dd>Profily pro přeprodej: Británie — strop na nominál, strop poplatku, povinné ověření; jinde volnější. Mechanismus už existuje, chybí jen předvolby a to, aby se nedaly nastavit nezákonně.</dd>
+          <dt>Kde</dt><dd>nastavení přeprodeje u akce (<span class="path">resale_max_price_pct</span> a spol.)</dd>
+          <dt>Ověření</dt><dd class="check">Akce s britským místem konání nedovolí nastavit přeprodej nad nominál.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section id="s4">
+      <span class="sec-no">Vlna 3 · týden 4–6</span>
+      <h2>Sálová operativa</h2>
+
+      <div class="stub calm">
+        <span class="k">Oprava zadání — obojí existovalo, jen jinak, než jsem tvrdil</span>
+        <p>Při práci na téhle vlně se ukázalo, že držení míst i výběr nejlepších sedadel v kódu <strong>už byly</strong>. Moje dřívější tvrzení, že chybí, vzniklo z hledání podle špatných jmen. Skutečné mezery byly jinde a byly konkrétnější: držení šlo zadat jen vypsáním identifikátorů míst ručně, vyřazená místa se ukládala jako dočasná rezervace, úklidová úloha po expiraci nechávala místo v rozporuplném stavu a výběr nejlepších sedadel žil jen v prohlížeči, takže ho neuměl použít widget ani pokladna. Hotovo 14. 8. 2026, viz níže.</p>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">S1</span><span class="task-title">Držení míst bez vypisování identifikátorů</span><span class="task-est">hotovo</span></div>
+        <dl>
+          <dt>Bylo</dt><dd>Formulář přijímal jen seznam identifikátorů míst, které nebylo kde vzít — u dvaceti míst pro produkci nepoužitelné.</dd>
+          <dt>Je</dt><dd>Výběr sektoru, řady a rozsahu čísel („Balkon, řada 3, místa 2–10"). Formulář nabízí skutečné sektory a řady sálu včetně počtu volných míst. Zadání podle identifikátorů zůstalo jako doplněk pro výběr z plánku.</dd>
+          <dt>Kde</dt><dd><span class="path">api/admin/events/[id]/holds</span>, <span class="path">admin/events/[id]/holds/page.tsx</span>, <span class="path">lib/seating/seat-range.ts</span></dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">S2</span><span class="task-title">Vyřazené místo už není dočasná rezervace</span><span class="task-est">hotovo</span></div>
+        <dl>
+          <dt>Bylo</dt><dd>Místo vyřazené technikou se ukládalo stejně jako dočasně držené. V kapacitě vypadalo jako něco, co se ještě prodá, a úklidová úloha ho mohla vrátit do prodeje.</dd>
+          <dt>Je</dt><dd>Vyřazení zapisuje samostatný stav, nemá datum uvolnění a časem se nikdy nevrátí — zruší se jen ručně, až technika zmizí. Přehled ho odlišuje od držení.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">S3</span><span class="task-title">Úklid po vypršení nenechává místo ve dvou stavech</span><span class="task-est">hotovo</span></div>
+        <dl>
+          <dt>Bylo</dt><dd>Když promotérskému držení uplynulo datum uvolnění, úloha vrátila místo do prodeje, ale nechala na něm značku držení. Sedadlo se prodávalo a zároveň se v přehledu tvářilo jako držené.</dd>
+          <dt>Je</dt><dd>Úklid maže i důvod a poznámku, prodaná a vyřazená místa nechává být, a řádky, které si právě drží běžící nákup, přeskočí a sebere je příští běh. Odpověď navíc rozlišuje, kolik vypršelo zákazníkům a kolik promotérovi.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">S4</span><span class="task-title">Nejlepší volná místa pro všechny prodejní kanály</span><span class="task-est">hotovo</span></div>
+        <dl>
+          <dt>Bylo</dt><dd>Algoritmus žil uvnitř plánku v prohlížeči. Embed widget, mobilní aplikace ani pokladna ho neuměly použít, protože plánek nekreslí. Neměl žádné testy.</dd>
+          <dt>Je</dt><dd>Jedna sdílená funkce a k ní veřejné rozhraní <span class="path">POST /api/events/[id]/seats/best-available</span>. Plánek volá tutéž funkci, takže všechny kanály vybírají stejná místa. Nově se preferují řady blíž jevišti (podle souřadnic, ne podle popisku řady), bezbariérová místa se nenabízejí, dokud si o ně kupující neřekne, a když souvislý blok neexistuje, vrátí se jednotlivá místa s vysvětlením.</dd>
+          <dt>Ověřeno</dt><dd class="check">19 nových testů (11 pro výběr míst, 8 pro rozsahy), typová kontrola celého projektu bez chyby. Neověřeno proti živé databázi — chybí prostředí s daty.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">S5</span><span class="task-title">Zbývá: mrtvý kód kolem sedadel</span><span class="task-est">0,5 dne</span></div>
+        <dl>
+          <dt>Co</dt><dd>V repozitáři je druhá, nepoužívaná implementace zámků sedadel nad tabulkami <span class="path">catalog.seats</span> a <span class="path">seat_holds.seat_holds</span>. Volají ji jen její vlastní testy; skutečný nákup jede přes <span class="path">catalog.event_seats</span>. Její dokumentační komentář popisuje pravidla, která nikde neplatí — kdo ho bude číst příště, bude vycházet ze špatných předpokladů.</dd>
+          <dt>Ověření</dt><dd class="check">Po smazání projde typová kontrola i testy a nákup se chová stejně.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section id="s5">
+      <span class="sec-no">Vlna 4 · měsíc 2–4</span>
+      <h2>Booking a settlement</h2>
+      <p class="lede">Nejdražší položka plánu a zároveň jediná, která z nás dělá kategorii pro sebe místo dalšího prodejce vstupenek. Výpočetní jádro už existuje — <span class="path">lib/royalties/compute.ts</span> umí garanci, procento i strop. Chybí všechno kolem.</p>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">B1</span><span class="task-title">Kalendář sálu a držení termínů</span><span class="task-est">5 dní</span></div>
+        <dl>
+          <dt>Co</dt><dd>Kalendář místa s termíny drženými v pořadí (první, druhá, třetí opce), lhůtou na potvrzení a automatickým uvolněním. Tohle je v živé hudbě denní chleba a dnes se řeší v tabulce.</dd>
+          <dt>Ověření</dt><dd class="check">Držím termín jako druhý v pořadí; když první opce propadne, posunu se automaticky a přijde upozornění.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">B2</span><span class="task-title">Nabídka umělci a její schválení</span><span class="task-est">5 dní</span></div>
+        <dl>
+          <dt>Co</dt><dd>Sestavení nabídky (garance, podíl z tržby, strop, bonus po pokrytí nákladů), odeslání agentovi, verze, schválení nebo protinávrh, podpis. Napojené na existující podpisovou vrstvu.</dd>
+          <dt>Ověření</dt><dd class="check">Vytvořím nabídku, agent ji schválí odkazem bez zakládání účtu a podmínky se překlopí do akce beze změny čísel.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">B3</span><span class="task-title">Náklady akce a bod zlomu</span><span class="task-est">3 dny</span></div>
+        <dl>
+          <dt>Co</dt><dd>Rozpočet akce (zvuk, světla, pronájem, marketing, personál) a průběžný výpočet, kolik vstupenek zbývá do pokrytí nákladů. Promotér tohle chce vidět každý den, ne až po akci.</dd>
+          <dt>Ověření</dt><dd class="check">Bod zlomu na přehledu akce sedí s ruční kontrolou v tabulce.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">B4</span><span class="task-title">Automatické vyúčtování po akci</span><span class="task-est">4 dny</span></div>
+        <dl>
+          <dt>Co</dt><dd>Po akci se ze skutečných prodejů, nákladů a podmínek z nabídky vygeneruje vyúčtování pro umělce — dokument i platba, včetně srážkové daně u zahraničních vystupujících.</dd>
+          <dt>Ověření</dt><dd class="check">Vyúčtování na jednu stránku, které agent podepíše bez dotazů, a částka odpovídá výpočtu podle smlouvy na haléř.</dd>
+        </dl>
+      </div>
+
+      <div class="task">
+        <div class="task-head"><span class="task-id">B5</span><span class="task-title">Rozhodnout o vertikálách</span><span class="task-est">rozhodnutí, ne vývoj</span></div>
+        <dl>
+          <dt>Co</dt><dd>Rezervační vertikály jsou v odděleném projektu. „Jeden systém pro celý provoz místa“ je v analýze trhu jeden z důvodů k přechodu. Buď se spojí a bude se tím argumentovat, nebo zůstanou oddělené a argumentovat se přestane. Mít je oddělené a zároveň je slibovat nejde.</dd>
+          <dt>Ověření</dt><dd class="check">Rozhodnutí zapsané a promítnuté do prodejních materiálů.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section id="s6">
+      <span class="sec-no">Vlna 5 · průběžně od měsíce 2</span>
+      <h2>Provozní důvěra</h2>
+      <p>Tohle jsou otázky, které padnou na první schůzce s klientem větším než klub. Odpovídat se na ně musí doloženě.</p>
+      <div class="scroll">
+        <table>
+          <caption>Úkoly provozní důvěry</caption>
+          <thead><tr><th class="id">ID</th><th>Úkol</th><th>Ověření</th><th class="n">Odhad</th></tr></thead>
+          <tbody>
+            <tr><td class="id">D1</td><td>Zátěžový test proti nasazené produkci, ne lokálně</td><td>Doložené číslo „zvládneme X vstupenek za minutu“ s frontou i bez ní</td><td class="n">1 den</td></tr>
+            <tr><td class="id">D2</td><td>Veřejná stavová stránka a hlášení výpadků</td><td>Stránka běží na vlastní adrese a měří skutečné služby (základ už existuje)</td><td class="n">1 den</td></tr>
+            <tr><td class="id">D3</td><td>Ověřit zálohy a obnovu — skutečným obnovením</td><td>Obnovím databázi do zkušebního prostředí a změřím, jak dlouho to trvalo</td><td class="n">0,5 dne</td></tr>
+            <tr><td class="id">D4</td><td>Smlouva se závazkem dostupnosti a kreditem</td><td>Text ve smlouvě + měření, které ho umí doložit</td><td class="n">právník</td></tr>
+            <tr><td class="id">D5</td><td>Začít sbírat důkazy pro certifikaci SOC 2</td><td>Evidence přístupů, změn a incidentů od začátku, ne zpětně</td><td class="n">průběžně</td></tr>
+            <tr><td class="id">D6</td><td>Publikovat obě aplikace do obchodů</td><td>Jsou hotové; chybí jen účty, certifikáty a schvalovací proces</td><td class="n">3–5 dní</td></tr>
+            <tr><td class="id">D7</td><td>Podepsané peněženky Apple a Google</td><td>Pass se přidá do peněženky a otevře se v den akce</td><td class="n">čeká na certifikáty</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s7">
+      <span class="sec-no">Vlna 6 · před prvním velkým klientem</span>
+      <h2>Riziko a zrušené akce</h2>
+      <p>Zálohy před akcí jsme zamítli, takže největší úvěrové riziko je pryč. Zbývá to, co nese každý ticketing bez ohledu na model: <strong>peníze kupujících držíme od prodeje až po akci</strong>, a když se akce zruší, musíme je vrátit — i když pořadatel mezitím zmizí. K tomu pozdní chargebacky, které chodí i půl roku zpětně.</p>
+      <div class="scroll">
+        <table>
+          <caption>Úkoly řízení rizika</caption>
+          <thead><tr><th class="id">ID</th><th>Úkol</th><th>Ověření</th><th class="n">Odhad</th></tr></thead>
+          <tbody>
+            <tr><td class="id">R1</td><td>Zjednodušit zádržné: pro pořadatele s historií nula, pro nové krátká rezerva na první tři akce, delší jen u přeložených akcí</td><td>Prověřený pořadatel dostane po akci 100 % bez zádržného; přeložená akce drží rezervu do nového termínu + 120 dní</td><td class="n">2 dny</td></tr>
+            <tr><td class="id">R2</td><td>Rezervní fond z podílu obratu a jeho evidence</td><td>Stav fondu je vidět v přehledu a kryje modelovou ztrátu z jedné zrušené akce a půlročního nánosu chargebacků</td><td class="n">1 den</td></tr>
+            <tr><td class="id">R3</td><td>Postup pro zrušenou akci: hromadné vrácení, komunikace s kupujícími, vymáhání po pořadateli, pokud už peníze dostal</td><td>Nacvičeno na zkušební akci od začátku do konce</td><td class="n">2 dny</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="stub">
+        <span class="k">Kolik toho rizika v Evropě reálně zbývá</span>
+        <p>Chargeback není český ani americký institut — jsou to pravidla karetních asociací, platí všude stejně a peníze si strhne zpět zúčtovací banka z našich budoucích tržeb, ne že bychom je my někomu vymáhali. Rozdíl je v tom, <em>kolik</em> jich přijde. V EU platí povinné silné ověření a při 3-D Secure přechází odpovědnost za <strong>podvodné</strong> transakce na vydavatele karty — ty tedy prakticky odpadají.</p>
+        <p>Co nepřechází na nikoho, je důvod <strong>„služba nebyla poskytnuta“</strong>. Lhůta běží 120 dní <em>od data, kdy měla být služba poskytnuta</em>, tedy od konání akce, a to je přesně scénář zrušené nebo přeložené akce. Protože vyplácíme až po akci, zbývají tři konkrétní expozice: <strong>přeložená akce</strong> (kupující reklamuje, přestože jsme už vyplatili), <strong>akce, která se konala jinak, než pořadatel tvrdil</strong>, a <strong>podvodný pořadatel</strong>. Tomu se má zádržné přizpůsobit — ne plošných 5 % na všechno, ale krátká rezerva u nových pořadatelů a delší u přeložených akcí.</p>
+      </div>
+    </section>
+
+    <section id="s8">
+      <span class="sec-no">Souhrn</span>
+      <h2>Harmonogram</h2>
+      <div class="kpis">
+        <div class="kpi"><span class="v hi">0,5</span><span class="l">dne na opravu, která dnes stojí peníze z každé objednávky</span></div>
+        <div class="kpi"><span class="v">12,5</span><span class="l">dne práce odemkne celý navržený ceník a srovná daně</span></div>
+        <div class="kpi"><span class="v">~9</span><span class="l">dní na první zahraniční trh po dokončení vlny 1</span></div>
+        <div class="kpi"><span class="v">17</span><span class="l">dní na booking a settlement — klín z analýzy trhu</span></div>
+      </div>
+      <div class="scroll">
+        <table>
+          <caption>Sekvence a čemu každá vlna odemyká dveře</caption>
+          <thead><tr><th>Vlna</th><th>Kdy</th><th class="n">Práce</th><th>Odemyká</th></tr></thead>
+          <tbody>
+            <tr><td><strong>0 · Spuštění</strong></td><td>teď, paralelně</td><td class="n">administrativa</td><td>první ostrou platbu</td></tr>
+            <tr><td><strong>1 · Peníze a ceník</strong></td><td>týden 1–3</td><td class="n">12,5 dne</td><td>ceník, plány, správné daně, nejrychlejší výplatu po akci na trhu</td></tr>
+            <tr><td><strong>2 · Zahraničí</strong></td><td>týden 3–5</td><td class="n">7–9 dní</td><td>prodej mimo ČR a SK, později USA</td></tr>
+            <tr><td><strong>3 · Sálová operativa</strong></td><td class="ok">hotovo 14. 8.</td><td class="n">0,5 dne zbývá</td><td>divadla a haly</td></tr>
+            <tr><td><strong>4 · Booking a settlement</strong></td><td>měsíc 2–4</td><td class="n">17 dní</td><td>střední promotéry — hlavní cílovou skupinu</td></tr>
+            <tr><td><strong>5 · Provozní důvěra</strong></td><td>průběžně</td><td class="n">6 dní + dlouhý běh</td><td>klienty nad velikost klubu</td></tr>
+            <tr><td><strong>6 · Riziko</strong></td><td>před prvním velkým</td><td class="n">5 dní</td><td>klid při zrušené akci a pozdních chargebacích</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Příští týden</h3>
+      <ol class="body">
+        <li><strong>F1</strong> — oprava hrubé tržby ve výplatách. Půl dne, a čím dřív, tím lépe.</li>
+        <li><strong>GoPay, Resend, DNS, právník</strong> — rozjet paralelně, jsou to nejdelší čekací doby.</li>
+        <li><strong>F8</strong> — opravit českou sníženou sazbu DPH z 10 na 12 %. Půl dne; dnes chodí kupujícím e-maily se špatným rozpisem daně.</li>
+        <li><strong>F2, F4 a F9</strong> — jeden výpočet poplatku, uvolnění měn, provize ze základu bez DPH s fakturou. Dohromady 4,5 dne a odblokují všechno ostatní kolem ceníku.</li>
+        <li>Rozhodnout <strong>B5</strong> (vertikály) — je to rozhodnutí, ne práce, ale ovlivňuje celou prodejní argumentaci.</li>
+      </ol>
+    </section>
+
+    <footer class="end">
+      <p><strong>Metodika.</strong> Nálezy o poplatcích a výplatách jsou z přímého čtení kódu 13. 8. 2026 — konkrétně <span class="path">platform.fee_schedules</span> v základní migraci, <span class="path">lib/fees/service-fee.ts</span>, <span class="path">payouts-auto-settle</span>, <span class="path">event-payout-release</span>, <span class="path">admin/payouts</span> a administrace promotéra. Nejsou ověřené během proti databázi; ověřovací kroky u úkolu F1 to udělají. Odhady práce jsou odhady.</p>
+    </footer>
+
+  </article>
+</div>

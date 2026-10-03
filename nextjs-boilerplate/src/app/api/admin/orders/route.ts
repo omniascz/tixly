@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext, runWithPromoterContext } from '@/lib/db/rls-pool';
+import { formatOrderNumber } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
@@ -107,8 +108,10 @@ export async function GET(request: NextRequest): Promise<Response> {
     }
 
     if (searchPattern) {
+      // Hledá se i podle čísla objednávky — to je prefix UUID (viz formatOrderNumber),
+      // takže musí být zahrnuté o.id, jinak kód z výpisu nejde dohledat.
       whereClauses.push(
-        `(u.name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`
+        `(u.name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex} OR o.id::text ILIKE $${paramIndex})`
       );
       params.push(searchPattern);
       paramIndex++;
@@ -171,12 +174,10 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     const result = await db().query<OrderRow>(mainQuery, params);
 
-    // Format response with order numbers
-    const items = result.rows.map((row, index) => {
-      const orderNum = `ORD-2026-${String(index + offset + 1).padStart(4, '0')}`;
+    const items = result.rows.map((row) => {
       return {
         orderId: row.order_id,
-        orderNumber: orderNum,
+        orderNumber: formatOrderNumber(row.order_id),
         createdAt: row.created_at,
         buyerName: row.buyer_name,
         buyerEmail: row.buyer_email,

@@ -2,152 +2,70 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { EVENT_TABS, EVENT_FEATURES, type EventTab } from '@/lib/admin/nav';
 import { cn } from '@/lib/utils';
 
-interface NavItem {
-  href: string;
-  label: string;
-  group: string;
-}
-
+/**
+ * Záložky akce.
+ *
+ * Dřív: 74 odkazů v devíti rozbalovacích <details> menu uvnitř kontejneru
+ * s overflow-x-auto (což rozbalený seznam svisle ořezávalo), dvě položky
+ * duplicitně, jedna vedoucí na starou implementaci, dvě hotové funkce
+ * v menu úplně chyběly.
+ *
+ * Teď: deset záložek, jeden klik, žádné rozbalování. Jednotlivé funkce
+ * jsou sekcemi uvnitř příslušné záložky — viz components/admin/SectionHub.
+ */
 export function EventDetailNav({ eventId }: { eventId: string }): JSX.Element {
   const pathname = usePathname();
+  const base = `/admin/events/${eventId}`;
 
-  const items: NavItem[] = [
-    // Základ
-    { href: `/admin/events/${eventId}/edit`, label: 'Editovat', group: 'Základ' },
-    { href: `/admin/events/${eventId}/settings`, label: 'Nastavení', group: 'Základ' },
-    { href: `/admin/events/${eventId}/ai-description`, label: 'AI popis', group: 'Základ' },
-    { href: `/admin/events/${eventId}/embed`, label: 'Embed', group: 'Základ' },
-    { href: `/admin/events/${eventId}/cast`, label: 'Obsazení', group: 'Základ' },
-
-    // Tickety + Sedadla
-    { href: `/admin/events/${eventId}/ticket-types`, label: 'Typy vstupenek', group: 'Lístky' },
-    { href: `/admin/events/${eventId}/seats`, label: 'Mapa sedadel (live)', group: 'Lístky' },
-    { href: `/admin/events/${eventId}/tickets`, label: 'Lístky', group: 'Lístky' },
-    { href: `/admin/events/${eventId}/holds`, label: 'Holds', group: 'Lístky' },
-    { href: `/admin/events/${eventId}/table-seating`, label: '🪑 Stoly', group: 'Lístky' },
-    { href: `/admin/events/${eventId}/entry-slots`, label: 'Časové vstupy', group: 'Lístky' },
-    { href: `/admin/events/${eventId}/view-photos`, label: 'Pohled ze sedadla', group: 'Lístky' },
-    { href: `/admin/events/${eventId}/custom-fields`, label: 'Doplňkové otázky', group: 'Lístky' },
-    { href: `/admin/events/${eventId}/accreditation`, label: 'Akreditace', group: 'Lístky' },
-    { href: `/admin/events/${eventId}/press`, label: 'Press akreditace', group: 'Lístky' },
-    { href: `/admin/events/${eventId}/guestlist`, label: 'Guestlist', group: 'Lístky' },
-    { href: `/admin/events/${eventId}/wristbands`, label: 'Náramky (cashless)', group: 'Lístky' },
-    { href: `/admin/events/${eventId}/access-matrix`, label: 'Access matrix', group: 'Lístky' },
-    { href: `/admin/events/${eventId}/accessible-entrances`, label: 'Bezbariérové přístupy', group: 'Lístky' },
-
-    // Pricing
-    { href: `/admin/events/${eventId}/dynamic-pricing`, label: 'Dynamic pricing', group: 'Pricing' },
-    { href: `/admin/events/${eventId}/member-pricing`, label: 'Member pricing', group: 'Pricing' },
-    { href: `/admin/events/${eventId}/channel-prices`, label: 'Channel prices', group: 'Pricing' },
-    { href: `/admin/events/${eventId}/pricing-windows`, label: 'Pricing windows', group: 'Pricing' },
-    { href: `/admin/events/${eventId}/ab-price-tests`, label: 'A/B testy', group: 'Pricing' },
-    { href: `/admin/events/${eventId}/price-scenarios`, label: 'Price scenarios', group: 'Pricing' },
-    { href: `/admin/events/${eventId}/volume-discounts`, label: 'Množ. slevy', group: 'Pricing' },
-    { href: `/admin/events/${eventId}/group-discounts`, label: 'Group discounts', group: 'Pricing' },
-    { href: `/admin/events/${eventId}/demand-forecast`, label: 'Demand forecast', group: 'Pricing' },
-
-    // Marketing
-    { href: `/admin/events/${eventId}/broadcast`, label: 'Broadcast', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/verified-fan`, label: 'Verified Fan', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/addons`, label: 'Add-ons', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/bundles`, label: 'VIP & Merch Bundles', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/donation`, label: 'Donation', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/lottery`, label: 'Losování', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/lotteries`, label: 'Lotterie (old)', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/marketing-qr`, label: 'Print QR', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/publish-facebook`, label: 'Publikovat na FB', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/transit-combo`, label: 'MHD Kombi', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/backstage`, label: 'Backstage moment', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/superfan`, label: '⭐ Super Fan zážitky', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/gifts`, label: 'Dárky', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/sponsors`, label: 'Sponzorský modul', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/travel-links`, label: 'Cestovní partneři', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/parking-bundles`, label: '🚗 Parking & Ubytování', group: 'Marketing' },
-
-    // Mobile / Pass
-    { href: `/admin/events/${eventId}/hot-mode`, label: 'Hot mode', group: 'Mobile/Pass' },
-    { href: `/admin/events/${eventId}/wallet-push`, label: 'Wallet push', group: 'Mobile/Pass' },
-    { href: `/admin/events/${eventId}/wallet-modules`, label: 'Wallet content', group: 'Mobile/Pass' },
-
-    // Lifecycle / Operations
-    { href: `/admin/events/${eventId}/emergency`, label: 'Nouzové oznámení', group: 'Operations' },
-    { href: `/admin/events/${eventId}/social-distancing`, label: 'Soc. odstup', group: 'Operations' },
-    { href: `/admin/events/${eventId}/postpone`, label: 'Odložit', group: 'Operations' },
-    { href: `/admin/events/${eventId}/reschedule`, label: 'Přesun termínu', group: 'Operations' },
-    { href: `/admin/events/${eventId}/queue`, label: 'Smart Queue', group: 'Operations' },
-    { href: `/admin/events/${eventId}/waitlist`, label: 'Čekací listina', group: 'Operations' },
-    { href: `/admin/events/${eventId}/will-call`, label: 'Will Call', group: 'Operations' },
-    { href: `/admin/events/${eventId}/live-ops`, label: 'Live ops', group: 'Operations' },
-    { href: `/admin/events/${eventId}/hospitality`, label: 'Hospitality', group: 'Operations' },
-    { href: `/admin/events/${eventId}/foyer-menu`, label: 'Foyer menu', group: 'Operations' },
-    { href: `/admin/events/${eventId}/foyer-orders`, label: 'Foyer objednávky', group: 'Operations' },
-    { href: `/admin/events/${eventId}/kiosk-display`, label: '🖥️ Kiosk display', group: 'Operations' },
-
-    // Šablony
-    { href: `/admin/events/${eventId}/templates`, label: 'Šablony', group: 'Základ' },
-
-    // RFID Presence
-    { href: `/admin/events/${eventId}/wristbands`, label: '💳 Náramky (cashless)', group: 'RFID' },
-    { href: `/admin/events/${eventId}/rfid-zones`, label: '🏟️ Zóny & Zařízení', group: 'RFID' },
-    { href: `/admin/events/${eventId}/rfid-live`, label: '📡 Live Dashboard', group: 'RFID' },
-
-    // After-event
-    { href: `/admin/events/${eventId}/artist-royalties`, label: '🎤 Royalty umělců', group: 'Finance' },
-
-    // After-event
-    { href: `/admin/events/${eventId}/reviews`, label: 'Hodnocení', group: 'After-event' },
-    { href: `/admin/events/${eventId}/fan-ticket`, label: '🎫 Fan Ticket', group: 'Lístky' },
-    { href: `/admin/events/${eventId}/commemorative`, label: 'Vzpomínková vstupenka', group: 'After-event' },
-
-    // Finance
-    { href: `/admin/events/${eventId}/distribution`, label: 'Distribuce', group: 'Finance' },
-    { href: `/admin/events/${eventId}/resale-marketplace`, label: '🔄 Sekundární trh', group: 'Finance' },
-    { href: `/admin/events/${eventId}/fan-bonus`, label: '💰 FanBonus', group: 'Marketing' },
-    { href: `/admin/events/${eventId}/resale-policy`, label: 'Resale policy', group: 'Finance' },
-    { href: `/admin/events/${eventId}/advance-payout`, label: 'Pre-event payout', group: 'Finance' },
-    { href: `/admin/events/${eventId}/sales-report`, label: 'Sales report', group: 'Finance' },
-    { href: `/admin/events/${eventId}/demographics`, label: 'Demografie publika', group: 'Finance' },
-  ];
-
-  // Group items
-  const groups = items.reduce<Record<string, NavItem[]>>((acc, item) => {
-    acc[item.group] = acc[item.group] ?? [];
-    acc[item.group].push(item);
-    return acc;
-  }, {});
+  /** Poslední segment cesty, prázdný na přehledu akce. */
+  const rest = pathname.startsWith(base) ? pathname.slice(base.length).replace(/^\//, '') : '';
+  const activeSlug = resolveActiveTab(rest);
 
   return (
     <div className="border-b bg-card">
-      <nav className="overflow-x-auto">
-        <div className="flex gap-1 px-4 py-2">
-          {Object.entries(groups).map(([groupName, groupItems]) => (
-            <details key={groupName} className="group/menu relative">
-              <summary className={cn(
-                'cursor-pointer list-none rounded-md px-3 py-1.5 text-xs font-medium hover:bg-muted',
-                groupItems.some((i) => pathname === i.href) && 'bg-primary/10 text-primary',
-              )}>
-                {groupName} ▾
-              </summary>
-              <div className="absolute left-0 top-full z-50 mt-1 min-w-[200px] rounded-md border bg-card p-1 shadow-md">
-                {groupItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      'block rounded-md px-3 py-1.5 text-sm hover:bg-muted',
-                      pathname === item.href && 'bg-primary/10 font-medium text-primary',
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </details>
-          ))}
-        </div>
+      <nav aria-label="Sekce akce" className="flex flex-wrap gap-1 px-4 py-2">
+        {EVENT_TABS.map((tab) => {
+          const href = tab.slug ? `${base}/${tab.slug}` : base;
+          const active = tab.slug === activeSlug;
+          return (
+            <Link
+              key={tab.slug || 'prehled'}
+              href={href}
+              aria-current={active ? 'page' : undefined}
+              className={cn(
+                'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                active
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+              )}
+            >
+              {tab.label}
+            </Link>
+          );
+        })}
       </nav>
     </div>
   );
+}
+
+/**
+ * Ke které záložce patří aktuální cesta.
+ *
+ * Zvládá tři případy:
+ *   ''                → Přehled
+ *   'ceny'            → rozcestník záložky
+ *   'dynamic-pricing' → konkrétní funkce, dohledá se její záložka
+ */
+function resolveActiveTab(rest: string): EventTab['slug'] {
+  if (!rest) return '';
+  const first = rest.split('/')[0];
+
+  const asTab = EVENT_TABS.find((t) => t.slug === first);
+  if (asTab) return asTab.slug;
+
+  const feature = EVENT_FEATURES.find((f) => f.slug === first);
+  return feature ? feature.tab : '';
 }

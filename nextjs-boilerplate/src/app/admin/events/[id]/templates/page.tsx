@@ -6,7 +6,8 @@
  * Uložit aktuální event jako šablonu + přehled uložených šablon promotéra.
  */
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouteParams } from '@/lib/next/route-params';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -54,7 +55,7 @@ export default function TemplatesPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id: eventId } = use(params);
+  const { id: eventId } = useRouteParams(params);
   const [templates, setTemplates] = useState<SavedTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

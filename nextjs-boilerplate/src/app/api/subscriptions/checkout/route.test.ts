@@ -16,6 +16,12 @@ const mockClient = {
     if (s.startsWith('SET') || s.startsWith('RESET') || s === 'BEGIN' || s === 'COMMIT' || s === 'ROLLBACK') {
       return Promise.resolve({ rows: [] });
     }
+    // rls-pool `applyGucs`: nastavi GUC a hned je cte zpet (r0..r3) — mock vraci,
+    // co se nastavilo, jinak connect() spojeni 3x zahodi a vyhodi chybu.
+    if (s.includes('SET_CONFIG(')) {
+      const p = params ?? [];
+      return Promise.resolve({ rows: [{ r0: p[4], r1: p[5], r2: p[6], r3: p[7], pid: 1 }] });
+    }
     return dataQuery(sql, params);
   }),
   release: vi.fn(),

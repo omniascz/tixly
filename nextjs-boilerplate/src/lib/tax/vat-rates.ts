@@ -5,7 +5,15 @@
  * Hodnoty jsou v procentech (10 = 10 %).
  *
  * Poznámky ke kategorii 'cultural' (ticketing relevantní):
- *   CZ: 10 %  SK: 5 %  DE: 7 %  AT: 13 %  PL: 8 %
+ *   CZ: 12 %  SK: 5 %  DE: 7 %  AT: 13 %  PL: 8 %
+ *
+ * ⚠ CZ: od 1. 1. 2024 platí jen dvě sazby — 21 % a snížená **12 %**, která
+ *   nahradila původní 10 % a 15 %. Vstupné na kulturní a sportovní akce spadá
+ *   do snížené sazby (příloha č. 2 zákona č. 235/2004 Sb.). Do 8/2026 tu bylo
+ *   zapsáno 10 % z doby před reformou a používalo se to v rozpisu DPH
+ *   v potvrzovacím e-mailu, takže kupující dostávali špatný rozpis daně.
+ *   Sazby ostatních zemí je potřeba stejně tak ověřit u daňaře, než se na tom
+ *   trhu spustí prodej — hlavně SK, které měnilo sazby k 1. 1. 2025.
  *   NL: 9 %   BE: 6 %  FR: 5.5 %  UK: 20 % (standard — cultural exempt pouze pro charitativní org)
  *   HU: 27 %  HR: 13 %  RO: 5 %
  *
@@ -30,7 +38,7 @@ export type VatCategory =
   | 'reduced';       // Alias pro cultural
 
 const RATES: Record<Country, Record<VatCategory, number>> = {
-  CZ: { standard: 21, cultural: 10, food_beverage: 12, merchandise: 21, reduced: 10 },
+  CZ: { standard: 21, cultural: 12, food_beverage: 12, merchandise: 21, reduced: 12 },
   SK: { standard: 23, cultural: 5,  food_beverage: 19, merchandise: 23, reduced: 5  },
   SR: { standard: 23, cultural: 5,  food_beverage: 19, merchandise: 23, reduced: 5  }, // legacy alias
   DE: { standard: 19, cultural: 7,  food_beverage: 7,  merchandise: 19, reduced: 7  },

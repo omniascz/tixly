@@ -41,8 +41,20 @@ type ScanResult = {
     | 'not_inside'
     | 'reentry_disabled'
     | 'exited'
+    // Z /scanner/passage: released = odchod, duplicate = dvojí načtení,
+    // denied = zamítnuto pravidly, undone = průchod vzat zpět.
+    | 'released'
+    | 'duplicate'
+    | 'denied'
+    | 'undone'
     | 'error';
   kind?: 'single_use' | 'multi_day_redemption' | 'entry' | 'reentry';
+  /** Z /scanner/passage — směr, který server odvodil, a stav pro obsluhu. */
+  direction?: 'entry' | 'exit';
+  label?: string;
+  scanEventId?: string;
+  occupancy?: number;
+  secondsSinceLastScan?: number;
   message?: string;
   usedAt?: string;
   revokedAt?: string;
@@ -81,7 +93,15 @@ const STORAGE_KEY = 'tixly.scanner.gate';
 export default function ScannerPage() {
   const [ticketId, setTicketId] = useState('');
   const [totpCode, setTotpCode] = useState('');
-  const [scanMode, setScanMode] = useState<'auto' | 'reentry_entry' | 'reentry_exit'>('auto');
+  const [scanMode, setScanMode] = useState<
+    'auto' | 'passage' | 'reentry_entry' | 'reentry_exit'
+  >('auto');
+  /** Poslední průchod — pro tlačítko „opravit". */
+  const [lastPassage, setLastPassage] = useState<{
+    scanEventId: string;
+    direction: 'entry' | 'exit';
+  } | null>(null);
+  const [undoing, setUndoing] = useState(false);
   const [entryMode, setEntryMode] = useState<'single' | 'group'>('single');
 
   // QR payload parser:
@@ -120,12 +140,54 @@ export default function ScannerPage() {
       'already_inside', 'reentry_limit_exceeded', 'not_inside',
       'reentry_disabled', 'error',
     ];
-    if (result.result === 'admitted' || result.result === 'exited') {
-      navigator.vibrate(100); // krátká, čistá vibrace = úspěch
+    // Obsluha se dívá na příchozího, ne do telefonu — vstup a odchod proto
+    // musí být rozeznatelné poslepu. Tři různé vzorce: vstup, odchod, zamítnutí.
+    if (result.result === 'released' || result.direction === 'exit') {
+      navigator.vibrate([60, 50, 60]); // dvě krátké = odchod
+    } else if (result.result === 'admitted' || result.result === 'exited') {
+      navigator.vibrate(100); // jedna dlouhá = vstup
+    } else if (result.result === 'duplicate') {
+      navigator.vibrate(40); // jemné ťuknutí = už načteno, nic se nestalo
     } else if (denied.includes(result.result)) {
-      navigator.vibrate([80, 60, 80]); // dvojitá vibrace = zamítnutí
+      navigator.vibrate([200, 80, 200]); // výrazné = zamítnutí
     }
   }, [result]);
+
+  // Poslední průchod si držíme kvůli tlačítku „opravit".
+  useEffect(() => {
+    if (result?.scanEventId && result.direction) {
+      setLastPassage({ scanEventId: result.scanEventId, direction: result.direction });
+    }
+  }, [result]);
+
+  /**
+   * Vezme poslední průchod zpět. Když se zobrazí opačný směr, obsluha NESMÍ
+   * pípnout znovu — druhé pípnutí by stav překlopilo zpátky, ale zároveň
+   * zapsalo průchod, který se nestal, a u vstupu ubralo z limitu návratů.
+   */
+  async function undoLastPassage(): Promise<void> {
+    if (!lastPassage) return;
+    setUndoing(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch('/api/admin/scanner/passage/undo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ scanEventId: lastPassage.scanEventId, reason: 'špatný směr' }),
+      });
+      const j = (await res.json().catch(() => ({}))) as { message?: string; error?: string };
+      setResult({
+        result: res.ok ? 'undone' : 'error',
+        message: j.message ?? j.error ?? 'Opravu se nepodařilo provést.',
+      } as ScanResult);
+      if (res.ok) setLastPassage(null);
+    } finally {
+      setUndoing(false);
+    }
+  }
 
   // Offline mode state
   const [online, setOnline] = useState(true);
@@ -326,8 +388,15 @@ export default function ScannerPage() {
 
     try {
       const token = localStorage.getItem('accessToken');
+      // Režim „průchod" neposílá směr — server ho odvodí ze stavu vstupenky
+      // a vrátí ho, aby ho obsluha viděla a slyšela.
       const useReentry = scanMode === 'reentry_entry' || scanMode === 'reentry_exit';
-      const endpoint = useReentry ? '/api/admin/scanner/reentry' : '/api/admin/scanner/validate';
+      const endpoint =
+        scanMode === 'passage'
+          ? '/api/admin/scanner/passage'
+          : useReentry
+            ? '/api/admin/scanner/reentry'
+            : '/api/admin/scanner/validate';
       const reentryBody = useReentry
         ? { ...payload, mode: scanMode === 'reentry_entry' ? 'entry' : 'exit' }
         : payload;
@@ -645,13 +714,21 @@ export default function ScannerPage() {
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium">Režim skenování</label>
-                <div className="grid grid-cols-3 gap-1 rounded-md border p-1 text-xs">
+                <div className="grid grid-cols-2 gap-1 rounded-md border p-1 text-xs sm:grid-cols-4">
                   <button
                     type="button"
                     className={`rounded px-2 py-1.5 ${scanMode === 'auto' ? 'bg-emerald-600 text-white' : 'hover:bg-muted'}`}
                     onClick={() => setScanMode('auto')}
                   >
                     Standard
+                  </button>
+                  <button
+                    type="button"
+                    className={`rounded px-2 py-1.5 ${scanMode === 'passage' ? 'bg-violet-600 text-white' : 'hover:bg-muted'}`}
+                    onClick={() => setScanMode('passage')}
+                    title="Server sám pozná, jestli člověk jde dovnitř nebo ven"
+                  >
+                    ⇄ Průchod
                   </button>
                   <button
                     type="button"
@@ -690,7 +767,23 @@ export default function ScannerPage() {
           <CardHeader>
             <CardTitle>Výsledek</CardTitle>
           </CardHeader>
-          <CardContent>{renderResult(result)}</CardContent>
+          <CardContent className="space-y-3">
+            {renderResult(result)}
+            {lastPassage && scanMode === 'passage' ? (
+              <button
+                type="button"
+                onClick={() => void undoLastPassage()}
+                disabled={undoing}
+                className="w-full rounded-md border border-amber-400 px-3 py-2 text-sm font-medium text-amber-900 hover:bg-amber-50 disabled:opacity-50"
+              >
+                {undoing
+                  ? 'Opravuji…'
+                  : `Špatný směr? Vzít zpět ${
+                      lastPassage.direction === 'entry' ? 'vstup' : 'odchod'
+                    }`}
+              </button>
+            ) : null}
+          </CardContent>
         </Card>
       </div>
       )}
@@ -737,6 +830,59 @@ function renderResult(r: ScanResult | null) {
       <p className="text-sm text-muted-foreground">
         Naskenuj nebo vlož ticket ID, abys viděl výsledek.
       </p>
+    );
+  }
+  // Režim průchodu: obsluha musí směr poznat na první pohled, proto velké
+  // písmo a barva. Vedle toho obsazenost — kolik lidí je právě uvnitř.
+  if (r.result === 'released' || (r.result === 'admitted' && r.direction === 'entry')) {
+    const odchod = r.result === 'released';
+    return (
+      <div
+        className={`space-y-2 rounded-md border p-4 ${
+          odchod ? 'border-amber-400 bg-amber-50' : 'border-emerald-400 bg-emerald-50'
+        }`}
+      >
+        <div
+          className={`text-3xl font-bold ${odchod ? 'text-amber-900' : 'text-emerald-900'}`}
+        >
+          {odchod ? '← ODCHOD' : '→ ' + (r.label ?? 'VSTUP')}
+        </div>
+        {r.ticket ? <TicketDetails t={r.ticket} /> : null}
+        <div className="flex flex-wrap gap-4 text-xs">
+          {typeof r.occupancy === 'number' ? (
+            <span className="font-medium">Uvnitř: {r.occupancy}</span>
+          ) : null}
+          {typeof r.remaining === 'number' ? (
+            <span>Zbývá vstupů: {r.remaining}</span>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+  if (r.result === 'duplicate') {
+    return (
+      <div className="space-y-2 rounded-md border border-slate-300 bg-slate-50 p-4">
+        <div className="text-2xl font-bold text-slate-700">JIŽ NAČTENO</div>
+        <p className="text-sm text-slate-700">{r.message}</p>
+        {r.ticket ? <TicketDetails t={r.ticket} /> : null}
+      </div>
+    );
+  }
+  if (r.result === 'undone') {
+    return (
+      <div className="space-y-2 rounded-md border border-blue-300 bg-blue-50 p-4">
+        <div className="text-2xl font-bold text-blue-900">OPRAVENO</div>
+        <p className="text-sm text-blue-900">{r.message}</p>
+      </div>
+    );
+  }
+  if (r.result === 'denied') {
+    return (
+      <div className="space-y-2 rounded-md border border-rose-300 bg-rose-50 p-4">
+        <div className="text-2xl font-bold text-rose-900">ZAMÍTNUTO</div>
+        <p className="text-sm text-rose-900">{r.message}</p>
+        {r.ticket ? <TicketDetails t={r.ticket} /> : null}
+      </div>
     );
   }
   if (r.result === 'admitted') {
@@ -828,6 +974,14 @@ function labelFor(r: ScanResult['result']): string {
       return 'Flex pass vyčerpán';
     case 'day_not_picked':
       return 'Tento den není mezi vybranými termíny';
+    case 'reentry_disabled':
+      return 'Akce nemá povolený opakovaný vstup';
+    case 'reentry_limit_exceeded':
+      return 'Vyčerpaný počet vstupů';
+    case 'already_inside':
+      return 'Držitel je už uvnitř';
+    case 'not_inside':
+      return 'Držitel není evidovaný uvnitř';
     default:
       return 'Chyba';
   }
