@@ -111,8 +111,22 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     // Kolo 2: x-vercel-cron fungovalo jako „systémová role" (cron routy ho braly
     // jako autentizaci) — klient ho podvrhne stejně snadno jako x-user-id.
     requestHeaders.delete('x-vercel-cron');
-    const passThrough = (): NextResponse =>
-      NextResponse.next({ request: { headers: requestHeaders } });
+    // Kolo 4: identita z OVĚŘENÉHO access tokenu se předává u VŠECH /api cest, ne jen
+    // u vyjmenovaných prefixů. Dřív cesta mimo seznam prošla bez x-user-id a routy, které
+    // identitu potřebují, vracely vždy 401 i přihlášenému (25 rout, FIX_REPORT_R3). Zda je
+    // přihlášení povinné, rozhoduje dál prefix níže nebo handler; tady se jen nezahazuje.
+    const passThrough = async (): Promise<NextResponse> => {
+      const optionalAuthHeader = request.headers.get('Authorization');
+      const optionalBearer =
+        optionalAuthHeader && optionalAuthHeader.startsWith('Bearer ') ? optionalAuthHeader.split(' ')[1] : null;
+      const optionalCookie = request.cookies.get('accessToken')?.value ?? null;
+      let optionalPayload = optionalBearer ? await verifyTokenEdge(optionalBearer) : null;
+      if (!optionalPayload && optionalCookie && optionalCookie !== optionalBearer) {
+        optionalPayload = await verifyTokenEdge(optionalCookie);
+      }
+      if (optionalPayload) requestHeaders.set('x-user-id', optionalPayload.sub);
+      return NextResponse.next({ request: { headers: requestHeaders } });
+    };
 
     // FIX K5 (kolo 3): CSRF — stavový požadavek autentizovaný cookie musí přijít z vlastního
     // webu (Origin, jinak Referer); cizí / chybějící → 403. Výjimky a důvody: lib/security/csrf.ts.
@@ -151,20 +165,9 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
       return passThrough();
     }
 
-    // Optional auth: if token present propagate user, else pass through unauthenticated
+    // Optional auth: token (ověřený) → x-user-id, jinak bez identity — totéž dělá passThrough.
     if (isOptionalAuthApi) {
-      const authHeader = request.headers.get('Authorization');
-      const bearer =
-        authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
-      const cookieToken = request.cookies.get('accessToken')?.value ?? null;
-      if (!bearer && !cookieToken) return passThrough();
-      let payload = bearer ? await verifyTokenEdge(bearer) : null;
-      if (!payload && cookieToken && cookieToken !== bearer) {
-        payload = await verifyTokenEdge(cookieToken);
-      }
-      if (!payload) return passThrough();
-      requestHeaders.set('x-user-id', payload.sub);
-      return NextResponse.next({ request: { headers: requestHeaders } });
+      return passThrough();
     }
 
     // Token z Bearer headeru NEBO accessToken cookie. Bearer z localStorage může
