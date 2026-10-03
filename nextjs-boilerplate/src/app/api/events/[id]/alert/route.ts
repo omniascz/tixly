@@ -4,7 +4,7 @@ import { randomBytes } from 'crypto';
  * DELETE /api/events/[id]/alert?token=xxx — odhlášení (unsubscribe)
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db, runWithServiceContext, runWithUserContext } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 async function POSTImpl(
   req: NextRequest,
@@ -92,14 +92,13 @@ async function DELETEImpl(
 type AlertCtx = { params: { id: string } };
 
 export async function POST(req: NextRequest, ctx: AlertCtx): Promise<Response> {
-  const uid = req.headers.get('x-user-id');
-  return uid
-    ? runWithUserContext(uid, () => POSTImpl(req, ctx))
-    : runWithServiceContext(() => POSTImpl(req, ctx));
+  // Kolo 4 (migrace 491): zápis do ticket_alerts smí jen servisní kontext — politika s `true`
+  // dovolovala komukoli vložit řádek s cizím user_id. Routa sama validuje vstup a user_id
+  // bere výhradně z ověřené hlavičky middlewaru (x-user-id), proto zapisuje servisně vždy
+  // (i pro přihlášeného — ON CONFLICT na řádek založený dřív jako host by jinak narazil na RLS).
+  return runWithServiceContext(() => POSTImpl(req, ctx));
 }
 
-// Odhlaseni chodi z e-mailu, prijemce neni prihlaseny — servisni kontext.
-// Routa se filtruje sama tokenem (WHERE token = $1 AND event_id = $2).
 export async function DELETE(req: NextRequest, ctx: AlertCtx): Promise<Response> {
   return runWithServiceContext(() => DELETEImpl(req, ctx));
 }

@@ -89,8 +89,9 @@ export async function POST(
         }
       }
 
-      // Create upgrade record
-      const upgradeRes = await client.query<{ id: string }>(
+      // Create upgrade record — systémový záznam (kolo 4, migrace 491: seat_upgrades zapisuje
+      // jen servis/system; vlastnictví lístku ověřeno výše pod kontextem kupce).
+      const upgradeRes = await asSystemInTx(client, () => client.query<{ id: string }>(
         `INSERT INTO orders.seat_upgrades
            (original_order_id, original_ticket_id, original_seat_id,
             new_seat_id, new_ticket_type_id, upgrade_fee_halire, status)
@@ -99,7 +100,7 @@ export async function POST(
            $3,$4,$5,'pending')
          RETURNING id`,
         [params.id, body.ticketId, body.newSeatId ?? null, body.newTicketTypeId, upgradeFee],
-      );
+      ));
       const upgradeId = upgradeRes.rows[0].id;
 
       if (upgradeFee === 0) {
@@ -117,11 +118,11 @@ export async function POST(
             `UPDATE tickets.tickets SET ticket_type_id=$1 WHERE id=$2`,
             [body.newTicketTypeId, body.ticketId],
           );
+          await client.query(
+            `UPDATE orders.seat_upgrades SET status='paid', completed_at=now() WHERE id=$1`,
+            [upgradeId],
+          );
         });
-        await client.query(
-          `UPDATE orders.seat_upgrades SET status='paid', completed_at=now() WHERE id=$1`,
-          [upgradeId],
-        );
         await client.query('COMMIT');
         return NextResponse.json({ upgradeId, upgradeFeeHalire: 0, applied: true });
       }

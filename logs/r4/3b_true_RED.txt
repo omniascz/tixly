@@ -1,0 +1,48 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/fix-r4-true-policies.live.test.ts[2m > [22m[2mKrok 3b (kolo 4) — politiky s podmínkou true[2m > [22m[2mzápis s true: kupec nezapíše/nezmění cizí řádek[22m[39m
+[3b zápis] {"alertInsertForeignUser":1,"alertUpdateForeign":0,"postalInsertForeign":1,"seatUpgradeInsertForeign":1,"seatUpgradeUpdateForeign":0,"transferUpdateForeign":0,"travelInsertForeign":1}
+
+ [33m❯[39m tests/fix-r4-true-policies.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [31m1 failed[39m [2m|[22m [33m3 skipped[39m[2m)[22m[33m 393[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-true-policies.live.test.ts[2m > [22mKrok 3b (kolo 4) — politiky s podmínkou true[2m > [22mzápis s true: kupec nezapíše/nezmění cizí řádek[39m
+[31m     → expected { alertInsertForeignUser: 1, …(6) } to deeply equal { …(7) }[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-true-policies.live.test.ts[2m > [22mKrok 3b (kolo 4) — politiky s podmínkou true[2m > [22mzápis s true: kupec nezapíše/nezmění cizí řádek
+[31m[1mAssertionError[22m: expected { alertInsertForeignUser: 1, …(6) } to deeply equal { …(7) }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[32m-   "alertInsertForeignUser": "42501",[39m
+[31m+   "alertInsertForeignUser": 1,[39m
+[2m    "alertUpdateForeign": 0,[22m
+[32m-   "postalInsertForeign": "42501",[39m
+[32m-   "seatUpgradeInsertForeign": "42501",[39m
+[31m+   "postalInsertForeign": 1,[39m
+[31m+   "seatUpgradeInsertForeign": 1,[39m
+[2m    "seatUpgradeUpdateForeign": 0,[22m
+[2m    "transferUpdateForeign": 0,[22m
+[32m-   "travelInsertForeign": "42501",[39m
+[31m+   "travelInsertForeign": 1,[39m
+[2m  }[22m
+
+[36m [2m❯[22m tests/fix-r4-true-policies.live.test.ts:[2m75:17[22m[39m
+    [90m 73| [39m       VALUES ($1,$2,'H','P',current_date,current_date+1,1,100,100)`[39m[33m,[39m [0m…
+    [90m 74| [39m    console[33m.[39m[34mlog[39m([32m'[3b zápis]'[39m[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(res))[33m;[39m
+    [90m 75| [39m    [34mexpect[39m(res)[33m.[39m[34mtoEqual[39m({
+    [90m   | [39m                [31m^[39m
+    [90m 76| [39m      alertInsertForeignUser[33m:[39m [32m'42501'[39m[33m,[39m alertUpdateForeign[33m:[39m [34m0[39m[33m,[39m postalIn…
+    [90m 77| [39m      seatUpgradeInsertForeign[33m:[39m [32m'42501'[39m[33m,[39m seatUpgradeUpdateForeign[33m:[39m [34m0[39m[33m,[39m …
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[33m3 skipped[39m[90m (4)[39m
+[2m   Start at [22m 21:00:29
+[2m   Duration [22m 701ms[2m (transform 106ms, setup 0ms, collect 109ms, tests 393ms, environment 0ms, prepare 79ms)[22m
+
