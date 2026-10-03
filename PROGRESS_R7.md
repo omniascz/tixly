@@ -8,8 +8,8 @@ stash drop/clear (stash „pred prepnutim na integrate/2026-10-04“ ponechat). 
 ## Stav kroků
 | Krok | Stav | Commit |
 |---|---|---|
-| 1 uzávěrka prodeje (C-29) | rozpracováno | |
-| 2 DPH, doklady, faktury, ISDOC (C-54) | čeká | |
+| 1 uzávěrka prodeje (C-29) | HOTOVO — mig 493, lib/sales/cutoff.ts, 13 kupcových + 4 pokladní cesty, UI; RED 5 → GREEN 7/7 (vizuál „Prodej ukončen" v závěru) | 6659671f |
+| 2 DPH, doklady, faktury, ISDOC (C-54) | rozpracováno | |
 | 3 výplaty — poctivý stav (C-57) | čeká | |
 | 4 zranitelné závislosti | čeká | |
 | 5 drobnosti (cron, lockfile, ARES) | čeká | |
@@ -17,3 +17,4 @@ stash drop/clear (stash „pred prepnutim na integrate/2026-10-04“ ponechat). 
 | Závěr | čeká | |
 
 ## Poznámky
+- Krok 1: odchylka od zadání — existující nevynucovaný sale_end_at převeden do nového sales_end_at a zapisovače přepnuty (uvést v reportu).
