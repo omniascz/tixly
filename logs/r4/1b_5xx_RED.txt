@@ -1,0 +1,66 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r4-5xx-ics-kiosk.live.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[33m 401[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-5xx-ics-kiosk.live.test.ts[2m > [22mKrok 1 (kolo 4) — 5xx calendar.ics a kiosk[2m > [22mcalendar.ics: vlastník 200 s platným DTSTART; host s UUID 200 bez ID objednávky[39m
+[31m     → iso.replace is not a function[39m
+[31m   [33m❯[31m tests/fix-r4-5xx-ics-kiosk.live.test.ts[2m > [22mKrok 1 (kolo 4) — 5xx calendar.ics a kiosk[2m > [22mcalendar.ics: cizí přihlášený 403, neplatné UUID 4xx, neexistující 404[39m
+[31m     → invalid input syntax for type uuid: "not-a-uuid"[39m
+[31m   [33m❯[31m tests/fix-r4-5xx-ics-kiosk.live.test.ts[2m > [22mKrok 1 (kolo 4) — 5xx calendar.ics a kiosk[2m > [22mkiosk: publikovaná akce 200 s typy a kapacitou; neplatné ID 422; nepublikovaná 404[39m
+[31m     → column "capacity" does not exist[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-5xx-ics-kiosk.live.test.ts[2m > [22mKrok 1 (kolo 4) — 5xx calendar.ics a kiosk[2m > [22mcalendar.ics: vlastník 200 s platným DTSTART; host s UUID 200 bez ID objednávky
+[31m[1mTypeError[22m: iso.replace is not a function[39m
+[36m [2m❯[22m formatIcsDate src/app/api/buyer/orders/[orderId]/calendar.ics/route.ts:[2m27:14[22m[39m
+    [90m 25| [39m[35mfunction[39m [34mformatIcsDate[39m(iso[33m:[39m string)[33m:[39m string {
+    [90m 26| [39m  [90m// "2026-09-15T19:00:00" → "20260915T190000Z" (treat as UTC)[39m
+    [90m 27| [39m  [35mreturn[39m iso[33m.[39m[34mreplace[39m([36m/[-:]/g[39m[33m,[39m [32m''[39m)[33m.[39m[34mreplace[39m([36m/\.\d+/[39m[33m,[39m [32m''[39m)[33m.[39m[34mreplace[39m([32m'T'[39m[33m,[39m [32m'T[39m…
+    [90m   | [39m             [31m^[39m
+    [90m 28| [39m}
+    [90m 29| [39m
+[90m [2m❯[22m src/app/api/buyer/orders/[orderId]/calendar.ics/route.ts:[2m87:21[22m[39m
+[90m [2m❯[22m tests/fix-r4-5xx-ics-kiosk.live.test.ts:[2m51:17[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-5xx-ics-kiosk.live.test.ts[2m > [22mKrok 1 (kolo 4) — 5xx calendar.ics a kiosk[2m > [22mcalendar.ics: cizí přihlášený 403, neplatné UUID 4xx, neexistující 404
+[31m[1merror[22m: invalid input syntax for type uuid: "not-a-uuid"[39m
+[90m [2m❯[22m ../../tixly-audit/nextjs-boilerplate/node_modules/pg/lib/client.js:[2m631:17[22m[39m
+[36m [2m❯[22m RlsAwarePool.query src/lib/db/rls-pool.ts:[2m294:22[22m[39m
+    [90m292| [39m        [35mawait[39m client[33m.[39m[34mquery[39m([32m`SET LOCAL app.role = '[39m[36m${[39mctx[33m.[39mrole[36m}[39m[32m'`[39m)[33m;[39m
+    [90m293| [39m      }
+    [90m294| [39m      [35mconst[39m result [33m=[39m [35mawait[39m client[33m.[39mquery[33m<[39m[33mR[39m[33m>[39m(text [35mas[39m string[33m,[39m params)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m295| [39m      [35mawait[39m client[33m.[39m[34mquery[39m([32m'COMMIT'[39m)[33m;[39m
+    [90m296| [39m      [35mreturn[39m result[33m;[39m
+[90m [2m❯[22m src/app/api/buyer/orders/[orderId]/calendar.ics/route.ts:[2m57:17[22m[39m
+[90m [2m❯[22m tests/fix-r4-5xx-ics-kiosk.live.test.ts:[2m64:17[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 142, severity: 'ERROR', code: '22P02', detail: undefined, hint: undefined, position: undefined, internalPosition: undefined, internalQuery: undefined, where: 'unnamed portal parameter $1 = \'...\'', schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'uuid.c', line: '138', routine: 'string_to_uuid' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-5xx-ics-kiosk.live.test.ts[2m > [22mKrok 1 (kolo 4) — 5xx calendar.ics a kiosk[2m > [22mkiosk: publikovaná akce 200 s typy a kapacitou; neplatné ID 422; nepublikovaná 404
+[31m[1merror[22m: column "capacity" does not exist[39m
+[90m [2m❯[22m ../../tixly-audit/nextjs-boilerplate/node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m GET src/app/api/public/events/[id]/kiosk/route.ts:[2m47:17[22m[39m
+    [90m 45| [39m  }
+    [90m 46| [39m
+    [90m 47| [39m  [35mconst[39m ttRes [33m=[39m [35mawait[39m [34mdb[39m()[33m.[39mquery[33m<[39m[33mTicketTypeRow[39m[33m>[39m(
+    [90m   | [39m                [31m^[39m
+    [90m 48| [39m    [32m`SELECT id, name, remaining_qty, capacity
+    [90m 49| [39m       FROM catalog.ticket_types
+[90m [2m❯[22m tests/fix-r4-5xx-ics-kiosk.live.test.ts:[2m71:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 108, severity: 'ERROR', code: '42703', detail: undefined, hint: undefined, position: '33', internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'parse_relation.c', line: '3716', routine: 'errorMissingColumn' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[90m (3)[39m
+[2m   Start at [22m 20:02:47
+[2m   Duration [22m 921ms[2m (transform 126ms, setup 0ms, collect 109ms, tests 401ms, environment 0ms, prepare 89ms)[22m
+
