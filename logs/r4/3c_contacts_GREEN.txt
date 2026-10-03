@@ -1,0 +1,14 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/fix-r4-public-contacts.live.test.ts[2m > [22m[2mKrok 3c (kolo 4) — veřejné odpovědi bez soukromých kontaktů[2m > [22m[2mdárek: dárce bez jména neprozradí e-mail[22m[39m
+[3c gift] {"gift":{"recipientName":"Obdarovaný","giftMessage":null,"fromName":null,"eventTitle":"Test Akce","eventDateStart":"2026-11-02 19:11:02.818257+00","expiresAt":"2026-10-04 19:11:03.146615+00","hasChoice":false,"options":[]}}
+
+ [32m✓[39m tests/fix-r4-public-contacts.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 425[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+[2m   Start at [22m 21:11:02
+[2m   Duration [22m 1.05s[2m (transform 145ms, setup 0ms, collect 130ms, tests 425ms, environment 0ms, prepare 100ms)[22m
+

@@ -96,9 +96,8 @@ export async function GET(
       invitationId: i.id,
       status: i.status,
       expired: new Date(i.expires_at).getTime() < Date.now(),
+      // Kolo 4: e-mail a ID organizátora (soukromá osoba) se veřejně nevrací — jen jméno.
       organizer: {
-        userId: i.organizer_user_id,
-        email: i.organizer_email,
         name: i.organizer_name,
       },
       event: {

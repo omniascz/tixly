@@ -1,0 +1,79 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/fix-r4-public-contacts.live.test.ts[2m > [22m[2mKrok 3c (kolo 4) — veřejné odpovědi bez soukromých kontaktů[2m > [22m[2mdárek: dárce bez jména neprozradí e-mail[22m[39m
+[3c gift] {"gift":{"recipientName":"Obdarovaný","giftMessage":null,"fromName":"buyer-1791054611676-2wxe6@tixly.test","eventTitle":"Test Akce","eventDateStart":"2026-11-02 19:10:11.737688+00","expiresAt":"2026-10-04 19:10:12.054777+00","hasChoice":false,"options":[]}}
+
+ [33m❯[39m tests/fix-r4-public-contacts.live.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[33m 417[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-public-contacts.live.test.ts[2m > [22mKrok 3c (kolo 4) — veřejné odpovědi bez soukromých kontaktů[2m > [22mpozvánka do skupiny: bez e-mailu a ID organizátora[39m
+[31m     → expected '{"invitationId":"f872d849-d0f3-476d-a…' not to contain 'buyer-1791054611676-2wxe6@tixly.test'[39m
+[31m   [33m❯[31m tests/fix-r4-public-contacts.live.test.ts[2m > [22mKrok 3c (kolo 4) — veřejné odpovědi bez soukromých kontaktů[2m > [22mnáhled převodu: bez e-mailu odesílatele[39m
+[31m     → expected '{"invitationId":"e44bcd02-7114-4703-a…' not to contain 'buyer-1791054611676-2wxe6@tixly.test'[39m
+[31m   [33m❯[31m tests/fix-r4-public-contacts.live.test.ts[2m > [22mKrok 3c (kolo 4) — veřejné odpovědi bez soukromých kontaktů[2m > [22mdárek: dárce bez jména neprozradí e-mail[39m
+[31m     → expected '{"gift":{"recipientName":"Obdarovaný"…' not to contain 'buyer-1791054611676-2wxe6@tixly.test'[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-public-contacts.live.test.ts[2m > [22mKrok 3c (kolo 4) — veřejné odpovědi bez soukromých kontaktů[2m > [22mpozvánka do skupiny: bez e-mailu a ID organizátora
+[31m[1mAssertionError[22m: expected '{"invitationId":"f872d849-d0f3-476d-a…' not to contain 'buyer-1791054611676-2wxe6@tixly.test'[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- buyer-1791054611676-2wxe6@tixly.test[39m
+[31m+ {"invitationId":"f872d849-d0f3-476d-a77a-42ab469b624b","status":"open","expired":false,"organizer":{"userId":"f00e3ec7-3063-4313-a838-311a793f78d4","email":"buyer-1791054611676-2wxe6@tixly.test","name":"Test Buyer"},"event":{"id":"9484c14c-c1c9-43e4-9dfa-6d3dfb926cef","title":"Test Akce","dateStart":"2026-11-02 19:10:11.737688+00"},"ticketTypeId":"c4a3dd2c-f040-4d0f-b290-905969ba2c2a","targetSeats":4,"adjacentReserve":false,"holdExpiresAt":null,"seats":[],"message":null,"progress":{"alreadyPaid":0,"remaining":4,"targetSeats":4},"checkoutUrl":"/cs/checkout?eventId=9484c14c-c1c9-43e4-9dfa-6d3dfb926cef&ticketTypeId=c4a3dd2c-f040-4d0f-b290-905969ba2c2a&groupInvitation=3e23f5dd7b9546d9177d207f40d7255b","expiresAt":"2026-10-04 19:10:11.847731+00"}[39m
+
+[36m [2m❯[22m tests/fix-r4-public-contacts.live.test.ts:[2m44:24[22m[39m
+    [90m 42| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [35mget[39m([32m`/api/group-invitations/[39m[36m${[39mtoken[36m}[39m[32m`[39m[33m,[39m [32m'@/app/api/[39m…
+    [90m 43| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m 44| [39m    [34mexpect[39m(r[33m.[39mbody)[33m.[39mnot[33m.[39m[34mtoContain[39m(ownerEmail)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m 45| [39m    [34mexpect[39m(r[33m.[39mbody)[33m.[39mnot[33m.[39m[34mtoContain[39m(fc[33m.[39muserId)[33m;[39m
+    [90m 46| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-public-contacts.live.test.ts[2m > [22mKrok 3c (kolo 4) — veřejné odpovědi bez soukromých kontaktů[2m > [22mnáhled převodu: bez e-mailu odesílatele
+[31m[1mAssertionError[22m: expected '{"invitationId":"e44bcd02-7114-4703-a…' not to contain 'buyer-1791054611676-2wxe6@tixly.test'[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- buyer-1791054611676-2wxe6@tixly.test[39m
+[31m+ {"invitationId":"e44bcd02-7114-4703-a36d-3edf99407bd1","from":{"email":"buyer-1791054611676-2wxe6@tixly.test","name":"Test Buyer"},"toEmail":"prijemce@tixly.test","message":null,"expiresAt":"2026-10-04 19:10:11.992321+00","event":{"title":"Test Akce","date":"2026-11-02 19:10:11.737688+00","venueName":"Test Sál"}}[39m
+
+[36m [2m❯[22m tests/fix-r4-public-contacts.live.test.ts:[2m56:24[22m[39m
+    [90m 54| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [35mget[39m([32m`/api/transfer/accept/[39m[36m${[39mtoken[36m}[39m[32m`[39m[33m,[39m [32m'@/app/api/tr[39m…
+    [90m 55| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m 56| [39m    [34mexpect[39m(r[33m.[39mbody)[33m.[39mnot[33m.[39m[34mtoContain[39m(ownerEmail)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m 57| [39m  })[33m;[39m
+    [90m 58| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-public-contacts.live.test.ts[2m > [22mKrok 3c (kolo 4) — veřejné odpovědi bez soukromých kontaktů[2m > [22mdárek: dárce bez jména neprozradí e-mail
+[31m[1mAssertionError[22m: expected '{"gift":{"recipientName":"Obdarovaný"…' not to contain 'buyer-1791054611676-2wxe6@tixly.test'[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- buyer-1791054611676-2wxe6@tixly.test[39m
+[31m+ {"gift":{"recipientName":"Obdarovaný","giftMessage":null,"fromName":"buyer-1791054611676-2wxe6@tixly.test","eventTitle":"Test Akce","eventDateStart":"2026-11-02 19:10:11.737688+00","expiresAt":"2026-10-04 19:10:12.054777+00","hasChoice":false,"options":[]}}[39m
+
+[36m [2m❯[22m tests/fix-r4-public-contacts.live.test.ts:[2m68:24[22m[39m
+    [90m 66| [39m    console[33m.[39m[34mlog[39m([32m'[3c gift]'[39m[33m,[39m r[33m.[39mbody[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m300[39m))[33m;[39m
+    [90m 67| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m 68| [39m    [34mexpect[39m(r[33m.[39mbody)[33m.[39mnot[33m.[39m[34mtoContain[39m(ownerEmail)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m 69| [39m  })[33m;[39m
+    [90m 70| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[90m (3)[39m
+[2m   Start at [22m 21:10:11
+[2m   Duration [22m 926ms[2m (transform 152ms, setup 0ms, collect 168ms, tests 417ms, environment 0ms, prepare 213ms)[22m
+
