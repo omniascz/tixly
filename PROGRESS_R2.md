@@ -23,9 +23,9 @@ Základ: `fix/critical-2026-09-30` @ `1a6e96d`. Worktree `../tixly-fix`. `tixly/
 | 1 webhooky fail-closed | HOTOVO | 81aa2b7 (tabulka logs/r2/1_webhook_table.md) |
 | 2 V2 | HOTOVO | c3c9b8e (+ tsc fix) |
 | 3A V8 (zápis akce/ceny/promo/objednávky/vstupenky) | HOTOVO | 2e38967 |
-| 3B 156 tabulek bez RLS | rozpracováno: migrace 482 vygenerována (audit/r2/gen-482.mjs), NOCTX routy zabaleny do servisu, chybí test + aplikace na e2e | |
-| 4 V9 R-56 | čeká | |
-| 5 V4/S1/V6/S8/P1/QR | čeká | |
+| 3B 156 tabulek bez RLS | HOTOVO | 8c868d3 (tabulka logs/r2/3B_tables_decision.md) |
+| 4 V9 R-56 | HOTOVO | 8713d13 |
+| 5 V4/S1/V6/S8/P1/QR | rozpracováno | |
 | Závěr + FIX_REPORT_R2 | čeká | |
 
 ## Krok 0 — výsledky (2026-10-03, app :3200 pod tixly_app)
@@ -53,3 +53,8 @@ Navazující opravy cest kupce (asSystemInTx): storno, self-refund, výměna, up
 Audit HTTP po 3A: 11 8/8, 09 12/12, 12 5/5, 02 33/3 (P1/P5d/P13 = krok 5), 03 R5/R6/V9b mimo zadání, V12 = krok 5.
 Zjištěno mimo zadání (do reportu): 54 plošných eskalací `SET LOCAL app.is_platform_admin='true'` v kódu (logs/r2/3_inline_escalations.txt);
 mobile/payment-intent obchází rate-limity K3; S4 recompute-dynamic-pricing bez tokenu (06 K3a).
+
+## Krok 3B + 4 — výsledky
+3B: RED 8/8 → GREEN 8/8; 50 tenant / 3 user / 83 zamčeno / 20 systémové; TRUNCATE odebrán; 482 od nuly + 2×.
+Nově nalezeno (mimo zadání, do reportu): orders.invoices UNIQUE(invoice_number) globálně, číslování per pořadatel → 500 (audit X7).
+4: PgBouncer `fix-pgb` :56633 (audit/r2/pgb). RED 173/200 a 193/200 → GREEN 0/200 ve všech vzorech.
