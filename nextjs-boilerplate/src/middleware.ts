@@ -64,9 +64,9 @@ const API_PLATFORM_PREFIXES = ['/api/platform/'];
 // Optional auth: token if present propagates as x-user-id, otherwise pass through
 // /api/transfer/accept/ je tu (ne v PUBLIC): GET preview funguje bez tokenu,
 // ale POST accept potřebuje x-user-id → optional auth ho injektuje, je-li token.
-// /api/mobile/ (kolo 3): nativní appka posílá Bearer JWT; bez prefixu tady se token nikdy
-// neověřil a routy (runAsUser) vracely vždy 401.
-const API_OPTIONAL_AUTH_PREFIXES = ['/api/buyer/', '/api/checkout', '/api/subscriptions/', '/api/queue/', '/api/transfer/accept/', '/api/mobile/'];
+// /api/mobile/, /api/my/ (kolo 3): bez prefixu tady se token nikdy neověřil a routy
+// (runAsUser / x-user-id) vracely vždy 401.
+const API_OPTIONAL_AUTH_PREFIXES = ['/api/buyer/', '/api/checkout', '/api/subscriptions/', '/api/queue/', '/api/transfer/accept/', '/api/mobile/', '/api/my/'];
 
 // Frontend routes (matched WITHOUT locale prefix)
 const FRONTEND_PROMOTER = ['/admin'];
