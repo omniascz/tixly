@@ -173,7 +173,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     if (t.status === 'used') {
       await client.query('ROLLBACK');
-      logScan({ ticketId: t.id, eventId: t.event_id, result: 'already_used', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'already_used' });
+      await logScan({ ticketId: t.id, eventId: t.event_id, result: 'already_used', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'already_used' });
       return NextResponse.json({
         result: 'already_used',
         usedAt: t.used_at,
@@ -183,7 +183,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
     if (t.status === 'revoked') {
       await client.query('ROLLBACK');
-      logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'revoked' });
+      await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'revoked' });
       return NextResponse.json(
         {
           result: 'revoked',
@@ -196,7 +196,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
     if (t.status !== 'valid') {
       await client.query('ROLLBACK');
-      logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: `invalid_status:${t.status}` });
+      await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: `invalid_status:${t.status}` });
       return NextResponse.json(
         { result: 'invalid_status', status: t.status, message: `Neočekávaný stav: ${t.status}` },
         { status: 409 },
@@ -232,7 +232,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         );
         if (!hasMatch) {
           await client.query('ROLLBACK');
-          logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'wrong_zone_or_day' });
+          await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'wrong_zone_or_day' });
           return NextResponse.json(
             {
               result: 'wrong_zone_or_day',
@@ -263,7 +263,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           });
           if (!hasMatch) {
             await client.query('ROLLBACK');
-            logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'wrong_zone_or_day' });
+            await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'wrong_zone_or_day' });
             return NextResponse.json(
               {
                 result: 'wrong_zone_or_day',
@@ -290,7 +290,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
       if (existing.rows.length > 0) {
         await client.query('ROLLBACK');
-        logScan({ ticketId: t.id, eventId: t.event_id, result: 'already_used', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'already_redeemed_today' });
+        await logScan({ ticketId: t.id, eventId: t.event_id, result: 'already_used', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'already_redeemed_today' });
         return NextResponse.json({
           result: 'already_redeemed_today',
           ticket: shortTicketInfo(t),
@@ -312,7 +312,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         const usedCount = Number(used.rows[0]?.count ?? 0);
         if (usedCount >= flex.rows[0].picks_required) {
           await client.query('ROLLBACK');
-          logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'flex_limit_exhausted' });
+          await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'flex_limit_exhausted' });
           return NextResponse.json(
             {
               result: 'flex_limit_exhausted',
@@ -334,7 +334,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           const allowed = picks.rows.some((p) => p.event_day_id === parsed.data.eventDayId);
           if (!allowed) {
             await client.query('ROLLBACK');
-            logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'day_not_picked' });
+            await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'day_not_picked' });
             return NextResponse.json(
               {
                 result: 'day_not_picked',
@@ -371,7 +371,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
 
       await client.query('COMMIT');
-      logScan({ ticketId: t.id, eventId: t.event_id, result: 'admitted', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId });
+      await logScan({ ticketId: t.id, eventId: t.event_id, result: 'admitted', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId });
       void triggerCommemorativeSend(t.event_id);
       return NextResponse.json({
         result: 'admitted',
@@ -387,7 +387,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       [t.id],
     );
     await client.query('COMMIT');
-    logScan({ ticketId: t.id, eventId: t.event_id, result: 'admitted', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId });
+    await logScan({ ticketId: t.id, eventId: t.event_id, result: 'admitted', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId });
     void triggerCommemorativeSend(t.event_id);
     // ForgeMsg — emit event_attended (post-event review / cross-sell). Best-effort.
     try {
@@ -431,29 +431,40 @@ function shortTicketInfo(t: TicketRow) {
   };
 }
 
-function logScan(opts: {
+// Kolo 2 / V4: zápis je AWAITOVANÝ (dřív fire-and-forget → chyby jen v konzoli, 0 řádků).
+// deviceId: UUID → scanned_by_device_id, jinak (webový skener bez id / textové id) → device_label.
+// gateId: jen platné UUID existující brány, jinak NULL (FK by zápis shodil).
+const SCAN_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+async function logScan(opts: {
   ticketId: string;
   eventId: string;
   result: string;
   deviceId?: string | null;
   gateId?: string | null;
   deniedReason?: string | null;
-}): void {
-  void db()
-    .query(
+}): Promise<void> {
+  const dev = opts.deviceId ?? null;
+  const devIsUuid = !!dev && SCAN_UUID_RE.test(dev);
+  const gate = opts.gateId && SCAN_UUID_RE.test(opts.gateId) ? opts.gateId : null;
+  try {
+    await db().query(
       `INSERT INTO tickets.scan_logs
-         (ticket_id, event_id, scanned_by_device_id, scan_result, gate_id, denied_reason, scanned_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+         (ticket_id, event_id, scanned_by_device_id, device_label, scan_result, gate_id, denied_reason, scanned_at)
+       VALUES ($1, $2, $3, $4, $5, (SELECT g.id FROM catalog.venue_gates g WHERE g.id = $6::uuid), $7, NOW())`,
       [
         opts.ticketId,
         opts.eventId,
-        opts.deviceId ?? null,
+        devIsUuid ? dev : null,
+        dev && !devIsUuid ? dev.slice(0, 64) : null,
         opts.result,
-        opts.gateId ?? null,
+        gate,
         opts.deniedReason ?? null,
       ],
-    )
-    .catch((e: unknown) => console.error('[scanner/validate] logScan failed:', e));
+    );
+  } catch (e) {
+    // sken samotný už proběhl (stav vstupenky je zapsán) — chybu logu nehlásíme bráně jako 500
+    console.error('[scanner/validate] logScan failed:', e);
+  }
 }
 
 function triggerCommemorativeSend(eventId: string): void {
