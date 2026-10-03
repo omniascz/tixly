@@ -176,13 +176,16 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     // 4) Vyrobit walk-in user
     const walkinEmail = `walkin+${randomUUID().slice(0, 8)}@${promoter.promoterSlug || 'pos'}.local`;
-    const userRes = await client.query<{ id: string }>(
-      `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at)
-       VALUES ($1, $2, '!walk-in-no-password', now())
-       RETURNING id`,
-      [walkinEmail, input.buyerName ?? 'Walk-in kupující'],
+    // Kolo 2 / V2: id generujeme v aplikaci a INSERT je BEZ `RETURNING`. Pod tixly_app
+    // RETURNING vyžaduje, aby nový řádek prošel i SELECT politikou — walk-in ještě nemá
+    // objednávku u promotéra (app_can_see_user_as_promoter = false) → 42501 → POS 500.
+    // Po vložení objednávky níže ho promotér vidí legitimně (má objednávku na jeho akci).
+    const userId = randomUUID();
+    await client.query(
+      `INSERT INTO identity.users (id, email, name, password_hash, gdpr_consent_at)
+       VALUES ($1, $2, $3, '!walk-in-no-password', now())`,
+      [userId, walkinEmail, input.buyerName ?? 'Walk-in kupující'],
     );
-    const userId = userRes.rows[0].id;
 
     // 5) Order
     const totalAmount = tt.base_price * input.quantity;

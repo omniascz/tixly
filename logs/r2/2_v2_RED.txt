@@ -1,0 +1,180 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r2-v2-tixly-app.live.test.ts[2m > [22m[2mKrok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut[2m > [22m[2mstorno: vlastník stornuje zaplacenou objednávku (cancelled, vstupenky revoked, refund_request, kapacita zpět); cizí ne[22m[39m
+[order cancel] error: new row violates row-level security policy for table "refund_requests"
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\buyer\orders\[orderId]\cancel\route.ts:143:7
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r2-v2-tixly-app.live.test.ts:100:17
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3)
+    at file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4mvitest[24m/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:116:7 {
+  length: [33m138[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42501'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'execMain.c'[39m,
+  line: [32m'2159'[39m,
+  routine: [32m'ExecWithCheckOptions'[39m
+}
+
+[90mstderr[2m | tests/fix-r2-v2-tixly-app.live.test.ts[2m > [22m[2mKrok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut[2m > [22m[2mPOS: obsluha pořadatele prodá na pokladně (paid + vstupenky); cizí pořadatel na cizí akci ne[22m[39m
+[pos/sale] error: new row violates row-level security policy for table "users"
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\admin\pos\sale\route.ts:179:21
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r2-v2-tixly-app.live.test.ts:129:17
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3)
+    at file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4mvitest[24m/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:116:7 {
+  length: [33m128[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42501'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'execMain.c'[39m,
+  line: [32m'2159'[39m,
+  routine: [32m'ExecWithCheckOptions'[39m
+}
+
+ [33m❯[39m tests/fix-r2-v2-tixly-app.live.test.ts [2m ([22m[2m5 tests[22m [2m|[22m [31m5 failed[39m[2m)[22m[33m 8654[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r2-v2-tixly-app.live.test.ts[2m > [22mKrok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut[2m > [22mPDF: vlastník stáhne PDF; cizí kupec ani anonym ne[39m
+[31m     → {"error":"Order not found or not paid"}: expected 404 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r2-v2-tixly-app.live.test.ts[2m > [22mKrok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut[2m > [22mstorno: vlastník stornuje zaplacenou objednávku (cancelled, vstupenky revoked, refund_request, kapacita zpět); cizí ne[39m
+[31m     → {"error":"DB_ERROR"}: expected 500 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r2-v2-tixly-app.live.test.ts[2m > [22mKrok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut[2m > [22mPOS: obsluha pořadatele prodá na pokladně (paid + vstupenky); cizí pořadatel na cizí akci ne[39m
+[31m     → {"error":"INTERNAL_ERROR"}: expected 500 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r2-v2-tixly-app.live.test.ts[2m > [22mKrok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut[2m > [22mself-refund: po povolení pořadatelem vlastník refunduje (brána zavolána); cizí ne[39m
+[31m     → {"error":"SELF_REFUND_DISABLED","message":"Tento pořadatel nepovoluje self-service refund. Kontaktuj pořadatele přímo."}: expected 403 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r2-v2-tixly-app.live.test.ts[2m > [22mKrok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut[2m > [22mDB (tixly_app): refund_policies vidí jen kupec, který u pořadatele koupil; refund_request nelze založit na cizí objednávku[39m
+[31m     → kupec, který koupil: expected +0 to be 1 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 5 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-v2-tixly-app.live.test.ts[2m > [22mKrok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut[2m > [22mPDF: vlastník stáhne PDF; cizí kupec ani anonym ne
+[31m[1mAssertionError[22m: {"error":"Order not found or not paid"}: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m tests/fix-r2-v2-tixly-app.live.test.ts:[2m77:61[22m[39m
+    [90m 75| [39m    [35mconst[39m own [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([34mreq[39m([32m'GET'[39m[33m,[39m [32m`/api/buyer/orders/[39m…
+    [90m 76| [39m    [35mconst[39m body [33m=[39m [33mBuffer[39m[33m.[39m[35mfrom[39m([35mawait[39m own[33m.[39m[34marrayBuffer[39m())[33m;[39m
+    [90m 77| [39m    [34mexpect[39m(own[33m.[39mstatus[33m,[39m body[33m.[39m[34mtoString[39m([32m'utf8'[39m)[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m200[39m))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                                            [31m^[39m
+    [90m 78| [39m    [34mexpect[39m(body[33m.[39m[34msubarray[39m([34m0[39m[33m,[39m [34m4[39m)[33m.[39m[34mtoString[39m())[33m.[39m[34mtoBe[39m([32m'%PDF'[39m)[33m;[39m
+    [90m 79| [39m    [35mconst[39m foreign [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([34mreq[39m([32m'GET'[39m[33m,[39m [32m`/api/buyer/ord[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-v2-tixly-app.live.test.ts[2m > [22mKrok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut[2m > [22mstorno: vlastník stornuje zaplacenou objednávku (cancelled, vstupenky revoked, refund_request, kapacita zpět); cizí ne
+[31m[1mAssertionError[22m: {"error":"DB_ERROR"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r2-v2-tixly-app.live.test.ts:[2m101:50[22m[39m
+    [90m 99| [39m
+    [90m100| [39m    [35mconst[39m own [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([34mreq[39m([32m'POST'[39m[33m,[39m [32m`/api/buyer/orders[39m…
+    [90m101| [39m    [34mexpect[39m(own[33m.[39mstatus[33m,[39m [35mawait[39m own[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                                 [31m^[39m
+    [90m102| [39m    [34mexpect[39m([35mawait[39m [34morderStatus[39m(o[33m.[39morderId))[33m.[39m[34mtoBe[39m([32m'cancelled'[39m)[33m;[39m
+    [90m103| [39m    [34mexpect[39m([35mawait[39m [34mticketStatuses[39m(o[33m.[39morderId))[33m.[39m[34mtoEqual[39m([[32m'revoked'[39m])[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-v2-tixly-app.live.test.ts[2m > [22mKrok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut[2m > [22mPOS: obsluha pořadatele prodá na pokladně (paid + vstupenky); cizí pořadatel na cizí akci ne
+[31m[1mAssertionError[22m: {"error":"INTERNAL_ERROR"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r2-v2-tixly-app.live.test.ts:[2m131:43[22m[39m
+    [90m129| [39m    [35mconst[39m own [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([34mreq[39m([32m'POST'[39m[33m,[39m [32m'/api/admin/pos/sa[39m…
+    [90m130| [39m    [35mconst[39m j [33m=[39m [35mawait[39m own[33m.[39m[34mclone[39m()[33m.[39m[34mjson[39m()[33m.[39m[35mcatch[39m(() [33m=>[39m ({})) [35mas[39m { orderId[33m?[39m…
+    [90m131| [39m    [34mexpect[39m(own[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(j))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                          [31m^[39m
+    [90m132| [39m    [34mexpect[39m(j[33m.[39morderId)[33m.[39m[34mtoBeTruthy[39m()[33m;[39m
+    [90m133| [39m    [34mexpect[39m([35mawait[39m [34morderStatus[39m(j[33m.[39morderId[33m![39m))[33m.[39m[34mtoBe[39m([32m'paid'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-v2-tixly-app.live.test.ts[2m > [22mKrok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut[2m > [22mself-refund: po povolení pořadatelem vlastník refunduje (brána zavolána); cizí ne
+[31m[1mAssertionError[22m: {"error":"SELF_REFUND_DISABLED","message":"Tento pořadatel nepovoluje self-service refund. Kontaktuj pořadatele přímo."}: expected 403 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 403[39m
+
+[36m [2m❯[22m tests/fix-r2-v2-tixly-app.live.test.ts:[2m155:50[22m[39m
+    [90m153| [39m
+    [90m154| [39m    [35mconst[39m own [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([34mreq[39m([32m'POST'[39m[33m,[39m [32m`/api/buyer/orders[39m…
+    [90m155| [39m    [34mexpect[39m(own[33m.[39mstatus[33m,[39m [35mawait[39m own[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                                 [31m^[39m
+    [90m156| [39m    [34mexpect[39m([35mawait[39m [34morderStatus[39m(o[33m.[39morderId))[33m.[39m[34mtoBe[39m([32m'refunded'[39m)[33m;[39m
+    [90m157| [39m    [34mexpect[39m([35mawait[39m [34mticketStatuses[39m(o[33m.[39morderId))[33m.[39m[34mtoEqual[39m([[32m'revoked'[39m])[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-v2-tixly-app.live.test.ts[2m > [22mKrok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut[2m > [22mDB (tixly_app): refund_policies vidí jen kupec, který u pořadatele koupil; refund_request nelze založit na cizí objednávku
+[31m[1mAssertionError[22m: kupec, který koupil: expected +0 to be 1 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/fix-r2-v2-tixly-app.live.test.ts:[2m179:59[22m[39m
+    [90m177| [39m      }[33m;[39m
+    [90m178| [39m      [35mconst[39m seen [33m=[39m (uid[33m:[39m string) [33m=>[39m asUser[33m<[39m{ n[33m:[39m number }[33m>[39m(uid[33m,[39m [35masync[39m (…
+    [90m179| [39m      [34mexpect[39m([35mawait[39m [34mseen[39m(o[33m.[39muserId)[33m,[39m [32m'kupec, který koupil'[39m)[33m.[39m[34mtoBe[39m([34m1[39m)[33m;[39m
+    [90m   | [39m                                                          [31m^[39m
+    [90m180| [39m      [34mexpect[39m([35mawait[39m [34mseen[39m(foreign[33m.[39mid)[33m,[39m [32m'kupec bez nákupu u pořadatele'[39m)[33m.[39m…
+    [90m181| [39m      [35mconst[39m ins [33m=[39m [35mawait[39m [34masUser[39m(foreign[33m.[39mid[33m,[39m [35masync[39m (q) [33m=>[39m [34mq[39m(
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m5 failed[39m[22m[90m (5)[39m
+[2m   Start at [22m 09:38:18
+[2m   Duration [22m 9.19s[2m (transform 1.49s, setup 0ms, collect 142ms, tests 8.65s, environment 0ms, prepare 119ms)[22m
+
