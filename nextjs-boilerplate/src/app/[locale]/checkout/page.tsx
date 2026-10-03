@@ -413,7 +413,13 @@ function CheckoutForm() {
       if (d.valid && d.companyName !== undefined && d.balanceHalire !== undefined) {
         setB2bVerify({ companyName: d.companyName, balanceHalire: d.balanceHalire });
       } else {
-        setB2bVerifyError(d.error === 'EMAIL_NOT_AUTHORIZED' ? 'Váš email není oprávněn k tomuto účtu.' : 'Neplatný kód firemního účtu.');
+        setB2bVerifyError(
+          d.error === 'LOGIN_REQUIRED'
+            ? 'Pro platbu z firemního účtu se nejdřív přihlaste.'
+            : d.error === 'EMAIL_NOT_AUTHORIZED'
+              ? 'Váš účet není oprávněn k tomuto firemnímu účtu.'
+              : 'Neplatný kód firemního účtu.',
+        );
       }
     } catch {
       setB2bVerifyError('Nepodařilo se ověřit kód.');
