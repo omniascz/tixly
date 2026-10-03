@@ -18,6 +18,7 @@ Prostředí: izolovaná DB z migrací, PgBouncer transaction mode, fake-gopay, M
 | pamětní vstupenka `?token=` cokoli (inventura) | `hasQueryToken = !!queryToken` — token se neověřoval ani nevydával | vlastník nebo HMAC token této vstupenky; ověření před dotazem; e-mail nese token | fix-r4-memory-token | 3 fail (?token=x → data) → 3/3 | 7203bc8 |
 | konfigurace před přihlášením (wallet/apple, mobile/payment-intent) | kontrola env před `runAsUser` → anonym 503 | kontrola uvnitř `runAsUser` | fix-r4-auth-before-config | anonym 503 → 401 (přihlášený 503) | 7d600b7 |
 | B2B kredit jen podle kódu účtu (verify + checkout) | checkout strhl kredit firmy bez ověření kupujícího; verify vracel zůstatek komukoli s kódem | jen přihlášený člen účtu (joined/admin); verify 401/403; checkout pre-check + debit FOR UPDATE | fix-r4-b2b-credit-auth | 2 fail (zůstatek 200, nákup na firmu 200) → 4/4 | 1bdd439 |
+| seat-upgrade-notify (R3 bod 4) | čte `catalog.seats` (sedadla sálu) a `seat_upgrades.order_id/notified_at` — neexistují; e-mail jen logoval | `event_seats`, lepší volné místo téhož typu a sektoru, skutečný e-mail, log v nové tabulce (migrace 490) | fix-r4-seat-upgrade-notify | 500 → 2/2; od nuly OK, 2× OK | 9524f6e |
 <!-- /nalezy -->
 
 **Krok 1 — audit 08 po opravách:** I1 PASS (154 GET rout × 3 cizí aktéři, 0 úniků), I2 PASS (0 odpovědí 5xx). `logs/r4/1c_r2_e2e_08.out`.
