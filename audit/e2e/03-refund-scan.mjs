@@ -139,7 +139,8 @@ const ids = JSON.stringify(manA.json);
 check('V10', 'offline manifest akce A: jen platne vstupenky (neobsahuje pouzitou gt[0] ani refundovanou)', manA.status === 200 && !ids.includes(gt[0].id) && !ids.includes(tkA[0].id), { status: manA.status, count: manA.json?.ticketIds?.length ?? manA.json?.count, keys: Object.keys(manA.json ?? {}) });
 r = await PB.get(`/api/admin/scanner/manifest?eventId=${S.eventA}`);
 check('V11', 'poradatel B nestahne manifest akce A', r.status === 404 || r.status === 403, ev(r));
-const logs = await q(`SELECT result, count(*)::int n FROM tickets.scan_logs WHERE ticket_id = ANY($1::uuid[]) GROUP BY 1 ORDER BY 1`, [gt.map((t) => t.id)]).catch((e) => [{ err: e.message }]);
+// kolo 3: sloupec je scan_result (dřív dotaz na neexistující `result` → kontrola nemohla nikdy projít)
+const logs = await q(`SELECT scan_result AS result, count(*)::int n FROM tickets.scan_logs WHERE ticket_id = ANY($1::uuid[]) GROUP BY 1 ORDER BY 1`, [gt.map((t) => t.id)]).catch((e) => [{ err: e.message }]);
 check('V12', 'skeny jsou zaznamenany ve scan_logs', logs.length > 0 && !logs[0].err, logs);
 
 writeFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), JSON.stringify(S, null, 2));

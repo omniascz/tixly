@@ -1,4 +1,4 @@
-# E2E 06_security  base=http://localhost:3200  2026-10-03T08:43:00.975Z
+# E2E 06_security  base=http://localhost:3200  2026-10-03T10:43:19.750Z
 PASS K1  NEPRIHLASENY utocnik ziska pres /api/kiosk/order platne vstupenky za 1000 Kc ZDARMA (NODE_ENV=production)
        {"status":401,"body":"{\"error\":{\"code\":\"TOKEN_MISSING\",\"message\":\"Authorization required\"}}","orderInDb":null,"ticketsIssued":[],"responseLeaksTotpSecret":false}
 PASS K2a  /api/vouchers/holders/[paymentId]/confirm bez autentizace: endpoint je dosazitelny v produkcnim rezimu (neni 401/403/404)
@@ -22,17 +22,17 @@ PASS K4b  JWT alg=none odmitnut
 PASS K4c  JWT s upravenym payloadem (isPlatformAdmin) a puvodnim podpisem odmitnut
        {"status":401,"body":"{\"error\":{\"code\":\"TOKEN_INVALID\",\"message\":\"Token invalid or expired\"}}"}
 FAIL K4d  REFRESH token (7 dni) pouzity jako access token na /api/buyer/* odmitnut
-       {"status":200,"body":"{\"ticketId\":\"fb56cbb4-64e0-4369-9675-3d798082d943\",\"revealed\":false,\"revealsAt\":\"2026-11-02T08:41:50.473Z\",\"minutesUntilReveal\":43199,\"message\":\"QR kód se zobrazí 0 minut před akcí.\",\"status\":\"valid\"}","cookieName":"refreshToken","accessTtl":900}
+       {"status":200,"body":"{\"ticketId\":\"46b62aff-260d-47ef-92d9-847323aa4a2b\",\"revealed\":false,\"revealsAt\":\"2026-11-02T10:41:25.175Z\",\"minutesUntilReveal\":43199,\"message\":\"QR kód se zobrazí 0 minut před akcí.\",\"status\":\"valid\"}","cookieName":"refreshToken","accessTtl":900}
 PASS K4e  auth cookies: HttpOnly + SameSite (+Secure v produkci)
-       ["accessToken=<redacted>; Path=/; Expires=Sat, 03 Oct 2026 08:58:02 GMT; Max-Age=900; Secure; HttpOnly; SameSite=lax","refreshToken=<redacted>; Path=/; Expires=Sat, 10 Oct 2026 08:43:02 GMT; Max-Age=604800; Secure; HttpOnly; SameSite=lax"]
+       ["accessToken=<redacted>; Path=/; Expires=Sat, 03 Oct 2026 10:58:20 GMT; Max-Age=900; Secure; HttpOnly; SameSite=lax","refreshToken=<redacted>; Path=/; Expires=Sat, 10 Oct 2026 10:43:20 GMT; Max-Age=604800; Secure; HttpOnly; SameSite=lax"]
 FAIL K5  CSRF: stavovy POST s cookie a cizim Origin (https://evil.example) odmitnut serverem
-       {"status":200,"note":"ochrana stoji jen na SameSite cookie; server Origin neoveruje","body":"{\"orderId\":\"2e6f0b0a-0197-450b-8071-e7ce6141e171\",\"paymentId\":\"3012120669\",\"gatewayUrl\":\"http://localhost:3998/gw/301212"}
+       {"status":200,"note":"ochrana stoji jen na SameSite cookie; server Origin neoveruje","body":"{\"orderId\":\"835b6b12-1389-48d8-b399-a6d68516c1b5\",\"paymentId\":\"3012120814\",\"gatewayUrl\":\"http://localhost:3998/gw/301212"}
 PASS K6a  rate limit loginu: 14 pokusu z jedne IP -> 429 po 10
        {"codes":[401,401,401,401,401,401,401,401,401,401,429,429,429,429]}
 PASS K6b  rate limit loginu per ucet: 14 pokusu na 1 ucet z 14 ruznych IP -> zablokovano
        {"codes":[401,401,401,401,401,401,401,401,401,429,429,429,429,429]}
 PASS K7  platba zrusena u brany (CANCELED): objednavka cancelled A 3 mista vracena do prodeje
-       {"webhook":{"status":200,"body":"{\"ok\":true,\"orderId\":\"83f9b856-fab9-467d-8f7d-71ee3714a4b3\",\"state\":\"CANCELED\",\"newStatus\":\"pending\"}"},"orderStatus":"cancelled","remainingBefore":33,"remainingAfter":33,"leaked":0}
+       {"webhook":{"status":200,"body":"{\"ok\":true,\"orderId\":\"1e3b816a-19ee-4ee4-a56b-78228de94bf7\",\"state\":\"CANCELED\",\"newStatus\":\"pending\"}"},"orderStatus":"cancelled","remainingBefore":33,"remainingAfter":33,"leaked":0}
 FAIL K8a  SQLi retezec v ID v URL -> 4xx, ne 500
        {"status":200,"body":"{\"ticketTypes\":[]}"}
 PASS K8b  HTML e-mail escapuje jmeno kupce (XSS payload neni v HTML surovy)

@@ -1,18 +1,18 @@
-# E2E 11_operations  base=http://localhost:3200  2026-10-03T08:43:19.775Z
+# E2E 11_operations  base=http://localhost:3200  2026-10-03T10:43:33.826Z
 PASS OP1  POS: pokladní prodej (cash) vystaví objednávku paid a 2 platné vstupenky
-       {"status":200,"body":"{\"success\":true,\"orderId\":\"9be9b559-aa93-4801-a386-bb8165696e18\",\"eventTitle\":\"Audit Koncert A mus58133\",\"ticketTypeName\":\"Stani\",\"paymentMethod\":\"cash\",\"totalAmountHalire\":100000,\"buyerName\":\"Pokladn","order":{"status":"paid","payment_provider":"free"},"tickets":["valid","valid"]}
+       {"status":200,"body":"{\"success\":true,\"orderId\":\"e6203f8f-7e56-4a4d-86d4-fb8c0e21b49b\",\"eventTitle\":\"Audit Koncert A mus9hs5u\",\"ticketTypeName\":\"Stani\",\"paymentMethod\":\"cash\",\"totalAmountHalire\":100000,\"buyerName\":\"Pokladn","order":{"status":"paid","payment_provider":"free"},"tickets":["valid","valid"]}
 PASS OP2  COMPS: promotér vystaví volnou (press) vstupenku, ticket valid
-       {"status":201,"body":"{\"ok\":true,\"orderId\":\"ee2525fc-c9c4-4eda-ba3a-ad042abd8f79\",\"compType\":\"press\",\"recipientEmail\":\"press-mus58133@audit.test\",\"ticketTypeName\":\"Stani\",\"quantity\":1,\"ticketIds\":[\"3d6a8c66-eeea-4ae6-b288-","tickets":["valid"]}
+       {"status":201,"body":"{\"ok\":true,\"orderId\":\"eac60f71-11c0-41b6-a446-732f49a52986\",\"compType\":\"press\",\"recipientEmail\":\"press-mus9hs5u@audit.test\",\"ticketTypeName\":\"Stani\",\"quantity\":1,\"ticketIds\":[\"35a64a45-635a-4073-a547-","tickets":["valid"]}
 PASS OP3a  GUESTLIST: přidání hosta založí záznam + navázaný lístek
-       {"status":201,"body":"{\"entry\":{\"id\":\"7d7eac14-148f-4bdf-a735-cd6ad9f8217b\",\"guest_name\":\"Host Seznam\",\"guest_email\":\"guest-list-mus58133@audit.test\",\"notes\":null,\"invited_by\":null,\"status\":\"invited\",\"ticket_id\":\"a748e6a6-","entry":{"id":"7d7eac14-148f-4bdf-a735-cd6ad9f8217b","ticket_id":"a748e6a6-abe2-412d-96a4-ab32c90f166e","status":"invited"}}
+       {"status":201,"body":"{\"entry\":{\"id\":\"25553b38-42a7-485b-913d-2080f83bda11\",\"guest_name\":\"Host Seznam\",\"guest_email\":\"guest-list-mus9hs5u@audit.test\",\"notes\":null,\"invited_by\":null,\"status\":\"invited\",\"ticket_id\":\"fdcbf850-","entry":{"id":"25553b38-42a7-485b-913d-2080f83bda11","ticket_id":"fdcbf850-6a11-4635-8ecd-e81f2f5a4d8c","status":"invited"}}
 PASS OP3b  GUESTLIST: check-in hosta (token=email) → status attended
-       {"status":200,"body":"{\"admitted\":true,\"guestName\":\"Host Seznam\",\"notes\":null}","after":{"status":"attended","checked_in_at":"2026-10-03T08:43:20.943Z"}}
+       {"status":200,"body":"{\"admitted\":true,\"guestName\":\"Host Seznam\",\"notes\":null}","after":{"status":"attended","checked_in_at":"2026-10-03T10:43:34.904Z"}}
 PASS OP4a  2FA: setup + verify správným TOTP → 2FA enabled v DB
        {"setup":200,"verify":200,"enabledInDb":true}
 PASS OP4b  2FA: login bez kódu odmítnut (TOTP_REQUIRED/401), s platným kódem projde
        {"noCode":401,"noCodeErr":"TOTP_REQUIRED","withCode":200}
 PASS OP5a  SELF-REFUND: po povolení promotérem buyer self-refund uspěje, objednávka refunded/cancelled a vstupenky zneplatněny
-       {"status":200,"body":"{\"ok\":true,\"orderId\":\"240997fc-5098-4a4a-8c46-63bda066d057\",\"partial\":false,\"grossRefundHalire\":50000,\"refundFeeHalire\":3000,\"netRefundHalire\":47000,\"revokedTickets\":1,\"remainingValid\":0}","orderStatus":"refunded","tickets":["revoked"]}
+       {"status":200,"body":"{\"ok\":true,\"orderId\":\"946cfc72-3cc6-47ac-994f-43bc1e4583ad\",\"partial\":false,\"grossRefundHalire\":50000,\"refundFeeHalire\":3000,\"netRefundHalire\":47000,\"revokedTickets\":1,\"remainingValid\":0}","orderStatus":"refunded","tickets":["revoked"]}
 PASS OP5b  SELF-REFUND: peníze — self-refund zavolal refund u platební brány (očekáváno >0)
        {"gatewayRefundCallsDelta":1,"note":"stejná třída jako K2 — refund jen v DB"}
 

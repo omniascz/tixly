@@ -22,10 +22,12 @@ const ttRow = async (id) => (await q(`SELECT total_qty, remaining_qty FROM catal
 // ---------- C1: 100 paralelnich nakupu, 10 mist ----------
 const N = 100, CAP = 10;
 const race = await mkType(`Race ${Date.now()}`, CAP);
+// kolo 3: prefix e-mailů jedinečný pro TENTO běh — dřív `race-${S.run}` sdílely opakované běhy nad týmž stavem (C2c počítal i e-maily předchozího běhu)
+const RACE = `race-${S.run}-${Date.now().toString(36)}`;
 const t0 = Date.now();
 const res = await Promise.all(Array.from({ length: N }, (_, i) => {
   const c = new Client(`g${i}`);
-  return c.post('/api/checkout', { eventId: S.eventA, ticketTypeId: race, quantity: 1, buyerEmail: `race-${S.run}-${Date.now()}-${i}@audit.test`, buyerName: `Zavodnik ${i}` });
+  return c.post('/api/checkout', { eventId: S.eventA, ticketTypeId: race, quantity: 1, buyerEmail: `${RACE}-${i}@audit.test`, buyerName: `Zavodnik ${i}` });
 }));
 const ms = Date.now() - t0;
 const ok = res.filter((x) => x.status === 200 && x.json?.orderId);
@@ -47,7 +49,7 @@ const paid = (await q(`SELECT count(*)::int n FROM orders.orders o JOIN orders.o
 check('C2a', `50 soubeznych volani (30 webhooku + 20 order-completed) na 10 objednavek: prave ${CAP} vstupenek, 1 na objednavku`, total === CAP && issued.every((x) => x.n === 1) && paid === CAP, { hookStatuses: hist(hooks, (x) => String(x.status)), paidOrders: paid, ticketsTotal: total, maxPerOrder: Math.max(0, ...issued.map((x) => x.n)) });
 const pp = await q(`SELECT pe.order_id, count(*)::int n FROM orders.payment_events pe JOIN orders.order_items oi ON oi.order_id=pe.order_id WHERE oi.ticket_type_id=$1 AND pe.event_type='payment_paid' GROUP BY 1`, [race]);
 check('C2b', 'jedna platba = jeden zaznam payment_paid (3 webhooky na platbu)', pp.every((x) => x.n === 1), { payment_paid_per_order: hist(pp, (x) => String(x.n)) });
-const mailCount = (await (await fetch(`${process.env.MAILPIT ?? "http://localhost:58025"}/api/v1/search?query=${encodeURIComponent(`to:race-${S.run}`)}&limit=1`)).json()).messages_count;
+const mailCount = (await (await fetch(`${process.env.MAILPIT ?? "http://localhost:58025"}/api/v1/search?query=${encodeURIComponent(`to:${RACE}`)}&limit=1`)).json()).messages_count;
 check('C2c', 'potvrzovaci e-maily: 1 na objednavku (ocekavano 10), ne duplicitni', mailCount === CAP, { mailsToRaceBuyers: mailCount, expected: CAP });
 
 // ---------- C3: zavod na promo kod (max 5) ----------
