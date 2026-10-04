@@ -24,13 +24,24 @@ interface PromoCodeRow {
   valid_until: string | null;
   active: boolean;
   created_at: string;
+  applicable_category_codes: string[] | null;
+  applicable_ticket_type_ids: string[] | null;
+  applicable_event_ids: string[] | null;
+  zone_names: string[] | null;
+  event_names: string[] | null;
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
   return runAsPromoter(req, async (promoter) => {
   const r = await db().query<PromoCodeRow>(
     `SELECT id, code, type, discount_value, max_uses, uses_count,
-            valid_from, valid_until, active, created_at
+            valid_from, valid_until, active, created_at,
+            applicable_category_codes, applicable_ticket_type_ids, applicable_event_ids,
+            -- kolo 9: názvy zón a termínů pro přehled omezení v administraci
+            (SELECT array_agg(COALESCE(tt.zone, tt.name) ORDER BY tt.base_price DESC) FROM catalog.ticket_types tt
+              WHERE tt.id = ANY(promo_codes.applicable_ticket_type_ids)) AS zone_names,
+            (SELECT array_agg(e.title || ' ' || to_char(e.date_start AT TIME ZONE 'Europe/Prague', 'DD.MM.YYYY HH24:MI') ORDER BY e.date_start)
+               FROM catalog.events e WHERE e.id = ANY(promo_codes.applicable_event_ids)) AS event_names
      FROM marketing.promo_codes
      WHERE created_by_organizer_id = $1
      ORDER BY created_at DESC
@@ -49,6 +60,11 @@ export async function GET(req: NextRequest): Promise<Response> {
       validUntil: row.valid_until,
       active: row.active,
       createdAt: row.created_at,
+      applicableCategoryCodes: row.applicable_category_codes ?? [],
+      applicableTicketTypeIds: row.applicable_ticket_type_ids ?? [],
+      applicableEventIds: row.applicable_event_ids ?? [],
+      zoneNames: row.zone_names ?? [],
+      eventNames: row.event_names ?? [],
     })),
   });
 
@@ -95,6 +111,21 @@ export async function POST(req: NextRequest): Promise<Response> {
       { error: 'percentage discount must be 1–100' },
       { status: 422 },
     );
+  }
+
+  // Kolo 9: omezení smí odkazovat jen na vlastní termíny a jejich zóny (typy vstupenek)
+  const evIds = input.applicableEventIds ?? [];
+  const ttIds = input.applicableTicketTypeIds ?? [];
+  if (evIds.length || ttIds.length) {
+    const own = (await db().query<{ ev: number; tt: number }>(
+      `SELECT (SELECT COUNT(*) FROM catalog.events WHERE id = ANY($1::uuid[]) AND promoter_id = $3)::int AS ev,
+              (SELECT COUNT(*) FROM catalog.ticket_types tt JOIN catalog.events e ON e.id = tt.event_id
+                WHERE tt.id = ANY($2::uuid[]) AND e.promoter_id = $3)::int AS tt`,
+      [evIds, ttIds, promoter.promoterId],
+    )).rows[0];
+    if (own.ev !== new Set(evIds).size || own.tt !== new Set(ttIds).size) {
+      return NextResponse.json({ error: 'RESTRICTION_NOT_OWNED', message: 'Omezení odkazuje na cizí termín nebo zónu.' }, { status: 422 });
+    }
   }
 
   try {
