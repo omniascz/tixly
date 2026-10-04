@@ -17,10 +17,16 @@ const nextConfig = {
     serverComponentsExternalPackages: ['pdfkit'],
   },
   images: {
+    // Kolo 9: zmírnění bez změny hlavní verze Next (14.2.35):
+    //   GHSA-2xp9-vwfh-vxw4 (critical) — RCE v optimalizaci obrázků (sharp/libheif) u AVIF; opraveno až v 15.5.24/16.3.3,
+    //   advisory neuvádí konfigurační obranu → optimalizaci vypínáme úplně.
+    //   GHSA-h64f-5h5j-jqjh — DoS /_next/image: „If you are using images.unoptimized: true, you are NOT impacted."
+    //   GHSA-9g9p-9gw9-jx7f — DoS přes remotePatterns (týká se jen optimalizace vzdálených obrázků).
+    // Obrázky se pak servírují přímo z původní URL (endpoint /_next/image se nepoužívá).
+    unoptimized: true,
     remotePatterns: [
       { protocol: 'https', hostname: 'api.gopay.cz' },
       { protocol: 'https', hostname: 'images.cloudflare.com' },
-      { protocol: 'https', hostname: 'cdn.example.com' },
     ],
   },
   headers: async () => {

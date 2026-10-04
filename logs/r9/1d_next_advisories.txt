@@ -1,0 +1,47 @@
+=== GHSA-2xp9-vwfh-vxw4
+critical | Next.js: Unauthenticated Remote Code Execution in Image Optimization API when AVIF files are used
+patched: 15.5.24,16.3.3
+A vulnerability in the underlying `libheif` library used by `sharp` which Next.js uses for image optimization can lead to remote code execution when AVIF files are optimized.
+
+Until a fix has propagated, optimization of AVIF files is disabled.
+=== GHSA-9g9p-9gw9-jx7f
+medium | Next.js self-hosted applications vulnerable to DoS via Image Optimizer remotePatterns configuration
+patched: 15.5.10,16.1.5
+A DoS vulnerability exists in self-hosted Next.js applications that have `remotePatterns` configured for the Image Optimizer. The image optimization endpoint (`/_next/image`) loads external images entirely into memory without enforcing a maximum size limit, allowing an attacker to cause out-of-memory conditions by requesting optimization of arbitrarily large images. This vulnerability requires that `remotePatterns` is configured to allow image optimization from external domains and that the attacker can serve or control a large image on an allowed domain.
+
+Strongly consider upgrading to 15.5.10 and 16.1.5 to reduce risk and prevent availability issues in Next applications.
+=== GHSA-h64f-5h5j-jqjh
+medium | Next.js has a Denial of Service in the Image Optimization API
+patched: 15.5.16,16.2.5
+### Impact
+
+When self-hosting Next.js with the default image loader, the Image Optimization API fetches local images entirely into memory without enforcing a maximum size limit. An attacker could cause out-of-memory conditions by requesting large local assets from the `/_next/image` endpoint that match the `images.localPatterns` configuration (by default, all patterns are allowed).
+
+- If you are using `images.localPatterns`, only the patterns in that array are impacted.
+- If you are using `images.unoptimized: true`, you are NOT impacted.
+- If you are using `images.loader: 'custom'`, you are NOT impacted.
+- If you are using Vercel, you are NOT impacted.
+
+### Fix
+
+We now apply response size limits consistently to internal image fetches, not just external ones, and fail oversized responses before they can exhaust process memory.
+
+This can be adjusted using the `images.maximumResponseBody` configuration.
+
+### Workarounds
+
+If you cannot upgrade immediately, avoid routing large local assets through `/_next/image`, disable image optimization for large or untrusted local files, or block image optimization access to those assets at the edge.
+
+You can disable using the `images.localPatterns: []` configuration. This will still allow fetching remote images (which is not impacted).
+=== GHSA-3x4c-7xq6-9pq8
+Get "https://api.github.com/advisories/GHSA-3x4c-7xq6-9pq8": net/http: TLS handshake timeout
+=== GHSA-p293-qw3h-jr36
+critical | Next.js: Unauthenticated Remote Code Execution on windows-hosted servers
+patched: 15.5.24,16.3.3
+## Impact
+
+A vulnerability in applications using Pages and App router without Cache Component can lead to remote code execution when the server is hosted on machines using a Windows filesystem.
+
+## Workaround
+
+There is no known workaround for affected windows-hosted applications. You should upgrade immediately if your server is hosted on Windows.
