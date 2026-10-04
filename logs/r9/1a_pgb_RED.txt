@@ -1,0 +1,28 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r3-pool-nested.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 120560[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-pool-nested.live.test.ts[2m > [22mKrok 0 (kolo 3) — vnořené výpůjčky connect() + query() pod souběhem[2m > [22m12 souběžných requestů (pool 4), každý drží transakci a vnořeně volá db().query() → 0 chyb, kontext těsný[39m
+[31m     → Test timed out in 60000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-pool-nested.live.test.ts[2m > [22mKrok 0 (kolo 3) — vnořené výpůjčky connect() + query() pod souběhem
+[31m[1mError[22m: Hook timed out in 60000ms.
+If this is a long-running hook, pass a timeout value as the last argument or configure it globally with "hookTimeout".[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-pool-nested.live.test.ts[2m > [22mKrok 0 (kolo 3) — vnořené výpůjčky connect() + query() pod souběhem[2m > [22m12 souběžných requestů (pool 4), každý drží transakci a vnořeně volá db().query() → 0 chyb, kontext těsný
+[31m[1mError[22m: Test timed out in 60000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 15:25:30
+[2m   Duration [22m 148.26s[2m (transform 313ms, setup 0ms, collect 1.66s, tests 120.56s, environment 1ms, prepare 3.34s)[22m
+
