@@ -13,6 +13,7 @@ import { randomUUID } from 'crypto';
 import type { NextRequest } from 'next/server';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createLocalClone, hasLocalDb, mailpitLatest, type LocalClone } from './helpers/local-fixture';
+import { pdfText } from './helpers/pdf-text';
 import { throughMiddleware } from './helpers/through-middleware';
 
 const run = describe.skipIf(!hasLocalDb);
@@ -210,11 +211,7 @@ run('Kolo 8 — slevové kategorie', () => {
     const msg = await (await realFetch(`${MAILPIT}/api/v1/message/${mail!.id}`)).json() as { Attachments: Array<{ PartID: string; FileName: string }> };
     const pdfPart = msg.Attachments.find((a) => a.FileName.endsWith('.pdf'))!;
     const pdfBuf = new Uint8Array(await (await realFetch(`${MAILPIT}/api/v1/message/${mail!.id}/part/${pdfPart.PartID}`)).arrayBuffer());
-    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
-    const doc = await pdfjs.getDocument({ data: pdfBuf, useSystemFonts: true }).promise;
-    let text = '';
-    for (let p = 1; p <= doc.numPages; p++) text += ((await (await doc.getPage(p)).getTextContent()).items as Array<{ str?: string }>).map((x) => x.str ?? '').join(' ') + '\n';
-    await doc.destroy();
+    const text = pdfText(pdfBuf);
     expect(text).toContain('Kategorie: ZTP/P');
     expect(text).toContain('Při vstupu předložte průkaz: ZTP/P');
 
