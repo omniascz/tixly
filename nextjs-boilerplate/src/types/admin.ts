@@ -81,6 +81,15 @@ export interface AdminPayout {
   grossHalire: number;
   feesHalire: number;
   netHalire: number;
-  status: 'pending' | 'processing' | 'paid' | 'failed';
+  /** 'estimate' = dopočtené období, ne výplata (kolo 7, C-57). */
+  status: 'estimate' | 'pending' | 'approved' | 'processing' | 'awaiting_manual_transfer' | 'paid' | 'failed' | 'cancelled';
   paidAt: string | null;
+  bankReference?: string | null;
+  transferDate?: string | null;
+}
+
+export interface AdminPayoutsOverview {
+  source: 'real' | 'computed';
+  payoutIban: string | null;
+  payouts: AdminPayout[];
 }
