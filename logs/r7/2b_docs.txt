@@ -1,0 +1,56 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r7-tax-documents.live.test.ts[2m > [22m[2mKolo 7 — daňové doklady, řady, dobropisy[2m > [22m[2mrefund zaplacené objednávky s dokladem → dobropis se zápornými částkami po sazbách a odkazem[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r7-tax-documents.live.test.ts[2m > [22m[2mKolo 7 — daňové doklady, řady, dobropisy[2m > [22m[2mrefund zaplacené objednávky s dokladem → dobropis se zápornými částkami po sazbách a odkazem[22m[39m
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [33m❯[39m tests/fix-r7-tax-documents.live.test.ts [2m ([22m[2m7 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 7849[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r7-tax-documents.live.test.ts[2m > [22mKolo 7 — doklady bez výchozí sazby 0 %[2m > [22msrc/ neobsahuje `vat_rate_pct ?? 0`[39m
+[31m     → expected [ Array(1) ] to deeply equal [][39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-tax-documents.live.test.ts[2m > [22mKolo 7 — doklady bez výchozí sazby 0 %[2m > [22msrc/ neobsahuje `vat_rate_pct ?? 0`
+[31m[1mAssertionError[22m: expected [ Array(1) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [][39m
+[31m+ Array [[39m
+[31m+   "app\\api\\buyer\\orders\\[orderId]\\invoice\\route.ts",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/fix-r7-tax-documents.live.test.ts:[2m39:17[22m[39m
+    [90m 37| [39m    }[33m;[39m
+    [90m 38| [39m    [34mwalk[39m([33mSRC[39m)[33m;[39m
+    [90m 39| [39m    [34mexpect[39m(off)[33m.[39m[34mtoEqual[39m([])[33m;[39m
+    [90m   | [39m                [31m^[39m
+    [90m 40| [39m  })[33m;[39m
+    [90m 41| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (7)[39m
+[2m   Start at [22m 02:26:32
+[2m   Duration [22m 8.39s[2m (transform 969ms, setup 0ms, collect 116ms, tests 7.85s, environment 0ms, prepare 283ms)[22m
+
