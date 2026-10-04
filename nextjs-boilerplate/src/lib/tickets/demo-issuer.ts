@@ -37,6 +37,11 @@ interface OrderItemRow {
   quantity: number;
   unit_price: number;
   ticket_type_name: string;
+  /** Kolo 8: konkrétní místo položky (nákup míst se slevovou kategorií) + kategorie. */
+  seat_id: string | null;
+  price_category_id: string | null;
+  price_category_name: string | null;
+  proof_label: string | null;
 }
 
 interface ExistingTicketRow {
@@ -108,9 +113,11 @@ export async function issueTicketsForOrder(
   // Načti položky
   const itemsRes = await db.query<OrderItemRow>(
     `SELECT oi.id, oi.ticket_type_id, oi.quantity, oi.unit_price,
-            tt.name AS ticket_type_name
+            tt.name AS ticket_type_name, oi.seat_id, oi.price_category_id, oi.price_category_name,
+            CASE WHEN pc.requires_proof THEN COALESCE(pc.proof_label, pc.name) END AS proof_label
      FROM orders.order_items oi
      JOIN catalog.ticket_types tt ON tt.id = oi.ticket_type_id
+     LEFT JOIN catalog.price_categories pc ON pc.id = oi.price_category_id
      WHERE oi.order_id = $1
      ORDER BY oi.id`,   // stabilní pořadí → deterministický ticket_seq napříč souběžnými běhy
     [orderId],
@@ -123,8 +130,10 @@ export async function issueTicketsForOrder(
      ORDER BY sector, row, seat_number`,
     [orderId],
   );
+  // Kolo 8: místa, která patří konkrétní položce (order_items.seat_id), se nepárují podle typu.
+  const itemSeats = new Set(itemsRes.rows.map((i) => i.seat_id).filter((x): x is string => !!x));
   const seatsByType = new Map<string, string[]>();
-  for (const s of seatsRes.rows) {
+  for (const s of seatsRes.rows.filter((r) => !itemSeats.has(r.id))) {
     const arr = seatsByType.get(s.ticket_type_id) ?? [];
     arr.push(s.id);
     seatsByType.set(s.ticket_type_id, arr);
@@ -132,6 +141,9 @@ export async function issueTicketsForOrder(
 
   const issued: IssuedTicket[] = [];
   let attempted = 0;
+  // Počet již vydaných vstupenek typu, které měly vlastní místo položky (posun indexu do seatsByType).
+  const ownSeatsByType = new Map<string, number>();
+  const itemSeatsBefore = (tt: string): number => ownSeatsByType.get(tt) ?? 0;
   // Running counter per ticket_type → deterministický ticket_seq (0-based) napříč souběžnými běhy.
   const seqByType = new Map<string, number>();
   for (const item of itemsRes.rows) {
@@ -141,7 +153,7 @@ export async function issueTicketsForOrder(
       const seq = seqByType.get(item.ticket_type_id) ?? 0;
       seqByType.set(item.ticket_type_id, seq + 1);
       const ticketId = randomUUID();
-      const seatId = typeSeats[seq] ?? null;
+      const seatId = item.seat_id && item.quantity === 1 ? item.seat_id : typeSeats[seq - itemSeatsBefore(item.ticket_type_id)] ?? null;
       const totpSecretRaw = randomBytes(20);
       // crypto/index.ts exports encryptSecret(plaintext): base64 (IV+ct+tag bundled).
       // DB columns totp_secret_encrypted + totp_secret_iv are BYTEA — we store
@@ -160,8 +172,8 @@ export async function issueTicketsForOrder(
         `INSERT INTO tickets.tickets
            (id, order_id, ticket_type_id, owner_id, original_owner_id,
             status, totp_secret_encrypted, totp_secret_iv, original_price, event_seat_id,
-            holder_name, ticket_seq)
-         VALUES ($1, $2, $3, $4, $4, 'valid', $5, $6, $7, $8, $9, $10)
+            holder_name, ticket_seq, price_category_id, price_category_name, proof_required_label)
+         VALUES ($1, $2, $3, $4, $4, 'valid', $5, $6, $7, $8, $9, $10, $11, $12, $13)
          ON CONFLICT (order_id, ticket_type_id, ticket_seq) DO NOTHING`,
         [
           ticketId,
@@ -174,8 +186,12 @@ export async function issueTicketsForOrder(
           seatId,
           holderName,
           seq,
+          item.price_category_id,
+          item.price_category_name,
+          item.proof_label,
         ],
       );
+      if (item.seat_id && item.quantity === 1) ownSeatsByType.set(item.ticket_type_id, itemSeatsBefore(item.ticket_type_id) + 1);
       if (ins.rowCount === 0) continue; // duplikát — side-effecty NEspouštět (seat/reminders/issued)
 
       if (seatId) {

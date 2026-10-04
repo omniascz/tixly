@@ -66,8 +66,9 @@ export async function GET(
               es.sector, es.row, es.seat_number
          FROM tickets.tickets t
          JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
-         JOIN orders.order_items oi
-           ON oi.order_id = t.order_id AND oi.ticket_type_id = t.ticket_type_id
+         -- Kolo 8: u nákupu míst je víc položek téhož typu (kategorie) → položka podle místa vstupenky
+           JOIN LATERAL (SELECT * FROM orders.order_items x WHERE x.order_id = t.order_id AND x.ticket_type_id = t.ticket_type_id
+             ORDER BY (x.seat_id IS NOT DISTINCT FROM t.event_seat_id) DESC, x.id LIMIT 1) oi ON true
          LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
         WHERE t.order_id = $1 AND t.status IN ('valid', 'used')
         ORDER BY tt.name, es.row, es.seat_number`,

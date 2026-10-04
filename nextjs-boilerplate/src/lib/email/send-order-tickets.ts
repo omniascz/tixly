@@ -70,6 +70,8 @@ interface TicketRow {
   sector: string | null;
   row: string | null;
   seat_number: string | null;
+  price_category_name?: string | null;
+  proof_required_label?: string | null;
 }
 
 function seatLabel(t: TicketRow): string | null {
@@ -129,11 +131,12 @@ export async function sendOrderTickets(
   const ticketsRes = await db().query<TicketRow>(
     `SELECT t.id AS ticket_id, tt.name AS ticket_type_name,
             t.totp_secret_encrypted, oi.unit_price,
-            es.sector, es.row, es.seat_number
+            es.sector, es.row, es.seat_number, t.price_category_name, t.proof_required_label
      FROM tickets.tickets t
      JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
-     LEFT JOIN orders.order_items oi
-       ON oi.order_id = t.order_id AND oi.ticket_type_id = t.ticket_type_id
+     -- Kolo 8: u nákupu míst je víc položek téhož typu (kategorie) → položka podle místa vstupenky
+     LEFT JOIN LATERAL (SELECT * FROM orders.order_items x WHERE x.order_id = t.order_id AND x.ticket_type_id = t.ticket_type_id
+         ORDER BY (x.seat_id IS NOT DISTINCT FROM t.event_seat_id) DESC, x.id LIMIT 1) oi ON true
      LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
      WHERE t.order_id = $1 AND t.revoked_at IS NULL
      ORDER BY es.sector, es.row, es.seat_number, t.id`,
@@ -169,6 +172,8 @@ export async function sendOrderTickets(
           issuer: order.event_title,
           unitPriceHalire: t.unit_price ?? 0,
           seatLabel: seatLabel(t),
+          categoryName: t.price_category_name ?? null,
+          proofLabel: t.proof_required_label ?? null,
         });
       } catch (err) {
         // Nedešifrovatelný klíč znamená, že se změnil šifrovací klíč prostředí.

@@ -1,0 +1,105 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r8-price-categories.live.test.ts [2m ([22m[2m5 tests[22m [2m|[22m [31m4 failed[39m[2m)[22m[33m 1142[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r8-price-categories.live.test.ts[2m > [22mKolo 8 — slevové kategorie[2m > [22mpravidla doprovodu ZTP/P[39m
+[31m     → Cannot find module '@/app/api/checkout/seats/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-price-categories.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-price-categories.live.test.ts[2m > [22mKolo 8 — slevové kategorie[2m > [22mlimit kategorie na termín[39m
+[31m     → Cannot find module '@/app/api/checkout/seats/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-price-categories.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-price-categories.live.test.ts[2m > [22mKolo 8 — slevové kategorie[2m > [22mpromo kód jen na kategorie / zóny; cizí kód neplatí[39m
+[31m     → Cannot find module '@/app/api/checkout/seats/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-price-categories.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-price-categories.live.test.ts[2m > [22mKolo 8 — slevové kategorie[2m > [22mnákup míst s kategoriemi: cena na serveru, promo −10 % jen na plné, vstupenky, e-mail, PDF a skener[39m
+[31m     → Cannot find module '@/app/api/checkout/seats/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-price-categories.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 4 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-price-categories.live.test.ts[2m > [22mKolo 8 — slevové kategorie[2m > [22mpravidla doprovodu ZTP/P
+[31m[1mError[22m: Cannot find module '@/app/api/checkout/seats/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-price-categories.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m buy tests/fix-r8-price-categories.live.test.ts:[2m55:22[22m[39m
+    [90m 53| [39m  [35masync[39m [35mfunction[39m [34mbuy[39m(items[33m:[39m [33mArray[39m[33m<[39m{ seatId[33m:[39m string[33m;[39m categoryId[33m:[39m string…
+    [90m 54| [39m    [35mconst[39m token [33m=[39m [35mawait[39m [34mhold[39m(items[33m.[39m[34mmap[39m((i) [33m=>[39m i[33m.[39mseatId))[33m;[39m
+    [90m 55| [39m    [35mconst[39m { [33mPOST[39m } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/app/api/checkout/seats/route'[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m 56| [39m    [35mconst[39m email [33m=[39m [32m`kat-[39m[36m${[39m[34mrandomUUID[39m()[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m6[39m)[36m}[39m[32m@tixly.test`[39m[33m;[39m
+    [90m 57| [39m    [35mconst[39m r [33m=[39m [35mawait[39m ([33mPOST[39m [35mas[39m unknown [35mas[39m [33mH[39m)([35mnew[39m [33mRequest[39m([32m'http://localho[39m…
+[90m [2m❯[22m tests/fix-r8-price-categories.live.test.ts:[2m121:16[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-price-categories.live.test.ts[2m > [22mKolo 8 — slevové kategorie[2m > [22mlimit kategorie na termín
+[31m[1mError[22m: Cannot find module '@/app/api/checkout/seats/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-price-categories.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m buy tests/fix-r8-price-categories.live.test.ts:[2m55:22[22m[39m
+    [90m 53| [39m  [35masync[39m [35mfunction[39m [34mbuy[39m(items[33m:[39m [33mArray[39m[33m<[39m{ seatId[33m:[39m string[33m;[39m categoryId[33m:[39m string…
+    [90m 54| [39m    [35mconst[39m token [33m=[39m [35mawait[39m [34mhold[39m(items[33m.[39m[34mmap[39m((i) [33m=>[39m i[33m.[39mseatId))[33m;[39m
+    [90m 55| [39m    [35mconst[39m { [33mPOST[39m } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/app/api/checkout/seats/route'[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m 56| [39m    [35mconst[39m email [33m=[39m [32m`kat-[39m[36m${[39m[34mrandomUUID[39m()[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m6[39m)[36m}[39m[32m@tixly.test`[39m[33m;[39m
+    [90m 57| [39m    [35mconst[39m r [33m=[39m [35mawait[39m ([33mPOST[39m [35mas[39m unknown [35mas[39m [33mH[39m)([35mnew[39m [33mRequest[39m([32m'http://localho[39m…
+[90m [2m❯[22m tests/fix-r8-price-categories.live.test.ts:[2m132:16[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-price-categories.live.test.ts[2m > [22mKolo 8 — slevové kategorie[2m > [22mpromo kód jen na kategorie / zóny; cizí kód neplatí
+[31m[1mError[22m: Cannot find module '@/app/api/checkout/seats/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-price-categories.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m buy tests/fix-r8-price-categories.live.test.ts:[2m55:22[22m[39m
+    [90m 53| [39m  [35masync[39m [35mfunction[39m [34mbuy[39m(items[33m:[39m [33mArray[39m[33m<[39m{ seatId[33m:[39m string[33m;[39m categoryId[33m:[39m string…
+    [90m 54| [39m    [35mconst[39m token [33m=[39m [35mawait[39m [34mhold[39m(items[33m.[39m[34mmap[39m((i) [33m=>[39m i[33m.[39mseatId))[33m;[39m
+    [90m 55| [39m    [35mconst[39m { [33mPOST[39m } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/app/api/checkout/seats/route'[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m 56| [39m    [35mconst[39m email [33m=[39m [32m`kat-[39m[36m${[39m[34mrandomUUID[39m()[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m6[39m)[36m}[39m[32m@tixly.test`[39m[33m;[39m
+    [90m 57| [39m    [35mconst[39m r [33m=[39m [35mawait[39m ([33mPOST[39m [35mas[39m unknown [35mas[39m [33mH[39m)([35mnew[39m [33mRequest[39m([32m'http://localho[39m…
+[90m [2m❯[22m tests/fix-r8-price-categories.live.test.ts:[2m144:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-price-categories.live.test.ts[2m > [22mKolo 8 — slevové kategorie[2m > [22mnákup míst s kategoriemi: cena na serveru, promo −10 % jen na plné, vstupenky, e-mail, PDF a skener
+[31m[1mError[22m: Cannot find module '@/app/api/checkout/seats/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-price-categories.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m buy tests/fix-r8-price-categories.live.test.ts:[2m55:22[22m[39m
+    [90m 53| [39m  [35masync[39m [35mfunction[39m [34mbuy[39m(items[33m:[39m [33mArray[39m[33m<[39m{ seatId[33m:[39m string[33m;[39m categoryId[33m:[39m string…
+    [90m 54| [39m    [35mconst[39m token [33m=[39m [35mawait[39m [34mhold[39m(items[33m.[39m[34mmap[39m((i) [33m=>[39m i[33m.[39mseatId))[33m;[39m
+    [90m 55| [39m    [35mconst[39m { [33mPOST[39m } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/app/api/checkout/seats/route'[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m 56| [39m    [35mconst[39m email [33m=[39m [32m`kat-[39m[36m${[39m[34mrandomUUID[39m()[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m6[39m)[36m}[39m[32m@tixly.test`[39m[33m;[39m
+    [90m 57| [39m    [35mconst[39m r [33m=[39m [35mawait[39m ([33mPOST[39m [35mas[39m unknown [35mas[39m [33mH[39m)([35mnew[39m [33mRequest[39m([32m'http://localho[39m…
+[90m [2m❯[22m tests/fix-r8-price-categories.live.test.ts:[2m160:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (5)[39m
+[2m   Start at [22m 10:56:54
+[2m   Duration [22m 1.59s[2m (transform 219ms, setup 1ms, collect 106ms, tests 1.14s, environment 0ms, prepare 71ms)[22m
+

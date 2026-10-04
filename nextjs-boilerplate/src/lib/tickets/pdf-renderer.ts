@@ -42,6 +42,9 @@ export interface TicketPdfData {
   seatLabel?: string | null;
   /** Bezbariérový vstup — zobrazí se jen u sedadel s accessibility=true */
   accessibleGateInfo?: string | null;
+  /** Kolo 8: slevová kategorie (Senior, ZTP/P…) a nárok, který se u vstupu prokazuje */
+  categoryName?: string | null;
+  proofLabel?: string | null;
 }
 
 export interface PdfHeader {
@@ -125,6 +128,12 @@ export async function renderTicketsPdf(
     // Ticket type + seat
     doc.fontSize(10).fillColor('#666').text('Typ vstupenky');
     doc.fontSize(14).fillColor('#111').text(t.ticketTypeName);
+    if (t.categoryName) {
+      doc.fontSize(12).fillColor('#111').text(`Kategorie: ${t.categoryName}`);
+    }
+    if (t.proofLabel) {
+      doc.fontSize(11).fillColor('#b45309').text(`Při vstupu předložte průkaz: ${t.proofLabel}`);
+    }
     if (t.seatLabel) {
       doc.fontSize(11).fillColor('#444').text(`Sedadlo: ${t.seatLabel}`);
     }

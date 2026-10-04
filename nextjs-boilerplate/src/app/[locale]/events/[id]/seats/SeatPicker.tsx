@@ -65,6 +65,14 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [bestCount, setBestCount] = useState(2);
+  // Kolo 8 / krok 4: termín se slevovými kategoriemi = místa z více zón v jedné objednávce, kategorie u každého místa
+  const [hasCategories, setHasCategories] = useState(false);
+  useEffect(() => {
+    fetch(`/api/public/events/${eventId}/seat-prices`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: { categories?: unknown[] } | null) => setHasCategories((j?.categories?.length ?? 0) > 0))
+      .catch(() => setHasCategories(false));
+  }, [eventId]);
   // Click&View (DACH P2-6): mapa sectorName → photoUrl pro buyer preview.
   const [sectorPhotos, setSectorPhotos] = useState<Record<string, ViewPhoto>>({});
   const [previewSeat, setPreviewSeat] = useState<{
@@ -183,7 +191,7 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
       return;
     }
     // Mix-typ: zakážeme, pokud už je něco vybráno
-    if (!ticketTypeId && selectedTtId && seat.ttId !== selectedTtId) {
+    if (!hasCategories && !ticketTypeId && selectedTtId && seat.ttId !== selectedTtId) {
       setError('Mixovat typy v jedné objednávce nelze. Zruš výběr a začni znovu.');
       return;
     }
@@ -248,6 +256,11 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
         // Reload state
         const reload = await fetch(`/api/events/${eventId}/seats`);
         if (reload.ok) setData((await reload.json()) as Data);
+        return;
+      }
+      if (hasCategories) {
+        const q = new URLSearchParams({ token: j.holdToken, seats: seatIds.join(',') });
+        window.location.href = `/${locale}/events/${eventId}/seats/kategorie?${q.toString()}`;
         return;
       }
       const ttId = selectedTtId;
