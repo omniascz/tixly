@@ -64,6 +64,12 @@ interface TicketRow {
   seat_sector: string | null;
   seat_row: string | null;
   seat_number: string | null;
+  // Kolo 9: termín, na který vstupenka platí (hláška „jiný termín")
+  production_title: string | null;
+  term_date: string | null;
+  term_time: string | null;
+  venue_city: string | null;
+  venue_name: string | null;
 }
 
 interface AccessRow {
@@ -116,13 +122,19 @@ export async function POST(req: NextRequest): Promise<Response> {
               u.email AS buyer_email,
               u.name AS buyer_name,
               t.holder_name, t.price_category_name, t.proof_required_label,
-              es.sector AS seat_sector, es.row AS seat_row, es.seat_number
+              es.sector AS seat_sector, es.row AS seat_row, es.seat_number,
+              COALESCE(p.title, e.title) AS production_title,
+              to_char(e.date_start AT TIME ZONE 'Europe/Prague', 'FMDD. FMMM. YYYY') AS term_date,
+              to_char(e.date_start AT TIME ZONE 'Europe/Prague', 'HH24:MI') AS term_time,
+              v.city AS venue_city, v.name AS venue_name
        FROM tickets.tickets t
        JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
        JOIN orders.orders o ON o.id = t.order_id
        JOIN catalog.events e ON e.id = o.event_id
        JOIN identity.users u ON u.id = t.owner_id
        LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
+       LEFT JOIN catalog.productions p ON p.id = e.production_id
+       LEFT JOIN catalog.venues v ON v.id = e.venue_id
        WHERE t.id = $1
        FOR UPDATE OF t`,
       [ticketId],
@@ -165,7 +177,14 @@ export async function POST(req: NextRequest): Promise<Response> {
         {
           result: 'wrong_event',
           ticket: shortTicketInfo(t),
-          message: `Lístek je na jinou akci (${t.event_title}).`,
+          // Kolo 9: u turné stejné inscenace nestačí název — datum, čas a město termínu, na který vstupenka platí
+          message: `Lístek platí na jiný termín: ${[
+            `${t.production_title ?? t.event_title}${t.term_date ? ` — ${t.term_date} ${t.term_time ?? ''}`.trimEnd() : ''}`,
+            t.venue_city ? `${t.venue_city}${t.venue_name ? ` (${t.venue_name})` : ''}` : null,
+          ].filter(Boolean).join(', ')}.`,
+          validFor: {
+            title: t.production_title ?? t.event_title, date: t.term_date, time: t.term_time, city: t.venue_city, venue: t.venue_name,
+          },
         },
         { status: 409 },
       );

@@ -1,0 +1,34 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r9-scanner-wrong-term.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 350[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r9-scanner-wrong-term.live.test.ts[2m > [22mKolo 9 — skener: jiný termín[2m > [22mhláška obsahuje inscenaci, datum, čas a město termínu, na který vstupenka platí[39m
+[31m     → expected 'Lístek je na jinou akci (Racek).' to be 'Lístek platí na jiný termín: Racek — …' // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r9-scanner-wrong-term.live.test.ts[2m > [22mKolo 9 — skener: jiný termín[2m > [22mhláška obsahuje inscenaci, datum, čas a město termínu, na který vstupenka platí
+[31m[1mAssertionError[22m: expected 'Lístek je na jinou akci (Racek).' to be 'Lístek platí na jiný termín: Racek — …' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Lístek platí na jiný termín: Racek — 29. 10. 2027 19:30, Ostrava (Komorní scéna).[39m
+[31m+ Lístek je na jinou akci (Racek).[39m
+
+[36m [2m❯[22m tests/fix-r9-scanner-wrong-term.live.test.ts:[2m52:23[22m[39m
+    [90m 50| [39m    [34mexpect[39m(r[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m409[39m)[33m;[39m
+    [90m 51| [39m    [34mexpect[39m(j[33m.[39mresult)[33m.[39m[34mtoBe[39m([32m'wrong_event'[39m)[33m;[39m
+    [90m 52| [39m    [34mexpect[39m(j[33m.[39mmessage)[33m.[39m[34mtoBe[39m([32m'Lístek platí na jiný termín: Racek — 29. 1[39m…
+    [90m   | [39m                      [31m^[39m
+    [90m 53| [39m    [34mexpect[39m(j[33m.[39mvalidFor)[33m.[39m[34mtoEqual[39m({ title[33m:[39m [32m'Racek'[39m[33m,[39m date[33m:[39m [32m'29. 10. 2027'[39m[33m,[39m…
+    [90m 54| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 15:45:32
+[2m   Duration [22m 944ms[2m (transform 126ms, setup 0ms, collect 93ms, tests 350ms, environment 0ms, prepare 77ms)[22m
+
