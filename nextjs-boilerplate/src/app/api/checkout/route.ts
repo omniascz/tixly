@@ -2491,6 +2491,16 @@ export async function POST(req: NextRequest): Promise<Response> {
         [orderId, paymentSession.paymentId],
       );
     }
+    // Kolo 7: INSERT zapsal do payment_provider zvolenou METODU kupce (výchozí 'gopay'), ne bránu,
+    // kterou provider skutečně použil (PAYMENT_PROVIDER=comgate, EUR → Stripe). Refund se řídí
+    // payment_provider → ComGate platba by se vracela přes GoPay s cizím ID. Mock brány beze změny.
+    const REAL_GATEWAYS = ['comgate', 'stripe', 'mollie', 'paypal', 'przelewy24'];
+    if (REAL_GATEWAYS.includes(paymentSession.provider) && paymentSession.provider !== input.paymentMethod) {
+      await db().query(
+        `UPDATE orders.orders SET payment_provider = $2, updated_at = NOW() WHERE id = $1`,
+        [orderId, paymentSession.provider],
+      );
+    }
 
     return NextResponse.json({
       orderId,

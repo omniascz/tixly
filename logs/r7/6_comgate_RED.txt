@@ -1,0 +1,118 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r7-comgate-api.live.test.ts[2m > [22m[2mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22m[2mplatba → zaplacení → webhook (JSON, v2.0) → vstupenka; refund → refunded u brány i v DB[22m[39m
+[checkout-demo] Error: ComGate createPayment HTTP 404: {"code":1400,"message":"Unknown endpoint POST /v2.0/payment"}
+    at Module.createComGateSession [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\payment\comgate.ts:113:11[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at createPayment [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\payment\provider.ts:213:23[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\checkout\route.ts:2474:24
+    at paidOrder [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r7-comgate-api.live.test.ts:81:16[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r7-comgate-api.live.test.ts:112:15
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m
+
+[90mstderr[2m | tests/fix-r7-comgate-api.live.test.ts[2m > [22m[2mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22m[2mwebhook ve formátu formuláře (v1.0) se přijme taky; špatné tajemství 401[22m[39m
+[checkout-demo] Error: ComGate createPayment HTTP 404: {"code":1400,"message":"Unknown endpoint POST /v2.0/payment"}
+    at Module.createComGateSession [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\payment\comgate.ts:113:11[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at createPayment [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\payment\provider.ts:213:23[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\checkout\route.ts:2474:24
+    at paidOrder [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r7-comgate-api.live.test.ts:81:16[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r7-comgate-api.live.test.ts:123:5
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m
+
+[90mstderr[2m | tests/fix-r7-comgate-api.live.test.ts[2m > [22m[2mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22m[2mrefund při chybě brány → refund_failed, vstupenka platná; timeout brány → refund_failed do pár sekund[22m[39m
+[checkout-demo] Error: ComGate createPayment HTTP 404: {"code":1400,"message":"Unknown endpoint POST /v2.0/payment"}
+    at Module.createComGateSession [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\payment\comgate.ts:113:11[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at createPayment [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\payment\provider.ts:213:23[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\checkout\route.ts:2474:24
+    at paidOrder [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r7-comgate-api.live.test.ts:81:16[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r7-comgate-api.live.test.ts:130:15
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m
+
+ [33m❯[39m tests/fix-r7-comgate-api.live.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[33m 955[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r7-comgate-api.live.test.ts[2m > [22mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22mplatba → zaplacení → webhook (JSON, v2.0) → vstupenka; refund → refunded u brány i v DB[39m
+[31m     → {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r7-comgate-api.live.test.ts[2m > [22mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22mwebhook ve formátu formuláře (v1.0) se přijme taky; špatné tajemství 401[39m
+[31m     → {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r7-comgate-api.live.test.ts[2m > [22mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22mrefund při chybě brány → refund_failed, vstupenka platná; timeout brány → refund_failed do pár sekund[39m
+[31m     → {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-comgate-api.live.test.ts[2m > [22mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22mplatba → zaplacení → webhook (JSON, v2.0) → vstupenka; refund → refunded u brány i v DB
+[31m[1mAssertionError[22m: {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m paidOrder tests/fix-r7-comgate-api.live.test.ts:[2m86:43[22m[39m
+    [90m 84| [39m    }[33m,[39m { [32m'x-forwarded-for'[39m[33m:[39m [32m`198.51.101.[39m[36m${[39m[33mMath[39m[33m.[39m[34mfloor[39m([33mMath[39m[33m.[39m[34mrandom[39m() [33m*[39m [34m2[39m…
+    [90m 85| [39m    [35mconst[39m cj [33m=[39m ([35mawait[39m co[33m.[39m[34mjson[39m()) [35mas[39m { orderId[33m:[39m string[33m;[39m paymentId[33m:[39m stri…
+    [90m 86| [39m    [34mexpect[39m(co[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(cj))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                          [31m^[39m
+    [90m 87| [39m    [34mexpect[39m(cj[33m.[39mprovider)[33m.[39m[34mtoBe[39m([32m'comgate'[39m)[33m;[39m
+    [90m 88| [39m    [35mconst[39m pay [33m=[39m cg[33m.[39mpayments[33m.[39m[35mget[39m(cj[33m.[39mpaymentId)[33m;[39m
+[90m [2m❯[22m tests/fix-r7-comgate-api.live.test.ts:[2m112:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-comgate-api.live.test.ts[2m > [22mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22mwebhook ve formátu formuláře (v1.0) se přijme taky; špatné tajemství 401
+[31m[1mAssertionError[22m: {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m paidOrder tests/fix-r7-comgate-api.live.test.ts:[2m86:43[22m[39m
+    [90m 84| [39m    }[33m,[39m { [32m'x-forwarded-for'[39m[33m:[39m [32m`198.51.101.[39m[36m${[39m[33mMath[39m[33m.[39m[34mfloor[39m([33mMath[39m[33m.[39m[34mrandom[39m() [33m*[39m [34m2[39m…
+    [90m 85| [39m    [35mconst[39m cj [33m=[39m ([35mawait[39m co[33m.[39m[34mjson[39m()) [35mas[39m { orderId[33m:[39m string[33m;[39m paymentId[33m:[39m stri…
+    [90m 86| [39m    [34mexpect[39m(co[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(cj))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                          [31m^[39m
+    [90m 87| [39m    [34mexpect[39m(cj[33m.[39mprovider)[33m.[39m[34mtoBe[39m([32m'comgate'[39m)[33m;[39m
+    [90m 88| [39m    [35mconst[39m pay [33m=[39m cg[33m.[39mpayments[33m.[39m[35mget[39m(cj[33m.[39mpaymentId)[33m;[39m
+[90m [2m❯[22m tests/fix-r7-comgate-api.live.test.ts:[2m123:5[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-comgate-api.live.test.ts[2m > [22mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22mrefund při chybě brány → refund_failed, vstupenka platná; timeout brány → refund_failed do pár sekund
+[31m[1mAssertionError[22m: {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m paidOrder tests/fix-r7-comgate-api.live.test.ts:[2m86:43[22m[39m
+    [90m 84| [39m    }[33m,[39m { [32m'x-forwarded-for'[39m[33m:[39m [32m`198.51.101.[39m[36m${[39m[33mMath[39m[33m.[39m[34mfloor[39m([33mMath[39m[33m.[39m[34mrandom[39m() [33m*[39m [34m2[39m…
+    [90m 85| [39m    [35mconst[39m cj [33m=[39m ([35mawait[39m co[33m.[39m[34mjson[39m()) [35mas[39m { orderId[33m:[39m string[33m;[39m paymentId[33m:[39m stri…
+    [90m 86| [39m    [34mexpect[39m(co[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(cj))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                          [31m^[39m
+    [90m 87| [39m    [34mexpect[39m(cj[33m.[39mprovider)[33m.[39m[34mtoBe[39m([32m'comgate'[39m)[33m;[39m
+    [90m 88| [39m    [35mconst[39m pay [33m=[39m cg[33m.[39mpayments[33m.[39m[35mget[39m(cj[33m.[39mpaymentId)[33m;[39m
+[90m [2m❯[22m tests/fix-r7-comgate-api.live.test.ts:[2m130:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[90m (3)[39m
+[2m   Start at [22m 04:07:28
+[2m   Duration [22m 1.35s[2m (transform 232ms, setup 0ms, collect 86ms, tests 955ms, environment 0ms, prepare 76ms)[22m
+
