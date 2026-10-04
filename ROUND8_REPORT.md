@@ -67,4 +67,6 @@ Vizuální kontrola screenshotů proběhla. Odhalila a opravila: malý plánek n
 
 ## 5. PR a poslední commit
 
-__PR__
+- PR: https://github.com/omniascz/tixly/pull/4 (do `integrate/2026-10-04`)
+- CI na `1423f6e8` (poslední commit s kódem a závěrečnou sadou): CI ✅, Schema Drift Guard ✅, RLS Gate ✅.
+- Tento commit doplňuje jen tuto sekci reportu.
