@@ -41,6 +41,8 @@ export default function PosPage() {
   const [ticketTypeId, setTicketTypeId] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
+  // Kolo 8 / krok 3: prodej z pojmenované blokace (místa vybraná z jedné blokace)
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [buyerName, setBuyerName] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card_terminal'>('cash');
   const [error, setError] = useState<string | null>(null);
@@ -90,6 +92,7 @@ export default function PosPage() {
           buyerName: buyerName.trim() || undefined,
           paymentMethod,
           ...(isSeated && selectedSeatIds.length > 0 ? { seatIds: selectedSeatIds } : {}),
+          ...(isSeated && selectedBlockId ? { blockId: selectedBlockId } : {}),
         }),
       });
       const data = await res.json();
@@ -102,6 +105,7 @@ export default function PosPage() {
       setBuyerName('');
       setQuantity(1);
       setSelectedSeatIds([]);
+      setSelectedBlockId(null);
       // ticketTypeId / eventId zůstává — typicky 1 představení po sobě
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Síťová chyba');
@@ -165,6 +169,7 @@ export default function PosPage() {
                     onChange={(e) => {
                       setTicketTypeId(e.target.value);
                       setSelectedSeatIds([]);
+                      setSelectedBlockId(null);
                     }}
                     required
                     className="w-full rounded-md border bg-background px-3 py-2 text-sm"
@@ -186,7 +191,7 @@ export default function PosPage() {
                     eventId={eventId}
                     ticketTypeId={ticketTypeId}
                     selected={selectedSeatIds}
-                    onChange={setSelectedSeatIds}
+                    onChange={(ids, blockId) => { setSelectedSeatIds(ids); setSelectedBlockId(blockId); }}
                     max={20}
                   />
                 </div>
