@@ -21,6 +21,10 @@
 //   POST /_ctl/:id/refundmode  {"mode":"ok|error|timeout"} nastaví chování refundu
 //   GET  /_ctl/payments                                    seznam plateb
 //   GET  /_ctl/log                                         seznam volání (i refundů)
+//
+// Kolo 8 (E2E scénář turné): platební stránka simulátoru pro prohlížeč —
+//   GET  /gw/:id      stránka „Zaplatit / Zrušit" (gw_url)
+//   POST /gw/:id/pay  PAID → zavolá notification_url?id= (jako GoPay) → přesměruje na return_url?id=
 import http from 'node:http';
 import { appendFileSync } from 'node:fs';
 
@@ -43,6 +47,32 @@ http.createServer(async (req, res) => {
   if (!url.pathname.startsWith('/_ctl')) { calls.push(entry); if (LOG) appendFileSync(LOG, JSON.stringify(entry) + '\n'); }
   let m;
 
+  // Kolo 8: platební stránka simulátoru (gw_url) — kupec v prohlížeči klikne Zaplatit
+  if ((m = url.pathname.match(/^\/gw\/(\d+)$/)) && req.method === 'GET') {
+    const p = payments.get(m[1]);
+    if (!p) { res.writeHead(404); return res.end('neznámá platba'); }
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    return res.end(`<!doctype html><html lang="cs"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>GoPay simulátor</title></head>
+<body style="font-family:system-ui;max-width:420px;margin:40px auto;padding:0 16px">
+<h1 style="font-size:20px">GoPay — simulátor (test)</h1><p>Platba č. ${p.id}</p>
+<p style="font-size:28px;font-weight:700" data-testid="gw-amount">${(p.amount / 100).toLocaleString('cs-CZ')} ${p.currency}</p>
+<form method="post" action="/gw/${p.id}/pay"><button style="width:100%;padding:14px;font-size:18px;background:#0a7d2c;color:#fff;border:0;border-radius:8px" data-testid="gw-pay">Zaplatit</button></form>
+</body></html>`);
+  }
+  if ((m = url.pathname.match(/^\/gw\/(\d+)\/pay$/)) && req.method === 'POST') {
+    const p = payments.get(m[1]);
+    if (!p) { res.writeHead(404); return res.end(); }
+    p.state = 'PAID';
+    if (p.notification_url) {
+      const n = new URL(p.notification_url); n.searchParams.set('id', String(p.id));
+      await fetch(n.href).catch(() => undefined);
+    }
+    const back = p.return_url ? new URL(p.return_url) : null;
+    if (back) back.searchParams.set('id', String(p.id));
+    res.writeHead(302, { location: back ? back.href : '/' });
+    return res.end();
+  }
+
   // Kolo 7: scope podle doc.gopay.com — token `payment-create` smí jen zakládat platby,
   // dotaz na stav a refund vyžadují `payment-all` (jinak 403, jako skutečná brána).
   if (req.method === 'POST' && url.pathname === '/api/oauth2/token') {
@@ -63,7 +93,7 @@ http.createServer(async (req, res) => {
   if (req.method === 'POST' && url.pathname === '/api/payments/payment') {
     const p = JSON.parse(body || '{}');
     const id = String(++seq);
-    payments.set(id, { id, state: 'CREATED', amount: p.amount, currency: p.currency, order_number: p.order_number, notification_url: p.callback?.notification_url, refunds: [], refundMode: 'ok' });
+    payments.set(id, { id, state: 'CREATED', amount: p.amount, currency: p.currency, order_number: p.order_number, notification_url: p.callback?.notification_url, return_url: p.callback?.return_url, refunds: [], refundMode: 'ok' });
     return send(res, 200, { id: Number(id), gw_url: `http://localhost:${PORT}/gw/${id}`, state: 'CREATED' });
   }
 

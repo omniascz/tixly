@@ -121,12 +121,15 @@ export async function GET(
     sector: string | null;
     row: string | null;
     seat_number: string | null;
+    price_category_name: string | null;
+    proof_required_label: string | null;
   }>(
     `SELECT t.id AS ticket_id, oi.unit_price,
-            es.sector, es.row, es.seat_number
+            es.sector, es.row, es.seat_number, t.price_category_name, t.proof_required_label
      FROM tickets.tickets t
-     JOIN orders.order_items oi
-       ON oi.order_id = t.order_id AND oi.ticket_type_id = t.ticket_type_id
+     -- Kolo 8: u nákupu míst je víc položek téhož typu (kategorie) → položka podle místa vstupenky
+       JOIN LATERAL (SELECT * FROM orders.order_items x WHERE x.order_id = t.order_id AND x.ticket_type_id = t.ticket_type_id
+         ORDER BY (x.seat_id IS NOT DISTINCT FROM t.event_seat_id) DESC, x.id LIMIT 1) oi ON true
      LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
      WHERE t.order_id = $1`,
     [params.orderId],
@@ -139,6 +142,8 @@ export async function GET(
         seat: r2.sector
           ? `${r2.sector} · řada ${r2.row ?? '?'} · sedadlo ${r2.seat_number ?? '?'}`
           : null,
+        categoryName: r2.price_category_name,
+        proofLabel: r2.proof_required_label,
       },
     ]),
   );
@@ -198,6 +203,8 @@ export async function GET(
         unitPriceHalire: meta?.price,
         seatLabel: meta?.seat ?? null,
         accessibleGateInfo: null,
+        categoryName: meta?.categoryName ?? null,
+        proofLabel: meta?.proofLabel ?? null,
       };
     }),
   );

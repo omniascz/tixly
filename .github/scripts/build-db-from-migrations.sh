@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Postaví databázi Tixly OD NULY z migrací (000_baseline + globals + 4xx) — pro CI service
+# Postaví databázi Tixly OD NULY z migrací (000_baseline + globals + 4xx–9xx; kolo 8: dřív jen 4xx → 500+ by se nespustily) — pro CI service
 # kontejner i lokální ověření. Žádné spojení na produkci; zdroj pravdy = soubory v migrations/.
 #
 # Použití:  .github/scripts/build-db-from-migrations.sh <admin_url> <dbname> [app_password]
@@ -42,7 +42,7 @@ apply() {
 apply "$tmp/000_baseline.sql" 000_baseline_20260730.sql
 apply "$MIG/000_baseline_globals.sql" 000_baseline_globals.sql
 # glob se v bash řadí podle locale; LC_ALL=C pro jistotu stejného pořadí jako `sort`
-for f in "$MIG"/4[0-9][0-9]_*.sql; do
+for f in "$MIG"/[4-9][0-9][0-9]_*.sql; do
   apply "$f" "$(basename "$f")"
 done
 

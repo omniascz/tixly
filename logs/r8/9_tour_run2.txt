@@ -1,0 +1,58 @@
+
+Running 10 tests using 1 worker
+
+  x   1 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:178:5 › 1 — inscenace a dva sály ve dvou městech v editoru (generátor / obkreslení podkladu) (4.2m)
+  -   2 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:290:5 › 2 — dva termíny inscenace + třetí termín jiné inscenace
+  -   3 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:337:5 › 3 — blokace Firma XY (20), Tisk (4), Technika (2)
+  -   4 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:366:5 › 4 — kategorie plné, senior, student, ZTP/P + doprovod; promo −10 % jen na plné
+  -   5 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:408:5 › 5 — online nákup s výběrem místa a kategorie přes simulátor GoPay (390 px), e-mail, PDF
+  -   6 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:470:5 › 6 — rezervace → vyzvednutí a platba na pokladně; druhá rezervace → propadnutí → místa zpět
+  -   7 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:521:5 › 7 — Firma XY 15 míst na fakturu → zaplaceno → vstupenky; 5 míst uvolnit; Tisk 4× volná na jméno
+  -   8 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:571:5 › 8 — vstupní kontrola: běžná, ZTP/P (ověřit průkaz), jiný termín (odmítnuto), již použitá
+  -   9 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:600:5 › 9 — zrušení termínu → refundy, dobropisy, e-maily
+  -  10 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:621:5 › 10 — reporty a seznam pro uvaděče sedí s daty
+
+
+  1) [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:178:5 › 1 — inscenace a dva sály ve dvou městech v editoru (generátor / obkreslení podkladu) 
+
+    [31mTest timeout of 240000ms exceeded.[39m
+
+    Error: locator.waitFor: Test timeout of 240000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('[data-testid="place-card"]').filter({ hasText: 'Městské divadlo Brno' }).getByText('Velký sál') to be visible[22m
+    [2m    - waiting for" http://localhost:3200/admin/venues/983179e6-512e-49ae-87f0-c943d926d880/seating-chart/editor" navigation to finish...[22m
+    [2m    - navigated to "http://localhost:3200/admin/venues/983179e6-512e-49ae-87f0-c943d926d880/seating-chart/editor"[22m
+
+
+      211 |     await card.getByTestId('hall-name').fill(hall);
+      212 |     await card.getByTestId('hall-add').click();
+    > 213 |     await card.getByText(hall).waitFor();
+          |                                ^
+      214 |   }
+      215 |   await shot(page, '01b-knihovna-mist');
+      216 |   for (const [hall] of [['Velký sál'], ['Komorní scéna']]) {
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r8-theatre-tour.spec.ts:213:32
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-e9177-erátor-obkreslení-podkladu--golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-e9177-erátor-obkreslení-podkladu--golden-path\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r8-theatre-tou-e9177-erátor-obkreslení-podkladu--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r8-theatre-tou-e9177-erátor-obkreslení-podkladu--golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-e9177-erátor-obkreslení-podkladu--golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r8-theatre-tou-e9177-erátor-obkreslení-podkladu--golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:178:5 › 1 — inscenace a dva sály ve dvou městech v editoru (generátor / obkreslení podkladu) 
+  9 did not run

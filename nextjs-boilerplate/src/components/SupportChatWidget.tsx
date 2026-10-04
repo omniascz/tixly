@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -10,6 +11,9 @@ interface ChatMessage {
 
 export function SupportChatWidget({ promoterId }: { promoterId?: string }) {
   const [open, setOpen] = useState(false);
+  // Kolo 8 / krok 9: na mobilu bublina zakrývala přilepenou lištu nákupu (výběr míst, kategorie, pokladna)
+  const pathname = usePathname() ?? '';
+  const overPurchaseBar = /\/events\/[^/]+\/seats|\/checkout/.test(pathname);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
@@ -62,7 +66,7 @@ export function SupportChatWidget({ promoterId }: { promoterId?: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-3xl text-primary-foreground shadow-lg transition hover:scale-105"
+        className={`fixed ${overPurchaseBar ? 'bottom-52 sm:bottom-6' : 'bottom-6'} right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-3xl text-primary-foreground shadow-lg transition hover:scale-105`}
         aria-label="Otevřít chat support"
       >
         💬

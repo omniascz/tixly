@@ -22,6 +22,8 @@ import { z } from 'zod';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 import { db } from '@/lib/db/rls-pool';
 import { saleBlockedResponse } from '@/lib/sales/cutoff';
+import { BlockError, consumeBlockSeats, lockSeatsForBlockSale } from '@/lib/theatre/blocks';
+import { orderLines, recordBoxOfficePayment } from '@/lib/theatre/box-office';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 
 
@@ -32,6 +34,8 @@ const inputSchema = z.object({
   buyerName: z.string().min(1).max(120).optional(),
   paymentMethod: z.enum(['cash', 'card_terminal']).default('cash'),
   seatIds: z.array(z.string().uuid()).min(1).max(20).optional(),
+  /** Kolo 8 / krok 3: prodej míst z pojmenované blokace (jen místa této blokace). */
+  blockId: z.string().uuid().optional(),
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
@@ -97,7 +101,9 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'TICKET_TYPE_NOT_FOUND' }, { status: 404 });
     }
-    if (tt.remaining_qty < input.quantity) {
+    // Místa blokace už kapacitu snížila při blokování → u prodeje z blokace se nekontroluje ani neodečítá.
+    const fromBlock = !!input.blockId && !!input.seatIds && input.seatIds.length > 0;
+    if (!fromBlock && tt.remaining_qty < input.quantity) {
       await client.query('ROLLBACK');
       return NextResponse.json(
         { error: 'OUT_OF_STOCK', remaining: tt.remaining_qty },
@@ -117,25 +123,34 @@ export async function POST(req: NextRequest): Promise<Response> {
             { status: 422 },
           );
         }
-        const seatsRes = await client.query<{
-          id: string;
-          status: string;
-          ticket_type_id: string;
-        }>(
-          `SELECT id, status, ticket_type_id
-           FROM catalog.event_seats
-           WHERE id = ANY($1::uuid[])
-             AND event_id = $2
-           FOR UPDATE`,
-          [input.seatIds, input.eventId],
-        );
+        let seatsRes: { rows: Array<{ id: string; status: string; ticket_type_id: string | null }> };
+        if (fromBlock) {
+          try {
+            seatsRes = { rows: await lockSeatsForBlockSale(client, promoter, input.eventId, input.blockId!, input.seatIds) };
+          } catch (e) {
+            await client.query('ROLLBACK');
+            if (e instanceof BlockError) return NextResponse.json({ error: e.code, message: e.message }, { status: 422 });
+            throw e;
+          }
+        } else {
+          seatsRes = await client.query<{ id: string; status: string; ticket_type_id: string }>(
+            `SELECT id, status, ticket_type_id
+             FROM catalog.event_seats
+             WHERE id = ANY($1::uuid[])
+               AND event_id = $2
+             FOR UPDATE`,
+            [input.seatIds, input.eventId],
+          );
+        }
         if (seatsRes.rows.length !== input.seatIds.length) {
           await client.query('ROLLBACK');
           return NextResponse.json({ error: 'SEAT_NOT_FOUND' }, { status: 422 });
         }
+        // Kolo 8: mimo blokaci jen volné místo — dřív prošlo i 'held', tj. i místo z cizího košíku
+        // nebo blokované/držené pořadatelem.
         const unavailable = seatsRes.rows.filter(
           (s) =>
-            (s.status !== 'available' && !(s.status === 'held')) ||
+            (fromBlock ? s.status !== 'blocked' : s.status !== 'available') ||
             s.ticket_type_id !== input.ticketTypeId,
         );
         if (unavailable.length > 0) {
@@ -198,7 +213,7 @@ export async function POST(req: NextRequest): Promise<Response> {
          (user_id, status, total_amount, currency, paid_at,
           expires_at, event_id, payment_provider)
        VALUES ($1, 'paid', $2, $3, now(),
-               now() + interval '1 hour', $4, 'free')
+               now() + interval '1 hour', $4, 'box_office')
        RETURNING id`,
       [userId, totalAmount, ev.currency, input.eventId],
     );
@@ -223,16 +238,29 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
 
-    // 7) Decrement remaining_qty
-    await client.query(
-      `UPDATE catalog.ticket_types
-         SET remaining_qty = remaining_qty - $1
-       WHERE id = $2`,
-      [input.quantity, tt.id],
-    );
+    // 7) Decrement remaining_qty (místa z blokace kapacitu snížila už při blokování)
+    if (fromBlock) {
+      await client.query(`UPDATE catalog.event_seats SET order_id = $2, hold_kind = NULL, hold_label = NULL WHERE id = ANY($1::uuid[])`, [seatIds, orderId]);
+      await consumeBlockSeats(client, input.blockId!, seatIds, 'sold', orderId);
+    } else {
+      await client.query(
+        `UPDATE catalog.ticket_types
+           SET remaining_qty = remaining_qty - $1
+         WHERE id = $2`,
+        [input.quantity, tt.id],
+      );
+    }
 
     // 8) Vystav lístky (přes existing issuer — TOTP secret + insert do tickets.tickets)
     const issued = await issueTicketsForOrder(orderId, client);
+
+    // 9) Kolo 8 / krok 5: způsob platby do evidence pokladny (směna pokladníka, prodej cash | card). Dřív
+    //    route paymentMethod přijala, ale nikam nezapsala (objednávka s payment_provider 'free').
+    const receipt = await recordBoxOfficePayment(client, {
+      eventId: input.eventId, cashierUserId: promoter.userId, orderId,
+      paymentType: input.paymentMethod === 'card_terminal' ? 'card' : 'cash',
+      lines: await orderLines(client, orderId), receiptNumber: `POS-${orderId.slice(0, 8).toUpperCase()}`,
+    });
 
     await client.query('COMMIT');
 
@@ -242,6 +270,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       eventTitle: ev.title,
       ticketTypeName: tt.name,
       paymentMethod: input.paymentMethod,
+      boxOfficeSessionId: receipt.sessionId,
+      receiptNumber: `POS-${orderId.slice(0, 8).toUpperCase()}`,
       totalAmountHalire: totalAmount,
       buyerName: input.buyerName ?? 'Walk-in kupující',
       tickets: issued.map((t) => ({

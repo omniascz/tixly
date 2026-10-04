@@ -1,0 +1,36 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r8-price-categories.live.test.ts [2m ([22m[2m6 tests[22m [2m|[22m [31m1 failed[39m [2m|[22m [33m5 skipped[39m[2m)[22m[33m 863[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r8-price-categories.live.test.ts[2m > [22mKolo 8 — slevové kategorie[2m > [22mobjednávka za 0 Kč (kategorie zdarma) se dokončí bez brány a vystaví vstupenku[39m
+[31m     → expected [] to deeply equal [ 'Čestná' ][39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-price-categories.live.test.ts[2m > [22mKolo 8 — slevové kategorie[2m > [22mobjednávka za 0 Kč (kategorie zdarma) se dokončí bez brány a vystaví vstupenku
+[31m[1mAssertionError[22m: expected [] to deeply equal [ 'Čestná' ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   "Čestná",[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/fix-r8-price-categories.live.test.ts:[2m147:54[22m[39m
+    [90m145| [39m    [34mexpect[39m(r[33m.[39mjson[33m.[39mprovider)[33m.[39m[34mtoBe[39m([32m'free'[39m)[33m;[39m
+    [90m146| [39m    [35mconst[39m t [33m=[39m [35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT t.price_category_name FRO[39m…
+    [90m147| [39m    [34mexpect[39m(t[33m.[39mrows[33m.[39m[34mmap[39m((x) [33m=>[39m x[33m.[39mprice_category_name))[33m.[39m[34mtoEqual[39m([[32m'Čestná'[39m…
+    [90m   | [39m                                                     [31m^[39m
+    [90m148| [39m  })[33m;[39m
+    [90m149| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[33m5 skipped[39m[90m (6)[39m
+[2m   Start at [22m 11:11:13
+[2m   Duration [22m 1.30s[2m (transform 236ms, setup 0ms, collect 105ms, tests 863ms, environment 0ms, prepare 66ms)[22m
+

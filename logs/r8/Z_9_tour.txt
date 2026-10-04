@@ -1,0 +1,15 @@
+
+Running 10 tests using 1 worker
+
+  ok  1 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:209:5 › 1 — inscenace a dva sály ve dvou městech v editoru (generátor / obkreslení podkladu) (12.9s)
+  ok  2 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:333:5 › 2 — dva termíny inscenace + třetí termín jiné inscenace (4.0s)
+  ok  3 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:385:5 › 3 — blokace Firma XY (20), Tisk (4), Technika (2) (1.8s)
+  ok  4 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:414:5 › 4 — kategorie plné, senior, student, ZTP/P + doprovod; promo −10 % jen na plné (4.8s)
+  ok  5 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:456:5 › 5 — online nákup s výběrem místa a kategorie přes simulátor GoPay (390 px), e-mail, PDF (5.3s)
+  ok  6 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:518:5 › 6 — rezervace → vyzvednutí a platba na pokladně; druhá rezervace → propadnutí → místa zpět (5.8s)
+  ok  7 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:570:5 › 7 — Firma XY 15 míst na fakturu → zaplaceno → vstupenky; 5 míst uvolnit; Tisk 4× volná na jméno (7.1s)
+  ok  8 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:622:5 › 8 — vstupní kontrola: běžná, ZTP/P (ověřit průkaz), jiný termín (odmítnuto), již použitá (3.2s)
+  ok  9 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:651:5 › 9 — zrušení termínu → refundy, dobropisy, e-maily (1.2s)
+  ok 10 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:672:5 › 10 — reporty a seznam pro uvaděče sedí s daty (1.2s)
+
+  10 passed (52.7s)

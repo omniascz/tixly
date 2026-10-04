@@ -132,6 +132,7 @@ export async function POST(
       );
 
       const orders = ordersResult.rows;
+      const tokens: Array<{ email: string; name: string | null; token: string }> = [];
 
       for (const order of orders) {
         const tokenResult = await client.query<{ response_token: string }>(
@@ -142,7 +143,8 @@ export async function POST(
           [rescheduleId, order.id],
         );
         const token = tokenResult.rows[0].response_token;
-        console.log(`Reschedule notification → ${order.email}: token=${token}`);
+        // Kolo 8 / krok 7: dřív jen console.log — kupec odkaz nikdy nedostal. E-mail po COMMIT níže.
+        tokens.push({ email: order.email, name: order.name, token });
       }
 
       await client.query(
@@ -153,6 +155,26 @@ export async function POST(
       );
 
       await client.query('COMMIT');
+
+      try {
+        const { sendMail } = await import('@/lib/email/mailer');
+        const { escapeHtml } = await import('@/lib/html-escape/escape');
+        const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+        const until = new Date(responseDeadline).toLocaleString('cs-CZ', { timeZone: 'Europe/Prague' });
+        for (const t of tokens) {
+          await sendMail({
+            to: t.email,
+            subject: `Změna: ${eventCheck.rows[0].title}`,
+            html: `<!DOCTYPE html><html><body style="font-family:system-ui;max-width:600px;padding:24px">
+              <p>Dobrý den${t.name ? ` ${escapeHtml(t.name)}` : ''},</p><p>akce <strong>${escapeHtml(eventCheck.rows[0].title)}</strong> se mění.
+              Důvod: ${escapeHtml(input.reason)}</p>
+              <p>Vyberte prosím do ${escapeHtml(until)}, jak chcete pokračovat: <a href="${appUrl}/cs/reschedule/${t.token}">odpovědět</a></p>
+            </body></html>`,
+          }).catch((e: unknown) => console.error('[reschedule] mail', t.email, e));
+        }
+      } catch (mailErr) {
+        console.error('[reschedule] e-maily kupcům selhaly:', mailErr);
+      }
 
       // ForgeMsg — emit event_changed per affected attendee (after COMMIT so we
       // never notify on a rolled-back reschedule). Best-effort.

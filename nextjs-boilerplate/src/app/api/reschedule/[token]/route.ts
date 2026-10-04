@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runWithServiceContext } from '@/lib/db/rls-pool';
+import { GATEWAY_REFUND_PROVIDERS, refundOrderFully } from '@/lib/orders/refund-full-order';
 import { z } from 'zod';
 
 const postSchema = z.object({
@@ -11,7 +12,6 @@ interface ResponseInfoRow {
   response_id: string;
   reschedule_id: string;
   order_id: string;
-  user_id: string;
   response: string | null;
   responded_at: string | null;
   response_deadline: string | null;
@@ -35,7 +35,6 @@ export async function GET(
          rr.id AS response_id,
          rr.reschedule_id,
          rr.order_id,
-         rr.user_id,
          rr.response,
          rr.responded_at::text,
          er.response_deadline::text,
@@ -96,7 +95,6 @@ export async function POST(
       const lockResult = await client.query<{
         id: string;
         order_id: string;
-        user_id: string;
         response: string | null;
         response_deadline: string | null;
         offer_refund: boolean;
@@ -104,7 +102,7 @@ export async function POST(
         reschedule_id: string;
       }>(
         `SELECT
-           rr.id, rr.order_id, rr.user_id, rr.response,
+           rr.id, rr.order_id, rr.response,
            er.response_deadline::text,
            er.offer_refund,
            er.new_event_id,
@@ -158,23 +156,19 @@ export async function POST(
             [newTicketTypeId, row.order_id],
           );
 
+          // Kolo 8 / krok 7: tickets.tickets nemá event_id (42703 → přijetí nového termínu padalo);
+          // vstupenka patří termínu přes ticket_type_id.
           await client.query(
             `UPDATE tickets.tickets
-             SET event_id = $1
+             SET ticket_type_id = $1, updated_at = NOW()
              WHERE order_id = $2 AND status = 'valid'`,
-            [row.new_event_id, row.order_id],
+            [newTicketTypeId, row.order_id],
           );
         }
       }
 
-      if (response === 'refund_requested') {
-        await client.query(
-          `UPDATE orders.orders
-           SET status = 'refund_requested'
-           WHERE id = $1`,
-          [row.order_id],
-        );
-      }
+      // Kolo 8 / krok 7: dřív se tu objednávka přepnula na status 'refund_requested', který orders.orders nezná
+      // (CHECK → 500), a peníze se nevracely. Teď: po COMMIT existující cesta refundu (níže).
 
       const countColumn =
         response === 'accepted' ? 'accepted_count' : 'refund_count';
@@ -187,6 +181,22 @@ export async function POST(
       );
 
       await client.query('COMMIT');
+
+      if (response === 'refund_requested') {
+        // online platba → vrácení přes bránu (sdílená cesta s hromadným refundem); pokladna / faktura → ruční vrácení
+        const o = (await db().query<{ status: string; payment_provider: string | null }>(
+          `SELECT status, payment_provider FROM orders.orders WHERE id = $1`, [row.order_id],
+        )).rows[0];
+        let outcome: 'refunded' | 'manual' | 'failed' = 'manual';
+        if (o && GATEWAY_REFUND_PROVIDERS.includes(o.payment_provider ?? '') && ['paid', 'paid_partial'].includes(o.status)) {
+          const r = await refundOrderFully(row.order_id, {
+            actorUserId: null, kind: 'reschedule_refund', reason: 'Kupec požádal o vrácení po přesunu termínu', previousStatus: o.status,
+          }).catch(() => null);
+          outcome = r && (r.outcome === 'refunded' || r.outcome === 'already') ? 'refunded' : 'failed';
+        }
+        await db().query(`UPDATE orders.reschedule_responses SET refund_outcome = $2 WHERE id = $1`, [row.id, outcome]);
+        return NextResponse.json({ ok: true, response, refund: outcome });
+      }
 
       return NextResponse.json({ ok: true, response });
     } catch (err) {

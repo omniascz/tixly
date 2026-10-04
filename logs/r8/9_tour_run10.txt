@@ -1,0 +1,62 @@
+
+Running 10 tests using 1 worker
+
+  ok  1 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:196:5 › 1 — inscenace a dva sály ve dvou městech v editoru (generátor / obkreslení podkladu) (11.1s)
+  ok  2 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:320:5 › 2 — dva termíny inscenace + třetí termín jiné inscenace (5.4s)
+  ok  3 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:371:5 › 3 — blokace Firma XY (20), Tisk (4), Technika (2) (3.3s)
+  ok  4 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:400:5 › 4 — kategorie plné, senior, student, ZTP/P + doprovod; promo −10 % jen na plné (5.8s)
+  ok  5 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:442:5 › 5 — online nákup s výběrem místa a kategorie přes simulátor GoPay (390 px), e-mail, PDF (5.7s)
+  ok  6 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:504:5 › 6 — rezervace → vyzvednutí a platba na pokladně; druhá rezervace → propadnutí → místa zpět (7.6s)
+  x   7 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:556:5 › 7 — Firma XY 15 míst na fakturu → zaplaceno → vstupenky; 5 míst uvolnit; Tisk 4× volná na jméno (13.9s)
+  -   8 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:606:5 › 8 — vstupní kontrola: běžná, ZTP/P (ověřit průkaz), jiný termín (odmítnuto), již použitá
+  -   9 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:635:5 › 9 — zrušení termínu → refundy, dobropisy, e-maily
+  -  10 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:656:5 › 10 — reporty a seznam pro uvaděče sedí s daty
+
+
+  1) [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:556:5 › 7 — Firma XY 15 míst na fakturu → zaplaceno → vstupenky; 5 míst uvolnit; Tisk 4× volná na jméno 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByTestId('corp-msg')
+    Expected substring: [32m"faktura"[39m
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toContainText" with timeout 10000ms[22m
+    [2m  - waiting for getByTestId('corp-msg')[22m
+
+
+      571 |   await expect(page.getByText('vybráno 15')).toBeVisible();
+      572 |   await page.getByRole('button', { name: 'Vytvořit objednávku a fakturu' }).click();
+    > 573 |   await expect(page.getByTestId('corp-msg')).toContainText('faktura');
+          |                                              ^
+      574 |   await shot(page, '07a-firemni-objednavka-faktura');
+      575 |   await mail(`nakup-${RUN}@firma-xy.test`, 'Faktura');
+      576 |   await page.locator('[data-testid="corp-table"] tr', { hasText: 'Firma XY' }).getByRole('button', { name: 'Zaplaceno' }).click();
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r8-theatre-tour.spec.ts:573:46
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-004bf-lnit-Tisk-4×-volná-na-jméno-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-004bf-lnit-Tisk-4×-volná-na-jméno-golden-path\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r8-theatre-tou-004bf-lnit-Tisk-4×-volná-na-jméno-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r8-theatre-tou-004bf-lnit-Tisk-4×-volná-na-jméno-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-004bf-lnit-Tisk-4×-volná-na-jméno-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r8-theatre-tou-004bf-lnit-Tisk-4×-volná-na-jméno-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:556:5 › 7 — Firma XY 15 míst na fakturu → zaplaceno → vstupenky; 5 míst uvolnit; Tisk 4× volná na jméno 
+  3 did not run
+  6 passed (58.0s)

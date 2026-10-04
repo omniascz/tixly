@@ -71,6 +71,18 @@ interface EventDetail {
   streaming_provider: string | null;
   stream_replay_days: number;
   date_end: string | null;
+  // Kolo 8: termín inscenace — údaje karty z catalog.productions, doplňky termínu
+  production_id: string | null;
+  production_subtitle: string | null;
+  production_author: string | null;
+  production_director: string | null;
+  production_cast: Array<{ role: string; name: string }> | null;
+  production_duration_min: number | null;
+  production_intermission_min: number | null;
+  production_age_rating: string | null;
+  term_note: string | null;
+  cast_alternation: string | null;
+  venue_city: string | null;
 }
 
 interface TicketTypeRow {
@@ -105,6 +117,11 @@ async function fetchDetail(id: string) {
              e.streaming_url, e.streaming_provider, e.stream_replay_days,
              COALESCE(v.name, 'Online') AS venue_name,
              COALESCE(v.address, '') AS venue_address,
+             v.city AS venue_city,
+             e.production_id, pr.subtitle AS production_subtitle, pr.author AS production_author,
+             pr.director AS production_director, pr.cast_list AS production_cast,
+             pr.duration_min AS production_duration_min, pr.intermission_min AS production_intermission_min,
+             pr.age_rating AS production_age_rating, e.term_note, e.cast_alternation,
              e.promoter_id,
              p.name AS promoter_name,
              COALESCE(p.contact_email, p.email) AS promoter_contact_email,
@@ -116,6 +133,7 @@ async function fetchDetail(id: string) {
       FROM catalog.events e
       LEFT JOIN catalog.venues v ON v.id = e.venue_id
       LEFT JOIN platform.promoters p ON p.id = e.promoter_id
+      LEFT JOIN catalog.productions pr ON pr.id = e.production_id
       WHERE (e.id::text = $1 OR e.slug = $1)
     `,
       [id],
@@ -357,7 +375,7 @@ export default async function EventDetailPage({
           <div className="mt-2 text-muted-foreground">
             {event.event_type === 'online'
               ? 'Online přenos'
-              : event.venue_name}
+              : [event.venue_city, event.venue_name].filter(Boolean).join(' · ')}
             {event.venue_address && event.event_type !== 'online' ? ` · ${event.venue_address}` : ''}
           </div>
           <div className="mt-1 text-sm text-muted-foreground">
@@ -391,6 +409,26 @@ export default async function EventDetailPage({
             {event.streaming_provider === 'zoom' && (
               <p className="mt-1 text-xs text-blue-600">Platforma: Zoom</p>
             )}
+          </div>
+        ) : null}
+
+        {event.production_id ? (
+          <div className="space-y-2 rounded-md border p-4 text-sm" data-testid="term-production-card">
+            {event.production_subtitle ? <p className="text-base text-muted-foreground">{event.production_subtitle}</p> : null}
+            <p className="text-muted-foreground">
+              {[event.production_author ? `Autor: ${event.production_author}` : null,
+                event.production_director ? `Režie: ${event.production_director}` : null,
+                event.production_duration_min
+                  ? `Délka ${event.production_duration_min} min${event.production_intermission_min ? ` (přestávka ${event.production_intermission_min} min)` : ''}`
+                  : null,
+                event.production_age_rating ? `Přístupnost ${event.production_age_rating}` : null].filter(Boolean).join(' · ')}
+            </p>
+            {event.term_note ? <p className="font-medium" data-testid="term-note">{event.term_note}</p> : null}
+            {event.production_cast && event.production_cast.length > 0 ? (
+              <p><span className="text-muted-foreground">Hrají: </span>{event.production_cast.map((c) => (c.role ? `${c.name} (${c.role})` : c.name)).join(', ')}</p>
+            ) : null}
+            {event.cast_alternation ? <p><span className="text-muted-foreground">Alternace v tomto termínu: </span>{event.cast_alternation}</p> : null}
+            <a className="text-primary underline" href={`/${locale}/inscenace/${event.production_id}`}>Všechny termíny inscenace</a>
           </div>
         ) : null}
 

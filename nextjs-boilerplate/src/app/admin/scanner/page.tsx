@@ -72,6 +72,10 @@ type ScanResult = {
     ticketTypeName: string;
     holderEmail: string;
     holderName: string | null;
+    /** Kolo 8: místo, slevová kategorie a výzva k ověření průkazu (ZTP/P, student…). */
+    seat?: string | null;
+    category?: string | null;
+    verifyId?: string | null;
   };
 };
 
@@ -947,8 +951,14 @@ function renderResult(r: ScanResult | null) {
 function TicketDetails({ t }: { t: NonNullable<ScanResult['ticket']> }) {
   return (
     <div className="text-sm text-foreground">
+      {t.verifyId ? (
+        <div className="mb-2 rounded-md border-2 border-amber-500 bg-amber-100 px-3 py-2 text-lg font-bold uppercase tracking-wide text-amber-900" role="alert" data-testid="scan-verify-id">
+          ⚠ {t.verifyId}
+        </div>
+      ) : null}
       <div className="font-medium">{t.eventTitle}</div>
-      <div className="text-xs text-muted-foreground">{t.ticketTypeName}</div>
+      <div className="text-xs text-muted-foreground">{t.ticketTypeName}{t.category ? ` · ${t.category}` : ''}</div>
+      {t.seat ? <div className="text-sm font-semibold" data-testid="scan-seat">{t.seat}</div> : null}
       <div className="text-xs text-muted-foreground">
         {t.holderName ? `${t.holderName} · ` : ''}
         {t.holderEmail}

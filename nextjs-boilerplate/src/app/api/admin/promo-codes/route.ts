@@ -66,6 +66,10 @@ const createSchema = z.object({
   discountValue: z.number().int().min(1),
   maxUses: z.number().int().min(1).max(100_000).nullable().optional(),
   validUntil: z.string().datetime().nullable().optional(),
+  // Kolo 8 / krok 4: omezení na slevové kategorie (kódy), zóny (typy vstupenek) a termíny
+  applicableCategoryCodes: z.array(z.string().regex(/^[a-z0-9_-]{1,40}$/)).max(20).optional(),
+  applicableTicketTypeIds: z.array(z.string().uuid()).max(50).optional(),
+  applicableEventIds: z.array(z.string().uuid()).max(50).optional(),
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
@@ -97,8 +101,8 @@ export async function POST(req: NextRequest): Promise<Response> {
     const r = await db().query<{ id: string; code: string }>(
       `INSERT INTO marketing.promo_codes
          (code, type, discount_value, max_uses, valid_until,
-          created_by_organizer_id, active)
-       VALUES (UPPER($1), $2, $3, $4, $5, $6, TRUE)
+          created_by_organizer_id, active, applicable_category_codes, applicable_ticket_type_ids, applicable_event_ids)
+       VALUES (UPPER($1), $2, $3, $4, $5, $6, TRUE, $7, $8, $9)
        RETURNING id, code`,
       [
         input.code,
@@ -107,6 +111,9 @@ export async function POST(req: NextRequest): Promise<Response> {
         input.maxUses ?? null,
         input.validUntil ?? null,
         promoter.promoterId,
+        input.applicableCategoryCodes?.length ? input.applicableCategoryCodes : null,
+        input.applicableTicketTypeIds?.length ? input.applicableTicketTypeIds : null,
+        input.applicableEventIds?.length ? input.applicableEventIds : null,
       ],
     );
     return NextResponse.json(

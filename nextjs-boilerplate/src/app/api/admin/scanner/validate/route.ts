@@ -57,6 +57,13 @@ interface TicketRow {
   event_qr_policy: string;
   buyer_email: string;
   buyer_name: string | null;
+  // Kolo 8 / krok 4: místo, slevová kategorie a povinnost prokázat nárok u vstupu
+  holder_name: string | null;
+  price_category_name: string | null;
+  proof_required_label: string | null;
+  seat_sector: string | null;
+  seat_row: string | null;
+  seat_number: string | null;
 }
 
 interface AccessRow {
@@ -107,12 +114,15 @@ export async function POST(req: NextRequest): Promise<Response> {
               e.promoter_id AS event_promoter_id,
               e.qr_policy AS event_qr_policy,
               u.email AS buyer_email,
-              u.name AS buyer_name
+              u.name AS buyer_name,
+              t.holder_name, t.price_category_name, t.proof_required_label,
+              es.sector AS seat_sector, es.row AS seat_row, es.seat_number
        FROM tickets.tickets t
        JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
        JOIN orders.orders o ON o.id = t.order_id
        JOIN catalog.events e ON e.id = o.event_id
        JOIN identity.users u ON u.id = t.owner_id
+       LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
        WHERE t.id = $1
        FOR UPDATE OF t`,
       [ticketId],
@@ -446,7 +456,11 @@ function shortTicketInfo(t: TicketRow) {
     eventTitle: t.event_title,
     ticketTypeName: t.ticket_type_name,
     holderEmail: t.buyer_email,
-    holderName: t.buyer_name,
+    holderName: t.holder_name ?? t.buyer_name,
+    seat: t.seat_sector ? `${t.seat_sector}, řada ${t.seat_row}, místo ${t.seat_number}` : null,
+    category: t.price_category_name,
+    // Kolo 8: kategorie s nárokem (ZTP/P, student…) → skener výrazně „Ověřit průkaz: …"
+    verifyId: t.proof_required_label ? `Ověřit průkaz: ${t.proof_required_label}` : null,
   };
 }
 

@@ -8,25 +8,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsPromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
+import { layoutErrorMessage, layoutSchema } from '@/lib/seating/layout-schema';
 
+// Kolo 8 / krok 2: stejné schéma jako editor a platformní routa (dřív {id,label} → plánek pořadatele
+// nešel uložit); typy míst, cenové zóny, podklad, odmítnutí duplicitních míst.
 const postSchema = z.object({
   name: z.string().min(1).max(200),
-  layout: z.object({
-    sectors: z.array(z.object({
-      id: z.string(),
-      label: z.string(),
-      color: z.string().optional(),
-      rows: z.array(z.object({
-        label: z.string(),
-        seats: z.array(z.object({
-          id: z.string(),
-          x: z.number(),
-          y: z.number(),
-          label: z.string().optional(),
-        })),
-      })),
-    })),
-  }),
+  layout: layoutSchema,
   notes: z.string().max(2000).optional(),
 });
 
@@ -78,7 +66,10 @@ export async function POST(
     const body: unknown = await req.json().catch(() => ({}));
     const parsed = postSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Validation failed', issues: parsed.error.issues }, { status: 422 });
+      return NextResponse.json(
+        { error: 'Validation failed', message: layoutErrorMessage(parsed.error.issues), issues: parsed.error.issues },
+        { status: 422 },
+      );
     }
     const input = parsed.data;
 

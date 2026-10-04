@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsActivePromoter } from '@/lib/admin-auth';
-import { z } from 'zod';
+import {
+  cardColumns,
+  PRODUCTION_COLUMNS,
+  productionCardSchema,
+  toProductionCard,
+  type ProductionRow as CardRow,
+} from '@/lib/theatre/production-card';
 
 interface ProductionRow {
   id: string;
@@ -28,10 +34,8 @@ export async function GET(req: NextRequest): Promise<Response> {
   });
 }
 
-const postSchema = z.object({
-  title: z.string().min(1).max(200),
-  slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/).optional(),
-});
+// Kolo 8: celá karta inscenace (lib/theatre/production-card.ts).
+const postSchema = productionCardSchema;
 
 export async function POST(req: NextRequest): Promise<Response> {
   return runAsActivePromoter(req, async (promoter) => {
@@ -44,17 +48,21 @@ export async function POST(req: NextRequest): Promise<Response> {
     const slug = parsed.data.slug
       ?? parsed.data.title
           .toLowerCase()
+          .normalize('NFD').replace(/\p{Diacritic}/gu, '')
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/^-|-$/g, '')
           .slice(0, 100);
 
-    const r = await db().query<{ id: string; title: string; slug: string; created_at: string }>(
-      `INSERT INTO catalog.productions (promoter_id, title, slug, created_at)
-       VALUES ($1, $2, $3, NOW())
-       RETURNING id, title, slug, created_at::text`,
-      [promoter.promoterId, parsed.data.title, slug],
+    const cols = cardColumns({ ...parsed.data, title: undefined });
+    const names = ['promoter_id', 'title', 'slug', ...cols.map(([c]) => c)];
+    const values = [promoter.promoterId, parsed.data.title, slug, ...cols.map(([, v]) => v)];
+    const r = await db().query<CardRow>(
+      `INSERT INTO catalog.productions AS p (${names.join(', ')}, created_at)
+       VALUES (${values.map((_, i) => `$${i + 1}`).join(', ')}, NOW())
+       RETURNING ${PRODUCTION_COLUMNS}`,
+      values,
     );
 
-    return NextResponse.json({ production: r.rows[0] }, { status: 201 });
+    return NextResponse.json({ production: toProductionCard(r.rows[0]) }, { status: 201 });
   });
 }

@@ -1,0 +1,215 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mzrušení: online vráceno přes bránu + dobropis, rozpracované nákupy a rezervace zrušené, vstupenky neplatné, e-maily, ruční seznam[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410[22m[39m
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410[22m[39m
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410[22m[39m
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [33m❯[39m tests/fix-r8-term-cancel-postpone.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [31m4 failed[39m[2m)[22m[33m 5529[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22mKolo 8 — zrušení a přesun termínu[2m > [22mzrušení: online vráceno přes bránu + dobropis, rozpracované nákupy a rezervace zrušené, vstupenky neplatné, e-maily, ruční seznam[39m
+[31m     → Cannot find module '@/app/api/admin/events/[id]/cancel-term/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-term-cancel-postpone.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22mKolo 8 — zrušení a přesun termínu[2m > [22msouběh: zrušení ve stejné chvíli, kdy dorazí platba → vráceno, žádná platná vstupenka[39m
+[31m     → Cannot find module '@/app/api/admin/events/[id]/cancel-term/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-term-cancel-postpone.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22mKolo 8 — zrušení a přesun termínu[2m > [22mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410[39m
+[31m     → Cannot find module '@/app/api/admin/events/[id]/postpone-term/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-term-cancel-postpone.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22mKolo 8 — zrušení a přesun termínu[2m > [22mcizí pořadatel termín nezruší ani nepřesune[39m
+[31m     → Cannot find module '@/app/api/admin/events/[id]/cancel-term/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-term-cancel-postpone.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 4 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22mKolo 8 — zrušení a přesun termínu[2m > [22mzrušení: online vráceno přes bránu + dobropis, rozpracované nákupy a rezervace zrušené, vstupenky neplatné, e-maily, ruční seznam
+[31m[1mError[22m: Cannot find module '@/app/api/admin/events/[id]/cancel-term/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-term-cancel-postpone.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-term-cancel-postpone.live.test.ts:[2m32:15[22m[39m
+    [90m 30| [39m
+    [90m 31| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 32| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 33| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 34| [39m      method[33m,[39m headers[33m:[39m { [32m'content-type'[39m[33m:[39m [32m'application/json'[39m[33m,[39m origin[33m:[39m [32m'[39m…
+[90m [2m❯[22m tests/fix-r8-term-cancel-postpone.live.test.ts:[2m146:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22mKolo 8 — zrušení a přesun termínu[2m > [22msouběh: zrušení ve stejné chvíli, kdy dorazí platba → vráceno, žádná platná vstupenka
+[31m[1mError[22m: Cannot find module '@/app/api/admin/events/[id]/cancel-term/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-term-cancel-postpone.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-term-cancel-postpone.live.test.ts:[2m32:15[22m[39m
+    [90m 30| [39m
+    [90m 31| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 32| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 33| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 34| [39m      method[33m,[39m headers[33m:[39m { [32m'content-type'[39m[33m:[39m [32m'application/json'[39m[33m,[39m origin[33m:[39m [32m'[39m…
+[90m [2m❯[22m tests/fix-r8-term-cancel-postpone.live.test.ts:[2m201:22[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22mKolo 8 — zrušení a přesun termínu[2m > [22mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410
+[31m[1mError[22m: Cannot find module '@/app/api/admin/events/[id]/postpone-term/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-term-cancel-postpone.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-term-cancel-postpone.live.test.ts:[2m32:15[22m[39m
+    [90m 30| [39m
+    [90m 31| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 32| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 33| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 34| [39m      method[33m,[39m headers[33m:[39m { [32m'content-type'[39m[33m:[39m [32m'application/json'[39m[33m,[39m origin[33m:[39m [32m'[39m…
+[90m [2m❯[22m tests/fix-r8-term-cancel-postpone.live.test.ts:[2m231:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22mKolo 8 — zrušení a přesun termínu[2m > [22mcizí pořadatel termín nezruší ani nepřesune
+[31m[1mError[22m: Cannot find module '@/app/api/admin/events/[id]/cancel-term/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-term-cancel-postpone.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-term-cancel-postpone.live.test.ts:[2m32:15[22m[39m
+    [90m 30| [39m
+    [90m 31| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 32| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 33| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 34| [39m      method[33m,[39m headers[33m:[39m { [32m'content-type'[39m[33m:[39m [32m'application/json'[39m[33m,[39m origin[33m:[39m [32m'[39m…
+[90m [2m❯[22m tests/fix-r8-term-cancel-postpone.live.test.ts:[2m279:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[90m (4)[39m
+[2m   Start at [22m 11:53:05
+[2m   Duration [22m 5.92s[2m (transform 365ms, setup 0ms, collect 113ms, tests 5.53s, environment 0ms, prepare 147ms)[22m
+

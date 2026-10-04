@@ -44,7 +44,10 @@ export async function loadPlatformSupplier(q: Q): Promise<TaxDocParty & { vatPay
 }
 
 /** Vystaví (idempotentně) fakturu provize k výplatě. Musí běžet v transakci volajícího. */
-export async function issueCommissionInvoice(q: Q, payoutId: string): Promise<{ invoiceId: string; created: boolean }> {
+export async function issueCommissionInvoice(
+  q: Q,
+  payoutId: string,
+): Promise<{ invoiceId: string | null; created: boolean; reason?: 'NO_COMMISSION' }> {
   const existing = await q.query<{ id: string }>(`SELECT id FROM platform.commission_invoices WHERE payout_id = $1`, [payoutId]);
   if (existing.rows[0]) return { invoiceId: existing.rows[0].id, created: false };
 
@@ -64,7 +67,9 @@ export async function issueCommissionInvoice(q: Q, payoutId: string): Promise<{ 
   );
   const row = p.rows[0];
   if (!row) throw new CommissionInvoiceError('NOT_FOUND', 'Výplata nenalezena.');
-  if (row.platform_fees <= 0) throw new CommissionInvoiceError('NO_FEES', 'Výplata nemá žádnou provizi platformy.');
+  // Kolo 8: pořadatel s provizí 0 (vlastní pořadatel platformy) — faktura provize nevzniká a není to
+  // chyba (ani při nevyplněných údajích platformy). Kontrola PŘED načtením dodavatele.
+  if (row.platform_fees <= 0) return { invoiceId: null, created: false, reason: 'NO_COMMISSION' };
 
   const supplier = await loadPlatformSupplier(q);
   const taxable = row.period_end;

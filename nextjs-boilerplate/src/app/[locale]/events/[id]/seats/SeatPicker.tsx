@@ -65,6 +65,14 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [bestCount, setBestCount] = useState(2);
+  // Kolo 8 / krok 4: termín se slevovými kategoriemi = místa z více zón v jedné objednávce, kategorie u každého místa
+  const [hasCategories, setHasCategories] = useState(false);
+  useEffect(() => {
+    fetch(`/api/public/events/${eventId}/seat-prices`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: { categories?: unknown[] } | null) => setHasCategories((j?.categories?.length ?? 0) > 0))
+      .catch(() => setHasCategories(false));
+  }, [eventId]);
   // Click&View (DACH P2-6): mapa sectorName → photoUrl pro buyer preview.
   const [sectorPhotos, setSectorPhotos] = useState<Record<string, ViewPhoto>>({});
   const [previewSeat, setPreviewSeat] = useState<{
@@ -183,7 +191,7 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
       return;
     }
     // Mix-typ: zakážeme, pokud už je něco vybráno
-    if (!ticketTypeId && selectedTtId && seat.ttId !== selectedTtId) {
+    if (!hasCategories && !ticketTypeId && selectedTtId && seat.ttId !== selectedTtId) {
       setError('Mixovat typy v jedné objednávce nelze. Zruš výběr a začni znovu.');
       return;
     }
@@ -248,6 +256,11 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
         // Reload state
         const reload = await fetch(`/api/events/${eventId}/seats`);
         if (reload.ok) setData((await reload.json()) as Data);
+        return;
+      }
+      if (hasCategories) {
+        const q = new URLSearchParams({ token: j.holdToken, seats: seatIds.join(',') });
+        window.location.href = `/${locale}/events/${eventId}/seats/kategorie?${q.toString()}`;
         return;
       }
       const ttId = selectedTtId;
@@ -614,17 +627,18 @@ function SvgChart({
   // Base viewBox: uložený, pokud je platný; jinak DOPOČÍTAT z reálných souřadnic
   // sedadel + padding + prostor na jeviště. Bez tohohle (viewBox=undefined nebo
   // ořezaný) buyer „neviděl celý sál" — spodní sektory se ořezávaly.
+  // Kolo 8 / krok 9: přednost má výřez podle sedadel — uložený viewBox je plátno editoru (např. 0 0 1050 850)
+  // a sál v něm na mobilu zabíral zlomek plochy (sedadla ~10 px). Uložený se použije jen bez sedadel.
   const baseViewBox = useMemo(() => {
     const stored = (data.layout.viewBox ?? '').trim().split(/\s+/).map(Number);
-    if (stored.length === 4 && stored.every(Number.isFinite) && stored[2] > 0 && stored[3] > 0) {
-      return data.layout.viewBox;
-    }
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const b of bboxes) {
       minX = Math.min(minX, b.minX); minY = Math.min(minY, b.minY);
       maxX = Math.max(maxX, b.maxX); maxY = Math.max(maxY, b.maxY);
     }
-    if (!Number.isFinite(minX)) return '0 0 800 600';
+    if (!Number.isFinite(minX)) {
+      return stored.length === 4 && stored.every(Number.isFinite) && stored[2] > 0 && stored[3] > 0 ? data.layout.viewBox : '0 0 800 600';
+    }
     const pad = Math.max(24, pitch * 1.5);
     const headTop = stage.position === 'top' || !stage.position ? 100 : 0;
     const headBottom = stage.position === 'bottom' ? 100 : 0;
@@ -645,6 +659,10 @@ function SvgChart({
   }, [zoomedSector, bboxes, pitch, baseViewBox]);
 
   const showSeats = !isLarge || zoomedSector !== null;
+  // Na úzkém displeji drž rozteč sedadel aspoň 32 px (pohodlné klepnutí) — plánek se pak posouvá ve svém rámu,
+  // stránka do stran ne. Na desktopu je rám širší a nic se nemění.
+  const vbWidth = Number((effectiveViewBox ?? '').split(/\s+/)[2] ?? 0);
+  const minPlanPx = showSeats && pitch > 0 && vbWidth > 0 ? Math.round((vbWidth / pitch) * 32) : undefined;
   const visibleSectorNames = zoomedSector ? new Set([zoomedSector]) : new Set(data.layout.sectors.map((s) => s.name));
 
   return (
@@ -672,7 +690,7 @@ function SvgChart({
           viewBox={effectiveViewBox}
           preserveAspectRatio="xMidYMid meet"
           className="mx-auto block w-full max-w-4xl bg-slate-50"
-          style={{ minHeight: 480, maxHeight: 720 }}
+          style={{ minHeight: 480, maxHeight: 720, minWidth: minPlanPx }}
           role="img"
           aria-label="Plán sálu"
         >

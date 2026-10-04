@@ -66,6 +66,9 @@ interface ItemRow {
   quantity: number;
   unit_price: number;
   total_price: number;
+  /** Kolo 8: místo a slevová kategorie položky (nákup míst) */
+  seat_label?: string | null;
+  price_category_name?: string | null;
 }
 
 function formatMoney(halire: number, currency: string, locale: string): string {
@@ -173,7 +176,7 @@ function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: 
     .map(
       (it) => `
         <tr>
-          <td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(it.ticket_type_name)}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(it.ticket_type_name)}${it.price_category_name ? ` — ${escapeHtml(it.price_category_name)}` : ''}${it.seat_label ? `<br><span style="color:#666;font-size:12px">${escapeHtml(it.seat_label)}</span>` : ''}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;text-align:center">${it.quantity}×</td>
           <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${fmt(it.unit_price)}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${fmt(it.total_price)}</td>
@@ -349,13 +352,22 @@ export async function POST(request: NextRequest): Promise<Response> {
       { status: 200 },
     );
   }
+  // Kolo 8 / krok 7: zrušený termín — žádné vstupenky ani potvrzení (zrušení vrací peníze a posílá vlastní e-mail)
+  const evStatus = (await db().query<{ status: string }>(
+    `SELECT e.status FROM orders.orders o JOIN catalog.events e ON e.id = o.event_id WHERE o.id = $1`, [orderId],
+  )).rows[0]?.status;
+  if (evStatus === 'cancelled') {
+    return NextResponse.json({ skipped: true, reason: 'EVENT_CANCELLED' }, { status: 200 });
+  }
 
   const itemsRes = await db().query<ItemRow>(
     `SELECT
        tt.name AS ticket_type_name,
-       oi.quantity, oi.unit_price, oi.total_price
+       oi.quantity, oi.unit_price, oi.total_price, oi.price_category_name,
+       CASE WHEN es.id IS NOT NULL THEN es.sector || ', řada ' || es.row || ', místo ' || es.seat_number END AS seat_label
      FROM orders.order_items oi
      JOIN catalog.ticket_types tt ON tt.id = oi.ticket_type_id
+     LEFT JOIN catalog.event_seats es ON es.id = oi.seat_id
      WHERE oi.order_id = $1
      ORDER BY oi.created_at`,
     [orderId],
@@ -627,14 +639,18 @@ export async function POST(request: NextRequest): Promise<Response> {
         row: string | null;
         seat_number: string | null;
         accessibility: boolean | null;
+        price_category_name: string | null;
+        proof_required_label: string | null;
       }>(
-        // tickets.tickets nemá order_item_id sloupec — join přes
-        // (order_id, ticket_type_id), což je v order_items unikátní.
+        // tickets.tickets nemá order_item_id sloupec — join přes (order_id, ticket_type_id)
+        // a místo vstupenky (kolo 8: víc položek téhož typu u nákupu míst se kategoriemi).
         `SELECT t.id AS ticket_id, oi.unit_price,
-                es.sector, es.row, es.seat_number, es.accessibility
+                es.sector, es.row, es.seat_number, es.accessibility,
+                t.price_category_name, t.proof_required_label
          FROM tickets.tickets t
-         JOIN orders.order_items oi
-           ON oi.order_id = t.order_id AND oi.ticket_type_id = t.ticket_type_id
+         -- Kolo 8: u nákupu míst je víc položek téhož typu (kategorie) → položka podle místa vstupenky
+           JOIN LATERAL (SELECT * FROM orders.order_items x WHERE x.order_id = t.order_id AND x.ticket_type_id = t.ticket_type_id
+             ORDER BY (x.seat_id IS NOT DISTINCT FROM t.event_seat_id) DESC, x.id LIMIT 1) oi ON true
          LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
          WHERE t.order_id = $1`,
         [orderId],
@@ -649,6 +665,8 @@ export async function POST(request: NextRequest): Promise<Response> {
               ? `${r.sector} · řada ${r.row ?? '?'} · sedadlo ${r.seat_number ?? '?'}`
               : null,
             accessibleGateInfo: r.accessibility ? accessibleGateStr : null,
+            categoryName: r.price_category_name,
+            proofLabel: r.proof_required_label,
           },
         ]),
       );
@@ -677,6 +695,8 @@ export async function POST(request: NextRequest): Promise<Response> {
             unitPriceHalire: meta?.price,
             seatLabel: meta?.seat ?? null,
             accessibleGateInfo: meta?.accessibleGateInfo ?? null,
+            categoryName: meta?.categoryName ?? null,
+            proofLabel: meta?.proofLabel ?? null,
           };
         }),
       );

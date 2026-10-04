@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/admin/PageHeader';
+import { VenueLibrary } from './VenueLibrary';
 
 /**
  * Seznam sálů.
@@ -43,8 +44,11 @@ export default function VenuesPage() {
     <div>
       <PageHeader
         title="Sály"
-        description="Místa konání, jejich kapacita a plánky sedadel."
+        description="Místa konání, jejich sály, kapacita a plánky sedadel."
       />
+
+      <VenueLibrary />
+      <h2 className="mb-3 text-lg font-semibold">Všechny sály</h2>
 
       {error ? (
         <div className="mb-4 rounded-lg border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900">

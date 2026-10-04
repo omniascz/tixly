@@ -11,6 +11,7 @@ import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 import { runAsPromoter } from '@/lib/admin-auth';
 import { saleBlockedResponse } from '@/lib/sales/cutoff';
+import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 
 export async function POST(
   req: NextRequest,
@@ -101,8 +102,8 @@ export async function POST(
       const orderRes = await client.query<{ id: string }>(
         `INSERT INTO orders.orders
            (user_id, event_id, status, total_amount, currency, payment_provider,
-            is_box_office, box_office_session_id, idempotency_key)
-         VALUES ($1,$2,'paid',$3,$4,'box_office',true,$5,gen_random_uuid())
+            is_box_office, box_office_session_id, idempotency_key, paid_at, expires_at)
+         VALUES ($1,$2,'paid',$3,$4,'box_office',true,$5,gen_random_uuid(), now(), now())
          RETURNING id`,
         [userId, params.id, total, tt.currency, sessionId],
       );
@@ -152,10 +153,14 @@ export async function POST(
         );
       }
 
+      // Kolo 8 / krok 5: vstupenky (hlavička routy je slibovala, ale nevznikaly) — sdílený issuer jako POS
+      const issued = await issueTicketsForOrder(orderId, client);
+
       await client.query('COMMIT');
 
       return NextResponse.json({
         orderId,
+        tickets: issued.map((t) => ({ ticketId: t.ticketId })),
         receiptNumber: receiptNum,
         totalHalire: total,
         changeHalire: change,

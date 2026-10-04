@@ -1,0 +1,128 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r8-seat-reservations.live.test.ts[2m > [22m[2mKolo 8 — rezervace s platbou na pokladně[2m > [22m[2mPOS prodej zapíše způsob platby do evidence pokladny[22m[39m
+[pos/sale] error: new row violates row-level security policy for table "box_office_sessions"
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at Module.recordBoxOfficePayment [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\theatre\box-office.ts:29:18[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\admin\pos\sale\route.ts:259:21
+    at admin [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r8-seat-reservations.live.test.ts:35:15[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r8-seat-reservations.live.test.ts:307:15
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m {
+  length: [33m142[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42501'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'execMain.c'[39m,
+  line: [32m'2159'[39m,
+  routine: [32m'ExecWithCheckOptions'[39m
+}
+
+ [33m❯[39m tests/fix-r8-seat-reservations.live.test.ts [2m ([22m[2m9 tests[22m [2m|[22m [31m4 failed[39m[2m)[22m[33m 3954[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mpokladna: hledání podle kódu / jména / e-mailu / telefonu, platba kartou → vstupenky, doklad, způsob platby; podruhé nejde[39m
+[31m     → new row violates row-level security policy for table "box_office_sessions"[39m
+[31m   [33m❯[31m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mobsazenost: rezervace se počítají do obsazenosti, ale zvlášť od prodaných[39m
+[31m     → expected +0 to be 2 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mexistující prodej na pokladně (box-office/sell) funguje v kontextu pořadatele pod tixly_app[39m
+[31m     → {"error":"SESSION_NOT_FOUND_OR_CLOSED"}: expected 404 to be 201 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mPOS prodej zapíše způsob platby do evidence pokladny[39m
+[31m     → {"error":"INTERNAL_ERROR"}: expected 500 to be 200 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 4 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mpokladna: hledání podle kódu / jména / e-mailu / telefonu, platba kartou → vstupenky, doklad, způsob platby; podruhé nejde
+[31m[1merror[22m: new row violates row-level security policy for table "box_office_sessions"[39m
+[90m [2m❯[22m node_modules/pg/lib/client.js:[2m631:17[22m[39m
+[36m [2m❯[22m recordBoxOfficePayment src/lib/theatre/box-office.ts:[2m29:18[22m[39m
+    [90m 27| [39m  ))[33m.[39mrows[[34m0[39m][33m?.[39mid[33m;[39m
+    [90m 28| [39m  [35mif[39m ([33m![39msessionId) {
+    [90m 29| [39m    sessionId [33m=[39m ([35mawait[39m q[33m.[39mquery[33m<[39m{ id[33m:[39m string }[33m>[39m(
+    [90m   | [39m                 [31m^[39m
+    [90m 30| [39m      [32m`INSERT INTO orders.box_office_sessions (event_id, cashier_user_[39m…
+    [90m 31| [39m      [input[33m.[39meventId[33m,[39m input[33m.[39mcashierUserId][33m,[39m
+[90m [2m❯[22m Module.payReservation src/lib/theatre/reservations.ts:[2m131:15[22m[39m
+[90m [2m❯[22m src/app/api/admin/seat-reservations/[id]/pay/route.ts:[2m25:16[22m[39m
+[90m [2m❯[22m admin tests/fix-r8-seat-reservations.live.test.ts:[2m35:15[22m[39m
+[90m [2m❯[22m tests/fix-r8-seat-reservations.live.test.ts:[2m181:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 142, severity: 'ERROR', code: '42501', detail: undefined, hint: undefined, position: undefined, internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'execMain.c', line: '2159', routine: 'ExecWithCheckOptions' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mobsazenost: rezervace se počítají do obsazenosti, ale zvlášť od prodaných
+[31m[1mAssertionError[22m: expected +0 to be 2 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 2[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/fix-r8-seat-reservations.live.test.ts:[2m290:22[22m[39m
+    [90m288| [39m    [35mconst[39m occ [33m=[39m g[33m.[39mjson[33m.[39moccupancy [35mas[39m { capacity[33m:[39m number[33m;[39m sold[33m:[39m number[33m;[39m …
+    [90m289| [39m    [34mexpect[39m(occ[33m.[39mreserved)[33m.[39m[34mtoBe[39m(active)[33m;[39m
+    [90m290| [39m    [34mexpect[39m(occ[33m.[39msold)[33m.[39m[34mtoBe[39m([34m2[39m)[33m;[39m [90m// zaplacená rezervace = prodáno[39m
+    [90m   | [39m                     [31m^[39m
+    [90m291| [39m    [34mexpect[39m(occ[33m.[39moccupiedPct)[33m.[39m[34mtoBe[39m([33mMath[39m[33m.[39m[34mround[39m(((occ[33m.[39msold [33m+[39m occ[33m.[39mreserved)…
+    [90m292| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mexistující prodej na pokladně (box-office/sell) funguje v kontextu pořadatele pod tixly_app
+[31m[1mAssertionError[22m: {"error":"SESSION_NOT_FOUND_OR_CLOSED"}: expected 404 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m tests/fix-r8-seat-reservations.live.test.ts:[2m302:30[22m[39m
+    [90m300| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34madmin[39m([32m'POST'[39m[33m,[39m [32m`/api/admin/events/[39m[36m${[39mc[33m.[39meventId[36m}[39m[32m/box-[39m…
+    [90m301| [39m      { sessionId[33m:[39m sid[33m,[39m ticketTypeId[33m:[39m tt[33m,[39m quantity[33m:[39m [34m1[39m[33m,[39m paymentType[33m:[39m [32m'c[39m…
+    [90m302| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mtext)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m303| [39m    [34mexpect[39m(r[33m.[39mjson[33m.[39mchangeHalire)[33m.[39m[34mtoBe[39m([34m30000[39m)[33m;[39m
+    [90m304| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mPOS prodej zapíše způsob platby do evidence pokladny
+[31m[1mAssertionError[22m: {"error":"INTERNAL_ERROR"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r8-seat-reservations.live.test.ts:[2m309:30[22m[39m
+    [90m307| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34madmin[39m([32m'POST'[39m[33m,[39m [32m'/api/admin/pos/sale'[39m[33m,[39m () [33m=>[39m [35mimport[39m(…
+    [90m308| [39m      { eventId[33m:[39m c[33m.[39meventId[33m,[39m ticketTypeId[33m:[39m c[33m.[39mticketTypeId[33m,[39m quantity[33m:[39m [34m1[39m[33m,[39m…
+    [90m309| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mtext)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m310| [39m    [35mconst[39m s [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m(
+    [90m311| [39m      [32m`SELECT s.payment_type, o.payment_provider, o.is_box_office FROM[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 11:27:21
+[2m   Duration [22m 4.58s[2m (transform 388ms, setup 0ms, collect 110ms, tests 3.95s, environment 0ms, prepare 95ms)[22m
+
