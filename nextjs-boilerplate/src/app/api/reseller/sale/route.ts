@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireReseller } from '@/lib/reseller-auth'
 import { db, runWithServiceContext } from '@/lib/db/rls-pool'
-import { salesClosedResponse } from '@/lib/sales/cutoff'
+import { saleBlockedResponse } from '@/lib/sales/cutoff'
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer'
 import { randomUUID } from 'crypto'
 
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'quantity must be 1–10' }, { status: 400 })
   }
   // Kolo 7 (C-29): prodejce (pokladna třetí strany) prodává do konce akce, jako pokladna pořadatele.
-  const salesClosed = await salesClosedResponse(db(), eventId, 'box_office')
+  const salesClosed = await saleBlockedResponse(db(), eventId, 'box_office')
   if (salesClosed) return salesClosed
 
   return runWithServiceContext(async () => {

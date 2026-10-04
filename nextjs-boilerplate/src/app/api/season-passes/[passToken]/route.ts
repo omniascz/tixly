@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { z } from 'zod';
 import { encryptSecret } from '@/lib/crypto';
-import { salesClosedResponse } from '@/lib/sales/cutoff';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 interface PassRow {
   id: string;
@@ -116,7 +116,7 @@ export async function POST(
     }
     const { eventId } = parsed.data;
     // Kolo 7 (C-29): uplatnění pasu na akci po uzávěrce online prodeje nejde.
-    const salesClosed = await salesClosedResponse(db(), eventId, 'online');
+    const salesClosed = await saleBlockedResponse(db(), eventId, 'online');
     if (salesClosed) return salesClosed;
 
     const client = await db().connect();

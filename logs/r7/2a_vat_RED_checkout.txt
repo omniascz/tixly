@@ -1,0 +1,55 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r7-vat-readiness.live.test.ts [2m ([22m[2m6 tests[22m [2m|[22m [31m2 failed[39m [2m|[22m [33m4 skipped[39m[2m)[22m[33m 770[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r7-vat-readiness.live.test.ts[2m > [22mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22mplátce, placený typ bez sazby → checkout 422 VAT_NOT_CONFIGURED; po doplnění sazby 200[39m
+[31m     → {"orderId":"c59c7111-4371-4107-a56d-d427367d8297","paymentId":"3069993631","gatewayUrl":"http://localhost:3998/gw/3069993631","provider":"gopay","variableSymbol":null,"subtotalAmount":10000,"discountAmount":0,"volumeDiscountAmount":0,"volumeDiscountPct":0,"addonsSubtotal":0,"bundleDiscountAmount":0,"bundleId":null,"voucherRedeemedHalire":0,"giftCardApplied":0,"restwertAppliedHalire":0,"restwertHolders":[],"loyaltyDiscountHalire":0,"loyaltyRedeemed":0,"loyaltyMaxPointsAvailable":0,"totalAmount":10000,"promoCodeApplied":false}: expected 200 to be 422 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r7-vat-readiness.live.test.ts[2m > [22mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22mplátce bez DIČ → checkout 422[39m
+[31m     → {"orderId":"1056ce63-88e9-4235-9e66-dd2fe5362a43","paymentId":"3069993632","gatewayUrl":"http://localhost:3998/gw/3069993632","provider":"gopay","variableSymbol":null,"subtotalAmount":10000,"discountAmount":0,"volumeDiscountAmount":0,"volumeDiscountPct":0,"addonsSubtotal":0,"bundleDiscountAmount":0,"bundleId":null,"voucherRedeemedHalire":0,"giftCardApplied":0,"restwertAppliedHalire":0,"restwertHolders":[],"loyaltyDiscountHalire":0,"loyaltyRedeemed":0,"loyaltyMaxPointsAvailable":0,"totalAmount":10000,"promoCodeApplied":false}: expected 200 to be 422 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-vat-readiness.live.test.ts[2m > [22mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22mplátce, placený typ bez sazby → checkout 422 VAT_NOT_CONFIGURED; po doplnění sazby 200
+[31m[1mAssertionError[22m: {"orderId":"c59c7111-4371-4107-a56d-d427367d8297","paymentId":"3069993631","gatewayUrl":"http://localhost:3998/gw/3069993631","provider":"gopay","variableSymbol":null,"subtotalAmount":10000,"discountAmount":0,"volumeDiscountAmount":0,"volumeDiscountPct":0,"addonsSubtotal":0,"bundleDiscountAmount":0,"bundleId":null,"voucherRedeemedHalire":0,"giftCardApplied":0,"restwertAppliedHalire":0,"restwertHolders":[],"loyaltyDiscountHalire":0,"loyaltyRedeemed":0,"loyaltyMaxPointsAvailable":0,"totalAmount":10000,"promoCodeApplied":false}: expected 200 to be 422 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 422[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r7-vat-readiness.live.test.ts:[2m79:30[22m[39m
+    [90m 77| [39m    [35mconst[39m c [33m=[39m [35mawait[39m clone[33m.[39mseed[33m.[39m[34mchain[39m({ vatRateCode[33m:[39m [35mnull[39m })[33m;[39m
+    [90m 78| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mcheckout[39m(c)[33m;[39m
+    [90m 79| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m422[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m 80| [39m    [34mexpect[39m(r[33m.[39mbody)[33m.[39m[34mtoMatch[39m([36m/VAT_NOT_CONFIGURED/[39m)[33m;[39m
+    [90m 81| [39m    [35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`UPDATE catalog.ticket_types SET vat_rate_c[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-vat-readiness.live.test.ts[2m > [22mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22mplátce bez DIČ → checkout 422
+[31m[1mAssertionError[22m: {"orderId":"1056ce63-88e9-4235-9e66-dd2fe5362a43","paymentId":"3069993632","gatewayUrl":"http://localhost:3998/gw/3069993632","provider":"gopay","variableSymbol":null,"subtotalAmount":10000,"discountAmount":0,"volumeDiscountAmount":0,"volumeDiscountPct":0,"addonsSubtotal":0,"bundleDiscountAmount":0,"bundleId":null,"voucherRedeemedHalire":0,"giftCardApplied":0,"restwertAppliedHalire":0,"restwertHolders":[],"loyaltyDiscountHalire":0,"loyaltyRedeemed":0,"loyaltyMaxPointsAvailable":0,"totalAmount":10000,"promoCodeApplied":false}: expected 200 to be 422 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 422[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r7-vat-readiness.live.test.ts:[2m88:30[22m[39m
+    [90m 86| [39m    [35mconst[39m c [33m=[39m [35mawait[39m clone[33m.[39mseed[33m.[39m[34mchain[39m({ dic[33m:[39m [35mnull[39m })[33m;[39m
+    [90m 87| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mcheckout[39m(c)[33m;[39m
+    [90m 88| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m422[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m 89| [39m    [34mexpect[39m(r[33m.[39mbody)[33m.[39m[34mtoMatch[39m([36m/DIČ/[39m)[33m;[39m
+    [90m 90| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[33m4 skipped[39m[90m (6)[39m
+[2m   Start at [22m 02:00:50
+[2m   Duration [22m 1.34s[2m (transform 207ms, setup 0ms, collect 100ms, tests 770ms, environment 0ms, prepare 101ms)[22m
+

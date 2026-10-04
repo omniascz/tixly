@@ -17,7 +17,7 @@ import {
   type AgreementTermsRow,
 } from '@/lib/royalties/deal';
 import { ALREADY_PAID_LINE_KEY, COMMITTED_PAYOUT_STATUSES_SQL } from '@/lib/royalties/settlement-doc';
-import { resolveVatRate } from '@/lib/tax/vat-rates';
+import { eventTicketVatPct, VAT_RATE_MISSING_MESSAGE } from '@/lib/tax/vat-rates';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,7 +44,8 @@ async function loadEventFinancials(
   capacity: number;
   ticketsSold: number;
   grossRevenueMinor: number;
-  ticketVatRatePct: number;
+  /** Kolo 7: sazba z DB (typy vstupenek); null = plátce bez nastavené sazby. */
+  ticketVatRatePct: number | null;
   fixedCostsMinor: number;
   perAttendeeCostMinor: number;
 }> {
@@ -109,10 +110,7 @@ async function loadEventFinancials(
     capacity: Number(cap.rows[0]?.capacity ?? 0),
     ticketsSold: Number(sales.rows[0]?.sold ?? 0),
     grossRevenueMinor: Number(sales.rows[0]?.revenue ?? 0),
-    ticketVatRatePct: resolveVatRate({
-      country: row?.country,
-      vatCategory: row?.vat_category ?? 'cultural',
-    }),
+    ticketVatRatePct: await runWithServiceContext(() => eventTicketVatPct(db(), eventId)),
     fixedCostsMinor: Number(costs.rows[0]?.fixed ?? 0),
     perAttendeeCostMinor: Number(costs.rows[0]?.per_head ?? 0),
   };
@@ -165,7 +163,11 @@ export async function POST(
     const a = agrRes.rows[0];
     if (!a) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const fin = await loadEventFinancials(params.id, a.id, a.included_ticket_type_ids);
+    const loaded = await loadEventFinancials(params.id, a.id, a.included_ticket_type_ids);
+    if (loaded.ticketVatRatePct === null) {
+      return NextResponse.json({ error: 'VAT_RATE_MISSING', message: VAT_RATE_MISSING_MESSAGE }, { status: 422 });
+    }
+    const fin = { ...loaded, ticketVatRatePct: loaded.ticketVatRatePct };
     const netRevenueMinor = Math.round(
       fin.grossRevenueMinor / (1 + fin.ticketVatRatePct / 100),
     );

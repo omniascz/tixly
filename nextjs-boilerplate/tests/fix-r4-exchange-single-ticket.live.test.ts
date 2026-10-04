@@ -36,8 +36,7 @@ run('Krok 3e (kolo 4) — výměna mění jen vyměněnou vstupenku', () => {
        VALUES ($1,$1,$2,'Repríza',$3,'published','CZK','concert',NOW()+INTERVAL '40 days',$4,true) RETURNING id`,
       [src.promoterId, src.venueId, `repriza-${Date.now()}`, prod])).rows[0].id;
     tgtTypeId = (await clone.pool.query<{ id: string }>(
-      `INSERT INTO catalog.ticket_types (event_id, name, kind, base_price, total_qty, remaining_qty, visibility)
-       VALUES ($1,'Standard','standing',10000,50,50,'public') RETURNING id`, [tgtEventId])).rows[0].id;
+      `INSERT INTO catalog.ticket_types (event_id, name, kind, base_price, total_qty, remaining_qty, visibility, vat_rate_code) VALUES ($1,'Standard','standing',10000,50,50,'public','CZ_REDUCED') RETURNING id`, [tgtEventId])).rows[0].id;
     const o = await clone.seed.order(src, { quantity: 2 });
     // seed.order kapacitu nesnižuje — jako skutečný prodej (checkout) odečteme 2 kusy.
     await clone.pool.query(`UPDATE catalog.ticket_types SET remaining_qty = remaining_qty - 2 WHERE id=$1`, [src.ticketTypeId]);

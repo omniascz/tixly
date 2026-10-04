@@ -215,6 +215,11 @@ export function makeSeed(pool: Pool, runId: string = String(Date.now())) {
       kind?: string;
       status?: string;
       currency?: string;
+      /** Kolo 7 (C-54): sazba DPH typu vstupenky; null = bez sazby (plátce pak nemůže prodávat). */
+      vatRateCode?: string | null;
+      /** Kolo 7: plátce DPH (výchozí true jako v DB) s platným DIČ. */
+      vatPayer?: boolean;
+      dic?: string | null;
     } = {},
   ): Promise<SeededChain> {
     const {
@@ -224,6 +229,9 @@ export function makeSeed(pool: Pool, runId: string = String(Date.now())) {
       kind = 'standing',
       status = 'published',
       currency = 'CZK',
+      vatRateCode = 'CZ_REDUCED',
+      vatPayer = true,
+      dic = 'CZ12345678',
     } = opts;
 
     const admin = await user('admin', 'Admin');
@@ -234,9 +242,9 @@ export function makeSeed(pool: Pool, runId: string = String(Date.now())) {
 
     const promoterEmail = mail('promoter');
     await pool.query(
-      `INSERT INTO platform.promoters (id, name, email, contact_email, slug)
-       VALUES ($1, 'Test Promoter', $2, $2, $3)`,
-      [promoterId, promoterEmail, uniq('promoter')],
+      `INSERT INTO platform.promoters (id, name, email, contact_email, slug, vat_payer, company_dic)
+       VALUES ($1, 'Test Promoter', $2, $2, $3, $4, $5)`,
+      [promoterId, promoterEmail, uniq('promoter'), vatPayer, dic],
     );
     await pool.query(
       `INSERT INTO platform.promoter_members (promoter_id, user_id, role)
@@ -258,9 +266,9 @@ export function makeSeed(pool: Pool, runId: string = String(Date.now())) {
     );
     await pool.query(
       `INSERT INTO catalog.ticket_types
-         (id, event_id, name, kind, base_price, total_qty, remaining_qty, visibility)
-       VALUES ($1, $2, 'Standard', $3, $4, $5, $6, 'public')`,
-      [ticketTypeId, eventId, kind, basePrice, totalQty, remainingQty],
+         (id, event_id, name, kind, base_price, total_qty, remaining_qty, visibility, vat_rate_code)
+       VALUES ($1, $2, 'Standard', $3, $4, $5, $6, 'public', $7)`,
+      [ticketTypeId, eventId, kind, basePrice, totalQty, remainingQty, vatRateCode],
     );
 
     return { promoterId, adminUserId: admin.id, venueId, eventId, ticketTypeId };

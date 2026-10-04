@@ -21,7 +21,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 import { db } from '@/lib/db/rls-pool';
-import { salesClosedResponse } from '@/lib/sales/cutoff';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 
 
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
   const input = parsed.data;
   // Kolo 7 (C-29): pokladna obsluhy prodává do konce akce (date_end, jinak začátek + 12 h).
-  const salesClosed = await salesClosedResponse(db(), input.eventId, 'box_office');
+  const salesClosed = await saleBlockedResponse(db(), input.eventId, 'box_office');
   if (salesClosed) return salesClosed;
 
   const client = await db().connect();

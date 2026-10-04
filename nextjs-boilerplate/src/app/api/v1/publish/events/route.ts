@@ -34,8 +34,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { db, runWithPromoterContext } from '@/lib/db/rls-pool';
 import { b2bResponseHeaders, verifyB2bToken } from '@/lib/b2b-auth';
+import { db, runWithPromoterContext } from '@/lib/db/rls-pool';
+import { isValidCzDic } from '@/lib/tax/vat';
+import { resolveTicketTypeVatCode } from '@/lib/tax/vat-readiness';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,6 +57,8 @@ const TicketSchema = z.object({
   price:      z.number().int().min(0),
   currency:   z.string().length(3).toUpperCase(),
   capacity:   z.number().int().min(1).max(1_000_000),
+  // Kolo 7 (C-54): kód sazby DPH; povinný u placené vstupenky plátce.
+  vatRateCode: z.string().max(40).nullable().optional(),
 });
 
 const PublishEventSchema = z.object({
@@ -108,6 +112,30 @@ export async function POST(req: NextRequest): Promise<Response> {
         { error: 'ALREADY_EXISTS', eventId: dup.rows[0].id },
         { status: 409, headers: b2bResponseHeaders(ctx) },
       );
+    }
+
+    // Kolo 7 (C-54): akce vzniká rovnou publikovaná → DPH musí být připravené PŘED prvním zápisem.
+    {
+      const pr = await db().query<{ vat_payer: boolean; company_dic: string | null }>(
+        `SELECT vat_payer, company_dic FROM platform.promoters WHERE id = $1`,
+        [ctx.promoterId],
+      );
+      const prom = pr.rows[0];
+      if (prom?.vat_payer && !isValidCzDic(prom.company_dic)) {
+        return NextResponse.json(
+          { error: 'VAT_NOT_CONFIGURED', message: 'Akci nelze publikovat: pořadatel je plátce DPH, ale v profilu nemá platné DIČ.' },
+          { status: 422, headers: b2bResponseHeaders(ctx) },
+        );
+      }
+      for (const tt of body.tickets) {
+        const v = await resolveTicketTypeVatCode(db(), ctx.promoterId, tt.price, tt.vatRateCode);
+        if ('error' in v) {
+          return NextResponse.json(
+            { error: 'VAT_NOT_CONFIGURED', message: `Akci nelze publikovat: ${tt.name} — ${v.error}` },
+            { status: 422, headers: b2bResponseHeaders(ctx) },
+          );
+        }
+      }
     }
 
     const slug = `${slugify(body.title)}-${Date.now().toString(36)}`;
@@ -164,10 +192,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     for (const tt of body.tickets) {
       const ttRes = await db().query<{ id: string }>(
         `INSERT INTO catalog.ticket_types
-           (event_id, name, base_price, total_qty, remaining_qty, kind)
-         VALUES ($1, $2, $3, $4, $4, 'standing')
+           (event_id, name, base_price, total_qty, remaining_qty, kind, vat_rate_code)
+         VALUES ($1, $2, $3, $4, $4, 'standing', $5)
          RETURNING id`,
-        [eventId, tt.name, tt.price, tt.capacity],
+        [eventId, tt.name, tt.price, tt.capacity, (await resolveTicketTypeVatCode(db(), ctx.promoterId, tt.price, tt.vatRateCode) as { code: string | null }).code],
       );
       ticketTypes.push({ externalId: tt.externalId, ticketTypeId: ttRes.rows[0].id });
     }

@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
+import { resolveTicketTypeVatCode } from '@/lib/tax/vat-readiness';
 
 const createSchema = z.object({
   name: z.string().min(1).max(200),
@@ -18,6 +19,8 @@ const createSchema = z.object({
   isSeated: z.boolean().optional(),
   kind: z.enum(['standing', 'seated', 'flex', 'online', 'addon']).optional(),
   streamAccess: z.enum(['live', 'live_and_replay', 'none']).optional(),
+  // Kolo 7 (C-54): kód sazby DPH (platform.vat_rate_codes); povinný u placeného typu plátce.
+  vatRateCode: z.string().max(40).nullable().optional(),
 });
 
 export async function GET(
@@ -56,6 +59,7 @@ export async function GET(
       presale_ends_at: string | null;
       presale_code: string | null;
       max_per_buyer: number | null;
+      vat_rate_code: string | null;
     }>(
       `SELECT
          tt.id,
@@ -75,7 +79,8 @@ export async function GET(
          tt.presale_starts_at::text AS presale_starts_at,
          tt.presale_ends_at::text AS presale_ends_at,
          tt.presale_code,
-         tt.max_per_buyer
+         tt.max_per_buyer,
+         tt.vat_rate_code
        FROM catalog.ticket_types tt
        LEFT JOIN tickets.tickets t ON t.ticket_type_id = tt.id AND t.status != 'cancelled'
        WHERE tt.event_id = $1
@@ -83,6 +88,19 @@ export async function GET(
        ORDER BY tt.created_at`,
       [params.id],
     );
+
+    const payerRes = await db().query<{ vat_payer: boolean }>(
+      `SELECT vat_payer FROM platform.promoters WHERE id = $1`,
+      [promoter.promoterId],
+    );
+    const codesRes = await db().query<{ code: string; label: string; rate_pct: string | null }>(
+      `SELECT c.code, c.label, platform.vat_rate_at(c.code, CURRENT_DATE)::text AS rate_pct
+         FROM platform.vat_rate_codes c ORDER BY c.code`,
+    );
+    const vatInfo = {
+      vatPayer: payerRes.rows[0]?.vat_payer ?? true,
+      codes: codesRes.rows.map((c) => ({ code: c.code, label: c.label, ratePct: c.rate_pct === null ? null : Number(c.rate_pct) })),
+    };
 
     return NextResponse.json({
       ticketTypes: rows.rows.map((r) => ({
@@ -104,7 +122,11 @@ export async function GET(
         presaleEndsAt: r.presale_ends_at,
         presaleCode: r.presale_code,
         maxPerBuyer: r.max_per_buyer,
+        vatRateCode: r.vat_rate_code,
       })),
+      // Kolo 7 (C-54): volby sazby DPH pro formulář (procento platné dnes) a zda je pořadatel plátce.
+      vatPayer: vatInfo.vatPayer,
+      vatRateCodes: vatInfo.codes,
     });
   });
 }
@@ -147,13 +169,18 @@ export async function POST(
       );
     }
 
+    const vat = await resolveTicketTypeVatCode(db(), promoter.promoterId, input.priceHalire, input.vatRateCode);
+    if ('error' in vat) {
+      return NextResponse.json({ error: 'VAT_RATE_REQUIRED', message: vat.error }, { status: 422 });
+    }
+
     // remaining_qty = totalQty je záměrné: nový TT nemá žádné prodané vstupenky,
     // takže celá kapacita je okamžitě dostupná i za aktivního prodeje.
     const r = await db().query<{ id: string }>(
       `INSERT INTO catalog.ticket_types
          (event_id, name, kind, base_price, total_qty, remaining_qty,
-          max_per_user, zone, is_seated, stream_access, created_at)
-       VALUES ($1, $2, $3, $4, $5, $5, $6, $7, $8, $9, NOW())
+          max_per_user, zone, is_seated, stream_access, vat_rate_code, created_at)
+       VALUES ($1, $2, $3, $4, $5, $5, $6, $7, $8, $9, $10, NOW())
        RETURNING id`,
       [
         params.id,
@@ -165,6 +192,7 @@ export async function POST(
         input.zone ?? null,
         input.isSeated ?? false,
         input.streamAccess ?? 'live',
+        vat.code,
       ],
     );
 

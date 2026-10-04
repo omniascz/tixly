@@ -27,7 +27,7 @@ import { randomUUID } from 'crypto';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { createPayment } from '@/lib/payment/provider';
 import { createOrGetGuestUser } from '@/lib/identity/guest-user';
-import { salesClosedResponse } from '@/lib/sales/cutoff';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 export const dynamic = 'force-dynamic';
 
@@ -165,7 +165,7 @@ export async function POST(
         return NextResponse.json({ error: 'SESSION_CLOSED', status: session.status }, { status: 409 });
       }
       // Kolo 7 (C-29): platba podílu je nový nákup kupce — po uzávěrce online prodeje ne.
-      const salesClosed = await salesClosedResponse(client, session.event_id, 'online');
+      const salesClosed = await saleBlockedResponse(client, session.event_id, 'online');
       if (salesClosed) {
         await client.query('ROLLBACK');
         return salesClosed;

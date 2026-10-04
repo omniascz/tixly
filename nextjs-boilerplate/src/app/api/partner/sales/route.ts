@@ -19,7 +19,7 @@ import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requirePartner } from '@/lib/partner/auth';
-import { salesClosedResponse } from '@/lib/sales/cutoff';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 
 const schema = z.object({
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
   // Kolo 7 (C-29): partner prodává na místě/offline — do konce akce, jako pokladna.
-  const salesClosed = await salesClosedResponse(db(), parsed.data.eventId, 'box_office');
+  const salesClosed = await saleBlockedResponse(db(), parsed.data.eventId, 'box_office');
   if (salesClosed) return salesClosed;
 
   const client = await db().connect();

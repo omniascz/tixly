@@ -185,7 +185,7 @@ run('Krok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků', (
         `INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, title, slug, status, currency, event_type, date_start, production_id, allow_self_service_exchange)
          VALUES ($1,$2,$2,$3,'Reprise',$4,'published','CZK','concert', now() + interval '40 days', $5, true)`,
         [target, o.promoterId, o.venueId, `guard-x-${target.slice(0, 8)}`, prod]);
-      await owner.query(`INSERT INTO catalog.ticket_types (id, event_id, name, kind, base_price, total_qty, remaining_qty, visibility) VALUES ($1,$2,'Std','standing',25000,10,10,'public')`, [randomUUID(), target]);
+      await owner.query(`INSERT INTO catalog.ticket_types (id, event_id, name, kind, base_price, total_qty, remaining_qty, visibility, vat_rate_code) VALUES ($1,$2,'Std','standing',25000,10,10,'public','CZ_REDUCED')`, [randomUUID(), target]);
       await owner.query(`UPDATE catalog.events SET production_id=$2, allow_self_service_exchange=true WHERE id=$1`, [o.eventId, prod]);
       const { POST } = await import('@/app/api/buyer/tickets/[ticketId]/exchange/route');
       const r = await throughMiddleware(await req('POST', `/api/buyer/tickets/${o.ticketId}/exchange`, { id: o.userId, email: o.email }, { targetEventId: target }), POST as H, { params: { ticketId: o.ticketId } });

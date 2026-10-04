@@ -126,7 +126,7 @@ check('V8', 'sken vstupenky z REFUNDOVANE objednavky -> odmitnuto', r.json?.resu
 
 // cizi akce tehoz poradatele
 const in5 = new Date(Date.now() + 5 * 864e5).toISOString();
-r = await PA.post('/api/admin/events', { title: `Audit Koncert A2 ${S.run}`, description: 'Druha akce tehoz poradatele.', category: 'music', dateStart: in5, venueId: S.venueId, currency: 'CZK', ticketTypes: [{ name: 'A2 stani', priceHalire: 10000, capacity: 10 }] });
+r = await PA.post('/api/admin/events', { title: `Audit Koncert A2 ${S.run}`, description: 'Druha akce tehoz poradatele.', category: 'music', dateStart: in5, venueId: S.venueId, currency: 'CZK', ticketTypes: [{ name: 'A2 stani', priceHalire: 10000, vatRateCode: 'CZ_REDUCED', capacity: 10 }] });
 S.eventA2 = r.json?.eventId;
 const man = await PA.get(`/api/admin/scanner/manifest?eventId=${S.eventA2}`);
 check('V9a', 'offline manifest akce A2 neobsahuje vstupenky akce A', man.status === 200 && !JSON.stringify(man.json).includes(gt[2].id), { status: man.status, body: JSON.stringify(man.json).slice(0, 200) });

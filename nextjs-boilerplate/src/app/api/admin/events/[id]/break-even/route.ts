@@ -18,7 +18,7 @@ import { type TicketTypeSales } from '@/lib/budget/break-even';
 import { computeOutlook } from '@/lib/budget/outlook';
 import { db } from '@/lib/db/rls-pool';
 import { AGREEMENT_TERMS_COLUMNS, toDealTerms, type AgreementTermsRow } from '@/lib/royalties/deal';
-import { resolveVatRate } from '@/lib/tax/vat-rates';
+import { eventTicketVatPct, VAT_RATE_MISSING_MESSAGE } from '@/lib/tax/vat-rates';
 
 /** Výchozí provize platformy, když pořadatel nemá vlastní ceník. */
 const DEFAULT_PLATFORM_FEE_BPS = 500;
@@ -47,10 +47,12 @@ export async function GET(
     const ev = evRes.rows[0];
     if (!ev) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const ticketVatRatePct = resolveVatRate({
-      country: ev.country,
-      vatCategory: ev.vat_category ?? 'cultural',
-    });
+    // Kolo 7 (C-54): sazba z DB podle typů vstupenek (ne natvrdo podle kategorie akce).
+    const vatPct = await eventTicketVatPct(db(), params.id);
+    if (vatPct === null) {
+      return NextResponse.json({ error: 'VAT_RATE_MISSING', message: VAT_RATE_MISSING_MESSAGE }, { status: 422 });
+    }
+    const ticketVatRatePct = vatPct;
 
     const feeRes = await db().query<{ percentage_fee: number }>(
       `SELECT percentage_fee FROM platform.fee_schedules

@@ -49,13 +49,13 @@ const BOX_OFFICE_PATHS = [
 ];
 
 describe('Kolo 7 — inventura: každá cesta prodeje kontroluje uzávěrku', () => {
-  it('kupcové cesty volají salesClosedResponse(…, online), pokladní (…, box_office)', () => {
+  it('kupcové cesty volají saleBlockedResponse(…, online), pokladní (…, box_office)', () => {
     const bad: string[] = [];
     for (const f of BUYER_PATHS) {
-      if (!/salesClosedResponse\([^;]*?'online'\)/.test(readFileSync(path.join(API, f), 'utf8'))) bad.push(`${f} (online)`);
+      if (!/saleBlockedResponse\([^;]*?'online'\)/.test(readFileSync(path.join(API, f), 'utf8'))) bad.push(`${f} (online)`);
     }
     for (const f of BOX_OFFICE_PATHS) {
-      if (!/salesClosedResponse\([^;]*?'box_office'\)/.test(readFileSync(path.join(API, f), 'utf8'))) bad.push(`${f} (box_office)`);
+      if (!/saleBlockedResponse\([^;]*?'box_office'\)/.test(readFileSync(path.join(API, f), 'utf8'))) bad.push(`${f} (box_office)`);
     }
     expect(bad).toEqual([]);
   });

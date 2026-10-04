@@ -32,7 +32,7 @@ async function buyOne(ticketTypeId) {
 
 // ============ D1: upgrade — vlastnik lístku upgradne na dražší typ bez platby ============
 // Potrebujeme drazsi cilovy typ nez soucasny (Stani 500 Kc). Zalozime VIP 1000 Kc.
-const vip = await PA.post(`/api/admin/events/${S.eventA}/ticket-types`, { name: `VIP ${S.run}`, priceHalire: 100000, totalQty: 20 });
+const vip = await PA.post(`/api/admin/events/${S.eventA}/ticket-types`, { name: `VIP ${S.run}`, priceHalire: 100000, vatRateCode: 'CZ_REDUCED', totalQty: 20 });
 const vipId = vip.json?.id;
 const base = await buyOne(S.tt['Stani']); // valid Stani ticket (500 Kc)
 const before1 = await gopayCallCount();

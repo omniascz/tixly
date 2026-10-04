@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { runAsPromoter } from '@/lib/admin-auth';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { previewByOccupancy, toDealTerms, type AgreementTermsRow } from '@/lib/royalties/deal';
-import { resolveVatRate } from '@/lib/tax/vat-rates';
+import { eventTicketVatPct, VAT_RATE_MISSING_MESSAGE } from '@/lib/tax/vat-rates';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,19 +37,12 @@ export async function GET(
     const a = agrRes.rows[0];
     if (!a) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const evRes = await runWithServiceContext(() =>
-      db().query<{ vat_category: string | null; country: string | null }>(
-        `SELECT e.vat_category, p.country
-         FROM catalog.events e
-         JOIN platform.promoters p ON p.id = e.promoter_id
-         WHERE e.id = $1`,
-        [params.id],
-      ),
-    );
-    const ticketVatRatePct = resolveVatRate({
-      country: evRes.rows[0]?.country,
-      vatCategory: evRes.rows[0]?.vat_category ?? 'cultural',
-    });
+    // Kolo 7 (C-54): sazba z DB podle typů vstupenek.
+    const vatPct = await runWithServiceContext(() => eventTicketVatPct(db(), params.id));
+    if (vatPct === null) {
+      return NextResponse.json({ error: 'VAT_RATE_MISSING', message: VAT_RATE_MISSING_MESSAGE }, { status: 422 });
+    }
+    const ticketVatRatePct = vatPct;
 
     // Kapacita a průměrná cena z typů vstupenek — vážená kapacitou, aby
     // náhled odpovídal tomu, co se reálně prodává.

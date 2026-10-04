@@ -1,0 +1,694 @@
+Generální finanční ředitelství
+Lazarská 15/7, 117 22 Praha 1
+
+Sekce metodiky daní
+                                                            Č. j. 916/24/7100-30116-050822
+
+
+      Informace GFŘ ke změnám sazeb DPH od 1. 1. 2024
+
+   1. Úvod
+
+S účinností od 1. 1. 2024 dochází v souladu se zákonem č. 349/2023 Sb., kterým se mění
+některé zákony v souvislosti s konsolidací veřejných rozpočtů, ke změnám sazeb daně.
+Základní sazba daně zůstává i nadále ve výši 21 %. Ruší se druhá snížená sazba daně
+ve výši 10 % a namísto první snížené sazby daně ve výši 15 % se zavádí pouze jedna snížená
+sazba daně ve výši 12 %. V zákoně č. 235/2004 Sb., o dani z přidané hodnoty, ve znění
+pozdějších předpisů (dále jen „zákon o DPH“), jsou v této souvislosti zrušeny přílohy č. 2a
+(Seznam služeb podléhajících druhé snížené sazbě daně) a příloha č. 3a (Seznam zboží
+podléhající druhé snížené sazbě daně). Od 1. 1. 2024 jsou plnění podléhající snížené sazbě
+daně vymezena v příloze č. 2 (Seznam služeb podléhajících snížené sazbě daně) a příloze
+č. 3 (Seznam zboží podléhajícího snížené sazbě daně). Vedle změny výše sazby daně prošlo
+vymezení plnění podléhajících od 1. 1. 2024 snížené sazbě daně také dalšími úpravami,
+zejména v důsledku přesunů mezi sazbami daně nebo změn ve slovním popisu daného kódu
+s dopadem na rozsah položek.
+
+Cílem této informace je upozornění na vybrané podstatné změny v oblasti sazeb daně.
+Upozorňujeme, že se jedná pouze o interpretační a výkladovou pomůcku. Pro správné
+zařazení plnění do příslušné sazby daně je vždy nezbytné vycházet z textu zákonné úpravy.
+
+
+   2. SLUŽBY
+
+V oblasti služeb dochází k rozšíření a úpravám přílohy č. 2 k zákonu o DPH – seznam služeb
+podléhajících snížené sazbě daně ve výši 12 %. Úplné znění přílohy č. 2 od 1. 1. 2024 je
+uvedeno v příloze této informace.
+
+Upozorňujeme, že snížené sazbě podléhají služby, které odpovídají číselnému kódu
+klasifikace produkce CZ-CPA a současně výslovně uvedenému slovnímu popisu k tomuto
+kódu v textové části přílohy.
+
+Nově je u vysvětlivek k příloze č. 2 odkazováno na Klasifikaci produkce účinnou k 1. 1. 2015.
+Nejedná se však o věcnou změnu, neboť vymezení služeb obsažených v příloze č. 2 podle
+klasifikace produkce CZ-CPA, ve znění platném k 1. 1. 2015, je obdobné vymezení, které
+odpovídá číselnému kódu klasifikace produkce CZ-CPA, ve znění platném k 1. 1. 2008. Platné
+znění aktualizované Klasifikace produkce (CZ-CPA) je včetně vysvětlivek a převodníku
+k dispozici na internetových stránkách Českého statistického úřadu (www.czso.cz).
+Č. j.: 916/24/7100-30116-050822                                           strana 2 (celkem 13)
+
+
+V souvislosti se zařazením některých vybraných nealkoholických nápojů do snížené sazby
+daně je do přílohy č. 2 doplněna definice vybraného nápoje. Tato definice je shodná jak
+pro služby (příloha č. 2), tak i pro zboží (příloha č. 3).
+
+Vybraným nápojem se pro účely daně z přidané hodnoty rozumí nealkoholický nápoj,
+pokud jde o
+
+    a)    mléko a tekuté mléčné výrobky uvedené pod kódy nomenklatury celního sazebníku
+          (dále také „KN“) v kapitole 04,
+    b)    nápoje uvedené pod kódy nomenklatury celního sazebníku 2202 99 11 a 2202 99 15,
+    c)    mléko a tekuté mléčné výrobky podle písmene a) a nápoje podle písmene b)
+          obsahující přidaný cukr nebo jiné sladidlo, přísadu nebo jinou potravinu, pokud si
+          zachovávají podstatný charakter mléka nebo tekutých mléčných výrobků podle
+          písmene a) nebo nápojů podle písmene b).
+
+Stejně tak se do přílohy č. 2 doplňuje definice pitné vody, která platí také pro dodání zboží
+podléhajícího snížené sazbě daně (příloha č. 3). Pitnou vodou se rozumí pouze pitná voda
+dodávaná vodovodem bez jakékoliv další úpravy (detailněji viz bod 3.2).
+
+Do přílohy č. 2 se dále doplňuje kód 93.29.19 a slovní vymezení „provoz lyžařských svahů“,
+protože lyžařský svah má pro účely uplatnění DPH stejný charakter jako nekryté sportovní
+zařízení.
+
+
+Ze snížené sazby daně (první či druhé) v oblasti služeb byly do základní sazby přeřazeny
+položky:
+
+         38.1         Sběr a přeprava komunálního odpadu.
+         38.2         Příprava k likvidaci a likvidace komunálního odpadu.
+         38.3         Zpracování komunálního odpadu k dalšímu využití; druhotné suroviny.
+         51           Letecká hromadná pravidelná doprava cestujících a jejich zavazadel.
+         90           Služby autorů a výkonných umělců, pokud se nejedná o poskytnutí
+                      oprávnění k výkonu práva dílo nebo umělecký výkon užít a mimo služby
+                      nezávislých novinářů, nezávislých modelů a modelek.
+         81.21.10     Služby čištění vnitřních prostor prováděné v domácnostech.
+         81.22.11     Služby mytí oken prováděné v domácnostech.
+         95.23        Opravy obuvi a kožených výrobků.
+         95.29.11     Opravy a úpravy oděvů a textilních výrobků.
+         95.29.12     Opravy jízdních kol.
+         96.02        Kadeřnické a holičské služby.
+
+
+   2.1 Sazba daně u pozemní hromadné dopravy osob
+
+Věcnou změnou v oblasti osobní dopravy je rozšíření snížené sazby daně na příležitostnou
+osobní silniční dopravu (například autobusová přeprava žáků ze školy do divadla), jejíž
+vymezení vychází z § 2 odst. 11 zákona č. 111/1994 Sb., o silniční dopravě, ve znění
+pozdějších předpisů (dále jen „zákon o silniční dopravě“). Tato doprava doposud byla zatížena
+základní sazbou daně. Zdaňování této „zájezdové dopravy“ sníženou sazbou daně nicméně
+nemá vliv na uplatňování základní sazby daně při použití zvláštního režimu pro cestovní
+službu podle § 89 zákona o DPH.
+
+V návaznosti na tuto změnu je doplněno uplatňování snížené sazby daně i u zvláštní linkové
+dopravy vymezené v § 2 odst. 7 písm. b) zákona o silniční dopravě. Zvláštní linkovou
+Č. j.: 916/24/7100-30116-050822                                           strana 3 (celkem 13)
+
+
+dopravou se rozumí např. služby poskytnuté přepravcem určité vymezené množině příjemců
+(např. doprava určená pro zaměstnance konkrétní firmy nebo firem) s vyloučením ostatních
+osob, které sice jsou poskytovány na určené trase dopravní cesty, přičemž cestující vystupují
+a nastupují na předem určených zastávkách, avšak dosud tyto služby nemohly podléhat
+snížené sazbě daně z důvodu neexistence předepsaným způsobem schválených jízdních
+řádů.
+
+Poskytování služeb taxislužby a jiné obdobné alternativní přepravy (např. Uber, Bolt), která
+je zákonem o silniční dopravě vymezena jako osobní doprava pro cizí potřeby, kterou se
+zajišťuje přeprava osob včetně jejich zavazadel, a která není linkovou osobní dopravou,
+mezinárodní kyvadlovou dopravou nebo příležitostnou osobní silniční dopravou, nadále
+nebude podléhat snížené sazbě daně, pokud bude zajišťována vozidly určenými k přepravě
+nejvýše 9 osob včetně řidiče.
+
+
+   2.2 Sazba daně u podávání nápojů v rámci stravovací služby
+
+U stravovací služby se nadále uplatňuje snížená sazba daně. V rámci stravovací služby
+či služby podávání nápojů se při podávání veškerých nápojů (a to jak alkoholických, tak
+i nealkoholických) nově uplatní základní sazba daně, a to bez ohledu na skutečnost, zda jsou
+nápoje podávány v rámci stravovací služby, odnosu jídla s sebou či samostatně. Výjimkou
+z pravidla aplikace základní sazby daně je podávání pitné vody (pro účely této kapitoly dále
+jen „kohoutková pitná voda“, viz též bod 3.2) a podávání vybraných nápojů, u nichž se
+uplatní snížená sazba daně.
+
+Základní sazba daně se uplatní při podávání všech druhů alkoholických nápojů (včetně piva),
+nealkoholických nápojů jako například čajů, čokoládových nápojů, kávy, a to bez ohledu
+na množství přidané kohoutkové pitné vody, mléka, tekutých mléčných výrobků či tzv.
+rostlinných alternativ mléka. Základní sazba daně se tak uplatní například u podání kávy
+s mlékem nebo se smetanou, čaje, alkoholického či nealkoholického piva, ovocných
+a zeleninových šťáv, minerální vody, sodové vody (kohoutkové pitné vody obohacené o CO2),
+limonád včetně domácích limonád (byť vyrobených z kohoutkové pitné vody).
+
+Mezi vybrané nápoje, u nichž se při jejich podávání uplatní snížená sazba daně, patří:
+
+   •   podle bodu a) mléko (kravské, kozí apod.) a dále pak tekuté mléčné výrobky
+       vymezené KN 04. Jedná se například o podmáslí, jogurtové mléko, kefír či jiná
+       fermentovaná (kysaná) nebo acidofilní mléka.
+
+   •   podle bodu b) veškeré rostlinné alternativy mléka, kterými jsou například nápoje
+       na bázi sóji, nápoje na bázi ořechů (např. mandlové nebo kokosové), nápoje na bázi
+       obilovin (např. rýžové nebo ovesné) a nápoje na bázi semen (makové, konopné nebo
+       sezamové).
+
+   •   podle bodu c) veškerá mléka, tekuté mléčné výroby a jejich rostlinné alternativy,
+       které obsahují přidaný cukr či jiná sladidla (například mléko s medem, cukrem apod.),
+       ovoce (např. mléčný koktejl s jahodami), ořechy, kakao, čokoládu, koření, rostliny
+       či část rostlin, obiloviny nebo jiné potraviny (například mléčný koktejl s posypem).
+       Nutnou podmínkou pro uplatnění snížené sazby daně v případě vybraných nápojů je
+       to, aby tyto nápoje nebyly alkoholickým nápojem ve smyslu zákona č. 65/2017 Sb.,
+       o ochraně zdraví před škodlivými účinky návykových látek, ve znění pozdějších
+       předpisů, a zároveň, aby si tyto nápoje i po přidání ochucovadel, potravin, jiných
+       nápojů, zachovaly podstatný charakter mléka, tekutého mléčného výrobku či rostlinné
+       alternativy mléka.
+Č. j.: 916/24/7100-30116-050822                                               strana 4 (celkem 13)
+
+
+Vybrané nápoje pod písm. c) reflektují skutečnost, že ne všechny nápoje vymezené
+pod písm. a) nebo b) v případě, že jsou ochuceny nebo doslazeny, spadají do kódů
+nomenklatury celního sazebníku uvedených v písm. a) nebo b). Záměr zákonodárce, aby se
+i v takových případech jednalo o vybraný nápoj (příkladně jahodový či jiný ovocný mléčný
+koktejl), proto nebylo možné naplnit pouze prostřednictvím odkazu na kódy nomenklatury
+celního sazebníku. Z tohoto důvodu pod písm. c) spadají všechny vybrané nápoje uvedené
+v písm. a) nebo b), které jsou nějakým způsobem ochuceny či doslazeny, přičemž samotné
+sladidlo, přísada nebo jiná přidaná potravina nemění podstatný charakter nápoje jako mléka
+nebo tekutých mléčných výrobků a nejsou tou rozhodnou složkou, která by změnila vybraný
+nápoj uvedený v písm. a) nebo b) tak, že by se z pohledu průměrného spotřebitele jednalo
+o jiný než vybraný nápoj dle písm. a) nebo b).
+
+Jako příklad lze v této souvislosti uvést, že mléko či mléčný výrobek ochucený přidaným
+výluhem kávy, který má povahu mléčného koktejlu s kávovou příchutí, naplní charakter nápoje
+v písm. c). Nicméně káva, i když bude obsahovat přidané mléko či mléčnou pěnu (café
+macchiato, café latté, ledová káva apod.) nebude vybraným nápojem, a to bez ohledu
+na způsob jejího prodeje (připravená v restauraci nebo ve formě baleného zboží v obchodě).
+Již z názvu těchto nápojů vyplývá, že z pohledu průměrného spotřebitele jsou vždy
+považovány za kávu jako takovou a mléko či mléčná pěna jsou pouze přísadou samotného
+nápoje, kterým je různým způsobem připravovaná káva.
+
+V případě podání kohoutkové pitné vody se snížená sazba daně uplatní pouze
+za předpokladu, že není nikterak ochucena (např. šťávou, sirupem, sladidlem, jiným nápojem
+nebo přidaným ovocem) nebo upravena (např. na sodu či ledovou tříšť). Například ledová tříšť
+vyrobená z kohoutkové pitné vody a ochucená sirupem podléhá základní sazbě daně. Aplikaci
+snížené sazby daně naopak nebrání přidání dekorace do/na sklenici s kohoutkovou pitnou
+vodou, která nebude faktickým dochucením, příkladně v podobě máty či ovoce, nebo doplnění
+ledem.
+
+Vzhledem ke kritériu slovního popisu v příloze č. 2, kdy u stravovací služby dochází k vyřazení
+podávání nápojů ze snížené sazby daně (s výjimkou kohoutkové pitné vody a vybraných
+nápojů), je třeba řešit situaci, kdy jsou poskytována plnění s různými sazbami daně (pokrm
+ve snížené sazbě daně, nápoj v základní sazbě daně). Pokud jsou tyto služby poskytovány
+a účtovány společně (např. v rámci tzv. menu), je třeba při jejich vyúčtování postupovat podle
+§ 36 odst. 9 zákona o DPH a rozdělit základ daně podle jednotlivých zdanitelných plnění.
+Pokud takovéto rozdělení není možné, byla by u celého zdanitelného plnění uplatněna
+základní sazba daně 21 %.
+
+Při poskytnutí ubytování spolu s polopenzí či plnou penzí či případně samostatně dokoupenou
+snídaní se základ daně rozdělí tak, že u ubytování se uplatní snížená sazba daně
+a u stravování se opět rozdělí základ daně podle jednotlivých zdanitelných plnění. Pouze
+při poskytování ubytovací služby se snídaní v ceně (byť jsou při snídani poskytnuty nápoje,
+které, pokud jsou dodány samostatně, podléhají základní sazbě daně ve výši 21 % – například
+čaj, káva), se uplatní snížená sazba daně ve výši 12 %. Důvodem je, že v daném případě
+představuje poskytnutí stravování vedlejší službu související se službou hlavní – ubytováním.
+Doplňujeme, že další specifické příklady uplatňování DPH u činností poskytovaných
+v hotelových zařízeních jsou zveřejněny na internetu Finanční správy1. Zde uvedené základní
+principy posuzování uskutečnění jednoho či více plnění v rámci ubytovacích služeb pro účely
+správného uplatnění sazby daně se novelou nijak nezměnily a platí bez ohledu na aktuální
+výši sazeb daně.
+
+
+
+1 https://www.financnisprava.cz/cs/dane/dane/dan-z-pridane-hodnoty/informace-stanoviska-a-
+
+sdeleni/sazby-dane/2020
+Č. j.: 916/24/7100-30116-050822                                               strana 5 (celkem 13)
+
+
+Pro úplnost uvádíme, že ze stravovacích služeb v příloze č. 2 jsou nadále vyloučeny stravovací
+služby osvobozené od daně podle § 57 až 59, ačkoliv novelizované znění zákona toto
+vyloučení výslovně neobsahuje.
+
+
+   3. ZBOŽÍ
+
+V oblasti zboží dochází k rozšíření a úpravám přílohy č. 3 k zákonu o DPH – seznam zboží
+podléhajícího snížené sazbě daně ve výši 12 %. Úplné znění přílohy č. 3 od 1. 1. 2024 je
+uvedeno v příloze této informace.
+
+Upozorňujeme, že snížené sazbě daně podléhá zboží, které odpovídá kódu nomenklatury
+celního sazebníku (znění platné k 1. lednu 2018) a současně výslovně uvedenému slovnímu
+popisu k tomuto kódu v textové části přílohy.
+
+Ze snížené sazby daně (první či druhé) u zboží byly do základní sazby přeřazeny
+položky:
+
+       3505          Dextriny a jiné modifikované škroby
+       0603, 0604 Řezané květiny a dekorativní listoví.
+       4401          Palivové dřevo.
+       4901          Letáky a prospekty.
+       Dovoz uměleckých děl, sběratelských předmětů a starožitností uvedených v příloze
+       č. 4 (zrušením znění stávajícího § 47 odst. 8).
+
+
+   3.1 Sazba daně u zdravotnických prostředků
+
+V rámci nové úpravy dochází v příloze č. 3 k rozšíření okruhu zdravotnických prostředků,
+na které se uplatňuje snížená sazba daně. Sníženou sazbu daně lze i nadále uplatnit
+u zdravotnických prostředků, které jsou vymezeny s odkazem na příslušné právní předpisy
+v oblasti zdravotnictví ve slovním popisu ke kódu 01–96.
+
+Sníženou sazbu daně lze také nově uplatnit v případě zdravotnických prostředků určených
+pro jedno použití a taktéž v případě diagnostických zdravotnických prostředků in vitro
+pro jedno použití. Dále se jedná o rozšíření o malé přístroje, zařízení a další výrobky z kapitoly
+KN 90, které jsou v rámci slovního popisu detailně v příloze č. 3 vymezeny.
+
+Pro úplnost upozorňujeme, že zdravotnické prostředky uvedené v příloze č. 3 pod KN 9026
+jsou zpravidla zařazeny do jiného KN (např. přístroje na měření tlaku krve zařazené do KN
+9018 9010) a podléhají tak i nadále základní sazbě daně.
+
+
+   3.2 Pitná voda
+
+Pitnou vodou se pro účely zákona o DPH dle upraveného slovního vymezení v příloze č. 2
+(využitelného i pro přílohu č. 3) nově rozumí voda splňující požadavky pro pitnou vodu
+stanovené zákonem č. 258/2000 Sb., o ochraně veřejného zdraví a o změně některých
+souvisejících zákonů, ve znění pozdějších předpisů, dodávaná odběratelům vodovodem,
+a teplá voda splňující podmínky pro teplou vodu podle zákona č. 258/2000 Sb., o ochraně
+veřejného zdraví a o změně některých souvisejících zákonů, ve znění pozdějších předpisů,
+dodávaná odběratelům potrubím nebo vnitřním vodovodem, které jsou konstrukčně propojeny
+směšovací baterií s vodovodním potrubím pitné vody.
+Č. j.: 916/24/7100-30116-050822                                                 strana 6 (celkem 13)
+
+
+Pitnou vodou, u níž se uplatní snížená sazba daně, se tedy rozumí pouze pitná voda dodávaná
+vodovodem bez jakékoliv další úpravy (z tohoto důvodu byla pro účely kapitoly 2.2 zvolena
+zkratka „kohoutková pitná voda“). Pitná voda dodávaná jiným způsobem (např. balená,
+z nápojových automatů plněných barely, ledová tříšť apod.) do přílohy č. 2 a 3 nespadá
+a podléhá sazbě 21 %. Pitná voda (tj. bez ochucení nebo další úpravy) z nápojového
+automatu, který je napojen na vnitřní vodovod, podléhá snížené sazbě daně.
+
+Nově podléhá snížené sazbě daně i pitná voda dodávaná tzv. malými vodovody, které trvale
+využívá méně než 50 fyzických osob, nebo pokud průměrná denní produkce z ročního průměru
+pitné vody za den je méně než 10 m3, na které se nevztahuje zákon č. 274/2001 Sb.,
+o vodovodech a kanalizacích pro veřejnou potřebu a o změně některých zákonů, ve znění
+pozdějších předpisů (dále jen „zákon o vodovodech a kanalizacích“).
+
+Za situace nouzového zásobování vodou (tj. zákonné povinnosti podle § 9 odst. 8 zákona
+o vodovodech a kanalizacích), kdy nelze pitnou vodu distribuovat standardním způsobem
+prostřednictvím vodovodu a provozovatel je současně povinen zajistit náhradní zásobování
+pitnou vodou, se taktéž uplatní snížená sazba daně.
+
+
+    3.3 Sazba daně u dodání potravin a nápojů
+
+Do snížené sazby daně spadají veškeré potraviny kromě nápojů. Nápoje tak nově podléhají
+základní sazbě daně. Výjimkou je dodání vybraných nápojů, jejichž definice je uvedena
+v příloze č. 2, na jejichž dodání se uplatní snížená sazba daně. Kategorie potravin jako
+doposud zahrnuje jak potraviny prodávané v obchodech (kamenných nebo dodané na základě
+objednávky v e-shopu), tak i jídlo, které je prodávané v restauracích, stáncích, cukrárnách
+tzv. s sebou (tj. nejedná se o službu stravovací2).
+
+Z jazykového znění legislativní úpravy a jejího smyslu a cíle vyjádřených v důvodové zprávě
+lze dovodit, že (nevybranými) nealkoholickými nápoji se rozumí tekutiny připravené
+ke konzumaci pitím (tedy nikoliv k zajištění stravy – viz následující odstavec). KN není
+pro definici nápojů stanoven, neboť nápoje jsou obsaženy v řadě různých kódů KN (viz mléko
+a mléčné výrobky), jedná se zpravidla o zboží zařazované KN 2009 (ovocné a zeleninové
+šťávy), 2201 a 2202, dosud podléhající první snížené sazbě DPH ve výši 15 %. Účel
+konzumace nápoje není důvodné posuzovat.
+
+Jako nápoje nelze posuzovat zboží (potraviny), které bylo dosud zařazeno do přílohy č. 3a
+a podléhalo druhé snížené sazbě DPH ve výši 10 %. Toto zboží se nově podřazuje
+pod obecnou položku potraviny se sazbou DPH 12 %. I když může mít např. pokračující
+kojenecká výživa konzistenci tekutiny s vysokým obsahem vody připravené k bezprostřední
+konzumaci, bude i nadále pro účely zákona o DPH potravinou – kojeneckou výživou, u které
+lze uplatnit sníženou sazbu daně.
+
+Produkty rostlinného původu v suchém stavu zařazované do KN 07-12 (typicky káva, čaj či jiné
+zboží) budou podléhat snížené sazbě DPH 12 %.
+
+Ostatní potraviny jako sirupy, nápoje v prášku, instantní směsi apod. budou podléhat snížené
+sazbě DPH ve výši 12 %.
+
+
+
+
+2 Základní principy rozdílu mezi stravovací službou a službou dodání zboží jsou popsány v Informaci
+
+GFŘ ke změnám sazeb DPH od 1. 5. 2020
+Č. j.: 916/24/7100-30116-050822                                              strana 7 (celkem 13)
+
+
+   4. Osvobození od daně při dodání knihy a poskytnutí obdobné služby
+
+Od daně s nárokem na odpočet daně je nově osvobozeno dodání knih a poskytnutí
+obdobných služeb za podmínek vymezených v § 71i zákona o DPH. Tímto dochází k přesunu
+daných plnění ze zdanitelných plnění ve druhé snížené sazbě daně do plnění osvobozených
+od daně s nárokem na odpočet daně. Osvobození se uplatní při dodání tištěných knih a dalších
+tiskovin a poskytnutí služeb, které jsou definovány v §71i odst. 2 zákona o DPH jako služby
+obdobné dodání knih (typicky verze knih určené ke stažení nebo zasílané prostřednictvím
+elektronické pošty, či zpřístupněné ke čtení on-line, včetně půjčování a nájmu).
+
+Osvobození od daně při dodání knih se uplatní i u vedlejších výdajů dle § 36 odst. 4 zákona
+o DPH, týkajících se zejména nákladů na balení knih a jejich přepravu.
+
+Rovněž při dodání knihy ve zvláštním režimu podle § 90 zákona o DPH se uplatní
+osvobození od daně. Základ daně (hodnota plnění) se stanoví pouze z přirážky, neboť tu nelze
+snížit o daň z přirážky. Podle § 90 odst. 13 je povinnost vést evidenci pro účely DPH i se
+zohledněním existence osvobozeného plnění. I v tomto případě je povinnost vystavit daňový
+doklad podle § 90 odst. 14 zákona o DPH včetně zde požadovaných údajů (neuvede se tak
+údaj dle § 29 odst. 2 písm. a) zákona o DPH, že toto plnění je osvobozeno od daně).
+
+Tuzemská dodání knih a dalšího uvedeného zboží či poskytnutí obdobných služeb podle § 71i
+i ve zvláštním režimu podle § 90 se uvedou do řádku 26 daňového přiznání k DPH.
+
+Upozorňujeme, že v souladu s §71i odst. 3 zákona o DPH se osvobození od daně dle §71i
+nepoužije v případech dodání knihy splňující podmínky osvobození od daně bez nároku
+na odpočet daně (dle § 51) nebo osvobození od daně s nárokem na odpočet daně dle § 64
+(dodání do jiného členského státu), § 66 (vývoz zboží) anebo § 71h (dodání zboží
+provozovateli elektronického rozhraní). Při naplnění podmínek v těchto ustanoveních
+uvedených má plátce daně povinnost uplatnit dané osvobození (včetně příslušného vykázání
+v daňovém přiznání a např. souhrnném hlášení). Ze směrnice o DPH vyplývá, že rovněž § 61
+zákona o DPH má přednost před § 71i zákona o DPH, tato plnění tedy budou nadále
+osvobozená bez nároku na odpočet daně, i když by se jednalo příkladně o půjčování knihy.
+
+
+   5. Snížená sazba daně při poskytnutí stavebních nebo montážních prací
+      a při dodání stavby pro sociální bydlení
+
+Úprava zákona o DPH zákonem č. 284/2021 Sb., kterým se mění některé zákony v souvislosti
+s přijetím stavebního zákona, ve znění pozdějších předpisů, obsahuje přechodná ustanovení
+týkající se aplikace první snížené sazby daně dle § 48 a § 49 zákona o DPH, a to s účinností
+od 1. 1. 2024.
+
+Tím, že pozdější úpravou došlo ke zrušení dvou snížených sazeb DPH a zavedení pouze
+jedné snížené sazby DPH, projevil zákonodárce vůli aplikovat na plnění obsažená v § 48 a 49
+zákona o DPH sníženou sazbu DPH ve výši 12 %.
+
+Vzhledem ke skutečnosti, že obsah pojmu rodinný dům po novele uskutečněné zákonem
+č. 284/2021 Sb. je širší, nikoli užší, jak se předpokládalo při tvorbě přechodného ustanovení
+a na co bylo přechodným ustanovením mířeno3, nedochází k faktické změně aplikace snížené
+sazby DPH na rodinné domy, pouze ke změně výše snížené sazby DPH z 15 % na 12 %.
+
+
+3 Viz zápis z jednání Koordinačního výboru s Komorou daňových poradců ČR ze dne 21. 6. 2023,
+
+příspěvek č. 606/03.05.23 Sporná ustanovení zákona o DPH účinná od 1. 7. 2023.
+https://www.financnisprava.cz/cs/dane/prispevky-kv-kdp/zapisy-z-jednani/2023
+Č. j.: 916/24/7100-30116-050822                                             strana 8 (celkem 13)
+
+
+   6. Zdanění a vypořádání záloh
+
+Ke zdanění a vypořádání záloh uvádíme, že obecné pravidlo pro vznik povinnosti přiznat daň
+při dodání zboží a poskytnutí služby je vymezeno v § 20a zákona o DPH. Povinnost přiznat
+daň při dodání zboží nebo poskytnutí služby vzniká ke dni uskutečnění zdanitelného plnění,
+přičemž je-li před uskutečněním zdanitelného plnění přijata úplata, vzniká povinnost přiznat
+daň z přijaté částky ke dni přijetí úplaty (zálohy).
+
+Pravidla pro určení základu daně a výše daně v případě vypořádání záloh za zdanitelná plnění,
+kdy se v průběhu vypořádávaného období měnily sazby daně, stanoví § 37a zákona o DPH.
+
+V případě poskytnuté úplaty (zálohy) na dodání knih a poskytnutí obdobných služeb do 31. 12.
+2023 a vyúčtování při uskutečnění zdanitelného plnění (dodání) po 1. 1. 2024 se v souladu
+s bodem 1 přechodných ustanovení postupuje obdobně podle § 37a zákona o DPH.
+
+
+   7. Vykázání v daňovém přiznání a kontrolním hlášení
+
+Informace týkající se vykázání sazeb DPH v rámci daňového přiznání a kontrolního hlášení
+jsou uvedeny v pokynech pro jejich vyplnění, které byly zveřejněny ve vyhlášce
+č. 368/2023 Sb., kterou se mění vyhlášky o formulářových podáních při správě daní pro rok
+2024.
+
+
+   8. Závazné posouzení určení sazby daně u zdanitelného plnění, resp. uplatnění
+      osvobození od daně s nárokem na odpočet daně při dodání knihy a poskytnutí
+      obdobné služby
+
+V případě nejistoty či nejasností týkajících se příslušné sazby daně u zdanitelného plnění lze
+využít institut tzv. závazného posouzení upravený v ustanovení § 47a a § 47b zákona o DPH.
+Vzhledem k nově zaváděnému osvobození v § 71i zákona o DPH je umožněno žádat
+o závazné posouzení také na uplatnění osvobození od daně s nárokem na odpočet při dodání
+knih a poskytnutí obdobných služeb vztahující se k § 71i (nová ustanovení § 71j a 71k zákona
+o DPH). Subsidiárně se na podání žádosti a další procesní záležitosti spojené s řízením
+o závazném posouzení použijí příslušná ustanovení zákona č. 280/2009 Sb., daňový řád,
+ve znění pozdějších předpisů. Žádost se může vztahovat pouze k jedné položce zboží
+či služby a její podání podléhá správnímu poplatku ve výši 10 000 Kč.
+
+
+
+                                                   Ing. Radek Novotný
+                                                       ředitel sekce
+
+
+
+
+                                                               Elektronicky podepsáno
+                                                                     12.01.2024
+                                                            Ing. Blanka Mattauschová v z.
+                                                    ředitelka odboru a zástupkyně ředitele sekce
+Č. j.: 916/24/7100-30116-050822                                            strana 9 (celkem 13)
+
+
+Příloha – Seznam služeb podléhajících snížené sazbě daně (příloha č. 2 k zákonu
+č. 235/2004 Sb.) a seznam zboží podléhajícího snížené sazbě daně (příloha č. 3 k zákonu
+č. 235/2004 Sb.) ve znění zákona č. 349/2023 Sb., s účinností od 1. 1. 2024
+
+
+Příloha č. 2 - seznam služeb podléhajících snížené sazbě DPH
+
+ CZ-CPA          Popis služby
+ 36.00.2         Úprava a rozvod vody prostřednictvím sítí.
+ 37              Odvádění a čištění odpadních vod včetně ostatních služeb souvisejících
+                 s těmito činnostmi.
+ 49              Pozemní hromadná doprava osob a jejich zavazadel; osobní doprava
+                 lyžařskými vleky.
+ 50              Vodní hromadná doprava osob a jejich zavazadel.
+ 55              Ubytovací služby.
+ 56              Stravovací služby s výjimkou podávání nápojů jiných než pitné vody
+                 a vybraných nápojů; podávání pitné vody a vybraných nápojů.
+ 59.14, 90,      Poskytnutí oprávnění ke vstupu na představení, do divadel, do cirkusů,
+ 91, 93          do zábavních parků, na koncerty, do muzeí, do zoologických zahrad, do kin,
+                 na výstavy a na podobné kulturní události nebo do podobných kulturních
+                 zařízení; poskytnutí oprávnění ke vstupu do botanických zahrad, přírodních
+                 rezervací a národních parků.
+ 77, 85, 91      Půjčování nebo nájem novin, časopisů a periodik, na jejichž dodání se
+                 uplatňuje snížená sazba daně, pokud se jedná o veřejné knihovnické
+                 a informační nebo další služby poskytované podle knihovního zákona nebo
+                 obdobné služby poskytované podle jiného právního předpisu.
+ 86              Zdravotní péče.
+ 87              Sociální péče.
+ 88.10, 88.91    Domácí péče o děti, staré, nemocné nebo zdravotně postižené občany.
+ 93.11, 93.12,   Poskytnutí oprávnění ke vstupu na sportovní události; použití krytých
+ 93.13,          i nekrytých sportovních zařízení ke sportovním činnostem; služby související
+ 93.29.11,       s provozem rekreačních parků a pláží; provoz lyžařských svahů.
+ 93.29.19
+ 96.03           Pohřební a související služby mimo pohřebních služeb pro zvířata.
+ 96.04           Služby tureckých lázní, saun, parních lázní a solných jeskyní.
+
+Snížené sazbě daně podléhají služby, které odpovídají současně číselnému kódu klasifikace
+produkce CZ-CPA, ve znění platném k 1. lednu 2015, a výslovně uvedenému slovnímu popisu
+k tomuto kódu v textové části této přílohy.
+
+Kódem nomenklatury celního sazebníku se rozumí kód popisu vybraných výrobků uvedený
+v celním sazebníku, ve znění platném k 1. lednu 2018.
+
+Hromadnou dopravou osob se pro účely daně z přidané hodnoty rozumí přeprava osob
+po stanovených trasách, kdy cestující nastupují a vystupují na předem určených zastávkách
+nebo místech podle předem stanovených jízdních řádů schválených podle zákona č. 266/1994
+Sb., o dráhách, ve znění pozdějších předpisů, nebo zákona č. 114/1995 Sb., o vnitrozemské
+plavbě, ve znění pozdějších předpisů, a přeprava osob, která je linkovou osobní dopravou
+nebo příležitostnou osobní silniční dopravou podle zákona č. 111/1994 Sb., o silniční dopravě,
+ve znění pozdějších předpisů.
+
+Pitnou vodou se pro účely daně z přidané hodnoty rozumí voda splňující požadavky pro pitnou
+vodu stanovené zákonem č. 258/2000 Sb., o ochraně veřejného zdraví a o změně některých
+souvisejících zákonů, ve znění pozdějších předpisů, dodávaná odběratelům vodovodem
+Č. j.: 916/24/7100-30116-050822                                        strana 10 (celkem 13)
+
+
+a teplá voda splňující podmínky pro teplou vodu podle zákona č. 258/2000 Sb., o ochraně
+veřejného zdraví a o změně některých souvisejících zákonů, ve znění pozdějších předpisů,
+dodávaná odběratelům potrubím nebo vnitřním vodovodem, které jsou konstrukčně propojeny
+směšovací baterií s vodovodním potrubím pitné vody.
+
+Vodovodem se pro účely daně z přidané hodnoty rozumí provozně samostatný soubor staveb
+a zařízení zahrnující vodovodní řady a vodárenské objekty, jimiž jsou zejména stavby
+pro jímání a odběr povrchové nebo podzemní vody, její úpravu a shromažďování.
+
+Vnitřním vodovodem se pro účely daně z přidané hodnoty rozumí potrubí určené pro rozvod
+vody po pozemku nebo stavbě, které navazuje na konec vodovodní přípojky.
+
+
+Vybraným nápojem se pro účely daně z přidané hodnoty rozumí nealkoholický nápoj,
+pokud jde o
+
+    a)   mléko a tekuté mléčné výrobky uvedené pod kódy nomenklatury celního sazebníku
+         (dále také „KN“) v kapitole 04,
+    b)   nápoje uvedené pod kódy nomenklatury celního sazebníku 2202 99 11 a 2202 99 15,
+    c)   mléko a tekuté mléčné výrobky podle písmene a) a nápoje podle písmene b)
+         obsahující přidaný cukr nebo jiné sladidlo, přísadu nebo jinou potravinu, pokud si
+         zachovávají podstatný charakter mléka nebo tekutých mléčných výrobků podle
+         písmene a) nebo nápojů podle písmene b).
+
+
+Nealkoholickým nápojem se pro účely daně z přidané hodnoty rozumí nápoj jiný
+než alkoholický nápoj podle zákona č. 65/2017 Sb., o ochraně zdraví před škodlivými účinky
+návykových látek, ve znění pozdějších předpisů.
+Č. j.: 916/24/7100-30116-050822                                           strana 11 (celkem 13)
+
+
+Příloha č. 3 - seznam zboží podléhajícího snížené sazbě daně
+
+ Kód nomenklatury       Název zboží
+ celního sazebníku
+ (KN)
+ 01-05, 07-23, 25       Potraviny; krmiva pro zvířata; živá zvířata, semena, rostliny a
+                        přísady, obvykle určené k přípravě potravin; výrobky obvykle
+                        používané jako doplněk nebo náhražka potravin.
+                        Mimo nápojů a vody; to neplatí pro vybrané nápoje.
+ 2201                   Pitná voda.
+ 0601, 0602             Živé dřeviny a jiné rostliny; cibule, kořeny a podobné.
+ 07-12                  Rostliny a semena.
+ 28-30                  Sorbit pro diabetiky, aspartam, sacharin a jeho soli, antibiotika,
+                        farmaceutické výrobky – jen určené pro zdravotní služby, prevenci
+                        nemocí a léčbu pro humánní lékařské účely; radiofarmaka, očkovací
+                        látky, léky, kontrastní prostředky pro rentgenová vyšetření,
+                        diagnostické reagencie určené k podávání pacientům, chemické
+                        antikoncepční přípravky na hormonálním základě – určené pro
+                        zdravotní a veterinární služby, prevenci nemocí a léčbu pro humánní
+                        a veterinární lékařské účely.
+ 4902, 8523             Noviny, časopisy a periodika, včetně zvukového záznamu přednesu
+                        jejich obsahu, pokud nejde o zboží,
+                        - u kterého reklama podle zákona upravujícího regulaci
+                        reklamy představuje více než 50 % obsahu, nebo
+                        - které výlučně nebo převážně sestává z hudebního zvukového
+                        nebo audiovizuálního obsahu.
+ 01-96                  Zdravotnické prostředky podle nařízení Evropského parlamentu a
+                        Rady upravujícího zdravotnické prostředky79 (dále jen "nařízení
+                        o zdravotnických prostředcích“) a jejich příslušenství podle tohoto
+                        nařízení a diagnostické zdravotnické prostředky in vitro podle
+                        nařízení Evropského parlamentu a Rady upravujícího diagnostické
+                        zdravotnické prostředky in vitro80 (dále jen "nařízení o
+                        diagnostických zdravotnických prostředcích in vitro") a jejich
+                        příslušenství podle tohoto nařízení, které lze zařadit do
+                        - úhradové skupiny v tabulce č. 1 oddílu C přílohy č. 3
+                        k zákonu o veřejném zdravotním pojištění, pokud se nejedná
+                        o zdravotnické prostředky, které lze zařadit do úhradové
+                        skupiny „Nekategorizované zdravotnické prostředky“, vatu
+                        buničitou nebo náplast s výjimkou hypoalergenní náplasti,
+                        - přílohy č. 4 k zákonu o veřejném zdravotním pojištění.
+ 01-96                  Zdravotnické prostředky podle nařízení o zdravotnických
+                        prostředcích a jejich příslušenství podle tohoto nařízení, pokud jsou
+                        zhotovené podle předpisu kvalifikovaného zdravotnického
+                        pracovníka, kterým tento pracovník vydává individuální návrh
+                        charakteristik zdravotnického prostředku určeného k použití pouze
+                        pro jednoho konkrétního pacienta.
+ 01-96                  Zdravotnické prostředky podle nařízení o zdravotnických
+                        prostředcích a jejich příslušenství podle tohoto nařízení a
+                        diagnostické zdravotnické prostředky in vitro podle nařízení o
+                        diagnostických zdravotnických prostředcích in vitro, které jsou
+                        určené pro jedno použití.
+ 9001 30                Kontaktní čočky, které jsou zdravotnickými prostředky podle nařízení
+                        o zdravotnických prostředcích.
+Č. j.: 916/24/7100-30116-050822                                           strana 12 (celkem 13)
+
+
+ 9001 40                Brýlové čočky ze skla, které jsou zdravotnickými prostředky podle
+                        nařízení o zdravotnických prostředcích.
+ 9001 50                Brýlové čočky z ostatních materiálů, které jsou zdravotnickými
+                        prostředky podle nařízení o zdravotnických prostředcích.
+ 9003                   Obruby a obroučky pro brýle, pro ochranné brýle nebo pro podobné
+                        výrobky, a jejich části a součásti, které jsou zdravotnickými
+                        prostředky podle nařízení o zdravotnických prostředcích, a jejich
+                        příslušenství podle tohoto nařízení.
+ 9004                   Brýle korekční, ochranné nebo jiné a podobné výrobky, které jsou
+                        zdravotnickými prostředky podle nařízení o zdravotnických
+                        prostředcích.
+ 9018 31, 9018 32,      Injekční stříkačky, jehly, katétry (cévky), kanyly a podobné výrobky,
+ 9018 39 00             které jsou zdravotnickými prostředky podle nařízení o zdravotnických
+                        prostředcích.
+ 9019                   Přístroje pro mechanoterapii; masážní přístroje; psychotechnické
+                        přístroje; přístroje pro léčbu ozonem, kyslíkem, aerosolem, dýchací
+                        oživovací přístroje nebo jiné léčebné dýchací přístroje. Pouze pokud
+                        se jedná o zdravotnické prostředky podle nařízení o zdravotnických
+                        prostředcích. Příslušenství těchto zdravotnických prostředků podle
+                        tohoto nařízení.
+ 9020 00 00             Ostatní dýchací přístroje a plynové masky, kromě ochranných masek
+                        bez mechanických částí a vyměnitelných filtrů, které jsou
+                        zdravotnickými prostředky podle nařízení o zdravotnických
+                        prostředcích, a jejich příslušenství podle tohoto nařízení.
+ 9021                   Ortopedické pomůcky a přístroje, včetně berlí, chirurgických pásů
+                        a kýlních pásů; dlahy a jiné prostředky k léčbě zlomenin; umělé části
+                        těla; pomůcky pro nedoslýchavé a jiné prostředky nošené v ruce
+                        nebo na těle anebo implantované v organismu ke kompenzování
+                        následků nějaké vady nebo neschopnosti. Pouze pokud se jedná
+                        o zdravotnické prostředky podle nařízení o zdravotnických
+                        prostředcích. Příslušenství těchto zdravotnických prostředků podle
+                        tohoto nařízení.
+ 9025                   Teploměry, které jsou zdravotnickými prostředky podle nařízení
+                        o zdravotnických prostředcích.
+ 9026                   Přístroje a zařízení na měření hladiny, tlaku nebo jiných proměnných
+                        charakteristik kapalin nebo plynů, které jsou zdravotnickými
+                        prostředky podle nařízení o zdravotnických prostředcích, a jejich
+                        příslušenství podle tohoto nařízení.
+ 48, 64, 66, 84, 85,    Zboží pro osobní používání nemocnými nebo zdravotně postiženými
+ 87, 90, 91             k léčení nemoci nebo zdravotního postižení nebo ke zmírnění jejich
+                        důsledků, jež není zdravotnickým prostředkem nebo příslušenstvím
+                        zdravotnických prostředků podle právního předpisu upravujícího
+                        zdravotnické prostředky, a to:
+                        - Braille papír
+                        - Osobní a kuchyňské váhy s hlasovým výstupem pro nevidomé
+                        a částečně vidící osoby
+                        - Psací stroje a stroje na zpracování textu (slovní procesory)
+                        upravené k používání nevidomými a částečně vidícími osobami
+                        nebo osobami s amputovanou nebo ochrnutou horní končetinou
+                        - Elektronické kalkulačky s hlasovým nebo hmatovým výstupem
+                        pro nevidomé a částečně vidící osoby a elektronické počítací
+                        stroje s hlasovým nebo hmatovým výstupem pro nevidomé
+                        a částečně vidící osoby
+                        - Počítače speciálně upravené pro nevidomé a částečně vidící
+Č. j.: 916/24/7100-30116-050822                                       strana 13 (celkem 13)
+
+
+                        osoby s hlasovým nebo hmatovým výstupem nebo hardwarovým
+                        adaptérem pro zvětšování písma a obrazu, a jejich jednotky
+                        a přídavná zařízení s hlasovým nebo hmatovým výstupem nebo
+                        hardwarovým adaptérem pro zvětšování písma a obrazu
+                        - Braillská počítačová tiskárna pro nevidomé a částečně vidící
+                        osoby, klávesnice pro nevidomé a částečně vidící osoby a jiné
+                        výstupní a vstupní jednotky počítače pro zpracování hmatového
+                        písma
+                        - Jednotky počítačů a přídavná zařízení k počítačům umožňující
+                        jejich ovládání osobami se sníženou jemnou motorikou nebo
+                        amputovanými končetinami
+                        - Telefony a videotelefony konstruované pro použití neslyšícími
+                        osobami
+                        - Zvětšovače televizního obrazu pro nevidomé a částečně vidící
+                        osoby
+                        - Speciální akustické nebo vizuální přístroje pro neslyšící,
+                        nevidomé a částečně vidící osoby
+                        - Ruční ovládání nožních pedálů, ruční páky, včetně řadicí páky,
+                        pro tělesně postižené osoby
+                        - Hodinky pro nevidomé a částečně vidící osoby s hmatovým nebo
+                        hlasovým výstupem s pouzdrem jiným než z drahých kovů a vibrační
+                        a světelné hodinky pro neslyšící osoby
+                        - Vibrační a světelné budíky pro neslyšící osoby a budíky
+                        s hlasovým nebo hmatovým výstupem pro nevidomé a částečně
+                        vidící osoby
+                        - Části a součásti těchto výrobků, u kterých je čestným
+                        prohlášením doloženo, že zboží náleží k určitému výše
+                        uvedenému druhu zboží.
+ 94                     Dětské sedačky do automobilů.
+
+Kódem nomenklatury celního sazebníku se rozumí kód popisu vybraných výrobků uvedený
+v celním sazebníku ve znění platném k 1. lednu 2018.
+
+Snížené sazbě daně podléhá zboží, které odpovídá současně kódu nomenklatury celního
+sazebníku a výslovně uvedenému slovnímu popisu k tomuto kódu v textové části této přílohy.
+79)
+   Nařízení Evropského parlamentu a Rady (EU) č. 2017/745 ze dne 5. dubna 2017
+o zdravotnických prostředcích, změně směrnice 2001/83/ES, nařízení (ES) č. 178/2002
+a nařízení (ES) č. 1223/2009 a o zrušení směrnic Rady 90/385/EHS a 93/42/EHS, v platném
+znění.
+80)
+    Nařízení Evropského parlamentu a Rady (EU) č. 2017/746 ze dne 5. dubna 2017
+o diagnostických zdravotnických prostředcích in vitro a o zrušení směrnice 98/79/ES
+a rozhodnutí Komise 2010/227/EU, v platném znění.
+

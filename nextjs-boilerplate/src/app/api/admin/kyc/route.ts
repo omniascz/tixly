@@ -9,6 +9,7 @@ import { db } from '@/lib/db/rls-pool';
 import { runAsPromoter, runAsPromoterOwner } from '@/lib/admin-auth';
 import { z } from 'zod';
 import { verifyIco } from '@/lib/ares/verify';
+import { isValidCzDic } from '@/lib/tax/vat';
 
 
 const submitSchema = z.object({
@@ -18,7 +19,8 @@ const submitSchema = z.object({
   companyAddress: z.string().min(5).max(500),
   bankAccount: z.string().min(5).max(60),
   vatPayer: z.boolean().default(true),
-  vatRatePct: z.number().int().min(0).max(50).default(21),
+  // Kolo 7 (C-54): sazba pořadatele je ZASTARALÁ — doklady berou sazbu z typu vstupenky.
+  vatRatePct: z.number().int().min(0).max(50).optional(),
 });
 
 export async function GET(req: NextRequest): Promise<Response> {
@@ -80,11 +82,27 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
+  // Kolo 7 (C-54): plátce DPH musí mít platné DIČ (CZ + 8–10 číslic) — zadané nebo z ARES.
+  if (parsed.data.vatPayer && parsed.data.dic && !isValidCzDic(parsed.data.dic)) {
+    return NextResponse.json(
+      { error: 'DIC_INVALID', message: 'Plátce DPH musí mít platné DIČ ve tvaru CZ + 8–10 číslic.' },
+      { status: 422 },
+    );
+  }
+
   // ARES verification
   const ares = await verifyIco(parsed.data.ico);
   if (!ares.valid) {
     return NextResponse.json(
       { error: 'ARES_VERIFICATION_FAILED', details: ares.error },
+      { status: 422 },
+    );
+  }
+
+  const dic = parsed.data.dic ?? ares.dic ?? null;
+  if (parsed.data.vatPayer && !isValidCzDic(dic)) {
+    return NextResponse.json(
+      { error: 'DIC_REQUIRED', message: 'Plátce DPH musí mít DIČ (nezadáno a ARES ho neuvádí).' },
       { status: 422 },
     );
   }
@@ -96,7 +114,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     `UPDATE platform.promoters
      SET name = COALESCE(NULLIF($9, ''), name),
          company_ico = $2, company_dic = $3, company_address = $4,
-         bank_account = $5, vat_rate_pct = $6, vat_payer = $7,
+         bank_account = $5, vat_rate_pct = COALESCE($6, vat_rate_pct), vat_payer = $7,
          kyc_status = 'submitted', kyc_submitted_at = NOW(),
          ares_verified_at = NOW(), ares_data = $8::jsonb,
          updated_at = NOW()
@@ -104,10 +122,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     [
       promoter.promoterId,
       ares.ico,
-      parsed.data.dic ?? ares.dic ?? null,
+      dic,
       parsed.data.companyAddress,
       parsed.data.bankAccount,
-      parsed.data.vatRatePct,
+      parsed.data.vatRatePct ?? null,
       parsed.data.vatPayer,
       JSON.stringify(ares),
       ares.companyName ?? '',

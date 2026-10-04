@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
-import { salesClosedResponse } from '@/lib/sales/cutoff';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,7 +61,7 @@ export async function POST(
       }
 
       // Kolo 7 (C-29): nákup z přeprodeje je nákup kupce — po uzávěrce online prodeje ne.
-      const salesClosed = await salesClosedResponse(db(), listing.event_id, 'online');
+      const salesClosed = await saleBlockedResponse(db(), listing.event_id, 'online');
       if (salesClosed) return salesClosed;
 
       const reservedUntil = new Date(Date.now() + 15 * 60 * 1000);

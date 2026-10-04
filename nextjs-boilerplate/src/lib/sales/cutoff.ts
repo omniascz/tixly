@@ -10,6 +10,7 @@
  * objednávky (webhook / potvrzení platby uzávěrku záměrně neřeší).
  */
 import { NextResponse } from 'next/server';
+import { vatNotReadyResponse } from '@/lib/tax/vat-readiness';
 
 export type SalesChannel = 'online' | 'box_office';
 
@@ -90,4 +91,19 @@ export async function salesClosedResponse(
     },
     { status: 409 },
   );
+}
+
+/**
+ * Brána prodeje pro všechny cesty, které zakládají objednávku (kolo 7): nejdřív uzávěrka
+ * (409 SALES_CLOSED), pak připravenost DPH (422 VAT_NOT_CONFIGURED, C-54). Null = lze prodat.
+ */
+export async function saleBlockedResponse(
+  q: Queryable,
+  eventId: string,
+  channel: SalesChannel,
+  now: Date = new Date(),
+): Promise<NextResponse | null> {
+  const closed = await salesClosedResponse(q, eventId, channel, now);
+  if (closed) return closed;
+  return vatNotReadyResponse(q, eventId, 'sell');
 }

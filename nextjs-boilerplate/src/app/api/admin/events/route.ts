@@ -17,6 +17,7 @@ import {
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 import { validateSalesEndAt } from '@/lib/sales/cutoff';
 import { copyLayoutToEventSeats } from '@/lib/seats/copy-layout-to-event-seats';
+import { vatNotReadyResponse } from '@/lib/tax/vat-readiness';
 
 
 interface EventRow {
@@ -83,6 +84,8 @@ const ticketTypeSchema = z.object({
   // (přesně nebo přes prefix). Pro standing eventy nech null.
   zone: z.string().min(1).max(100).nullable().optional(),
   isSeated: z.boolean().default(false),
+  // Kolo 7 (C-54): kód sazby DPH; povinný u placeného typu plátce (publikace/prodej jinak 422).
+  vatRateCode: z.string().max(40).nullable().optional(),
 });
 
 const dayInputSchema = z.object({
@@ -236,6 +239,17 @@ export async function POST(req: NextRequest): Promise<Response> {
   {
     const err = validateSalesEndAt(input.saleEndAt ?? null, { date_start: input.dateStart, date_end: input.dateEnd ?? null });
     if (err) return NextResponse.json({ error: 'INVALID_SALES_END', message: err }, { status: 422 });
+  }
+  // Kolo 7 (C-54): kódy sazeb DPH typů vstupenek musí existovat (jinak FK → 500).
+  {
+    const codes = [...new Set(input.ticketTypes.map((tt) => tt.vatRateCode).filter((c): c is string => !!c))];
+    if (codes.length) {
+      const known = await db().query<{ code: string }>(`SELECT code FROM platform.vat_rate_codes WHERE code = ANY($1)`, [codes]);
+      const unknown = codes.filter((c) => !known.rows.some((k) => k.code === c));
+      if (unknown.length) {
+        return NextResponse.json({ error: 'VAT_RATE_UNKNOWN', message: `Neznámý kód sazby DPH: ${unknown.join(', ')}.` }, { status: 422 });
+      }
+    }
   }
   const client = await db().connect();
 
@@ -445,8 +459,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       const ttr = await client.query<{ id: string }>(
         `INSERT INTO catalog.ticket_types
            (event_id, name, kind, base_price, total_qty, remaining_qty,
-            max_per_user, zone, is_seated, created_at)
-         VALUES ($1, $2, 'standing', $3, $4, $4, $5, $6, $7, NOW())
+            max_per_user, zone, is_seated, vat_rate_code, created_at)
+         VALUES ($1, $2, 'standing', $3, $4, $4, $5, $6, $7, $8, NOW())
          RETURNING id`,
         [
           eventId,
@@ -456,6 +470,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           tt.maxPerUser ?? null,
           tt.zone ?? null,
           tt.isSeated ?? false,
+          tt.vatRateCode ?? null,
         ],
       );
       const ticketTypeId = ttr.rows[0].id;
@@ -527,6 +542,16 @@ export async function POST(req: NextRequest): Promise<Response> {
         matched.map((m) => m.keyword),
       ],
     );
+
+    // Kolo 7 (C-54): akce, která by vznikla rovnou publikovaná, musí mít DPH připravené
+    // (funkce běží ve stejné transakci → vidí právě vložené typy vstupenek).
+    if (initialStatus === 'published') {
+      const vatBlocked = await vatNotReadyResponse(client, eventId, 'publish');
+      if (vatBlocked) {
+        await client.query('ROLLBACK');
+        return vatBlocked;
+      }
+    }
 
     await client.query('COMMIT');
     let message =

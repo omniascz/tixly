@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsPlatformAdmin } from '@/lib/platform-auth';
+import { vatNotReadyResponse } from '@/lib/tax/vat-readiness';
 
 
 export async function POST(
@@ -8,6 +9,10 @@ export async function POST(
   { params }: { params: { eventId: string } },
 ): Promise<Response> {
   return runAsPlatformAdmin(req, async (admin) => {
+  // Kolo 7 (C-54): akci s placeným typem plátce bez sazby DPH (nebo bez DIČ) nelze publikovat.
+  const vatBlocked = await vatNotReadyResponse(db(), params.eventId, 'publish');
+  if (vatBlocked) return vatBlocked;
+
   const client = await db().connect();
   try {
     await client.query('BEGIN');

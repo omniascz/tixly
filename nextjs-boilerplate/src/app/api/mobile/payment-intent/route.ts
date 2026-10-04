@@ -12,7 +12,7 @@ import { runAsUser } from '@/lib/auth';
 import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { z } from 'zod';
 import { enforceOrderCreationLimits } from '@/lib/orders/order-creation-limits';
-import { salesClosedResponse } from '@/lib/sales/cutoff';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
     const { eventId, ticketTypeId, qty } = parsed.data;
     // Kolo 7 (C-29): po uzávěrce online prodeje nový nákup nejde (před založením objednávky i Stripe).
-    const salesClosed = await salesClosedResponse(db(), eventId, 'online');
+    const salesClosed = await saleBlockedResponse(db(), eventId, 'online');
     if (salesClosed) return salesClosed;
 
     // Kolo 3: stejné limity vytváření objednávek jako web checkout (K3), sdílený mechanismus

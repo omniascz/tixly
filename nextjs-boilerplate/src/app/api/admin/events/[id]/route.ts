@@ -17,6 +17,7 @@ import { db } from '@/lib/db/rls-pool';
 import { runAiGate, TRUST_THRESHOLD_PUBLISHED_EVENTS } from '@/lib/moderation/ai-gate';
 import { notifyFollowers } from '@/lib/push/notify-followers';
 import { validateSalesEndAt } from '@/lib/sales/cutoff';
+import { vatNotReadyResponse } from '@/lib/tax/vat-readiness';
 
 
 interface EventDetailRow {
@@ -366,6 +367,14 @@ export async function PATCH(
     }
 
     const becamePublished = event.status !== 'published' && newStatus === 'published';
+    // Kolo 7 (C-54): publikace jen s připraveným DPH.
+    if (becamePublished) {
+      const vatBlocked = await vatNotReadyResponse(client, event.id, 'publish');
+      if (vatBlocked) {
+        await client.query('ROLLBACK');
+        return vatBlocked;
+      }
+    }
 
     await client.query('COMMIT');
 

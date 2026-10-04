@@ -5257,6 +5257,24 @@
    "wcheck": "app_is_service()"
   },
   {
+   "tbl": "platform.vat_rate_codes",
+   "pol": "p_vat_rate_codes_read",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "true",
+   "wcheck": ""
+  },
+  {
+   "tbl": "platform.vat_rates",
+   "pol": "p_vat_rates_read",
+   "cmd": "SELECT",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "true",
+   "wcheck": ""
+  },
+  {
    "tbl": "platform.webhook_deliveries",
    "pol": "svc_admin_webhook_deliveries",
    "cmd": "ALL",
@@ -9257,6 +9275,14 @@
    "rls": true
   },
   {
+   "tbl": "platform.vat_rate_codes",
+   "rls": true
+  },
+  {
+   "tbl": "platform.vat_rates",
+   "rls": true
+  },
+  {
    "tbl": "platform.webhook_deliveries",
    "rls": true
   },
@@ -10121,5 +10147,5 @@
    "cfg": "search_path=pg_catalog, public"
   }
  ],
- "generatedFrom": "migrations: 000_baseline_20260730.sql + 000_baseline_globals.sql + 450_tickets_dedup_unique.sql + 451_orders_payment_provider_pos.sql + 452_tracking_events_provider_tiktok.sql + 453_users_select_scoped.sql + 454_rls_cast_nullif_fix.sql + 455_rls_namedrift_identity.sql + 456_drop_base64url_defaults.sql + 457_orders_payment_provider_channels.sql + 458_party_split_rls_service_branch.sql + 459_users_promoter_upsert.sql + 460_ticket_alerts_service_branch.sql + 461_mechanical_rls.sql + 462_shared_catalog_and_eudi_rls.sql + 463_b2b_service_branch.sql + 464_b2b_orders_correlate_invoice_orders.sql + 465_artists_event_id_nullable.sql + 466_rolling_reserves_policy.sql + 467_writable_policies_r30.sql + 468_payouts_status_processing.sql + 469_broadcasts_target_event.sql + 470_ticket_transfers_service_branch.sql + 471_transit_passes_admin_guc_drift.sql + 472_royalty_agreements_currency.sql + 473_event_costs.sql + 474_royalty_deal_terms.sql + 475_artist_settlements.sql + 476_venue_date_holds.sql + 477_artist_offers.sql + 478_reentry_auto_direction.sql + 479_refund_gateway_state.sql + 480_v2_buyer_policies.sql + 481_v8_write_isolation.sql + 482_rls_tables_without_rls.sql + 483_scan_logs_writable.sql + 484_payment_paid_once.sql + 485_qr_policy_default_rotating.sql + 486_buyer_protected_columns_guard.sql + 487_invoice_number_per_promoter.sql + 488_royalty_policies_guc_drift.sql + 489_qes_signing_requests_policy.sql + 490_seat_upgrade_notifications.sql + 491_true_policies_owner_scope.sql + 492_subscription_holders_protected_columns.sql"
+ "generatedFrom": "migrations: 000_baseline_20260730.sql + 000_baseline_globals.sql + 450_tickets_dedup_unique.sql + 451_orders_payment_provider_pos.sql + 452_tracking_events_provider_tiktok.sql + 453_users_select_scoped.sql + 454_rls_cast_nullif_fix.sql + 455_rls_namedrift_identity.sql + 456_drop_base64url_defaults.sql + 457_orders_payment_provider_channels.sql + 458_party_split_rls_service_branch.sql + 459_users_promoter_upsert.sql + 460_ticket_alerts_service_branch.sql + 461_mechanical_rls.sql + 462_shared_catalog_and_eudi_rls.sql + 463_b2b_service_branch.sql + 464_b2b_orders_correlate_invoice_orders.sql + 465_artists_event_id_nullable.sql + 466_rolling_reserves_policy.sql + 467_writable_policies_r30.sql + 468_payouts_status_processing.sql + 469_broadcasts_target_event.sql + 470_ticket_transfers_service_branch.sql + 471_transit_passes_admin_guc_drift.sql + 472_royalty_agreements_currency.sql + 473_event_costs.sql + 474_royalty_deal_terms.sql + 475_artist_settlements.sql + 476_venue_date_holds.sql + 477_artist_offers.sql + 478_reentry_auto_direction.sql + 479_refund_gateway_state.sql + 480_v2_buyer_policies.sql + 481_v8_write_isolation.sql + 482_rls_tables_without_rls.sql + 483_scan_logs_writable.sql + 484_payment_paid_once.sql + 485_qr_policy_default_rotating.sql + 486_buyer_protected_columns_guard.sql + 487_invoice_number_per_promoter.sql + 488_royalty_policies_guc_drift.sql + 489_qes_signing_requests_policy.sql + 490_seat_upgrade_notifications.sql + 491_true_policies_owner_scope.sql + 492_subscription_holders_protected_columns.sql + 493_events_sales_end_at.sql + 494_vat_rates.sql"
 }
