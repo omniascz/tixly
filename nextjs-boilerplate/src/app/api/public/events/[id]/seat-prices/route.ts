@@ -7,15 +7,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { priceTable } from '@/lib/theatre/categories';
+import { reservationDeadline, type ReservationSettings } from '@/lib/theatre/reservations';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
-  const ev = await db().query<{ id: string; currency: string }>(
-    `SELECT id, currency FROM catalog.events WHERE id = $1 AND status = 'published'`, [params.id],
+  const ev = await db().query<ReservationSettings & { id: string; currency: string }>(
+    `SELECT id, currency, date_start, reservations_enabled, reservation_days, reservation_cutoff_hours
+       FROM catalog.events WHERE id = $1 AND status = 'published'`, [params.id],
   );
   if (!ev.rows[0]) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+  // kolo 8 / krok 5: „Rezervovat, zaplatím na pokladně" — jen když termín rezervace přijímá; lhůtu počítá server
+  const e = ev.rows[0];
+  const reservationUntil = e.reservations_enabled
+    ? reservationDeadline(new Date(), new Date(e.date_start), e.reservation_days, e.reservation_cutoff_hours)
+    : null;
   const table = await priceTable(db(), params.id);
   const seats = await db().query(
     `SELECT id, sector, row, seat_number AS "seatNumber", x_coord AS x, y_coord AS y, ticket_type_id AS "ticketTypeId",
@@ -33,7 +40,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   );
   const colors = new Map(zoneColor.rows.map((z) => [z.name, z.color]));
   return NextResponse.json({
-    currency: ev.rows[0].currency,
+    currency: e.currency,
+    reservation: reservationUntil ? { available: true, until: reservationUntil.toISOString() } : { available: false, until: null },
     zones: table.zones.map((z) => ({ id: z.id, name: z.name, fullPriceMinor: z.base_price, color: colors.get(z.name) ?? null })),
     categories: table.categories.map((c) => ({
       id: c.id, code: c.code, name: c.name, kind: c.kind, requiresProof: c.requires_proof, proofLabel: c.proof_label,

@@ -23,6 +23,7 @@ import { runAsActivePromoter } from '@/lib/admin-auth';
 import { db } from '@/lib/db/rls-pool';
 import { saleBlockedResponse } from '@/lib/sales/cutoff';
 import { BlockError, consumeBlockSeats, lockSeatsForBlockSale } from '@/lib/theatre/blocks';
+import { orderLines, recordBoxOfficePayment } from '@/lib/theatre/box-office';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 
 
@@ -212,7 +213,7 @@ export async function POST(req: NextRequest): Promise<Response> {
          (user_id, status, total_amount, currency, paid_at,
           expires_at, event_id, payment_provider)
        VALUES ($1, 'paid', $2, $3, now(),
-               now() + interval '1 hour', $4, 'free')
+               now() + interval '1 hour', $4, 'box_office')
        RETURNING id`,
       [userId, totalAmount, ev.currency, input.eventId],
     );
@@ -253,6 +254,14 @@ export async function POST(req: NextRequest): Promise<Response> {
     // 8) Vystav lístky (přes existing issuer — TOTP secret + insert do tickets.tickets)
     const issued = await issueTicketsForOrder(orderId, client);
 
+    // 9) Kolo 8 / krok 5: způsob platby do evidence pokladny (směna pokladníka, prodej cash | card). Dřív
+    //    route paymentMethod přijala, ale nikam nezapsala (objednávka s payment_provider 'free').
+    const receipt = await recordBoxOfficePayment(client, {
+      eventId: input.eventId, cashierUserId: promoter.userId, orderId,
+      paymentType: input.paymentMethod === 'card_terminal' ? 'card' : 'cash',
+      lines: await orderLines(client, orderId), receiptNumber: `POS-${orderId.slice(0, 8).toUpperCase()}`,
+    });
+
     await client.query('COMMIT');
 
     return NextResponse.json({
@@ -261,6 +270,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       eventTitle: ev.title,
       ticketTypeName: tt.name,
       paymentMethod: input.paymentMethod,
+      boxOfficeSessionId: receipt.sessionId,
+      receiptNumber: `POS-${orderId.slice(0, 8).toUpperCase()}`,
       totalAmountHalire: totalAmount,
       buyerName: input.buyerName ?? 'Walk-in kupující',
       tickets: issued.map((t) => ({

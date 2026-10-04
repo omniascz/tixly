@@ -458,6 +458,7 @@ export const EVENT_FEATURES: EventFeature[] = [
   { slug: 'ticket-types', label: 'Typy vstupenek', hint: 'Ceny, kapacita a prodejní okna', tab: 'vstupenky', section: 'Typy a kapacita', tier: 'always' },
   { slug: 'blokace', label: 'Blokace míst', hint: 'Pojmenované blokace (firma, tisk, technika), uvolnění, volné vstupenky', tab: 'vstupenky', section: 'Typy a kapacita', tier: 'always' },
   { slug: 'kategorie', label: 'Slevové kategorie', hint: 'Plné, senior, student, ZTP/P a vlastní — ceny po zónách, průkaz, limity', tab: 'vstupenky', section: 'Typy a kapacita', tier: 'always' },
+  { slug: 'rezervace', label: 'Rezervace na pokladně', hint: 'Rezervace s platbou na pokladně — lhůta, vyzvednutí, platba hotově / kartou', tab: 'vstupenky', section: 'Typy a kapacita', tier: 'always' },
   { slug: 'holds', label: 'Držená a vyřazená místa', hint: 'Rezervace pro produkci, vyřazená sedadla', tab: 'vstupenky', section: 'Typy a kapacita', tier: 'always' },
   // Pozn.: 'tickets' tu záměrně není. Adresář events/[id]/tickets obsahuje jen
   // detail historie jednoho lístku ([ticketId]/history), žádný výpis — původní

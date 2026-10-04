@@ -2,7 +2,9 @@
  * POST /api/checkout/seats — nákup konkrétních míst se slevovou kategorií u každého místa (kolo 8 / krok 4).
  *
  * Body: { eventId, seatHoldToken, items: [{ seatId, categoryId }], buyerEmail, buyerName, buyerPhone?, promoCode?,
- *         paymentMethod?: 'gopay' }
+ *         paymentMethod?: 'gopay' | 'box_office_reservation' }
+ * 'box_office_reservation' (kolo 8 / krok 5) = „Rezervovat, zaplatím na pokladně": stejná místa, kategorie a cena,
+ * ale bez brány — objednávka pending do lhůty vyzvednutí (lib/theatre/reservations.ts), e-mail s kódem rezervace.
  * Cena se počítá VŽDY na serveru (lib/theatre/categories.ts): kategorie × zóna místa, pravidla doprovodu ZTP/P
  * a limity kategorií; promo kód z ceny kategorie (lib/theatre/promo.ts); servisní poplatek pořadatele.
  * Sdílené kontroly jako u /api/checkout: uzávěrka prodeje + DPH (saleBlockedResponse), politika bran
@@ -21,6 +23,7 @@ import { effectiveGateway, gatewayNotAllowedResponse } from '@/lib/payment/gatew
 import { saleBlockedResponse } from '@/lib/sales/cutoff';
 import { CategoryRuleError, priceSeats } from '@/lib/theatre/categories';
 import { applyPromo, PromoError } from '@/lib/theatre/promo';
+import { assertReservable, checkReservationLimits, insertReservation, ReservationError, sendReservationMail } from '@/lib/theatre/reservations';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +35,7 @@ const schema = z.object({
   buyerName: z.string().trim().min(1).max(200),
   buyerPhone: z.string().max(40).optional(),
   promoCode: z.string().trim().min(1).max(40).optional(),
-  paymentMethod: z.enum(['gopay']).default('gopay'),
+  paymentMethod: z.enum(['gopay', 'box_office_reservation']).default('gopay'),
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
@@ -46,12 +49,32 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     const blocked = await saleBlockedResponse(db(), input.eventId, 'online');
     if (blocked) return blocked;
-    const ev = (await db().query<{ promoter_id: string; currency: string; title: string }>(
-      `SELECT promoter_id, currency, title FROM catalog.events WHERE id = $1 AND status = 'published'`, [input.eventId],
+    const ev = (await db().query<{
+      promoter_id: string; currency: string; title: string; date_start: Date;
+      reservations_enabled: boolean; reservation_days: number; reservation_cutoff_hours: number;
+    }>(
+      `SELECT promoter_id, currency, title, date_start, reservations_enabled, reservation_days, reservation_cutoff_hours
+         FROM catalog.events WHERE id = $1 AND status = 'published'`, [input.eventId],
     )).rows[0];
     if (!ev) return NextResponse.json({ error: 'EVENT_NOT_FOUND' }, { status: 404 });
-    const gw = await gatewayNotAllowedResponse(db(), input.eventId, effectiveGateway(input.paymentMethod, ev.currency));
-    if (gw) return gw;
+    const reserve = input.paymentMethod === 'box_office_reservation';
+    let reservationUntil: Date | null = null;
+    if (reserve) {
+      try {
+        reservationUntil = assertReservable(ev);
+      } catch (err) {
+        if (err instanceof ReservationError) return NextResponse.json({ error: err.code, message: err.message }, { status: err.status });
+        throw err;
+      }
+      // sdílený rate limit: zakládání rezervací z jedné IP (vedle limitů objednávek níže)
+      const { checkRateLimit, rateLimitResponse } = await import('@/lib/rate-limit/per-tenant');
+      const { clientIp } = await import('@/lib/security/client-ip');
+      const rl = rateLimitResponse(await checkRateLimit(`seat-reservation:ip:${clientIp(req)}`, { limit: 5, windowMs: 60 * 60 * 1000 }), 'rezervace');
+      if (rl) return rl;
+    } else {
+      const gw = await gatewayNotAllowedResponse(db(), input.eventId, effectiveGateway('gopay', ev.currency));
+      if (gw) return gw;
+    }
     const limited = await enforceOrderCreationLimits(req, { email: input.buyerEmail });
     if (limited) return limited;
 
@@ -61,6 +84,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const paymentPlaceholder = `seats-pay-${randomUUID().slice(0, 8)}`;
     let total = 0;
     let priced: Awaited<ReturnType<typeof priceSeats>> = [];
+    let reservation: { id: string; code: string; cancelToken: string } | null = null;
     const client = await db().connect();
     try {
       await client.query('BEGIN');
@@ -78,6 +102,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         );
       }
 
+      if (reserve) await checkReservationLimits(client, input.eventId, input.buyerEmail, input.items.length);
       priced = await priceSeats(client, input.eventId, seats, input.items);
       let discountBySeat = new Map<string, number>();
       let promoCodeId: string | null = null;
@@ -94,9 +119,10 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query(
         `INSERT INTO orders.orders
            (id, user_id, event_id, status, total_amount, currency, locale, gopay_payment_id, payment_provider, idempotency_key,
-            discount_halire, promo_code_id, service_fee_minor, buyer_phone, expires_at, created_at, updated_at)
-         VALUES ($1, $2, $3, 'pending', $4, $5, 'cs', $6, $7, $8, $9, $10, $11, $12, now() + interval '15 minutes', now(), now())`,
-        [orderId, userId, input.eventId, total, ev.currency, paymentPlaceholder, input.paymentMethod, randomUUID(), discount, promoCodeId, fee, input.buyerPhone ?? null],
+            discount_halire, promo_code_id, service_fee_minor, buyer_phone, expires_at, order_source, created_at, updated_at)
+         VALUES ($1, $2, $3, 'pending', $4, $5, 'cs', $6, $7, $8, $9, $10, $11, $12, COALESCE($13, now() + interval '15 minutes'), $14, now(), now())`,
+        [orderId, userId, input.eventId, total, ev.currency, reserve ? null : paymentPlaceholder, reserve ? 'box_office' : input.paymentMethod,
+          randomUUID(), discount, promoCodeId, fee, input.buyerPhone ?? null, reservationUntil, reserve ? 'seat_reservation' : 'web'],
       );
       for (const s of priced) {
         const net = s.priceMinor - (discountBySeat.get(s.seatId) ?? 0);
@@ -121,15 +147,30 @@ export async function POST(req: NextRequest): Promise<Response> {
           [promoCodeId, orderId, userId, discount],
         );
       }
+      if (reserve && reservationUntil) {
+        reservation = await insertReservation(client, {
+          orderId, eventId: input.eventId, promoterId: ev.promoter_id, email: input.buyerEmail, name: input.buyerName,
+          phone: input.buyerPhone ?? null, seatCount: priced.length, expiresAt: reservationUntil,
+        });
+      }
       await client.query('COMMIT');
     } catch (err) {
       await client.query('ROLLBACK').catch(() => undefined);
-      if (err instanceof CategoryRuleError || err instanceof PromoError) {
+      if (err instanceof CategoryRuleError || err instanceof PromoError || err instanceof ReservationError) {
         return NextResponse.json({ error: err.code, message: err.message }, { status: 422 });
       }
       throw err;
     } finally {
       client.release();
+    }
+
+    if (reservation && reservationUntil) {
+      const r = { order_id: orderId, code: reservation.code, buyer_email: input.buyerEmail, buyer_name: input.buyerName, expires_at: reservationUntil };
+      await sendReservationMail(db(), 'created', r, reservation.cancelToken).catch((e: unknown) => console.error('[checkout/seats] reservation mail failed', e));
+      return NextResponse.json({
+        orderId, reservationCode: reservation.code, expiresAt: reservationUntil.toISOString(), totalAmount: total,
+        items: priced.map((s) => ({ seatId: s.seatId, category: s.categoryName, priceMinor: s.priceMinor })),
+      });
     }
 
     // Platba (po commitu, jako /api/checkout). Bezplatná objednávka (vše zdarma) se dokončí bez brány.
@@ -147,7 +188,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const { createPayment } = await import('@/lib/payment/provider');
     const session = await createPayment({
       orderId, amountHalire: total, currency: ev.currency, buyerEmail: input.buyerEmail, buyerName: input.buyerName,
-      description: `${ev.title} × ${priced.length}`, paymentMethod: input.paymentMethod, appUrl,
+      description: `${ev.title} × ${priced.length}`, paymentMethod: 'gopay', appUrl,
     });
     const REAL = ['gopay', 'comgate', 'stripe', 'mollie', 'paypal', 'przelewy24'];
     await db().query(

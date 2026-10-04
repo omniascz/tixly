@@ -74,6 +74,8 @@ const ALLOWED_JOBS = new Set([
   'release-group-invite-holds',
   // Kolo 7: opce na termíny sálu s prošlou lhůtou → expired, další v pořadí se posune (hodinově)
   'expire-date-holds',
+  // Kolo 8: rezervace s platbou na pokladně — připomínka 24 h předem, propadlé uvolní místa (každých 15 min)
+  'seat-reservations',
 ]);
 
 export async function GET(req: NextRequest): Promise<Response> {

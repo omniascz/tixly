@@ -40,8 +40,10 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     // Najdi expired pending orders
     const expired = await client.query<{ id: string }>(
-      `SELECT id FROM orders.orders
+      `SELECT id FROM orders.orders o
        WHERE status = 'pending' AND expires_at < now()
+         -- kolo 8 / krok 5: rezervace na pokladně uzavírá cron seat-reservations (e-mail kupci + stav rezervace)
+         AND NOT EXISTS (SELECT 1 FROM orders.seat_reservations r WHERE r.order_id = o.id AND r.status = 'active')
        FOR UPDATE
        LIMIT 500`,
     );

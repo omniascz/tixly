@@ -3885,8 +3885,8 @@
    "cmd": "ALL",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
-   "qual": "((current_setting('app.is_platform_admin'::text, true) = 'true'::text) OR (EXISTS ( SELECT 1\n   FROM ((orders.box_office_sessions s\n     JOIN catalog.events e ON ((e.id = s.event_id)))\n     JOIN platform.promoter_members pm ON ((pm.promoter_id = e.promoter_id)))\n  WHERE ((s.id = box_office_sales.session_id) AND ((pm.user_id)::text = (app_current_user_id())::text)))))",
-   "wcheck": ""
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM (orders.box_office_sessions s\n     JOIN catalog.events e ON ((e.id = s.event_id)))\n  WHERE ((s.id = box_office_sales.session_id) AND (e.promoter_id = app_current_promoter_id())))) OR (EXISTS ( SELECT 1\n   FROM ((orders.box_office_sessions s\n     JOIN catalog.events e ON ((e.id = s.event_id)))\n     JOIN platform.promoter_members pm ON ((pm.promoter_id = e.promoter_id)))\n  WHERE ((s.id = box_office_sales.session_id) AND (pm.user_id = app_current_user_id())))))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM (orders.box_office_sessions s\n     JOIN catalog.events e ON ((e.id = s.event_id)))\n  WHERE ((s.id = box_office_sales.session_id) AND (e.promoter_id = app_current_promoter_id())))) OR (EXISTS ( SELECT 1\n   FROM ((orders.box_office_sessions s\n     JOIN catalog.events e ON ((e.id = s.event_id)))\n     JOIN platform.promoter_members pm ON ((pm.promoter_id = e.promoter_id)))\n  WHERE ((s.id = box_office_sales.session_id) AND (pm.user_id = app_current_user_id())))))"
   },
   {
    "tbl": "orders.box_office_sessions",
@@ -3894,8 +3894,8 @@
    "cmd": "ALL",
    "permissive": "PERMISSIVE",
    "roles": "{public}",
-   "qual": "((current_setting('app.is_platform_admin'::text, true) = 'true'::text) OR (EXISTS ( SELECT 1\n   FROM (catalog.events e\n     JOIN platform.promoter_members pm ON ((pm.promoter_id = e.promoter_id)))\n  WHERE ((e.id = box_office_sessions.event_id) AND ((pm.user_id)::text = (app_current_user_id())::text)))))",
-   "wcheck": ""
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = box_office_sessions.event_id) AND (e.promoter_id = app_current_promoter_id())))) OR (EXISTS ( SELECT 1\n   FROM (catalog.events e\n     JOIN platform.promoter_members pm ON ((pm.promoter_id = e.promoter_id)))\n  WHERE ((e.id = box_office_sessions.event_id) AND (pm.user_id = app_current_user_id())))))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (EXISTS ( SELECT 1\n   FROM catalog.events e\n  WHERE ((e.id = box_office_sessions.event_id) AND (e.promoter_id = app_current_promoter_id())))) OR (EXISTS ( SELECT 1\n   FROM (catalog.events e\n     JOIN platform.promoter_members pm ON ((pm.promoter_id = e.promoter_id)))\n  WHERE ((e.id = box_office_sessions.event_id) AND (pm.user_id = app_current_user_id())))))"
   },
   {
    "tbl": "orders.bundle_items",
@@ -4454,6 +4454,15 @@
    "roles": "{public}",
    "qual": "(app_is_platform_admin() OR app_is_service())",
    "wcheck": "(app_is_platform_admin() OR app_is_service())"
+  },
+  {
+   "tbl": "orders.seat_reservations",
+   "pol": "p_seat_reservations_scope",
+   "cmd": "ALL",
+   "permissive": "PERMISSIVE",
+   "roles": "{public}",
+   "qual": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))",
+   "wcheck": "(app_is_platform_admin() OR app_is_service() OR (promoter_id = app_current_promoter_id()))"
   },
   {
    "tbl": "orders.seat_upgrade_notifications",
@@ -9157,6 +9166,10 @@
    "rls": true
   },
   {
+   "tbl": "orders.seat_reservations",
+   "rls": true
+  },
+  {
    "tbl": "orders.seat_upgrade_notifications",
    "rls": true
   },
@@ -10309,5 +10322,5 @@
    "cfg": "search_path=pg_catalog, public"
   }
  ],
- "generatedFrom": "migrations: 000_baseline_20260730.sql + 000_baseline_globals.sql + 450_tickets_dedup_unique.sql + 451_orders_payment_provider_pos.sql + 452_tracking_events_provider_tiktok.sql + 453_users_select_scoped.sql + 454_rls_cast_nullif_fix.sql + 455_rls_namedrift_identity.sql + 456_drop_base64url_defaults.sql + 457_orders_payment_provider_channels.sql + 458_party_split_rls_service_branch.sql + 459_users_promoter_upsert.sql + 460_ticket_alerts_service_branch.sql + 461_mechanical_rls.sql + 462_shared_catalog_and_eudi_rls.sql + 463_b2b_service_branch.sql + 464_b2b_orders_correlate_invoice_orders.sql + 465_artists_event_id_nullable.sql + 466_rolling_reserves_policy.sql + 467_writable_policies_r30.sql + 468_payouts_status_processing.sql + 469_broadcasts_target_event.sql + 470_ticket_transfers_service_branch.sql + 471_transit_passes_admin_guc_drift.sql + 472_royalty_agreements_currency.sql + 473_event_costs.sql + 474_royalty_deal_terms.sql + 475_artist_settlements.sql + 476_venue_date_holds.sql + 477_artist_offers.sql + 478_reentry_auto_direction.sql + 479_refund_gateway_state.sql + 480_v2_buyer_policies.sql + 481_v8_write_isolation.sql + 482_rls_tables_without_rls.sql + 483_scan_logs_writable.sql + 484_payment_paid_once.sql + 485_qr_policy_default_rotating.sql + 486_buyer_protected_columns_guard.sql + 487_invoice_number_per_promoter.sql + 488_royalty_policies_guc_drift.sql + 489_qes_signing_requests_policy.sql + 490_seat_upgrade_notifications.sql + 491_true_policies_owner_scope.sql + 492_subscription_holders_protected_columns.sql + 493_events_sales_end_at.sql + 494_vat_rates.sql + 495_tax_documents.sql + 496_commission_invoices.sql + 497_payouts_manual_transfer.sql + 498_promoters_ares_manual_verification.sql + 499_events_legacy_payment_gateways.sql + 500_productions_card.sql + 501_venue_places_seat_types.sql + 502_seat_blocks.sql + 503_price_categories.sql"
+ "generatedFrom": "migrations: 000_baseline_20260730.sql + 000_baseline_globals.sql + 450_tickets_dedup_unique.sql + 451_orders_payment_provider_pos.sql + 452_tracking_events_provider_tiktok.sql + 453_users_select_scoped.sql + 454_rls_cast_nullif_fix.sql + 455_rls_namedrift_identity.sql + 456_drop_base64url_defaults.sql + 457_orders_payment_provider_channels.sql + 458_party_split_rls_service_branch.sql + 459_users_promoter_upsert.sql + 460_ticket_alerts_service_branch.sql + 461_mechanical_rls.sql + 462_shared_catalog_and_eudi_rls.sql + 463_b2b_service_branch.sql + 464_b2b_orders_correlate_invoice_orders.sql + 465_artists_event_id_nullable.sql + 466_rolling_reserves_policy.sql + 467_writable_policies_r30.sql + 468_payouts_status_processing.sql + 469_broadcasts_target_event.sql + 470_ticket_transfers_service_branch.sql + 471_transit_passes_admin_guc_drift.sql + 472_royalty_agreements_currency.sql + 473_event_costs.sql + 474_royalty_deal_terms.sql + 475_artist_settlements.sql + 476_venue_date_holds.sql + 477_artist_offers.sql + 478_reentry_auto_direction.sql + 479_refund_gateway_state.sql + 480_v2_buyer_policies.sql + 481_v8_write_isolation.sql + 482_rls_tables_without_rls.sql + 483_scan_logs_writable.sql + 484_payment_paid_once.sql + 485_qr_policy_default_rotating.sql + 486_buyer_protected_columns_guard.sql + 487_invoice_number_per_promoter.sql + 488_royalty_policies_guc_drift.sql + 489_qes_signing_requests_policy.sql + 490_seat_upgrade_notifications.sql + 491_true_policies_owner_scope.sql + 492_subscription_holders_protected_columns.sql + 493_events_sales_end_at.sql + 494_vat_rates.sql + 495_tax_documents.sql + 496_commission_invoices.sql + 497_payouts_manual_transfer.sql + 498_promoters_ares_manual_verification.sql + 499_events_legacy_payment_gateways.sql + 500_productions_card.sql + 501_venue_places_seat_types.sql + 502_seat_blocks.sql + 503_price_categories.sql + 504_seat_reservations.sql"
 }

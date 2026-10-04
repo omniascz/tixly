@@ -10,7 +10,7 @@ interface Category { id: string; code: string; name: string; kind: string; requi
 interface PriceRow { categoryId: string; ticketTypeId: string; priceMinor: number }
 interface SeatRow { id: string; sector: string | null; row: string | null; seatNumber: string | null; ticketTypeId: string; seatType: string | null; seatNote: string | null }
 interface Zone { id: string; name: string; color: string | null }
-interface Data { currency: string; zones: Zone[]; categories: Category[]; prices: PriceRow[]; seats: SeatRow[] }
+interface Data { currency: string; zones: Zone[]; categories: Category[]; prices: PriceRow[]; seats: SeatRow[]; reservation?: { available: boolean; until: string | null } }
 
 const ERRORS: Record<string, string> = {
   COMPANION_WITHOUT_ZTPP: 'Doprovod ZTP/P lze koupit jen spolu se vstupenkou ZTP/P.',
@@ -19,6 +19,10 @@ const ERRORS: Record<string, string> = {
   PROMO_CODE_INVALID: 'Slevový kód neplatí.',
   PROMO_CODE_NOT_APPLICABLE: 'Slevový kód nelze použít na vybrané vstupenky.',
   SEAT_UNAVAILABLE: 'Některé místo už není volné nebo vypršelo podržení. Vyberte místa znovu.',
+  RESERVATION_LIMIT: 'Na jeden e-mail lze mít na tento termín nejvýš 2 aktivní rezervace.',
+  RESERVATION_SEAT_LIMIT: 'Na jeden e-mail lze na tento termín rezervovat nejvýš 10 míst.',
+  RESERVATION_CLOSED: 'Rezervace na tento termín už skončily — kupte prosím vstupenky online.',
+  RESERVATIONS_DISABLED: 'Na tento termín nelze rezervovat.',
 };
 
 function money(minor: number, currency: string): string {
@@ -34,6 +38,7 @@ export function CategoryCheckout({ eventId, locale, holdToken, seatIds }: { even
   const [promo, setPromo] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reserved, setReserved] = useState<{ code: string; until: string; total: number } | null>(null);
 
   useEffect(() => {
     fetch(`/api/public/events/${eventId}/seat-prices`)
@@ -50,7 +55,7 @@ export function CategoryCheckout({ eventId, locale, holdToken, seatIds }: { even
   const priceOf = (catId: string, ttId: string): number | null => data?.prices.find((p) => p.categoryId === catId && p.ticketTypeId === ttId)?.priceMinor ?? null;
   const total = seats.reduce((sum, s) => sum + (priceOf(choice[s.id], s.ticketTypeId) ?? 0), 0);
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent, mode: 'gopay' | 'box_office_reservation' = 'gopay') {
     e.preventDefault();
     setBusy(true);
     setError(null);
@@ -62,9 +67,16 @@ export function CategoryCheckout({ eventId, locale, holdToken, seatIds }: { even
           eventId, seatHoldToken: holdToken,
           items: seats.map((s) => ({ seatId: s.id, categoryId: choice[s.id] })),
           buyerEmail: email, buyerName: name, buyerPhone: phone || undefined, promoCode: promo.trim() || undefined,
+          paymentMethod: mode,
         }),
       });
-      const j = (await res.json().catch(() => ({}))) as { error?: string; message?: string; gatewayUrl?: string };
+      const j = (await res.json().catch(() => ({}))) as {
+        error?: string; message?: string; gatewayUrl?: string; reservationCode?: string; expiresAt?: string; totalAmount?: number;
+      };
+      if (res.ok && j.reservationCode && j.expiresAt) {
+        setReserved({ code: j.reservationCode, until: j.expiresAt, total: j.totalAmount ?? 0 });
+        return;
+      }
       if (!res.ok || !j.gatewayUrl) {
         setError((j.error && ERRORS[j.error]) ?? j.message ?? j.error ?? `HTTP ${res.status}`);
         return;
@@ -79,6 +91,17 @@ export function CategoryCheckout({ eventId, locale, holdToken, seatIds }: { even
     return <p className="text-sm">Nejdřív vyberte místa na <a className="underline" href={`/${locale}/events/${eventId}/seats`}>plánku sálu</a>.</p>;
   }
   if (!data) return <p className="text-sm text-slate-500">{error ?? 'Načítám…'}</p>;
+  if (reserved) {
+    return (
+      <div className="space-y-2 rounded-lg border border-emerald-300 bg-emerald-50 p-4" data-testid="reservation-done">
+        <h2 className="text-lg font-semibold">Rezervace je hotová</h2>
+        <p>Kód rezervace: <strong className="text-xl tracking-widest" data-testid="reservation-code">{reserved.code}</strong></p>
+        <p>Cena celkem: <strong>{money(reserved.total, data.currency)}</strong></p>
+        <p>Vyzvedněte a zaplaťte na pokladně nejpozději <strong>{new Date(reserved.until).toLocaleString('cs-CZ')}</strong>. Potom se místa uvolní.</p>
+        <p className="text-sm text-slate-600">Potvrzení s kódem a odkazem pro zrušení jsme poslali na {email}.</p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={(e) => void submit(e)} className="space-y-4" data-testid="category-checkout">
@@ -128,6 +151,22 @@ export function CategoryCheckout({ eventId, locale, holdToken, seatIds }: { even
         <button type="submit" disabled={busy} className="w-full rounded-md bg-slate-900 px-4 py-3 text-base font-semibold text-white disabled:opacity-50">
           {busy ? 'Odesílám…' : 'Zaplatit'}
         </button>
+        {data.reservation?.available && (
+          <button
+            type="button"
+            disabled={busy}
+            data-testid="reserve-box-office"
+            onClick={(e) => {
+              const form = (e.currentTarget as HTMLButtonElement).form;
+              if (form && !form.reportValidity()) return;
+              void submit(e as unknown as React.FormEvent, 'box_office_reservation');
+            }}
+            className="mt-2 w-full rounded-md border border-slate-900 px-4 py-3 text-base font-semibold text-slate-900 disabled:opacity-50"
+          >
+            Rezervovat, zaplatím na pokladně
+            {data.reservation.until && <span className="block text-xs font-normal">vyzvednout do {new Date(data.reservation.until).toLocaleString('cs-CZ')}</span>}
+          </button>
+        )}
       </div>
     </form>
   );
