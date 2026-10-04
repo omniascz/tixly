@@ -47,7 +47,7 @@ run('Krok 2 (kolo 3) — R6: zaplaceno po expiraci', () => {
     const c = await clone.seed.chain({ basePrice: unit, remainingQty: 10 });
     const o = await clone.seed.order(c, { status: 'pending', quantity: qty, unitPrice: unit });
     await pool.query(`UPDATE catalog.ticket_types SET remaining_qty = remaining_qty - $2 WHERE id=$1`, [c.ticketTypeId, qty]);
-    const r = await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', body: JSON.stringify({ amount: qty * unit, currency: 'CZK' }) });
+    const r = await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', headers: { authorization: 'Bearer fake-token-payment-create' }, body: JSON.stringify({ amount: qty * unit, currency: 'CZK' }) });
     const pid = String(((await r.json()) as { id: number }).id);
     await pool.query(`UPDATE orders.orders SET gopay_payment_id=$2, payment_provider='gopay', expires_at=now()-interval '1 minute' WHERE id=$1`, [o.orderId, pid]);
     const { POST: expire } = await import('@/app/api/internal/cron/expire-pending-orders/route');
@@ -109,7 +109,7 @@ run('Krok 2 (kolo 3) — R6: zaplaceno po expiraci', () => {
     const c = { ...a };
     // druhá objednávka na TENTÝŽ typ
     const o2 = await clone.seed.order(a, { status: 'expired', quantity: 1, unitPrice: 25000 });
-    const r = await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', body: JSON.stringify({ amount: 25000, currency: 'CZK' }) });
+    const r = await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', headers: { authorization: 'Bearer fake-token-payment-create' }, body: JSON.stringify({ amount: 25000, currency: 'CZK' }) });
     const pid2 = String(((await r.json()) as { id: number }).id);
     await pool.query(`UPDATE orders.orders SET gopay_payment_id=$2, payment_provider='gopay' WHERE id=$1`, [o2.orderId, pid2]);
     await pool.query(`UPDATE catalog.ticket_types SET remaining_qty = 1 WHERE id=$1`, [c.ticketTypeId]);

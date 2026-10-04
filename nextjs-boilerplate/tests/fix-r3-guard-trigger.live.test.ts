@@ -163,7 +163,7 @@ run('Krok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků', (
 
     it('self-refund (povolený pořadatelem) → refunded přes bránu', async () => {
       const o = await paidOrder();
-      const pr = await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', body: JSON.stringify({ amount: 25000, currency: 'CZK' }) });
+      const pr = await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', headers: { authorization: 'Bearer fake-token-payment-create' }, body: JSON.stringify({ amount: 25000, currency: 'CZK' }) });
       const pid = String(((await pr.json()) as { id: number }).id);
       await fetch(`${FAKE}/_ctl/${pid}`, { method: 'POST', body: JSON.stringify({ state: 'PAID' }) });
       await owner.query(`UPDATE orders.orders SET gopay_payment_id=$2, payment_provider='gopay', paid_at=now() WHERE id=$1`, [o.orderId, pid]);

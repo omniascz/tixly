@@ -45,7 +45,7 @@ run('Krok 2 (kolo 3) — R5: webhook REFUNDED → refunded + revoke + kapacita, 
     const c = await clone.seed.chain({ basePrice: unit, remainingQty: 10 });
     const o = await clone.seed.order(c, { status: 'paid', quantity: qty, unitPrice: unit });
     await clone.seed.tickets(o.orderId);
-    const r = await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', body: JSON.stringify({ amount: qty * unit, currency: 'CZK' }) });
+    const r = await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', headers: { authorization: 'Bearer fake-token-payment-create' }, body: JSON.stringify({ amount: qty * unit, currency: 'CZK' }) });
     const pid = String(((await r.json()) as { id: number }).id);
     await pool.query(`UPDATE orders.orders SET gopay_payment_id=$2, payment_provider='gopay', paid_at=now() WHERE id=$1`, [o.orderId, pid]);
     return { ...c, orderId: o.orderId, pid };

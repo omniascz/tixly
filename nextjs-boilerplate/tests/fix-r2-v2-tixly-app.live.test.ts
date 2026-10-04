@@ -51,7 +51,7 @@ run('Krok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut', () => {
     await pool.query(`UPDATE catalog.events SET qr_policy='static_allowed' WHERE id=$1`, [fc.eventId]);
     await pool.query(`UPDATE platform.promoters SET status='active' WHERE id=$1`, [fc.promoterId]).catch(() => {});
     const total = (await pool.query<{ t: number }>(`SELECT total_amount t FROM orders.orders WHERE id=$1`, [fc.orderId])).rows[0].t;
-    const p = await (await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', body: JSON.stringify({ amount: total, currency: 'CZK' }) })).json() as { id: number };
+    const p = await (await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', headers: { authorization: 'Bearer fake-token-payment-create' }, body: JSON.stringify({ amount: total, currency: 'CZK' }) })).json() as { id: number };
     await fetch(`${FAKE}/_ctl/${p.id}`, { method: 'POST', body: JSON.stringify({ state: 'PAID' }) });
     await pool.query(`UPDATE orders.orders SET gopay_payment_id=$2, payment_provider='gopay', paid_at=now() WHERE id=$1`, [fc.orderId, String(p.id)]);
     const owner = (await pool.query<{ email: string }>(`SELECT email FROM identity.users WHERE id=$1`, [fc.userId])).rows[0];

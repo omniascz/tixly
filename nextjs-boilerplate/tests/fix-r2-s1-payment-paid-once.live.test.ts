@@ -23,7 +23,7 @@ run('Krok 5 — S1: 3× stejný webhook → 1 payment_paid', () => {
   async function paidAtGateway() {
     const c = await clone.seed.chain({ basePrice: 40000 });
     const o = await clone.seed.order(c, { status: 'pending', unitPrice: 40000 });
-    const p = await (await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', body: JSON.stringify({ amount: 40000, currency: 'CZK' }) })).json() as { id: number };
+    const p = await (await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', headers: { authorization: 'Bearer fake-token-payment-create' }, body: JSON.stringify({ amount: 40000, currency: 'CZK' }) })).json() as { id: number };
     await fetch(`${FAKE}/_ctl/${p.id}`, { method: 'POST', body: JSON.stringify({ state: 'PAID' }) });
     await clone.pool.query(`UPDATE orders.orders SET gopay_payment_id=$2, payment_provider='gopay' WHERE id=$1`, [o.orderId, String(p.id)]);
     return { orderId: o.orderId, pid: String(p.id) };

@@ -43,7 +43,7 @@ run('Závěr (kolo 3) — webhook neblokuje pool během práce po commitu', () =
       const c = await clone.seed.chain({ basePrice: 20000, remainingQty: 10 });
       const o = await clone.seed.order(c, { status, unitPrice: 20000 });
       if (status === 'paid') await clone.seed.tickets(o.orderId);
-      const r = await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', body: JSON.stringify({ amount: 20000, currency: 'CZK' }) });
+      const r = await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', headers: { authorization: 'Bearer fake-token-payment-create' }, body: JSON.stringify({ amount: 20000, currency: 'CZK' }) });
       const pid = String(((await r.json()) as { id: number }).id);
       await pool.query(`UPDATE orders.orders SET gopay_payment_id=$2, payment_provider='gopay' WHERE id=$1`, [o.orderId, pid]);
       out.push({ orderId: o.orderId, pid });
