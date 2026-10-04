@@ -20,7 +20,11 @@ ALTER TABLE catalog.productions
   ADD COLUMN IF NOT EXISTS genre             text,
   ADD COLUMN IF NOT EXISTS photos            jsonb NOT NULL DEFAULT '[]'::jsonb,
   ADD COLUMN IF NOT EXISTS video_url         text,
-  ADD COLUMN IF NOT EXISTS updated_at        timestamptz NOT NULL DEFAULT now();
+  ADD COLUMN IF NOT EXISTS updated_at        timestamptz NOT NULL DEFAULT now(),
+  -- OPRAVENO: onboarding (krok inscenace) a /api/v1/publish/events vkládají poster_url a status, které
+  -- v DB nikdy nebyly (drift guard je hlásil jako chybějící author/description) → obě cesty padaly 42703.
+  ADD COLUMN IF NOT EXISTS poster_url        text,
+  ADD COLUMN IF NOT EXISTS status            text NOT NULL DEFAULT 'published';
 
 ALTER TABLE catalog.productions DROP CONSTRAINT IF EXISTS productions_cast_list_array;
 ALTER TABLE catalog.productions ADD CONSTRAINT productions_cast_list_array CHECK (jsonb_typeof(cast_list) = 'array');

@@ -1,8 +1,8 @@
 {
   "note": "Snapshot known-drift mist. CI (--baseline) pada jen na NOVEM driftu nad tento snapshot. Utahovat, jak fixy ubyvaji; na 0 -> blocking.",
-  "generatedAt": "2026-10-03T19:37:21.959Z",
-  "totalDrift": 48,
-  "distinctKeys": 43,
+  "generatedAt": "2026-10-04T08:32:07.590Z",
+  "totalDrift": 46,
+  "distinctKeys": 41,
   "entries": [
     {
       "file": "src/app/api/admin/events/[id]/clone/route.ts",
@@ -44,12 +44,6 @@
       "file": "src/app/api/admin/marketing/overview/route.ts",
       "code": "42703",
       "msg": "column c.attribution_data does not exist",
-      "count": 1
-    },
-    {
-      "file": "src/app/api/admin/onboarding/step/[step]/route.ts",
-      "code": "42703",
-      "msg": "column \"author\" of relation \"productions\" does not exist",
       "count": 1
     },
     {
@@ -200,12 +194,6 @@
       "file": "src/app/api/season-passes/route.ts",
       "code": "42703",
       "msg": "column \"holder_user_id\" does not exist",
-      "count": 1
-    },
-    {
-      "file": "src/app/api/v1/publish/events/route.ts",
-      "code": "42703",
-      "msg": "column \"description\" of relation \"productions\" does not exist",
       "count": 1
     },
     {
