@@ -14,7 +14,8 @@
  * jen UX redirect, ne autoritativní potvrzení.
  */
 
-const STRIPE_API_URL = 'https://api.stripe.com/v1';
+// Kolo 7: základ API konfigurovatelný (jako mobile/payment-intent a stripe/webhook) — testy nesmí volat skutečný Stripe.
+const stripeApiUrl = (): string => `${process.env.STRIPE_API_BASE_URL ?? 'https://api.stripe.com'}/v1`;
 
 export interface StripeCheckoutInput {
   orderId: string;
@@ -60,7 +61,7 @@ async function stripeRequest<T>(
   if (body !== undefined) headers['Content-Type'] = 'application/x-www-form-urlencoded';
   if (opts.idempotencyKey) headers['Idempotency-Key'] = opts.idempotencyKey;
 
-  const res = await fetch(`${STRIPE_API_URL}${path}`, {
+  const res = await fetch(`${stripeApiUrl()}${path}`, {
     method: opts.method,
     headers,
     body,

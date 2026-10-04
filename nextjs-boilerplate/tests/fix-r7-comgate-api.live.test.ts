@@ -112,7 +112,7 @@ run('Kolo 7 — ComGate podle oficiálního API (simulátor)', () => {
     const o = await paidOrder('json');
     const r = await refund(o);
     expect(r.status, await r.clone().text()).toBe(200);
-    const call = cg.calls.filter((c) => c.path === '/v2.0/refund.json').at(-1);
+    const call = cg.calls.filter((c: { path: string }) => c.path === '/v2.0/refund.json').at(-1);
     expect(call?.body).toMatchObject({ transId: o.paymentId, amount: 45000, test: true });
     expect(cg.payments.get(o.paymentId).refunded).toBe(45000);
     expect((await orderRow(o.orderId)).status).toBe('refunded');

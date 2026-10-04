@@ -33,6 +33,8 @@ run('Krok 2 (kolo 3) — mobile/payment-intent: limit objednávek jako checkout 
     process.env.STRIPE_SECRET_KEY = 'sk_test_fix';
     process.env.STRIPE_API_BASE_URL = 'http://localhost:3998/stripe';
     chain = await clone.seed.chain({ remainingQty: 500, totalQty: 500 });
+    // Kolo 7: Stripe (mobil) jen pro akce z doby před mig. 499 — test ověřuje tuto existující cestu.
+    await clone.pool.query(`UPDATE catalog.events SET legacy_payment_gateways = TRUE WHERE id=$1`, [chain.eventId]);
     const { signAccessToken } = await import('@/lib/auth');
     sign = (u) => signAccessToken({ id: u.id, email: u.email, name: 'T' } as never, { isPlatformAdmin: false, promoterMemberships: [] });
   }, 120_000);

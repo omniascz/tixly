@@ -205,6 +205,8 @@ run('Krok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků', (
 
     it('mobilní platba: payment-intent → order-confirm → paid + lístky', async () => {
       const c = await clone.seed.chain({ remainingQty: 10 });
+      // Kolo 7: Stripe (mobil) jen pro akce z doby před mig. 499 — test ověřuje tuto existující cestu.
+      await clone.pool.query(`UPDATE catalog.events SET legacy_payment_gateways = TRUE WHERE id=$1`, [c.eventId]);
       const u = await clone.seed.user('gmob');
       const { POST: intent } = await import('@/app/api/mobile/payment-intent/route');
       const r1 = await throughMiddleware(await req('POST', '/api/mobile/payment-intent', u, { eventId: c.eventId, ticketTypeId: c.ticketTypeId, qty: 2 }), intent as H);

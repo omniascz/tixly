@@ -263,6 +263,15 @@ export async function POST(req: NextRequest): Promise<Response> {
     if (limited) return limited;
   }
 
+  // Kolo 7: brány bez refundu přes API (Stripe, Mollie, PayPal, P24, Triple-A) jen pro akce
+  // existující před mig. 499 — jinak odmítnout PŘED založením objednávky.
+  {
+    const { effectiveGateway, gatewayNotAllowedResponse } = await import('@/lib/payment/gateway-policy');
+    const cur = await db().query<{ currency: string }>(`SELECT currency FROM catalog.events WHERE id = $1`, [input.eventId]);
+    const blocked = await gatewayNotAllowedResponse(db(), input.eventId, effectiveGateway(input.paymentMethod, cur.rows[0]?.currency ?? 'CZK'));
+    if (blocked) return blocked;
+  }
+
   // Early-guard: krypto bez nakonfigurovaného Triple-A nesmí v produkci založit
   // objednávku (mock-crypto je tam vypnutý → slepá 403 ulička). Fail-closed JEŠTĚ
   // PŘED vytvořením objednávky, aby nevznikaly mrtvé pending objednávky.

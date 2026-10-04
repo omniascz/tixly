@@ -62,10 +62,11 @@ export async function GET(
     verified_fan_enabled: boolean;
     meta_pixel_id: string | null;
     currency: string | null;
+    legacy_payment_gateways: boolean;
   }>(
     `SELECT COALESCE(e.requires_otp_validation, FALSE) AS requires_otp_validation,
             COALESCE(e.verified_fan_enabled, FALSE) AS verified_fan_enabled,
-            p.meta_pixel_id, e.currency
+            p.meta_pixel_id, e.currency, e.legacy_payment_gateways
        FROM catalog.events e
        LEFT JOIN platform.promoters p ON p.id = e.promoter_id
       WHERE e.id = $1`,
@@ -76,6 +77,7 @@ export async function GET(
     verified_fan_enabled: false,
     meta_pixel_id: null,
     currency: null,
+    legacy_payment_gateways: false,
   };
 
   return NextResponse.json({
@@ -99,5 +101,7 @@ export async function GET(
     },
     metaPixelId: flags.meta_pixel_id,
     currency: flags.currency ?? 'CZK',
+    // Kolo 7: brány bez refundu (Triple-A, P24, Mollie, PayPal, Stripe) jen u akcí z doby před mig. 499.
+    legacyPaymentGateways: flags.legacy_payment_gateways === true,
   });
 }
