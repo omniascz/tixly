@@ -46,8 +46,9 @@ Všech 7 míst se stropem `LEAST(total_qty, …)`. Live `fix-r9-expire-capacity-
 `fix/round9-golive-2026-10-04` po sloučení PR #5 — **potřebují další PR do integrate** (viz §5).
 
 **CI pro PR #2:** na hlavě `ed77a3b9` (před sloučením) prošly CI, live, RLS, schema drift, gitleaks; padaly *Dependency audit*
-(mobile, mobile-promoter, nextjs-boilerplate — zranitelnosti vyžadující hlavní verze, viz kolo 7) a Vercel build. Stav po sloučení
-(f391fcc2) — viz §5 (ověření závisí na dostupnosti GitHubu).
+(mobile, mobile-promoter, nextjs-boilerplate) a Vercel build. **Po sloučení (f391fcc2): všechny GitHub Actions zelené** — CI
+(typecheck, lint, unit), live sada, RLS verify, schema drift, gitleaks i všechny 4 dependency audity; **jediný fail je Vercel build
+`nextjs-boilerplate`** (předexistující).
 
 ## 3. Krok 3 — inventura
 
@@ -79,8 +80,8 @@ pending-migrations proti lokální DB (simulace produkce bez 500–506), záloha
 - **Scénář turné na integrate neproběhl** a **audit 12 po opravě nebyl znovu spuštěn proti serveru** — systém ukončil server
   a simulátor GoPay pro nedostatek paměti; znovu je nespouštím bez pokynu. Refundové testy (k2, k3, escalations) s opravou kapacity
   čekají na simulátor (bez něj padají na ECONNREFUSED stejně jako před opravou).
-- **Commity po sloučení PR #5** (fe7fa8d3, fe200138, 3df432b3, fbf71b5e, 894c296c a report) nejsou v integrate — potřebují nový PR.
-  Poslední push selhal: GitHub nedostupný (timeout portu 443) — viz finální stav v odpovědi.
+- **Commity po sloučení PR #5** (oprava kapacity, .gitattributes, inventura, staging, runbook, report) jsou v otevřeném
+  **PR #6** (https://github.com/omniascz/tixly/pull/6) do integrate — nesloučeno (zadání slučovalo PR z kroku 1).
 - Vercel build projektu `nextjs-boilerplate` padá (předexistující) — blokuje produkční deploy po merge PR #2.
 - Z kódu nefunkční (není otázka klíčů): cron lastminute (GET→405), `payouts-execute` neregistrován, mock `charge-installments`/
   `renew-subscriptions`, chybějící `/api/payments/benefit/return`, benefit karty mimo Pluxee (403).
