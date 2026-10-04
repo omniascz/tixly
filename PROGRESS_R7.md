@@ -14,7 +14,7 @@ stash drop/clear (stash „pred prepnutim na integrate/2026-10-04“ ponechat). 
 | 4 zranitelné závislosti | HOTOVO — web axios/postcss/nodemailer v major + audit fix (63→52), mobile lockfile sync + audit fix (80→71), gate audit-fixable.mjs (opravitelné = zmizí po audit fix bez --force), security.yml; tsc 0, unit 634, build OK; tabulka logs/r7/4_vuln_table.tsv | c6edc85a |
 | 5 drobnosti (cron, lockfile, ARES) | HOTOVO — 5a mobile-promoter lockfile (npm ci RED→GREEN, tsc 0); 5b cron expire-date-holds ve vercel.json + dispatcheru (RED 3 → GREEN); 5c simulátor ARES + mig 498, výpadek → ruční ověření (RED 6 → GREEN 6) | 81fa66d2, d83bb154, 6ff7145e |
 | 6 sandbox brány | HOTOVO — 6a ComGate dle oficiálního API (cesty/pole/webhook JSON/refund timeout, payment_provider dle brány; RED 3 → GREEN 3); 6b GoPay scope payment-all (RED 6 → GREEN, 119/119); 6c brány bez refundu jen pro existující akce (mig 499; RED 5 → GREEN 5); 6d sandbox testy + README env (bez klíčů skip, guard 4/4, nanečisto proti simulátorům 2/2; proti skutečnému sandboxu neověřeno) | d3099c14, 2ac760e0, 048d7c56, 5d60d70c |
-| Závěr | čeká | |
+| Závěr | HOTOVO — od nuly 52/0, tsc 0, lint 994<1008, unit 636, live 306 (21 skip Neon), build OK, audity 01–12 vč. 07b/08 0 FAIL, vizuál 5/5, gitleaks čisto; ROUND7_REPORT.md | viz report |
 
 ## Poznámky
 - Krok 1: odchylka od zadání — existující nevynucovaný sale_end_at převeden do nového sales_end_at a zapisovače přepnuty (uvést v reportu).
