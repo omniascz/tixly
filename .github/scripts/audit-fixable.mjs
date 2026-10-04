@@ -32,17 +32,37 @@ const needsOf = (fa) =>
     : fa === true ? 'oprava v rozsahu (npm audit fix ji neprovede)'
     : `${fa.name}@${fa.version}${fa.isSemVerMajor ? ' (nová hlavní verze)' : ''}`;
 
+/** Balíčky v lockfilu (packages), které mají `name` mezi závislostmi. */
+export function dependentsOf(lockPackages, name) {
+  return Object.entries(lockPackages ?? {})
+    .filter(([k, v]) => k !== '' && ['dependencies', 'optionalDependencies', 'peerDependencies'].some((f) => v?.[f] && name in v[f]))
+    .map(([k]) => k.replace(/^.*node_modules\//, ''));
+}
+const inLock = (lockPackages, name) =>
+  Object.keys(lockPackages ?? {}).some((k) => k === `node_modules/${name}` || k.endsWith(`/node_modules/${name}`));
+
 /**
  * @param before výstup `npm audit --json` před `npm audit fix`
  * @param after  výstup `npm audit --json` po `npm audit fix` (bez --force)
+ * @param lockAfter `packages` z package-lock.json po opravě (volitelné). Když npm balíček z lockfilu jen
+ *   ODSTRANÍ, ale v lockfilu zůstal balíček, který ho potřebuje (npm na runneru takhle „opravil"
+ *   turbo-stream pod @remix-run/server-runtime), není to oprava, ale rozbitý lockfile → neopravitelné.
  * @returns {{ name: string, severity: string, fixable: boolean, needs: string }[]}
  */
-export function classify(before, after) {
+export function classify(before, after, lockAfter) {
   const remaining = new Set(gated(after).map(([n]) => n));
   return gated(before)
     .map(([name, v]) => {
-      const fixable = !remaining.has(name);
-      return { name, severity: v.severity, fixable, needs: fixable ? 'npm audit fix (bez --force)' : needsOf(v.fixAvailable) };
+      let fixable = !remaining.has(name);
+      let needs = fixable ? 'npm audit fix (bez --force)' : needsOf(v.fixAvailable);
+      if (fixable && lockAfter && !inLock(lockAfter, name)) {
+        const deps = dependentsOf(lockAfter, name);
+        if (deps.length > 0) {
+          fixable = false;
+          needs = `npm audit fix balíček jen odstraní, ale potřebuje ho ${deps.slice(0, 3).join(', ')} — neplatná oprava`;
+        }
+      }
+      return { name, severity: v.severity, fixable, needs };
     })
     .sort((a, b) => Number(b.fixable) - Number(a.fixable) || a.name.localeCompare(b.name));
 }
@@ -82,12 +102,13 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     }
     const after = npmJson(['audit', '--json', '--package-lock-only'], tmp);
     const lockB = JSON.parse(readFileSync(path.join(tmp, 'package-lock.json'), 'utf8')).packages ?? {};
-    const rows = classify(before, after);
+    const rows = classify(before, after, lockB);
     // U opravitelných ukaž, co npm audit fix v lockfilu změnil (verze A → B) — podklad pro opravu.
     const versions = (lock, name) => Object.entries(lock)
       .filter(([k]) => k === `node_modules/${name}` || k.endsWith(`/node_modules/${name}`))
       .map(([k, v]) => `${k.replace(/node_modules\//g, '')}@${v.version}`).join(', ') || '—';
     for (const r of rows) if (r.fixable) r.needs = `npm audit fix: ${versions(lockA, r.name)} → ${versions(lockB, r.name)}`;
+    console.log(`npm ${execFileSync('npm', ['-v'], { encoding: 'utf8', shell: process.platform === 'win32' }).trim()}, modul ${dir}`);
     for (const r of rows) {
       console.log(`${(r.fixable ? 'OPRAVITELNÉ' : 'neopravitelné').padEnd(13)} ${r.severity.padEnd(8)} ${r.name.padEnd(40)} ${r.needs}`);
     }

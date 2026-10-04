@@ -37,4 +37,21 @@ describe('audit-fixable gate', () => {
     const rows: Row[] = classify(before, { vulnerabilities: {} });
     expect(rows).toEqual([{ name: 'ws', severity: 'high', fixable: true, needs: 'npm audit fix (bez --force)' }]);
   });
+
+  it('npm balíček z lockfilu jen odstraní, ale závislý balíček zůstal → neopravitelné (rozbitý lockfile)', () => {
+    const before = { vulnerabilities: { 'turbo-stream': v('high', true), ws: v('high', true) } };
+    const after = { vulnerabilities: {} };
+    const lockAfter = {
+      '': { name: 'app' },
+      'node_modules/@remix-run/server-runtime': { version: '2.17.5', dependencies: { 'turbo-stream': '2.4.1' } },
+      'node_modules/ws': { version: '8.20.2' },
+    };
+    const rows: Row[] = classify(before, after, lockAfter);
+    const m = Object.fromEntries(rows.map((r) => [r.name, r]));
+    expect(m['turbo-stream'].fixable).toBe(false);
+    expect(m['turbo-stream'].needs).toMatch(/potřebuje ho @remix-run\/server-runtime/);
+    expect(m.ws.fixable).toBe(true);
+    // odstraněný a nikdo ho nepotřebuje → skutečná oprava
+    expect(classify({ vulnerabilities: { old: v('high', true) } }, after, { '': {} })[0].fixable).toBe(true);
+  });
 });
