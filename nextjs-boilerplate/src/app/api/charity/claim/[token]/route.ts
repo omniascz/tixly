@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 
 export async function GET(
@@ -138,6 +139,12 @@ export async function POST(
     if (new Date(s.expires_at).getTime() < Date.now()) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'EXPIRED' }, { status: 410 });
+    }
+    // Kolo 7 (C-29): uplatnění charitativní vstupenky kupcem po uzávěrce online prodeje nejde.
+    const salesClosed = await saleBlockedResponse(client, s.event_id, 'online');
+    if (salesClosed) {
+      await client.query('ROLLBACK');
+      return salesClosed;
     }
 
     // Resolve user — najdi nebo vytvoř guest user (žádné heslo, identifikuje

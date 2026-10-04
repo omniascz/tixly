@@ -20,6 +20,7 @@
 import { join } from 'node:path';
 import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
+import { splitGrossMinor } from '@/lib/tax/vat';
 
 // NotoSans-Regular/Bold (Open Font License, latin-ext = plné české znaky).
 // Bez vlastního TTF by default pdfkit Helvetica zlomil diakritiku na boxy.
@@ -55,11 +56,11 @@ export interface PdfHeader {
   brandColorHex?: string | null;
   brandLogoUrl?: string | null;
   /** Sazba DPH v procentech (10 = kulturní akce, 21 = standardní) */
-  vatRatePct?: number;
+  /** Kolo 7: sazba DPH z DB (typ vstupenky); null = prodávající není plátce DPH; undefined = bez rozpisu. */
+  vatRatePct?: number | null;
 }
 
 const DEFAULT_BRAND_COLOR = '#10b981';
-const DEFAULT_VAT_RATE_PCT = 10; // Kulturní akce v ČR
 
 function isValidHex(c: string | null | undefined): c is string {
   return typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c);
@@ -79,7 +80,7 @@ export async function renderTicketsPdf(
   const brandColor = isValidHex(header.brandColorHex)
     ? header.brandColorHex
     : DEFAULT_BRAND_COLOR;
-  const vatRatePct = header.vatRatePct ?? DEFAULT_VAT_RATE_PCT;
+  const vatRatePct = header.vatRatePct;
   const productionMode = process.env.TICKET_PDF_PRODUCTION_MODE === '1';
 
   for (let i = 0; i < tickets.length; i++) {
@@ -213,9 +214,7 @@ export async function renderTicketsPdf(
     doc.moveTo(320, doc.y).lineTo(550, doc.y).stroke('#ddd');
     doc.moveDown(0.4);
 
-    // Rozpis daně: gross = net * (1 + vat/100)  →  net = gross / (1 + vat/100)
-    const netHalire = Math.round(totalGross / (1 + vatRatePct / 100));
-    const vatHalire = totalGross - netHalire;
+    // Kolo 7 (C-54): rozpis daně ze sazby typu vstupenky (DB), zaokrouhlení viz lib/tax/vat.ts.
 
     const rowY = (label: string, value: string, bold = false) => {
       const y = doc.y;
@@ -227,19 +226,17 @@ export async function renderTicketsPdf(
       doc.font('main');
       doc.moveDown(0.4);
     };
-    rowY('Základ daně:', formatCzk(netHalire));
-    rowY(`DPH ${vatRatePct} %:`, formatCzk(vatHalire));
+    if (typeof vatRatePct === 'number') {
+      const { baseMinor, vatMinor } = splitGrossMinor(totalGross, vatRatePct);
+      rowY('Základ daně:', formatCzk(baseMinor));
+      rowY(`DPH ${vatRatePct} %:`, formatCzk(vatMinor));
+    }
     rowY('Celkem k úhradě:', formatCzk(totalGross), true);
 
-    doc.moveDown(1);
-    doc.fontSize(8).fillColor('#666').text(
-      vatRatePct === 10
-        ? 'Snížená sazba DPH 10 % se vztahuje na vstupné na divadelní, hudební a obdobné kulturní akce (§ 47 zákona o DPH).'
-        : `Sazba DPH ${vatRatePct} %.`,
-      48,
-      undefined,
-      { width: 500 },
-    );
+    if (vatRatePct === null) {
+      doc.moveDown(1);
+      doc.fontSize(8).fillColor('#666').text('Prodávající není plátcem DPH.', 48, undefined, { width: 500 });
+    }
   }
 
   doc.end();

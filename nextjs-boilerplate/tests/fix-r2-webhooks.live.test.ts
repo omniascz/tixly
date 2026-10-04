@@ -224,7 +224,8 @@ VwIDAQAB
   describe('GoPay', () => {
     const hook = async () => (await import('@/app/api/payments/gopay/webhook/route')).GET as H;
     async function gopayPayment(amount: number): Promise<string> {
-      const r = await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', body: JSON.stringify({ amount, currency: 'CZK' }) });
+      // Kolo 7: simulátor vyžaduje token jako skutečná brána (scope dle doc.gopay.com).
+      const r = await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', headers: { authorization: 'Bearer fake-token-payment-create' }, body: JSON.stringify({ amount, currency: 'CZK' }) });
       return String((await r.json() as { id: number }).id);
     }
     it('nenakonfigurovaná brána (i mimo produkci: DEV_STUB) → 4xx, nic se nezmění', async () => {

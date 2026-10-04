@@ -21,6 +21,8 @@ run('Krok 2 (kolo 3) — /api/mobile/* ověřuje Bearer JWT', () => {
     process.env.STRIPE_SECRET_KEY = 'sk_test_fix';
     process.env.STRIPE_API_BASE_URL = 'http://localhost:3998/stripe';
     chain = await clone.seed.chain({ remainingQty: 50 });
+    // Kolo 7: Stripe (mobil) jen pro akce z doby před mig. 499 — test ověřuje tuto existující cestu.
+    await clone.pool.query(`UPDATE catalog.events SET legacy_payment_gateways = TRUE WHERE id=$1`, [chain.eventId]);
   }, 120_000);
   afterAll(async () => { await clone?.cleanup(); }, 30_000);
 

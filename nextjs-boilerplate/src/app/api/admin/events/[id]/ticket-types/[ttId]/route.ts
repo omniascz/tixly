@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
+import { resolveTicketTypeVatCode } from '@/lib/tax/vat-readiness';
 
 const patchSchema = z.object({
   name: z.string().min(1).max(200).optional(),
@@ -29,18 +30,22 @@ const patchSchema = z.object({
   presaleCodeRequired: z.boolean().optional(),
   // mig 433 — per-ticket-type purchase limit
   maxPerBuyer: z.number().int().min(1).max(1000).nullable().optional(),
+  // Kolo 7 (C-54): kód sazby DPH; povinný u placeného typu plátce.
+  vatRateCode: z.string().max(40).nullable().optional(),
 });
 
 async function ensureOwnership(eventId: string, ttId: string, promoterId: string) {
   const r = await db().query(
-    `SELECT tt.id, tt.total_qty, tt.remaining_qty
+    `SELECT tt.id, tt.total_qty, tt.remaining_qty, tt.base_price, tt.vat_rate_code
      FROM catalog.ticket_types tt
      JOIN catalog.events e ON e.id = tt.event_id
      WHERE tt.id = $1 AND tt.event_id = $2 AND e.promoter_id = $3
      LIMIT 1`,
     [ttId, eventId, promoterId],
   );
-  return r.rows[0] as { id: string; total_qty: number; remaining_qty: number } | undefined;
+  return r.rows[0] as
+    | { id: string; total_qty: number; remaining_qty: number; base_price: number; vat_rate_code: string | null }
+    | undefined;
 }
 
 export async function PATCH(
@@ -68,6 +73,14 @@ export async function PATCH(
     const tt = await ensureOwnership(params.id, params.ttId, promoter.promoterId);
     if (!tt) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+
+    // Kolo 7 (C-54): výsledný stav typu (cena + sazba) musí být pro plátce platný.
+    const newPrice = input.priceHalire ?? tt.base_price;
+    const newCode = input.vatRateCode !== undefined ? input.vatRateCode : tt.vat_rate_code;
+    const vat = await resolveTicketTypeVatCode(db(), promoter.promoterId, newPrice, newCode);
+    if ('error' in vat) {
+      return NextResponse.json({ error: 'VAT_RATE_REQUIRED', message: vat.error }, { status: 422 });
     }
 
     // Capacity adjustment: delta applied to remaining_qty
@@ -102,6 +115,7 @@ export async function PATCH(
            presale_code = CASE WHEN $13::text IS NOT NULL THEN $13 ELSE presale_code END,
            presale_code_required = COALESCE($14, presale_code_required),
            max_per_buyer = CASE WHEN $15::int IS NOT NULL THEN $15 ELSE max_per_buyer END,
+           vat_rate_code = $16,
            updated_at = NOW()
        WHERE id = $9`,
       [
@@ -120,6 +134,7 @@ export async function PATCH(
         input.presaleCode !== undefined ? (input.presaleCode ?? null) : null,
         input.presaleCodeRequired !== undefined ? input.presaleCodeRequired : null,
         input.maxPerBuyer !== undefined ? (input.maxPerBuyer ?? null) : null,
+        vat.code,
       ],
     );
 

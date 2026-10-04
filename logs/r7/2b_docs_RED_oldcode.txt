@@ -1,0 +1,69 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r7-tax-documents.live.test.ts[2m > [22m[2mKolo 7 — daňové doklady, řady, dobropisy[2m > [22m[2mrefund zaplacené objednávky s dokladem → dobropis se zápornými částkami po sazbách a odkazem[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [33m❯[39m tests/fix-r7-tax-documents.live.test.ts [2m ([22m[2m7 tests[22m [2m|[22m [31m2 failed[39m [2m|[22m [33m1 skipped[39m[2m)[22m[33m 6845[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r7-tax-documents.live.test.ts[2m > [22mKolo 7 — daňové doklady, řady, dobropisy[2m > [22mrefund zaplacené objednávky s dokladem → dobropis se zápornými částkami po sazbách a odkazem[39m
+[31m     → expected [] to have a length of 1 but got +0[39m
+[31m   [33m❯[31m tests/fix-r7-tax-documents.live.test.ts[2m > [22mKolo 7 — daňové doklady, řady, dobropisy[2m > [22mdoklad kupce (GET) vznikne jednou — druhé volání vrátí stejný doklad[39m
+[31m     → d.items is not iterable[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-tax-documents.live.test.ts[2m > [22mKolo 7 — daňové doklady, řady, dobropisy[2m > [22mrefund zaplacené objednávky s dokladem → dobropis se zápornými částkami po sazbách a odkazem
+[31m[1mAssertionError[22m: expected [] to have a length of 1 but got +0[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/fix-r7-tax-documents.live.test.ts:[2m181:16[22m[39m
+    [90m179| [39m    [35mconst[39m cn [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m(
+    [90m180| [39m      [32m`SELECT id, invoice_number n, total_minor::int t, corrects_invoi[39m…
+    [90m181| [39m    [34mexpect[39m(cn)[33m.[39m[34mtoHaveLength[39m([34m1[39m)[33m;[39m
+    [90m   | [39m               [31m^[39m
+    [90m182| [39m    [34mexpect[39m(cn[[34m0[39m])[33m.[39m[34mtoMatchObject[39m({ t[33m:[39m [33m-[39m[34m30000[39m[33m,[39m c[33m:[39m invoiceId })[33m;[39m
+    [90m183| [39m    [34mexpect[39m(cn[[34m0[39m][33m.[39mn)[33m.[39m[34mtoMatch[39m([36m/^D\d{4}-0001$/[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-tax-documents.live.test.ts[2m > [22mKolo 7 — daňové doklady, řady, dobropisy[2m > [22mdoklad kupce (GET) vznikne jednou — druhé volání vrátí stejný doklad
+[31m[1mTypeError[22m: d.items is not iterable[39m
+[36m [2m❯[22m src/lib/accounting/invoice-pdf.ts:[2m90:24[22m[39m
+    [90m 88| [39m    doc[33m.[39m[34mfont[39m([32m'Regular'[39m)[33m.[39m[34mfontSize[39m([34m9[39m)[33m;[39m
+    [90m 89| [39m    [35mlet[39m y [33m=[39m tableTop [33m+[39m [34m20[39m[33m;[39m
+    [90m 90| [39m    [35mfor[39m ([35mconst[39m it [35mof[39m d[33m.[39mitems) {
+    [90m   | [39m                       [31m^[39m
+    [90m 91| [39m      [35mconst[39m vals [33m=[39m [it[33m.[39mdescription[33m,[39m [33mString[39m(it[33m.[39mquantity)[33m,[39m it[33m.[39mratePct [33m!=[39m…
+    [90m 92| [39m      vals[33m.[39m[34mforEach[39m((v[33m,[39m i) [33m=>[39m doc[33m.[39m[34mtext[39m(v[33m,[39m colX[i][33m,[39m y[33m,[39m { width[33m:[39m colW[i][33m,[39m…
+[90m [2m❯[22m Module.buildInvoicePdf src/lib/accounting/invoice-pdf.ts:[2m38:10[22m[39m
+[90m [2m❯[22m src/app/api/buyer/orders/[orderId]/invoice/route.ts:[2m218:26[22m[39m
+[90m [2m❯[22m tests/fix-r7-tax-documents.live.test.ts:[2m196:17[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (7)[39m
+[2m   Start at [22m 02:27:34
+[2m   Duration [22m 7.28s[2m (transform 991ms, setup 0ms, collect 93ms, tests 6.84s, environment 0ms, prepare 62ms)[22m
+

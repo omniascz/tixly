@@ -7,7 +7,7 @@ startLog('09_seated');
 const S = JSON.parse(readFileSync(new URL(process.env.AUDIT_STATE ?? './state.json', import.meta.url), 'utf8'));
 const PA = new Client('promoterA'); let r = await PA.post('/api/auth/login', { email: S.promoterA.email, password: S.pw });
 const name = `Sezeni ${Date.now()}`;
-r = await PA.post(`/api/admin/events/${S.eventA}/ticket-types`, { name, priceHalire: 70000, totalQty: 6, isSeated: true, kind: 'seated' });
+r = await PA.post(`/api/admin/events/${S.eventA}/ticket-types`, { name, priceHalire: 70000, vatRateCode: 'CZ_REDUCED', totalQty: 6, isSeated: true, kind: 'seated' });
 const tt = (await q(`SELECT id, is_seated, kind FROM catalog.ticket_types WHERE event_id=$1 AND name=$2`, [S.eventA, name]))[0];
 check('Z0', 'vytvoreni typu vstupenky k sezeni', r.status < 300 && tt?.is_seated === true, { ...ev(r), db: tt });
 const seats = (await q(`INSERT INTO catalog.event_seats (event_id, ticket_type_id, sector, row, seat_number, status)

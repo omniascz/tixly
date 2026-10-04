@@ -17,8 +17,25 @@
  * asSystemInTx. Vlastnictví / oprávnění (kupec vs. pořadatel) ověřuje VOLAJÍCÍ před voláním.
  */
 import type { Pool } from 'pg';
-import { refundOrderViaGateway } from './gateway-refund';
+import { issueCreditNoteForRefund } from '@/lib/accounting/documents';
 import { asSystemInTx } from '@/lib/db/rls-pool';
+import { refundOrderViaGateway } from './gateway-refund';
+
+/**
+ * Kolo 7 (C-54): opravný daňový doklad (dobropis) k refundu objednávky, která má vystavený doklad.
+ * Běží v transakci zápisu refundu, ale v SAVEPOINT — peníze už brána vrátila, takže selhání dobropisu
+ * nesmí shodit zápis refundu (zaloguje se k dovystavení).
+ */
+async function issueCreditNoteSafely(client: import('pg').PoolClient, orderId: string, amountHalire: number): Promise<void> {
+  await client.query('SAVEPOINT sp_credit_note');
+  try {
+    await issueCreditNoteForRefund(client, orderId, amountHalire);
+    await client.query('RELEASE SAVEPOINT sp_credit_note');
+  } catch (err) {
+    await client.query('ROLLBACK TO SAVEPOINT sp_credit_note');
+    console.error('[refund] dobropis se nepodařilo vystavit — dovystavit ručně', { orderId, err });
+  }
+}
 
 export interface RefundOrderResult {
   http: number;
@@ -119,6 +136,7 @@ export async function executeOrderRefund(opts: RefundOrderOpts): Promise<RefundO
           WHERE id = $1`,
         [orderId, finalStatus, amountHalire, JSON.stringify(gw.raw ?? null)],
       );
+      await issueCreditNoteSafely(c2, orderId, amountHalire);
     });
     if (audit) await audit(c2);
     await c2.query('COMMIT');
@@ -166,6 +184,7 @@ async function finalizeExternalRefund(opts: RefundOrderOpts, refundable: string[
           WHERE id = $1`,
         [orderId, finalStatus, amountHalire, JSON.stringify(opts.gatewayRefundedExternally?.raw ?? null)],
       );
+      await issueCreditNoteSafely(c, orderId, amountHalire);
     });
     if (audit) await audit(c);
     await c.query('COMMIT');

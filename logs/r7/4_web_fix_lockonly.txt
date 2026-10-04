@@ -1,0 +1,37 @@
+npm error code ERESOLVE
+npm error ERESOLVE could not resolve
+npm error
+npm error While resolving: qrcode.react@1.0.1
+npm error Found: react@18.3.1
+npm error node_modules/react
+npm error   react@"^18.3.1" from the root project
+npm error   peer react@">=16.8.0" from @floating-ui/react-dom@2.1.8
+npm error   node_modules/@floating-ui/react-dom
+npm error     @floating-ui/react-dom@"^2.0.0" from @radix-ui/react-popper@1.2.8
+npm error     node_modules/@radix-ui/react-popper
+npm error       @radix-ui/react-popper@"1.2.8" from @radix-ui/react-menu@2.1.16
+npm error       node_modules/@radix-ui/react-menu
+npm error         @radix-ui/react-menu@"2.1.16" from @radix-ui/react-dropdown-menu@2.1.16
+npm error         node_modules/@radix-ui/react-dropdown-menu
+npm error       2 more (@radix-ui/react-popover, @radix-ui/react-select)
+npm error   56 more (@radix-ui/react-arrow, @radix-ui/react-collection, ...)
+npm error
+npm error Could not resolve dependency:
+npm error peer react@"^15.5.3 || ^16.0.0 || ^17.0.0" from qrcode.react@1.0.1
+npm error node_modules/qrcode.react
+npm error   qrcode.react@"^1.0.1" from the root project
+npm error
+npm error Conflicting peer dependency: react@17.0.2
+npm error node_modules/react
+npm error   peer react@"^15.5.3 || ^16.0.0 || ^17.0.0" from qrcode.react@1.0.1
+npm error   node_modules/qrcode.react
+npm error     qrcode.react@"^1.0.1" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry
+npm error this command with --force or --legacy-peer-deps
+npm error to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error C:\Users\omnia\AppData\Local\npm-cache\_logs\2026-10-04T01_16_43_648Z-eresolve-report.txt
+npm error A complete log of this run can be found in: C:\Users\omnia\AppData\Local\npm-cache\_logs\2026-10-04T01_16_43_648Z-debug-0.log

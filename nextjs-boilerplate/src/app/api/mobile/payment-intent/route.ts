@@ -12,6 +12,8 @@ import { runAsUser } from '@/lib/auth';
 import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { z } from 'zod';
 import { enforceOrderCreationLimits } from '@/lib/orders/order-creation-limits';
+import { gatewayNotAllowedResponse } from '@/lib/payment/gateway-policy';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,6 +59,13 @@ export async function POST(req: NextRequest): Promise<Response> {
       return NextResponse.json({ error: 'Validation failed', issues: parsed.error.issues }, { status: 422 });
     }
     const { eventId, ticketTypeId, qty } = parsed.data;
+    // Kolo 7 (C-29): po uzávěrce online prodeje nový nákup nejde (před založením objednávky i Stripe).
+    const salesClosed = await saleBlockedResponse(db(), eventId, 'online');
+    if (salesClosed) return salesClosed;
+    // Kolo 7: Stripe neumí refund přes API → jen akce existující před mig. 499. 503 → aplikace
+    // přepne na webový checkout (GoPay / ComGate).
+    const gatewayBlocked = await gatewayNotAllowedResponse(db(), eventId, 'stripe', 503);
+    if (gatewayBlocked) return gatewayBlocked;
 
     // Kolo 3: stejné limity vytváření objednávek jako web checkout (K3), sdílený mechanismus
     // i sdílený IP klíč — route zadrží inventář a založí pending objednávku stejně jako checkout.

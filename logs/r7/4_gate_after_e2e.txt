@@ -1,0 +1,4 @@
+
+high/critical: 0, opravitelných přes npm audit fix (bez --force): 0
+(node:38904) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)

@@ -1,8 +1,9 @@
 /**
  * POST /api/payments/comgate/webhook
  *
- * ComGate notification handler. Posílá form-urlencoded POST s:
- *   transId, status, price, currency, refId, secret, ...
+ * ComGate notification handler. Kolo 7: REST API v2.0 posílá notifikaci jako JSON, v1.0 jako
+ * form-urlencoded POST (apidoc.comgate.cz/en/push-notifikace) — přijímáme obojí. Pole:
+ *   transId, status, price, curr, refId, secret, ...
  *
  * Verifikace:
  *   1. secret v body se musí rovnat COMGATE_SECRET (env)
@@ -28,17 +29,33 @@ function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(ab, bb);
 }
 
+/** Notifikace v2.0 (JSON) i v1.0 (form-urlencoded). null = nečitelné tělo. */
+async function readNotification(req: NextRequest): Promise<Record<string, unknown> | null> {
+  const type = req.headers.get('content-type') ?? '';
+  const raw = await req.text().catch(() => null);
+  if (raw === null) return null;
+  if (type.includes('application/json') || raw.trimStart().startsWith('{')) {
+    try {
+      const j: unknown = JSON.parse(raw);
+      return j && typeof j === 'object' ? (j as Record<string, unknown>) : null;
+    } catch {
+      return null;
+    }
+  }
+  return Object.fromEntries(new URLSearchParams(raw));
+}
+
 export async function POST(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
 
-  const formData = await req.formData().catch(() => null);
-  if (!formData) {
+  const fields = await readNotification(req);
+  if (!fields) {
     return NextResponse.json({ error: 'INVALID_BODY' }, { status: 400 });
   }
 
-  const transId = String(formData.get('transId') ?? '');
-  const refId = String(formData.get('refId') ?? '');
-  const providedSecret = String(formData.get('secret') ?? '');
+  const transId = String(fields.transId ?? '');
+  const refId = String(fields.refId ?? '');
+  const providedSecret = String(fields.secret ?? '');
 
   if (!transId) {
     return NextResponse.json({ error: 'MISSING_TRANS_ID' }, { status: 400 });

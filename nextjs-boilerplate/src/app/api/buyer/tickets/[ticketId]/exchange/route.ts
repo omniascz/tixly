@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 import { z } from 'zod';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 interface TicketInfo {
   id: string;
@@ -108,6 +109,9 @@ export async function POST(
     if (!parsed.success) {
       return NextResponse.json({ error: 'INVALID_BODY', issues: parsed.error.issues }, { status: 422 });
     }
+    // Kolo 7 (C-29): výměna na jinou akci je nový nákup — cílová akce musí mít otevřený online prodej.
+    const salesClosed = await saleBlockedResponse(db(), parsed.data.targetEventId, 'online');
+    if (salesClosed) return salesClosed;
 
     const client = await db().connect();
     try {

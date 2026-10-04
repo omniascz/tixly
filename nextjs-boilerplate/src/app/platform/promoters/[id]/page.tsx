@@ -41,6 +41,8 @@ interface PromoterDetail {
   kyc_rejection_reason: string | null;
   ares_verified_at: string | null;
   ares_data: Record<string, unknown> | null;
+  ares_check_status: string | null;
+  manual_verification_required: boolean;
   country: 'CZ' | 'SR';
   primary_currency: 'CZK' | 'EUR';
   tier: 1 | 2 | 3 | 4;
@@ -226,6 +228,17 @@ export default function PromoterDetailPage({
                 <span className="ml-2 rounded bg-emerald-100 px-1.5 py-0.5 text-xs text-emerald-800">
                   ✓ ARES ověřeno
                 </span>
+              )}
+              {p.manual_verification_required && (
+                <span data-testid="manual-verification" className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800">
+                  ARES nebyl dostupný — ověřte firmu ručně
+                </span>
+              )}
+              {p.ares_check_status === 'not_found' && (
+                <span className="ml-2 rounded bg-rose-100 px-1.5 py-0.5 text-xs text-rose-800">IČO v ARES nenalezeno</span>
+              )}
+              {p.ares_check_status === 'inactive' && (
+                <span className="ml-2 rounded bg-rose-100 px-1.5 py-0.5 text-xs text-rose-800">Subjekt v ARES zaniklý</span>
               )}
             </Field>
             <Field label="DIČ">{p.company_dic ?? '—'}</Field>

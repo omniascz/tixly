@@ -30,6 +30,7 @@ import {
   PriceMismatchError,
   PriceResolutionError,
 } from '@/lib/pricing/resolve-price';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 import { validateVatNumber, isReverseChargeApplicable } from '@/lib/tax/vies';
 
 
@@ -245,6 +246,11 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
   const input = parsed.data;
 
+  // Kolo 7 (C-29): po uzávěrce online prodeje (sales_end_at, jinak začátek akce) nový nákup nejde.
+  // Doplacení dříve založené objednávky jde přes webhook, ne sem.
+  const salesClosed = await saleBlockedResponse(db(), input.eventId, 'online');
+  if (salesClosed) return salesClosed;
+
   // ── FIX K3: rate limit vytváření objednávek ────────────────────────────────
   // Bez limitu šlo z jedné IP / na jeden e-mail založit neomezeně nezaplacených
   // objednávek a zamknout jimi kapacitu. Sdílený mechanismus (kolo 3) — tentýž
@@ -255,6 +261,15 @@ export async function POST(req: NextRequest): Promise<Response> {
     const { enforceOrderCreationLimits } = await import('@/lib/orders/order-creation-limits');
     const limited = await enforceOrderCreationLimits(req, { email: input.buyerEmail });
     if (limited) return limited;
+  }
+
+  // Kolo 7: brány bez refundu přes API (Stripe, Mollie, PayPal, P24, Triple-A) jen pro akce
+  // existující před mig. 499 — jinak odmítnout PŘED založením objednávky.
+  {
+    const { effectiveGateway, gatewayNotAllowedResponse } = await import('@/lib/payment/gateway-policy');
+    const cur = await db().query<{ currency: string }>(`SELECT currency FROM catalog.events WHERE id = $1`, [input.eventId]);
+    const blocked = await gatewayNotAllowedResponse(db(), input.eventId, effectiveGateway(input.paymentMethod, cur.rows[0]?.currency ?? 'CZK'));
+    if (blocked) return blocked;
   }
 
   // Early-guard: krypto bez nakonfigurovaného Triple-A nesmí v produkci založit
@@ -2483,6 +2498,16 @@ export async function POST(req: NextRequest): Promise<Response> {
       await db().query(
         `UPDATE orders.orders SET gopay_payment_id = $2, updated_at = NOW() WHERE id = $1`,
         [orderId, paymentSession.paymentId],
+      );
+    }
+    // Kolo 7: INSERT zapsal do payment_provider zvolenou METODU kupce (výchozí 'gopay'), ne bránu,
+    // kterou provider skutečně použil (PAYMENT_PROVIDER=comgate, EUR → Stripe). Refund se řídí
+    // payment_provider → ComGate platba by se vracela přes GoPay s cizím ID. Mock brány beze změny.
+    const REAL_GATEWAYS = ['comgate', 'stripe', 'mollie', 'paypal', 'przelewy24'];
+    if (REAL_GATEWAYS.includes(paymentSession.provider) && paymentSession.provider !== input.paymentMethod) {
+      await db().query(
+        `UPDATE orders.orders SET payment_provider = $2, updated_at = NOW() WHERE id = $1`,
+        [orderId, paymentSession.provider],
       );
     }
 

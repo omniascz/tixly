@@ -74,9 +74,11 @@ async function getAccessToken(config: GopayConfig): Promise<string> {
   const basicAuth = Buffer.from(`${config.clientId}:${config.clientSecret}`, 'utf8').toString(
     'base64',
   );
+  // Kolo 7: `payment-all` — podle doc.gopay.com token se scope `payment-create` smí JEN zakládat
+  // platby; tentýž token se ale používá i na dotaz na stav (webhook) a refund → u skutečné brány 403.
   const body = new URLSearchParams({
     grant_type: 'client_credentials',
-    scope: 'payment-create',
+    scope: 'payment-all',
   }).toString();
 
   const res = await fetch(`${config.apiBaseUrl}/oauth2/token`, {

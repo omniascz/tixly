@@ -163,7 +163,7 @@ run('Krok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků', (
 
     it('self-refund (povolený pořadatelem) → refunded přes bránu', async () => {
       const o = await paidOrder();
-      const pr = await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', body: JSON.stringify({ amount: 25000, currency: 'CZK' }) });
+      const pr = await fetch(`${FAKE}/api/payments/payment`, { method: 'POST', headers: { authorization: 'Bearer fake-token-payment-create' }, body: JSON.stringify({ amount: 25000, currency: 'CZK' }) });
       const pid = String(((await pr.json()) as { id: number }).id);
       await fetch(`${FAKE}/_ctl/${pid}`, { method: 'POST', body: JSON.stringify({ state: 'PAID' }) });
       await owner.query(`UPDATE orders.orders SET gopay_payment_id=$2, payment_provider='gopay', paid_at=now() WHERE id=$1`, [o.orderId, pid]);
@@ -185,7 +185,7 @@ run('Krok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků', (
         `INSERT INTO catalog.events (id, organizer_id, promoter_id, venue_id, title, slug, status, currency, event_type, date_start, production_id, allow_self_service_exchange)
          VALUES ($1,$2,$2,$3,'Reprise',$4,'published','CZK','concert', now() + interval '40 days', $5, true)`,
         [target, o.promoterId, o.venueId, `guard-x-${target.slice(0, 8)}`, prod]);
-      await owner.query(`INSERT INTO catalog.ticket_types (id, event_id, name, kind, base_price, total_qty, remaining_qty, visibility) VALUES ($1,$2,'Std','standing',25000,10,10,'public')`, [randomUUID(), target]);
+      await owner.query(`INSERT INTO catalog.ticket_types (id, event_id, name, kind, base_price, total_qty, remaining_qty, visibility, vat_rate_code) VALUES ($1,$2,'Std','standing',25000,10,10,'public','CZ_REDUCED')`, [randomUUID(), target]);
       await owner.query(`UPDATE catalog.events SET production_id=$2, allow_self_service_exchange=true WHERE id=$1`, [o.eventId, prod]);
       const { POST } = await import('@/app/api/buyer/tickets/[ticketId]/exchange/route');
       const r = await throughMiddleware(await req('POST', `/api/buyer/tickets/${o.ticketId}/exchange`, { id: o.userId, email: o.email }, { targetEventId: target }), POST as H, { params: { ticketId: o.ticketId } });
@@ -205,6 +205,8 @@ run('Krok 2 (kolo 3) — guard chráněných sloupců objednávek a lístků', (
 
     it('mobilní platba: payment-intent → order-confirm → paid + lístky', async () => {
       const c = await clone.seed.chain({ remainingQty: 10 });
+      // Kolo 7: Stripe (mobil) jen pro akce z doby před mig. 499 — test ověřuje tuto existující cestu.
+      await clone.pool.query(`UPDATE catalog.events SET legacy_payment_gateways = TRUE WHERE id=$1`, [c.eventId]);
       const u = await clone.seed.user('gmob');
       const { POST: intent } = await import('@/app/api/mobile/payment-intent/route');
       const r1 = await throughMiddleware(await req('POST', '/api/mobile/payment-intent', u, { eventId: c.eventId, ticketTypeId: c.ticketTypeId, qty: 2 }), intent as H);

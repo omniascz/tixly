@@ -24,7 +24,7 @@ import { decryptSecret } from '@/lib/crypto';
 import { db } from '@/lib/db/rls-pool';
 import { sendMail } from '@/lib/email/mailer';
 import { escapeHtml } from '@/lib/html-escape/escape';
-import { resolveVatRate } from '@/lib/tax/vat-rates';
+import { orderTicketVatPct } from '@/lib/tax/vat-rates';
 import { base32Encode } from '@/lib/tickets/demo-issuer';
 import { renderTicketsPdf, type TicketPdfData } from '@/lib/tickets/pdf-renderer';
 
@@ -190,10 +190,7 @@ export async function sendOrderTickets(
             promoterName: order.promoter_name,
             brandColorHex: order.brand_color_hex,
             brandLogoUrl: order.brand_logo_url,
-            vatRatePct: resolveVatRate({
-              country: order.promoter_country,
-              vatCategory: order.event_vat_category ?? 'cultural',
-            }),
+            vatRatePct: await orderTicketVatPct(db(), order.id),
           },
           pdfTickets,
         );

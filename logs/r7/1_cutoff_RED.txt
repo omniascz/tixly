@@ -1,0 +1,154 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r7-sales-cutoff.live.test.ts[2m > [22m[2mKolo 7 — uzávěrka prodeje za běhu[2m > [22m[2mobjednávku založenou před uzávěrkou lze po uzávěrce doplatit (webhook PAID → paid)[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [33m❯[39m tests/fix-r7-sales-cutoff.live.test.ts [2m ([22m[2m7 tests[22m [2m|[22m [31m5 failed[39m[2m)[22m[33m 3747[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r7-sales-cutoff.live.test.ts[2m > [22mKolo 7 — inventura: každá cesta prodeje kontroluje uzávěrku[2m > [22mkupcové cesty volají salesClosedResponse(…, online), pokladní (…, box_office)[39m
+[31m     → expected [ 'checkout/route.ts (online)', …(16) ] to deeply equal [][39m
+[31m   [33m❯[31m tests/fix-r7-sales-cutoff.live.test.ts[2m > [22mKolo 7 — uzávěrka prodeje za běhu[2m > [22mpo začátku akce (sales_end_at nenastaven): checkout, mobilní platba, držení sedadla a kiosk → 409 SALES_CLOSED[39m
+[31m     → checkout: {"orderId":"26b457b3-55e0-45e3-bd27-5dcd8189d6d8","paymentId":"3069993595","gatewayUrl":"http://localhost:3998/gw/3069993595","provider":"gopay","variableSymbol":null,"subtotalAmount":20000,"discountAmount":0,"volumeDiscountAmount":0,"volumeDiscountPct":0,"addonsSubtotal":0,"bundleDiscountAmount":0,"bundleId":null,"voucherRedeemedHalire":0,"giftCardApplied":0,"restwertAppliedHalire":0,"restwertHolders":[],"loyaltyDiscountHalire":0,"loyaltyRedeemed":0,"loyaltyMaxPointsAvailable":0,"totalAmount":20000,"promoCodeApplied":false}: expected 200 to be 409 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r7-sales-cutoff.live.test.ts[2m > [22mKolo 7 — uzávěrka prodeje za běhu[2m > [22muzávěrka nastavená pořadatelem (před začátkem akce) platí: checkout → 409[39m
+[31m     → {"orderId":"039896ca-128b-497d-adee-74460df7ac6a","paymentId":"3069993596","gatewayUrl":"http://localhost:3998/gw/3069993596","provider":"gopay","variableSymbol":null,"subtotalAmount":20000,"discountAmount":0,"volumeDiscountAmount":0,"volumeDiscountPct":0,"addonsSubtotal":0,"bundleDiscountAmount":0,"bundleId":null,"voucherRedeemedHalire":0,"giftCardApplied":0,"restwertAppliedHalire":0,"restwertHolders":[],"loyaltyDiscountHalire":0,"loyaltyRedeemed":0,"loyaltyMaxPointsAvailable":0,"totalAmount":20000,"promoCodeApplied":false}: expected 200 to be 409 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r7-sales-cutoff.live.test.ts[2m > [22mKolo 7 — uzávěrka prodeje za běhu[2m > [22mPOS: po začátku akce projde, po konci akce (date_end) ne, bez date_end do začátku + 12 h[39m
+[31m     → {"success":true,"orderId":"eaa3e9e8-9989-458e-a0f1-bb52b6ef58f9","eventTitle":"Test Akce","ticketTypeName":"Standard","paymentMethod":"cash","totalAmountHalire":20000,"buyerName":"Walk-in kupující","tickets":[{"ticketId":"b3b82b19-9338-4591-a2a6-463679c8c318","totpSecretBase32":"7PJUHFTBLV7UJ6IFRVGCQ2I7IFAL5FOV","qrPayload":"tixly:b3b82b19-9338-4591-a2a6-463679c8c318:CURRENT"}]}: expected 200 to be 409 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r7-sales-cutoff.live.test.ts[2m > [22mKolo 7 — uzávěrka prodeje za běhu[2m > [22meditace akce: salesEndAt po konci akce → 422, platná hodnota se uloží[39m
+[31m     → {"ok":true,"id":"d521364c-d905-4e8c-9e88-3242eaef9528","status":"published"}: expected 200 to be 422 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 5 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-sales-cutoff.live.test.ts[2m > [22mKolo 7 — inventura: každá cesta prodeje kontroluje uzávěrku[2m > [22mkupcové cesty volají salesClosedResponse(…, online), pokladní (…, box_office)
+[31m[1mAssertionError[22m: expected [ 'checkout/route.ts (online)', …(16) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [][39m
+[31m+ Array [[39m
+[31m+   "checkout/route.ts (online)",[39m
+[31m+   "checkout/party-split/[token]/route.ts (online)",[39m
+[31m+   "mobile/payment-intent/route.ts (online)",[39m
+[31m+   "events/[id]/seats/hold/route.ts (online)",[39m
+[31m+   "kiosk/order/route.ts (online)",[39m
+[31m+   "buyer/group-invitations/[token]/claim/route.ts (online)",[39m
+[31m+   "buyer/modular-pass/checkout/route.ts (online)",[39m
+[31m+   "buyer/subscriptions/[id]/pick/route.ts (online)",[39m
+[31m+   "buyer/tickets/[ticketId]/exchange/route.ts (online)",[39m
+[31m+   "charity/claim/[token]/route.ts (online)",[39m
+[31m+   "resale/purchase/[listingId]/route.ts (online)",[39m
+[31m+   "season-passes/[passToken]/route.ts (online)",[39m
+[31m+   "v1/wl/orders/route.ts (online)",[39m
+[31m+   "admin/pos/sale/route.ts (box_office)",[39m
+[31m+   "admin/events/[id]/box-office/sell/route.ts (box_office)",[39m
+[31m+   "reseller/sale/route.ts (box_office)",[39m
+[31m+   "partner/sales/route.ts (box_office)",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/fix-r7-sales-cutoff.live.test.ts:[2m60:17[22m[39m
+    [90m 58| [39m      [35mif[39m ([33m![39m[36m/salesClosedResponse\([^)]*'box_office'\)/[39m[33m.[39m[34mtest[39m([34mreadFileSyn[39m…
+    [90m 59| [39m    }
+    [90m 60| [39m    [34mexpect[39m(bad)[33m.[39m[34mtoEqual[39m([])[33m;[39m
+    [90m   | [39m                [31m^[39m
+    [90m 61| [39m  })[33m;[39m
+    [90m 62| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-sales-cutoff.live.test.ts[2m > [22mKolo 7 — uzávěrka prodeje za běhu[2m > [22mpo začátku akce (sales_end_at nenastaven): checkout, mobilní platba, držení sedadla a kiosk → 409 SALES_CLOSED
+[31m[1mAssertionError[22m: checkout: {"orderId":"26b457b3-55e0-45e3-bd27-5dcd8189d6d8","paymentId":"3069993595","gatewayUrl":"http://localhost:3998/gw/3069993595","provider":"gopay","variableSymbol":null,"subtotalAmount":20000,"discountAmount":0,"volumeDiscountAmount":0,"volumeDiscountPct":0,"addonsSubtotal":0,"bundleDiscountAmount":0,"bundleId":null,"voucherRedeemedHalire":0,"giftCardApplied":0,"restwertAppliedHalire":0,"restwertHolders":[],"loyaltyDiscountHalire":0,"loyaltyRedeemed":0,"loyaltyMaxPointsAvailable":0,"totalAmount":20000,"promoCodeApplied":false}: expected 200 to be 409 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 409[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r7-sales-cutoff.live.test.ts:[2m127:43[22m[39m
+    [90m125| [39m    }[33m;[39m
+    [90m126| [39m    [35mfor[39m ([35mconst[39m [k[33m,[39m r] [35mof[39m [33mObject[39m[33m.[39m[34mentries[39m(results)) {
+    [90m127| [39m      [34mexpect[39m(r[33m.[39mstatus[33m,[39m [32m`[39m[36m${[39mk[36m}[39m[32m: [39m[36m${[39mr[33m.[39mbody[36m}[39m[32m`[39m)[33m.[39m[34mtoBe[39m([34m409[39m)[33m;[39m
+    [90m   | [39m                                          [31m^[39m
+    [90m128| [39m      [34mexpect[39m(r[33m.[39mbody[33m,[39m k)[33m.[39m[34mtoMatch[39m([36m/SALES_CLOSED/[39m)[33m;[39m
+    [90m129| [39m    }
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-sales-cutoff.live.test.ts[2m > [22mKolo 7 — uzávěrka prodeje za běhu[2m > [22muzávěrka nastavená pořadatelem (před začátkem akce) platí: checkout → 409
+[31m[1mAssertionError[22m: {"orderId":"039896ca-128b-497d-adee-74460df7ac6a","paymentId":"3069993596","gatewayUrl":"http://localhost:3998/gw/3069993596","provider":"gopay","variableSymbol":null,"subtotalAmount":20000,"discountAmount":0,"volumeDiscountAmount":0,"volumeDiscountPct":0,"addonsSubtotal":0,"bundleDiscountAmount":0,"bundleId":null,"voucherRedeemedHalire":0,"giftCardApplied":0,"restwertAppliedHalire":0,"restwertHolders":[],"loyaltyDiscountHalire":0,"loyaltyRedeemed":0,"loyaltyMaxPointsAvailable":0,"totalAmount":20000,"promoCodeApplied":false}: expected 200 to be 409 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 409[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r7-sales-cutoff.live.test.ts:[2m136:30[22m[39m
+    [90m134| [39m    [35mawait[39m [34msetTimes[39m([32m'2 days'[39m[33m,[39m [32m'2 days 3 hours'[39m[33m,[39m [32m'-10 minutes'[39m)[33m;[39m
+    [90m135| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mcheckout[39m()[33m;[39m
+    [90m136| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m409[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m137| [39m  })[33m;[39m
+    [90m138| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-sales-cutoff.live.test.ts[2m > [22mKolo 7 — uzávěrka prodeje za běhu[2m > [22mPOS: po začátku akce projde, po konci akce (date_end) ne, bez date_end do začátku + 12 h
+[31m[1mAssertionError[22m: {"success":true,"orderId":"eaa3e9e8-9989-458e-a0f1-bb52b6ef58f9","eventTitle":"Test Akce","ticketTypeName":"Standard","paymentMethod":"cash","totalAmountHalire":20000,"buyerName":"Walk-in kupující","tickets":[{"ticketId":"b3b82b19-9338-4591-a2a6-463679c8c318","totpSecretBase32":"7PJUHFTBLV7UJ6IFRVGCQ2I7IFAL5FOV","qrPayload":"tixly:b3b82b19-9338-4591-a2a6-463679c8c318:CURRENT"}]}: expected 200 to be 409 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 409[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r7-sales-cutoff.live.test.ts:[2m145:38[22m[39m
+    [90m143| [39m    [35mawait[39m [34msetTimes[39m([32m'-5 hours'[39m[33m,[39m [32m'-1 hour'[39m)[33m;[39m
+    [90m144| [39m    [35mconst[39m after [33m=[39m [35mawait[39m [34mpos[39m()[33m;[39m
+    [90m145| [39m    [34mexpect[39m(after[33m.[39mstatus[33m,[39m after[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m409[39m)[33m;[39m
+    [90m   | [39m                                     [31m^[39m
+    [90m146| [39m    [35mawait[39m [34msetTimes[39m([32m'-11 hours'[39m[33m,[39m [35mnull[39m)[33m;[39m
+    [90m147| [39m    [34mexpect[39m(([35mawait[39m [34mpos[39m())[33m.[39mstatus[33m,[39m [32m'bez date_end: 11 h po začátku ještě [39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-sales-cutoff.live.test.ts[2m > [22mKolo 7 — uzávěrka prodeje za běhu[2m > [22meditace akce: salesEndAt po konci akce → 422, platná hodnota se uloží
+[31m[1mAssertionError[22m: {"ok":true,"id":"d521364c-d905-4e8c-9e88-3242eaef9528","status":"published"}: expected 200 to be 422 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 422[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r7-sales-cutoff.live.test.ts:[2m171:34[22m[39m
+    [90m169| [39m      { salesEndAt }[33m,[39m staffTok[33m,[39m { params[33m:[39m { id[33m:[39m c[33m.[39meventId } }[33m,[39m [32m'PATCH'[39m…
+    [90m170| [39m    [35mconst[39m bad [33m=[39m [35mawait[39m [34mpatch[39m([35mnew[39m [33mDate[39m(dates[33m.[39mde[33m.[39m[34mgetTime[39m() [33m+[39m [34m3600_000[39m)[33m.[39m[34mto[39m…
+    [90m171| [39m    [34mexpect[39m(bad[33m.[39mstatus[33m,[39m bad[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m422[39m)[33m;[39m
+    [90m   | [39m                                 [31m^[39m
+    [90m172| [39m    [35mconst[39m okVal [33m=[39m [35mnew[39m [33mDate[39m(dates[33m.[39mds[33m.[39m[34mgetTime[39m() [33m-[39m [34m3600_000[39m)[33m.[39m[34mtoISOString[39m(…
+    [90m173| [39m    [35mconst[39m ok [33m=[39m [35mawait[39m [34mpatch[39m(okVal)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m5 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (7)[39m
+[2m   Start at [22m 01:26:38
+[2m   Duration [22m 4.50s[2m (transform 659ms, setup 0ms, collect 124ms, tests 3.75s, environment 0ms, prepare 102ms)[22m
+

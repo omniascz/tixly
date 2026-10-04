@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { z } from 'zod';
 import { encryptSecret } from '@/lib/crypto';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 interface PassRow {
   id: string;
@@ -114,6 +115,9 @@ export async function POST(
       return NextResponse.json({ error: 'INVALID_BODY', issues: parsed.error.issues }, { status: 422 });
     }
     const { eventId } = parsed.data;
+    // Kolo 7 (C-29): uplatnění pasu na akci po uzávěrce online prodeje nejde.
+    const salesClosed = await saleBlockedResponse(db(), eventId, 'online');
+    if (salesClosed) return salesClosed;
 
     const client = await db().connect();
     try {

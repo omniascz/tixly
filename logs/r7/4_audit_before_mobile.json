@@ -1,0 +1,3204 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "@expo/bunyan": {
+      "name": "@expo/bunyan",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "uuid"
+      ],
+      "effects": [
+        "@expo/rudder-sdk-node"
+      ],
+      "range": ">=3.0.0",
+      "nodes": [
+        "node_modules/@expo/bunyan"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "@expo/cli": {
+      "name": "@expo/cli",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@expo/code-signing-certificates",
+        "@expo/config",
+        "@expo/config-plugins",
+        "@expo/metro-config",
+        "@expo/plist",
+        "@expo/prebuild-config",
+        "@expo/rudder-sdk-node",
+        "@react-native/dev-middleware",
+        "cacache",
+        "fast-glob",
+        "find-yarn-workspace-root",
+        "node-forge",
+        "send",
+        "tar",
+        "tempy"
+      ],
+      "effects": [
+        "expo"
+      ],
+      "range": "<=0.0.0-canary-20231123-1b19f96-4 || >=0.0.1-canary-20231125-d600e44",
+      "nodes": [
+        "node_modules/@expo/cli"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "@expo/code-signing-certificates": {
+      "name": "@expo/code-signing-certificates",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "node-forge"
+      ],
+      "effects": [],
+      "range": "*",
+      "nodes": [
+        "node_modules/@expo/code-signing-certificates"
+      ],
+      "fixAvailable": true
+    },
+    "@expo/config": {
+      "name": "@expo/config",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@expo/config-plugins"
+      ],
+      "effects": [
+        "@expo/metro-config",
+        "expo",
+        "expo-constants"
+      ],
+      "range": "<=0.0.1-canary-20240418-8d74597 || 5.0.9 - 10.0.0-canary-20241021-c4b5a93 || 10.0.9-canary-20250114-804e26d - 10.0.9-canary-20250124-42fe332 || 11.0.0-canary-20241211-61c49bd - 11.0.0-canary-20250404-87e2506 || 11.0.6-canary-20250428-4156f88",
+      "nodes": [
+        "node_modules/@expo/config"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "@expo/config-plugins": {
+      "name": "@expo/config-plugins",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@expo/plist",
+        "xcode"
+      ],
+      "effects": [
+        "@expo/cli",
+        "@expo/config",
+        "@expo/prebuild-config",
+        "expo"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/@expo/config-plugins"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "@expo/metro-config": {
+      "name": "@expo/metro-config",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@expo/config",
+        "find-yarn-workspace-root",
+        "postcss"
+      ],
+      "effects": [
+        "@expo/cli",
+        "expo"
+      ],
+      "range": "<=0.0.1-canary-20240418-8d74597 || 0.1.84 - 55.0.21 || 56.0.0-canary-20260212-4f61309 - 56.0.5",
+      "nodes": [
+        "node_modules/@expo/metro-config"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "@expo/plist": {
+      "name": "@expo/plist",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@xmldom/xmldom"
+      ],
+      "effects": [
+        "@expo/cli",
+        "@expo/config-plugins"
+      ],
+      "range": "<=0.0.1-canary-20240418-8d74597 || 0.0.14 - 0.2.2",
+      "nodes": [
+        "node_modules/@expo/plist"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "@expo/prebuild-config": {
+      "name": "@expo/prebuild-config",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@expo/config",
+        "@expo/config-plugins"
+      ],
+      "effects": [
+        "expo-splash-screen"
+      ],
+      "range": "<=0.0.1-canary-20240418-8d74597 || 2.1.0 - 7.1.0-canary-20241021-c4b5a93 || 8.0.24-canary-20241211-61c49bd || 8.0.26-canary-20250114-804e26d - 8.0.26-canary-20250131-5c4e588 || 8.0.27-canary-20250207-8bc5146 || 8.0.28-canary-20250219-4a5dade || 8.0.29-canary-20250221-ef26fed || 9.0.0-canary-20250303-4dba60e - 9.0.0-canary-20250404-87e2506",
+      "nodes": [
+        "node_modules/@expo/prebuild-config"
+      ],
+      "fixAvailable": {
+        "name": "expo-router",
+        "version": "57.0.24",
+        "isSemVerMajor": true
+      }
+    },
+    "@expo/rudder-sdk-node": {
+      "name": "@expo/rudder-sdk-node",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@expo/bunyan",
+        "uuid"
+      ],
+      "effects": [
+        "@expo/cli"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/@expo/rudder-sdk-node"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "@jest/environment": {
+      "name": "@jest/environment",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@jest/fake-timers"
+      ],
+      "effects": [],
+      "range": "<=30.2.0",
+      "nodes": [
+        "node_modules/@jest/environment"
+      ],
+      "fixAvailable": true
+    },
+    "@jest/fake-timers": {
+      "name": "@jest/fake-timers",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "jest-message-util"
+      ],
+      "effects": [
+        "@jest/environment",
+        "jest-environment-node"
+      ],
+      "range": "<=30.2.0",
+      "nodes": [
+        "node_modules/@jest/fake-timers"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "@react-native-community/cli": {
+      "name": "@react-native-community/cli",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@react-native-community/cli-clean",
+        "@react-native-community/cli-config",
+        "@react-native-community/cli-doctor",
+        "@react-native-community/cli-hermes"
+      ],
+      "effects": [],
+      "range": ">=12.0.0-alpha.0",
+      "nodes": [
+        "node_modules/@react-native-community/cli"
+      ],
+      "fixAvailable": true
+    },
+    "@react-native-community/cli-clean": {
+      "name": "@react-native-community/cli-clean",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "fast-glob"
+      ],
+      "effects": [],
+      "range": ">=13.5.2",
+      "nodes": [
+        "node_modules/@react-native-community/cli-clean"
+      ],
+      "fixAvailable": true
+    },
+    "@react-native-community/cli-config": {
+      "name": "@react-native-community/cli-config",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "fast-glob"
+      ],
+      "effects": [
+        "@react-native-community/cli",
+        "@react-native-community/cli-doctor"
+      ],
+      "range": ">=13.5.2",
+      "nodes": [
+        "node_modules/@react-native-community/cli-config"
+      ],
+      "fixAvailable": true
+    },
+    "@react-native-community/cli-doctor": {
+      "name": "@react-native-community/cli-doctor",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@react-native-community/cli-config",
+        "@react-native-community/cli-platform-android",
+        "@react-native-community/cli-platform-apple",
+        "@react-native-community/cli-platform-ios"
+      ],
+      "effects": [
+        "@react-native-community/cli"
+      ],
+      "range": ">=12.0.0-alpha.0",
+      "nodes": [
+        "node_modules/@react-native-community/cli-doctor"
+      ],
+      "fixAvailable": true
+    },
+    "@react-native-community/cli-hermes": {
+      "name": "@react-native-community/cli-hermes",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@react-native-community/cli-platform-android"
+      ],
+      "effects": [
+        "@react-native-community/cli"
+      ],
+      "range": ">=12.0.0-alpha.0",
+      "nodes": [
+        "node_modules/@react-native-community/cli-hermes"
+      ],
+      "fixAvailable": true
+    },
+    "@react-native-community/cli-platform-android": {
+      "name": "@react-native-community/cli-platform-android",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "fast-glob",
+        "fast-xml-parser"
+      ],
+      "effects": [
+        "@react-native-community/cli-doctor",
+        "@react-native-community/cli-hermes",
+        "react-native"
+      ],
+      "range": "12.0.0-alpha.0 - 15.1.0",
+      "nodes": [
+        "node_modules/@react-native-community/cli-platform-android"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "@react-native-community/cli-platform-apple": {
+      "name": "@react-native-community/cli-platform-apple",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "fast-glob",
+        "fast-xml-parser"
+      ],
+      "effects": [
+        "@react-native-community/cli-doctor",
+        "@react-native-community/cli-platform-ios"
+      ],
+      "range": "<=20.1.1",
+      "nodes": [
+        "node_modules/@react-native-community/cli-platform-apple"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "@react-native-community/cli-platform-ios": {
+      "name": "@react-native-community/cli-platform-ios",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@react-native-community/cli-platform-apple"
+      ],
+      "effects": [
+        "react-native"
+      ],
+      "range": "13.2.0 - 20.1.1",
+      "nodes": [
+        "node_modules/@react-native-community/cli-platform-ios"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "@react-native/babel-plugin-codegen": {
+      "name": "@react-native/babel-plugin-codegen",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@react-native/codegen"
+      ],
+      "effects": [
+        "@react-native/babel-preset"
+      ],
+      "range": "0.73.0-nightly-20230603-fd9e295be - 0.73.0-nightly-20231002-0371014a3 || 0.73.2 - 0.74.0-nightly-20240220-e9351f0f8 || 0.74.1 - 0.77.0-rc.7 || 0.88.0-nightly-20260709-24e4b2cae - 0.88.0-nightly-20260803-63e9c1544",
+      "nodes": [
+        "node_modules/@react-native/babel-plugin-codegen"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "@react-native/babel-preset": {
+      "name": "@react-native/babel-preset",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@react-native/babel-plugin-codegen"
+      ],
+      "effects": [
+        "@react-native/metro-babel-transformer",
+        "babel-preset-expo"
+      ],
+      "range": "<=0.73.0-nightly-20231002-0371014a3 || 0.73.19 - 0.74.0-nightly-20240220-e9351f0f8 || 0.74.1 - 0.77.0-rc.7",
+      "nodes": [
+        "node_modules/@react-native/babel-preset"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "@react-native/codegen": {
+      "name": "@react-native/codegen",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "jscodeshift"
+      ],
+      "effects": [
+        "@react-native/babel-plugin-codegen",
+        "react-native"
+      ],
+      "range": "<=0.77.0-rc.7",
+      "nodes": [
+        "node_modules/@react-native/codegen"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "@react-native/community-cli-plugin": {
+      "name": "@react-native/community-cli-plugin",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@react-native/dev-middleware",
+        "@react-native/metro-babel-transformer",
+        "metro",
+        "metro-config"
+      ],
+      "effects": [
+        "react-native"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/@react-native/community-cli-plugin"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "@react-native/dev-middleware": {
+      "name": "@react-native/dev-middleware",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "selfsigned"
+      ],
+      "effects": [
+        "@expo/cli",
+        "@react-native/community-cli-plugin"
+      ],
+      "range": "0.74.0-nightly-20231003-5dedf277c - 0.74.0-nightly-20240220-e9351f0f8 || 0.74.1 - 0.79.0-rc.4",
+      "nodes": [
+        "node_modules/@react-native/community-cli-plugin/node_modules/@react-native/dev-middleware",
+        "node_modules/@react-native/dev-middleware"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "@react-native/metro-babel-transformer": {
+      "name": "@react-native/metro-babel-transformer",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@react-native/babel-preset"
+      ],
+      "effects": [
+        "@react-native/community-cli-plugin"
+      ],
+      "range": "<=0.73.0-nightly-20231002-0371014a3 || 0.73.13 - 0.74.0-nightly-20240220-e9351f0f8 || 0.74.1 - 0.77.0-rc.7",
+      "nodes": [
+        "node_modules/@react-native/metro-babel-transformer"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "@react-navigation/bottom-tabs": {
+      "name": "@react-navigation/bottom-tabs",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@react-navigation/elements",
+        "@react-navigation/native"
+      ],
+      "effects": [],
+      "range": "<=7.0.0-rc.37",
+      "nodes": [
+        "node_modules/@react-navigation/bottom-tabs"
+      ],
+      "fixAvailable": true
+    },
+    "@react-navigation/core": {
+      "name": "@react-navigation/core",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "query-string"
+      ],
+      "effects": [
+        "@react-navigation/native"
+      ],
+      "range": "<=7.22.0 || 8.0.0-alpha.0 - 8.0.0-alpha.9",
+      "nodes": [
+        "node_modules/@react-navigation/core"
+      ],
+      "fixAvailable": {
+        "name": "expo-router",
+        "version": "57.0.24",
+        "isSemVerMajor": true
+      }
+    },
+    "@react-navigation/elements": {
+      "name": "@react-navigation/elements",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@react-navigation/native"
+      ],
+      "effects": [
+        "@react-navigation/bottom-tabs",
+        "@react-navigation/native-stack"
+      ],
+      "range": "<=2.0.0-rc.26",
+      "nodes": [
+        "node_modules/@react-navigation/elements"
+      ],
+      "fixAvailable": true
+    },
+    "@react-navigation/native": {
+      "name": "@react-navigation/native",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@react-navigation/core"
+      ],
+      "effects": [
+        "@react-navigation/bottom-tabs",
+        "@react-navigation/elements",
+        "@react-navigation/native-stack",
+        "expo-router"
+      ],
+      "range": "<=3.0.0-alpha.12 || 3.0.1 - 3.6.5 || 4.0.0-alpha.0 - 6.1.18",
+      "nodes": [
+        "node_modules/@react-navigation/native"
+      ],
+      "fixAvailable": {
+        "name": "expo-router",
+        "version": "57.0.24",
+        "isSemVerMajor": true
+      }
+    },
+    "@react-navigation/native-stack": {
+      "name": "@react-navigation/native-stack",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@react-navigation/elements",
+        "@react-navigation/native"
+      ],
+      "effects": [],
+      "range": "<=5.0.4 || 6.0.0-next.1 - 7.0.0-rc.30",
+      "nodes": [
+        "node_modules/@react-navigation/native-stack"
+      ],
+      "fixAvailable": true
+    },
+    "@remix-run/node": {
+      "name": "@remix-run/node",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@remix-run/server-runtime"
+      ],
+      "effects": [],
+      "range": "<=0.0.0-nightly-feb25eb42-20240508 || >=2.9.0-pre.0",
+      "nodes": [
+        "node_modules/@remix-run/node"
+      ],
+      "fixAvailable": true
+    },
+    "@remix-run/server-runtime": {
+      "name": "@remix-run/server-runtime",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "turbo-stream"
+      ],
+      "effects": [
+        "@remix-run/node"
+      ],
+      "range": "<=0.0.0-nightly-feb25eb42-20240508 || >=2.9.0-pre.0",
+      "nodes": [
+        "node_modules/@remix-run/server-runtime"
+      ],
+      "fixAvailable": true
+    },
+    "@xmldom/xmldom": {
+      "name": "@xmldom/xmldom",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1117097,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: XML injection via unsafe CDATA serialization allows attacker-controlled markup insertion",
+          "url": "https://github.com/advisories/GHSA-wh4c-j3r5-mjhp",
+          "severity": "high",
+          "cwe": [
+            "CWE-91"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          },
+          "range": "<0.8.12"
+        },
+        {
+          "source": 1117894,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Uncontrolled recursion in XML serialization leads to DoS",
+          "url": "https://github.com/advisories/GHSA-2v35-w6hq-6mfw",
+          "severity": "high",
+          "cwe": [
+            "CWE-674"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<0.8.13"
+        },
+        {
+          "source": 1117897,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom has XML injection through unvalidated DocumentType serialization",
+          "url": "https://github.com/advisories/GHSA-f6ww-3ggp-fr8h",
+          "severity": "high",
+          "cwe": [
+            "CWE-91"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<0.8.13"
+        },
+        {
+          "source": 1117900,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom has XML node injection through unvalidated processing instruction serialization",
+          "url": "https://github.com/advisories/GHSA-x6wf-f3px-wcqx",
+          "severity": "high",
+          "cwe": [
+            "CWE-91"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<0.8.13"
+        },
+        {
+          "source": 1117903,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom has XML node injection through unvalidated comment serialization",
+          "url": "https://github.com/advisories/GHSA-j759-j44w-7fr8",
+          "severity": "high",
+          "cwe": [
+            "CWE-91"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<0.8.13"
+        },
+        {
+          "source": 1158517,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: XML fragment injection via invalid EntityReference.nodeName during requireWellFormed serialization",
+          "url": "https://github.com/advisories/GHSA-6gmq-8vp8-gcm6",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-116"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.9.0 <=0.9.11"
+        },
+        {
+          "source": 1158518,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: XML fragment injection via invalid EntityReference.nodeName during requireWellFormed serialization",
+          "url": "https://github.com/advisories/GHSA-6gmq-8vp8-gcm6",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-116"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.7.0 <=0.8.14"
+        },
+        {
+          "source": 1193671,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: HTML raw-text closing-tag case mismatch causes output amplification",
+          "url": "https://github.com/advisories/GHSA-6mj3-qw4j-hgrw",
+          "severity": "high",
+          "cwe": [
+            "CWE-178",
+            "CWE-400"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.9.0-beta.1 <=0.9.11"
+        },
+        {
+          "source": 1193687,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom PI grammar regex ReDoS: quadratic backtracking on unterminated processing instructions",
+          "url": "https://github.com/advisories/GHSA-g53g-w8rj-fmg7",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-1333"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.9.0-beta.9 <=0.9.10"
+        },
+        {
+          "source": 1193689,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Element name injection via createElement() bypasses requireWellFormed",
+          "url": "https://github.com/advisories/GHSA-w2rr-34g9-rvrj",
+          "severity": "high",
+          "cwe": [
+            "CWE-91"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.7.0 <=0.8.13"
+        },
+        {
+          "source": 1193690,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Element name injection via createElement() bypasses requireWellFormed",
+          "url": "https://github.com/advisories/GHSA-w2rr-34g9-rvrj",
+          "severity": "high",
+          "cwe": [
+            "CWE-91"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.9.0 <=0.9.10"
+        },
+        {
+          "source": 1193692,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Attribute name injection via setAttribute() bypasses requireWellFormed",
+          "url": "https://github.com/advisories/GHSA-4w3w-2rp5-g8jm",
+          "severity": "high",
+          "cwe": [
+            "CWE-91"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.7.0 <=0.8.13"
+        },
+        {
+          "source": 1193693,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Attribute name injection via setAttribute() bypasses requireWellFormed",
+          "url": "https://github.com/advisories/GHSA-4w3w-2rp5-g8jm",
+          "severity": "high",
+          "cwe": [
+            "CWE-91"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.9.0 <=0.9.10"
+        },
+        {
+          "source": 1193695,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Processing Instruction Target Injection Bypasses requireWellFormed",
+          "url": "https://github.com/advisories/GHSA-c7q8-3ch8-vqpv",
+          "severity": "high",
+          "cwe": [
+            "CWE-91"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.9.0 <=0.9.11"
+        },
+        {
+          "source": 1193696,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Processing Instruction Target Injection Bypasses requireWellFormed",
+          "url": "https://github.com/advisories/GHSA-c7q8-3ch8-vqpv",
+          "severity": "high",
+          "cwe": [
+            "CWE-91"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.7.0 <=0.8.14"
+        },
+        {
+          "source": 1193699,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: DocType `name` Injection Bypasses requireWellFormed",
+          "url": "https://github.com/advisories/GHSA-27p8-2357-5qqv",
+          "severity": "high",
+          "cwe": [
+            "CWE-91"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.9.0 <=0.9.11"
+        },
+        {
+          "source": 1193700,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: DocType `name` Injection Bypasses requireWellFormed",
+          "url": "https://github.com/advisories/GHSA-27p8-2357-5qqv",
+          "severity": "high",
+          "cwe": [
+            "CWE-91"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.7.0 <=0.8.14"
+        },
+        {
+          "source": 1193701,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Creation-time XML Name/QName validation is bypassable via an embedded line terminator, allowing injection on the default serialization path",
+          "url": "https://github.com/advisories/GHSA-3px3-54cx-rmw9",
+          "severity": "high",
+          "cwe": [
+            "CWE-91",
+            "CWE-625"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.9.0 <=0.9.11"
+        },
+        {
+          "source": 1193702,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: requireWellFormed DocType publicId/systemId validation is bypassable via an embedded line terminator",
+          "url": "https://github.com/advisories/GHSA-vr34-hp96-76pp",
+          "severity": "high",
+          "cwe": [
+            "CWE-91",
+            "CWE-625"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.9.10 <=0.9.11"
+        },
+        {
+          "source": 1193704,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Parser silently accepts a not-well-formed end tag whose name is followed by a line break and trailing content",
+          "url": "https://github.com/advisories/GHSA-6h8r-xr42-gp59",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-1286"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.9.0 <=0.9.11"
+        },
+        {
+          "source": 1193705,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Parser silently accepts a not-well-formed end tag whose name is followed by a line break and trailing content",
+          "url": "https://github.com/advisories/GHSA-6h8r-xr42-gp59",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-1286"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.7.0 <=0.8.14"
+        },
+        {
+          "source": 1193707,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Quadratic-time attribute deduplication",
+          "url": "https://github.com/advisories/GHSA-8344-3jmq-59r6",
+          "severity": "high",
+          "cwe": [
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.9.0 <=0.9.11"
+        },
+        {
+          "source": 1193708,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Quadratic-time attribute deduplication",
+          "url": "https://github.com/advisories/GHSA-8344-3jmq-59r6",
+          "severity": "high",
+          "cwe": [
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.7.0 <=0.8.14"
+        },
+        {
+          "source": 1193709,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: End-tag Whitespace-Trim Regex ReDoS — quadratic backtracking in the 0.8.x end-tag parser",
+          "url": "https://github.com/advisories/GHSA-x4fp-j954-r2f4",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-1333"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.7.0 <=0.8.14"
+        },
+        {
+          "source": 1193711,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Quadratic-memory consumption",
+          "url": "https://github.com/advisories/GHSA-965w-775f-mr7g",
+          "severity": "high",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.9.0 <=0.9.11"
+        },
+        {
+          "source": 1193712,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Quadratic-memory consumption",
+          "url": "https://github.com/advisories/GHSA-965w-775f-mr7g",
+          "severity": "high",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.7.0 <=0.8.14"
+        },
+        {
+          "source": 1193714,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Quadratic-time parsing via the malformed-input recovery path — `parseElementStartPart` re-scan and `normalize()` adjacent-text merge",
+          "url": "https://github.com/advisories/GHSA-93r5-fhx6-vmg9",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.9.0 <=0.9.11"
+        },
+        {
+          "source": 1193715,
+          "name": "@xmldom/xmldom",
+          "dependency": "@xmldom/xmldom",
+          "title": "xmldom: Quadratic-time parsing via the malformed-input recovery path — `parseElementStartPart` re-scan and `normalize()` adjacent-text merge",
+          "url": "https://github.com/advisories/GHSA-93r5-fhx6-vmg9",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=0.7.0 <=0.8.14"
+        }
+      ],
+      "effects": [
+        "@expo/plist"
+      ],
+      "range": "<=0.8.14 || 0.9.0-beta.1 - 0.9.11",
+      "nodes": [
+        "node_modules/@xmldom/xmldom",
+        "node_modules/plist/node_modules/@xmldom/xmldom"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "babel-preset-expo": {
+      "name": "babel-preset-expo",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@react-native/babel-preset"
+      ],
+      "effects": [
+        "expo"
+      ],
+      "range": "<=0.0.1-canary-20240418-8d74597 || 11.0.0 - 12.1.0-canary-20250221-ef26fed",
+      "nodes": [
+        "node_modules/babel-preset-expo"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "baseline-browser-mapping": {
+      "name": "baseline-browser-mapping",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1193686,
+          "name": "baseline-browser-mapping",
+          "dependency": "baseline-browser-mapping",
+          "title": "baseline-browser-mapping process termination on invalid input causes denial of service",
+          "url": "https://github.com/advisories/GHSA-w5vr-8v7q-w6rv",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-705"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=2.0.0 <2.11.0"
+        }
+      ],
+      "effects": [],
+      "range": ">=2.0.0 <2.11.0",
+      "nodes": [
+        "node_modules/baseline-browser-mapping"
+      ],
+      "fixAvailable": true
+    },
+    "brace-expansion": {
+      "name": "brace-expansion",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1123896,
+          "name": "brace-expansion",
+          "dependency": "brace-expansion",
+          "title": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
+          "url": "https://github.com/advisories/GHSA-3jxr-9vmj-r5cp",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+          },
+          "range": ">=2.0.0 <2.1.2"
+        },
+        {
+          "source": 1123897,
+          "name": "brace-expansion",
+          "dependency": "brace-expansion",
+          "title": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
+          "url": "https://github.com/advisories/GHSA-3jxr-9vmj-r5cp",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+          },
+          "range": "<1.1.16"
+        },
+        {
+          "source": 1130588,
+          "name": "brace-expansion",
+          "dependency": "brace-expansion",
+          "title": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
+          "url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<1.1.17"
+        },
+        {
+          "source": 1130589,
+          "name": "brace-expansion",
+          "dependency": "brace-expansion",
+          "title": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
+          "url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=2.0.0 <2.1.3"
+        },
+        {
+          "source": 1130736,
+          "name": "brace-expansion",
+          "dependency": "brace-expansion",
+          "title": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+          "url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=2.0.0 <2.1.4"
+        },
+        {
+          "source": 1130737,
+          "name": "brace-expansion",
+          "dependency": "brace-expansion",
+          "title": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+          "url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<1.1.18"
+        },
+        {
+          "source": 1240100,
+          "name": "brace-expansion",
+          "dependency": "brace-expansion",
+          "title": "brace-expansion: Quadratic-time expansion of the `{a},b}` rewrite causes CPU denial of service",
+          "url": "https://github.com/advisories/GHSA-q2hr-2g5m-vwhr",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-400",
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+          },
+          "range": "<1.1.21"
+        },
+        {
+          "source": 1240101,
+          "name": "brace-expansion",
+          "dependency": "brace-expansion",
+          "title": "brace-expansion: Quadratic-time expansion of the `{a},b}` rewrite causes CPU denial of service",
+          "url": "https://github.com/advisories/GHSA-q2hr-2g5m-vwhr",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-400",
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+          },
+          "range": ">=2.0.0 <2.1.7"
+        },
+        {
+          "source": 1240104,
+          "name": "brace-expansion",
+          "dependency": "brace-expansion",
+          "title": "brace-expansion: DoS via uncontrolled recursion on nested brace groups causing stack exhaustion",
+          "url": "https://github.com/advisories/GHSA-qhr7-859c-m2p7",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-674"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<1.1.20"
+        },
+        {
+          "source": 1240105,
+          "name": "brace-expansion",
+          "dependency": "brace-expansion",
+          "title": "brace-expansion: DoS via uncontrolled recursion on nested brace groups causing stack exhaustion",
+          "url": "https://github.com/advisories/GHSA-qhr7-859c-m2p7",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-674"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=2.0.0 <2.1.6"
+        },
+        {
+          "source": 1240108,
+          "name": "brace-expansion",
+          "dependency": "brace-expansion",
+          "title": "brace-expansion: DoS via uncontrolled recursion in parseCommaParts causing stack exhaustion",
+          "url": "https://github.com/advisories/GHSA-6j4f-fj2g-mc7p",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-674"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<1.1.19"
+        },
+        {
+          "source": 1240109,
+          "name": "brace-expansion",
+          "dependency": "brace-expansion",
+          "title": "brace-expansion: DoS via uncontrolled recursion in parseCommaParts causing stack exhaustion",
+          "url": "https://github.com/advisories/GHSA-6j4f-fj2g-mc7p",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-674"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=2.0.0 <2.1.5"
+        }
+      ],
+      "effects": [],
+      "range": "<=1.1.20 || 2.0.0 - 2.1.6",
+      "nodes": [
+        "node_modules/brace-expansion",
+        "node_modules/cacache/node_modules/brace-expansion"
+      ],
+      "fixAvailable": true
+    },
+    "braces": {
+      "name": "braces",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1240992,
+          "name": "braces",
+          "dependency": "braces",
+          "title": "braces vulnerable to stack-exhaustion denial of service through deeply nested patterns",
+          "url": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+          "severity": "high",
+          "cwe": [
+            "CWE-674"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<=3.0.3"
+        }
+      ],
+      "effects": [
+        "micromatch"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/braces"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "browserslist": {
+      "name": "browserslist",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1153171,
+          "name": "browserslist",
+          "dependency": "browserslist",
+          "title": "Browserslist: Unbounded memory growth (no cache eviction) via distinct query results, leading to eventual OOM",
+          "url": "https://github.com/advisories/GHSA-c83g-rgw3-j3cx",
+          "severity": "high",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<=4.28.6"
+        },
+        {
+          "source": 1153172,
+          "name": "browserslist",
+          "dependency": "browserslist",
+          "title": "Browserslist: Uncaught crash / prototype write via untrusted browserslist-stats.json custom stats (normalizeStats)",
+          "url": "https://github.com/advisories/GHSA-73wf-gq98-2v4g",
+          "severity": "high",
+          "cwe": [
+            "CWE-248",
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<=4.28.6"
+        }
+      ],
+      "effects": [],
+      "range": "<=4.28.6",
+      "nodes": [
+        "node_modules/browserslist"
+      ],
+      "fixAvailable": true
+    },
+    "cacache": {
+      "name": "cacache",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "tar"
+      ],
+      "effects": [
+        "@expo/cli"
+      ],
+      "range": "14.0.0 - 18.0.4",
+      "nodes": [
+        "node_modules/cacache"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "decode-uri-component": {
+      "name": "decode-uri-component",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1147955,
+          "name": "decode-uri-component",
+          "dependency": "decode-uri-component",
+          "title": "decode-uri-component: Denial of service via exponential decoding of malformed percent-encoded input",
+          "url": "https://github.com/advisories/GHSA-vcc3-ghjq-m6fr",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-400",
+            "CWE-405",
+            "CWE-407",
+            "CWE-1176"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=0.4.2"
+        }
+      ],
+      "effects": [
+        "query-string"
+      ],
+      "range": "<=0.4.2",
+      "nodes": [
+        "node_modules/decode-uri-component"
+      ],
+      "fixAvailable": {
+        "name": "expo-router",
+        "version": "57.0.24",
+        "isSemVerMajor": true
+      }
+    },
+    "del": {
+      "name": "del",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "globby"
+      ],
+      "effects": [
+        "tempy"
+      ],
+      "range": ">=5.0.0",
+      "nodes": [
+        "node_modules/del"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "expo": {
+      "name": "expo",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        "@expo/cli",
+        "@expo/config",
+        "@expo/config-plugins",
+        "@expo/metro-config",
+        "babel-preset-expo",
+        "expo-asset",
+        "expo-modules-autolinking"
+      ],
+      "effects": [],
+      "range": ">=43.0.0-alpha.0",
+      "nodes": [
+        "node_modules/expo"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "expo-asset": {
+      "name": "expo-asset",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "expo-constants"
+      ],
+      "effects": [
+        "expo"
+      ],
+      "range": "<=0.0.1-canary-20240418-8d74597 || 8.6.1 - 11.0.0-canary-20241021-c4b5a93 || 11.0.2-canary-20241211-61c49bd || 11.0.3-canary-20250114-804e26d - 11.0.3-canary-20250124-42fe332 || 11.1.0-canary-20250122-166c2cb - 11.1.0-canary-20250207-8bc5146 || 11.2.0-canary-20250612-338ef55 - 12.0.0-canary-20250404-87e2506",
+      "nodes": [
+        "node_modules/expo-asset"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "expo-constants": {
+      "name": "expo-constants",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@expo/config"
+      ],
+      "effects": [
+        "expo-asset",
+        "expo-linking",
+        "expo-notifications"
+      ],
+      "range": "<=0.0.1-canary-20240418-8d74597 || 12.0.0 - 17.0.0-canary-20241021-c4b5a93 || 17.0.4-canary-20241211-61c49bd || 17.0.5-canary-20250114-804e26d - 17.0.5-canary-20250124-42fe332 || 17.0.6-canary-20250131-5c4e588 - 17.0.6-canary-20250207-8bc5146 || 18.0.0-canary-20250219-4a5dade - 18.0.0-canary-20250404-87e2506 || 18.1.0-canary-20251031-b135dff - 18.1.0-canary-20260113-4879b86",
+      "nodes": [
+        "node_modules/expo-constants"
+      ],
+      "fixAvailable": {
+        "name": "expo-constants",
+        "version": "57.0.20",
+        "isSemVerMajor": true
+      }
+    },
+    "expo-linking": {
+      "name": "expo-linking",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "expo-constants"
+      ],
+      "effects": [],
+      "range": "<=0.0.1-canary-20240418-8d74597 || 2.4.1 - 7.0.0-canary-20241021-c4b5a93 || 7.0.4-canary-20241211-61c49bd || 7.0.5-canary-20250114-804e26d - 7.0.5-canary-20250122-166c2cb || 7.1.0-canary-20250124-42fe332 - 7.1.0-canary-20250404-87e2506 || 7.1.8-canary-20250709-136b77f - 7.1.8-canary-20250811-5c940c0 || 8.0.10-canary-20251118-4ca99d5",
+      "nodes": [
+        "node_modules/expo-linking"
+      ],
+      "fixAvailable": {
+        "name": "expo-linking",
+        "version": "57.0.11",
+        "isSemVerMajor": true
+      }
+    },
+    "expo-modules-autolinking": {
+      "name": "expo-modules-autolinking",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "fast-glob"
+      ],
+      "effects": [
+        "expo"
+      ],
+      "range": "<=2.1.0-canary-20250221-ef26fed",
+      "nodes": [
+        "node_modules/expo-modules-autolinking"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "expo-notifications": {
+      "name": "expo-notifications",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "expo-constants"
+      ],
+      "effects": [],
+      "range": "<=0.0.1-canary-20240418-8d74597 || 0.13.0 - 0.28.19 || 0.29.12-canary-20241211-61c49bd || 0.29.13-canary-20250114-804e26d - 0.29.13-canary-20250124-42fe332 || 0.29.14-canary-20250303-4dba60e - 0.29.14-canary-20250306-d9d3e02 || 0.29.15-canary-20250320-7a205d3 - 0.29.15-canary-20250404-87e2506 || 0.31.4-canary-20250611-f0afe80 - 0.31.4-canary-20250613-b29d676-2 || 1.0.0-canary-20240814-ce0f7d5 - 1.0.0-canary-20260113-4879b86 || 56.0.15-canary-20260526-6cd5e37 - 56.0.15-canary-20260628-fc0d9b4 || 57.0.0-canary-20260526-13e89ca - 57.0.0-canary-20260623-1c70a78 || 58.0.0-canary-20260806-8c2d007 - 58.0.0-canary-20260909-ea7a89a",
+      "nodes": [
+        "node_modules/expo-notifications"
+      ],
+      "fixAvailable": {
+        "name": "expo-notifications",
+        "version": "57.0.21",
+        "isSemVerMajor": true
+      }
+    },
+    "expo-router": {
+      "name": "expo-router",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@react-navigation/bottom-tabs",
+        "@react-navigation/native",
+        "@react-navigation/native-stack",
+        "expo-splash-screen"
+      ],
+      "effects": [],
+      "range": "<=4.0.0-preview.14",
+      "nodes": [
+        "node_modules/expo-router"
+      ],
+      "fixAvailable": {
+        "name": "expo-router",
+        "version": "57.0.24",
+        "isSemVerMajor": true
+      }
+    },
+    "expo-splash-screen": {
+      "name": "expo-splash-screen",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@expo/prebuild-config"
+      ],
+      "effects": [
+        "expo-router"
+      ],
+      "range": "<=0.0.1-canary-20240418-8d74597 || 0.13.0 - 0.27.7 || 0.29.21-canary-20250114-804e26d || 0.29.22-canary-20250122-166c2cb - 0.29.22-canary-20250207-8bc5146 || 0.29.23-canary-20250219-4a5dade - 0.29.23-canary-20250404-87e2506 || 0.30.0-canary-20241211-61c49bd || 0.30.11-canary-20250709-136b77f - 1.0.0-canary-20241021-c4b5a93 || 31.0.12-canary-20251118-4ca99d5 - 31.0.12-canary-20251127-587bc53 || 31.0.14-canary-20251223-b83b31e - 31.0.14-canary-20260113-4879b86",
+      "nodes": [
+        "node_modules/expo-splash-screen"
+      ],
+      "fixAvailable": {
+        "name": "expo-router",
+        "version": "57.0.24",
+        "isSemVerMajor": true
+      }
+    },
+    "fast-glob": {
+      "name": "fast-glob",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "micromatch"
+      ],
+      "effects": [
+        "@expo/cli",
+        "@react-native-community/cli-clean",
+        "@react-native-community/cli-config",
+        "@react-native-community/cli-platform-android",
+        "@react-native-community/cli-platform-apple",
+        "expo-modules-autolinking",
+        "globby"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/fast-glob"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "fast-uri": {
+      "name": "fast-uri",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1124064,
+          "name": "fast-uri",
+          "dependency": "fast-uri",
+          "title": "fast-uri vulnerable to host confusion via literal backslash authority delimiter",
+          "url": "https://github.com/advisories/GHSA-v2hh-gcrm-f6hx",
+          "severity": "high",
+          "cwe": [
+            "CWE-436"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          },
+          "range": ">=3.0.0 <=3.1.3"
+        },
+        {
+          "source": 1130720,
+          "name": "fast-uri",
+          "dependency": "fast-uri",
+          "title": "fast-uri vulnerable to host confusion via backslash authority introducer",
+          "url": "https://github.com/advisories/GHSA-7p8r-x3mc-p8w7",
+          "severity": "high",
+          "cwe": [
+            "CWE-436"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          },
+          "range": ">=3.0.0 <3.1.5"
+        },
+        {
+          "source": 1158524,
+          "name": "fast-uri",
+          "dependency": "fast-uri",
+          "title": "fast-uri vulnerable to server-side request forgery via malformed IPv6 normalization",
+          "url": "https://github.com/advisories/GHSA-f65p-4m7j-42xc",
+          "severity": "high",
+          "cwe": [
+            "CWE-20",
+            "CWE-918"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          },
+          "range": ">=3.0.0 <3.1.6"
+        },
+        {
+          "source": 1158527,
+          "name": "fast-uri",
+          "dependency": "fast-uri",
+          "title": "fast-uri vulnerable to server-side request forgery via repeated hostname percent-decoding",
+          "url": "https://github.com/advisories/GHSA-fph4-wmhf-6fwf",
+          "severity": "high",
+          "cwe": [
+            "CWE-174",
+            "CWE-918"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          },
+          "range": ">=3.1.2 <3.1.6"
+        },
+        {
+          "source": 1158530,
+          "name": "fast-uri",
+          "dependency": "fast-uri",
+          "title": "fast-uri vulnerable to host confusion via percent-encoded scheme normalization",
+          "url": "https://github.com/advisories/GHSA-jqff-g426-hqxp",
+          "severity": "high",
+          "cwe": [
+            "CWE-177"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          },
+          "range": ">=3.0.0 <3.1.6"
+        },
+        {
+          "source": 1204921,
+          "name": "fast-uri",
+          "dependency": "fast-uri",
+          "title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
+          "url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6",
+          "severity": "high",
+          "cwe": [
+            "CWE-436",
+            "CWE-551"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          },
+          "range": ">=3.0.0 <3.1.3"
+        },
+        {
+          "source": 1239943,
+          "name": "fast-uri",
+          "dependency": "fast-uri",
+          "title": "fast-uri vulnerable to authority injection via an unvalidated port in serialize",
+          "url": "https://github.com/advisories/GHSA-qw65-cvwx-89v3",
+          "severity": "high",
+          "cwe": [
+            "CWE-116"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          },
+          "range": ">=3.0.0 <3.1.7"
+        },
+        {
+          "source": 1240091,
+          "name": "fast-uri",
+          "dependency": "fast-uri",
+          "title": "fast-uri vulnerable to inconsistent host case normalization via percent-encoded octets",
+          "url": "https://github.com/advisories/GHSA-hrr3-gc8f-f4qj",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-178"
+          ],
+          "cvss": {
+            "score": 4.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N"
+          },
+          "range": ">=3.0.0 <3.1.8"
+        }
+      ],
+      "effects": [],
+      "range": "3.0.0 - 3.1.7",
+      "nodes": [
+        "node_modules/fast-uri"
+      ],
+      "fixAvailable": true
+    },
+    "fast-xml-parser": {
+      "name": "fast-xml-parser",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1117911,
+          "name": "fast-xml-parser",
+          "dependency": "fast-xml-parser",
+          "title": "fast-xml-parser XMLBuilder: XML Comment and CDATA Injection via Unescaped Delimiters",
+          "url": "https://github.com/advisories/GHSA-gh4j-gqv2-49f6",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-91"
+          ],
+          "cvss": {
+            "score": 6.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+          },
+          "range": "<5.7.0"
+        }
+      ],
+      "effects": [
+        "@react-native-community/cli-platform-android",
+        "@react-native-community/cli-platform-apple"
+      ],
+      "range": "<5.7.0",
+      "nodes": [
+        "node_modules/fast-xml-parser"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "find-yarn-workspace-root": {
+      "name": "find-yarn-workspace-root",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "micromatch"
+      ],
+      "effects": [
+        "@expo/cli",
+        "@expo/metro-config"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/find-yarn-workspace-root"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "form-data": {
+      "name": "form-data",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1120744,
+          "name": "form-data",
+          "dependency": "form-data",
+          "title": "form-data: CRLF injection in form-data via unescaped multipart field names and filenames",
+          "url": "https://github.com/advisories/GHSA-hmw2-7cc7-3qxx",
+          "severity": "high",
+          "cwe": [
+            "CWE-93"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          },
+          "range": ">=3.0.0 <3.0.5"
+        }
+      ],
+      "effects": [],
+      "range": "3.0.0 - 3.0.4",
+      "nodes": [
+        "node_modules/form-data"
+      ],
+      "fixAvailable": true
+    },
+    "globby": {
+      "name": "globby",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "fast-glob"
+      ],
+      "effects": [
+        "del"
+      ],
+      "range": ">=8.0.0",
+      "nodes": [
+        "node_modules/globby"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "image-size": {
+      "name": "image-size",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1239765,
+          "name": "image-size",
+          "dependency": "image-size",
+          "title": "image-size: JXL and HEIF parsers allow denial of service through infinite loops",
+          "url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq",
+          "severity": "high",
+          "cwe": [
+            "CWE-835"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=1.2.0 <=2.0.2"
+        },
+        {
+          "source": 1239766,
+          "name": "image-size",
+          "dependency": "image-size",
+          "title": "image-size: ICNS parser allows denial of service through an infinite loop",
+          "url": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr",
+          "severity": "high",
+          "cwe": [
+            "CWE-835"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=0.6.3 <=2.0.2"
+        }
+      ],
+      "effects": [],
+      "range": "0.6.3 - 2.0.2",
+      "nodes": [
+        "node_modules/image-size"
+      ],
+      "fixAvailable": true
+    },
+    "jest-environment-node": {
+      "name": "jest-environment-node",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@jest/environment",
+        "@jest/fake-timers"
+      ],
+      "effects": [
+        "react-native"
+      ],
+      "range": "24.2.0-alpha.0 - 30.2.0",
+      "nodes": [
+        "node_modules/jest-environment-node"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "jest-message-util": {
+      "name": "jest-message-util",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "micromatch"
+      ],
+      "effects": [
+        "@jest/fake-timers"
+      ],
+      "range": "18.5.0-alpha.7da3df39 - 30.2.0",
+      "nodes": [
+        "node_modules/jest-message-util"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "joi": {
+      "name": "joi",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1120656,
+          "name": "joi",
+          "dependency": "joi",
+          "title": "joi has an uncaught RangeError on deeply nested input through recursive `link()` schemas",
+          "url": "https://github.com/advisories/GHSA-q7cg-457f-vx79",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-248",
+            "CWE-400"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+          },
+          "range": "<17.13.4"
+        },
+        {
+          "source": 1193674,
+          "name": "joi",
+          "dependency": "joi",
+          "title": "joi: Prototype pollution via a `__proto__` language key in custom messages",
+          "url": "https://github.com/advisories/GHSA-6w3j-5fw6-r9vr",
+          "severity": "low",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 3.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+          },
+          "range": ">=17.2.0 <17.13.6"
+        },
+        {
+          "source": 1193679,
+          "name": "joi",
+          "dependency": "joi",
+          "title": "joi: object().rename() with a template target can set the validated object's prototype",
+          "url": "https://github.com/advisories/GHSA-gg4h-3hg2-grpc",
+          "severity": "low",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 3.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+          },
+          "range": ">=16.0.0 <17.13.5"
+        },
+        {
+          "source": 1240057,
+          "name": "joi",
+          "dependency": "joi",
+          "title": "joi: Quadratic regular-expression backtracking in `Joi.string().isoDate()`",
+          "url": "https://github.com/advisories/GHSA-6h2x-m376-mqjq",
+          "severity": "high",
+          "cwe": [
+            "CWE-1333"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=17.2.0 <17.13.7"
+        }
+      ],
+      "effects": [],
+      "range": "<=17.13.6",
+      "nodes": [
+        "node_modules/joi"
+      ],
+      "fixAvailable": true
+    },
+    "js-yaml": {
+      "name": "js-yaml",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1121859,
+          "name": "js-yaml",
+          "dependency": "js-yaml",
+          "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+          "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+          },
+          "range": "<3.15.0"
+        },
+        {
+          "source": 1123911,
+          "name": "js-yaml",
+          "dependency": "js-yaml",
+          "title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+          "url": "https://github.com/advisories/GHSA-52cp-r559-cp3m",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=4.0.0 <4.3.0"
+        },
+        {
+          "source": 1123912,
+          "name": "js-yaml",
+          "dependency": "js-yaml",
+          "title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+          "url": "https://github.com/advisories/GHSA-52cp-r559-cp3m",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=3.0.0 <3.15.0"
+        },
+        {
+          "source": 1138114,
+          "name": "js-yaml",
+          "dependency": "js-yaml",
+          "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported",
+          "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj",
+          "severity": "high",
+          "cwe": [
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=3.0.0 <3.15.1"
+        },
+        {
+          "source": 1138115,
+          "name": "js-yaml",
+          "dependency": "js-yaml",
+          "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported",
+          "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj",
+          "severity": "high",
+          "cwe": [
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=4.0.0 <4.3.1"
+        },
+        {
+          "source": 1193726,
+          "name": "js-yaml",
+          "dependency": "js-yaml",
+          "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+          "url": "https://github.com/advisories/GHSA-2883-xcg3-v3hh",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=3.0.0 <3.15.2"
+        },
+        {
+          "source": 1193727,
+          "name": "js-yaml",
+          "dependency": "js-yaml",
+          "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+          "url": "https://github.com/advisories/GHSA-2883-xcg3-v3hh",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=4.0.0 <4.3.2"
+        }
+      ],
+      "effects": [],
+      "range": "<=3.15.1 || 4.0.0 - 4.3.1",
+      "nodes": [
+        "node_modules/@expo/xcpretty/node_modules/js-yaml",
+        "node_modules/js-yaml"
+      ],
+      "fixAvailable": true
+    },
+    "jscodeshift": {
+      "name": "jscodeshift",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "micromatch"
+      ],
+      "effects": [
+        "@react-native/codegen"
+      ],
+      "range": "0.3.20 - 17.3.0",
+      "nodes": [
+        "node_modules/jscodeshift"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "metro": {
+      "name": "metro",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "metro-config",
+        "metro-file-map",
+        "metro-transform-worker"
+      ],
+      "effects": [
+        "@react-native/community-cli-plugin",
+        "metro-config",
+        "metro-transform-worker"
+      ],
+      "range": ">=0.71.0",
+      "nodes": [
+        "node_modules/metro"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "metro-config": {
+      "name": "metro-config",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "metro"
+      ],
+      "effects": [
+        "@react-native/community-cli-plugin"
+      ],
+      "range": ">=0.71.0",
+      "nodes": [
+        "node_modules/metro-config"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "metro-file-map": {
+      "name": "metro-file-map",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "micromatch"
+      ],
+      "effects": [
+        "metro"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/metro-file-map"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "metro-transform-worker": {
+      "name": "metro-transform-worker",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "metro"
+      ],
+      "effects": [],
+      "range": ">=0.71.0",
+      "nodes": [
+        "node_modules/metro-transform-worker"
+      ],
+      "fixAvailable": true
+    },
+    "micromatch": {
+      "name": "micromatch",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "braces"
+      ],
+      "effects": [
+        "fast-glob",
+        "find-yarn-workspace-root",
+        "jest-message-util",
+        "jscodeshift",
+        "metro-file-map"
+      ],
+      "range": ">=0.2.0",
+      "nodes": [
+        "node_modules/micromatch"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "nanoid": {
+      "name": "nanoid",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1138811,
+          "name": "nanoid",
+          "dependency": "nanoid",
+          "title": "nanoid: non-secure generators can loop indefinitely with negative size",
+          "url": "https://github.com/advisories/GHSA-28wg-ghj8-5hjv",
+          "severity": "high",
+          "cwe": [
+            "CWE-835"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<3.3.16"
+        },
+        {
+          "source": 1139427,
+          "name": "nanoid",
+          "dependency": "nanoid",
+          "title": "nanoid: custom generators can loop indefinitely when size is zero",
+          "url": "https://github.com/advisories/GHSA-2v37-7h3g-55p8",
+          "severity": "high",
+          "cwe": [
+            "CWE-835"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<3.3.18"
+        }
+      ],
+      "effects": [],
+      "range": "<=3.3.17",
+      "nodes": [
+        "node_modules/nanoid"
+      ],
+      "fixAvailable": true
+    },
+    "node-forge": {
+      "name": "node-forge",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1240912,
+          "name": "node-forge",
+          "dependency": "node-forge",
+          "title": "node-forge RSA PKCS#1 v1.5 signature verification accepts extra nested DigestAlgorithm elements",
+          "url": "https://github.com/advisories/GHSA-86w9-cpqp-85rv",
+          "severity": "high",
+          "cwe": [
+            "CWE-347"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          },
+          "range": "<=1.4.0"
+        }
+      ],
+      "effects": [
+        "@expo/cli",
+        "@expo/code-signing-certificates",
+        "selfsigned"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/node-forge"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "postcss": {
+      "name": "postcss",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1117015,
+          "name": "postcss",
+          "dependency": "postcss",
+          "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
+          "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-79"
+          ],
+          "cvss": {
+            "score": 6.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+          },
+          "range": "<8.5.10"
+        },
+        {
+          "source": 1124252,
+          "name": "postcss",
+          "dependency": "postcss",
+          "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
+          "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q",
+          "severity": "high",
+          "cwe": [
+            "CWE-22",
+            "CWE-200"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          },
+          "range": "<=8.5.11"
+        },
+        {
+          "source": 1130709,
+          "name": "postcss",
+          "dependency": "postcss",
+          "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q — attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+          "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-22",
+            "CWE-200"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=8.5.22"
+        },
+        {
+          "source": 1139510,
+          "name": "postcss",
+          "dependency": "postcss",
+          "title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
+          "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849",
+          "severity": "high",
+          "cwe": [
+            "CWE-22"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          },
+          "range": "<=8.5.17"
+        }
+      ],
+      "effects": [
+        "@expo/metro-config"
+      ],
+      "range": "<=8.5.22",
+      "nodes": [
+        "node_modules/postcss"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "query-string": {
+      "name": "query-string",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "decode-uri-component"
+      ],
+      "effects": [
+        "@react-navigation/core"
+      ],
+      "range": "5.0.0 - 9.4.1",
+      "nodes": [
+        "node_modules/query-string"
+      ],
+      "fixAvailable": {
+        "name": "expo-router",
+        "version": "57.0.24",
+        "isSemVerMajor": true
+      }
+    },
+    "react-native": {
+      "name": "react-native",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        "@react-native-community/cli",
+        "@react-native-community/cli-platform-android",
+        "@react-native-community/cli-platform-ios",
+        "@react-native/codegen",
+        "@react-native/community-cli-plugin",
+        "jest-environment-node"
+      ],
+      "effects": [],
+      "range": "<=0.0.0-ffdfbbec0 || 0.71.0-rc.0 - 0.85.0-rc.7 || >=0.88.0-nightly-20260709-24e4b2cae",
+      "nodes": [
+        "node_modules/react-native"
+      ],
+      "fixAvailable": {
+        "name": "react-native",
+        "version": "0.87.1",
+        "isSemVerMajor": true
+      }
+    },
+    "selfsigned": {
+      "name": "selfsigned",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "node-forge"
+      ],
+      "effects": [
+        "@react-native/dev-middleware"
+      ],
+      "range": "1.1.1 - 4.0.1",
+      "nodes": [
+        "node_modules/selfsigned"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "send": {
+      "name": "send",
+      "severity": "low",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1109556,
+          "name": "send",
+          "dependency": "send",
+          "title": "send vulnerable to template injection that can lead to XSS",
+          "url": "https://github.com/advisories/GHSA-m6fv-jmcg-4jfg",
+          "severity": "low",
+          "cwe": [
+            "CWE-79"
+          ],
+          "cvss": {
+            "score": 5,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:L"
+          },
+          "range": "<0.19.0"
+        }
+      ],
+      "effects": [
+        "@expo/cli"
+      ],
+      "range": "<0.19.0",
+      "nodes": [
+        "node_modules/send"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "shell-quote": {
+      "name": "shell-quote",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1123944,
+          "name": "shell-quote",
+          "dependency": "shell-quote",
+          "title": "shell-quote: Quadratic-complexity Denial of Service in `parse()` (CWE-407)",
+          "url": "https://github.com/advisories/GHSA-395f-4hp3-45gv",
+          "severity": "high",
+          "cwe": [
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<=1.8.4"
+        }
+      ],
+      "effects": [],
+      "range": "<=1.8.4",
+      "nodes": [
+        "node_modules/shell-quote"
+      ],
+      "fixAvailable": true
+    },
+    "tar": {
+      "name": "tar",
+      "severity": "critical",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1112659,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "node-tar Vulnerable to Arbitrary File Creation/Overwrite via Hardlink Path Traversal",
+          "url": "https://github.com/advisories/GHSA-34x7-hfp2-rc4v",
+          "severity": "high",
+          "cwe": [
+            "CWE-22",
+            "CWE-59"
+          ],
+          "cvss": {
+            "score": 8.2,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:L/A:N"
+          },
+          "range": "<7.5.7"
+        },
+        {
+          "source": 1113300,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "node-tar is Vulnerable to Arbitrary File Overwrite and Symlink Poisoning via Insufficient Path Sanitization",
+          "url": "https://github.com/advisories/GHSA-8qq5-rm4j-mr97",
+          "severity": "high",
+          "cwe": [
+            "CWE-22"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=7.5.2"
+        },
+        {
+          "source": 1113375,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "Arbitrary File Read/Write via Hardlink Target Escape Through Symlink Chain in node-tar Extraction",
+          "url": "https://github.com/advisories/GHSA-83g3-92jg-28cx",
+          "severity": "high",
+          "cwe": [
+            "CWE-22"
+          ],
+          "cvss": {
+            "score": 7.1,
+            "vectorString": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N"
+          },
+          "range": "<7.5.8"
+        },
+        {
+          "source": 1114200,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "tar has Hardlink Path Traversal via Drive-Relative Linkpath",
+          "url": "https://github.com/advisories/GHSA-qffp-2rhf-9h96",
+          "severity": "high",
+          "cwe": [
+            "CWE-22",
+            "CWE-59"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=7.5.9"
+        },
+        {
+          "source": 1114302,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "node-tar Symlink Path Traversal via Drive-Relative Linkpath",
+          "url": "https://github.com/advisories/GHSA-9ppj-qmqm-q256",
+          "severity": "high",
+          "cwe": [
+            "CWE-22"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=7.5.10"
+        },
+        {
+          "source": 1114680,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "Race Condition in node-tar Path Reservations via Unicode Ligature Collisions on macOS APFS",
+          "url": "https://github.com/advisories/GHSA-r6q2-hw4h-h46w",
+          "severity": "high",
+          "cwe": [
+            "CWE-176",
+            "CWE-367"
+          ],
+          "cvss": {
+            "score": 8.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:H/A:L"
+          },
+          "range": "<=7.5.3"
+        },
+        {
+          "source": 1120782,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "node-tar applies PAX size override to intermediary GNU long-name/long-link headers, causing tar parser interpretation differential (file smuggling)",
+          "url": "https://github.com/advisories/GHSA-vmf3-w455-68vh",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-436"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=7.5.15"
+        },
+        {
+          "source": 1123939,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "node-tar: Process crash via PAX numeric path type confusion",
+          "url": "https://github.com/advisories/GHSA-w8wr-v893-vjvp",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-704"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+          },
+          "range": "<=7.5.17"
+        },
+        {
+          "source": 1123940,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "node-tar: Decompression/parse DoS via unlimited input",
+          "url": "https://github.com/advisories/GHSA-23hp-3jrh-7fpw",
+          "severity": "critical",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<=7.5.18"
+        },
+        {
+          "source": 1123941,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "node-tar: Negative tar entry size causes infinite loop in archive replace",
+          "url": "https://github.com/advisories/GHSA-8x88-c5mf-7j5w",
+          "severity": "high",
+          "cwe": [
+            "CWE-835"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<=7.5.17"
+        },
+        {
+          "source": 1123942,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "node-tar: Uncaught Exception DoS via NUL byte in PAX path/linkpath records",
+          "url": "https://github.com/advisories/GHSA-gvwx-54wh-qm9j",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-248"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+          },
+          "range": "<=7.5.16"
+        },
+        {
+          "source": 1145647,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "node-tar: Uncontrolled recursion in mapHas/filesFilter allows uncatchable stack-overflow DoS via crafted long-path tar with member selection",
+          "url": "https://github.com/advisories/GHSA-r292-9mhp-454m",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-674"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<=7.5.20"
+        }
+      ],
+      "effects": [
+        "@expo/cli",
+        "cacache"
+      ],
+      "range": "<=7.5.20",
+      "nodes": [
+        "node_modules/tar"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "tempy": {
+      "name": "tempy",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "del"
+      ],
+      "effects": [
+        "@expo/cli"
+      ],
+      "range": "0.7.0 - 2.0.0",
+      "nodes": [
+        "node_modules/tempy"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "turbo-stream": {
+      "name": "turbo-stream",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1120080,
+          "name": "turbo-stream",
+          "dependency": "turbo-stream",
+          "title": "React Router vulnerable to Denial of Service via reflected user input in single-fetch",
+          "url": "https://github.com/advisories/GHSA-rxv8-25v2-qmq8",
+          "severity": "high",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<3.0.0"
+        }
+      ],
+      "effects": [
+        "@remix-run/server-runtime"
+      ],
+      "range": "<3.0.0",
+      "nodes": [
+        "node_modules/turbo-stream"
+      ],
+      "fixAvailable": true
+    },
+    "undici": {
+      "name": "undici",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1121242,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to HTTP header injection via Set-Cookie percent-decoding",
+          "url": "https://github.com/advisories/GHSA-p88m-4jfj-68fv",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-93"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          },
+          "range": "<6.27.0"
+        },
+        {
+          "source": 1121245,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici WebSocket client vulnerable to denial of service via fragment count bypass",
+          "url": "https://github.com/advisories/GHSA-vxpw-j846-p89q",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<6.27.0"
+        },
+        {
+          "source": 1121255,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to Set-Cookie SameSite attribute downgrade via permissive substring matching",
+          "url": "https://github.com/advisories/GHSA-g8m3-5g58-fq7m",
+          "severity": "low",
+          "cwe": [
+            "CWE-183"
+          ],
+          "cvss": {
+            "score": 3.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+          },
+          "range": "<6.27.0"
+        },
+        {
+          "source": 1130716,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to downstream response desynchronization via retry interceptor",
+          "url": "https://github.com/advisories/GHSA-8xcm-r25x-g524",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-444"
+          ],
+          "cvss": {
+            "score": 4.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N"
+          },
+          "range": "<6.28.0"
+        },
+        {
+          "source": 1130727,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to CRLF Injection via blob-like body 'type' property",
+          "url": "https://github.com/advisories/GHSA-m8rv-5g2x-5cg5",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-93"
+          ],
+          "cvss": {
+            "score": 4.2,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N"
+          },
+          "range": "<6.28.0"
+        },
+        {
+          "source": 1130732,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to cookie attribute injection via unsanitized domain and unparsed setCookie fields",
+          "url": "https://github.com/advisories/GHSA-v3r7-h72x-cjcm",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-74"
+          ],
+          "cvss": {
+            "score": 4.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N"
+          },
+          "range": "<6.28.0"
+        },
+        {
+          "source": 1137243,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to HTTP response queue poisoning via keep-alive socket reuse",
+          "url": "https://github.com/advisories/GHSA-35p6-xmwp-9g52",
+          "severity": "low",
+          "cwe": [
+            "CWE-367"
+          ],
+          "cvss": {
+            "score": 3.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+          },
+          "range": "<6.27.0"
+        },
+        {
+          "source": 1239934,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to Denial of Service via unhandled error in WebSocket permessage-deflate decompression",
+          "url": "https://github.com/advisories/GHSA-3wwx-pv8p-q78v",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-248"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=6.25.0 <6.28.1"
+        },
+        {
+          "source": 1240039,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to downstream response splitting via retry interceptor",
+          "url": "https://github.com/advisories/GHSA-r53p-7pc4-xj5r",
+          "severity": "low",
+          "cwe": [
+            "CWE-444"
+          ],
+          "cvss": {
+            "score": 3.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+          },
+          "range": "<6.28.1"
+        },
+        {
+          "source": 1240042,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to Denial of Service via unrequested WebSocket subprotocol",
+          "url": "https://github.com/advisories/GHSA-rfgv-xxqx-mfg5",
+          "severity": "high",
+          "cwe": [
+            "CWE-248",
+            "CWE-252"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=6.7.0 <6.28.1"
+        }
+      ],
+      "effects": [],
+      "range": "<=6.28.0",
+      "nodes": [
+        "node_modules/undici"
+      ],
+      "fixAvailable": true
+    },
+    "uuid": {
+      "name": "uuid",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1119441,
+          "name": "uuid",
+          "dependency": "uuid",
+          "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+          "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-787",
+            "CWE-1285"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          },
+          "range": "<11.1.1"
+        }
+      ],
+      "effects": [
+        "@expo/bunyan",
+        "@expo/rudder-sdk-node",
+        "xcode"
+      ],
+      "range": "<11.1.1",
+      "nodes": [
+        "node_modules/uuid",
+        "node_modules/xcode/node_modules/uuid"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    },
+    "xcode": {
+      "name": "xcode",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "uuid"
+      ],
+      "effects": [
+        "@expo/config-plugins"
+      ],
+      "range": ">=0.9.2",
+      "nodes": [
+        "node_modules/xcode"
+      ],
+      "fixAvailable": {
+        "name": "expo",
+        "version": "44.0.6",
+        "isSemVerMajor": true
+      }
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 1,
+      "moderate": 25,
+      "high": 53,
+      "critical": 1,
+      "total": 80
+    },
+    "dependencies": {
+      "prod": 1184,
+      "dev": 0,
+      "optional": 11,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 1194
+    }
+  }
+}

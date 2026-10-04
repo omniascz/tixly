@@ -9,9 +9,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
-import { runAsPromoterNonStaff, runAsActivePromoterNonStaff } from '@/lib/admin-auth';
 import { z } from 'zod';
+import { issueHospitalityDocument, issueOrderDocument, loadTaxDocument, TaxDocumentError } from '@/lib/accounting/documents';
+import { runAsPromoterNonStaff, runAsActivePromoterNonStaff } from '@/lib/admin-auth';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 
 
 const postSchema = z
@@ -23,6 +24,8 @@ const postSchema = z
     customerIco: z.string().max(20).optional(),
     customerDic: z.string().max(30).optional(),
     customerEmail: z.string().email().max(200).optional(),
+    // Kolo 7 (C-54): sazba DPH u hospitality dokladu (u objednávky se bere z typů vstupenek).
+    vatRateCode: z.string().max(40).optional(),
   })
   .refine((d) => d.orderId !== undefined || d.hospitalityInquiryId !== undefined, {
     message: 'orderId nebo hospitalityInquiryId povinný',
@@ -67,34 +70,29 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
+  // Kolo 7 (C-54): sdílená služba dokladů — sazby z typů vstupenek (u hospitality zadané), rozpis
+  // po sazbách, neplátce bez DPH, číslo z řady bez děr. Dřív sazba pořadatele a číslo MAX+1.
+  const customer = {
+    name: parsed.data.customerName,
+    email: parsed.data.customerEmail ?? null,
+    address: parsed.data.customerAddress ?? null,
+    ico: parsed.data.customerIco ?? null,
+    dic: parsed.data.customerDic ?? null,
+  };
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-
-    // Get promoter VAT settings
-    const promRes = await client.query<{ vat_rate_pct: number; vat_payer: boolean }>(
-      `SELECT vat_rate_pct, vat_payer FROM platform.promoters WHERE id = $1`,
-      [promoter.promoterId],
-    );
-    const vatRate = promRes.rows[0].vat_rate_pct;
-
-    // Resolve total + currency from order or hospitality inquiry
-    let totalGross: number;
-    let currency: string;
+    let invoiceId: string;
     if (parsed.data.orderId) {
-      const r = await client.query<{ total_amount: number; currency: string; promoter_id: string }>(
-        `SELECT o.total_amount, o.currency, e.promoter_id
-         FROM orders.orders o
-         JOIN catalog.events e ON e.id = o.event_id
-         WHERE o.id = $1 FOR UPDATE`,
+      const r = await client.query<{ promoter_id: string }>(
+        `SELECT e.promoter_id FROM orders.orders o JOIN catalog.events e ON e.id = o.event_id WHERE o.id = $1`,
         [parsed.data.orderId],
       );
       if (r.rows.length === 0 || r.rows[0].promoter_id !== promoter.promoterId) {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'Not found' }, { status: 404 });
       }
-      totalGross = r.rows[0].total_amount;
-      currency = r.rows[0].currency;
+      invoiceId = (await asSystemInTx(client, () => issueOrderDocument(client, parsed.data.orderId as string, customer))).invoiceId;
     } else {
       const r = await client.query<{ total_amount_minor: number; currency: string; promoter_id: string }>(
         `SELECT i.total_amount_minor, i.currency, e.promoter_id
@@ -108,72 +106,35 @@ export async function POST(req: NextRequest): Promise<Response> {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'Not found' }, { status: 404 });
       }
-      totalGross = r.rows[0].total_amount_minor;
-      currency = r.rows[0].currency;
+      invoiceId = await asSystemInTx(client, () =>
+        issueHospitalityDocument(client, {
+          promoterId: promoter.promoterId,
+          hospitalityInquiryId: parsed.data.hospitalityInquiryId as string,
+          totalMinor: r.rows[0].total_amount_minor,
+          currency: r.rows[0].currency,
+          vatRateCode: parsed.data.vatRateCode ?? null,
+          customer,
+          paid: false,
+        }),
+      );
     }
-
-    // VAT extraction (gross → net + VAT)
-    const subtotal = Math.round((totalGross * 100) / (100 + vatRate));
-    const vatAmount = totalGross - subtotal;
-
-    // Generate invoice number — yearly sequential per promotér
-    const year = new Date().getFullYear();
-    const seq = await client.query<{ next: string }>(
-      `SELECT COALESCE(
-         (SELECT MAX(SPLIT_PART(invoice_number, '-', 2)::int)::text
-          FROM orders.invoices
-          WHERE promoter_id = $1 AND invoice_number LIKE $2),
-         '0'
-       ) AS next`,
-      [promoter.promoterId, `${year}-%`],
-    );
-    const nextNum = String(Number(seq.rows[0].next) + 1).padStart(4, '0');
-    const invoiceNumber = `${year}-${nextNum}`;
-
-    // Due date: 14 days
-    const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 14);
-
-    const r = await client.query<{ id: string }>(
-      `INSERT INTO orders.invoices
-         (order_id, hospitality_inquiry_id, promoter_id, invoice_number, due_date,
-          subtotal_minor, vat_rate_pct, vat_amount_minor, total_minor, currency,
-          customer_name, customer_email, customer_address, customer_ico, customer_dic)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-       RETURNING id`,
-      [
-        parsed.data.orderId ?? null,
-        parsed.data.hospitalityInquiryId ?? null,
-        promoter.promoterId,
-        invoiceNumber,
-        dueDate.toISOString().slice(0, 10),
-        subtotal,
-        vatRate,
-        vatAmount,
-        totalGross,
-        currency,
-        parsed.data.customerName,
-        parsed.data.customerEmail ?? null,
-        parsed.data.customerAddress ?? null,
-        parsed.data.customerIco ?? null,
-        parsed.data.customerDic ?? null,
-      ],
-    );
-
+    const doc = await asSystemInTx(client, () => loadTaxDocument(client, invoiceId));
     await client.query('COMMIT');
     return NextResponse.json(
       {
-        id: r.rows[0].id,
-        invoiceNumber,
-        subtotal,
-        vatAmount,
-        total: totalGross,
-        vatRate,
+        id: invoiceId,
+        invoiceNumber: doc?.number,
+        vatPayer: doc?.supplier.vatPayer,
+        vatLines: doc?.vatLines ?? [],
+        total: doc?.totalMinor,
       },
       { status: 201 },
     );
   } catch (err) {
     await client.query('ROLLBACK');
+    if (err instanceof TaxDocumentError) {
+      return NextResponse.json({ error: err.code, message: err.message }, { status: 422 });
+    }
     console.error('[invoice issue]', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   } finally {

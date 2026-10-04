@@ -8,6 +8,7 @@
     "prebuild": "node scripts/copy-pdf-worker.mjs",
     "build": "next build",
     "start": "next start",
+    "test:sandbox": "vitest run -c vitest.sandbox.config.ts --maxWorkers=1 --minWorkers=1",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "lint:seating": "node ../scripts/lint-seating.mjs",
@@ -36,7 +37,7 @@
     "@types/pg": "^8.20.0",
     "@vercel/blob": "^0.27.0",
     "@vitejs/plugin-react": "^4.7.0",
-    "axios": "^1.6.5",
+    "axios": "^1.20.0",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
@@ -88,12 +89,13 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "jsdom": "^23.0.1",
-    "nodemailer": "^8.0.5",
-    "postcss": "^8.4.32",
+    "nodemailer": "^8.0.11",
+    "postcss": "^8.5.28",
     "prettier": "^3.1.1",
     "prettier-plugin-tailwindcss": "^0.5.11",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
-    "vitest": "^1.6.1"
+    "vitest": "^1.6.1",
+    "xmllint-wasm": "5.3.0"
   }
 }

@@ -1,0 +1,141 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r7-ares.live.test.ts [2m ([22m[2m6 tests[22m [2m|[22m [31m6 failed[39m[2m)[22m[33m 2153[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r7-ares.live.test.ts[2m > [22mKolo 7 — klient ARES proti simulátoru[2m > [22múspěch / neexistující / zaniklý / výpadek / timeout se rozliší[39m
+[31m     → expected { valid: true, active: true, …(6) } to match object { outcome: 'verified', …(4) }
+(21 matching properties omitted from actual)[39m
+[31m   [33m❯[31m tests/fix-r7-ares.live.test.ts[2m > [22mKolo 7 — klient ARES proti simulátoru[2m > [22mverifyIco (KYC) jde přes stejného klienta; výpadek označí jako nedostupný, ne jako neplatné IČO[39m
+[31m     → expected { valid: true, ico: '27074358', …(4) } to match object { valid: true, …(2) }
+(4 matching properties omitted from actual)[39m
+[31m   [33m❯[31m tests/fix-r7-ares.live.test.ts[2m > [22mKolo 7 — registrace pořadatele a KYC s ARES simulátorem[2m > [22múspěch → verified, bez ručního ověření[39m
+[31m     → column "ares_check_status" does not exist[39m
+[31m   [33m❯[31m tests/fix-r7-ares.live.test.ts[2m > [22mKolo 7 — registrace pořadatele a KYC s ARES simulátorem[2m > [22mneexistující IČO → not_found, vysoké riziko; zaniklý subjekt → inactive, riziko 100[39m
+[31m     → column "ares_check_status" does not exist[39m
+[31m   [33m❯[31m tests/fix-r7-ares.live.test.ts[2m > [22mKolo 7 — registrace pořadatele a KYC s ARES simulátorem[2m > [22mvýpadek i timeout ARES → ruční ověření, IČO není označené jako neplatné ani rizikové[39m
+[31m     → column "ares_check_status" does not exist[39m
+[31m   [33m❯[31m tests/fix-r7-ares.live.test.ts[2m > [22mKolo 7 — registrace pořadatele a KYC s ARES simulátorem[2m > [22mKYC: při výpadku ARES se údaje přijmou k ručnímu ověření (dřív 422); neexistující IČO dál 422[39m
+[31m     → column "ares_check_status" does not exist[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 6 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-ares.live.test.ts[2m > [22mKolo 7 — klient ARES proti simulátoru[2m > [22múspěch / neexistující / zaniklý / výpadek / timeout se rozliší
+[31m[1mAssertionError[22m: expected { valid: true, active: true, …(6) } to match object { outcome: 'verified', …(4) }
+(21 matching properties omitted from actual)[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[2m    "active": true,[22m
+[2m    "dic": "CZ27074358",[22m
+[32m-   "legalName": "Divadlo Simulace s.r.o.",[39m
+[32m-   "outcome": "verified",[39m
+[31m+   "legalName": "Asseco Central Europe, a.s.",[39m
+[2m    "valid": true,[22m
+[2m  }[22m
+
+[36m [2m❯[22m tests/fix-r7-ares.live.test.ts:[2m40:19[22m[39m
+    [90m 38| [39m    [35mconst[39m { checkAres } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/lib/compliance/ares'[39m)[33m;[39m
+    [90m 39| [39m    [35mconst[39m found [33m=[39m [35mawait[39m [34mcheckAres[39m([33mARES_SCENARIOS[39m[33m.[39mfound)[33m;[39m
+    [90m 40| [39m    [34mexpect[39m(found)[33m.[39m[34mtoMatchObject[39m({ outcome[33m:[39m [32m'verified'[39m[33m,[39m valid[33m:[39m [35mtrue[39m[33m,[39m ac…
+    [90m   | [39m                  [31m^[39m
+    [90m 41| [39m    [34mexpect[39m([35mawait[39m [34mcheckAres[39m([33mARES_SCENARIOS[39m[33m.[39mnotFound))[33m.[39m[34mtoMatchObject[39m({ o…
+    [90m 42| [39m    [34mexpect[39m([35mawait[39m [34mcheckAres[39m([33mARES_SCENARIOS[39m[33m.[39mdissolved))[33m.[39m[34mtoMatchObject[39m({ …
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-ares.live.test.ts[2m > [22mKolo 7 — klient ARES proti simulátoru[2m > [22mverifyIco (KYC) jde přes stejného klienta; výpadek označí jako nedostupný, ne jako neplatné IČO
+[31m[1mAssertionError[22m: expected { valid: true, ico: '27074358', …(4) } to match object { valid: true, …(2) }
+(4 matching properties omitted from actual)[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[32m-   "companyName": "Divadlo Simulace s.r.o.",[39m
+[32m-   "unavailable": false,[39m
+[31m+   "companyName": "Asseco Central Europe, a.s.",[39m
+[2m    "valid": true,[22m
+[2m  }[22m
+
+[36m [2m❯[22m tests/fix-r7-ares.live.test.ts:[2m52:51[22m[39m
+    [90m 50| [39m  [34mit[39m([32m'verifyIco (KYC) jde přes stejného klienta; výpadek označí jako n[39m…
+    [90m 51| [39m    [35mconst[39m { verifyIco } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/lib/ares/verify'[39m)[33m;[39m
+    [90m 52| [39m    [34mexpect[39m([35mawait[39m [34mverifyIco[39m([33mARES_SCENARIOS[39m[33m.[39mfound))[33m.[39m[34mtoMatchObject[39m({ vali…
+    [90m   | [39m                                                  [31m^[39m
+    [90m 53| [39m    [34mexpect[39m([35mawait[39m [34mverifyIco[39m([33mARES_SCENARIOS[39m[33m.[39mnotFound))[33m.[39m[34mtoMatchObject[39m({ v…
+    [90m 54| [39m    [34mexpect[39m([35mawait[39m [34mverifyIco[39m([33mARES_SCENARIOS[39m[33m.[39moutage))[33m.[39m[34mtoMatchObject[39m({ val…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-ares.live.test.ts[2m > [22mKolo 7 — registrace pořadatele a KYC s ARES simulátorem[2m > [22múspěch → verified, bez ručního ověření
+[31m[1merror[22m: column "ares_check_status" does not exist[39m
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m register tests/fix-r7-ares.live.test.ts:[2m76:18[22m[39m
+    [90m 74| [39m    [35mconst[39m body [33m=[39m ([35mawait[39m r[33m.[39m[34mjson[39m()) [35mas[39m { promoterId[33m:[39m string[33m;[39m accessToken…
+    [90m 75| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(body))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m 76| [39m    [35mconst[39m row [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m(
+    [90m   | [39m                 [31m^[39m
+    [90m 77| [39m      [32m`SELECT ares_check_status, manual_verification_required, ares_ic[39m…
+    [90m 78| [39m         FROM platform.promoters WHERE id=$1`[39m[33m,[39m [body[33m.[39mpromoterId]))[33m.[39mrow[0m…
+[90m [2m❯[22m tests/fix-r7-ares.live.test.ts:[2m83:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 116, severity: 'ERROR', code: '42703', detail: undefined, hint: undefined, position: '8', internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'parse_relation.c', line: '3716', routine: 'errorMissingColumn' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-ares.live.test.ts[2m > [22mKolo 7 — registrace pořadatele a KYC s ARES simulátorem[2m > [22mneexistující IČO → not_found, vysoké riziko; zaniklý subjekt → inactive, riziko 100
+[31m[1merror[22m: column "ares_check_status" does not exist[39m
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m register tests/fix-r7-ares.live.test.ts:[2m76:18[22m[39m
+    [90m 74| [39m    [35mconst[39m body [33m=[39m ([35mawait[39m r[33m.[39m[34mjson[39m()) [35mas[39m { promoterId[33m:[39m string[33m;[39m accessToken…
+    [90m 75| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(body))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m 76| [39m    [35mconst[39m row [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m(
+    [90m   | [39m                 [31m^[39m
+    [90m 77| [39m      [32m`SELECT ares_check_status, manual_verification_required, ares_ic[39m…
+    [90m 78| [39m         FROM platform.promoters WHERE id=$1`[39m[33m,[39m [body[33m.[39mpromoterId]))[33m.[39mrow[0m…
+[90m [2m❯[22m tests/fix-r7-ares.live.test.ts:[2m89:16[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 116, severity: 'ERROR', code: '42703', detail: undefined, hint: undefined, position: '8', internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'parse_relation.c', line: '3716', routine: 'errorMissingColumn' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-ares.live.test.ts[2m > [22mKolo 7 — registrace pořadatele a KYC s ARES simulátorem[2m > [22mvýpadek i timeout ARES → ruční ověření, IČO není označené jako neplatné ani rizikové
+[31m[1merror[22m: column "ares_check_status" does not exist[39m
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m register tests/fix-r7-ares.live.test.ts:[2m76:18[22m[39m
+    [90m 74| [39m    [35mconst[39m body [33m=[39m ([35mawait[39m r[33m.[39m[34mjson[39m()) [35mas[39m { promoterId[33m:[39m string[33m;[39m accessToken…
+    [90m 75| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(body))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m 76| [39m    [35mconst[39m row [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m(
+    [90m   | [39m                 [31m^[39m
+    [90m 77| [39m      [32m`SELECT ares_check_status, manual_verification_required, ares_ic[39m…
+    [90m 78| [39m         FROM platform.promoters WHERE id=$1`[39m[33m,[39m [body[33m.[39mpromoterId]))[33m.[39mrow[0m…
+[90m [2m❯[22m tests/fix-r7-ares.live.test.ts:[2m97:17[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 116, severity: 'ERROR', code: '42703', detail: undefined, hint: undefined, position: '8', internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'parse_relation.c', line: '3716', routine: 'errorMissingColumn' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-ares.live.test.ts[2m > [22mKolo 7 — registrace pořadatele a KYC s ARES simulátorem[2m > [22mKYC: při výpadku ARES se údaje přijmou k ručnímu ověření (dřív 422); neexistující IČO dál 422
+[31m[1merror[22m: column "ares_check_status" does not exist[39m
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m register tests/fix-r7-ares.live.test.ts:[2m76:18[22m[39m
+    [90m 74| [39m    [35mconst[39m body [33m=[39m ([35mawait[39m r[33m.[39m[34mjson[39m()) [35mas[39m { promoterId[33m:[39m string[33m;[39m accessToken…
+    [90m 75| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(body))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m 76| [39m    [35mconst[39m row [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m(
+    [90m   | [39m                 [31m^[39m
+    [90m 77| [39m      [32m`SELECT ares_check_status, manual_verification_required, ares_ic[39m…
+    [90m 78| [39m         FROM platform.promoters WHERE id=$1`[39m[33m,[39m [body[33m.[39mpromoterId]))[33m.[39mrow[0m…
+[90m [2m❯[22m tests/fix-r7-ares.live.test.ts:[2m113:17[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 116, severity: 'ERROR', code: '42703', detail: undefined, hint: undefined, position: '8', internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'parse_relation.c', line: '3716', routine: 'errorMissingColumn' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m6 failed[39m[22m[90m (6)[39m
+[2m   Start at [22m 03:46:32
+[2m   Duration [22m 2.41s[2m (transform 107ms, setup 0ms, collect 98ms, tests 2.15s, environment 0ms, prepare 67ms)[22m
+

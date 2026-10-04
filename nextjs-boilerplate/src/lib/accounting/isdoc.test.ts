@@ -1,122 +1,100 @@
+/**
+ * ISDOC 6.0.2 proti OFICIÁLNÍMU XSD (kolo 7, C-54). Schéma: src/lib/accounting/xsd/isdoc-invoice-6.0.2.xsd,
+ * staženo z https://isdoc.cz/6.0.2/xsd/isdoc-invoice-6.0.2.xsd (MVČR, verze 6.0.2 z 23. 3. 2022),
+ * sha256 fb5de36fe7b5517acb8aa0c7950d91f8e28910e63b8cdcaaf7db0b0f4f0420bb. Validátor: xmllint-wasm (libxml2).
+ */
+import { createHash } from 'crypto';
+import { readFileSync } from 'fs';
+import path from 'path';
 import { describe, expect, it } from 'vitest';
-import { buildIsdocXml, IsdocInvoiceData } from './isdoc';
+import { validateXML } from 'xmllint-wasm';
+import { buildIsdocXml } from './isdoc';
+import type { TaxDocument } from './tax-document';
 
-const fixture: IsdocInvoiceData = {
-  invoiceNumber: '2026-0042',
-  issueDate: '2026-05-20',
-  taxableSupplyDate: '2026-05-20',
-  dueDate: '2026-06-03',
-  supplier: {
-    name: 'Tixly s.r.o.',
-    ico: '12345678',
-    dic: 'CZ12345678',
-    address: {
-      street: 'Václavské náměstí 1',
-      city: 'Praha 1',
-      zip: '11000',
-      country: 'CZ',
-    },
-    bankAccount: '123456789/0100',
-    email: 'fakturace@tixly.cz',
-  },
-  customer: {
-    name: 'Jan Novák',
-    email: 'jan@example.com',
-    address: {
-      street: 'Tržiště 22',
-      city: 'Brno',
-      zip: '60200',
-      country: 'CZ',
-    },
-  },
-  lines: [
-    {
-      description: 'Vstupenka — Koncert XY (kat. VIP)',
-      quantity: 2,
-      unitPriceWithoutVat: 1000,
-      vatRatePct: 10,
-    },
-    {
-      description: 'Servisní poplatek',
-      quantity: 1,
-      unitPriceWithoutVat: 50,
-      vatRatePct: 21,
-    },
+const XSD_PATH = path.join(__dirname, 'xsd', 'isdoc-invoice-6.0.2.xsd');
+const XSD = readFileSync(XSD_PATH, 'utf8');
+
+async function validate(xml: string): Promise<{ valid: boolean; errors: string[] }> {
+  const r = await validateXML({
+    xml: [{ fileName: 'doklad.isdoc', contents: xml }],
+    schema: [{ fileName: 'isdoc-invoice-6.0.2.xsd', contents: XSD }],
+  });
+  return { valid: r.valid, errors: r.errors.map((e) => e.rawMessage ?? e.message) };
+}
+
+const supplierPayer = {
+  name: 'Divadlo Test s.r.o.', ico: '12345678', dic: 'CZ12345678', vatPayer: true,
+  address: { street: 'Celetná 17', city: 'Praha', zip: '11000', country: 'CZ' }, email: 'pokladna@divadlo.test',
+};
+const customer = { name: 'Jana Nováková', email: 'jana@example.test', address: null };
+
+const payerDoc: TaxDocument = {
+  id: '6f1c3a1e-2b4d-4c8e-9a7b-1d2e3f4a5b6c', docType: 'invoice', number: '2026-0001',
+  issueDate: '2026-10-04', taxableSupplyDate: '2026-10-03', dueDate: '2026-10-03', currency: 'CZK',
+  supplier: supplierPayer, customer,
+  items: [
+    { description: 'Vstupné (sazba DPH 21 %)', quantity: 1, totalMinor: 12100, vatRateCode: 'CZ_STANDARD', ratePct: 21 },
+    { description: 'Vstupné (sazba DPH 12 %)', quantity: 1, totalMinor: 50000, vatRateCode: 'CZ_REDUCED', ratePct: 12 },
   ],
-  currency: 'CZK',
-  subtotal: 2050,
-  vatAmount: 210.5,
-  total: 2260.5,
-  paymentMeans: 'transfer',
-  variableSymbol: '20260042',
+  vatLines: [
+    { vatRateCode: 'CZ_STANDARD', ratePct: 21, baseMinor: 10000, vatMinor: 2100, totalMinor: 12100 },
+    { vatRateCode: 'CZ_REDUCED', ratePct: 12, baseMinor: 44643, vatMinor: 5357, totalMinor: 50000 },
+  ],
+  totalMinor: 62100, correctedDocument: null, paid: true,
 };
 
-describe('buildIsdocXml', () => {
-  it('startuje UTF-8 BOM (Money S3 kompatibilita)', () => {
-    const xml = buildIsdocXml(fixture);
-    expect(xml.charCodeAt(0)).toBe(0xfeff);
+const nonPayerDoc: TaxDocument = {
+  ...payerDoc, id: '0a1b2c3d-4e5f-4061-8a9b-0c1d2e3f4a5b', number: '2026-0007',
+  supplier: { ...supplierPayer, dic: null, vatPayer: false },
+  items: [{ description: 'Vstupné', quantity: 2, totalMinor: 60000, vatRateCode: null, ratePct: null }],
+  vatLines: [], totalMinor: 60000,
+};
+
+const creditNote: TaxDocument = {
+  ...payerDoc, id: '9e8d7c6b-5a49-4382-9172-6b5a4c3d2e1f', docType: 'credit_note', number: 'D2026-0001',
+  items: [{ description: 'Vstupné (sazba DPH 12 %)', quantity: 1, totalMinor: -50000, vatRateCode: 'CZ_REDUCED', ratePct: 12 }],
+  vatLines: [{ vatRateCode: 'CZ_REDUCED', ratePct: 12, baseMinor: -44643, vatMinor: -5357, totalMinor: -50000 }],
+  totalMinor: -50000,
+  correctedDocument: { id: payerDoc.id, number: payerDoc.number, issueDate: payerDoc.issueDate },
+};
+
+describe('ISDOC 6.0.2 proti oficiálnímu XSD', () => {
+  it('schéma je to oficiální (otisk souboru)', () => {
+    expect(createHash('sha256').update(readFileSync(XSD_PATH)).digest('hex')).toBe('fb5de36fe7b5517acb8aa0c7950d91f8e28910e63b8cdcaaf7db0b0f4f0420bb');
   });
 
-  it('obsahuje correct invoice number + UUID', () => {
-    const xml = buildIsdocXml(fixture);
-    expect(xml).toContain('<ID>2026-0042</ID>');
-    expect(xml).toContain('<UUID>tixly-2026-0042</UUID>');
+  it('validátor skutečně hlídá: doklad bez povinného ID neprojde, starý tvar UUID neprojde', async () => {
+    const xml = buildIsdocXml(payerDoc);
+    const noId = await validate(xml.replace('<ID>2026-0001</ID>', ''));
+    expect(noId.valid).toBe(false);
+    const badUuid = await validate(xml.replace(/<UUID>[^<]+<\/UUID>/, '<UUID>tixly-2026-0001</UUID>'));
+    expect(badUuid.valid).toBe(false);
+    expect(badUuid.errors.join(' ')).toMatch(/UUID/);
   });
 
-  it('escapuje XML special characters', () => {
-    const f = {
-      ...fixture,
-      lines: [{ ...fixture.lines[0], description: 'Test & "quote" <tag>' }],
-    };
-    const xml = buildIsdocXml(f);
-    expect(xml).toContain('&amp;');
-    expect(xml).toContain('&quot;');
-    expect(xml).toContain('&lt;tag&gt;');
+  it('plátce DPH, dvě sazby — projde validací, rozpis po sazbách', async () => {
+    const xml = buildIsdocXml(payerDoc);
+    const v = await validate(xml);
+    expect(v.errors).toEqual([]);
+    expect(v.valid).toBe(true);
+    expect(xml).toContain('<DocumentType>1</DocumentType>');
+    expect(xml).toContain('<TaxAmount>74.57</TaxAmount>');
   });
 
-  it('obsahuje DIČ supplier when set', () => {
-    const xml = buildIsdocXml(fixture);
-    expect(xml).toMatch(/<CompanyID>CZ12345678<\/CompanyID>/);
+  it('neplátce — projde validací, VATApplicable=false a text o neplátci', async () => {
+    const xml = buildIsdocXml(nonPayerDoc);
+    const v = await validate(xml);
+    expect(v.errors).toEqual([]);
+    expect(xml).toContain('<VATApplicable>false</VATApplicable>');
+    expect(xml).toContain('Prodávající není plátcem DPH.');
   });
 
-  it('grupuje VAT rates do TaxSubTotal breakdown', () => {
-    const xml = buildIsdocXml(fixture);
-    // 10% sazba (2 ks × 1000 = 2000 base)
-    expect(xml).toMatch(/<TaxableAmount>2000\.00<\/TaxableAmount>\s+<TaxAmount>200\.00<\/TaxAmount>/);
-    // 21% sazba (1 ks × 50 = 50 base)
-    expect(xml).toMatch(/<TaxableAmount>50\.00<\/TaxableAmount>\s+<TaxAmount>10\.50<\/TaxAmount>/);
-  });
-
-  it('payment means code: bankovní převod = 42', () => {
-    const xml = buildIsdocXml(fixture);
-    expect(xml).toContain('<PaymentMeansCode>42</PaymentMeansCode>');
-  });
-
-  it('LegalMonetaryTotal odpovídá zadanému subtotal/vat/total', () => {
-    const xml = buildIsdocXml(fixture);
-    expect(xml).toContain('<TaxExclusiveAmount>2050.00</TaxExclusiveAmount>');
-    expect(xml).toContain('<TaxInclusiveAmount>2260.50</TaxInclusiveAmount>');
-    expect(xml).toContain('<PayableAmount>2260.50</PayableAmount>');
-  });
-
-  it('VariableSymbol je v PaymentMeans Details', () => {
-    const xml = buildIsdocXml(fixture);
-    expect(xml).toContain('<VariableSymbol>20260042</VariableSymbol>');
-  });
-
-  it('cash payment → kód 10', () => {
-    const xml = buildIsdocXml({ ...fixture, paymentMeans: 'cash' });
-    expect(xml).toContain('<PaymentMeansCode>10</PaymentMeansCode>');
-  });
-
-  it('SK customer country se mapuje na "Slovensko"', () => {
-    const xml = buildIsdocXml({
-      ...fixture,
-      customer: {
-        ...fixture.customer,
-        address: { ...fixture.customer.address!, country: 'SK' },
-      },
-    });
-    expect(xml).toContain('<Name>Slovensko</Name>');
+  it('dobropis při refundu — projde validací, DocumentType 2, odkaz na původní doklad, záporné částky', async () => {
+    const xml = buildIsdocXml(creditNote);
+    const v = await validate(xml);
+    expect(v.errors).toEqual([]);
+    expect(xml).toContain('<DocumentType>2</DocumentType>');
+    expect(xml).toContain('<ID>2026-0001</ID>');
+    expect(xml).toContain('<TaxInclusiveAmount>-500.00</TaxInclusiveAmount>');
   });
 });

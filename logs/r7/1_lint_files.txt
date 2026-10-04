@@ -1,0 +1,7 @@
+src/app/[locale]/events/[id]/page.tsx
+src/app/api/admin/events/[id]/route.ts
+src/app/api/admin/events/route.ts
+src/app/api/admin/pos/sale/route.ts
+src/app/api/checkout/route.ts
+src/app/api/kiosk/order/route.ts
+src/app/api/v1/wl/orders/route.ts

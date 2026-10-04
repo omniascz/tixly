@@ -14,6 +14,7 @@ import { randomUUID } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 
 const schema = z.object({
@@ -32,6 +33,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'INVALID_INPUT', issues: parsed.error.issues }, { status: 422 });
   }
   const input = parsed.data;
+
+  // Kolo 7 (C-29): kiosk je kupcový kanál — po uzávěrce online prodeje nový nákup nejde.
+  const salesClosed = await saleBlockedResponse(db(), input.eventId, 'online');
+  if (salesClosed) return salesClosed;
 
   // FIX K1: kiosk NEMĚL žádné ověření identity — kdokoli nepřihlášený přes něj
   // dostal placené vstupenky zdarma (promoterSlug i eventId jsou veřejné). Nově

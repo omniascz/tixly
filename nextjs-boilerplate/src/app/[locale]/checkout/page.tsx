@@ -76,6 +76,8 @@ function CheckoutForm() {
     | 'crypto'
     | 'b2b_credit'
   >('gopay');
+  // Kolo 7: krypto (Triple-A) neumí refund přes API → nabízí se jen u akcí z doby před mig. 499.
+  const [legacyGateways, setLegacyGateways] = useState(false);
   const [b2bAccountCode, setB2bAccountCode] = useState('');
   const [b2bVerify, setB2bVerify] = useState<{ companyName: string; balanceHalire: number } | null>(null);
   const [b2bVerifyError, setB2bVerifyError] = useState<string | null>(null);
@@ -302,6 +304,7 @@ function CheckoutForm() {
           eventFlags?: { requiresOtp: boolean; verifiedFanEnabled: boolean };
           metaPixelId?: string | null;
           currency?: string;
+          legacyPaymentGateways?: boolean;
         } | null) => {
           const tt = d?.ticketTypes?.find((t) => t.id === ticketTypeId);
           if (tt) {
@@ -311,6 +314,7 @@ function CheckoutForm() {
           if (d?.eventFlags) setEventFlags(d.eventFlags);
           if (d?.metaPixelId) setMetaPixelId(d.metaPixelId);
           if (d?.currency) setCurrency(d.currency);
+          setLegacyGateways(d?.legacyPaymentGateways === true);
         },
       )
       .catch(() => {});
@@ -1202,6 +1206,7 @@ function CheckoutForm() {
                     Skip Pay <span className="text-xs text-muted-foreground">— 4 splátky (ČSOB)</span>
                   </span>
                 </label>
+                {legacyGateways ? (
                 <label
                   className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'crypto' ? 'border-[#F7931A] bg-orange-50' : ''}`}
                 >
@@ -1216,6 +1221,7 @@ function CheckoutForm() {
                     ₿ Krypto <span className="text-xs text-muted-foreground">— Bitcoin / Ethereum (Triple-A)</span>
                   </span>
                 </label>
+                ) : null}
               </div>
 
               {/* Benefit karty (B2B) — toggle */}

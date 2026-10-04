@@ -13,7 +13,8 @@ export default defineConfig({
     // ale ty soubory deklarují `// @vitest-environment node` a tenhle config jim
     // i tak aplikuje `setupFiles: ./tests/setup.ts`, které sahá na `window`
     // → ReferenceError už při collectu. Mají vlastní dráhu: vitest.live.config.ts.
-    exclude: ['node_modules', 'dist', '.next', 'tests/**/*.live.test.ts'],
+    // Kolo 7: sandbox testy bran mají vlastní dráhu (vitest.sandbox.config.ts).
+    exclude: ['node_modules', 'dist', '.next', 'tests/**/*.live.test.ts', 'tests/sandbox/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],

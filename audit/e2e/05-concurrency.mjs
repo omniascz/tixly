@@ -12,7 +12,7 @@ const key = (x) => `${x.status}:${x.json?.error ?? (x.json?.orderId ? 'OK' : (x.
 const webhook = (pid) => new Client('gopay-notify').get(`/api/payments/gopay/webhook?id=${pid}`);
 
 async function mkType(name, qty, extra = {}) {
-  const r = await PA.post(`/api/admin/events/${S.eventA}/ticket-types`, { name, priceHalire: 10000, totalQty: qty, ...extra });
+  const r = await PA.post(`/api/admin/events/${S.eventA}/ticket-types`, { name, priceHalire: 10000, vatRateCode: 'CZ_REDUCED', totalQty: qty, ...extra });
   const id = (await q(`SELECT id FROM catalog.ticket_types WHERE event_id=$1 AND name=$2`, [S.eventA, name]))[0]?.id;
   if (!id) throw new Error(`mkType ${name}: ${r.status} ${r.text}`);
   return id;

@@ -85,6 +85,8 @@ interface FormState {
   dateEnd: string;
   saleStartAt: string;
   saleEndAt: string;
+  /** Kolo 7 (C-54): sazba DPH pro typy vstupenek nové akce (kód z /api/admin/vat-rates). */
+  vatRateCode: string;
   venueId: string;
   // Krok 4 (festival): Days + Zones
   days: DayInput[];
@@ -212,6 +214,20 @@ export default function NewEventWizardPage() {
   const router = useRouter();
   const [stepIdx, setStepIdx] = useState(0);
   const [venues, setVenues] = useState<Venue[]>([]);
+  // Kolo 7 (C-54): nabídka sazeb DPH z DB a zda je pořadatel plátce.
+  const [vatInfo, setVatInfo] = useState<{ vatPayer: boolean; codes: { code: string; label: string; ratePct: number | null }[] }>({
+    vatPayer: false,
+    codes: [],
+  });
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    fetch('/api/admin/vat-rates', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { vatPayer: boolean; codes: { code: string; label: string; ratePct: number | null }[] } | null) => {
+        if (d) setVatInfo({ vatPayer: d.vatPayer, codes: d.codes });
+      })
+      .catch(() => {});
+  }, []);
   const [venueSectors, setVenueSectors] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [seatWarning, setSeatWarning] = useState<string | null>(null);
@@ -245,6 +261,7 @@ export default function NewEventWizardPage() {
       initialFromTemplate.days[initialFromTemplate.days.length - 1].endsAt,
     saleStartAt: '',
     saleEndAt: '',
+    vatRateCode: '',
     venueId: '',
     days: initialFromTemplate.days,
     zones: initialFromTemplate.zones,
@@ -660,6 +677,7 @@ export default function NewEventWizardPage() {
             })),
             zone: t.zone?.trim() ? t.zone.trim() : null,
             isSeated: Boolean(t.isSeated),
+            vatRateCode: vatInfo.vatPayer ? form.vatRateCode || null : null,
           })),
           maxTicketsPerOrder: form.maxTicketsPerOrder
             ? parseInt(form.maxTicketsPerOrder, 10)
@@ -952,7 +970,7 @@ export default function NewEventWizardPage() {
                   </div>
                   <div>
                     <label className="mb-1 block text-xs text-muted-foreground">
-                      Konec prodeje
+                      Konec online prodeje (prázdné = začátek akce)
                     </label>
                     <Input
                       type="datetime-local"
@@ -960,6 +978,24 @@ export default function NewEventWizardPage() {
                       onChange={(e) => update('saleEndAt', e.target.value)}
                     />
                   </div>
+                  {vatInfo.vatPayer ? (
+                    <div>
+                      <label className="mb-1 block text-xs font-medium">Sazba DPH vstupenek *</label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                        value={form.vatRateCode}
+                        onChange={(e) => update('vatRateCode', e.target.value)}
+                        data-testid="new-event-vat-rate"
+                      >
+                        <option value="">— vyberte —</option>
+                        {vatInfo.codes.map((c) => (
+                          <option key={c.code} value={c.code}>
+                            {c.label}{c.ratePct !== null ? ` (${c.ratePct} %)` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
                 </div>
               </div>
               <div>

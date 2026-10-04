@@ -44,6 +44,9 @@ async function mkPromoter(tag) {
   const email = `promoter-${tag}-${RUN}@audit.test`;
   const reg = await c.post('/api/auth/register-promoter', { email, password: PW, name: `Poradatel ${tag}`, companyName: `Audit ${tag} s.r.o.`, slug: `audit-${tag}-${RUN}` });
   const row = (await q(`SELECT p.id, p.status FROM platform.promoters p WHERE p.slug = $1`, [`audit-${tag}-${RUN}`]))[0];
+  // Kolo 7 (C-54): plátce DPH (výchozí) musí mít DIČ, jinak nelze publikovat ani prodávat — v auditu
+  // ho doplníme přímo (KYC volá živé ARES); typy vstupenek nesou sazbu CZ_REDUCED (vstupné).
+  if (row?.id) await q(`UPDATE platform.promoters SET company_dic = $2 WHERE id = $1`, [row.id, `CZ${String(Date.now()).slice(-8)}`]);
   check(`C1${tag}`, `registrace poradatele ${tag}`, reg.status < 300 && !!row, { ...ev(reg), db: row });
   return { c, email, id: row?.id, status: row?.status };
 }
@@ -73,10 +76,10 @@ async function mkEvent(P, title, ticketTypes) {
   return { res, id, db };
 }
 let e = await mkEvent(PA, `Audit Koncert A ${RUN}`, [
-  { name: 'Stani', priceHalire: 50000, capacity: 50 },
-  { name: 'Posledni mista', priceHalire: 30000, capacity: 5 },
-  { name: 'Limit 2 na osobu', priceHalire: 20000, capacity: 100, maxPerUser: 2 },
-  { name: 'Zdarma', priceHalire: 0, capacity: 10 },
+  { name: 'Stani', priceHalire: 50000, vatRateCode: 'CZ_REDUCED', capacity: 50 },
+  { name: 'Posledni mista', priceHalire: 30000, vatRateCode: 'CZ_REDUCED', capacity: 5 },
+  { name: 'Limit 2 na osobu', priceHalire: 20000, vatRateCode: 'CZ_REDUCED', capacity: 100, maxPerUser: 2 },
+  { name: 'Zdarma', priceHalire: 0, vatRateCode: 'CZ_REDUCED', capacity: 10 },
 ]);
 S.eventA = e.id;
 check('D2', 'vytvoreni akce + 4 typy vstupenek (poradatel A)', e.res.status < 300 && !!e.id, { ...ev(e.res), db: e.db });
@@ -84,7 +87,7 @@ const tts = e.id ? await q(`SELECT id, name, base_price, total_qty, remaining_qt
 check('D3', 'typy vstupenek v DB se spravnou cenou a kapacitou', tts.length === 4 && tts.every((t) => t.total_qty === t.remaining_qty), tts);
 S.tt = Object.fromEntries(tts.map((t) => [t.name, t.id]));
 
-e = await mkEvent(PB, `Audit Koncert B ${RUN}`, [{ name: 'Stani B', priceHalire: 40000, capacity: 20 }]);
+e = await mkEvent(PB, `Audit Koncert B ${RUN}`, [{ name: 'Stani B', priceHalire: 40000, vatRateCode: 'CZ_REDUCED', capacity: 20 }]);
 S.eventB = e.id;
 check('D4', 'vytvoreni akce poradatelem B', e.res.status < 300 && !!e.id, { ...ev(e.res), db: e.db });
 S.ttB = e.id ? (await q(`SELECT id FROM catalog.ticket_types WHERE event_id=$1`, [e.id]))[0]?.id : null;
@@ -114,7 +117,7 @@ check('E4', 'poradatel B cte akci poradatele A -> odmitnuto (403/404)', r.status
 r = await PB.c.patch(`/api/admin/events/${S.eventA}`, { title: 'HACKED by B' });
 const titleA = (await q(`SELECT title FROM catalog.events WHERE id=$1`, [S.eventA]))[0]?.title;
 check('E5', 'poradatel B meni akci A -> odmitnuto a title v DB nezmenen', (r.status === 403 || r.status === 404) && !/HACKED/.test(titleA), { ...ev(r), titleInDb: titleA });
-r = await PB.c.post(`/api/admin/events/${S.eventA}/ticket-types`, { name: 'Cizi typ', priceHalire: 1, totalQty: 1000 });
+r = await PB.c.post(`/api/admin/events/${S.eventA}/ticket-types`, { name: 'Cizi typ', priceHalire: 1, vatRateCode: 'CZ_REDUCED', totalQty: 1000 });
 const cnt = (await q(`SELECT count(*)::int n FROM catalog.ticket_types WHERE event_id=$1`, [S.eventA]))[0].n;
 check('E6', 'poradatel B pridava typ vstupenky do akce A -> odmitnuto, pocet typu = 4', (r.status === 403 || r.status === 404) && cnt === 4, { ...ev(r), ticketTypesInDb: cnt });
 r = await PB.c.get('/api/admin/events');

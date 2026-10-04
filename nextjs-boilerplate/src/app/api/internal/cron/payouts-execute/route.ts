@@ -48,14 +48,17 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   const results = await Promise.allSettled(pending.map((row) => executePayout(row)));
 
-  let paid = 0;
+  // Kolo 7 (C-57): executor už nehlásí 'paid' — Wise čeká na webhook, CZK na ruční převod.
+  let processing = 0;
+  let awaitingManualTransfer = 0;
   let skipped = 0;
   let failed = 0;
   const errors: string[] = [];
 
   for (const result of results) {
     if (result.status === 'fulfilled') {
-      if (result.value.status === 'paid') paid++;
+      if (result.value.status === 'processing') processing++;
+      else if (result.value.status === 'awaiting_manual_transfer') awaitingManualTransfer++;
       else if (result.value.status === 'skipped') skipped++;
       else {
         failed++;
@@ -67,14 +70,15 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
   }
 
-  console.info(`[payouts-execute] batch=${pending.length} paid=${paid} skipped=${skipped} failed=${failed}`);
+  console.info(`[payouts-execute] batch=${pending.length} processing=${processing} awaitingManualTransfer=${awaitingManualTransfer} skipped=${skipped} failed=${failed}`);
 
   return NextResponse.json({
     // R-46: driv `ok: true` natvrdo vedle neprazdneho `errors`. U vyplat to
     // znamenalo, ze selhani jednotlivych plateb hlasil cron jako uspech.
     ok: errors.length === 0 && failed === 0,
     processed: pending.length,
-    paid,
+    processing,
+    awaitingManualTransfer,
     skipped,
     failed,
     errors,

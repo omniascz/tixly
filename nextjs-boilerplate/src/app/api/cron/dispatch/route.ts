@@ -72,6 +72,8 @@ const ALLOWED_JOBS = new Set([
   // Seat upgrade notifications — unique differentiator vs Eventim/TM
   // AXS Invite — release expired adjacent-seat holds
   'release-group-invite-holds',
+  // Kolo 7: opce na termíny sálu s prošlou lhůtou → expired, další v pořadí se posune (hodinově)
+  'expire-date-holds',
 ]);
 
 export async function GET(req: NextRequest): Promise<Response> {

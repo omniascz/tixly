@@ -43,8 +43,22 @@ http.createServer(async (req, res) => {
   if (!url.pathname.startsWith('/_ctl')) { calls.push(entry); if (LOG) appendFileSync(LOG, JSON.stringify(entry) + '\n'); }
   let m;
 
-  if (req.method === 'POST' && url.pathname === '/api/oauth2/token')
-    return send(res, 200, { access_token: 'fake-token', token_type: 'bearer', expires_in: 1800 });
+  // Kolo 7: scope podle doc.gopay.com — token `payment-create` smí jen zakládat platby,
+  // dotaz na stav a refund vyžadují `payment-all` (jinak 403, jako skutečná brána).
+  if (req.method === 'POST' && url.pathname === '/api/oauth2/token') {
+    // Simulace neplatných přihlašovacích údajů (sandbox testy, kolo 7): client_secret začínající „neplatne" → 401.
+    const basic = Buffer.from((req.headers.authorization ?? '').replace(/^Basic /, ''), 'base64').toString('utf8');
+    if (basic.split(':').slice(1).join(':').startsWith('neplatne')) return send(res, 401, { error: 'invalid_client' });
+    const scope = new URLSearchParams(body).get('scope');
+    if (scope !== 'payment-create' && scope !== 'payment-all') return send(res, 400, { errors: [{ error_name: 'INVALID_SCOPE' }] });
+    return send(res, 200, { access_token: `fake-token-${scope}`, token_type: 'bearer', expires_in: 1800 });
+  }
+  const bearer = (req.headers.authorization ?? '').replace(/^Bearer /, '');
+  const needAll = url.pathname.startsWith('/api/payments/payment/');
+  if (url.pathname.startsWith('/api/payments/payment')) {
+    if (!bearer.startsWith('fake-token-')) return send(res, 401, { errors: [{ error_name: 'AUTH_WRONG_TOKEN' }] });
+    if (needAll && bearer !== 'fake-token-payment-all') return send(res, 403, { errors: [{ error_name: 'AUTH_WRONG_SCOPE' }] });
+  }
 
   if (req.method === 'POST' && url.pathname === '/api/payments/payment') {
     const p = JSON.parse(body || '{}');

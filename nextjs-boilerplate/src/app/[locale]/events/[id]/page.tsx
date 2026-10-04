@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate } from '@/lib/format';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 import { getDict } from '@/lib/i18n-dictionaries';
+import { isSalesOpen } from '@/lib/sales/cutoff';
 import { GroupInviteButton } from './GroupInviteButton';
 import { LotteryCard } from './LotteryCard';
 import { Recommendations } from './Recommendations';
@@ -47,6 +48,8 @@ interface EventDetail {
   title: string;
   description: string | null;
   date_start: string;
+  /** Kolo 7 (C-29): konec online prodeje; null = začátek akce. */
+  sales_end_at?: string | null;
   timezone: string | null;
   venue_name: string;
   venue_address: string;
@@ -96,7 +99,7 @@ async function fetchDetail(id: string) {
   try {
     const eventResult = await db.query<EventDetail>(
       `
-      SELECT e.id, e.title, e.description, e.date_start, e.date_end, e.timezone, e.min_age, e.currency, e.queue_enabled,
+      SELECT e.id, e.title, e.description, e.date_start, e.date_end, e.sales_end_at, e.timezone, e.min_age, e.currency, e.queue_enabled,
              e.timed_entry_enabled,
              e.event_type,
              e.streaming_url, e.streaming_provider, e.stream_replay_days,
@@ -473,7 +476,12 @@ export default async function EventDetailPage({
             <CardTitle>{t.eventDetail.tickets}</CardTitle>
           </CardHeader>
           <CardContent>
-            {ticketTypes.length === 0 ? (
+            {!isSalesOpen(event, 'online') ? (
+              // Kolo 7 (C-29): po uzávěrce online prodeje se nákup nenabízí (server ho stejně odmítne).
+              <p className="text-sm font-medium text-muted-foreground" data-testid="sales-closed">
+                Prodej ukončen
+              </p>
+            ) : ticketTypes.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 {t.eventDetail.noTicketsOnSale}
               </p>

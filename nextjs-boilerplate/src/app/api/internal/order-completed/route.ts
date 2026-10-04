@@ -20,7 +20,8 @@ import { internalAuthHeaders } from '@/lib/internal-auth';
 
 import { awardPointsForOrder } from '@/lib/loyalty/engine';
 import { sendSms } from '@/lib/sms/bulkgate-mock';
-import { resolveVatRate, splitGrossToNetVat } from '@/lib/tax/vat-rates';
+import { splitGrossMinor } from '@/lib/tax/vat';
+import { orderTicketVatPct } from '@/lib/tax/vat-rates';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 import { renderTicketsPdf } from '@/lib/tickets/pdf-renderer';
 import { buildPkpass, type PassData } from '@/lib/wallet/apple-pass';
@@ -162,7 +163,7 @@ interface TravelBookingEmailRow {
   confirmation_code: string | null;
 }
 
-function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: string[] = [], travelBookings: TravelBookingEmailRow[] = []): string {
+function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: string[] = [], travelBookings: TravelBookingEmailRow[] = [], vatPct: number | null | undefined = undefined): string {
   const locale = pickEmailLocale(order);
   const s = EMAIL_STRINGS[locale];
   const currency = order.currency || 'CZK';
@@ -196,18 +197,26 @@ function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: 
     ? `${escapeHtml(promoterName)} · ${escapeHtml(order.promoter_email)}`
     : `${escapeHtml(promoterName)} přes Tixly`;
 
-  // DPH rozpis (gross → net + dph). Per-event vat_category > promoter flat rate.
-  // B2B reverse charge → 0 % (EU cross-border, mig 390).
-  const effectiveVatRateEmail = order.is_reverse_charge
-    ? 0
-    : order.event_vat_category
-      ? resolveVatRate({ country: order.promoter_country, vatCategory: order.event_vat_category })
-      : // Záložní hodnota odvozená ze země pořadatele, ne natvrdo napsané číslo.
-        // Dřív tu bylo 10 % z doby před českou reformou sazeb z 1. 1. 2024.
-        (order.promoter_vat_rate_pct ??
-          resolveVatRate({ country: order.promoter_country, vatCategory: 'cultural' }));
-  const vatRatePct = effectiveVatRateEmail;
-  const { netHalire, vatHalire } = splitGrossToNetVat(order.total_amount, vatRatePct);
+  // Kolo 7 (C-54): DPH ze sazby typů vstupenek v DB (vatPct, spočítané volajícím);
+  // null = prodávající není plátce DPH, undefined = sazba neznámá → rozpis se nezobrazí.
+  const vatRows =
+    typeof vatPct === 'number'
+      ? (() => {
+          const { baseMinor, vatMinor } = splitGrossMinor(order.total_amount, vatPct);
+          return `
+      <tr>
+        <td style="padding:4px 8px;text-align:right;color:#666;font-size:13px">${s.netLabel}</td>
+        <td style="padding:4px 8px;text-align:right;width:120px">${fmt(baseMinor)}</td>
+      </tr>
+      <tr>
+        <td style="padding:4px 8px;text-align:right;color:#666;font-size:13px">${s.vatLabel(vatPct)}</td>
+        <td style="padding:4px 8px;text-align:right">${fmt(vatMinor)}</td>
+      </tr>`;
+        })()
+      : vatPct === null
+        ? `
+      <tr><td colspan="2" style="padding:4px 8px;text-align:right;color:#666;font-size:13px">Prodávající není plátcem DPH.</td></tr>`
+        : '';
 
   return `<!DOCTYPE html>
 <html><body style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:0;color:#111">
@@ -241,15 +250,7 @@ function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: 
       <tbody>${itemsRows}</tbody>
     </table>
 
-    <table style="width:100%;border-collapse:collapse;margin-top:8px">
-      <tr>
-        <td style="padding:4px 8px;text-align:right;color:#666;font-size:13px">${s.netLabel}</td>
-        <td style="padding:4px 8px;text-align:right;width:120px">${fmt(netHalire)}</td>
-      </tr>
-      <tr>
-        <td style="padding:4px 8px;text-align:right;color:#666;font-size:13px">${s.vatLabel(vatRatePct)}</td>
-        <td style="padding:4px 8px;text-align:right">${fmt(vatHalire)}</td>
-      </tr>
+    <table style="width:100%;border-collapse:collapse;margin-top:8px">${vatRows}
       <tr style="border-top:2px solid #111">
         <td style="padding:8px;text-align:right;font-weight:600">${s.totalLabel}</td>
         <td style="padding:8px;text-align:right;font-weight:700;font-size:18px">${fmt(order.total_amount)}</td>
@@ -410,18 +411,9 @@ export async function POST(request: NextRequest): Promise<Response> {
   );
   const travelBookings = travelRes.rows;
 
-  const html = buildEmailHtml(order, itemsRes.rows, accessibleGateLines, travelBookings);
-
-  // Spočítej efektivní DPH sazbu (per-event vat_category > promoter flat rate).
-  // B2B reverse charge → 0 % (EU cross-border, mig 390).
-  const effectiveVatRatePct = order.is_reverse_charge
-    ? 0
-    : order.event_vat_category
-      ? resolveVatRate({ country: order.promoter_country, vatCategory: order.event_vat_category })
-      : // Záložní hodnota odvozená ze země pořadatele, ne natvrdo napsané číslo.
-        // Dřív tu bylo 10 % z doby před českou reformou sazeb z 1. 1. 2024.
-        (order.promoter_vat_rate_pct ??
-          resolveVatRate({ country: order.promoter_country, vatCategory: 'cultural' }));
+  // Kolo 7 (C-54): sazba z DB (typy vstupenek objednávky, k datu zaplacení). B2B reverse charge → 0 %.
+  const effectiveVatRatePct = order.is_reverse_charge ? 0 : await orderTicketVatPct(db(), orderId);
+  const html = buildEmailHtml(order, itemsRes.rows, accessibleGateLines, travelBookings, effectiveVatRatePct);
 
   // Issue tickets + render PDF + Apple Wallet passes.
   // Failures here must NOT block the email (best-effort) — order is already paid.

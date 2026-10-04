@@ -15,6 +15,7 @@ import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 const HOLD_TTL_MIN = 15;
 const MAX_SEATS = 10;
@@ -66,6 +67,9 @@ export async function POST(
     );
   }
 
+  // Kolo 7 (C-29): držení sedadla je začátek nákupu kupce — po uzávěrce online prodeje ne.
+  const salesClosed = await saleBlockedResponse(db(), params.id, 'online');
+  if (salesClosed) return salesClosed;
   // Identita pro "uvolni MŮJ předchozí hold":
   //  - authed buyer → x-user-id (uložené v hold_user_id),
   //  - guest        → stabilní x-fingerprint z prohlížeče (uložené v hold_label).

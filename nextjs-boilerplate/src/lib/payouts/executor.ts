@@ -16,7 +16,11 @@
  * Failure handling:
  *   - On API error: status = 'failed', failure_reason set, retry_count incremented
  *   - After 3 failures: status stays 'failed' (manual review required)
- *   - On success: status = 'paid', external_payout_id = provider ID, executed_at = NOW()
+ *   - Wise: status = 'processing' + external_payout_id; do 'paid' až webhook po potvrzení Wise API.
+ *   - CZK (FIO): převod dělá člověk → status = 'awaiting_manual_transfer'; do 'paid' až platform admin
+ *     potvrdí převod s datem a referencí (POST /api/platform/admin/payouts/[id]/confirm-transfer).
+ *   Kolo 7 (C-57): dřív obě cesty hlásily 'paid', i když peníze (FIO) vůbec neodešly. 'paid' bez
+ *   potvrzení dnes odmítne DB (trigger trg_payouts_paid_guard, migrace 497).
  */
 
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
@@ -51,7 +55,7 @@ export const ENABLED_PAYOUT_CHANNELS = new Set(['bank_transfer', 'sepa_credit', 
 
 type ExecuteResult = {
   payoutId: string;
-  status: 'paid' | 'skipped' | 'failed';
+  status: 'processing' | 'awaiting_manual_transfer' | 'skipped' | 'failed';
   provider?: string;
   externalId?: string;
   reason?: string;
@@ -154,7 +158,7 @@ async function executeWisePayout(
 
     return {
       payoutId: row.payout_id,
-      status: 'paid',
+      status: 'processing',
       provider: 'wise',
       externalId: String(transfer.id),
       reason: `fundStatus=${fundStatus}`,
@@ -173,25 +177,21 @@ async function executeFioPayout(
   row: PromoterPayoutRow,
   amountMajor: number,
 ): Promise<ExecuteResult> {
-  // FIO outbound transfers require FIO Business API (separate credentials).
-  // Currently manual — operator initiates from FIO Internet Banking.
-  // Mark as 'processing' + note in failure_reason for visibility.
+  // FIO outbound transfers require FIO Business API (separate credentials) — nenapojeno.
+  // Převod zadává člověk v internetovém bankovnictví → čeká na ruční převod, ne 'paid'.
   await db().query(
     `UPDATE platform.payouts
-     SET status = 'processing', payout_provider = 'fio',
-         executed_at = NOW(), failure_reason = $2
+     SET status = 'awaiting_manual_transfer', payout_provider = 'fio',
+         executed_at = NULL, failure_reason = NULL
      WHERE id = $1`,
-    [
-      row.payout_id,
-      `Manual FIO transfer required: ${amountMajor.toFixed(2)} CZK to IBAN ${row.iban}. Ref: ${row.payout_id.slice(0, 8)}`,
-    ],
+    [row.payout_id],
   );
 
   return {
     payoutId: row.payout_id,
-    status: 'paid',
+    status: 'awaiting_manual_transfer',
     provider: 'fio',
-    reason: 'Manual FIO — see failure_reason for transfer details',
+    reason: `Ruční převod ${amountMajor.toFixed(2)} CZK na IBAN ${row.iban}, VS/ref ${row.payout_id.slice(0, 8)}`,
   };
 }
 
