@@ -229,7 +229,7 @@ export async function POST(
             `UPDATE tickets.tickets SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
               WHERE id = ANY($1::uuid[]) AND status = 'valid'`, [revokedTicketIds]);
           await asSystemInTx(c, () => c.query(
-            `UPDATE catalog.ticket_types tt SET remaining_qty = remaining_qty + sub.qty
+            `UPDATE catalog.ticket_types tt SET remaining_qty = LEAST(tt.total_qty, remaining_qty + sub.qty)
                FROM (SELECT ticket_type_id, COUNT(*)::int AS qty FROM tickets.tickets
                       WHERE id = ANY($1::uuid[]) GROUP BY ticket_type_id) sub
               WHERE tt.id = sub.ticket_type_id`, [revokedTicketIds]));
@@ -244,7 +244,7 @@ export async function POST(
             `UPDATE tickets.tickets SET status='revoked', revoked_at=NOW(), updated_at=NOW()
               WHERE order_id = $1 AND status <> 'revoked'`, [params.orderId]);
           await asSystemInTx(c, () => c.query(
-            `UPDATE catalog.ticket_types tt SET remaining_qty = remaining_qty + sub.qty
+            `UPDATE catalog.ticket_types tt SET remaining_qty = LEAST(tt.total_qty, remaining_qty + sub.qty)
                FROM (SELECT ticket_type_id, SUM(quantity) AS qty FROM orders.order_items
                       WHERE order_id = $1 GROUP BY ticket_type_id) sub
               WHERE tt.id = sub.ticket_type_id`, [params.orderId]));
