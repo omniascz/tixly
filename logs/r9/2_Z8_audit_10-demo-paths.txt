@@ -1,0 +1,17 @@
+# E2E 10_demo_paths  base=http://localhost:3200  2026-10-04T16:00:35.222Z
+PASS D1  UPGRADE: neprihlaseny (jen ownerEmail+ticketId) upgradne lístek na dražší typ, vznikne paid objednávka a lístek zdraží — BEZ platby
+       {"status":404,"body":"{\"error\":\"NOT_FOUND\"}","ticketTypeNow":{"name":"Stani","base_price":50000},"upgradeOrder":null,"gopayCallsDelta":0}
+PASS D2  VOUCHER: bez auth checkout+confirm → voucher payment_status=paid s utratitelným zůstatkem, BEZ platby
+       {"checkoutStatus":200,"confirmStatus":404,"voucher":{"payment_status":"pending","balance_halire":200000,"amount_halire":200000,"paid_order_id":null},"gopayCallsDelta":0}
+PASS D3a  SUBSCRIPTION: oficiální checkout /api/subscriptions/checkout funguje (n-preduskuje mock confirm)
+       {"checkoutStatus":200,"body":"{\"ok\":true,\"holderId\":\"7ef54052-761b-447b-8b49-97f95cf4e904\",\"pricePaidHalire\":300000,\"currency\":\"CZK\",\"gatewayUrl\":\"/mock-subscription/ccdff3b5-07d4-4e64-8a73-1b0ec45593a1\",\"paymentId\":\"ccdff3b5-07d4"}
+PASS D3b  SUBSCRIPTION: bez auth confirm (holder seedován) → holder active/paid a vystaveny vstupenky (fixed abo), BEZ platby
+       {"confirmStatus":404,"confirmBody":"{\"error\":\"NOT_FOUND\"}","holder":{"id":"c6ab7217-f076-4764-b3b1-6182ccd5ab8a","status":"pending_payment","payment_status":"pending"},"ticketsIssued":0,"gopayCallsDelta":0}
+PASS D4  RESALE: guest (jen buyerEmail) převezme aktivní listing → nový valid lístek + paid objednávka, listing sold, BEZ platby
+       {"listReqStatus":201,"listingId":"11d2b416-abe0-4c84-a0a2-f3f78e315b9f","buyStatus":404,"newTicket":null,"listing":{"status":"active"},"gopayCallsDelta":0}
+PASS D5  KIOSK: nepřihlášený POST /api/kiosk/order -> 401 a žádná objednávka
+       {"status":401,"body":"{\"error\":{\"code\":\"TOKEN_MISSING\",\"message\":\"Authorization required\"}}","ordersInDb":[]}
+PASS D6  KIOSK: nepřihlášený POST s podvrženým x-user-id existující obsluhy -> 401 a žádná objednávka
+       {"staffUserId":"17d33575-4711-4479-8c62-c0b1b26f67f5","status":401,"body":"{\"error\":{\"code\":\"TOKEN_MISSING\",\"message\":\"Authorization required\"}}","ordersInDb":[]}
+
+# SUMMARY {"PASS":7,"FAIL":0,"INFO":0}
