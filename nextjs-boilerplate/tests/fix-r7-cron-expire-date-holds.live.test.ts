@@ -8,9 +8,9 @@
  * (lib/security/cron-auth.ts) a předá x-internal-token; běh označí prošlou opci jako expired a posune další.
  * Kontrakt: každý job z vercel.json je v allowlistu dispatcheru a má routu.
  */
+import { randomUUID } from 'crypto';
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
-import { randomUUID } from 'crypto';
 import type { NextRequest } from 'next/server';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createLocalClone, hasLocalDb, type LocalClone } from './helpers/local-fixture';

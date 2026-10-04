@@ -8,7 +8,7 @@ import {
   getUserRoles,
 } from '@/lib/auth';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
-import { checkAres, computeInitialRiskScore } from '@/lib/compliance/ares';
+import { checkAres, computeInitialRiskScore, type AresCheckResult } from '@/lib/compliance/ares';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
 import { clientIp } from '@/lib/security/client-ip';
 
@@ -60,10 +60,13 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   // ARES check (best-effort, non-blocking) — P0 risk mitigace
   // Pokud IČO valid + active → low risk score. Pokud invalid → high risk.
-  const aresResult = ico
+  // Kolo 7: výpadek / timeout ARES (outcome 'unavailable') NENÍ neplatné IČO — pořadatel jde do
+  // ručního ověření (manual_verification_required), ares_ico_valid zůstane neznámé (NULL).
+  const aresResult: AresCheckResult = ico
     ? await checkAres(ico)
-    : { valid: false, active: false, error: 'NO_ICO_PROVIDED' };
+    : { valid: false, active: false, outcome: 'not_provided', error: 'NO_ICO_PROVIDED' };
   const riskScore = computeInitialRiskScore(aresResult);
+  const aresUnavailable = aresResult.outcome === 'unavailable';
 
   // Pre-context (vytvoření usera+promotéra+membera v transakci) → service.
   return runWithServiceContext(async () => {
@@ -84,10 +87,12 @@ export async function POST(request: NextRequest): Promise<Response> {
       `INSERT INTO platform.promoters
          (name, email, contact_email, slug, status, locale,
           company_ico, ares_checked_at, ares_ico_valid, ares_company_active, ares_raw_response,
+          ares_check_status, manual_verification_required,
           risk_score, pre_review_volume_cap_halire,
           created_at, updated_at)
        VALUES ($1, $2, $2, $3, 'pending', 'cs',
                $4, NOW(), $5, $6, $7::jsonb,
+               $9, $10,
                $8, 10000000,
                NOW(), NOW())
        RETURNING id`,
@@ -96,10 +101,12 @@ export async function POST(request: NextRequest): Promise<Response> {
         email.toLowerCase(),
         slug,
         ico ?? null,
-        aresResult.valid,
-        aresResult.active,
+        aresUnavailable ? null : aresResult.valid,
+        aresUnavailable ? null : aresResult.active,
         aresResult.raw ? JSON.stringify(aresResult.raw) : null,
         riskScore,
+        aresResult.outcome === 'invalid' ? 'not_found' : aresResult.outcome,
+        aresUnavailable,
       ],
     );
     const promoterId = promoterRes.rows[0].id;

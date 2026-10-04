@@ -2,6 +2,7 @@
  * ARES (Administrativní registr ekonomických subjektů) verification.
  *
  * V produkci voláme: https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty/{ico}
+ * (přes lib/compliance/ares.ts — kolo 7).
  *
  * Vrací JSON s firemními údaji. V demu mock pro známé hodnoty (8-mistné IČO se sumou
  * podle algoritmu). Real ARES validation:
@@ -9,6 +10,8 @@
  *   2. Validation digit přes mod 11 algoritmus
  *   3. ARES API call → ověření, že existuje subjekt + získání jména a adresy
  */
+
+import { checkAres } from '@/lib/compliance/ares';
 
 export interface AresResult {
   valid: boolean;
@@ -18,6 +21,8 @@ export interface AresResult {
   dic?: string;
   active?: boolean;
   error?: string;
+  /** ARES nebyl dostupný (výpadek, 5xx, timeout) — o IČO nic nevíme → ruční ověření (kolo 7). */
+  unavailable: boolean;
 }
 
 /**
@@ -40,11 +45,11 @@ function validIcoChecksum(ico: string): boolean {
 export async function verifyIco(ico: string): Promise<AresResult> {
   const cleaned = ico.replace(/\s/g, '').padStart(8, '0');
   if (!validIcoChecksum(cleaned)) {
-    return { valid: false, ico: cleaned, error: 'INVALID_CHECKSUM' };
+    return { valid: false, ico: cleaned, error: 'INVALID_CHECKSUM', unavailable: false };
   }
 
-  // Pokud je nastaven mock flag, vrátíme stub (pro demo / testing)
-  if (process.env.ARES_MODE === 'mock') {
+  // Mock pro demo / vývoj. Kolo 7: v produkci ne — tam by potvrdil libovolné IČO s platným součtem.
+  if (process.env.ARES_MODE === 'mock' && process.env.NODE_ENV !== 'production') {
     return {
       valid: true,
       ico: cleaned,
@@ -52,42 +57,20 @@ export async function verifyIco(ico: string): Promise<AresResult> {
       address: 'Václavské nám. 1, 110 00 Praha 1',
       dic: `CZ${cleaned}`,
       active: true,
+      unavailable: false,
     };
   }
 
-  // Production: real ARES API call
-  try {
-    const url = `https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty/${cleaned}`;
-    const res = await fetch(url, {
-      headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (res.status === 404) {
-      return { valid: false, ico: cleaned, error: 'NOT_FOUND' };
-    }
-    if (!res.ok) {
-      return { valid: false, ico: cleaned, error: `ARES_HTTP_${res.status}` };
-    }
-    const data = (await res.json()) as {
-      obchodniJmeno?: string;
-      sidlo?: { textovaAdresa?: string };
-      dic?: string;
-      czNace?: unknown;
-      datumZaniku?: string | null;
-    };
-    return {
-      valid: true,
-      ico: cleaned,
-      companyName: data.obchodniJmeno,
-      address: data.sidlo?.textovaAdresa,
-      dic: data.dic,
-      active: !data.datumZaniku,
-    };
-  } catch (err) {
-    return {
-      valid: false,
-      ico: cleaned,
-      error: `ARES_FETCH_FAILED: ${(err as Error).message}`,
-    };
+  // Kolo 7: jeden klient ARES pro registraci i KYC (lib/compliance/ares.ts — ARES_BASE_URL,
+  // ARES_TIMEOUT_MS, rozlišení výpadku od neexistujícího IČO).
+  const r = await checkAres(cleaned);
+  if (r.outcome === 'verified' || r.outcome === 'inactive') {
+    return { valid: true, ico: cleaned, companyName: r.legalName, address: r.address, dic: r.dic, active: r.active, unavailable: false };
   }
+  return {
+    valid: false,
+    ico: cleaned,
+    error: r.outcome === 'unavailable' ? `ARES_UNAVAILABLE: ${r.error ?? ''}`.trim() : (r.error ?? 'NOT_FOUND'),
+    unavailable: r.outcome === 'unavailable',
+  };
 }

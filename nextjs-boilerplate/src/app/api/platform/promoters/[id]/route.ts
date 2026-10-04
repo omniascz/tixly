@@ -29,6 +29,7 @@ export async function GET(
     kyc_submitted_at: string | null; kyc_reviewed_at: string | null;
     kyc_rejection_reason: string | null;
     ares_verified_at: string | null; ares_data: unknown;
+    ares_check_status: string | null; manual_verification_required: boolean;
     country: string;
     primary_currency: string;
     tier: number;
@@ -43,7 +44,7 @@ export async function GET(
             vat_payer, vat_rate_pct,
             brand_logo_url, brand_color_hex, brand_tagline,
             kyc_status, kyc_submitted_at, kyc_reviewed_at, kyc_rejection_reason,
-            ares_verified_at, ares_data,
+            ares_verified_at, ares_data, ares_check_status, manual_verification_required,
             country, primary_currency,
             tier, tier_locked,
             chargeback_holdback_pct, chargeback_holdback_days,

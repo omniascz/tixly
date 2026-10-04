@@ -91,8 +91,11 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   // ARES verification
+  // Kolo 7: výpadek / timeout ARES → údaje přijmeme k RUČNÍMU ověření platform adminem
+  // (manual_verification_required); neexistující IČO dál 422.
   const ares = await verifyIco(parsed.data.ico);
-  if (!ares.valid) {
+  const manualVerification = ares.unavailable;
+  if (!ares.valid && !manualVerification) {
     return NextResponse.json(
       { error: 'ARES_VERIFICATION_FAILED', details: ares.error },
       { status: 422 },
@@ -110,13 +113,16 @@ export async function POST(req: NextRequest): Promise<Response> {
   // Po zjednodušené registraci (e-mail+heslo) je promoters.name placeholder
   // odvozený z e-mailu. KYC je první autoritativní ověření firmy → přepiš name
   // ověřeným právním názvem z ARES. (slug zatím zůstává — viz onboarding TODO.)
+  // Bez ARES (ruční ověření) se použije zadaný název; ares_verified_at zůstane prázdné.
   await db().query(
     `UPDATE platform.promoters
      SET name = COALESCE(NULLIF($9, ''), name),
          company_ico = $2, company_dic = $3, company_address = $4,
          bank_account = $5, vat_rate_pct = COALESCE($6, vat_rate_pct), vat_payer = $7,
          kyc_status = 'submitted', kyc_submitted_at = NOW(),
-         ares_verified_at = NOW(), ares_data = $8::jsonb,
+         ares_verified_at = CASE WHEN $10 THEN NULL ELSE NOW() END, ares_data = $8::jsonb,
+         ares_check_status = CASE WHEN $10 THEN 'unavailable' WHEN $11 THEN 'verified' ELSE 'inactive' END,
+         manual_verification_required = $10,
          updated_at = NOW()
      WHERE id = $1`,
     [
@@ -128,7 +134,9 @@ export async function POST(req: NextRequest): Promise<Response> {
       parsed.data.vatRatePct ?? null,
       parsed.data.vatPayer,
       JSON.stringify(ares),
-      ares.companyName ?? '',
+      manualVerification ? parsed.data.companyName : (ares.companyName ?? ''),
+      manualVerification,
+      ares.active !== false,
     ],
   );
 
@@ -140,6 +148,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       dic: ares.dic,
       active: ares.active,
     },
+    manualVerification,
     status: 'submitted',
   });
 

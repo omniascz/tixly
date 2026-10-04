@@ -17,14 +17,34 @@
  * Rate limit: ARES.gov nemá officiální, ale doporučeno < 100 req/s.
  */
 
-const ARES_BASE_URL = 'https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty';
-const REQUEST_TIMEOUT_MS = 5_000;
+const ARES_DEFAULT_BASE_URL = 'https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty';
+const ARES_DEFAULT_TIMEOUT_MS = 5_000;
+
+/**
+ * Kolo 7: adresa a timeout jdou nastavit (ARES_BASE_URL, ARES_TIMEOUT_MS) — testy míří na simulátor
+ * tests/helpers/fake-ares.mjs. Čte se při každém volání, ne při načtení modulu.
+ */
+function aresBaseUrl(): string {
+  return (process.env.ARES_BASE_URL || ARES_DEFAULT_BASE_URL).replace(/\/+$/, '');
+}
+function aresTimeoutMs(): number {
+  const n = Number(process.env.ARES_TIMEOUT_MS);
+  return Number.isFinite(n) && n > 0 ? n : ARES_DEFAULT_TIMEOUT_MS;
+}
+
+/**
+ * Výsledek ověření (kolo 7). `unavailable` = ARES neodpověděl (výpadek, 5xx, 429, timeout, síť) —
+ * o IČO nic nevíme a pořadatel jde do ručního ověření. Dřív se to nedalo odlišit od neexistujícího IČO.
+ */
+export type AresOutcome = 'verified' | 'not_found' | 'inactive' | 'unavailable' | 'invalid' | 'not_provided';
 
 export interface AresCheckResult {
   /** IČO existuje v ARES */
   valid: boolean;
   /** Subjekt je aktivní (ne v likvidaci/zaniklý) */
   active: boolean;
+  /** Rozlišený výsledek (kolo 7) */
+  outcome: AresOutcome;
   /** Obchodní jméno z registru */
   legalName?: string;
   /** Adresa sídla */
@@ -68,32 +88,37 @@ interface AresApiResponse {
 export async function checkAres(ico: string): Promise<AresCheckResult> {
   const normalized = ico.trim().padStart(8, '0');
   if (!/^\d{8}$/.test(normalized)) {
-    return { valid: false, active: false, error: 'INVALID_FORMAT' };
+    return { valid: false, active: false, outcome: 'invalid', error: 'INVALID_FORMAT' };
   }
 
   const ctrl = new AbortController();
-  const timeout = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
+  const timeout = setTimeout(() => ctrl.abort(), aresTimeoutMs());
 
   try {
-    const res = await fetch(`${ARES_BASE_URL}/${normalized}`, {
+    const res = await fetch(`${aresBaseUrl()}/${normalized}`, {
       signal: ctrl.signal,
       headers: { Accept: 'application/json' },
     });
-    clearTimeout(timeout);
 
     if (res.status === 404) {
-      return { valid: false, active: false, error: 'NOT_FOUND' };
+      clearTimeout(timeout);
+      return { valid: false, active: false, outcome: 'not_found', error: 'NOT_FOUND' };
     }
     if (!res.ok) {
-      return { valid: false, active: false, error: `HTTP_${res.status}` };
+      clearTimeout(timeout);
+      // 5xx / 429 = ARES nedostupný; jiné 4xx (např. 400 u IČO, které ARES odmítne) = neplatný dotaz.
+      const unavailable = res.status >= 500 || res.status === 429;
+      return { valid: false, active: false, outcome: unavailable ? 'unavailable' : 'invalid', error: `HTTP_${res.status}` };
     }
 
     const data = (await res.json()) as AresApiResponse;
+    clearTimeout(timeout);
     const active = data.datumZaniku === null || data.datumZaniku === undefined;
 
     return {
       valid: true,
       active,
+      outcome: active ? 'verified' : 'inactive',
       legalName: data.obchodniJmeno,
       address: data.sidlo?.textovaAdresa,
       dic: data.dic,
@@ -104,10 +129,8 @@ export async function checkAres(ico: string): Promise<AresCheckResult> {
   } catch (err) {
     clearTimeout(timeout);
     const msg = err instanceof Error ? err.message : String(err);
-    if (msg.includes('abort')) {
-      return { valid: false, active: false, error: 'TIMEOUT' };
-    }
-    return { valid: false, active: false, error: msg.slice(0, 200) };
+    const aborted = ctrl.signal.aborted || msg.toLowerCase().includes('abort');
+    return { valid: false, active: false, outcome: 'unavailable', error: aborted ? 'TIMEOUT' : msg.slice(0, 200) };
   }
 }
 
@@ -117,14 +140,18 @@ export async function checkAres(ico: string): Promise<AresCheckResult> {
  *
  * Heuristika:
  *   ARES not found      → +50 (možná zahraniční / falešné IČO)
+ *   ARES nedostupný     → baseline 50 + ruční ověření (kolo 7)
  *   ARES inactive       → +100 (zaniklý subjekt!)
  *   No DIČ              → +10 (ne plátce DPH, ale OK)
  *   Vznik < 6 měsíců    → +15 (nově založená firma)
  *   Vznik < 30 dní      → +30 (čerstvě založená, podezřelé)
  */
-export function computeInitialRiskScore(ares: AresCheckResult): number {
+export function computeInitialRiskScore(ares: Omit<AresCheckResult, 'outcome'> & { outcome?: AresOutcome }): number {
   let score = 50; // baseline T1 medium risk
 
+  // Kolo 7: ARES nedostupný → o IČO nic nevíme; ne +50 jako u neexistujícího IČO, ale ruční ověření
+  // (manual_verification_required) a výchozí střední riziko.
+  if (ares.outcome === 'unavailable') return score;
   if (!ares.valid) return Math.min(100, score + 50);
   if (!ares.active) return 100;
 
