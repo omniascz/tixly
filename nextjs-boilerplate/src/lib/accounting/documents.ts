@@ -134,11 +134,15 @@ async function insertDocument(
 /**
  * Vystaví daňový doklad k ZAPLACENÉ objednávce (idempotentně: existující doklad vrátí).
  * Musí běžet v transakci volajícího (číslo z řady + vložení atomicky).
+ *
+ * Kolo 8 / krok 6: `opts.unpaidDueDate` = faktura k firemní objednávce PŘED zaplacením (plnění ke dni vystavení,
+ * splatnost dle objednávky, paid_at prázdné — zaplacení se doplní později).
  */
 export async function issueOrderDocument(
   q: Q,
   orderId: string,
   customerOverride?: DocCustomer,
+  opts: { unpaidDueDate?: string } = {},
 ): Promise<{ invoiceId: string; created: boolean }> {
   const existing = await q.query<{ id: string }>(
     `SELECT id FROM orders.invoices WHERE order_id = $1 AND doc_type = 'invoice'`,
@@ -148,10 +152,11 @@ export async function issueOrderDocument(
 
   const o = await q.query<{
     status: string; total_amount: number; currency: string; paid_on: string | null; paid_at: string | null;
-    promoter_id: string; user_name: string | null; user_email: string | null;
+    promoter_id: string; user_name: string | null; user_email: string | null; today: string;
   }>(
     `SELECT o.status, o.total_amount, o.currency, o.paid_at::text AS paid_at,
             ((COALESCE(o.paid_at, o.updated_at)) AT TIME ZONE 'Europe/Prague')::date::text AS paid_on,
+            (NOW() AT TIME ZONE 'Europe/Prague')::date::text AS today,
             e.promoter_id, u.name AS user_name, u.email AS user_email
        FROM orders.orders o
        JOIN catalog.events e ON e.id = o.event_id
@@ -162,8 +167,11 @@ export async function issueOrderDocument(
   );
   const order = o.rows[0];
   if (!order) throw new TaxDocumentError('NOT_FOUND', 'Objednávka nenalezena.');
-  if (order.status !== 'paid') throw new TaxDocumentError('NOT_PAID', 'Doklad lze vystavit jen k zaplacené objednávce.');
-  const taxableDate = order.paid_on as string;
+  const unpaid = opts.unpaidDueDate !== undefined;
+  if (unpaid ? order.status !== 'pending' : order.status !== 'paid') {
+    throw new TaxDocumentError('NOT_PAID', 'Doklad lze vystavit jen k zaplacené objednávce.');
+  }
+  const taxableDate = unpaid ? order.today : (order.paid_on as string);
 
   const p = await loadPromoter(q, order.promoter_id);
   const supplier = supplierSnapshot(p);
@@ -198,8 +206,8 @@ export async function issueOrderDocument(
   const customer: DocCustomer = customerOverride ?? { name: order.user_name ?? order.user_email ?? 'Zákazník', email: order.user_email };
   const invoiceId = await insertDocument(q, {
     docType: 'invoice', promoterId: order.promoter_id, orderId, number, year, taxableDate,
-    dueDate: taxableDate, currency: order.currency, customer, supplier, vatLines,
-    totalMinor: order.total_amount, paidAt: order.paid_at,
+    dueDate: opts.unpaidDueDate ?? taxableDate, currency: order.currency, customer, supplier, vatLines,
+    totalMinor: order.total_amount, paidAt: unpaid ? null : order.paid_at,
   });
   return { invoiceId, created: true };
 }

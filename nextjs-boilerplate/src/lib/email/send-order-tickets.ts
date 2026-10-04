@@ -35,6 +35,8 @@ export interface SendOrderTicketsOptions {
   note?: string | null;
   /** Připojit PDF. Vypíná se u akcí, které mají jen rotující QR v mobilu. */
   attachPdf?: boolean;
+  /** Kolo 8 / krok 6: vedle společného PDF přiložit i každou vstupenku zvlášť (firemní objednávka — rozdání lidem). */
+  individualPdfs?: boolean;
 }
 
 export interface SendOrderTicketsResult {
@@ -157,6 +159,7 @@ export async function sendOrderTickets(
   // a vytištěný by byl k ničemu.
   const wantPdf = opts.attachPdf !== false && order.qr_policy !== 'rotating_only';
   let pdfAttachment: { filename: string; content: Buffer; contentType: string } | null = null;
+  const individual: Array<{ filename: string; content: Buffer; contentType: string }> = [];
 
   if (wantPdf) {
     const pdfTickets: TicketPdfData[] = [];
@@ -184,26 +187,33 @@ export async function sendOrderTickets(
 
     if (pdfTickets.length > 0) {
       try {
-        const buf = await renderTicketsPdf(
-          {
-            eventTitle: order.event_title,
-            eventDateStart: order.event_date_start,
-            venueName: order.venue_name,
-            buyerName: order.buyer_name ?? '',
-            buyerEmail: to,
-            orderId: order.id,
-            promoterName: order.promoter_name,
-            brandColorHex: order.brand_color_hex,
-            brandLogoUrl: order.brand_logo_url,
-            vatRatePct: await orderTicketVatPct(db(), order.id),
-          },
-          pdfTickets,
-        );
+        const header = {
+          eventTitle: order.event_title,
+          eventDateStart: order.event_date_start,
+          venueName: order.venue_name,
+          buyerName: order.buyer_name ?? '',
+          buyerEmail: to,
+          orderId: order.id,
+          promoterName: order.promoter_name,
+          brandColorHex: order.brand_color_hex,
+          brandLogoUrl: order.brand_logo_url,
+          vatRatePct: await orderTicketVatPct(db(), order.id),
+        };
+        const buf = await renderTicketsPdf(header, pdfTickets);
         pdfAttachment = {
           filename: `vstupenky-${order.id.slice(0, 8)}.pdf`,
           content: buf,
           contentType: 'application/pdf',
         };
+        if (opts.individualPdfs && pdfTickets.length > 1) {
+          for (const [i, t] of pdfTickets.entries()) {
+            individual.push({
+              filename: `vstupenka-${String(i + 1).padStart(2, '0')}-${t.ticketId.slice(0, 8)}.pdf`,
+              content: await renderTicketsPdf(header, [t]),
+              contentType: 'application/pdf',
+            });
+          }
+        }
       } catch (err) {
         console.error('[send-order-tickets] PDF se nepodařilo vytvořit', err);
       }
@@ -252,7 +262,7 @@ export async function sendOrderTickets(
       to,
       subject: `${senderName} — vstupenky na ${order.event_title}`,
       html,
-      attachments: pdfAttachment ? [pdfAttachment] : undefined,
+      attachments: pdfAttachment ? [pdfAttachment, ...individual] : undefined,
     });
   } catch (err) {
     console.error('[send-order-tickets] odeslání selhalo', err);

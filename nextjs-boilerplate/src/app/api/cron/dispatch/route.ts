@@ -76,6 +76,8 @@ const ALLOWED_JOBS = new Set([
   'expire-date-holds',
   // Kolo 8: rezervace s platbou na pokladně — připomínka 24 h předem, propadlé uvolní místa (každých 15 min)
   'seat-reservations',
+  // Kolo 8: firemní objednávky po splatnosti → upozornění pořadateli (denně)
+  'corporate-orders-overdue',
 ]);
 
 export async function GET(req: NextRequest): Promise<Response> {
