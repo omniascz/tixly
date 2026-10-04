@@ -58,12 +58,15 @@ export async function listCategories(q: Q, promoterId: string, eventId: string |
   )).rows;
 }
 
+/** Výchozí pořadí podle druhu (plné první) — kategorie z formuláře bez pořadí se jinak řadily abecedně („Doprovod…" první). */
+const KIND_ORDER: Record<string, number> = { full: 0, senior: 10, student: 20, ztp: 30, ztpp: 40, ztpp_companion: 50, child: 60, custom: 100 };
+
 export async function upsertCategory(q: Q, promoterId: string, eventId: string | null, c: CategoryInput): Promise<string> {
   const existing = (await q.query<{ id: string }>(
     `SELECT id FROM catalog.price_categories WHERE promoter_id = $1 AND code = $2 AND (($3::uuid IS NULL AND event_id IS NULL) OR event_id = $3)`,
     [promoterId, c.code, eventId],
   )).rows[0];
-  const vals = [c.name, c.kind, c.priceMode, c.priceValue, c.requiresProof ?? false, c.proofLabel ?? null, c.limitPerEvent ?? null, c.sortOrder ?? 0];
+  const vals = [c.name, c.kind, c.priceMode, c.priceValue, c.requiresProof ?? false, c.proofLabel ?? null, c.limitPerEvent ?? null, c.sortOrder ?? KIND_ORDER[c.kind] ?? 100];
   if (existing) {
     await q.query(
       `UPDATE catalog.price_categories SET name = $2, kind = $3, price_mode = $4, price_value = $5, requires_proof = $6,

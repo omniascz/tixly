@@ -147,6 +147,7 @@ run('Kolo 8 — zrušení a přesun termínu', () => {
       { reason: 'Onemocnění v souboru' }, { params: { id: t.eventId } });
     expect(c.status, c.text).toBe(200);
     expect(c.json).toMatchObject({ refunded: 1, refundFailed: 0, corporateCancelled: 1, reservationsCancelled: 1 });
+    expect(c.json.ticketsRevoked).toBe(5); // online 2 (refundem) + pokladna 1 + firemní 2
     expect(c.json.pendingCancelled).toBeGreaterThanOrEqual(2); // rozpracovaný nákup + rezervace
 
     expect(await orderStatus(o1.orderId)).toBe('refunded');

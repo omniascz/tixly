@@ -82,6 +82,7 @@ export default function ReservationsPage({ params }: { params: { id: string } })
       {msg && <p className="rounded bg-emerald-50 p-2 text-sm text-emerald-800" data-testid="res-msg">{msg}</p>}
       {err && <p role="alert" className="rounded bg-rose-50 p-2 text-sm text-rose-800">{err}</p>}
 
+      {data && (
       <section className="flex flex-wrap items-end gap-3 rounded-lg border p-4">
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={form.enabled} onChange={(e) => setForm({ ...form, enabled: e.target.checked })} /> Povolit rezervace
@@ -94,6 +95,7 @@ export default function ReservationsPage({ params }: { params: { id: string } })
         </label>
         <Button onClick={() => void saveSettings()}>Uložit</Button>
       </section>
+      )}
 
       {data && (
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-5" data-testid="res-occupancy">

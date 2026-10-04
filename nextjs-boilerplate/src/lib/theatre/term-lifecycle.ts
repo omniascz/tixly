@@ -63,6 +63,7 @@ export async function manualRefundList(q: Q, eventId: string): Promise<ManualRef
 export async function cancelTerm(
   pool: Pool, ctx: { promoterId: string; userId: string }, eventId: string, reason: string,
 ): Promise<CancelSummary> {
+  const startedAt = (await pool.query<{ t: Date }>('SELECT now() AS t')).rows[0].t; // čas DB (revoked_at se píše now())
   const client = await pool.connect();
   let pendingCancelled = 0;
   let reservations: Array<{ order_id: string; code: string; buyer_email: string; buyer_name: string; expires_at: Date }> = [];
@@ -131,17 +132,23 @@ export async function cancelTerm(
   }
 
   // zbývající vstupenky termínu (pokladna, volné, firemní, rezervace) zneplatnit
-  const revoked = await pool.query(
+  await pool.query(
     `UPDATE tickets.tickets SET status = 'revoked', revoked_at = now(), updated_at = now()
       WHERE ticket_type_id IN (SELECT id FROM catalog.ticket_types WHERE event_id = $1) AND status IN ('valid', 'transferred', 'resale_listed')`,
     [eventId],
   );
 
+  // všechny vstupenky zneplatněné tímto zrušením (i ty, které zneplatnil refund objednávky)
+  const revoked = (await pool.query<{ n: number }>(
+    `SELECT COUNT(*)::int AS n FROM tickets.tickets
+      WHERE ticket_type_id IN (SELECT id FROM catalog.ticket_types WHERE event_id = $1) AND status = 'revoked' AND revoked_at >= $2`,
+    [eventId, startedAt],
+  )).rows[0]?.n ?? 0;
   const manualRefunds = await manualRefundList(pool, eventId);
   const buyersEmailed = await mailCancellation(pool, eventId, reason, reservations);
   return {
     pendingCancelled, reservationsCancelled: reservations.length, corporateCancelled, refunded, refundFailed,
-    ticketsRevoked: (revoked.rowCount ?? 0), buyersEmailed, manualRefunds,
+    ticketsRevoked: revoked, buyersEmailed, manualRefunds,
   };
 }
 

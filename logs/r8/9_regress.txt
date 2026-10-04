@@ -1,0 +1,160 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mzrušení: online vráceno přes bránu + dobropis, rozpracované nákupy a rezervace zrušené, vstupenky neplatné, e-maily, ruční seznam[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2msouběh: zrušení ve stejné chvíli, kdy dorazí platba → vráceno, žádná platná vstupenka[22m[39m
+[order-completed] ticket issue / PDF failed: Error: EVENT_CANCELLED: termín objednávky 8931a395-3d73-4796-b9d9-8a6ee4f514a4 je zrušený — vstupenky se nevydávají
+    at Module.issueTicketsForOrder [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\tickets\demo-issuer.ts:113:11[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\order-completed\route.ts:437:14
+    at completeOrderInProcess [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:69:16[90m)[39m
+    at handleWebhook [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:312:9[90m)[39m
+    at async Promise.all (index 1)
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r8-term-cancel-postpone.live.test.ts:202:22
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+[order-completed] ticket issue / PDF failed: Error: EVENT_CANCELLED: termín objednávky 7f04d945-d272-483c-9585-3594ee72cf88 je zrušený — vstupenky se nevydávají
+    at Module.issueTicketsForOrder [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\tickets\demo-issuer.ts:113:11[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\order-completed\route.ts:437:14
+    at completeOrderInProcess [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:69:16[90m)[39m
+    at handleWebhook [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:312:9[90m)[39m
+    at async Promise.all (index 3)
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r8-term-cancel-postpone.live.test.ts:202:22
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r8-term-cancel-postpone.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 31169[2mms[22m[39m
+[90mstderr[2m | tests/fix-r8-corporate-orders.live.test.ts[2m > [22m[2mKolo 8 — firemní objednávky na fakturu[2m > [22m[2mz blokace 15 míst: upravená cena bez důvodu neprojde; doklad po sazbách, ISDOC, e-mail; místa držená, vstupenky zatím ne[22m[39m
+[expire-pending-orders] error: new row for relation "ticket_types" violates check constraint "chk_catalog_ticket_types_remaining"
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at Module.releaseOrderCapacity [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\orders\release-capacity.ts:32:14[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\cron\expire-pending-orders\route.ts:70:19
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r8-corporate-orders.live.test.ts:178:5
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m
+    at startTests [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:967:3[90m)[39m {
+  length: [33m220[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'23514'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [32m'catalog'[39m,
+  table: [32m'ticket_types'[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [32m'chk_catalog_ticket_types_remaining'[39m,
+  file: [32m'execMain.c'[39m,
+  line: [32m'2034'[39m,
+  routine: [32m'ExecConstraints'[39m
+}
+
+ [32m✓[39m tests/fix-r8-corporate-orders.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 6057[2mms[22m[39m
+[90mstderr[2m | tests/fix-r8-price-categories.live.test.ts[2m > [22m[2mKolo 8 — slevové kategorie[2m > [22m[2mobjednávka za 0 Kč (kategorie zdarma) se dokončí bez brány a vystaví vstupenku[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-price-categories.live.test.ts[2m > [22m[2mKolo 8 — slevové kategorie[2m > [22m[2mobjednávka za 0 Kč (kategorie zdarma) se dokončí bez brány a vystaví vstupenku[22m[39m
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-price-categories.live.test.ts[2m > [22m[2mKolo 8 — slevové kategorie[2m > [22m[2mnákup míst s kategoriemi: cena na serveru, promo −10 % jen na plné, vstupenky, e-mail, PDF a skener[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r8-price-categories.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 4283[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+[2m      Tests [22m [1m[32m16 passed[39m[22m[90m (16)[39m
+[2m   Start at [22m 13:14:30
+[2m   Duration [22m 45.32s[2m (transform 1.02s, setup 0ms, collect 655ms, tests 41.51s, environment 1ms, prepare 2.29s)[22m
+

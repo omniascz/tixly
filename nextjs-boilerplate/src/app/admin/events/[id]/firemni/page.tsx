@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 
 interface Seat { id: string; sector: string; row: string; seat_number: string; status: string; blockId: string | null; blockName: string | null }
 interface Block { id: string; name: string; blocked: number }
-interface Category { id: string; name: string }
+interface Category { id: string; name: string; kind?: string }
 interface Order {
   id: string; companyName: string; companyIco: string; contactEmail: string; status: string; dueDate: string; totalMinor: number;
   invoiceNumber: string | null; invoiceId: string | null; creditNoteId: string | null; seats: number; blockName: string | null; paymentReference: string | null;
@@ -46,7 +46,13 @@ export default function CorporateOrdersPage({ params }: { params: { id: string }
       api(`/api/admin/events/${params.id}/blocks`), api(`/api/admin/events/${params.id}/categories`), api(`/api/admin/corporate-orders?eventId=${params.id}`),
     ]);
     if (b.ok) { const j = (await b.json()) as { blocks: Block[]; seats: Seat[] }; setBlocks(j.blocks); setSeats(j.seats); }
-    if (c.ok) { const j = (await c.json()) as { categories: Category[] }; setCats(j.categories); if (!catId && j.categories[0]) setCatId(j.categories[0].id); }
+    if (c.ok) {
+      const j = (await c.json()) as { categories: Category[] };
+      setCats(j.categories);
+      // výchozí = plné vstupné (ne první v seznamu)
+      const full = j.categories.find((x) => x.kind === 'full') ?? j.categories[0];
+      if (!catId && full) setCatId(full.id);
+    }
     if (o.ok) setOrders(((await o.json()) as { orders: Order[] }).orders);
   }
   useEffect(() => {

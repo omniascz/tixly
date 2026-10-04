@@ -1,0 +1,54 @@
+
+Running 10 tests using 1 worker
+
+  ok  1 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:189:5 › 1 — inscenace a dva sály ve dvou městech v editoru (generátor / obkreslení podkladu) (10.1s)
+  ok  2 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:313:5 › 2 — dva termíny inscenace + třetí termín jiné inscenace (5.3s)
+  ok  3 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:364:5 › 3 — blokace Firma XY (20), Tisk (4), Technika (2) (3.3s)
+  ok  4 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:393:5 › 4 — kategorie plné, senior, student, ZTP/P + doprovod; promo −10 % jen na plné (5.9s)
+  x   5 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:435:5 › 5 — online nákup s výběrem místa a kategorie přes simulátor GoPay (390 px), e-mail, PDF (3.0m)
+  -   6 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:497:5 › 6 — rezervace → vyzvednutí a platba na pokladně; druhá rezervace → propadnutí → místa zpět
+  -   7 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:548:5 › 7 — Firma XY 15 míst na fakturu → zaplaceno → vstupenky; 5 míst uvolnit; Tisk 4× volná na jméno
+  -   8 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:598:5 › 8 — vstupní kontrola: běžná, ZTP/P (ověřit průkaz), jiný termín (odmítnuto), již použitá
+  -   9 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:627:5 › 9 — zrušení termínu → refundy, dobropisy, e-maily
+  -  10 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:648:5 › 10 — reporty a seznam pro uvaděče sedí s daty
+
+
+  1) [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:435:5 › 5 — online nákup s výběrem místa a kategorie přes simulátor GoPay (390 px), e-mail, PDF 
+
+    [31mTest timeout of 180000ms exceeded.[39m
+
+    Error: locator.click: Test ended.
+    Call log:
+    [2m  - waiting for locator('[aria-label^="Sektor Přízemí, dostupných"]').first()[22m
+
+
+      141 |   let c = page.locator(`[aria-label="${label}"]`);
+      142 |   if (!(await c.count())) {
+    > 143 |     await page.locator(`[aria-label^="Sektor ${sector}, dostupných"]`).first().click();
+          |                                                                                ^
+      144 |     c = page.locator(`[aria-label="${label}"]`);
+      145 |   }
+      146 |   await c.first().click();
+        at buyerSeat (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r8-theatre-tour.spec.ts:143:80)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r8-theatre-tour.spec.ts:440:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-1af52-tor-GoPay-390-px-e-mail-PDF-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r8-theatre-tou-1af52-tor-GoPay-390-px-e-mail-PDF-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r8-theatre-tou-1af52-tor-GoPay-390-px-e-mail-PDF-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-1af52-tor-GoPay-390-px-e-mail-PDF-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r8-theatre-tou-1af52-tor-GoPay-390-px-e-mail-PDF-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:435:5 › 5 — online nákup s výběrem místa a kategorie přes simulátor GoPay (390 px), e-mail, PDF 
+  5 did not run
+  4 passed (3.5m)
