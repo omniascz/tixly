@@ -1,0 +1,89 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mzrušení: online vráceno přes bránu + dobropis, rozpracované nákupy a rezervace zrušené, vstupenky neplatné, e-maily, ruční seznam[22m[39m
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2msouběh: zrušení ve stejné chvíli, kdy dorazí platba → vráceno, žádná platná vstupenka[22m[39m
+[order-completed] ticket issue / PDF failed: Error: EVENT_CANCELLED: termín objednávky 644a7920-a9a0-4de0-b168-181440f6eaf4 je zrušený — vstupenky se nevydávají
+    at Module.issueTicketsForOrder [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\tickets\demo-issuer.ts:113:11[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\order-completed\route.ts:437:14
+    at completeOrderInProcess [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:69:16[90m)[39m
+    at handleWebhook [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:312:9[90m)[39m
+    at async Promise.all (index 1)
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r8-term-cancel-postpone.live.test.ts:201:22
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+[order-completed] ticket issue / PDF failed: Error: EVENT_CANCELLED: termín objednávky 2f768e22-2860-4f38-ab41-cdee0b68bc5a je zrušený — vstupenky se nevydávají
+    at Module.issueTicketsForOrder [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\tickets\demo-issuer.ts:113:11[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\order-completed\route.ts:437:14
+    at completeOrderInProcess [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:69:16[90m)[39m
+    at handleWebhook [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:312:9[90m)[39m
+    at async Promise.all (index 3)
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r8-term-cancel-postpone.live.test.ts:201:22
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r8-term-cancel-postpone.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 7621[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m   Start at [22m 11:52:33
+[2m   Duration [22m 7.95s[2m (transform 503ms, setup 0ms, collect 129ms, tests 7.62s, environment 0ms, prepare 75ms)[22m
+

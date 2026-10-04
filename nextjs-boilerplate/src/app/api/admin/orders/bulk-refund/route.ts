@@ -14,7 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
-import { executeOrderRefund } from '@/lib/payment/refund-order';
+import { refundOrderFully } from '@/lib/orders/refund-full-order';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
@@ -81,46 +81,9 @@ export async function POST(req: NextRequest): Promise<Response> {
         outcomes.push({ orderId, status: 'wrong_promoter' });
         continue;
       }
-      const result = await executeOrderRefund({
-        pool: db() as unknown as import('pg').Pool,
-        orderId,
-        amountHalire: order.total_amount,
-        finalStatus: 'refunded',
-        applyEffects: async (client) => {
-          await client.query(
-            `UPDATE tickets.tickets SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
-              WHERE order_id = $1 AND status <> 'revoked'`,
-            [orderId],
-          );
-          await client.query(
-            `UPDATE catalog.ticket_types tt SET remaining_qty = remaining_qty + sub.qty
-               FROM (SELECT ticket_type_id, SUM(quantity) AS qty FROM orders.order_items
-                      WHERE order_id = $1 GROUP BY ticket_type_id) sub
-              WHERE tt.id = sub.ticket_type_id`,
-            [orderId],
-          );
-          await client.query(
-            `UPDATE catalog.event_seats
-                SET status = 'available', order_id = NULL, ticket_id = NULL,
-                    hold_user_id = NULL, hold_until = NULL, updated_at = NOW()
-              WHERE order_id = $1
-                 OR id IN (SELECT seat_id FROM orders.order_items WHERE order_id = $1 AND seat_id IS NOT NULL)`,
-            [orderId],
-          );
-        },
-        audit: async (client) => {
-          await client.query(
-            `INSERT INTO audit.audit_log
-               (schema_name, table_name, record_id, action, actor_id, actor_type, old_values, new_values)
-             VALUES ('orders', 'orders', $1, 'UPDATE', $2, 'user', $3::jsonb, $4::jsonb)`,
-            [
-              orderId,
-              promoter.userId,
-              JSON.stringify({ status: order.status }),
-              JSON.stringify({ kind: 'bulk_refund', status: 'refunded', reason, amount_halire: order.total_amount }),
-            ],
-          );
-        },
+      // Kolo 8 / krok 7: sdílená cesta s rušením termínu a vrácením z odkazu (lib/orders/refund-full-order)
+      const result = await refundOrderFully(orderId, {
+        actorUserId: promoter.userId, kind: 'bulk_refund', reason, previousStatus: order.status,
       });
       if (result.outcome === 'refunded') {
         outcomes.push({ orderId, status: 'refunded', amountHalire: order.total_amount });

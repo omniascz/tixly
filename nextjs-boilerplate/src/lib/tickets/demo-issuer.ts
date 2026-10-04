@@ -99,12 +99,18 @@ export async function issueTicketsForOrder(
   }
 
   // Najdi user_id + holder_names z orderu
-  const orderRes = await db.query<OrderRow>(
-    `SELECT user_id, holder_names FROM orders.orders WHERE id = $1`,
+  const orderRes = await db.query<OrderRow & { event_status: string | null }>(
+    `SELECT o.user_id, o.holder_names, e.status AS event_status
+       FROM orders.orders o LEFT JOIN catalog.events e ON e.id = o.event_id WHERE o.id = $1`,
     [orderId],
   );
   if (orderRes.rows.length === 0) {
     throw new Error(`Order ${orderId} not found`);
+  }
+  // Kolo 8 / krok 7: zrušený termín nové vstupenky nedostane (souběh zrušení s dokončováním nákupu —
+  // zrušení vrací peníze a zneplatňuje vstupenky; issuer, který doběhne po něm, by vydal platnou vstupenku).
+  if (orderRes.rows[0].event_status === 'cancelled') {
+    throw new Error(`EVENT_CANCELLED: termín objednávky ${orderId} je zrušený — vstupenky se nevydávají`);
   }
   const ownerId = orderRes.rows[0].user_id;
   const holderNames = orderRes.rows[0].holder_names ?? [];

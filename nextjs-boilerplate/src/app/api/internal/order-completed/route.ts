@@ -352,6 +352,13 @@ export async function POST(request: NextRequest): Promise<Response> {
       { status: 200 },
     );
   }
+  // Kolo 8 / krok 7: zrušený termín — žádné vstupenky ani potvrzení (zrušení vrací peníze a posílá vlastní e-mail)
+  const evStatus = (await db().query<{ status: string }>(
+    `SELECT e.status FROM orders.orders o JOIN catalog.events e ON e.id = o.event_id WHERE o.id = $1`, [orderId],
+  )).rows[0]?.status;
+  if (evStatus === 'cancelled') {
+    return NextResponse.json({ skipped: true, reason: 'EVENT_CANCELLED' }, { status: 200 });
+  }
 
   const itemsRes = await db().query<ItemRow>(
     `SELECT
