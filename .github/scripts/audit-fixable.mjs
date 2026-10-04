@@ -44,17 +44,29 @@ const inLock = (lockPackages, name) =>
 /**
  * @param before výstup `npm audit --json` před `npm audit fix`
  * @param after  výstup `npm audit --json` po `npm audit fix` (bez --force)
- * @param lockAfter `packages` z package-lock.json po opravě (volitelné). Když npm balíček z lockfilu jen
+ * @param [lockAfter] `packages` z package-lock.json po opravě (volitelné). Když npm balíček z lockfilu jen
  *   ODSTRANÍ, ale v lockfilu zůstal balíček, který ho potřebuje (npm na runneru takhle „opravil"
  *   turbo-stream pod @remix-run/server-runtime), není to oprava, ale rozbitý lockfile → neopravitelné.
+ *   Stejně tak, když `npm audit fix` přidá novou / závažnější high/critical (zhoršení).
  * @returns {{ name: string, severity: string, fixable: boolean, needs: string }[]}
  */
 export function classify(before, after, lockAfter) {
   const remaining = new Set(gated(after).map(([n]) => n));
+  // Zhoršení: po `npm audit fix` přibyla high/critical nebo se zvýšila závažnost (npm 11.19 „opravil"
+  // turbo-stream downgradem @remix-run/* na 2.8.1, který je critical). Takovou opravu nelze použít.
+  const rank = { high: 1, critical: 2 };
+  const beforeSev = new Map(gated(before).map(([n, v]) => [n, v.severity]));
+  const worse = gated(after)
+    .filter(([n, v]) => !beforeSev.has(n) || rank[v.severity] > rank[beforeSev.get(n)])
+    .map(([n, v]) => `${n} (${beforeSev.get(n) ?? 'nově'} → ${v.severity})`);
   return gated(before)
     .map(([name, v]) => {
       let fixable = !remaining.has(name);
       let needs = fixable ? 'npm audit fix (bez --force)' : needsOf(v.fixAvailable);
+      if (fixable && worse.length > 0) {
+        fixable = false;
+        needs = `npm audit fix by zhoršil: ${worse.slice(0, 3).join(', ')} — oprava nepoužitelná`;
+      }
       if (fixable && lockAfter && !inLock(lockAfter, name)) {
         const deps = dependentsOf(lockAfter, name);
         if (deps.length > 0) {

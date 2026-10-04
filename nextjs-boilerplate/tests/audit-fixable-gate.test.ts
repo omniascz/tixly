@@ -54,4 +54,13 @@ describe('audit-fixable gate', () => {
     // odstraněný a nikdo ho nepotřebuje → skutečná oprava
     expect(classify({ vulnerabilities: { old: v('high', true) } }, after, { '': {} })[0].fixable).toBe(true);
   });
+
+  it('oprava, která přidá novou nebo závažnější high/critical (downgrade na critical) → neopravitelné', () => {
+    const before = { vulnerabilities: { 'turbo-stream': v('high', true), '@remix-run/node': v('high', true) } };
+    const after = { vulnerabilities: { '@remix-run/node': v('critical', true) } };
+    const rows: Row[] = classify(before, after, { '': {} });
+    const m = Object.fromEntries(rows.map((r) => [r.name, r]));
+    expect(m['turbo-stream'].fixable).toBe(false);
+    expect(m['turbo-stream'].needs).toMatch(/zhoršil: @remix-run\/node \(high → critical\)/);
+  });
 });
