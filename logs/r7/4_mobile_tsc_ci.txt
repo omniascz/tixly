@@ -1,0 +1,4 @@
+app/_layout.tsx(4,32): error TS2307: Cannot find module '@stripe/stripe-react-native' or its corresponding type declarations.
+app/checkout.tsx(19,27): error TS2307: Cannot find module '@stripe/stripe-react-native' or its corresponding type declarations.
+app/checkout.tsx(20,49): error TS2307: Cannot find module 'react-native-webview' or its corresponding type declarations.
+app/checkout.tsx(192,44): error TS7006: Parameter 'req' implicitly has an 'any' type.

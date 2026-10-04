@@ -1,0 +1,120 @@
+nextjs-boilerplate	next	critical	přímá	next@16.3.8 (major)	runtime	Next.js self-hosted applications vulnerable to DoS via Image Optimizer remotePatterns configuration
+nextjs-boilerplate	vitest	critical	přímá	vitest@5.0.3 (major)	dev/build	When Vitest UI server is listening, arbitrary file can be read and executed
+nextjs-boilerplate	@fastify/busboy	high	tranzitivní	@vercel/blob@2.8.0 (major)	runtime	@fastify/busboy vulnerable to Denial of Service via prototype-named multipart part header
+nextjs-boilerplate	@next/eslint-plugin-next	high	tranzitivní	eslint-config-next@16.3.8 (major)	dev/build	přes glob
+nextjs-boilerplate	@sentry/bundler-plugin-core	high	tranzitivní	v rozsahu, blokuje rodič	runtime	přes unplugin
+nextjs-boilerplate	@sentry/nextjs	high	přímá	@sentry/nextjs@11.4.0 (major)	runtime	přes @sentry/node, @sentry/webpack-plugin, rollup
+nextjs-boilerplate	@sentry/webpack-plugin	high	tranzitivní	@sentry/nextjs@11.4.0 (major)	runtime	přes @sentry/bundler-plugin-core, unplugin, uuid
+nextjs-boilerplate	@typescript-eslint/eslint-plugin	high	přímá	@typescript-eslint/eslint-plugin@8.71.0 (major)	dev/build	přes @typescript-eslint/type-utils, @typescript-eslint/utils
+nextjs-boilerplate	@typescript-eslint/parser	high	přímá	@typescript-eslint/parser@8.71.0 (major)	dev/build	přes @typescript-eslint/typescript-estree
+nextjs-boilerplate	@typescript-eslint/type-utils	high	tranzitivní	@typescript-eslint/eslint-plugin@8.71.0 (major)	dev/build	přes @typescript-eslint/typescript-estree, @typescript-eslint/utils
+nextjs-boilerplate	@typescript-eslint/typescript-estree	high	tranzitivní	@typescript-eslint/parser@8.71.0 (major)	dev/build	přes globby, minimatch
+nextjs-boilerplate	@typescript-eslint/utils	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	přes @typescript-eslint/typescript-estree
+nextjs-boilerplate	@vitest/ui	high	přímá	@vitest/ui@5.0.3 (major)	dev/build	přes fast-glob
+nextjs-boilerplate	braces	high	tranzitivní	tailwindcss@4.3.3 (major)	dev/build	braces vulnerable to stack-exhaustion denial of service through deeply nested patterns
+nextjs-boilerplate	eslint-config-next	high	přímá	eslint-config-next@16.3.8 (major)	dev/build	přes @next/eslint-plugin-next
+nextjs-boilerplate	fast-glob	high	tranzitivní	@vitest/ui@5.0.3 (major)	dev/build	přes micromatch
+nextjs-boilerplate	glob	high	tranzitivní	eslint-config-next@16.3.8 (major)	runtime	glob CLI: Command injection via -c/--cmd executes matches with shell:true
+nextjs-boilerplate	globby	high	tranzitivní	@typescript-eslint/parser@8.71.0 (major)	dev/build	přes fast-glob
+nextjs-boilerplate	chokidar	high	tranzitivní	tailwindcss@4.3.3 (major)	dev/build	přes braces
+nextjs-boilerplate	micromatch	high	tranzitivní	tailwindcss@4.3.3 (major)	dev/build	přes braces
+nextjs-boilerplate	minimatch	high	tranzitivní	@typescript-eslint/parser@8.71.0 (major)	runtime	minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern
+nextjs-boilerplate	node-forge	high	přímá	bez opravy	runtime	node-forge RSA PKCS#1 v1.5 signature verification accepts extra nested DigestAlgorithm elements
+nextjs-boilerplate	nodemailer	high	přímá	nodemailer@10.0.14 (major)	dev/build	Nodemailer: Message-level raw option bypasses disableFileAccess/disableUrlAccess, enabling arbitrary file read
+nextjs-boilerplate	postcss	high	přímá	next@16.3.8 (major)	runtime	PostCSS has XSS via Unescaped </style> in its CSS Stringify Output
+nextjs-boilerplate	rollup	high	tranzitivní	@sentry/nextjs@11.4.0 (major)	runtime	Rollup 4 has Arbitrary File Write via Path Traversal
+nextjs-boilerplate	tailwindcss	high	přímá	tailwindcss@4.3.3 (major)	dev/build	přes chokidar, fast-glob, micromatch
+nextjs-boilerplate	undici	high	tranzitivní	@vercel/blob@2.8.0 (major)	runtime	Undici has an unbounded decompression chain in HTTP responses on Node.js Fetch API via Content-Encoding leads 
+nextjs-boilerplate	unplugin	high	tranzitivní	@sentry/nextjs@11.4.0 (major)	runtime	přes chokidar
+nextjs-boilerplate	vite	high	tranzitivní	vitest@5.0.3 (major)	runtime	Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling
+mobile	tar	critical	tranzitivní	expo@44.0.6 (major)	dev/build	node-tar Vulnerable to Arbitrary File Creation/Overwrite via Hardlink Path Traversal
+mobile	@expo/cli	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes @expo/code-signing-certificates, @expo/config, @expo/config-plugins, @expo/metro-config, @expo/plist, @ex
+mobile	@expo/code-signing-certificates	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	přes node-forge
+mobile	@expo/metro-config	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes @expo/config, find-yarn-workspace-root, postcss
+mobile	@jest/environment	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	přes @jest/fake-timers
+mobile	@jest/fake-timers	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes jest-message-util
+mobile	@react-native-community/cli	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	přes @react-native-community/cli-clean, @react-native-community/cli-config, @react-native-community/cli-doctor
+mobile	@react-native-community/cli-clean	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	přes fast-glob
+mobile	@react-native-community/cli-config	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	přes fast-glob
+mobile	@react-native-community/cli-doctor	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	přes @react-native-community/cli-config, @react-native-community/cli-platform-android, @react-native-community
+mobile	@react-native-community/cli-platform-android	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes fast-glob, fast-xml-parser
+mobile	@react-native-community/cli-platform-apple	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes fast-glob, fast-xml-parser
+mobile	@react-native/babel-plugin-codegen	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes @react-native/codegen
+mobile	@react-native/babel-preset	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes @react-native/babel-plugin-codegen
+mobile	@react-native/codegen	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes jscodeshift
+mobile	@react-native/community-cli-plugin	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes @react-native/dev-middleware, @react-native/metro-babel-transformer, metro, metro-config
+mobile	@react-native/dev-middleware	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes selfsigned
+mobile	@react-native/metro-babel-transformer	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes @react-native/babel-preset
+mobile	@remix-run/node	high	tranzitivní	v rozsahu, blokuje rodič	runtime	přes @remix-run/server-runtime
+mobile	@remix-run/server-runtime	high	tranzitivní	v rozsahu, blokuje rodič	runtime	přes turbo-stream
+mobile	@stripe/stripe-react-native	high	přímá	@stripe/stripe-react-native@0.18.1 (major)	runtime	přes expo
+mobile	@xmldom/xmldom	high	tranzitivní	expo@44.0.6 (major)	dev/build	xmldom: XML injection via unsafe CDATA serialization allows attacker-controlled markup insertion
+mobile	babel-preset-expo	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes @react-native/babel-preset
+mobile	braces	high	tranzitivní	expo@44.0.6 (major)	dev/build	braces vulnerable to stack-exhaustion denial of service through deeply nested patterns
+mobile	cacache	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes tar
+mobile	del	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes globby
+mobile	expo	high	přímá	expo@44.0.6 (major)	runtime	přes @expo/cli, @expo/config, @expo/config-plugins, @expo/metro-config, babel-preset-expo, expo-asset, expo-mo
+mobile	expo-modules-autolinking	high	tranzitivní	expo@44.0.6 (major)	runtime	přes fast-glob
+mobile	fast-glob	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes micromatch
+mobile	find-yarn-workspace-root	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes micromatch
+mobile	globby	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes fast-glob
+mobile	image-size	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	image-size: JXL and HEIF parsers allow denial of service through infinite loops
+mobile	jest-environment-node	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes @jest/environment, @jest/fake-timers
+mobile	jest-message-util	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes micromatch
+mobile	jscodeshift	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes micromatch
+mobile	metro	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes metro-config, metro-file-map, metro-transform-worker
+mobile	metro-config	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes metro
+mobile	metro-file-map	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes micromatch
+mobile	metro-transform-worker	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	přes metro
+mobile	micromatch	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes braces
+mobile	node-forge	high	tranzitivní	expo@44.0.6 (major)	dev/build	node-forge RSA PKCS#1 v1.5 signature verification accepts extra nested DigestAlgorithm elements
+mobile	postcss	high	tranzitivní	expo@44.0.6 (major)	dev/build	PostCSS has XSS via Unescaped </style> in its CSS Stringify Output
+mobile	react-native	high	přímá	react-native@0.87.1 (major)	runtime	přes @react-native-community/cli, @react-native-community/cli-platform-android, @react-native-community/cli-pl
+mobile	selfsigned	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes node-forge
+mobile	tempy	high	tranzitivní	expo@44.0.6 (major)	runtime	přes del
+mobile	turbo-stream	high	tranzitivní	v rozsahu, blokuje rodič	runtime	React Router vulnerable to Denial of Service via reflected user input in single-fetch
+mobile-promoter	tar	critical	tranzitivní	expo@44.0.6 (major)	dev/build	node-tar Vulnerable to Arbitrary File Creation/Overwrite via Hardlink Path Traversal
+mobile-promoter	@expo/cli	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes @expo/code-signing-certificates, @expo/config, @expo/config-plugins, @expo/metro-config, @expo/plist, @ex
+mobile-promoter	@expo/code-signing-certificates	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	přes node-forge
+mobile-promoter	@expo/metro-config	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes @expo/config, find-yarn-workspace-root, postcss
+mobile-promoter	@jest/environment	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	přes @jest/fake-timers
+mobile-promoter	@jest/fake-timers	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes jest-message-util
+mobile-promoter	@react-native-community/cli	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	přes @react-native-community/cli-clean, @react-native-community/cli-config, @react-native-community/cli-doctor
+mobile-promoter	@react-native-community/cli-clean	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	přes fast-glob
+mobile-promoter	@react-native-community/cli-config	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	přes fast-glob
+mobile-promoter	@react-native-community/cli-doctor	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	přes @react-native-community/cli-config, @react-native-community/cli-platform-android, @react-native-community
+mobile-promoter	@react-native-community/cli-platform-android	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes fast-glob, fast-xml-parser
+mobile-promoter	@react-native-community/cli-platform-apple	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes fast-glob, fast-xml-parser
+mobile-promoter	@react-native/babel-plugin-codegen	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes @react-native/codegen
+mobile-promoter	@react-native/babel-preset	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes @react-native/babel-plugin-codegen
+mobile-promoter	@react-native/codegen	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes jscodeshift
+mobile-promoter	@react-native/community-cli-plugin	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes @react-native/dev-middleware, @react-native/metro-babel-transformer, metro, metro-config
+mobile-promoter	@react-native/dev-middleware	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes selfsigned
+mobile-promoter	@react-native/metro-babel-transformer	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes @react-native/babel-preset
+mobile-promoter	@remix-run/node	high	tranzitivní	v rozsahu, blokuje rodič	runtime	přes @remix-run/server-runtime
+mobile-promoter	@remix-run/server-runtime	high	tranzitivní	v rozsahu, blokuje rodič	runtime	přes turbo-stream
+mobile-promoter	@xmldom/xmldom	high	tranzitivní	expo@44.0.6 (major)	dev/build	xmldom: XML injection via unsafe CDATA serialization allows attacker-controlled markup insertion
+mobile-promoter	babel-preset-expo	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes @react-native/babel-preset
+mobile-promoter	braces	high	tranzitivní	expo@44.0.6 (major)	dev/build	braces vulnerable to stack-exhaustion denial of service through deeply nested patterns
+mobile-promoter	cacache	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes tar
+mobile-promoter	del	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes globby
+mobile-promoter	expo	high	přímá	expo@44.0.6 (major)	runtime	přes @expo/cli, @expo/config, @expo/config-plugins, @expo/metro-config, babel-preset-expo, expo-asset, expo-mo
+mobile-promoter	expo-modules-autolinking	high	tranzitivní	expo@44.0.6 (major)	runtime	přes fast-glob
+mobile-promoter	fast-glob	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes micromatch
+mobile-promoter	find-yarn-workspace-root	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes micromatch
+mobile-promoter	globby	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes fast-glob
+mobile-promoter	image-size	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	image-size: JXL and HEIF parsers allow denial of service through infinite loops
+mobile-promoter	jest-environment-node	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes @jest/environment, @jest/fake-timers
+mobile-promoter	jest-message-util	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes micromatch
+mobile-promoter	jscodeshift	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes micromatch
+mobile-promoter	metro	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes metro-config, metro-file-map, metro-transform-worker
+mobile-promoter	metro-config	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes metro
+mobile-promoter	metro-file-map	high	tranzitivní	react-native@0.87.1 (major)	dev/build	přes micromatch
+mobile-promoter	metro-transform-worker	high	tranzitivní	v rozsahu, blokuje rodič	dev/build	přes metro
+mobile-promoter	micromatch	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes braces
+mobile-promoter	node-forge	high	tranzitivní	expo@44.0.6 (major)	dev/build	node-forge RSA PKCS#1 v1.5 signature verification accepts extra nested DigestAlgorithm elements
+mobile-promoter	postcss	high	tranzitivní	expo@44.0.6 (major)	dev/build	PostCSS has XSS via Unescaped </style> in its CSS Stringify Output
+mobile-promoter	react-native	high	přímá	react-native@0.87.1 (major)	runtime	přes @react-native-community/cli, @react-native-community/cli-platform-android, @react-native-community/cli-pl
+mobile-promoter	selfsigned	high	tranzitivní	expo@44.0.6 (major)	dev/build	přes node-forge
+mobile-promoter	tempy	high	tranzitivní	expo@44.0.6 (major)	runtime	přes del
+mobile-promoter	turbo-stream	high	tranzitivní	v rozsahu, blokuje rodič	runtime	React Router vulnerable to Denial of Service via reflected user input in single-fetch
