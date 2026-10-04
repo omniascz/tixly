@@ -15,6 +15,8 @@ const nextConfig = {
   // these, so we externalize it to load directly from node_modules at runtime.
   experimental: {
     serverComponentsExternalPackages: ['pdfkit'],
+    // Kolo 9: bez tohoto Next 14 instrumentation.ts nespouští — nenačítal se Sentry ani pojistka stagingu.
+    instrumentationHook: true,
   },
   images: {
     // Kolo 9: zmírnění bez změny hlavní verze Next (14.2.35):

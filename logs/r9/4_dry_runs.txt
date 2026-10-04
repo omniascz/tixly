@@ -1,0 +1,30 @@
+== create.sh --dry-run (Neon)
+[staging] DRY-RUN: POST https://console.neon.tech/api/v2/projects  {"project":{"name":"tixly-staging","region_id":"aws-eu-central-1","pg_version":17}}  (Authorization: Bearer ***)
+[staging] DRY-RUN: migrace od nuly → postgresql://neondb_owner:***@ep-NEW.aws-eu-central-1.aws.neon.tech/tixly (scripts .github/scripts/build-db-from-migrations.sh)
+[staging] DRY-RUN: role tixly_app NOBYPASSRLS + heslo; demo data scripts/staging/seed-demo.sql (pořadatel demo@tixly-staging.test)
+[staging] DRY-RUN: ověření rolí a RLS; zápis /c/Users/omnia/Documents/tixly/staging.env
+exit=0
+== create.sh: produkční projekt
+[staging] CHYBA: cíl odpovídá produkci (fragrant-wildflower-75132205) — staging se proti produkci nezakládá
+exit=1
+== create.sh --local na produkční host
+[staging] CHYBA: cíl odpovídá produkci (ep-weathered-wind-alvbjysw) — staging se proti produkci nezakládá
+exit=1
+== create.sh bez klíče
+[staging] CHYBA: chybí NEON_API_KEY (účet/organizace s právem zakládat projekty — klíč omezený na produkční projekt nestačí)
+exit=1
+== smoke.sh --dry-run
+[smoke] 1) zdraví stagingu https://tixly-staging.vercel.app
+[smoke] DRY-RUN: GET https://tixly-staging.vercel.app/cs → 200
+[smoke] DRY-RUN: GET https://tixly-staging.vercel.app/cs/program → 200
+[smoke] DRY-RUN: GET https://tixly-staging.vercel.app/cs/login → 200
+[smoke] DRY-RUN: GET https://tixly-staging.vercel.app/api/health → 200
+[smoke] 2) scénář turné (Playwright, platby ručně v sandboxu GoPay)
+[smoke] DRY-RUN: env BASE_URL=https://tixly-staging.vercel.app AUDIT_OWNER_URL=postgresql://o:x@ep-new.neon.tech/tixly MAILPIT=https://mail.example CRON_SECRET=x TOUR_PAY_MODE=manual npx playwright test tests/golden-path-r8-theatre-tour.spec.ts --project golden-path --headed --reporter=list
+[smoke] 3) sandbox testy GoPay a ComGate
+[smoke] DRY-RUN: npm run test:sandbox
+[smoke] hotovo
+exit=0
+== smoke.sh na produkci
+[smoke] CHYBA: cíl odpovídá produkci (app.tixly.cz)
+exit=1

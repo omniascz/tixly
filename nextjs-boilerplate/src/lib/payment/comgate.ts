@@ -20,6 +20,7 @@
  *
  * Reference: https://help.comgate.cz/v2/docs/payment-create
  */
+import { assertStagingIsolated } from '@/lib/env/staging-guard';
 
 export interface ComGateConfig {
   merchant: string;
@@ -34,6 +35,7 @@ let cachedConfig: ComGateConfig | null = null;
 
 export function getComGateConfig(): ComGateConfig {
   if (cachedConfig) return cachedConfig;
+  assertStagingIsolated(); // kolo 9: staging nikdy nepoužije ostrou bránu
 
   const merchant = process.env.COMGATE_MERCHANT ?? '';
   const secret = process.env.COMGATE_SECRET ?? '';

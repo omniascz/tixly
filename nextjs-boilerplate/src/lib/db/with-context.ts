@@ -21,10 +21,14 @@
  *   queryAsPromoter(promoterId, sql, params)
  */
 import { Pool, PoolClient } from 'pg';
+import { assertStagingIsolated } from '@/lib/env/staging-guard';
 
 let pool: Pool | null = null;
 function getPool(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  if (!pool) {
+    assertStagingIsolated(); // kolo 9
+    pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  }
   return pool;
 }
 

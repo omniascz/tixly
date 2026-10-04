@@ -13,7 +13,7 @@ Výstupy logs/r9/. Při startu nové session přečíst tento soubor. Procesy na
 | 1d Next advisory (obrázky) | HOTOVO — GHSA-2xp9-vwfh-vxw4 (critical, RCE AVIF) bez konfiguračního workaroundu → images.unoptimized: true (GHSA-h64f: „NOT impacted"); odstraněn placeholder cdn.example.com; opraven kiosk (neexistující sloupce → 500, nečitelné nadpisy); Playwright B: RED (kiosk 500) → GREEN, obrázky na webu i v administraci, /_next/image neodpovídá 200 | (viz commit) |
 | 2 sloučení PR | HOTOVO — PR #3 (8aadf388), #4 (0f3e2186), #5 (f391fcc2) do integrate; sada na integrate: migrace 59/0, RLS/drift OK, tsc 0, lint bez nové, unit 655 (po LF checkoutu 2 souborů), live přes PgBouncer 80/80, build OK, audity 01–11 OK, **12 FAIL** → nalezena a opravena chyba kapacity (fe7fa8d3); turné na integrate NEPROBĚHLO — simulátor GoPay a server ukončil systém kvůli nedostatku paměti | (viz commit) |
 | 3 inventura | HOTOVO — GO-LIVE-INVENTORY.md (206 env proměnných, e-mail, GitHub secrets, crony, DB role, doména/CSRF/webhooky); klíčová tvrzení ověřena v kódu | (viz commit) |
-| 4 staging skripty | čeká | |
+| 4 staging skripty | HOTOVO — create.sh (Neon samostatný projekt / --local), seed-demo.sql, vercel-preview.env.example, smoke.sh, pojistka staging-guard (instrumentation + DB pooly + GoPay/ComGate); shellcheck 0; dry-run vč. odmítnutí produkce; create.sh --local proti lokálnímu Postgresu OK (2 místa, 2 inscenace, 4 termíny, 400 míst, 20 kategorií, 24 blokovaných; tixly_app NOBYPASSRLS; idempotentní); boot test: staging s produkční DB (falešný host) odmítne, izolovaný naběhne | (viz commit) |
 | 5 runbook | čeká | |
 | Závěr | čeká | |
 

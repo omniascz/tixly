@@ -38,7 +38,8 @@ export function stagingViolations(env: Env): string[] {
   }
   const appHosts = [...BUILTIN_PROD_APP_HOSTS, ...list(env.PROD_APP_HOSTS)];
   for (const v of ['APP_URL', 'NEXT_PUBLIC_APP_URL']) {
-    const h = env[v] ? host(env[v]!) : '';
+    const val = env[v];
+    const h = val ? host(val) : '';
     if (h && appHosts.includes(h)) out.push(`${v} je produkční doména (${h})`);
   }
   // GoPay: produkční brána = gate.gopay.cz (bez GOPAY_SANDBOX=true nebo s explicitním produkčním override)
