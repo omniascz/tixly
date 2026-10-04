@@ -4,13 +4,19 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { duplicateSeatLabels, type SeatType } from '@/lib/seating/generator';
 import { straightRow, arcRow, bezierRow, bezierPath, rowLabel, type Point, type SeatPosition } from './geometry';
+import { SEAT_TYPE_LABEL, TheatreTools, type Underlay, type Zone } from './TheatreTools';
 
 const PALETTE = ['#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#84cc16', '#ef4444', '#14b8a6'];
 
 interface Seat extends SeatPosition {
   accessibility?: boolean;
   blocked?: boolean;
+  /** Kolo 8: typ místa, poznámka (omezený výhled) a cenová zóna (id z layout.zones). */
+  type?: SeatType;
+  note?: string;
+  zone?: string;
 }
 
 interface Row {
@@ -55,6 +61,9 @@ export interface Layout {
   stage?: Stage;
   overlays?: OverlayElement[];
   floorPlanUrl?: string;
+  /** Kolo 8: cenové zóny (legenda) a nastavení podkladu. */
+  zones?: Zone[];
+  underlay?: Underlay;
 }
 
 type Tool = 'select' | 'row-straight' | 'row-arc' | 'row-bezier' | 'pan' | 'overlay';
@@ -143,6 +152,14 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
   const [selectedSeats, setSelectedSeats] = useState<Set<string>>(new Set());
   const [floorPlanUrl, setFloorPlanUrl] = useState(initialLayout?.floorPlanUrl ?? '');
   const [underlayLoading, setUnderlayLoading] = useState(false);
+  const [zones, setZones] = useState<Zone[]>(initialLayout?.zones ?? []);
+  const [underlay, setUnderlay] = useState<Underlay>(initialLayout?.underlay ?? { opacity: 0.3, scale: 1, x: 0, y: 0 });
+  const zoneColor = useMemo(() => new Map(zones.map((z) => [z.id, z.color])), [zones]);
+  /** Barva místa: neprodejné šedé, jinak barva cenové zóny, jinak barva sekce. */
+  const seatFill = (seat: Seat, sectorColor: string): string =>
+    seat.blocked || seat.type === 'unsellable' ? '#94a3b8' : (seat.zone && zoneColor.get(seat.zone)) || sectorColor;
+  const seatStroke = (seat: Seat): string =>
+    seat.type === 'wheelchair' || seat.accessibility ? '#dc2626' : seat.type === 'companion' ? '#f97316' : seat.type === 'restricted' ? '#000000' : '#ffffff';
   // Pan tool state — for hold-and-drag panning of viewBox.
   const panRef = useRef<{ startClientX: number; startClientY: number; vbX: number; vbY: number } | null>(null);
 
@@ -556,6 +573,13 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
     setSaving(true);
     setError(null);
     setFeedback(null);
+    // Kolo 8: duplicitní označení místa (sekce + řada + místo) nejde uložit — server to odmítne taky.
+    const dups = duplicateSeatLabels(sectors);
+    if (dups.length > 0) {
+      setError(`Duplicitní označení míst: ${dups.slice(0, 10).join('; ')}${dups.length > 10 ? ' …' : ''}`);
+      setSaving(false);
+      return;
+    }
     try {
       // Pro save použijeme original viewBox (parsovaný z importu / posledního save), nebo
       // auto-compute pokud žádný není. Aktuální `vb` může být různě zoomnutý/pannutý — to ukládat
@@ -591,6 +615,8 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
         stage,
         overlays: overlays.length > 0 ? overlays : undefined,
         floorPlanUrl: floorPlanUrl || undefined,
+        zones: zones.length > 0 ? zones : undefined,
+        underlay: floorPlanUrl ? underlay : undefined,
       });
       setFeedback('Layout uložen.');
     } catch (e) {
@@ -671,11 +697,11 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
             if (sx < -seatR || sx > rect.width + seatR || sy < -seatR || sy > rect.height + seatR) continue;
             ctx.beginPath();
             ctx.arc(sx, sy, seatR, 0, Math.PI * 2);
-            ctx.fillStyle = sel ? '#10b981' : seat.blocked ? '#94a3b8' : sector.color;
+            ctx.fillStyle = sel ? '#10b981' : seatFill(seat, sector.color);
             ctx.fill();
             if (stroke) {
               ctx.lineWidth = sel ? 2 : 1;
-              ctx.strokeStyle = sel ? '#000000' : seat.accessibility ? '#dc2626' : '#ffffff';
+              ctx.strokeStyle = sel ? '#000000' : seatStroke(seat);
               ctx.stroke();
             }
             if (showNums) {
@@ -1107,7 +1133,15 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
               aria-label="Seating chart editor canvas"
             >
               {floorPlanUrl ? (
-                <image href={floorPlanUrl} x="0" y="0" width="1200" opacity="0.3" />
+                <image
+                  href={floorPlanUrl}
+                  x={underlay.x}
+                  y={underlay.y}
+                  width={1200 * underlay.scale}
+                  opacity={underlay.opacity}
+                  pointerEvents="none"
+                  data-testid="chart-underlay"
+                />
               ) : null}
 
               {/* Snapping guide lines */}
@@ -1250,9 +1284,11 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
                               cx={cx}
                               cy={cy}
                               r={r}
-                              fill={seat.blocked ? '#94a3b8' : sector.color}
-                              stroke={isSelected ? '#000' : seat.accessibility ? '#dc2626' : '#fff'}
-                              strokeWidth={isSelected ? 2 : 1}
+                              fill={seatFill(seat, sector.color)}
+                              stroke={isSelected ? '#000' : seatStroke(seat)}
+                              strokeWidth={isSelected ? 2 : seat.type && seat.type !== 'standard' ? 3 : 1}
+                              strokeDasharray={seat.type === 'restricted' ? '3 2' : undefined}
+                              data-seat-type={seat.type ?? 'standard'}
                               onMouseDown={(e) => {
                                 if (tool !== 'select' || e.button !== 0) return;
                                 e.stopPropagation();
@@ -1284,7 +1320,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
                               }}
                               style={{ cursor: tool === 'select' ? 'move' : 'crosshair' }}
                             >
-                              <title>{`${sector.name} · řada ${row.label} · sedadlo ${seat.num}${seat.accessibility ? ' · ♿' : ''}`}</title>
+                              <title>{`${sector.name} · řada ${row.label} · sedadlo ${seat.num}${seat.type && seat.type !== 'standard' ? ` · ${SEAT_TYPE_LABEL[seat.type]}` : seat.accessibility ? ' · ♿' : ''}${seat.note ? ` (${seat.note})` : ''}${seat.zone ? ` · ${zones.find((z) => z.id === seat.zone)?.name ?? ''}` : ''}`}</title>
                             </circle>
                             {showSeatNums && (
                               <text
@@ -1542,6 +1578,30 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
         </Card>
 
         <div className="space-y-4">
+          <TheatreTools
+            sectors={sectors}
+            selected={selectedSeats}
+            zones={zones}
+            setZones={setZones}
+            underlay={underlay}
+            setUnderlay={setUnderlay}
+            hasUnderlay={!!floorPlanUrl}
+            apply={(next) => pushHistory(next as Sector[])}
+            notify={(m) => setFeedback(m)}
+          />
+          {zones.length > 0 ? (
+            <div className="flex flex-wrap gap-3 rounded-md border p-2 text-xs" data-testid="chart-legend">
+              {zones.map((z) => (
+                <span key={z.id} className="inline-flex items-center gap-1">
+                  <span className="inline-block h-3 w-3 rounded-full" style={{ background: z.color }} />{z.name}
+                </span>
+              ))}
+              <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-full border-2 border-red-600" />vozíčkář</span>
+              <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-full border-2 border-orange-500" />doprovod</span>
+              <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-full bg-slate-400" />neprodejné</span>
+              <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-full border-2 border-dashed border-black" />omezený výhled</span>
+            </div>
+          ) : null}
           <Card>
             <CardHeader>
               <CardTitle className="text-sm">Sektory ({sectors.length})</CardTitle>

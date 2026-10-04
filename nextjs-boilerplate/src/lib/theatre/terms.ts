@@ -40,6 +40,8 @@ export interface CreateTermInput {
   castAlternation?: string | null;
   /** Zkopírovat ceník (typy vstupenek) z dřívějšího termínu téhož pořadatele. */
   copyPricingFromEventId?: string | null;
+  /** Kolo 8 / krok 2: ceny podle cenových zón plánku sálu (typ vstupenky = zóna). */
+  zonePrices?: Array<{ zone: string; priceHalire: number; vatRateCode?: string | null }>;
   ticketTypes?: TermTicketTypeInput[];
 }
 
@@ -84,6 +86,17 @@ export async function createTerm(client: PoolClient, promoterId: string, userId:
     ticketTypes = src.rows.map((t) => ({
       name: t.name, priceHalire: t.base_price, capacity: t.total_qty, zone: t.zone, isSeated: t.is_seated,
       vatRateCode: t.vat_rate_code, maxPerUser: t.max_per_user,
+    }));
+  } else if (input.zonePrices && input.zonePrices.length > 0) {
+    const chart = (await client.query<{ zones: Array<{ id: string; name: string }> | null }>(
+      `SELECT layout->'zones' AS zones FROM catalog.venue_seating_charts WHERE venue_id = $1 AND active = true ORDER BY created_at DESC LIMIT 1`,
+      [input.venueId],
+    )).rows[0];
+    const names = new Set((chart?.zones ?? []).map((z) => z.name));
+    const unknown = input.zonePrices.filter((z) => !names.has(z.zone)).map((z) => z.zone);
+    if (unknown.length > 0) throw new TermError('NO_TICKET_TYPES', `Plánek sálu nemá cenové zóny: ${unknown.join(', ')}`);
+    ticketTypes = input.zonePrices.map((z) => ({
+      name: z.zone, priceHalire: z.priceHalire, capacity: 1, zone: z.zone, isSeated: true, vatRateCode: z.vatRateCode ?? null, maxPerUser: null,
     }));
   } else if (input.ticketTypes && input.ticketTypes.length > 0) {
     ticketTypes = input.ticketTypes.map((t) => ({
@@ -133,7 +146,7 @@ export async function createTerm(client: PoolClient, promoterId: string, userId:
   // Kapacita sedadlových typů = skutečný počet míst v sále (ne číslo z předlohy).
   await client.query(
     `UPDATE catalog.ticket_types tt SET total_qty = s.n, remaining_qty = s.n
-       FROM (SELECT ticket_type_id, count(*)::int n FROM catalog.event_seats WHERE event_id = $1 GROUP BY ticket_type_id) s
+       FROM (SELECT ticket_type_id, count(*)::int n FROM catalog.event_seats WHERE event_id = $1 AND status = 'available' GROUP BY ticket_type_id) s
       WHERE tt.id = s.ticket_type_id AND tt.event_id = $1`,
     [ev.id],
   );

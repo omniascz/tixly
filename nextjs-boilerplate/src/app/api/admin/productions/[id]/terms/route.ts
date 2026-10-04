@@ -19,6 +19,11 @@ const schema = z.object({
   termNote: z.string().max(1000).nullable().optional(),
   castAlternation: z.string().max(2000).nullable().optional(),
   copyPricingFromEventId: z.string().uuid().nullable().optional(),
+  zonePrices: z.array(z.object({
+    zone: z.string().min(1).max(100),
+    priceHalire: z.number().int().min(0),
+    vatRateCode: z.string().max(40).nullable().optional(),
+  })).max(50).optional(),
   ticketTypes: z.array(z.object({
     name: z.string().min(1).max(100),
     priceHalire: z.number().int().min(0),

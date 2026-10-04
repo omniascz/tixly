@@ -18,7 +18,7 @@ interface Term {
   id: string; dateStart: string; status: string; termNote: string | null; castAlternation: string | null;
   venueId: string; venueName: string; city: string; capacity: number; sold: number;
 }
-interface Venue { id: string; name: string; city: string; capacity: number }
+interface Venue { id: string; name: string; city: string; capacity: number; zones?: Array<{ id: string; name: string; color: string }> }
 
 const api = (url: string, init?: RequestInit) =>
   fetch(url, { ...init, credentials: 'include', headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) } });
@@ -42,6 +42,8 @@ export default function ProductionDetailPage({ params }: { params: { id: string 
   const [termNote, setTermNote] = useState('');
   const [alternation, setAlternation] = useState('');
   const [busy, setBusy] = useState(false);
+  // Kolo 8 / krok 2: ceny podle cenových zón plánku sálu (první termín bez předlohy ceníku)
+  const [zonePrice, setZonePrice] = useState<Record<string, string>>({});
 
   async function load() {
     const r = await api(`/api/admin/productions/${params.id}`);
@@ -55,12 +57,23 @@ export default function ProductionDetailPage({ params }: { params: { id: string 
   }
   useEffect(() => {
     void load();
-    void api('/api/admin/venues').then(async (r) => { if (r.ok) setVenues(((await r.json()) as { venues: Venue[] }).venues); });
+    void (async () => {
+      // Knihovna míst (místo → sály se zónami) + starší sály mimo knihovnu.
+      const [lib, legacy] = await Promise.all([api('/api/admin/venue-places'), api('/api/admin/venues')]);
+      const fromLib: Venue[] = lib.ok
+        ? ((await lib.json()) as { places: Array<{ city: string; halls: Array<{ id: string; name: string; capacity: number; zones: Venue['zones'] }> }> }).places
+            .flatMap((pl) => pl.halls.map((h) => ({ id: h.id, name: h.name, city: pl.city, capacity: h.capacity, zones: h.zones })))
+        : [];
+      const rest: Venue[] = legacy.ok ? ((await legacy.json()) as { venues: Venue[] }).venues.filter((v) => !fromLib.some((x) => x.id === v.id)) : [];
+      setVenues([...fromLib, ...rest]);
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
   const cities = useMemo(() => [...new Set(venues.map((v) => v.city).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'cs')), [venues]);
   const hallsInCity = venues.filter((v) => v.city === city);
+  const hallZones = venues.find((v) => v.id === venueId)?.zones ?? [];
+  const zonePricesReady = hallZones.length > 0 && hallZones.every((z) => /^\d+([.,]\d{1,2})?$/.test((zonePrice[z.name] ?? '').trim()));
 
   async function saveCard() {
     if (!card) return;
@@ -94,6 +107,9 @@ export default function ProductionDetailPage({ params }: { params: { id: string 
         method: 'POST',
         body: JSON.stringify({
           venueId, dateStart: `${date}T${time}:00${sign}${hh}:${mm}`, copyPricingFromEventId: copyFrom || null,
+          zonePrices: copyFrom ? undefined : hallZones.map((z) => ({
+            zone: z.name, priceHalire: Math.round(Number((zonePrice[z.name] ?? '0').replace(',', '.')) * 100), vatRateCode: 'CZ_REDUCED',
+          })),
           termNote: termNote || null, castAlternation: alternation || null,
         }),
       });
@@ -171,10 +187,20 @@ export default function ProductionDetailPage({ params }: { params: { id: string 
           <label className="text-sm">Poznámka k termínu<Input value={termNote} onChange={(e) => setTermNote(e.target.value)} /></label>
           <label className="text-sm md:col-span-3">Alternace obsazení<Input value={alternation} onChange={(e) => setAlternation(e.target.value)} placeholder="např. Nina: Lucie Bílá" /></label>
         </div>
-        <Button onClick={() => void createTerm()} disabled={busy || !venueId || !date || !copyFrom} data-testid="term-create">
+        {!copyFrom && hallZones.length > 0 ? (
+          <div className="grid gap-2 md:grid-cols-3" data-testid="zone-prices">
+            {hallZones.map((z) => (
+              <label key={z.id} className="text-sm">
+                <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-full" style={{ background: z.color }} />{z.name} — cena (Kč, DPH 12 %)</span>
+                <Input value={zonePrice[z.name] ?? ''} onChange={(e) => setZonePrice({ ...zonePrice, [z.name]: e.target.value })} inputMode="decimal" />
+              </label>
+            ))}
+          </div>
+        ) : null}
+        <Button onClick={() => void createTerm()} disabled={busy || !venueId || !date || (!copyFrom && !zonePricesReady)} data-testid="term-create">
           {busy ? 'Zakládám…' : 'Založit termín'}
         </Button>
-        {!copyFrom ? <p className="text-xs text-muted-foreground">První termín založte přes Nová akce (s ceníkem) a připojte k inscenaci; další termíny pak převezmou ceník.</p> : null}
+        {!copyFrom && venueId && hallZones.length === 0 ? <p className="text-xs text-muted-foreground">Sál nemá cenové zóny — doplňte je v editoru plánku, nebo převezměte ceník z předchozího termínu.</p> : null}
       </section>
 
       <section className="rounded-lg border bg-card p-4">
