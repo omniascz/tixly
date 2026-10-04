@@ -12,7 +12,7 @@ stash drop/clear (stash „pred prepnutim na integrate/2026-10-04“ ponechat). 
 | 2 DPH, doklady, faktury, ISDOC (C-54) | HOTOVO — 2a sazby v DB (mig 494), povinná sazba/DIČ, blokace publikace+prodeje; 2b doklady po sazbách, řady bez děr (50 souběžných), dobropis při refundu (mig 495), RED→GREEN 7/7; 2c ISDOC 6.0.2 dle oficiálního XSD (RED starý generátor 5 chyb → GREEN 5/5), faktury provize platformy (mig 496, RED stub 3/3 → GREEN 3/3) | 9d88f9bf, 1748dd64, f925611f |
 | 3 výplaty — poctivý stav (C-57) | HOTOVO — mig 497 (awaiting_manual_transfer, trigger paid jen s potvrzením, převod neověřených + audit), confirm-transfer endpoint, executor nehlásí paid, UI /platform/payouts + /admin/payouts pravdivě; RED 5 → GREEN 5/5 (vizuál stránek v závěru) | 43a159b6 |
 | 4 zranitelné závislosti | HOTOVO — web axios/postcss/nodemailer v major + audit fix (63→52), mobile lockfile sync + audit fix (80→71), gate audit-fixable.mjs (opravitelné = zmizí po audit fix bez --force), security.yml; tsc 0, unit 634, build OK; tabulka logs/r7/4_vuln_table.tsv | c6edc85a |
-| 5 drobnosti (cron, lockfile, ARES) | 5a mobile-promoter lockfile HOTOVO (npm ci RED→GREEN, tsc 0) 81fa66d2; cron + ARES čeká | 81fa66d2 |
+| 5 drobnosti (cron, lockfile, ARES) | HOTOVO — 5a mobile-promoter lockfile (npm ci RED→GREEN, tsc 0); 5b cron expire-date-holds ve vercel.json + dispatcheru (RED 3 → GREEN); 5c simulátor ARES + mig 498, výpadek → ruční ověření (RED 6 → GREEN 6) | 81fa66d2, d83bb154, 6ff7145e |
 | 6 sandbox brány | čeká | |
 | Závěr | čeká | |
 
@@ -22,3 +22,4 @@ stash drop/clear (stash „pred prepnutim na integrate/2026-10-04“ ponechat). 
 - Krok 2c: údaje platformy jako dodavatele = platform.billing_identity, migrace NEPLNÍ (neznámé) → bez nich 503. Předpoklad: payouts.platform_fees je VČETNĚ DPH, DUZP = konec výplatního období (uvést v reportu). Ne-admin na /api/platform/* dostane 403 z middleware.
 - Krok 3: zbývá mimo C-57 — cron/resale-payouts (výplaty prodejcům přeprodeje) stále mock „paid" (přeprodej je vypnutá demo cesta); artist-payouts = evidence pořadatele, ne převod platformy. Uvést v reportu.
 - Krok 4: build s fix.app.env + přepsané DATABASE_URL_SUPER/OPS, KV_URL, KV_REST_API_URL na lokální (jinak by je Next vzal z .env.local). Live + audity 01–12 po změně závislostí se ověří v závěru.
+- Krok 5: RED běh ARES testu poslal několik čtecích dotazů na veřejný ares.gov.cz (starý klient ignoroval ARES_BASE_URL) — uvést v reportu. KYC u zaniklého subjektu (inactive) dál projde (beze změny chování, jen se uloží stav) — uvést.
