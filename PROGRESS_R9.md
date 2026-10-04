@@ -15,7 +15,7 @@ Výstupy logs/r9/. Při startu nové session přečíst tento soubor. Procesy na
 | 3 inventura | HOTOVO — GO-LIVE-INVENTORY.md (206 env proměnných, e-mail, GitHub secrets, crony, DB role, doména/CSRF/webhooky); klíčová tvrzení ověřena v kódu | (viz commit) |
 | 4 staging skripty | HOTOVO — create.sh (Neon samostatný projekt / --local), seed-demo.sql, vercel-preview.env.example, smoke.sh, pojistka staging-guard (instrumentation + DB pooly + GoPay/ComGate); shellcheck 0; dry-run vč. odmítnutí produkce; create.sh --local proti lokálnímu Postgresu OK (2 místa, 2 inscenace, 4 termíny, 400 míst, 20 kategorií, 24 blokovaných; tixly_app NOBYPASSRLS; idempotentní); boot test: staging s produkční DB (falešný host) odmítne, izolovaný naběhne | (viz commit) |
 | 5 runbook | HOTOVO — GO-LIVE-RUNBOOK.md (preflight, záloha + ověření obnovy, migrace, nasazení, smoke, rollback, 48 h); scripts/prod/preflight.sql (READ ONLY) a pending-migrations.sh ověřeny lokálně (očekávané hodnoty, 500–506 chybějící při simulaci); záloha+obnova ověřena lokálně; deploy.yml: migrace PŘED deployem + VERCEL_ORG_ID/PROJECT_ID | (viz commit) |
-| Závěr | čeká | |
+| Závěr | ROUND9_REPORT.md; turné na integrate a audit 12 po opravě čekají na restart serveru/simulátoru (ukončil je systém kvůli paměti) | (viz commit) |
 
 ## Poznámky
 - fix-pgb dříve mountoval konfiguraci z ../tixly-fix; nyní z tixly/audit/r2/pgb (spuštěn bez argumentu příkazu — výchozí CMD image).
