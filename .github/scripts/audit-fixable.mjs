@@ -17,7 +17,7 @@
  * Výstup: tabulka všech high/critical (stav | závažnost | balíček | potřebná verze); exit 1 při opravitelných.
  */
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -68,6 +68,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     // .npmrc modulu (např. legacy-peer-deps) — bez něj npm audit fix padá na ERESOLVE a gate by nic nezjistil.
     if (existsSync(path.join(dir, '.npmrc'))) copyFileSync(path.join(dir, '.npmrc'), path.join(tmp, '.npmrc'));
     const before = npmJson(['audit', '--json', '--package-lock-only'], tmp);
+    const lockA = JSON.parse(readFileSync(path.join(tmp, 'package-lock.json'), 'utf8')).packages ?? {};
     try {
       execFileSync('npm', ['audit', 'fix', '--package-lock-only', '--no-fund'], { cwd: tmp, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], shell: process.platform === 'win32' });
     } catch (e) {
@@ -80,7 +81,13 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
       }
     }
     const after = npmJson(['audit', '--json', '--package-lock-only'], tmp);
+    const lockB = JSON.parse(readFileSync(path.join(tmp, 'package-lock.json'), 'utf8')).packages ?? {};
     const rows = classify(before, after);
+    // U opravitelných ukaž, co npm audit fix v lockfilu změnil (verze A → B) — podklad pro opravu.
+    const versions = (lock, name) => Object.entries(lock)
+      .filter(([k]) => k === `node_modules/${name}` || k.endsWith(`/node_modules/${name}`))
+      .map(([k, v]) => `${k.replace(/node_modules\//g, '')}@${v.version}`).join(', ') || '—';
+    for (const r of rows) if (r.fixable) r.needs = `npm audit fix: ${versions(lockA, r.name)} → ${versions(lockB, r.name)}`;
     for (const r of rows) {
       console.log(`${(r.fixable ? 'OPRAVITELNÉ' : 'neopravitelné').padEnd(13)} ${r.severity.padEnd(8)} ${r.name.padEnd(40)} ${r.needs}`);
     }
