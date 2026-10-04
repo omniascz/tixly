@@ -1,0 +1,7 @@
+
+Running 2 tests using 1 worker
+
+  ok 1 [golden-path] › tests\golden-path-r9-golive.spec.ts:77:5 › A — promo kód: omezení na termín, kategorie a zóny v administraci (3.0s)
+  ok 2 [golden-path] › tests\golden-path-r9-golive.spec.ts:103:5 › B — obrázky po vypnutí optimalizace: veřejný web (next/image) i administrace (1.9s)
+
+  2 passed (7.8s)
