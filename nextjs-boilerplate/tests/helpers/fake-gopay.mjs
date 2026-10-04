@@ -46,6 +46,9 @@ http.createServer(async (req, res) => {
   // Kolo 7: scope podle doc.gopay.com — token `payment-create` smí jen zakládat platby,
   // dotaz na stav a refund vyžadují `payment-all` (jinak 403, jako skutečná brána).
   if (req.method === 'POST' && url.pathname === '/api/oauth2/token') {
+    // Simulace neplatných přihlašovacích údajů (sandbox testy, kolo 7): client_secret začínající „neplatne" → 401.
+    const basic = Buffer.from((req.headers.authorization ?? '').replace(/^Basic /, ''), 'base64').toString('utf8');
+    if (basic.split(':').slice(1).join(':').startsWith('neplatne')) return send(res, 401, { error: 'invalid_client' });
     const scope = new URLSearchParams(body).get('scope');
     if (scope !== 'payment-create' && scope !== 'payment-all') return send(res, 400, { errors: [{ error_name: 'INVALID_SCOPE' }] });
     return send(res, 200, { access_token: `fake-token-${scope}`, token_type: 'bearer', expires_in: 1800 });

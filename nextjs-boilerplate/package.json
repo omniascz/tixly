@@ -8,6 +8,7 @@
     "prebuild": "node scripts/copy-pdf-worker.mjs",
     "build": "next build",
     "start": "next start",
+    "test:sandbox": "vitest run -c vitest.sandbox.config.ts --maxWorkers=1 --minWorkers=1",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "lint:seating": "node ../scripts/lint-seating.mjs",
