@@ -23,3 +23,11 @@ Větev `fix/round10-2026-10-04` z `5fa51c02` (PR #6). Výstupy `logs/r10/`.
 - **Turné (Playwright) 10/10** (`2_tour.txt`, screenshoty `logs/r10/tour/`, vizuálně zkontrolováno).
 - Audit 05 C2c = skutečná vada: duplicitní potvrzovací e-mail při opakovaném dokončení → oprava e3e18aa2
   (test RED 2/3 e-maily → GREEN; live sada 82/82, unit 660, tsc 0, lint bez nárůstu). Audit 05 znovu proti serveru: viz níže.
+
+## Krok 1 — pokračování: Vercel padá dál, mimo Vercel nereprodukovatelné
+- Status „Vercel – nextjs-boilerplate" na 0e97e050 (už s opravou postal-fees): **failure** po ~6 min (pending 16:53:26 → failure 16:59:20),
+  deployment `dpl_4fLvsSzEBkdvQfWK7ZeSx3PefUus`. Oprava postal-fees byla skutečná vada buildu bez DB, ale Vercel padá na něčem dalším.
+- Linux `node:24` (v24.21.0) v Dockeru, čistý klon, `npm ci`, prázdné env z `.env.example`: **BUILD_EXIT=0** (`1_build_linux_node24.txt`).
+- Totéž s `DATABASE_URL` na nesměrovatelnou dokumentační IP 192.0.2.1 (zaseknuté spojení): **BUILD_EXIT=0**, 2 min 8 s (`1_build_linux_db_hang.txt`).
+- `vercel.json` se od 2026-08-06 do 2026-10-04 neměnil; selhávající commity 6d661fb3 a d4b43f4f mění jen dokumentaci.
+  → Příčina je v prostředí Vercelu (proměnné, nastavení projektu, limity plánu, balení funkcí). Logy Vercelu nečtu — viz report, co zkopírovat.
