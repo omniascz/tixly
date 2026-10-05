@@ -29,9 +29,11 @@ export async function releaseOrderCapacity(
   if (orderIds.length === 0) return { gaRestored: 0, seatsReleased: 0, promoReleased: 0 };
 
   // 1) GA množství zpět z order_items (jediný zdroj rezervovaného množství pro GA).
+  //    Kolo 9: strop total_qty — některé cesty (claim skupinové pozvánky) kapacitu při vytvoření neodečítají;
+  //    bez stropu CHECK chk_catalog_ticket_types_remaining shodil celou dávku cronu a nepropadlo nic.
   const ga = await client.query(
     `UPDATE catalog.ticket_types tt
-        SET remaining_qty = remaining_qty + sub.qty
+        SET remaining_qty = LEAST(tt.total_qty, remaining_qty + sub.qty)
        FROM (
          SELECT ticket_type_id, SUM(quantity) AS qty
            FROM orders.order_items

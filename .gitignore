@@ -98,3 +98,6 @@ audit/db/_mig_tmp/
 logs/r2/app_server.txt
 logs/r2/build_last.txt
 logs/r2/fake-gopay.*
+
+# Kolo 9: výstup scripts/staging/create.sh (tajné údaje stagingu)
+staging.env

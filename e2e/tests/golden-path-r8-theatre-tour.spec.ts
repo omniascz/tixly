@@ -17,7 +17,7 @@
  * 10. reporty a seznam pro uvaděče sedí s daty
  */
 import { createServer, type Server } from 'node:http';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { expect, test, type APIRequestContext, type Browser, type BrowserContext, type Page } from '@playwright/test';
@@ -28,7 +28,25 @@ const OWNER_URL = process.env.AUDIT_OWNER_URL ?? 'postgresql://neondb_owner:fixo
 const MAILPIT = process.env.MAILPIT ?? 'http://localhost:58225';
 const SHOTS = join(__dirname, '..', '..', 'logs', 'r8', 'tour');
 const APP_ENV = join(__dirname, '..', '..', 'nextjs-boilerplate', 'fix.app.env');
-const CRON_SECRET = /^CRON_SECRET=(.*)$/m.exec(readFileSync(APP_ENV, 'utf8'))?.[1]?.trim().replace(/^"|"$/g, '') ?? '';
+// Kolo 9: na stagingu se secret předá env (CRON_SECRET); lokálně z fix.app.env
+const CRON_SECRET = process.env.CRON_SECRET
+  ?? (existsSync(APP_ENV) ? /^CRON_SECRET=(.*)$/m.exec(readFileSync(APP_ENV, 'utf8'))?.[1]?.trim().replace(/^"|"$/g, '') : undefined)
+  ?? '';
+/** simulator = lokální simulátor GoPay (/gw/:id); manual = staging se sandboxem GoPay — platbu testovací kartou provede člověk v okně prohlížeče. */
+const PAY_MODE = (process.env.TOUR_PAY_MODE ?? 'simulator') as 'simulator' | 'manual';
+
+async function payAtGateway(page: Page, expectedAmount: string | null, shotName: string | null): Promise<void> {
+  if (PAY_MODE === 'manual') {
+    // čeká, až člověk zaplatí v sandboxu GoPay a brána vrátí kupce na web (max 10 min)
+    await page.waitForURL((u) => u.href.startsWith(BASE), { timeout: 600_000 });
+    return;
+  }
+  await page.waitForURL(/localhost:3998\/gw\//, { timeout: 20_000 });
+  if (expectedAmount) await expect(page.getByTestId('gw-amount')).toContainText(expectedAmount);
+  if (shotName) await shot(page, shotName);
+  await page.getByTestId('gw-pay').click();
+  await page.waitForURL((u) => u.href.startsWith(BASE), { timeout: 20_000 });
+}
 const RUN = Date.now().toString(36);
 const PASS = 'Tour2026!heslo';
 // vlastní klientská IP běhu (lokální server bez proxy bere x-real-ip) — sdílené rate limity registrace/přihlášení
@@ -454,7 +472,7 @@ async function noHorizontalScroll(page: Page): Promise<void> {
 }
 
 test('5 — online nákup s výběrem místa a kategorie přes simulátor GoPay (390 px), e-mail, PDF', async ({ browser }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(PAY_MODE === 'manual' ? 1_500_000 : 180_000);
   const { ctx, page } = await mobile(browser);
   const t1 = S.terms[0];
   await page.goto(`/cs/events/${t1}/seats`);
@@ -475,11 +493,7 @@ test('5 — online nákup s výběrem místa a kategorie přes simulátor GoPay 
   await noHorizontalScroll(page);
   await shot(page, '05b-mobil-kategorie');
   await page.getByRole('button', { name: 'Zaplatit' }).click();
-  await page.waitForURL(/localhost:3998\/gw\//, { timeout: 20_000 });
-  await expect(page.getByTestId('gw-amount')).toContainText('630');
-  await shot(page, '05c-gopay-simulator');
-  await page.getByTestId('gw-pay').click();
-  await page.waitForURL((u) => u.href.startsWith(BASE), { timeout: 20_000 });
+  await payAtGateway(page, '630', '05c-gopay-simulator');
   await shot(page, '05d-potvrzeni-objednavky');
   await expect.poll(async () => (await q(`SELECT 1 FROM tickets.tickets t JOIN orders.orders o ON o.id = t.order_id JOIN identity.users u ON u.id = o.user_id WHERE u.email = $1`, [S.buyerEmail])).length, { timeout: 30_000 }).toBe(3);
   const tickets = await q<{ id: string; seat: string; cat: string; order_id: string; total: number }>(
@@ -506,9 +520,7 @@ test('5 — online nákup s výběrem místa a kategorie přes simulátor GoPay 
   await p2.getByPlaceholder('E-mail').fill(`ostrava-${RUN}@tixly.test`);
   await p2.getByPlaceholder('Jméno a příjmení').fill('Petr Ostravák');
   await p2.getByRole('button', { name: 'Zaplatit' }).click();
-  await p2.waitForURL(/localhost:3998\/gw\//);
-  await p2.getByTestId('gw-pay').click();
-  await p2.waitForURL((u) => u.href.startsWith(BASE));
+  await payAtGateway(p2, null, null);
   await expect.poll(async () => (await q(`SELECT 1 FROM tickets.tickets t JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id WHERE tt.event_id = $1`, [S.terms[1]])).length, { timeout: 30_000 }).toBe(1);
   S.term2Ticket = (await q<{ id: string }>(`SELECT t.id FROM tickets.tickets t JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id WHERE tt.event_id = $1`, [S.terms[1]]))[0].id;
   await c2.close();

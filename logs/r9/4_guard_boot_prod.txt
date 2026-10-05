@@ -1,0 +1,29 @@
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3201
+
+ ✓ Starting...
+Failed to prepare server Error: An error occurred while loading instrumentation hook: [staging-guard] Testovací prostředí odmítá start — ukazuje na produkci:
+ - DATABASE_URL ukazuje na produkční databázi (prod-db.invalid)
+ - DATABASE_URL_DIRECT ukazuje na produkční databázi (prod-db.invalid)
+    at o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\57803.js:1:2010)
+    at Module.s (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\instrumentation.js:1:1471)
+    at async NextNodeServer.prepareImpl (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\node_modules\next\dist\server\next-server.js:478:17)
+ ✓ Ready in 836ms
+Failed to prepare server Error: An error occurred while loading instrumentation hook: [staging-guard] Testovací prostředí odmítá start — ukazuje na produkci:
+ - DATABASE_URL ukazuje na produkční databázi (prod-db.invalid)
+ - DATABASE_URL_DIRECT ukazuje na produkční databázi (prod-db.invalid)
+    at o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\57803.js:1:2010)
+    at Module.s (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\instrumentation.js:1:1471)
+    at async NextNodeServer.prepareImpl (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\node_modules\next\dist\server\next-server.js:478:17)
+Error: An error occurred while loading instrumentation hook: [staging-guard] Testovací prostředí odmítá start — ukazuje na produkci:
+ - DATABASE_URL ukazuje na produkční databázi (prod-db.invalid)
+ - DATABASE_URL_DIRECT ukazuje na produkční databázi (prod-db.invalid)
+    at o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\57803.js:1:2010)
+    at Module.s (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\instrumentation.js:1:1471)
+    at async NextNodeServer.prepareImpl (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\node_modules\next\dist\server\next-server.js:478:17)
+Error: An error occurred while loading instrumentation hook: [staging-guard] Testovací prostředí odmítá start — ukazuje na produkci:
+ - DATABASE_URL ukazuje na produkční databázi (prod-db.invalid)
+ - DATABASE_URL_DIRECT ukazuje na produkční databázi (prod-db.invalid)
+    at o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\57803.js:1:2010)
+    at Module.s (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\instrumentation.js:1:1471)
+    at async NextNodeServer.prepareImpl (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\node_modules\next\dist\server\next-server.js:478:17)

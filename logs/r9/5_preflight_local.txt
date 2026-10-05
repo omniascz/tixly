@@ -1,0 +1,83 @@
+BEGIN
+== 1) Role a atributy
+   rolname    | rolcanlogin | rolsuper | rolbypassrls | rolcreaterole | rolcreatedb 
+--------------+-------------+----------+--------------+---------------+-------------
+ neondb_owner | t           | t        | t            | t             | t
+ tixly_app    | t           | f        | f            | f             | f
+
+           kontrola_tixly_app           
+----------------------------------------
+ OK: tixly_app NOBYPASSRLS, NOSUPERUSER
+
+== 2) RLS zapnutá na tabulkách
+ tabulek | s_rls | bez_rls 
+---------+-------+---------
+     617 |   589 |      28
+
+          tabulka_bez_rls           
+------------------------------------
+ b2b.sandbox_fixtures
+ benefit_payments.providers
+ brands.advertisers
+ brands.campaigns
+ catalog.moderation_blocklist
+ channels.channel_providers
+ marketing.editorial_articles
+ marketing.transit_partners
+ marketing.web_vitals
+ monitoring.status_incidents
+ monitoring.system_components
+ platform.config
+ platform.currencies
+ platform.dashboard_widgets
+ platform.exchange_rates
+ platform.incident_updates
+ platform.incidents
+ public.admin_audit_log
+ public.admin_impersonation_tokens
+ public.feature_flags_audit
+ public.schema_migrations
+ public.spatial_ref_sys
+ public.wallet_device_registrations
+ public.wallet_pass_updates
+ public.wallet_passes_data
+ resources.resource_hub
+ risk.fraud_rules
+ risk.velocity_limits
+
+== 3) Počet politik vs. migrace
+ politik 
+---------
+     871
+
+== 4) Poslední aplikovaná migrace
+            stav            
+----------------------------
+ schema_migrations existuje
+
+                posledni                | aplikovano 
+----------------------------------------+------------
+ 499_events_legacy_payment_gateways.sql |         50
+
+== 5) SECURITY DEFINER funkce (žádný bypass RLS)
+            security_definer             
+-----------------------------------------
+ catalog.event_vat_readiness
+ identity.anonymize_user
+ identity.move_password_to_secrets
+ marketing.cleanup_expired_spotify_oauth
+ public.app_can_see_user_as_buyer
+ public.app_can_see_user_as_promoter
+ public.audit_trigger_func
+
+       prepina_kontext        
+------------------------------
+ public.app_is_platform_admin
+
+== 6) Práva tixly_app (vzorek) a TRUNCATE
+ orders_select | orders_insert | seat_reservations_truncate 
+---------------+---------------+----------------------------
+ t             | t             | f
+
+ROLLBACK
+== hotovo (jen čtení, nic nezměněno)

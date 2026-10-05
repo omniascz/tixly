@@ -26,6 +26,7 @@
  */
 import { AsyncLocalStorage } from 'async_hooks';
 import { Pool, PoolClient, QueryConfig, QueryResult, QueryResultRow } from 'pg';
+import { assertStagingIsolated } from '@/lib/env/staging-guard';
 
 interface RlsContext {
   promoterId?: string;
@@ -69,6 +70,7 @@ let connectPool: Pool | null = null;
  */
 function getConnectPool(): Pool {
   if (!connectPool) {
+    assertStagingIsolated(); // kolo 9: staging se nikdy nepřipojí k produkční DB
     connectPool = new Pool({
       connectionString: process.env.DATABASE_URL_DIRECT || process.env.DATABASE_URL,
       max: Number(process.env.PG_DIRECT_POOL_MAX ?? 4),
@@ -82,6 +84,7 @@ function getConnectPool(): Pool {
 
 function getRawPool(): Pool {
   if (!pool) {
+    assertStagingIsolated();
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       // Concurrency safety net (po load testu): omezený pool + timeouty, aby se

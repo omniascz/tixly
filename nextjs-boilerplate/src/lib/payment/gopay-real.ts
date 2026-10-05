@@ -13,6 +13,7 @@
  *
  * Reference: https://doc.gopay.com/#payment-creation
  */
+import { assertStagingIsolated } from '@/lib/env/staging-guard';
 
 export interface GopayConfig {
   goid: number;
@@ -27,6 +28,7 @@ let cachedConfig: GopayConfig | null = null;
 
 export function getGopayConfig(): GopayConfig {
   if (cachedConfig) return cachedConfig;
+  assertStagingIsolated(); // kolo 9: staging nikdy nepoužije ostrou bránu
 
   const goidRaw = process.env.GOPAY_GOID ?? '';
   const clientId = process.env.GOPAY_CLIENT_ID ?? '';

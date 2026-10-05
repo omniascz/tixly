@@ -41,14 +41,19 @@ jobs:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
   # ---------------------------------------------------------------------------
-  # Deploy na Vercel — jen když prošly všechny tři brány
+  # Deploy na Vercel — až PO migracích (kolo 9: dřív deploy → migrace, nový kód tak chvíli běžel nad starým
+  # schématem). Migrace jsou aditivní, takže starý kód nad novým schématem během deploye funguje.
   # ---------------------------------------------------------------------------
   deploy:
     name: Deploy → production
-    needs: [ci, schema-drift, rls-gate]
+    needs: [migrate]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     environment: production
+    env:
+      # vercel pull bez .vercel/ v repu potřebuje projekt a tým (Vercel → Project → Settings → General)
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
       - uses: actions/checkout@v4
@@ -76,12 +81,12 @@ jobs:
         working-directory: nextjs-boilerplate
 
   # ---------------------------------------------------------------------------
-  # DB migrace (produkce) — po deployi; efekt na RLS se ověřuje proti produkci
+  # DB migrace (produkce) — PŘED deployem, po třech branách; efekt na RLS se ověřuje proti produkci
   # ---------------------------------------------------------------------------
   migrate:
     name: DB migrace (produkce)
     runs-on: ubuntu-latest
-    needs: [deploy]
+    needs: [ci, schema-drift, rls-gate]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     environment: production
 

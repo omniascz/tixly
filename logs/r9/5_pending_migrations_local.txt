@@ -1,0 +1,8 @@
+500_productions_card.sql                      ALTER TABLE: 6   CREATE INDEX: 1
+501_venue_places_seat_types.sql               ALTER TABLE: 6   CREATE INDEX: 2
+502_seat_blocks.sql                           ALTER TABLE: 4   CREATE INDEX: 3
+503_price_categories.sql                      ALTER TABLE: 6   CREATE INDEX: 3
+504_seat_reservations.sql                     ALTER TABLE: 8   CREATE INDEX: 4
+505_corporate_orders.sql                      ALTER TABLE: 9   CREATE INDEX: 2
+506_term_cancel_postpone.sql                  ALTER TABLE: 5   CREATE INDEX: 0
+chybějících migrací: 7

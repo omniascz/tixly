@@ -31,7 +31,7 @@ export async function refundOrderFully(
         [orderId],
       );
       await client.query(
-        `UPDATE catalog.ticket_types tt SET remaining_qty = remaining_qty + sub.qty
+        `UPDATE catalog.ticket_types tt SET remaining_qty = LEAST(tt.total_qty, remaining_qty + sub.qty)
            FROM (SELECT ticket_type_id, SUM(quantity) AS qty FROM orders.order_items
                   WHERE order_id = $1 GROUP BY ticket_type_id) sub
           WHERE tt.id = sub.ticket_type_id`,
