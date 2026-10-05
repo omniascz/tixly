@@ -3,6 +3,8 @@
  */
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
+// Kolo 10: bez toho Next při buildu handler prerenderuje a čte DB (build padá / zapeče se stav z buildu).
+export const dynamic = 'force-dynamic';
 
 export async function GET(): Promise<Response> {
   const client = await db().connect();
