@@ -31,3 +31,28 @@ Větev `fix/round10-2026-10-04` z `5fa51c02` (PR #6). Výstupy `logs/r10/`.
 - Totéž s `DATABASE_URL` na nesměrovatelnou dokumentační IP 192.0.2.1 (zaseknuté spojení): **BUILD_EXIT=0**, 2 min 8 s (`1_build_linux_db_hang.txt`).
 - `vercel.json` se od 2026-08-06 do 2026-10-04 neměnil; selhávající commity 6d661fb3 a d4b43f4f mění jen dokumentaci.
   → Příčina je v prostředí Vercelu (proměnné, nastavení projektu, limity plánu, balení funkcí). Logy Vercelu nečtu — viz report, co zkopírovat.
+
+### Krok 1 — doplněk: historie deployů (GitHub Deployments API, ne Vercel)
+- Poslední **úspěšný** deploy `nextjs-boilerplate`: **ec58191a, 2026-07-04** (Production); předtím deploye střídavě padaly
+  (07-01 4× failure, 07-04 failure → success po „fix(build): self-host pdfjs worker"). Mezi 07-04 a 08-14 žádný deploy neproběhl.
+  „Padá od 2026-08-14" = první pokus po 6 týdnech. `logs/r10/1_gh_deployments.tsv`.
+- Od ec58191a se nezměnil `package.json`, lockfile ani `next.config`; crony v `vercel.json` ubyly (31 → 29 po kole 10).
+- Projekt „tixly" (prochází) nemá `vercel.json` s crony; `nextjs-boilerplate` má 17 z 29 cronů častěji než 1× denně
+  (Hobby tarif to nedovolí — hypotéza, ověřitelná jen ve Vercelu).
+
+## Krok 3 — nedokončené cesty vypnuté (51ca2ff7, ověřeno na serveru 7c9af1d7)
+- Přepínače `NEXT_PUBLIC_FEATURE_INSTALLMENTS / _SUBSCRIPTIONS / _BENEFIT_CARDS`, výchozí vypnuto.
+- Test `fix-r10-launch-flags` RED 23 → GREEN 27/27; `fix-r10-lastminute-cron.live` RED (42703 `lr.promoter_id`) → GREEN 2/2.
+- Server: stránky/API předplatného 404, checkout twisto/pluxee/useSubscription/paymentPlanId → 422 FEATURE_DISABLED,
+  lastminute GET bez/špatné tajemství 401, s tajemstvím 200; dispatcher payouts-execute 422 (`5_step3_http.txt`).
+- Screenshot checkoutu: jen Karta / Převodem / Wero / Firemní kredit (`5_checkout_flags_off.png`).
+- Výplaty ručně (payouts-execute neregistrován, CZK/FIO → `awaiting_manual_transfer`, potvrzení adminem).
+- Audit 05 znovu: **8/0** (C2c 10 e-mailů / 10 objednávek); audit 10: 7/0 (D3a upraven na vypnuté předplatné).
+
+## Krok 4 — e-maily stagingu přes Resend (a3d6600c, 7c9af1d7)
+- Allowlist v `sendMail` i `platform-notify`; pojistka: prázdný/neplatný allowlist → server skončí (exit 1).
+- Testy: `fix-r10-staging-email` RED (e-mail mimo allowlist odešel) → GREEN 5/5; `staging-guard` RED 2 → GREEN 7/7.
+- Boot: prázdný allowlist → exit 1; DB `prod-db.invalid` → exit 1; izolovaný staging naběhne.
+- `smoke.sh` naostro proti izolovanému stagingu + simulátoru Resend: OK (`5_smoke_staging.txt`).
+- **Poznámka:** RED běh testu platform-notify (před přidáním `RESEND_API_BASE_URL`) poslal 1 požadavek na skutečné
+  `https://api.resend.com/emails` s falešným klíčem `re_test_r10` (nemohl nic odeslat). Žádný produkční hostitel Tixly.
