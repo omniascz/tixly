@@ -72,6 +72,6 @@ export function stagingViolations(env: Env): string[] {
 export function assertStagingIsolated(env: Env = process.env): void {
   const v = stagingViolations(env);
   if (v.length) {
-    throw new Error(`[staging-guard] Testovací prostředí odmítá start — ukazuje na produkci:\n - ${v.join('\n - ')}`);
+    throw new Error(`[staging-guard] Testovací prostředí odmítá start (produkce nebo chybějící pojistka):\n - ${v.join('\n - ')}`);
   }
 }

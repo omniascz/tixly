@@ -1,0 +1,14 @@
+GET /cs/subscriptions → 404
+GET /cs/tixly-plus → 404
+GET /api/subscriptions/plans → 404
+GET /api/events/00000000-0000-4000-8000-000000000001/payment-plans → 404
+POST /api/subscriptions/checkout → 404
+POST /api/payments/benefit/pluxee/callback → 404
+GET lastminute bez tajemství → 401
+GET lastminute špatné → 401
+GET lastminute s tajemstvím → {"checked":0,"triggered":0,"log":[]} 200
+GET dispatch payouts-execute → -holds","seat-reservations","corporate-orders-overdue"]} 422
+checkout {"paymentMethod":"twisto"} → {"error":"FEATURE_DISABLED","feature":"installments"} 422
+checkout {"paymentMethod":"pluxee"} → {"error":"FEATURE_DISABLED","feature":"benefitCards"} 422
+checkout {"useSubscription":true} → {"error":"FEATURE_DISABLED","feature":"subscriptions"} 422
+checkout {"paymentPlanId":"00000000-0000-4000-8000-000000000001"} → {"error":"FEATURE_DISABLED","feature":"installments"} 422

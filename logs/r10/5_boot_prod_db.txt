@@ -1,0 +1,9 @@
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3200
+
+ ✓ Starting...
+[staging-guard] Testovací prostředí odmítá start (produkce nebo chybějící pojistka):
+ - DATABASE_URL ukazuje na produkční databázi (prod-db.invalid)
+ - DATABASE_URL_DIRECT ukazuje na produkční databázi (prod-db.invalid)
+ - DATABASE_URL_SUPER ukazuje na produkční databázi (prod-db.invalid)
+ - DATABASE_URL_OPS ukazuje na produkční databázi (prod-db.invalid)

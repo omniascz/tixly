@@ -12,7 +12,8 @@ platby jen v **sandboxu** GoPay / ComGate, e-maily přes **Resend jen na allowli
 
 ## Pojistka `TIXLY_ENV=staging`
 
-`src/lib/env/staging-guard.ts` — server **nenastartuje** (instrumentation.ts), ani nevytvoří DB pool nebo spojení s branou, když:
+`src/lib/env/staging-guard.ts` — server **nenastartuje** (instrumentation.ts vypíše důvody a proces skončí s kódem 1; kolo 10),
+ani nevytvoří DB pool nebo spojení s branou, když:
 
 - DB proměnná ukazuje na produkční Neon (vestavěný endpoint/projekt + `PROD_DB_HOSTS`),
 - `APP_URL` / `NEXT_PUBLIC_APP_URL` je produkční doména,

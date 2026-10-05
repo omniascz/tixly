@@ -59,27 +59,37 @@ TS=$(date +%s)
 ALLOWED="${STAGING_SMOKE_EMAIL%@*}+smoke-$TS@${STAGING_SMOKE_EMAIL#*@}"
 BLOCKED="smoke-$TS@blocked.invalid"
 reset_mail() { # $1 = e-mail: účet + žádost o obnovu hesla (e-mail odejde jen existujícímu účtu)
-  local body
+  local body code
   body=$(printf '{"email":"%s","password":"Smoke-%s-heslo","name":"Smoke test"}' "$1" "$TS")
-  run curl -s -o /dev/null -w "register $1 → %{http_code}\n" -X POST "$STAGING_URL/api/auth/register" \
-    -H 'content-type: application/json' -H "origin: $STAGING_URL" -d "$body"
-  run curl -s -o /dev/null -w "forgot-password $1 → %{http_code}\n" -X POST "$STAGING_URL/api/auth/forgot-password" \
-    -H 'content-type: application/json' -H "origin: $STAGING_URL" -d "{\"email\":\"$1\"}"
+  if [ "$DRY" = 1 ]; then
+    log "DRY-RUN: POST /api/auth/register {$1} → 200; POST /api/auth/forgot-password {$1} → 200"; return
+  fi
+  code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$STAGING_URL/api/auth/register" \
+    -H 'content-type: application/json' -H "origin: $STAGING_URL" -d "$body")
+  [ "$code" = 200 ] || [ "$code" = 201 ] || die "register $1 → $code"
+  code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$STAGING_URL/api/auth/forgot-password" \
+    -H 'content-type: application/json' -H "origin: $STAGING_URL" -d "{\"email\":\"$1\"}")
+  # 429 = rate limit (3 žádosti / 15 min z jedné IP) — e-mail by se vůbec nezkusil poslat a kontrola by prošla naprázdno
+  [ "$code" = 200 ] || die "forgot-password $1 → $code$([ "$code" = 429 ] && echo ' (rate limit 3/15 min — zopakovat za 15 minut)')"
+  log "účet + žádost o obnovu hesla: $1 → 200"
 }
 reset_mail "$ALLOWED"
 reset_mail "$BLOCKED"
 if [ "$DRY" = 1 ]; then
   log "DRY-RUN: GET $RESEND_API/emails → v seznamu je $ALLOWED, není $BLOCKED"
 else
+  # porovnání bez ohledu na velikost písmen přes tr — `grep -iF` v Git Bash na UTF-8 odpovědi padá (Aborted)
+  lc() { printf %s "$1" | tr '[:upper:]' '[:lower:]'; }
+  in_list() { lc "$list" | grep -qF "\"$(lc "$1")\""; }
   found=0
   for _ in $(seq 1 30); do
     list=$(curl -s -H "Authorization: Bearer $RESEND_API_KEY" "$RESEND_API/emails")
-    if printf %s "$list" | grep -qiF "\"$ALLOWED\""; then found=1; break; fi
+    if in_list "$ALLOWED"; then found=1; break; fi
     sleep 2
   done
   [ "$found" = 1 ] || die "Resend: e-mail na $ALLOWED se v seznamu odeslaných neobjevil (60 s) — odpověď: $(printf %s "$list" | head -c 300)"
   log "Resend: e-mail na povolenou adresu odeslán ✓"
-  if printf %s "$list" | grep -qiF "\"$BLOCKED\""; then die "Resend: e-mail na $BLOCKED (mimo allowlist) ODEŠEL — allowlist nefunguje"; fi
+  if in_list "$BLOCKED"; then die "Resend: e-mail na $BLOCKED (mimo allowlist) ODEŠEL — allowlist nefunguje"; fi
   log "Resend: e-mail na adresu mimo allowlist neodešel ✓"
 fi
 

@@ -64,8 +64,13 @@ const pkgId = pkg.json?.id;
 if (pkgId) await q(`UPDATE subscriptions.packages SET status='on_sale' WHERE id=$1`, [pkgId]).catch(() => {});
 // Overeni pres oficialni /api/subscriptions/checkout — zaznamename, zda vubec projde.
 const chk = pkgId ? await anon().post('/api/subscriptions/checkout', { packageId: pkgId, buyerEmail: `abo-${S.run}@audit.test`, buyerName: 'Abo Buyer' }) : { status: 0, json: null };
-check('D3a', 'SUBSCRIPTION: oficiální checkout /api/subscriptions/checkout funguje (n-preduskuje mock confirm)',
-  chk.status === 200 && !!chk.json?.paymentId,
+// Kolo 10 / krok 3: předplatné je pro první ostrý provoz vypnuté přepínačem (NEXT_PUBLIC_FEATURE_SUBSCRIPTIONS,
+// výchozí vypnuto) → oficiální checkout abonentky vrací 404 NOT_FOUND. Se zapnutým přepínačem by měl vrátit 200 + paymentId.
+const subsOn = process.env.NEXT_PUBLIC_FEATURE_SUBSCRIPTIONS === '1';
+check('D3a', subsOn
+  ? 'SUBSCRIPTION: oficiální checkout /api/subscriptions/checkout funguje (n-preduskuje mock confirm)'
+  : 'SUBSCRIPTION: předplatné vypnuté přepínačem (kolo 10) → checkout abonentky 404 NOT_FOUND',
+  subsOn ? (chk.status === 200 && !!chk.json?.paymentId) : (chk.status === 404 && chk.json?.error === 'NOT_FOUND'),
   { checkoutStatus: chk.status, body: JSON.stringify(chk.json ?? '').slice(0, 200) });
 // Checkout 500-uje (ON CONFLICT drift) → holder nevznikne cestou aplikace. Abychom overili SAMOTNY
 // neautentizovany confirm endpoint, nasadime holder v pending stavu primo (owner/bypass) a zavolame confirm jako anon.
