@@ -1,0 +1,38 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r10-build-static-db-routes.test.ts [2m ([22m[2m1 test[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 1806[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r10-build-static-db-routes.test.ts[2m > [22mbuild bez DB — statické GET handlery nečtou databázi[2m > [22mkaždý GET() bez request, který čte DB, je force-dynamic nebo má revalidate[39m
+[31m     → expected [ 'api/health/db/route.ts', …(2) ] to deeply equal [][39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-build-static-db-routes.test.ts[2m > [22mbuild bez DB — statické GET handlery nečtou databázi[2m > [22mkaždý GET() bez request, který čte DB, je force-dynamic nebo má revalidate
+[31m[1mAssertionError[22m: expected [ 'api/health/db/route.ts', …(2) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [][39m
+[31m+ Array [[39m
+[31m+   "api/health/db/route.ts",[39m
+[31m+   "api/postal-fees/route.ts",[39m
+[31m+   "api/public/incidents/route.ts",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/fix-r10-build-static-db-routes.test.ts:[2m39:23[22m[39m
+    [90m 37| [39m      })
+    [90m 38| [39m      [33m.[39m[34mmap[39m((f) [33m=>[39m [34mrelative[39m([33mAPP[39m[33m,[39m f)[33m.[39m[34mreplace[39m([36m/\\/g[39m[33m,[39m [32m'/'[39m))[33m;[39m
+    [90m 39| [39m    [34mexpect[39m(offenders)[33m.[39m[34mtoEqual[39m([])[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m 40| [39m  })[33m;[39m
+    [90m 41| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 18:38:49
+[2m   Duration [22m 35.87s[2m (transform 114ms, setup 9.42s, collect 36ms, tests 1.81s, environment 15.09s, prepare 1.63s)[22m
+

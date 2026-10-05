@@ -1,0 +1,141 @@
+
+> ticketing-platform@1.0.0 prebuild
+> node scripts/copy-pdf-worker.mjs
+
+[copy-pdf-worker] OK: 1.31 MB → public/pdf.worker.min.mjs
+
+> ticketing-platform@1.0.0 build
+> next build
+
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+  ▲ Next.js 14.2.35
+  - Experiments (use with caution):
+    · instrumentationHook
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings
+
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/opentelemetry/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/server/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./sentry.server.config.ts
+
+./node_modules/require-in-the-middle/index.js
+Critical dependency: require function is used in a way in which dependencies cannot be statically extracted
+
+Import trace for requested module:
+./node_modules/require-in-the-middle/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/opentelemetry/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/server/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./sentry.server.config.ts
+
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+ ⚠ Using edge runtime on a page currently disables static generation for that page
+   Generating static pages (0/396) ...
+   Generating static pages (99/396) 
+   Generating static pages (198/396) 
+
+Error occurred prerendering page "/api/postal-fees". Read more: https://nextjs.org/docs/messages/prerender-error
+
+AggregateError [ECONNREFUSED]: 
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async R.connect (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\41717.js:1:3549)
+    at async p (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\postal-fees\route.js:1:1401)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38411
+    at async e_.execute (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:27880)
+    at async e_.handle (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:39943)
+    at async exportAppRoute (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\export\routes\app-route.js:77:26)
+    at async exportPageImpl (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\export\worker.js:175:20)
+    at async Span.traceAsyncFn (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\trace\trace.js:154:20)
+[sitemap events] AggregateError [ECONNREFUSED]: 
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async s (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\sitemap.xml\route.js:13:1716)
+    at async s (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\sitemap.xml\route.js:20:1040)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38411
+    at async e_.execute (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:27880)
+    at async e_.handle (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:39943)
+    at async exportAppRoute (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\export\routes\app-route.js:77:26)
+    at async exportPageImpl (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\export\worker.js:175:20)
+    at async Span.traceAsyncFn (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\trace\trace.js:154:20) {
+  code: 'ECONNREFUSED',
+  [errors]: [
+    Error: connect ECONNREFUSED ::1:5432
+        at createConnectionError (node:net:1686:14)
+        at afterConnectMultiple (node:net:1716:16) {
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432
+    },
+    Error: connect ECONNREFUSED 127.0.0.1:5432
+        at createConnectionError (node:net:1686:14)
+        at afterConnectMultiple (node:net:1716:16) {
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432
+    }
+  ]
+}
+[sitemap promoters] AggregateError [ECONNREFUSED]: 
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async s (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\sitemap.xml\route.js:17:213)
+    at async s (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\sitemap.xml\route.js:20:1040)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38411
+    at async e_.execute (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:27880)
+    at async e_.handle (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:39943)
+    at async exportAppRoute (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\export\routes\app-route.js:77:26)
+    at async exportPageImpl (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\export\worker.js:175:20)
+    at async Span.traceAsyncFn (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\trace\trace.js:154:20) {
+  code: 'ECONNREFUSED',
+  [errors]: [
+    Error: connect ECONNREFUSED ::1:5432
+        at createConnectionError (node:net:1686:14)
+        at afterConnectMultiple (node:net:1716:16) {
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432
+    },
+    Error: connect ECONNREFUSED 127.0.0.1:5432
+        at createConnectionError (node:net:1686:14)
+        at afterConnectMultiple (node:net:1716:16) {
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432
+    }
+  ]
+}
+   Generating static pages (297/396) 
+ ✓ Generating static pages (396/396)
+
+> Export encountered errors on following paths:
+	/api/postal-fees/route: /api/postal-fees
