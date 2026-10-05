@@ -22,6 +22,10 @@ import { fbqTrack } from '@/lib/tracking/fbq';
 // nevidí ani nevybere) a backend input.foyerItems ignoruje. Re-enable až po feature ticketu
 // "foyer pre-order → přepsat na jsonb model E2E" (REMEDIATION.md).
 const FOYER_PREORDER_ENABLED = false;
+// Kolo 10 / krok 3: nedokončené platební cesty za přepínači (výchozí vypnuto; server je odmítá vždy —
+// tady jen skrytí v UI). Stejné proměnné jako src/lib/features/launch-flags.ts, vkládají se při buildu.
+const INSTALLMENTS_ENABLED = process.env.NEXT_PUBLIC_FEATURE_INSTALLMENTS === '1';
+const BENEFIT_CARDS_ENABLED = process.env.NEXT_PUBLIC_FEATURE_BENEFIT_CARDS === '1';
 
 // Digitální program-booklet DOČASNĚ VYPNUT — schema drift (třída 3): catalog.event_programs je
 // F1 (FINDINGS §136): program-booklet SMAZAN. catalog.event_programs je
@@ -1178,6 +1182,7 @@ function CheckoutForm() {
 
               {/* BNPL — Buy Now Pay Later (CZ: Twisto / Skip Pay) */}
               <div className="mt-2 grid grid-cols-2 gap-2">
+                {INSTALLMENTS_ENABLED ? (<>
                 <label
                   className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'twisto' ? 'border-primary bg-primary/5' : ''}`}
                 >
@@ -1206,6 +1211,7 @@ function CheckoutForm() {
                     Skip Pay <span className="text-xs text-muted-foreground">— 4 splátky (ČSOB)</span>
                   </span>
                 </label>
+                </>) : null}
                 {legacyGateways ? (
                 <label
                   className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'crypto' ? 'border-[#F7931A] bg-orange-50' : ''}`}
@@ -1225,6 +1231,7 @@ function CheckoutForm() {
               </div>
 
               {/* Benefit karty (B2B) — toggle */}
+              {BENEFIT_CARDS_ENABLED ? (
               <button
                 type="button"
                 onClick={() => setShowBenefitCards((v) => !v)}
@@ -1232,6 +1239,7 @@ function CheckoutForm() {
               >
                 {showBenefitCards ? '−' : '+'} Benefit karty (Pluxee, Sodexo, Benefit+, Edenred, Gallery Beta)
               </button>
+              ) : null}
 
               {/* B2B firemní kredit */}
               <div className="mt-2">
@@ -1285,7 +1293,7 @@ function CheckoutForm() {
                 </div>
               ) : null}
 
-              {showBenefitCards ? (
+              {BENEFIT_CARDS_ENABLED && showBenefitCards ? (
                 <div className="mt-2 grid grid-cols-2 gap-2 rounded-md border bg-muted/30 p-2 sm:grid-cols-3">
                   <label
                     className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-xs ${paymentMethod === 'pluxee' ? 'border-primary bg-primary/5' : 'bg-background'}`}

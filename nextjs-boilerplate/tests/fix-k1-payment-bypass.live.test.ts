@@ -16,6 +16,10 @@ import type { Pool } from 'pg';
 import { randomUUID } from 'crypto';
 import { createLocalClone, hasLocalDb, type LocalClone } from './helpers/local-fixture';
 
+// Kolo 10: i se ZAPNUTÝM přepínačem předplatného musí demo-cesty zůstat zavřené (demo-path-guard) —
+// bez toho by 404 z přepínače test splnil naprázdno.
+process.env.NEXT_PUBLIC_FEATURE_SUBSCRIPTIONS = '1';
+
 const run = describe.skipIf(!hasLocalDb);
 
 function post(path: string, body: unknown, headers: Record<string, string> = {}): NextRequest {

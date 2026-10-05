@@ -25,6 +25,7 @@ import { randomUUID } from 'crypto';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
 
 
 const schema = z.object({
@@ -37,6 +38,9 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('subscriptions');
+  if (featureOff) return featureOff;
   return runWithServiceContext(async () => {
 
   const body: unknown = await req.json().catch(() => ({}));

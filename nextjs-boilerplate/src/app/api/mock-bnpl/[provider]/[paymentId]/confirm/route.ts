@@ -10,9 +10,10 @@
  * CZ priority #2 (FR/UK/IT audit, ROI 8/10).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
-import { mockPaymentBlockedResponse } from '@/lib/payment/mock-guard';
 import { z } from 'zod';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
+import { mockPaymentBlockedResponse } from '@/lib/payment/mock-guard';
 
 
 const schema = z.object({
@@ -24,6 +25,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ provider: string; paymentId: string }> },
 ): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('installments');
+  if (featureOff) return featureOff;
   const blocked = mockPaymentBlockedResponse();
   if (blocked) return blocked;
   return runWithServiceContext(async () => {

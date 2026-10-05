@@ -366,6 +366,10 @@ VwIDAQAB
 
   // ───────────────────────── Benefit (Pluxee + generický) ─────────────────────────
   describe('Benefit callbacky', () => {
+    // Kolo 10: benefitní karty jsou za přepínačem (výchozí vypnuto → 404, viz fix-r10-launch-flags); tady se ověřují
+    // podpisy a částky ZAPNUTÉ funkce — jinak by 404 prošlo jako „nic nezaplaceno" naprázdno.
+    beforeAll(() => { process.env.NEXT_PUBLIC_FEATURE_BENEFIT_CARDS = '1'; });
+    afterAll(() => { delete process.env.NEXT_PUBLIC_FEATURE_BENEFIT_CARDS; });
     async function benefit(provider: string, amount = 50000): Promise<{ oid: string; ext: string }> {
       const ext = randomUUID(); const oid = await pendingOrder(provider, ext, amount);
       await pool.query(`INSERT INTO orders.benefit_payments (order_id, provider, amount_halire, status, external_id) VALUES ($1,$2,$3,'redirected',$4)`, [oid, provider, amount, ext]);
@@ -403,7 +407,7 @@ VwIDAQAB
     await pool.query(`INSERT INTO orders.benefit_payments (order_id, provider, amount_halire, status, external_id) VALUES ($1,'pluxee',50000,'redirected',$2)`, [oid, ext]);
     const { POST } = await import('@/app/api/payments/benefit/pluxee/callback/route');
     const b = JSON.stringify({ merchantTransactionId: ext, status: 'paid', paidAmountMinor: 50000, currency: 'CZK' });
-    const res = await throughMiddleware(post('/api/payments/benefit/pluxee/callback', b, { 'x-pluxee-signature': createHmac('sha256', 'fix-pluxee').update(b).digest('hex') }), POST as H);
+    const res = await withEnv({ NEXT_PUBLIC_FEATURE_BENEFIT_CARDS: '1' }, async () => throughMiddleware(post('/api/payments/benefit/pluxee/callback', b, { 'x-pluxee-signature': createHmac('sha256', 'fix-pluxee').update(b).digest('hex') }), POST as H));
     expect(res.status, await res.clone().text()).toBe(200);
     expect((await orderState(oid)).status).toBe('paid');
   });

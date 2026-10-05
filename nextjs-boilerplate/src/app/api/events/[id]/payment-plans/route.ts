@@ -7,12 +7,16 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
 
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('installments');
+  if (featureOff) return featureOff;
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }

@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 import { z } from 'zod';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
 
 
 const schema = z.object({
@@ -41,6 +42,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { orderId: string } },
 ): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('installments');
+  if (featureOff) return featureOff;
   return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);

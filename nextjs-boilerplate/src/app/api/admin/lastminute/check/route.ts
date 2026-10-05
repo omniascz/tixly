@@ -1,7 +1,8 @@
 import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { runAsActivePromoter } from '@/lib/admin-auth';
+import { isCronAuthorized } from '@/lib/security/cron-auth';
 
 function safeEqual(a: string, b: string): boolean {
   const ab = Buffer.from(a, 'utf8');
@@ -28,7 +29,7 @@ interface CapacityRow {
 
 async function runCheck(promoterId: string | null): Promise<{ checked: number; triggered: number; log: string[] }> {
   const promoterFilter = promoterId
-    ? `AND lr.promoter_id = $2`
+    ? `AND e.promoter_id = $2`
     : '';
   const queryArgs: unknown[] = [new Date().toISOString()];
   if (promoterId) queryArgs.push(promoterId);
@@ -36,7 +37,7 @@ async function runCheck(promoterId: string | null): Promise<{ checked: number; t
   const rules = await db().query<RuleRow>(
     `SELECT lr.id AS rule_id,
             lr.event_id,
-            lr.promoter_id,
+            e.promoter_id,
             e.title AS event_title,
             e.date_start,
             lr.hours_before,
@@ -112,6 +113,17 @@ async function runCheck(promoterId: string | null): Promise<{ checked: number; t
   }
 
   return { checked: rules.rows.length, triggered, log };
+}
+
+// Kolo 10 / krok 3: Vercel cron volá GET (dřív jen POST → 405, cron nikdy neběžel).
+// Ověření tajemstvím cronu (Authorization: Bearer CRON_SECRET), kontrola všech pořadatelů v servisním kontextu.
+export const dynamic = 'force-dynamic';
+
+export async function GET(req: NextRequest): Promise<Response> {
+  if (!isCronAuthorized(req)) {
+    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  }
+  return runWithServiceContext(async () => NextResponse.json(await runCheck(null)));
 }
 
 export async function POST(req: NextRequest): Promise<Response> {

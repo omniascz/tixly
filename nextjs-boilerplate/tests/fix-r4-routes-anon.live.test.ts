@@ -31,6 +31,23 @@ const ROOT = path.resolve(__dirname, '../..');
 const TABLE = path.join(ROOT, 'logs/r4/2_routes.json');
 const OUT = path.join(ROOT, 'logs/r4/2_routes_anon_result.json');
 const TIMEOUT_MS = 8000;
+// Kolo 10 / krok 3: routy vypnuté spouštěcím přepínačem (výchozí stav) odmítají každého 404 NOT_FOUND —
+// ještě před ověřením identity. I to je odmítnutí anonyma; přijímá se jen u těchto rout a jen s tělem NOT_FOUND.
+const FEATURE_OFF_ROUTES = new Set([
+  'POST /api/buyer/orders/[orderId]/payment-plan',
+  'GET /api/buyer/subscriptions',
+  'POST /api/buyer/subscriptions',
+  'POST /api/internal/cron/charge-installments',
+  'POST /api/internal/cron/renew-subscriptions',
+  'POST /api/mock-bnpl/[provider]/[paymentId]/confirm',
+  'POST /api/payments/benefit/callback',
+  'POST /api/payments/benefit/pluxee/callback',
+  'GET /api/admin/events/[id]/payment-plans',
+  'POST /api/admin/events/[id]/payment-plans',
+  'POST /api/subscriptions/checkout',
+  'POST /api/subscriptions/subscribe',
+  'POST /api/subscriptions/holders/[paymentId]/confirm',
+]);
 
 function fill(route: string): { url: string; params: Record<string, string | string[]> } {
   const params: Record<string, string | string[]> = {};
@@ -81,6 +98,7 @@ run('Krok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení 
         status = `throw: ${(e as Error).message.slice(0, 120)}`;
       }
       if (status === 401 || status === 403) ok++;
+      else if (status === 404 && FEATURE_OFF_ROUTES.has(`${r.method} ${r.route}`) && body.includes('NOT_FOUND')) ok++;
       else if (typeof status === 'string' && status.includes('outside a request scope')) harness.push(`${r.method} ${r.route}`);
       else bad.push({ method: r.method, route: r.route, caller: r.caller, status, body });
     }
