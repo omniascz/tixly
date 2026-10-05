@@ -88,6 +88,9 @@ Do povinných se počítají tři proměnné GoPay a dvě ComGate jako alternati
 |---|---|---|---|---|
 | `APP_URL` | Veřejná URL serveru — notification/return URL plateb, CSRF allowlist, odkazy; fallback `http://localhost:3000` | **povinná** | vlastní doména, např. `https://app.tixly.cz` (bez lomítka na konci) | `src/app/api/checkout/route.ts:2395`, `src/lib/security/csrf.ts:53` |
 | `NEXT_PUBLIC_APP_URL` | Totéž pro klienta + cron dispatcher (self-fetch), odkazy v e-mailech; fallback localhost nebo `''` | **povinná** (stejná hodnota jako `APP_URL`) | vlastní doména | `src/app/api/cron/dispatch/route.ts:97` |
+| `NEXT_PUBLIC_FEATURE_INSTALLMENTS` | **Kolo 10:** splátky (plány splátek, BNPL Twisto / Skip Pay, cron charge-installments). Vypnuto → checkout 422 `FEATURE_DISABLED`, API 404, UI skryté | **nenastavovat** (výchozí vypnuto; zapíná jen `1`; vkládá se při buildu) | — | `src/lib/features/launch-flags.ts` |
+| `NEXT_PUBLIC_FEATURE_SUBSCRIPTIONS` | **Kolo 10:** předplatné / permanentky / abonentky (aktivace, checkout, uplatnění v checkoutu, cron renew-subscriptions). Vypnuto → 422 / 404, stránky 404 | **nenastavovat** | — | `src/lib/features/launch-flags.ts` |
+| `NEXT_PUBLIC_FEATURE_BENEFIT_CARDS` | **Kolo 10:** benefitní karty (Pluxee, Edenred, …; chybí návratová URL). Vypnuto → checkout 422, callbacky 404, UI skryté | **nenastavovat** | — | `src/lib/features/launch-flags.ts` |
 | `NEXT_PUBLIC_API_URL` | Prefix API pro klienta; prázdné = stejný origin | volitelná | — | `src/lib/api.ts:11` |
 | `EMBED_ALLOWED_ORIGINS` | CORS pro embed endpointy (ticket-types, checkout, seats); default `*` | volitelná (doporučeno omezit) | seznam domén promotérů | `next.config.mjs:135` |
 | `EMBED_FRAME_ANCESTORS` | CSP `frame-ancestors` pro `/embed/*`; default `*` | volitelná (doporučeno omezit) | seznam domén promotérů (mezerou oddělené) | `next.config.mjs:78` |
@@ -204,6 +207,8 @@ Do povinných se počítají tři proměnné GoPay a dvě ComGate jako alternati
 | `EMAIL_FROM` | Odesílatel transakčních e-mailů (vstupenky); fallback `vstupenky@tixly.local` | **povinná** | adresa na ověřené doméně | `src/lib/email/mailer.ts:49` |
 | `MAIL_FROM` | Odesílatel jiných e-mailů (broadcast, abandoned-cart, reminders, lottery, team invite, waitlist); fallback `noreply@tixly.cz` | **povinná** | adresa na ověřené doméně | `src/app/api/internal/broadcast-send/route.ts:93` |
 | `RESEND_API_KEY` | Jen admin alerty přes Resend HTTP API (odesílatel natvrdo `noreply@tixly.cz`) | volitelná (silně doporučená) | Resend → API Keys | `src/lib/notifications/platform-notify.ts:16,32` |
+| `RESEND_API_BASE_URL` | **Kolo 10:** základ Resend HTTP API (výchozí `https://api.resend.com`); jen pro testy se simulátorem | ne (nenastavovat) | — | `src/lib/notifications/platform-notify.ts` |
+| `STAGING_EMAIL_ALLOWLIST` | **Kolo 10, jen staging:** e-mail odejde jen na tyto adresy / `@domény` (čárkou); mimo → neodešle se a zaloguje. S `TIXLY_ENV=staging` a prázdným allowlistem server nenastartuje | v produkci **ne**; na stagingu **povinná** | adresy testerů | `src/lib/email/staging-allowlist.ts`, `src/lib/env/staging-guard.ts` |
 | `BULKGATE_APPLICATION_ID` | BulkGate SMS; bez něj mock (jen audit log) | volitelná | portal.bulkgate.com → aplikace API | `src/lib/sms/bulkgate-mock.ts:121` |
 | `BULKGATE_APPLICATION_TOKEN` | dtto | volitelná | portal.bulkgate.com | `src/lib/sms/bulkgate-mock.ts:122` |
 | `BULKGATE_SENDER_ID` | Jméno odesílatele SMS (default `Tixly`) | volitelná | BulkGate (registrace sender ID) | `src/lib/sms/bulkgate-mock.ts:123` |
@@ -316,8 +321,8 @@ Proměnné, jejichž **chybějící nebo špatná hodnota v produkci nevyhodí c
 | 11 | `INTERNAL_API_TOKEN` nastaven jinak než `INTERNAL_SERVICE_TOKEN` | `verifyInternalToken` ho preferuje, dispatcher posílá `INTERNAL_SERVICE_TOKEN` → crony `corporate-orders-overdue`, `expire-date-holds`, `seat-reservations` dostanou 401; dispatcher přesto vrátí Vercelu HTTP 200 | `src/lib/internal-auth.ts:22`, `src/app/api/cron/dispatch/route.ts:98,113-117` |
 | 12 | `HMAC_SECRET` chybí | Hash IP v DSA hlášeních bez saltu (triviálně reverzibilní) | `src/lib/compliance/dsa.ts:68` |
 | 13 | `INTERNAL_SERVICE_TOKEN` chybí | Mimo jiné HMAC platebního odkazu call-centra s literálem `dev-secret`; `DPP_VALIDATION_SECRET` spadne na literál `tixly-dpp-default-secret` | `src/app/api/admin/call-center/order/route.ts:28`, `src/lib/transit/dpp.ts:33-37` |
-| 14 | `STRIPE_SECRET_KEY` chybí (nebo kupec nemá uloženou kartu) | Cron `charge-installments` (denně 03:00) označí splátku jako **zaplacenou bez stržení** (`mock-cron-…`) | `src/app/api/internal/cron/charge-installments/route.ts:68-130` |
-| 15 | (nezávisle na env) | Cron `renew-subscriptions` obnovuje předplatná **bez platby** (mock instant-renew) | `src/app/api/internal/cron/renew-subscriptions/route.ts:60-75` |
+| 14 | `STRIPE_SECRET_KEY` chybí (nebo kupec nemá uloženou kartu) | Cron `charge-installments` (denně 03:00) označí splátku jako **zaplacenou bez stržení** (`mock-cron-…`). **Kolo 10:** cron vyřazen z `vercel.json`, routa 404 bez `NEXT_PUBLIC_FEATURE_INSTALLMENTS=1` | `src/app/api/internal/cron/charge-installments/route.ts:68-130` |
+| 15 | (nezávisle na env) | Cron `renew-subscriptions` obnovuje předplatná **bez platby** (mock instant-renew). **Kolo 10:** cron vyřazen z `vercel.json`, routa 404 bez `NEXT_PUBLIC_FEATURE_SUBSCRIPTIONS=1` | `src/app/api/internal/cron/renew-subscriptions/route.ts:60-75` |
 | 16 | `PAYOUT_PROVIDER` chybí | Výplaty prodejcům z resale se označí `paid` s falešným ID (route zatím v `vercel.json` není) | `src/app/api/cron/resale-payouts/route.ts:49,72-74` |
 | 17 | `STRIPE_SECRET_KEY` nastaven, `PAYMENT_PROVIDER_EUR` ne | EUR karty automaticky přes Stripe (ne přes GoPay/ComGate) | `src/lib/payment/provider.ts:64` |
 | 18 | `REDIS_URL` chybí | Rate-limity jen in-memory per serverless instance (slabé) | `src/lib/rate-limit/per-tenant.ts:40` |
@@ -365,6 +370,12 @@ Projektová dokumentace počítá s Resend (`.env.example:90`, `DEPLOYMENT.md:21
   - Případný MX/return-path záznam, pokud ho Resend vyžaduje. Z kódu nezjištěno.
   - **DMARC** (TXT `_dmarc`), doporučeno např. `v=DMARC1; p=quarantine; rua=mailto:<admin>` (`DEPLOYMENT.md:212`).
 - Při jiném SMTP poskytovateli (Postmark/SendGrid/SES, `.env.example:91-93`) platí totéž: SPF + DKIM dle daného poskytovatele a DMARC.
+
+**Staging (kolo 10):** staging nemá Mailpit — posílá přes Resend (`SMTP_HOST=smtp.resend.com`) skutečným lidem, proto
+povinný `STAGING_EMAIL_ALLOWLIST` (adresy nebo `@domény`, plus-adresy pasují). Filtr je v `sendMail` (všechny e-maily
+přes SMTP) i v `platform-notify` (Resend HTTP API); příjemce mimo allowlist se vyřadí a zaloguje maskovaně
+(`[mailer] staging: příjemci mimo STAGING_EMAIL_ALLOWLIST …`). Prázdný / neplatný allowlist = server nenastartuje.
+Doručení ověřuje `scripts/staging/smoke.sh` přes seznam odeslaných zpráv Resend API (`GET /emails`). Viz `scripts/staging/README.md`.
 
 **Riziko:** chybějící `SMTP_HOST` znamená tiché selhání odesílání vstupenek (viz §1.12 #3). Po nasazení je třeba zkontrolovat log `[mailer] provider=… authed=true` (`mailer.ts:79-81`).
 
@@ -422,7 +433,7 @@ Kde secrets zadat: GitHub → repo → Settings → Secrets and variables → Ac
 
 Pokud je zapnutá Vercel Deployment Protection, může blokovat self-fetch dispatcheru na produkční doménu. Z kódu nezjištěno, ověřit v nastavení projektu.
 
-### 4.2 Registrované crony (`vercel.json:33-65`) — 31 záznamů
+### 4.2 Registrované crony (`vercel.json`) — 29 záznamů (kolo 10: vyřazeny #7 charge-installments a #8 renew-subscriptions)
 
 | # | Path | Schedule | Cílová routa | Co dělá | Auth cílové routy |
 |---|---|---|---|---|---|
@@ -432,8 +443,8 @@ Pokud je zapnutá Vercel Deployment Protection, může blokovat self-fetch dispa
 | 4 | `…job=abandoned-cart` | `0 */6 * * *` | `…/abandoned-cart` | E-mail k nezaplaceným objednávkám starším 30 min | x-internal-token |
 | 5 | `…job=waitlist-notify` | `*/30 * * * *` | `…/waitlist-notify` | Notifikace čekací listiny při uvolnění kapacity | x-internal-token |
 | 6 | `…job=bank-sync-fio` | `0 */2 * * *` | `…/bank-sync-fio` | Stažení Fio transakcí per promotér, párování převodů dle VS | x-internal-token |
-| 7 | `…job=charge-installments` | `0 3 * * *` | `…/charge-installments` | Strhnutí splátek (Stripe; jinak **mock „zaplaceno"**, §1.12 #14) | x-internal-token |
-| 8 | `…job=renew-subscriptions` | `0 4 * * *` | `…/renew-subscriptions` | Obnova předplatných (**mock, bez platby**, §1.12 #15) | x-internal-token |
+| ~~7~~ | `…job=charge-installments` | `0 3 * * *` | `…/charge-installments` | Strhnutí splátek (Stripe; jinak **mock „zaplaceno"**, §1.12 #14) | x-internal-token — **Kolo 10: vyřazen z `vercel.json`** (splátky vypnuté) |
+| ~~8~~ | `…job=renew-subscriptions` | `0 4 * * *` | `…/renew-subscriptions` | Obnova předplatných (**mock, bez platby**, §1.12 #15) | x-internal-token — **Kolo 10: vyřazen z `vercel.json`** (předplatné vypnuté) |
 | 9 | `…job=daily-stats` | `0 6 * * *` | `…/daily-stats` | Denní statistiky e-mailem promotérům | x-internal-token |
 | 10 | `…job=onboarding-reminder` | `0 9 * * *` | `…/onboarding-reminder` | Připomínka nedokončeného onboardingu promotéra (≥ 7 dní) | x-internal-token |
 | 11 | `…job=process-gdpr-deletions` | `0 2 * * *` | `…/process-gdpr-deletions` | Anonymizace PII u naplánovaných žádostí o výmaz | x-internal-token |
@@ -451,7 +462,7 @@ Pokud je zapnutá Vercel Deployment Protection, může blokovat self-fetch dispa
 | 23 | `…job=forgemsg-dispatch` | `*/5 * * * *` | `…/forgemsg-dispatch` | Odeslání outboxu do ForgeMsg | x-internal-token |
 | 24 | `…job=forgemsg-sync-events` | `0 */6 * * *` | `…/forgemsg-sync-events` | Sync nadcházejících akcí a neprodaných míst do ForgeMsg | x-internal-token |
 | 25 | `…job=forgemsg-provision` | `0 * * * *` | `…/forgemsg-provision` | Založení ForgeMsg org + klíče novým promotérům | x-internal-token |
-| 26 | **`/api/admin/lastminute/check`** | `*/15 * * * *` | `src/app/api/admin/lastminute/check/route.ts` | Last-minute slevy podle obsazenosti | **⚠ NEFUNKČNÍ:** routa exportuje jen `POST` (`route.ts:117`), Vercel cron volá `GET` → 405; navíc chce `x-internal-token`, který Vercel neposílá |
+| 26 | **`/api/admin/lastminute/check`** | `*/15 * * * *` | `src/app/api/admin/lastminute/check/route.ts` | Last-minute slevy podle obsazenosti | **Kolo 10 opraveno:** `GET` s `Authorization: Bearer CRON_SECRET` (isCronAuthorized), výjimka v middlewaru jen pro tento GET; opraven i dotaz (`lr.promoter_id` neexistoval → 42703). Bez / se špatným tajemstvím 401 (test `fix-r10-lastminute-cron.live`) |
 | 27 | `…job=event-payout-release` | `0 8 * * *` | `…/event-payout-release` | Auto-payout N dní po akci (per-promotér SLA) | x-internal-token |
 | 28 | `…job=release-group-invite-holds` | `*/10 * * * *` | `…/release-group-invite-holds` | Uvolní nezaplacená sedadla z AXS Invite | `isInternalTokenAuthorized` |
 | 29 | `…job=expire-date-holds` | `0 * * * *` | `…/expire-date-holds` | Propadlé opce na termíny sálu, posun pořadí | `verifyInternalToken` |
@@ -462,7 +473,7 @@ Kontrola konzistence (skriptem): 30 jobů v `vercel.json` = 30 jobů v `ALLOWED_
 
 **Kontrolní body tarifu Vercel (neověřováno, jen check):**
 
-- 17 z 31 cronů běží častěji než 1× denně (`*/5`, `*/10`, `*/15`, `*/20`, `*/30`, `*/50`, hodinově, á 2 h, á 6 h). Podle dostupných informací tarif **Hobby** omezuje crony na 1× denně a omezený počet. `DEPLOYMENT.md:15` přitom počítá s „free Hobby pro start". **Ověřit v aktuální dokumentaci a ceníku Vercelu**; pravděpodobně je nutný **Pro**, jinak deploy s tímto `vercel.json` neprojde nebo crony nepoběží.
+- 17 z 29 cronů běží častěji než 1× denně (`*/5`, `*/10`, `*/15`, `*/20`, `*/30`, `*/50`, hodinově, á 2 h, á 6 h). Podle dostupných informací tarif **Hobby** omezuje crony na 1× denně a omezený počet. `DEPLOYMENT.md:15` přitom počítá s „free Hobby pro start". **Ověřit v aktuální dokumentaci a ceníku Vercelu**; pravděpodobně je nutný **Pro**, jinak deploy s tímto `vercel.json` neprojde nebo crony nepoběží.
 - Ověřit limit počtu cronů na projekt pro zvolený tarif (zde 31).
 - Časy v `schedule` jsou na Vercelu v UTC. Ověřit, zda to sedí s úmyslem, např. `send-commemorative` v `0 10 * * *`.
 
@@ -474,7 +485,7 @@ Nejsou v `vercel.json` ani v `ALLOWED_JOBS`, takže **nikdy neběží**:
 |---|---|---|
 | `src/app/api/internal/cron/audience-geo-snapshot/route.ts` | Noční přepočet `analytics.audience_geo` | Hlavička uvádí `0 2 * * *`, registrace chybí |
 | `src/app/api/internal/cron/demand-forecast/route.ts` | Prognóza poptávky | **Záměrně vypnuto** (R-47, `dispatch/route.ts:27-32`) |
-| `src/app/api/internal/cron/payouts-execute/route.ts` | Odeslání výplat (Wise / PayPal Payouts) po `payouts-auto-settle` | **Výplaty promotérům tak zůstanou `pending`** (pokud se neposílají ručně) |
+| `src/app/api/internal/cron/payouts-execute/route.ts` | Odeslání výplat (Wise / PayPal Payouts) po `payouts-auto-settle` | **Kolo 10: záměrně neregistrováno — výplaty jsou pro první ostrý provoz RUČNÍ.** Platform admin je spustí v administraci (`/api/admin/payouts/execute`); u CZK/FIO výplata přejde do stavu `awaiting_manual_transfer` (kolo 7), převod se odešle z internetového bankovnictví a admin ho potvrdí (`/api/platform/admin/payouts/[id]/confirm-transfer`). Test: dispatcher job nezná (422) |
 | `src/app/api/internal/cron/publish-notify/route.ts` | Doručení sold-notifikací do externích Publish API | Hlavička uvádí á 5 min |
 | `src/app/api/internal/cron/push-reminders/route.ts` | Web push připomínky (24 h / 4 h před akcí, on-sale) | — |
 | `src/app/api/internal/cron/seat-upgrade-notify/route.ts` | E-mail o dostupném lepším sedadle | Komentář je rozporný: „ZŮSTÁVÁ VYPNUTÝ" (`dispatch/route.ts:21`) vs. „VRÁCENO 2026-08-08" (`:33`). V allowlistu není, fakticky tedy vypnuto |

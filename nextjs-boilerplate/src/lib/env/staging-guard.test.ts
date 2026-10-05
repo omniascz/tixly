@@ -8,6 +8,7 @@ const ok = {
   GOPAY_GOID: '8123456789', GOPAY_SANDBOX: 'true',
   COMGATE_MERCHANT: '123456', COMGATE_TEST: 'true',
   STRIPE_SECRET_KEY: 'sk_test_abc', STRIPE_PUBLISHABLE_KEY: 'pk_test_abc',
+  STAGING_EMAIL_ALLOWLIST: 'tester@firma.example, @tixly-test.example',
 };
 
 describe('staging guard (kolo 9 / krok 4)', () => {
@@ -40,5 +41,22 @@ describe('staging guard (kolo 9 / krok 4)', () => {
     expect(v.join('\n')).toMatch(/PAYPAL_SANDBOX/);
     expect(v.join('\n')).toMatch(/MOLLIE_API_KEY/);
     expect(() => assertStagingIsolated({ ...ok, GOPAY_API_BASE_URL: 'https://gate.gopay.cz/api' })).toThrow(/staging-guard/);
+  });
+
+  it('kolo 10: prázdný allowlist e-mailů → staging odmítne start', () => {
+    for (const v of [undefined, '', '  ,  ']) {
+      const env = { ...ok, STAGING_EMAIL_ALLOWLIST: v };
+      expect(stagingViolations(env).join('\n')).toMatch(/STAGING_EMAIL_ALLOWLIST je prázdný/);
+      expect(() => assertStagingIsolated(env)).toThrow(/staging-guard/);
+    }
+  });
+
+  it('kolo 10: neplatná položka allowlistu → odmítne (překlep by tiše zablokoval všechno)', () => {
+    expect(stagingViolations({ ...ok, STAGING_EMAIL_ALLOWLIST: 'tester@firma.example, firma.example' }).join('\n'))
+      .toMatch(/STAGING_EMAIL_ALLOWLIST obsahuje neplatné položky: firma.example/);
+  });
+
+  it('kolo 10: mimo staging se allowlist nevyžaduje', () => {
+    expect(stagingViolations({ STAGING_EMAIL_ALLOWLIST: '' })).toEqual([]);
   });
 });

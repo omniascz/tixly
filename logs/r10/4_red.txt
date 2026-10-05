@@ -1,0 +1,76 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r10-staging-email.test.ts [2m ([22m[2m5 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[33m 473[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r10-staging-email.test.ts[2m > [22mmailer na stagingu (SMTP → simulátor Resend)[2m > [22madresa mimo allowlist se NEODEŠLE a zaloguje; povolená odejde[39m
+[31m     → expected undefined to be true // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r10-staging-email.test.ts[2m > [22mmailer na stagingu (SMTP → simulátor Resend)[2m > [22mvíce příjemců: zablokované se vyřadí, povolené dostanou e-mail[39m
+[31m     → expected [ { …(7) } ] to have a length of +0 but got 1[39m
+[31m   [33m❯[31m tests/fix-r10-staging-email.test.ts[2m > [22mplatform-notify na stagingu (Resend HTTP API → simulátor)[2m > [22madmin mimo allowlist: neodešle se a zaloguje; v allowlistu: odejde[39m
+[31m     → expected '' to match /STAGING_EMAIL_ALLOWLIST/[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-staging-email.test.ts[2m > [22mmailer na stagingu (SMTP → simulátor Resend)[2m > [22madresa mimo allowlist se NEODEŠLE a zaloguje; povolená odejde
+[31m[1mAssertionError[22m: expected undefined to be true // Object.is equality[39m
+
+[32m- Expected:[39m 
+true
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/fix-r10-staging-email.test.ts:[2m83:87[22m[39m
+    [90m 81| [39m
+    [90m 82| [39m    [35mconst[39m r1 [33m=[39m [35mawait[39m [34msendMail[39m({ to[33m:[39m blocked[33m,[39m subject[33m:[39m [32m`Blok [39m[36m${[39mrun[36m}[39m[32m`[39m[33m,[39m h…
+    [90m 83| [39m    [34mexpect[39m((r1 [35mas[39m { skippedByStagingAllowlist[33m?[39m[33m:[39m boolean })[33m.[39mskippedBySt…
+    [90m   | [39m                                                                                      [31m^[39m
+    [90m 84| [39m    [35mawait[39m [34msendMail[39m({ to[33m:[39m allowed[33m,[39m subject[33m:[39m [32m`Povoleno [39m[36m${[39mrun[36m}[39m[32m`[39m[33m,[39m html[33m:[39m [32m'<[39m…
+    [90m 85| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-staging-email.test.ts[2m > [22mmailer na stagingu (SMTP → simulátor Resend)[2m > [22mvíce příjemců: zablokované se vyřadí, povolené dostanou e-mail
+[31m[1mAssertionError[22m: expected [ { …(7) } ] to have a length of +0 but got 1[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 0[39m
+[31m+ 1[39m
+
+[36m [2m❯[22m tests/fix-r10-staging-email.test.ts:[2m104:29[22m[39m
+    [90m102| [39m    [35mawait[39m [34msendMail[39m({ to[33m:[39m [a[33m,[39m b][33m,[39m cc[33m:[39m [32m`Jméno <c-[39m[36m${[39mrun[36m}[39m[32m@seznam.example>`[39m…
+    [90m103| [39m    [34mexpect[39m([35mawait[39m [34msentTo[39m(a))[33m.[39m[34mtoHaveLength[39m([34m1[39m)[33m;[39m
+    [90m104| [39m    [34mexpect[39m([35mawait[39m [34msentTo[39m(b))[33m.[39m[34mtoHaveLength[39m([34m0[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m105| [39m    [34mexpect[39m([35mawait[39m [34msentTo[39m([32m`c-[39m[36m${[39mrun[36m}[39m[32m@seznam.example`[39m))[33m.[39m[34mtoHaveLength[39m([34m0[39m)[33m;[39m
+    [90m106| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-staging-email.test.ts[2m > [22mplatform-notify na stagingu (Resend HTTP API → simulátor)[2m > [22madmin mimo allowlist: neodešle se a zaloguje; v allowlistu: odejde
+[31m[1mAssertionError[22m: expected '' to match /STAGING_EMAIL_ALLOWLIST/[39m
+
+[32m- Expected:[39m 
+/STAGING_EMAIL_ALLOWLIST/
+
+[31m+ Received:[39m 
+""
+
+[36m [2m❯[22m tests/fix-r10-staging-email.test.ts:[2m129:64[22m[39m
+    [90m127| [39m    [35mawait[39m [34mnotifyPlatformAdmin[39m({ kind[33m:[39m [32m'test'[39m[33m,[39m title[33m:[39m [32m`Blok [39m[36m${[39mrun[36m}[39m[32m`[39m })[33m;[39m
+    [90m128| [39m    [34mexpect[39m([35mawait[39m [34msentTo[39m([32m`admin-[39m[36m${[39mrun[36m}[39m[32m@tixly.example`[39m))[33m.[39m[34mtoHaveLength[39m([34m0[39m)[33m;[39m
+    [90m129| [39m    [34mexpect[39m(warn[33m.[39mmock[33m.[39mcalls[33m.[39m[34mmap[39m((c) [33m=>[39m c[33m.[39m[34mjoin[39m([32m' '[39m))[33m.[39m[34mjoin[39m([32m'\n'[39m))[33m.[39m[34mtoMatch[39m…
+    [90m   | [39m                                                               [31m^[39m
+    [90m130| [39m
+    [90m131| [39m    process[33m.[39menv[33m.[39m[33mPLATFORM_ADMIN_EMAIL[39m [33m=[39m [32m`tester+admin-[39m[36m${[39mrun[36m}[39m[32m@firma.exam[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (5)[39m
+[2m   Start at [22m 19:57:24
+[2m   Duration [22m 1.41s[2m (transform 51ms, setup 177ms, collect 18ms, tests 473ms, environment 348ms, prepare 66ms)[22m
+
