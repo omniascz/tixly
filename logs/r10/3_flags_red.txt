@@ -1,0 +1,1157 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r10-launch-flags.test.ts [2m ([22m[2m27 tests[22m [2m|[22m [31m23 failed[39m[2m)[22m[33m 418[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mcheckout s paymentPlanId → 422 FEATURE_DISABLED[39m
+[31m     → [39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mcheckout s BNPL twisto → 422 FEATURE_DISABLED[39m
+[31m     → [39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mcheckout s BNPL skippay → 422 FEATURE_DISABLED[39m
+[31m     → [39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mPOST /api/buyer/orders/:id/payment-plan → 404[39m
+[31m     → expected 401 to be 404 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mGET /api/events/:id/payment-plans → 404[39m
+[31m     → [39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mGET i POST /api/admin/events/:id/payment-plans → 404[39m
+[31m     → expected 401 to be 404 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mcron charge-installments (platný interní token) → 404[39m
+[31m     → [39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mmock-bnpl confirm → 404[39m
+[31m     → expected 422 to be 404 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mcheckout s useSubscription → 422 FEATURE_DISABLED[39m
+[31m     → [39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mGET i POST /api/buyer/subscriptions → 404[39m
+[31m     → expected 401 to be 404 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mPOST /api/subscriptions/checkout (abonentka) → 404[39m
+[31m     → expected 422 to be 404 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mGET /api/subscriptions/plans a /api/subscriptions/packages/:slug → 404[39m
+[31m     → [39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mcron renew-subscriptions (platný interní token) → 404[39m
+[31m     → [39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s pluxee → 422 FEATURE_DISABLED[39m
+[31m     → [39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s sodexo → 422 FEATURE_DISABLED[39m
+[31m     → [39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s benefit_plus → 422 FEATURE_DISABLED[39m
+[31m     → [39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s edenred → 422 FEATURE_DISABLED[39m
+[31m     → [39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s gallery_beta → 422 FEATURE_DISABLED[39m
+[31m     → [39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s multisport → 422 FEATURE_DISABLED[39m
+[31m     → [39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcallbacky benefit a pluxee → 404[39m
+[31m     → expected 403 to be 404 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22mcrony[2m > [22mpayouts-execute, charge-installments, renew-subscriptions nejsou naplánované ve vercel.json[39m
+[31m     → expected [ …(2) ] to deeply equal [][39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22mcrony[2m > [22mlastminute je naplánovaný a GET bez tajemství → 401[39m
+[31m     → h is not a function[39m
+[31m   [33m❯[31m tests/fix-r10-launch-flags.test.ts[2m > [22mcrony[2m > [22mlastminute GET se špatným tajemstvím → 401[39m
+[31m     → h is not a function[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 23 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mcheckout s paymentPlanId → 422 FEATURE_DISABLED
+{
+  stack: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at RlsAwarePool.query (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\db\\rls-pool.ts:282:20)\n' +
+    '    at salesClosedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:82:13)\n' +
+    '    at Module.saleBlockedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:106:18)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\checkout\\route.ts:251:23\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:53:15\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED ::1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  stackStr: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at RlsAwarePool.query (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\db\\rls-pool.ts:282:20)\n' +
+    '    at salesClosedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:82:13)\n' +
+    '    at Module.saleBlockedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:106:18)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\checkout\\route.ts:251:23\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:53:15\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)',
+  nameStr: 'AggregateError',
+  expected: 'undefined',
+  actual: 'undefined',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/pg-pool/index.js',
+      line: 45,
+      column: 11
+    },
+    {
+      method: 'RlsAwarePool.query',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/lib/db/rls-pool.ts',
+      line: 282,
+      column: 20
+    },
+    {
+      method: 'salesClosedResponse',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/lib/sales/cutoff.ts',
+      line: 82,
+      column: 13
+    },
+    {
+      method: 'Module.saleBlockedResponse',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/lib/sales/cutoff.ts',
+      line: 106,
+      column: 18
+    },
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/app/api/checkout/route.ts',
+      line: 251,
+      column: 23
+    },
+    {
+      method: 'status',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 23,
+      column: 15
+    },
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 53,
+      column: 15
+    }
+  ]
+}
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m RlsAwarePool.query src/lib/db/rls-pool.ts:[2m282:20[22m[39m
+    [90m280| [39m    }
+    [90m281| [39m
+    [90m282| [39m    [35mconst[39m client [33m=[39m [35mawait[39m rawPool[33m.[39m[34mconnect[39m()[33m;[39m
+    [90m   | [39m                   [31m^[39m
+    [90m283| [39m    [35mtry[39m {
+    [90m284| [39m      [35mawait[39m client[33m.[39m[34mquery[39m([32m'BEGIN'[39m)[33m;[39m
+[90m [2m❯[22m salesClosedResponse src/lib/sales/cutoff.ts:[2m82:13[22m[39m
+[90m [2m❯[22m Module.saleBlockedResponse src/lib/sales/cutoff.ts:[2m106:18[22m[39m
+[90m [2m❯[22m src/app/api/checkout/route.ts:[2m251:23[22m[39m
+[90m [2m❯[22m status tests/fix-r10-launch-flags.test.ts:[2m23:15[22m[39m
+[90m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m53:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ errors: [ { stack: 'Error: connect ECONNREFUSED ::1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED ::1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '::1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, { stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED 127.0.0.1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '127.0.0.1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' } ], code: 'ECONNREFUSED' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mcheckout s BNPL twisto → 422 FEATURE_DISABLED
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mcheckout s BNPL skippay → 422 FEATURE_DISABLED
+{
+  stack: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at RlsAwarePool.query (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\db\\rls-pool.ts:282:20)\n' +
+    '    at salesClosedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:82:13)\n' +
+    '    at Module.saleBlockedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:106:18)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\checkout\\route.ts:251:23\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:57:15\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED ::1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  stackStr: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at RlsAwarePool.query (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\db\\rls-pool.ts:282:20)\n' +
+    '    at salesClosedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:82:13)\n' +
+    '    at Module.saleBlockedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:106:18)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\checkout\\route.ts:251:23\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:57:15\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)',
+  nameStr: 'AggregateError',
+  expected: 'undefined',
+  actual: 'undefined',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/pg-pool/index.js',
+      line: 45,
+      column: 11
+    },
+    {
+      method: 'RlsAwarePool.query',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/lib/db/rls-pool.ts',
+      line: 282,
+      column: 20
+    },
+    {
+      method: 'salesClosedResponse',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/lib/sales/cutoff.ts',
+      line: 82,
+      column: 13
+    },
+    {
+      method: 'Module.saleBlockedResponse',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/lib/sales/cutoff.ts',
+      line: 106,
+      column: 18
+    },
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/app/api/checkout/route.ts',
+      line: 251,
+      column: 23
+    },
+    {
+      method: 'status',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 23,
+      column: 15
+    },
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 57,
+      column: 15
+    }
+  ]
+}
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m RlsAwarePool.query src/lib/db/rls-pool.ts:[2m282:20[22m[39m
+    [90m280| [39m    }
+    [90m281| [39m
+    [90m282| [39m    [35mconst[39m client [33m=[39m [35mawait[39m rawPool[33m.[39m[34mconnect[39m()[33m;[39m
+    [90m   | [39m                   [31m^[39m
+    [90m283| [39m    [35mtry[39m {
+    [90m284| [39m      [35mawait[39m client[33m.[39m[34mquery[39m([32m'BEGIN'[39m)[33m;[39m
+[90m [2m❯[22m salesClosedResponse src/lib/sales/cutoff.ts:[2m82:13[22m[39m
+[90m [2m❯[22m Module.saleBlockedResponse src/lib/sales/cutoff.ts:[2m106:18[22m[39m
+[90m [2m❯[22m src/app/api/checkout/route.ts:[2m251:23[22m[39m
+[90m [2m❯[22m status tests/fix-r10-launch-flags.test.ts:[2m23:15[22m[39m
+[90m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m57:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ errors: [ { stack: 'Error: connect ECONNREFUSED ::1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED ::1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '::1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, { stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED 127.0.0.1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '127.0.0.1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' } ], code: 'ECONNREFUSED' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mPOST /api/buyer/orders/:id/payment-plan → 404
+[31m[1mAssertionError[22m: expected 401 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 401[39m
+
+[36m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m63:22[22m[39m
+    [90m 61| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mstatus[39m([35mimport[39m([32m'@/app/api/buyer/orders/[orderId]/pa[39m…
+    [90m 62| [39m      [34mpost[39m([32m`/api/buyer/orders/[39m[36m${[39m[33mUUID[39m[36m}[39m[32m/payment-plan`[39m[33m,[39m { planId[33m:[39m [33mUUID[39m })…
+    [90m 63| [39m    [34mexpect[39m(r[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m404[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m 64| [39m  })[33m;[39m
+    [90m 65| [39m  [34mit[39m([32m'GET /api/events/:id/payment-plans → 404'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mGET /api/events/:id/payment-plans → 404
+{
+  stack: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at GET (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\events\\[id]\\payment-plans\\route.ts:19:13)\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:66:15\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runFiles (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:958:5)\n' +
+    '    at startTests (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:967:3)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED ::1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  stackStr: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at GET (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\events\\[id]\\payment-plans\\route.ts:19:13)\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:66:15\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runFiles (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:958:5)\n' +
+    '    at startTests (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:967:3)',
+  nameStr: 'AggregateError',
+  expected: 'undefined',
+  actual: 'undefined',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/pg-pool/index.js',
+      line: 45,
+      column: 11
+    },
+    {
+      method: 'GET',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/app/api/events/[id]/payment-plans/route.ts',
+      line: 19,
+      column: 13
+    },
+    {
+      method: 'status',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 23,
+      column: 15
+    },
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 66,
+      column: 15
+    }
+  ]
+}
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m GET src/app/api/events/[id]/payment-plans/route.ts:[2m19:13[22m[39m
+    [90m 17| [39m    [35mreturn[39m [33mNextResponse[39m[33m.[39m[34mjson[39m({ error[33m:[39m [32m'Invalid id'[39m }[33m,[39m { status[33m:[39m [34m422[39m })[33m;[39m
+    [90m 18| [39m  }
+    [90m 19| [39m  [35mconst[39m r [33m=[39m [35mawait[39m [34mdb[39m()[33m.[39mquery[33m<[39m{
+    [90m   | [39m            [31m^[39m
+    [90m 20| [39m    id[33m:[39m string[33m;[39m
+    [90m 21| [39m    name[33m:[39m string[33m;[39m
+[90m [2m❯[22m status tests/fix-r10-launch-flags.test.ts:[2m23:15[22m[39m
+[90m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m66:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ errors: [ { stack: 'Error: connect ECONNREFUSED ::1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED ::1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '::1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, { stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED 127.0.0.1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '127.0.0.1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' } ], code: 'ECONNREFUSED' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mGET i POST /api/admin/events/:id/payment-plans → 404
+[31m[1mAssertionError[22m: expected 401 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 401[39m
+
+[36m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m71:117[22m[39m
+    [90m 69| [39m  [34mit[39m([32m'GET i POST /api/admin/events/:id/payment-plans → 404'[39m[33m,[39m [35masync[39m () …
+    [90m 70| [39m    [35mconst[39m mod [33m=[39m [35mimport[39m([32m'@/app/api/admin/events/[id]/payment-plans/rout[39m…
+    [90m 71| [39m    [34mexpect[39m(([35mawait[39m [34mstatus[39m(mod[33m,[39m [32m'GET'[39m[33m,[39m [34mreq[39m([32m`/api/admin/events/[39m[36m${[39m[33mUUID[39m[36m}[39m[32m/pa[39m…
+    [90m   | [39m                                                                                                                    [31m^[39m
+    [90m 72| [39m    [34mexpect[39m(([35mawait[39m [34mstatus[39m(mod[33m,[39m [32m'POST'[39m[33m,[39m [34mpost[39m([32m`/api/admin/events/[39m[36m${[39m[33mUUID[39m[36m}[39m[32m/[39m…
+    [90m 73| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mcron charge-installments (platný interní token) → 404
+{
+  stack: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at RlsAwarePool.query (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\db\\rls-pool.ts:282:20)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\internal\\cron\\charge-installments\\route.ts:34:15\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:75:15\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runFiles (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:958:5)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED ::1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  stackStr: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at RlsAwarePool.query (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\db\\rls-pool.ts:282:20)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\internal\\cron\\charge-installments\\route.ts:34:15\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:75:15\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runFiles (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:958:5)',
+  nameStr: 'AggregateError',
+  expected: 'undefined',
+  actual: 'undefined',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/pg-pool/index.js',
+      line: 45,
+      column: 11
+    },
+    {
+      method: 'RlsAwarePool.query',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/lib/db/rls-pool.ts',
+      line: 282,
+      column: 20
+    },
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/app/api/internal/cron/charge-installments/route.ts',
+      line: 34,
+      column: 15
+    },
+    {
+      method: 'status',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 23,
+      column: 15
+    },
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 75,
+      column: 15
+    }
+  ]
+}
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m RlsAwarePool.query src/lib/db/rls-pool.ts:[2m282:20[22m[39m
+    [90m280| [39m    }
+    [90m281| [39m
+    [90m282| [39m    [35mconst[39m client [33m=[39m [35mawait[39m rawPool[33m.[39m[34mconnect[39m()[33m;[39m
+    [90m   | [39m                   [31m^[39m
+    [90m283| [39m    [35mtry[39m {
+    [90m284| [39m      [35mawait[39m client[33m.[39m[34mquery[39m([32m'BEGIN'[39m)[33m;[39m
+[90m [2m❯[22m src/app/api/internal/cron/charge-installments/route.ts:[2m34:15[22m[39m
+[90m [2m❯[22m status tests/fix-r10-launch-flags.test.ts:[2m23:15[22m[39m
+[90m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m75:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ errors: [ { stack: 'Error: connect ECONNREFUSED ::1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED ::1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '::1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, { stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED 127.0.0.1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '127.0.0.1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' } ], code: 'ECONNREFUSED' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mmock-bnpl confirm → 404
+[31m[1mAssertionError[22m: expected 422 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 422[39m
+
+[36m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m82:22[22m[39m
+    [90m 80| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mstatus[39m([35mimport[39m([32m'@/app/api/mock-bnpl/[provider]/[pay[39m…
+    [90m 81| [39m      [34mpost[39m([32m`/api/mock-bnpl/twisto/[39m[36m${[39m[33mUUID[39m[36m}[39m[32m/confirm`[39m[33m,[39m { installments[33m:[39m [34m3[39m …
+    [90m 82| [39m    [34mexpect[39m(r[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m404[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m 83| [39m  })[33m;[39m
+    [90m 84| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mcheckout s useSubscription → 422 FEATURE_DISABLED
+{
+  stack: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at RlsAwarePool.query (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\db\\rls-pool.ts:282:20)\n' +
+    '    at salesClosedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:82:13)\n' +
+    '    at Module.saleBlockedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:106:18)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\checkout\\route.ts:251:23\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:88:15\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED ::1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  stackStr: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at RlsAwarePool.query (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\db\\rls-pool.ts:282:20)\n' +
+    '    at salesClosedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:82:13)\n' +
+    '    at Module.saleBlockedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:106:18)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\checkout\\route.ts:251:23\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:88:15\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)',
+  nameStr: 'AggregateError',
+  expected: 'undefined',
+  actual: 'undefined',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/pg-pool/index.js',
+      line: 45,
+      column: 11
+    },
+    {
+      method: 'RlsAwarePool.query',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/lib/db/rls-pool.ts',
+      line: 282,
+      column: 20
+    },
+    {
+      method: 'salesClosedResponse',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/lib/sales/cutoff.ts',
+      line: 82,
+      column: 13
+    },
+    {
+      method: 'Module.saleBlockedResponse',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/lib/sales/cutoff.ts',
+      line: 106,
+      column: 18
+    },
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/app/api/checkout/route.ts',
+      line: 251,
+      column: 23
+    },
+    {
+      method: 'status',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 23,
+      column: 15
+    },
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 88,
+      column: 15
+    }
+  ]
+}
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m RlsAwarePool.query src/lib/db/rls-pool.ts:[2m282:20[22m[39m
+    [90m280| [39m    }
+    [90m281| [39m
+    [90m282| [39m    [35mconst[39m client [33m=[39m [35mawait[39m rawPool[33m.[39m[34mconnect[39m()[33m;[39m
+    [90m   | [39m                   [31m^[39m
+    [90m283| [39m    [35mtry[39m {
+    [90m284| [39m      [35mawait[39m client[33m.[39m[34mquery[39m([32m'BEGIN'[39m)[33m;[39m
+[90m [2m❯[22m salesClosedResponse src/lib/sales/cutoff.ts:[2m82:13[22m[39m
+[90m [2m❯[22m Module.saleBlockedResponse src/lib/sales/cutoff.ts:[2m106:18[22m[39m
+[90m [2m❯[22m src/app/api/checkout/route.ts:[2m251:23[22m[39m
+[90m [2m❯[22m status tests/fix-r10-launch-flags.test.ts:[2m23:15[22m[39m
+[90m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m88:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ errors: [ { stack: 'Error: connect ECONNREFUSED ::1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED ::1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '::1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, { stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED 127.0.0.1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '127.0.0.1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' } ], code: 'ECONNREFUSED' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mGET i POST /api/buyer/subscriptions → 404
+[31m[1mAssertionError[22m: expected 401 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 401[39m
+
+[36m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m93:80[22m[39m
+    [90m 91| [39m  [34mit[39m([32m'GET i POST /api/buyer/subscriptions → 404'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 92| [39m    [35mconst[39m mod [33m=[39m [35mimport[39m([32m'@/app/api/buyer/subscriptions/route'[39m)[33m;[39m
+    [90m 93| [39m    [34mexpect[39m(([35mawait[39m [34mstatus[39m(mod[33m,[39m [32m'GET'[39m[33m,[39m [34mreq[39m([32m'/api/buyer/subscriptions'[39m)))…
+    [90m   | [39m                                                                               [31m^[39m
+    [90m 94| [39m    [34mexpect[39m(([35mawait[39m [34mstatus[39m(mod[33m,[39m [32m'POST'[39m[33m,[39m [34mpost[39m([32m'/api/buyer/subscriptions'[39m[33m,[39m…
+    [90m 95| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mPOST /api/subscriptions/checkout (abonentka) → 404
+[31m[1mAssertionError[22m: expected 422 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 422[39m
+
+[36m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m102:22[22m[39m
+    [90m100| [39m  [34mit[39m([32m'POST /api/subscriptions/checkout (abonentka) → 404'[39m[33m,[39m [35masync[39m () [33m=>[39m…
+    [90m101| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mstatus[39m([35mimport[39m([32m'@/app/api/subscriptions/checkout/ro[39m…
+    [90m102| [39m    [34mexpect[39m(r[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m404[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m103| [39m  })[33m;[39m
+    [90m104| [39m  [34mit[39m([32m'POST /api/subscriptions/holders/:id/confirm → 404'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mGET /api/subscriptions/plans a /api/subscriptions/packages/:slug → 404
+{
+  stack: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at GET (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\subscriptions\\plans\\route.ts:19:13)\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:110:13\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runFiles (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:958:5)\n' +
+    '    at startTests (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:967:3)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED ::1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  stackStr: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at GET (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\subscriptions\\plans\\route.ts:19:13)\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:110:13\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runFiles (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:958:5)\n' +
+    '    at startTests (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:967:3)',
+  nameStr: 'AggregateError',
+  expected: 'undefined',
+  actual: 'undefined',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/pg-pool/index.js',
+      line: 45,
+      column: 11
+    },
+    {
+      method: 'GET',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/app/api/subscriptions/plans/route.ts',
+      line: 19,
+      column: 13
+    },
+    {
+      method: 'status',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 23,
+      column: 15
+    },
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 110,
+      column: 13
+    }
+  ]
+}
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m GET src/app/api/subscriptions/plans/route.ts:[2m19:13[22m[39m
+    [90m 17| [39m  }
+    [90m 18| [39m
+    [90m 19| [39m  [35mconst[39m r [33m=[39m [35mawait[39m [34mdb[39m()[33m.[39mquery[33m<[39m{
+    [90m   | [39m            [31m^[39m
+    [90m 20| [39m    id[33m:[39m string[33m;[39m
+    [90m 21| [39m    name[33m:[39m string[33m;[39m
+[90m [2m❯[22m status tests/fix-r10-launch-flags.test.ts:[2m23:15[22m[39m
+[90m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m110:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ errors: [ { stack: 'Error: connect ECONNREFUSED ::1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED ::1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '::1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, { stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED 127.0.0.1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '127.0.0.1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' } ], code: 'ECONNREFUSED' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mcron renew-subscriptions (platný interní token) → 404
+{
+  stack: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at RlsAwarePool.query (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\db\\rls-pool.ts:282:20)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\internal\\cron\\renew-subscriptions\\route.ts:34:15\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:114:15\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runFiles (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:958:5)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED ::1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  stackStr: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at RlsAwarePool.query (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\db\\rls-pool.ts:282:20)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\internal\\cron\\renew-subscriptions\\route.ts:34:15\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:114:15\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)\n' +
+    '    at runFiles (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:958:5)',
+  nameStr: 'AggregateError',
+  expected: 'undefined',
+  actual: 'undefined',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/pg-pool/index.js',
+      line: 45,
+      column: 11
+    },
+    {
+      method: 'RlsAwarePool.query',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/lib/db/rls-pool.ts',
+      line: 282,
+      column: 20
+    },
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/app/api/internal/cron/renew-subscriptions/route.ts',
+      line: 34,
+      column: 15
+    },
+    {
+      method: 'status',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 23,
+      column: 15
+    },
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 114,
+      column: 15
+    }
+  ]
+}
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m RlsAwarePool.query src/lib/db/rls-pool.ts:[2m282:20[22m[39m
+    [90m280| [39m    }
+    [90m281| [39m
+    [90m282| [39m    [35mconst[39m client [33m=[39m [35mawait[39m rawPool[33m.[39m[34mconnect[39m()[33m;[39m
+    [90m   | [39m                   [31m^[39m
+    [90m283| [39m    [35mtry[39m {
+    [90m284| [39m      [35mawait[39m client[33m.[39m[34mquery[39m([32m'BEGIN'[39m)[33m;[39m
+[90m [2m❯[22m src/app/api/internal/cron/renew-subscriptions/route.ts:[2m34:15[22m[39m
+[90m [2m❯[22m status tests/fix-r10-launch-flags.test.ts:[2m23:15[22m[39m
+[90m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m114:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ errors: [ { stack: 'Error: connect ECONNREFUSED ::1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED ::1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '::1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, { stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED 127.0.0.1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '127.0.0.1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' } ], code: 'ECONNREFUSED' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s pluxee → 422 FEATURE_DISABLED
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s sodexo → 422 FEATURE_DISABLED
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s benefit_plus → 422 FEATURE_DISABLED
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s edenred → 422 FEATURE_DISABLED
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s gallery_beta → 422 FEATURE_DISABLED
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s multisport → 422 FEATURE_DISABLED
+{
+  stack: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at RlsAwarePool.query (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\db\\rls-pool.ts:282:20)\n' +
+    '    at salesClosedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:82:13)\n' +
+    '    at Module.saleBlockedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:106:18)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\checkout\\route.ts:251:23\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:122:15\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED ::1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  stackStr: 'AggregateError: \n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at RlsAwarePool.query (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\db\\rls-pool.ts:282:20)\n' +
+    '    at salesClosedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:82:13)\n' +
+    '    at Module.saleBlockedResponse (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\lib\\sales\\cutoff.ts:106:18)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\src\\app\\api\\checkout\\route.ts:251:23\n' +
+    '    at status (C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:23:15)\n' +
+    '    at C:\\Users\\omnia\\Documents\\tixly\\nextjs-boilerplate\\tests\\fix-r10-launch-flags.test.ts:122:15\n' +
+    '    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)\n' +
+    '    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)',
+  nameStr: 'AggregateError',
+  expected: 'undefined',
+  actual: 'undefined',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/pg-pool/index.js',
+      line: 45,
+      column: 11
+    },
+    {
+      method: 'RlsAwarePool.query',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/lib/db/rls-pool.ts',
+      line: 282,
+      column: 20
+    },
+    {
+      method: 'salesClosedResponse',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/lib/sales/cutoff.ts',
+      line: 82,
+      column: 13
+    },
+    {
+      method: 'Module.saleBlockedResponse',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/lib/sales/cutoff.ts',
+      line: 106,
+      column: 18
+    },
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/src/app/api/checkout/route.ts',
+      line: 251,
+      column: 23
+    },
+    {
+      method: 'status',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 23,
+      column: 15
+    },
+    {
+      method: '',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r10-launch-flags.test.ts',
+      line: 122,
+      column: 15
+    }
+  ]
+}
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m RlsAwarePool.query src/lib/db/rls-pool.ts:[2m282:20[22m[39m
+    [90m280| [39m    }
+    [90m281| [39m
+    [90m282| [39m    [35mconst[39m client [33m=[39m [35mawait[39m rawPool[33m.[39m[34mconnect[39m()[33m;[39m
+    [90m   | [39m                   [31m^[39m
+    [90m283| [39m    [35mtry[39m {
+    [90m284| [39m      [35mawait[39m client[33m.[39m[34mquery[39m([32m'BEGIN'[39m)[33m;[39m
+[90m [2m❯[22m salesClosedResponse src/lib/sales/cutoff.ts:[2m82:13[22m[39m
+[90m [2m❯[22m Module.saleBlockedResponse src/lib/sales/cutoff.ts:[2m106:18[22m[39m
+[90m [2m❯[22m src/app/api/checkout/route.ts:[2m251:23[22m[39m
+[90m [2m❯[22m status tests/fix-r10-launch-flags.test.ts:[2m23:15[22m[39m
+[90m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m122:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ errors: [ { stack: 'Error: connect ECONNREFUSED ::1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED ::1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '::1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, { stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED 127.0.0.1:5432', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '127.0.0.1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' } ], code: 'ECONNREFUSED' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcallbacky benefit a pluxee → 404
+[31m[1mAssertionError[22m: expected 403 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 403[39m
+
+[36m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m126:162[22m[39m
+    [90m124| [39m  })[33m;[39m
+    [90m125| [39m  [34mit[39m([32m'callbacky benefit a pluxee → 404'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m126| [39m    [34mexpect[39m(([35mawait[39m [34mstatus[39m([35mimport[39m([32m'@/app/api/payments/benefit/callback/r[39m…
+    [90m   | [39m                                                                                                                                                                 [31m^[39m
+    [90m127| [39m    [34mexpect[39m(([35mawait[39m [34mstatus[39m([35mimport[39m([32m'@/app/api/payments/benefit/pluxee/cal[39m…
+    [90m128| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22mcrony[2m > [22mpayouts-execute, charge-installments, renew-subscriptions nejsou naplánované ve vercel.json
+[31m[1mAssertionError[22m: expected [ …(2) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [][39m
+[31m+ Array [[39m
+[31m+   "/api/cron/dispatch?job=charge-installments",[39m
+[31m+   "/api/cron/dispatch?job=renew-subscriptions",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m135:100[22m[39m
+    [90m133| [39m  [35mconst[39m paths [33m=[39m vercel[33m.[39mcrons[33m.[39m[34mmap[39m((c) [33m=>[39m c[33m.[39mpath)[33m;[39m
+    [90m134| [39m  [34mit[39m([32m'payouts-execute, charge-installments, renew-subscriptions nejsou[39m…
+    [90m135| [39m    [34mexpect[39m(paths[33m.[39m[34mfilter[39m((p) [33m=>[39m [36m/payouts-execute|charge-installments|re[39m…
+    [90m   | [39m                                                                                                   [31m^[39m
+    [90m136| [39m  })[33m;[39m
+    [90m137| [39m  [34mit[39m([32m'dispatcher payouts-execute nezná (422)'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22mcrony[2m > [22mlastminute je naplánovaný a GET bez tajemství → 401
+[31m[1mTypeError[22m: h is not a function[39m
+[36m [2m❯[22m status tests/fix-r10-launch-flags.test.ts:[2m23:21[22m[39m
+    [90m 21| [39m[35masync[39m [35mfunction[39m [34mstatus[39m(mod[33m:[39m [33mPromise[39m[33m<[39m[33mRecord[39m[33m<[39mstring[33m,[39m unknown[33m>>[39m[33m,[39m method[33m:[39m s…
+    [90m 22| [39m  [35mconst[39m h [33m=[39m ([35mawait[39m mod)[method] [35mas[39m [33mHandler[39m[33m;[39m
+    [90m 23| [39m  [35mconst[39m res [33m=[39m [35mawait[39m [34mh[39m(r[33m,[39m ctx)[33m;[39m
+    [90m   | [39m                    [31m^[39m
+    [90m 24| [39m  [35mreturn[39m { status[33m:[39m res[33m.[39mstatus[33m,[39m body[33m:[39m [35mawait[39m res[33m.[39m[34mjson[39m()[33m.[39m[35mcatch[39m(() [33m=>[39m [35mnull[39m…
+    [90m 25| [39m}
+[90m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m144:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/23]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-launch-flags.test.ts[2m > [22mcrony[2m > [22mlastminute GET se špatným tajemstvím → 401
+[31m[1mTypeError[22m: h is not a function[39m
+[36m [2m❯[22m status tests/fix-r10-launch-flags.test.ts:[2m23:21[22m[39m
+    [90m 21| [39m[35masync[39m [35mfunction[39m [34mstatus[39m(mod[33m:[39m [33mPromise[39m[33m<[39m[33mRecord[39m[33m<[39mstring[33m,[39m unknown[33m>>[39m[33m,[39m method[33m:[39m s…
+    [90m 22| [39m  [35mconst[39m h [33m=[39m ([35mawait[39m mod)[method] [35mas[39m [33mHandler[39m[33m;[39m
+    [90m 23| [39m  [35mconst[39m res [33m=[39m [35mawait[39m [34mh[39m(r[33m,[39m ctx)[33m;[39m
+    [90m   | [39m                    [31m^[39m
+    [90m 24| [39m  [35mreturn[39m { status[33m:[39m res[33m.[39mstatus[33m,[39m body[33m:[39m [35mawait[39m res[33m.[39m[34mjson[39m()[33m.[39m[35mcatch[39m(() [33m=>[39m [35mnull[39m…
+    [90m 25| [39m}
+[90m [2m❯[22m tests/fix-r10-launch-flags.test.ts:[2m148:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/23]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m23 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (27)[39m
+[2m   Start at [22m 19:29:56
+[2m   Duration [22m 1.45s[2m (transform 232ms, setup 213ms, collect 39ms, tests 418ms, environment 376ms, prepare 65ms)[22m
+

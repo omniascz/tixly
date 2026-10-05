@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
+// Kolo 10: bez toho Next při buildu handler prerenderuje a čte DB (build padá / zapeče se stav z buildu).
+export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/public/incidents — veřejné incidenty za posledních 14 dní.

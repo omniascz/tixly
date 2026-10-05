@@ -5,6 +5,10 @@
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
+// Kolo 10: předplatné je za přepínačem (výchozí vypnuto → 404, viz tests/fix-r10-launch-flags.test.ts);
+// tady se testuje chování ZAPNUTÉ funkce.
+process.env.NEXT_PUBLIC_FEATURE_SUBSCRIPTIONS = '1';
+
 // dataQuery = jen DATA dotazy (SELECT/INSERT/...). Control statements (SET app.role
 // injektovaný rls-pool kontextem, BEGIN/COMMIT/ROLLBACK) jsou transparentní —
 // nekonzumují sekvenci mockResolvedValueOnce. Tím je mock nezávislý na tom, kolik

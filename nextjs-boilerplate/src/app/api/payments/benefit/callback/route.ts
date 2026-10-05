@@ -12,8 +12,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { handleBenefitCallback } from '@/lib/payment/benefits';
 import { runWithServiceContext } from '@/lib/db/rls-pool';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
+import { handleBenefitCallback } from '@/lib/payment/benefits';
 
 const schema = z.object({
   provider: z.enum(['pluxee', 'benefit_plus', 'gallery_beta', 'edenred']),
@@ -23,6 +24,9 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('benefitCards');
+  if (featureOff) return featureOff;
   // BEZPEČNOST (fail-closed): tato generická route NEověřuje podpis providera, takže
   // by jinak kdokoli se znalostí externalId mohl POSTnout success:true → lístky zdarma.
   // V produkci proto odmítáme. Reálná benefit integrace MUSÍ jít přes per-provider

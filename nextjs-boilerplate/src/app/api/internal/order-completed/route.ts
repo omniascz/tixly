@@ -433,8 +433,22 @@ export async function POST(request: NextRequest): Promise<Response> {
   let pdfAttachment: { filename: string; content: Buffer } | undefined;
   let walletAttachments: { filename: string; content: Buffer; contentType: string }[] = [];
   let issued: Awaited<ReturnType<typeof issueTicketsForOrder>> = [];
+  let ticketIssueFailed = true; // false až po úspěšném COMMITu vydání (selže i connect → nic se nepotvrdí)
   try {
-    issued = await issueTicketsForOrder(orderId, db() as unknown as Pool);
+    // Kolo 10: vydání v transakci — advisory lock v issueTicketsForOrder pak souběžná dokončení
+    // skutečně serializuje (v autocommitu je no-op) a čerstvé lístky vydá právě jedno volání.
+    const issueClient = await db().connect();
+    try {
+      await issueClient.query('BEGIN');
+      issued = await issueTicketsForOrder(orderId, issueClient as unknown as Pool);
+      await issueClient.query('COMMIT');
+      ticketIssueFailed = false;
+    } catch (err) {
+      await issueClient.query('ROLLBACK').catch(() => undefined);
+      throw err;
+    } finally {
+      issueClient.release();
+    }
     ticketsIssued = issued.length;
 
     // Loyalty award (CZ priority #6) — fire-and-forget, idempotent na order_id.
@@ -743,6 +757,12 @@ export async function POST(request: NextRequest): Promise<Response> {
     critical('ticket_issue', err); console.error('[order-completed] ticket issue / PDF failed:', err);
   }
 
+  // Kolo 10 (audit 05 C2c): potvrzení (e-mail + SMS) posílá jen volání, které lístky skutečně vydalo.
+  // Opakované dokončení (retry webhooku, přímé volání) dostane existující lístky bez secretu → nic nepošle.
+  // Selhalo-li vydání, potvrzení se neposílá — pošle ho retry, který lístky vydá (i s PDF).
+  const confirmNow = !ticketIssueFailed
+    && (issued.length === 0 || issued.every((t) => t.totpSecretBase32.length > 0));
+
   // Loyalty: award points pro user_id (idempotent per order_id)
   try {
     const client = await db().connect();
@@ -767,7 +787,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   // Odešli e-mail přes centrální mailer (Mailhog v dev, Resend/Postmark/SES v prod)
   let emailSent = false;
-  try {
+  if (confirmNow) try {
     const { sendMail } = await import('@/lib/email/mailer');
     // Sender: pokud má promotér vlastní doménu, použijeme ji jako display name
     // (technický from header zůstává EMAIL_FROM kvůli SPF/DKIM dokud nemá ověřenou doménu).
@@ -795,7 +815,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   //   - 1 ticket: SMS s URL na fullscreen QR
   //   - 2+ tickets: SMS s URL na první ticket + zmínka že email má všechny
   let smsSent = false;
-  if (order.buyer_phone && issued.length > 0) {
+  if (confirmNow && order.buyer_phone && issued.length > 0) {
     const firstIssued = issued[0];
     if (!firstIssued) {
       throw new Error('Unreachable: issued.length > 0 but issued[0] undefined');

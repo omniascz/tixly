@@ -2,7 +2,12 @@
  * Platform admin notifications — urgent internal alerts.
  * Sent via email to PLATFORM_ADMIN_EMAIL (env var).
  * Used for DSA high-severity reports, AML matches, etc.
+ *
+ * Kolo 10 / krok 4: na stagingu (TIXLY_ENV=staging) jen na adresu ze STAGING_EMAIL_ALLOWLIST; jinak se neodešle
+ * a zaloguje. RESEND_API_BASE_URL (výchozí https://api.resend.com) — v testech simulátor.
  */
+
+import { isAllowed, maskAddress, parseAllowlist, stagingEmailFilterActive } from '@/lib/email/staging-allowlist';
 
 export interface PlatformNotifyInput {
   kind: string;
@@ -20,9 +25,15 @@ export async function notifyPlatformAdmin(input: PlatformNotifyInput): Promise<v
     return;
   }
 
+  if (stagingEmailFilterActive() && !isAllowed(adminEmail, parseAllowlist(process.env.STAGING_EMAIL_ALLOWLIST))) {
+    console.warn(`[platform-notify] staging: ${maskAddress(adminEmail)} není v STAGING_EMAIL_ALLOWLIST — upozornění NEODESLÁNO: ${input.kind}`);
+    return;
+  }
+
   const linkLine = input.link ? `\n\nLink: ${process.env.NEXT_PUBLIC_APP_URL ?? ''}${input.link}` : '';
 
-  await fetch('https://api.resend.com/emails', {
+  const base = (process.env.RESEND_API_BASE_URL ?? 'https://api.resend.com').replace(/\/+$/, '');
+  await fetch(`${base}/emails`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${resendKey}`,

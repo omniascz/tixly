@@ -39,6 +39,8 @@ interface EventSettings {
   avgTripKm?: number | null;
 }
 
+const INSTALLMENTS_ENABLED = process.env.NEXT_PUBLIC_FEATURE_INSTALLMENTS === '1';
+
 const QR_POLICY_LABELS: Record<EventSettings['qrPolicy'], { title: string; desc: string }> = {
   static_allowed: {
     title: '🟢 Standard — PDF + mobile QR oboje funguje',
@@ -685,6 +687,8 @@ export default function EventSettingsPage() {
         </CardContent>
       </Card>
 
+      {/* Kolo 10 / krok 3: splátky vypnuté přepínačem (výchozí stav) — sekce skrytá, API vrací 404. */}
+      {INSTALLMENTS_ENABLED ? (
       <Card>
         <CardHeader>
           <CardTitle>Platební plány</CardTitle>
@@ -765,6 +769,7 @@ export default function EventSettingsPage() {
           </div>
         </CardContent>
       </Card>
+      ) : null}
     </div>
   );
 }

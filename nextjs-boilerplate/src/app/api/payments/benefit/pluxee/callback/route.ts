@@ -11,9 +11,10 @@
  * order status + trigger order-completed).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { handleBenefitCallback } from '@/lib/payment/benefits';
 import { runWithServiceContext } from '@/lib/db/rls-pool';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
 import { verifyPluxeeCallback } from '@/lib/payment/benefit-providers';
+import { handleBenefitCallback } from '@/lib/payment/benefits';
 
 interface PluxeeCallbackBody {
   transactionId?: string;
@@ -25,6 +26,9 @@ interface PluxeeCallbackBody {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('benefitCards');
+  if (featureOff) return featureOff;
   // 1) Read raw body PŘED .json() parsování (pro HMAC verify nad raw bytes)
   const rawBody = await req.text();
 

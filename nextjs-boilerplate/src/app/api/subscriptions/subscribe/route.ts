@@ -14,8 +14,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { z } from 'zod';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
 import { demoPathDisabledResponse } from '@/lib/payment/demo-path-guard';
 
 
@@ -26,6 +27,9 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('subscriptions');
+  if (featureOff) return featureOff;
   // Kolo 6: hodnota bez platby (třída K1) — vypnuto, dokud není napojený skutečný platební tok
   // (create payment → webhook → paid → aktivace). Viz lib/payment/demo-path-guard.ts.
   const demoOff = demoPathDisabledResponse();

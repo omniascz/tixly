@@ -1,0 +1,8 @@
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3200
+
+ ✓ Starting...
+ ✓ Ready in 709ms
+[mailer] provider=mailhog-dev host=localhost:2526 authed=true
+[mailer] staging: příjemci mimo STAGING_EMAIL_ALLOWLIST — e-mail jim NEODEŠEL: s***@blocked.invalid (předmět: Tixly — obnovení hesla)
+[mailer] staging: příjemci mimo STAGING_EMAIL_ALLOWLIST — e-mail jim NEODEŠEL: s***@blocked.invalid (předmět: Tixly — obnovení hesla)

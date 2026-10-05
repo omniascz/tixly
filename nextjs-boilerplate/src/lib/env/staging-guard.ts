@@ -7,7 +7,10 @@
  *
  * Seznam produkčních hostitelů: vestavěný (známý produkční Neon endpoint a projekt Tixly) + PROD_DB_HOSTS
  * a PROD_APP_HOSTS (čárkou oddělené) pro případ přesunu produkce.
+ *
+ * Kolo 10: navíc odmítne start bez STAGING_EMAIL_ALLOWLIST (e-maily stagingu jdou přes Resend skutečným lidem).
  */
+import { parseAllowlist } from '@/lib/email/staging-allowlist';
 
 export const BUILTIN_PROD_DB_MARKERS = [
   'ep-weathered-wind-alvbjysw', // produkční Neon endpoint (tixly-production)
@@ -54,6 +57,14 @@ export function stagingViolations(env: Env): string[] {
   if (env.PAYPAL_CLIENT_ID && env.PAYPAL_SANDBOX !== 'true') out.push('PAYPAL_SANDBOX není true');
   if (env.MOLLIE_API_KEY && !env.MOLLIE_API_KEY.startsWith('test_')) out.push('MOLLIE_API_KEY není testovací klíč (test_)');
   if (env.TRIPLEA_CLIENT_ID && env.TRIPLEA_SANDBOX !== 'true') out.push('TRIPLEA_SANDBOX není true');
+  // Kolo 10 / krok 4: e-maily jdou přes Resend skutečným lidem → bez allowlistu by staging psal komukoli.
+  const allow = parseAllowlist(env.STAGING_EMAIL_ALLOWLIST);
+  if (allow.entries.length === 0) {
+    out.push('STAGING_EMAIL_ALLOWLIST je prázdný — staging posílá e-maily přes Resend, bez allowlistu by šly komukoli');
+  }
+  if (allow.invalid.length) {
+    out.push(`STAGING_EMAIL_ALLOWLIST obsahuje neplatné položky: ${allow.invalid.join(', ')} (povoleno: adresa nebo @doména)`);
+  }
   return out;
 }
 
@@ -61,6 +72,6 @@ export function stagingViolations(env: Env): string[] {
 export function assertStagingIsolated(env: Env = process.env): void {
   const v = stagingViolations(env);
   if (v.length) {
-    throw new Error(`[staging-guard] Testovací prostředí odmítá start — ukazuje na produkci:\n - ${v.join('\n - ')}`);
+    throw new Error(`[staging-guard] Testovací prostředí odmítá start (produkce nebo chybějící pojistka):\n - ${v.join('\n - ')}`);
   }
 }

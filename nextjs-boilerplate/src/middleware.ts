@@ -149,6 +149,11 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     if (PUBLIC_API_PREFIXES.some((r) => pathname.startsWith(r))) {
       return passThrough();
     }
+    // Kolo 10 / krok 3: Vercel cron volá GET s `Authorization: Bearer CRON_SECRET` (není JWT → tady by dostal 401).
+    // Jen tato přesná cesta a jen GET; tajemství cronu ověřuje handler (isCronAuthorized), identita se nepředává.
+    if (pathname === '/api/admin/lastminute/check' && request.method === 'GET') {
+      return passThrough();
+    }
 
     const isPublicGet =
       API_PUBLIC_GET_ROUTES.some((r) => pathname.startsWith(r)) &&

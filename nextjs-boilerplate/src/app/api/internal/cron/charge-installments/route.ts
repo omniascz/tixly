@@ -13,6 +13,7 @@
 import { timingSafeEqual } from 'crypto';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
 
 
 function safeEqual(a: string, b: string): boolean {
@@ -23,6 +24,9 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('installments');
+  if (featureOff) return featureOff;
   return runWithServiceContext(async () => {
 
   const token = req.headers.get('x-internal-token') ?? '';

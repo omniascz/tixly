@@ -1,26 +1,30 @@
 #!/usr/bin/env bash
-# scripts/staging/smoke.sh — smoke test BĚŽÍCÍHO stagingu (kolo 9 / krok 4).
+# scripts/staging/smoke.sh — smoke test BĚŽÍCÍHO stagingu (kolo 9 / krok 4, kolo 10 / krok 4: e-maily přes Resend).
 #
-#   STAGING_URL=https://tixly-staging.vercel.app STAGING_DB_OWNER_URL=postgresql://… MAILPIT=https://… \
-#   CRON_SECRET=… scripts/staging/smoke.sh [--dry-run] [--skip-tour] [--skip-sandbox]
+#   STAGING_URL=https://tixly-staging.vercel.app RESEND_API_KEY=re_… STAGING_SMOKE_EMAIL=tester@firma.cz \
+#   scripts/staging/smoke.sh [--dry-run] [--tour] [--skip-sandbox]
 #
 # Kroky:
 #   1) pojistky: STAGING_URL ani DB nesmí být produkce (stejný seznam jako staging-guard)
 #   2) zdraví: hlavní stránka, program, přihlášení, API health
-#   3) scénář turné (Playwright, e2e/tests/golden-path-r8-theatre-tour.spec.ts) proti stagingu;
-#      platby přes sandbox GoPay: TOUR_PAY_MODE=manual — okno prohlížeče se otevře a platbu testovací kartou
-#      provede člověk (sandbox GoPay nelze bezpečně automatizovat bez znalosti jeho stránky); e-maily čte z MAILPIT
-#      (API kompatibilní s Mailpit — staging musí posílat e-maily do takové schránky)
-#   4) sandbox testy GoPay a ComGate (nextjs-boilerplate/tests/sandbox, npm run test:sandbox) s klíči sandboxu
+#   3) e-maily přes Resend (staging nemá Mailpit): založí dva účty a pro oba požádá o obnovu hesla —
+#        a) STAGING_SMOKE_EMAIL s plus-značkou (tester+smoke-<čas>@firma.cz; adresa musí být v STAGING_EMAIL_ALLOWLIST)
+#        b) adresa mimo allowlist (smoke-<čas>@blocked.invalid)
+#      a pak v seznamu odeslaných zpráv Resend API (GET {RESEND_API_BASE_URL}/emails) ověří: (a) odešla, (b) NE.
+#      RESEND_API_KEY = klíč TÉHOŽ Resend účtu, přes který staging posílá (SMTP_PASS stagingu).
+#   4) --tour: scénář turné (Playwright, e2e/tests/golden-path-r8-theatre-tour.spec.ts), platby ručně v sandboxu GoPay
+#      (TOUR_PAY_MODE=manual). Turné čte obsah e-mailů (PDF vstupenek) z API Mailpitu a posílá na adresy @tixly.test —
+#      proto běží jen s MAILPIT (lokální / sandboxový SMTP bez allowlistu), na Resend stagingu ne.
+#   5) sandbox testy GoPay a ComGate (nextjs-boilerplate/tests/sandbox, npm run test:sandbox) s klíči sandboxu
 #      GOPAY_* / COMGATE_* v prostředí
 #   --dry-run vypíše plán a příkazy, nic nespouští.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-DRY=0; SKIP_TOUR=0; SKIP_SANDBOX=0
+DRY=0; TOUR=0; SKIP_SANDBOX=0
 for a in "$@"; do
   case "$a" in
-    --dry-run) DRY=1 ;; --skip-tour) SKIP_TOUR=1 ;; --skip-sandbox) SKIP_SANDBOX=1 ;;
-    -h|--help) sed -n '2,17p' "$0"; exit 0 ;;
+    --dry-run) DRY=1 ;; --tour) TOUR=1 ;; --skip-sandbox) SKIP_SANDBOX=1 ;;
+    -h|--help) sed -n '2,23p' "$0"; exit 0 ;;
     *) echo "neznámý argument: $a" >&2; exit 2 ;;
   esac
 done
@@ -47,17 +51,59 @@ for p in /cs /cs/program /cs/login /api/health; do
   log "GET $p → 200"
 done
 
-if [ "$SKIP_TOUR" = 0 ]; then
+log "2) e-maily přes Resend (allowlist)"
+: "${RESEND_API_KEY:?e-mailový krok potřebuje RESEND_API_KEY (Resend účet stagingu)}"
+: "${STAGING_SMOKE_EMAIL:?e-mailový krok potřebuje STAGING_SMOKE_EMAIL (adresa ze STAGING_EMAIL_ALLOWLIST)}"
+RESEND_API="${RESEND_API_BASE_URL:-https://api.resend.com}"; RESEND_API="${RESEND_API%/}"
+TS=$(date +%s)
+ALLOWED="${STAGING_SMOKE_EMAIL%@*}+smoke-$TS@${STAGING_SMOKE_EMAIL#*@}"
+BLOCKED="smoke-$TS@blocked.invalid"
+reset_mail() { # $1 = e-mail: účet + žádost o obnovu hesla (e-mail odejde jen existujícímu účtu)
+  local body code
+  body=$(printf '{"email":"%s","password":"Smoke-%s-heslo","name":"Smoke test"}' "$1" "$TS")
+  if [ "$DRY" = 1 ]; then
+    log "DRY-RUN: POST /api/auth/register {$1} → 200; POST /api/auth/forgot-password {$1} → 200"; return
+  fi
+  code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$STAGING_URL/api/auth/register" \
+    -H 'content-type: application/json' -H "origin: $STAGING_URL" -d "$body")
+  [ "$code" = 200 ] || [ "$code" = 201 ] || die "register $1 → $code"
+  code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$STAGING_URL/api/auth/forgot-password" \
+    -H 'content-type: application/json' -H "origin: $STAGING_URL" -d "{\"email\":\"$1\"}")
+  # 429 = rate limit (3 žádosti / 15 min z jedné IP) — e-mail by se vůbec nezkusil poslat a kontrola by prošla naprázdno
+  [ "$code" = 200 ] || die "forgot-password $1 → $code$([ "$code" = 429 ] && echo ' (rate limit 3/15 min — zopakovat za 15 minut)')"
+  log "účet + žádost o obnovu hesla: $1 → 200"
+}
+reset_mail "$ALLOWED"
+reset_mail "$BLOCKED"
+if [ "$DRY" = 1 ]; then
+  log "DRY-RUN: GET $RESEND_API/emails → v seznamu je $ALLOWED, není $BLOCKED"
+else
+  # porovnání bez ohledu na velikost písmen přes tr — `grep -iF` v Git Bash na UTF-8 odpovědi padá (Aborted)
+  lc() { printf %s "$1" | tr '[:upper:]' '[:lower:]'; }
+  in_list() { lc "$list" | grep -qF "\"$(lc "$1")\""; }
+  found=0
+  for _ in $(seq 1 30); do
+    list=$(curl -s -H "Authorization: Bearer $RESEND_API_KEY" "$RESEND_API/emails")
+    if in_list "$ALLOWED"; then found=1; break; fi
+    sleep 2
+  done
+  [ "$found" = 1 ] || die "Resend: e-mail na $ALLOWED se v seznamu odeslaných neobjevil (60 s) — odpověď: $(printf %s "$list" | head -c 300)"
+  log "Resend: e-mail na povolenou adresu odeslán ✓"
+  if in_list "$BLOCKED"; then die "Resend: e-mail na $BLOCKED (mimo allowlist) ODEŠEL — allowlist nefunguje"; fi
+  log "Resend: e-mail na adresu mimo allowlist neodešel ✓"
+fi
+
+if [ "$TOUR" = 1 ]; then
   : "${STAGING_DB_OWNER_URL:?scénář turné potřebuje STAGING_DB_OWNER_URL (owner staging DB)}"
-  : "${MAILPIT:?scénář turné potřebuje MAILPIT (API testovací schránky)}"
+  : "${MAILPIT:?scénář turné potřebuje MAILPIT (čte PDF vstupenek z e-mailů) — na Resend stagingu nespouštět}"
   : "${CRON_SECRET:?scénář turné potřebuje CRON_SECRET stagingu}"
-  log "2) scénář turné (Playwright, platby ručně v sandboxu GoPay)"
+  log "3) scénář turné (Playwright, platby ručně v sandboxu GoPay)"
   (cd "$ROOT/e2e" && run env BASE_URL="$STAGING_URL" AUDIT_OWNER_URL="$STAGING_DB_OWNER_URL" MAILPIT="$MAILPIT" CRON_SECRET="$CRON_SECRET" \
     TOUR_PAY_MODE=manual npx playwright test tests/golden-path-r8-theatre-tour.spec.ts --project golden-path --headed --reporter=list)
 fi
 
 if [ "$SKIP_SANDBOX" = 0 ]; then
-  log "3) sandbox testy GoPay a ComGate"
+  log "4) sandbox testy GoPay a ComGate"
   (cd "$ROOT/nextjs-boilerplate" && run npm run test:sandbox)
 fi
 log "hotovo"

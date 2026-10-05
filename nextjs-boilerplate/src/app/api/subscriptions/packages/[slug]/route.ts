@@ -9,12 +9,16 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
 
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('subscriptions');
+  if (featureOff) return featureOff;
   const { slug } = await params;
   const promoterSlug = req.nextUrl.searchParams.get('promoter');
   if (!promoterSlug || !/^[a-z0-9-]{2,80}$/.test(promoterSlug)) {

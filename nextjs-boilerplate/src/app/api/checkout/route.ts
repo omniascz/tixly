@@ -246,6 +246,18 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
   const input = parsed.data;
 
+  // Kolo 10 / krok 3: nedokončené cesty (splátky vč. BNPL, uplatnění předplatného, benefitní karty) jsou za přepínači,
+  // výchozí stav vypnuto — odmítnout PŘED čímkoli dalším, objednávka se nezaloží.
+  {
+    const { launchFeatureRejected, BNPL_METHODS, BENEFIT_METHODS } = await import('@/lib/features/launch-flags');
+    const method = input.paymentMethod ?? '';
+    const off =
+      ((input.paymentPlanId || BNPL_METHODS.has(method)) && launchFeatureRejected('installments'))
+      || (input.useSubscription && launchFeatureRejected('subscriptions'))
+      || (BENEFIT_METHODS.has(method) && launchFeatureRejected('benefitCards'));
+    if (off) return off;
+  }
+
   // Kolo 7 (C-29): po uzávěrce online prodeje (sales_end_at, jinak začátek akce) nový nákup nejde.
   // Doplacení dříve založené objednávky jde přes webhook, ne sem.
   const salesClosed = await saleBlockedResponse(db(), input.eventId, 'online');

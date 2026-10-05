@@ -1,0 +1,91 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r10-order-completed-email-once.live.test.ts[2m > [22m[2mKolo 10 — order-completed pošle potvrzení právě jednou[2m > [22m[2mdvě po sobě jdoucí volání → 1 e-mail, vstupenky jednou[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r10-order-completed-email-once.live.test.ts[2m > [22m[2mKolo 10 — order-completed pošle potvrzení právě jednou[2m > [22m[2mtři souběžná volání → 1 e-mail[22m[39m
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [33m❯[39m tests/fix-r10-order-completed-email-once.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 2204[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r10-order-completed-email-once.live.test.ts[2m > [22mKolo 10 — order-completed pošle potvrzení právě jednou[2m > [22mdvě po sobě jdoucí volání → 1 e-mail, vstupenky jednou[39m
+[31m     → expected 2 to be 1 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r10-order-completed-email-once.live.test.ts[2m > [22mKolo 10 — order-completed pošle potvrzení právě jednou[2m > [22mtři souběžná volání → 1 e-mail[39m
+[31m     → expected 3 to be 1 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-order-completed-email-once.live.test.ts[2m > [22mKolo 10 — order-completed pošle potvrzení právě jednou[2m > [22mdvě po sobě jdoucí volání → 1 e-mail, vstupenky jednou
+[31m[1mAssertionError[22m: expected 2 to be 1 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 2[39m
+
+[36m [2m❯[22m tests/fix-r10-order-completed-email-once.live.test.ts:[2m53:38[22m[39m
+    [90m 51| [39m    [34mexpect[39m(([35mawait[39m [34mcomplete[39m(o[33m.[39morderId))[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m 52| [39m    [34mexpect[39m(([35mawait[39m [34mcomplete[39m(o[33m.[39morderId))[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m 53| [39m    [34mexpect[39m([35mawait[39m [34msettle[39m(o[33m.[39memail[33m,[39m [34m1[39m))[33m.[39m[34mtoBe[39m([34m1[39m)[33m;[39m
+    [90m   | [39m                                     [31m^[39m
+    [90m 54| [39m    [35mconst[39m t [33m=[39m [35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT count(*)::int n FROM tick[39m…
+    [90m 55| [39m    [34mexpect[39m(t[33m.[39mrows[[34m0[39m][33m.[39mn)[33m.[39m[34mtoBe[39m([34m1[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-order-completed-email-once.live.test.ts[2m > [22mKolo 10 — order-completed pošle potvrzení právě jednou[2m > [22mtři souběžná volání → 1 e-mail
+[31m[1mAssertionError[22m: expected 3 to be 1 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 3[39m
+
+[36m [2m❯[22m tests/fix-r10-order-completed-email-once.live.test.ts:[2m63:38[22m[39m
+    [90m 61| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [33mPromise[39m[33m.[39m[34mall[39m([[34mcomplete[39m(o[33m.[39morderId)[33m,[39m [34mcomplete[39m(o[33m.[39mord…
+    [90m 62| [39m    [34mexpect[39m(res[33m.[39m[34mmap[39m((r) [33m=>[39m r[33m.[39mstatus))[33m.[39m[34mtoEqual[39m([[34m200[39m[33m,[39m [34m200[39m[33m,[39m [34m200[39m])[33m;[39m
+    [90m 63| [39m    [34mexpect[39m([35mawait[39m [34msettle[39m(o[33m.[39memail[33m,[39m [34m1[39m))[33m.[39m[34mtoBe[39m([34m1[39m)[33m;[39m
+    [90m   | [39m                                     [31m^[39m
+    [90m 64| [39m  }[33m,[39m [34m60_000[39m)[33m;[39m
+    [90m 65| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 19:06:30
+[2m   Duration [22m 2.69s[2m (transform 149ms, setup 0ms, collect 69ms, tests 2.20s, environment 0ms, prepare 310ms)[22m
+

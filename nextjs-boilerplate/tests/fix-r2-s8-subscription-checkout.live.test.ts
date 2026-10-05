@@ -13,6 +13,9 @@ import { randomUUID } from 'crypto';
 import { createLocalClone, hasLocalDb, type LocalClone } from './helpers/local-fixture';
 import { throughMiddleware } from './helpers/through-middleware';
 
+// Kolo 10: předplatné je za přepínačem (výchozí vypnuto → 404); tady se testuje ZAPNUTÁ funkce.
+process.env.NEXT_PUBLIC_FEATURE_SUBSCRIPTIONS = '1';
+
 const run = describe.skipIf(!hasLocalDb);
 
 run('Krok 5 — S8: checkout předplatného proti skutečnému schématu', () => {

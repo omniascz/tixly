@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Pool } from 'pg';
 import { Card, CardContent } from '@/components/ui/card';
+import { launchFeatureEnabled } from '@/lib/features/launch-flags';
 import { formatDate } from '@/lib/format';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 import { FollowButton } from './FollowButton';
@@ -351,12 +352,15 @@ export default async function PromoterPage({
       </section>
 
       <div className="rounded-md border bg-muted/30 p-3 text-sm">
+        {/* Kolo 10 / krok 3: předplatné vypnuté přepínačem → odkaz skrytý */}
+        {launchFeatureEnabled('subscriptions') ? (
         <Link
           href={`/${locale}/subscriptions?p=${promoter.slug}`}
           className="text-primary hover:underline"
         >
           {s.subscriptions}
         </Link>
+        ) : null}
         {promoter.contact_email ? (
           <span className="ml-3 text-xs text-muted-foreground">
             {s.contact}:{' '}

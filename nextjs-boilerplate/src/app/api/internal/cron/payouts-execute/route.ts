@@ -7,8 +7,10 @@
  *   - PayPal Payouts: if promoter.payout_method = 'paypal'
  *   - FIO manual note: CZK domestic (operator initiates from FIO internet banking)
  *
- * Scheduling: Runs Tuesday–Friday 8 AM (1 day after settle cron creates records).
- * Schedule in vercel.json cron: "0 8 * * 2-5"
+ * Plánování (kolo 10): pro první ostrý provoz NENÍ naplánováno (není ve vercel.json ani v ALLOWED_JOBS dispatcheru).
+ * Výplaty jsou ruční: platform admin je spouští v administraci (/api/admin/payouts/execute) a u CZK/FIO převod
+ * odešle z internetového bankovnictví; výplata čeká ve stavu awaiting_manual_transfer, dokud ji admin nepotvrdí
+ * (/api/platform/admin/payouts/[id]/confirm-transfer). Test: tests/fix-r10-launch-flags.test.ts (crony).
  *
  * Security: x-internal-token header required.
  *
