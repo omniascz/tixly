@@ -1,0 +1,111 @@
+[copy-pdf-worker] OK: 1.31 MB → public/pdf.worker.min.mjs
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+  ▲ Next.js 14.2.35
+  - Experiments (use with caution):
+    · instrumentationHook
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings
+
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/opentelemetry/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/server/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./sentry.server.config.ts
+
+./node_modules/require-in-the-middle/index.js
+Critical dependency: require function is used in a way in which dependencies cannot be statically extracted
+
+Import trace for requested module:
+./node_modules/require-in-the-middle/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/opentelemetry/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/server/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./sentry.server.config.ts
+
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+ ⚠ Using edge runtime on a page currently disables static generation for that page
+   Generating static pages (0/392) ...
+   Generating static pages (98/392) 
+   Generating static pages (196/392) 
+   Generating static pages (294/392) 
+[sitemap events] Error: connect ETIMEDOUT 10.255.255.1:5432
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async s (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\sitemap.xml\route.js:13:1748)
+    at async s (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\sitemap.xml\route.js:20:1044)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38411
+    at async e_.execute (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:27880)
+    at async e_.handle (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:39943)
+    at async exportAppRoute (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\export\routes\app-route.js:77:26)
+    at async exportPageImpl (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\export\worker.js:175:20)
+    at async Span.traceAsyncFn (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\trace\trace.js:154:20) {
+  errno: -4039,
+  code: 'ETIMEDOUT',
+  syscall: 'connect',
+  address: '10.255.255.1',
+  port: 5432
+}
+[sitemap promoters] Error: connect ETIMEDOUT 10.255.255.1:5432
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async s (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\sitemap.xml\route.js:17:217)
+    at async s (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\sitemap.xml\route.js:20:1044)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38411
+    at async e_.execute (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:27880)
+    at async e_.handle (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:39943)
+    at async exportAppRoute (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\export\routes\app-route.js:77:26)
+    at async exportPageImpl (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\export\worker.js:175:20)
+    at async Span.traceAsyncFn (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\trace\trace.js:154:20) {
+  errno: -4039,
+  code: 'ETIMEDOUT',
+  syscall: 'connect',
+  address: '10.255.255.1',
+  port: 5432
+}
+ ⚠ Sending SIGTERM signal to Next.js build worker due to timeout of 60 seconds. Subsequent errors may be a result of the worker exiting.
+ ⚠ Restarted static page generation for /api/health/redis because it took more than 60 seconds
+ ⚠ See more info here https://nextjs.org/docs/messages/static-page-generation-timeout
+ ⚠ Sending SIGTERM signal to Next.js build worker due to timeout of 60 seconds. Subsequent errors may be a result of the worker exiting.
+ ⨯ Next.js build worker exited with code: null and signal: SIGTERM
+ ⨯ Next.js build worker exited with code: null and signal: SIGTERM
+ ⨯ Next.js build worker exited with code: null and signal: SIGTERM
+ ⨯ Next.js build worker exited with code: null and signal: SIGTERM
+ ⨯ Next.js build worker exited with code: null and signal: SIGTERM
+ ⨯ Next.js build worker exited with code: null and signal: SIGTERM
+ ⨯ Next.js build worker exited with code: null and signal: SIGTERM
+ ⨯ Next.js build worker exited with code: null and signal: SIGTERM
+ ⨯ Next.js build worker exited with code: null and signal: SIGTERM
+ ⨯ Next.js build worker exited with code: null and signal: SIGTERM
+ ⨯ Next.js build worker exited with code: null and signal: SIGTERM
+ ⨯ Next.js build worker exited with code: null and signal: SIGTERM
+ ⨯ Next.js build worker exited with code: null and signal: SIGTERM
+ ⨯ Next.js build worker exited with code: null and signal: SIGTERM
+ ⚠ Restarted static page generation for /api/health/redis because it took more than 60 seconds
+ ⚠ Sending SIGTERM signal to Next.js build worker due to timeout of 60 seconds. Subsequent errors may be a result of the worker exiting.
+
+> Build error occurred
+Error: Static page generation for /api/health/redis is still timing out after 3 attempts. See more info here https://nextjs.org/docs/messages/static-page-generation-timeout
+    at onRestart (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\build\index.js:292:27)
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\lib\worker.js:104:40
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\export\index.js:450:20
+    at async Span.traceAsyncFn (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\trace\trace.js:154:20)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\export\index.js:448:24
+    at async Promise.all (index 208)
+    at async exportAppImpl (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\export\index.js:440:21)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\export\index.js:623:16
+    at async Span.traceAsyncFn (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\trace\trace.js:154:20)
