@@ -58,7 +58,8 @@ export type OrgIconName =
   | 'MapPin'
   | 'UserCog'
   | 'Settings'
-  | 'LayoutGrid';
+  | 'LayoutGrid'
+  | 'Clapperboard';
 
 /**
  * Dvanáct položek. Původních 49 se nesmazalo — zbytek je dosažitelný
@@ -81,13 +82,18 @@ export const ORG_NAV: OrgNavItem[] = [
       '/admin/calendar',
       '/admin/event-groups',
       '/admin/event-templates',
-      '/admin/productions',
       '/admin/season',
       '/admin/collections',
       '/admin/subscriptions',
       '/admin/season-passes',
       '/admin/subscription-plans',
     ],
+  },
+  // Kolo 12: inscenace (karta, termíny, ceník) byly jen přes „Vše" → „Produkce a reprízy"
+  {
+    href: '/admin/productions',
+    label: 'Inscenace',
+    icon: 'Clapperboard',
   },
   {
     href: '/admin/orders',
@@ -596,14 +602,17 @@ export function isFeatureEnabled(
 }
 
 /** Záložky viditelné pro danou roli. */
+/** Kolo 12: pokladna (box_office) má stejně úzké provozní menu jako staff (dřív viděla Finance, Tým, Nastavení…). */
+const OPERATIONS_ROLES = new Set(['staff', 'box_office']);
+
 export function tabsForRole(role: PromoterRole | null | undefined): EventTab[] {
-  if (role !== 'staff') return EVENT_TABS;
+  if (!OPERATIONS_ROLES.has(role ?? '')) return EVENT_TABS;
   return EVENT_TABS.filter((t) => t.staffAllowed);
 }
 
 /** Položky levého menu viditelné pro danou roli. */
 export function orgNavForRole(role: PromoterRole | null | undefined): OrgNavItem[] {
-  if (role !== 'staff') return ORG_NAV;
+  if (!OPERATIONS_ROLES.has(role ?? '')) return ORG_NAV;
   return ORG_NAV.filter((i) => i.staffAllowed);
 }
 

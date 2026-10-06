@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
   CalendarDays,
@@ -14,6 +15,9 @@ import {
   UserCog,
   Settings,
   LayoutGrid,
+  Clapperboard,
+  Menu,
+  X,
   Plus,
   type LucideIcon,
 } from 'lucide-react';
@@ -53,15 +57,30 @@ const ICONS: Record<OrgIconName, LucideIcon> = {
   UserCog,
   Settings,
   LayoutGrid,
+  Clapperboard,
 };
 
 export function Sidebar({ promoterRole }: { promoterRole?: string | null }) {
   const pathname = usePathname();
-  const isStaff = promoterRole === 'staff';
+  const isStaff = promoterRole === 'staff' || promoterRole === 'box_office';
   const items = orgNavForRole(promoterRole);
+  // Kolo 12: na mobilu (obsluha vstupu, pokladna) menu nezabírá 240 px z obrazovky — otevírá se tlačítkem „Menu".
+  const [open, setOpen] = useState(false);
+  useEffect(() => { setOpen(false); }, [pathname]);
 
   return (
-    <aside className="flex h-screen w-60 flex-col border-r bg-card">
+    <>
+    <button
+      type="button"
+      aria-label="Menu"
+      aria-expanded={open}
+      onClick={() => setOpen((o) => !o)}
+      className="absolute left-3 top-3 z-50 flex h-10 w-10 items-center justify-center rounded-md border bg-card shadow-sm md:hidden"
+    >
+      {open ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
+    </button>
+    {open ? <div className="fixed inset-0 z-30 bg-black/40 md:hidden" aria-hidden onClick={() => setOpen(false)} /> : null}
+    <aside className={cn('h-screen w-60 flex-col border-r bg-card', open ? 'fixed inset-y-0 left-0 z-40 flex' : 'hidden md:flex')}>
       <div className="flex h-16 items-center border-b px-6">
         <Link href="/admin" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-brand-500 font-bold text-white">
@@ -73,7 +92,7 @@ export function Sidebar({ promoterRole }: { promoterRole?: string | null }) {
 
       {isStaff ? (
         <p className="mx-3 mt-3 rounded-md bg-secondary px-3 py-1.5 text-[11px] font-medium text-muted-foreground">
-          Produkční přístup — finanční a nastavovací sekce jsou skryté
+          {promoterRole === 'box_office' ? 'Přístup pokladny' : 'Přístup pro provoz a vstup'} — finance a nastavení jsou skryté
         </p>
       ) : (
         <div className="px-3 pt-3">
@@ -99,6 +118,7 @@ export function Sidebar({ promoterRole }: { promoterRole?: string | null }) {
 
       <p className="border-t p-4 text-xs text-muted-foreground">Administrace pořadatele</p>
     </aside>
+    </>
   );
 }
 
