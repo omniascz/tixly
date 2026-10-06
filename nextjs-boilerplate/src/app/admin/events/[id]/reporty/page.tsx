@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { errorText } from '@/lib/ui/error-text';
 
 interface Sales { eventId: string; title: string; dateStart: string; zone: string; category: string; channel: string; sold: number; revenueMinor: number }
 interface Occ { eventId: string; title: string; dateStart: string; city: string | null; hall: string | null; sellable: number; sold: number; reserved: number; blocked: number; occupiedPct: number }
@@ -19,14 +20,17 @@ const api = (url: string) => fetch(url, { credentials: 'include', headers: token
 const kc = (m: number) => `${(m / 100).toLocaleString('cs-CZ')} Kč`;
 const CH: Record<string, string> = { online: 'online', box_office: 'pokladna', reservation: 'rezervace', corporate: 'firemní', comps: 'volné' };
 
-async function download(url: string, name: string): Promise<void> {
-  const r = await api(url);
-  if (!r.ok) return;
+/** Kolo 12: dřív se při chybě nestalo nic (uživatel nevěděl, že soubor nedostal). Vrací chybovou zprávu, nebo null. */
+async function download(url: string, name: string): Promise<string | null> {
+  const r = await api(url).catch(() => null);
+  if (!r) return 'Soubor se nepodařilo stáhnout — zkontrolujte připojení k internetu a zkuste to znovu.';
+  if (!r.ok) return `Soubor se nepodařilo stáhnout. ${errorText(await r.json().catch(() => ({})), r.status)}`;
   const a = document.createElement('a');
   a.href = URL.createObjectURL(await r.blob());
   a.download = name;
   a.click();
   URL.revokeObjectURL(a.href);
+  return null;
 }
 
 export default function TermReportsPage({ params }: { params: { id: string } }) {
@@ -40,7 +44,7 @@ export default function TermReportsPage({ params }: { params: { id: string } }) 
   useEffect(() => {
     setErr(null);
     void api(`/api/admin/theatre-reports?${query}`).then(async (r) => {
-      if (!r.ok) { setErr(`Report se nepodařilo načíst (HTTP ${r.status}).`); return; }
+      if (!r.ok) { setErr(`Report se nepodařilo načíst. ${errorText(await r.json().catch(() => ({})), r.status)}`); return; }
       const j = (await r.json()) as Report;
       setRep(j);
       if (j.productionId) setProductionId(j.productionId);
@@ -57,10 +61,10 @@ export default function TermReportsPage({ params }: { params: { id: string } }) 
         <label className="text-sm">Do <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></label>
         <Button variant={query.startsWith('scope=period') ? 'default' : 'outline'} onClick={() => setQuery(`scope=period&from=${from}&to=${to}`)}>Období</Button>
         <span className="flex-1" />
-        <Button variant="outline" onClick={() => void download(`/api/admin/theatre-reports?${query}&format=csv`, 'report.csv')}>CSV</Button>
-        <Button variant="outline" onClick={() => void download(`/api/admin/theatre-reports?${query}&format=xlsx`, 'report.xlsx')}>XLSX</Button>
-        <Button onClick={() => void download(`/api/admin/events/${params.id}/usher-list?format=pdf`, 'uvadeci.pdf')}>Seznam pro uvaděče (PDF)</Button>
-        <Button variant="outline" onClick={() => void download(`/api/admin/events/${params.id}/usher-list?format=csv`, 'uvadeci.csv')}>Uvaděči CSV</Button>
+        <Button variant="outline" onClick={() => void download(`/api/admin/theatre-reports?${query}&format=csv`, 'report.csv').then((e) => setErr(e))}>CSV</Button>
+        <Button variant="outline" onClick={() => void download(`/api/admin/theatre-reports?${query}&format=xlsx`, 'report.xlsx').then((e) => setErr(e))}>XLSX</Button>
+        <Button onClick={() => void download(`/api/admin/events/${params.id}/usher-list?format=pdf`, 'uvadeci.pdf').then((e) => setErr(e))}>Seznam pro uvaděčky (PDF)</Button>
+        <Button variant="outline" onClick={() => void download(`/api/admin/events/${params.id}/usher-list?format=csv`, 'uvadeci.csv').then((e) => setErr(e))}>Seznam pro uvaděčky (CSV)</Button>
       </div>
       {err && <p role="alert" className="rounded bg-rose-50 p-2 text-sm text-rose-800">{err}</p>}
 
