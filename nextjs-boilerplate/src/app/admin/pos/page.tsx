@@ -116,15 +116,16 @@ export default function PosPage() {
   }
 
   // Po vystavení lístků otevřeme print preview
+  // Kolo 12/13: PDF vstupenek s QR kódem (dřív window.print() souhrnu s TOTP tajemstvím, bez QR)
   function handlePrint() {
-    if (typeof window !== 'undefined') window.print();
+    if (typeof window !== 'undefined' && sale) window.open(`/api/admin/orders/${sale.orderId}/print-labels`, '_blank', 'noopener');
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Pokladna"
-        description="Prodej vstupenek na místě — hotově nebo kartou na terminálu. Vstupenku hned vytisknete."
+        title="Pokladna (POS)"
+        description="Hotovostní/terminálový prodej u kasy. Vystaví lístek okamžitě s QR pro scanner."
       />
 
       <div className="grid gap-6 lg:grid-cols-2 print:hidden">
@@ -132,7 +133,7 @@ export default function PosPage() {
         <Card>
           <CardHeader>
             <CardTitle>Nový prodej</CardTitle>
-            <CardDescription>Vyberte představení, místa a způsob platby.</CardDescription>
+            <CardDescription>Vyber představení a počet lístků.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -150,25 +151,19 @@ export default function PosPage() {
                   required
                   className="w-full rounded-md border bg-background px-3 py-2 text-sm"
                 >
-                  <option value="">— vyberte představení —</option>
+                  <option value="">— vyber představení —</option>
                   {events.map((ev) => (
                     <option key={ev.id} value={ev.id}>
-                      {ev.title}{ev.venueCity ? ` — ${ev.venueCity}` : ''} ({new Date(ev.dateStart).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })})
+                      {ev.title}{ev.venueCity ? ` — ${ev.venueCity}` : ''} ({new Date(ev.dateStart).toLocaleDateString('cs-CZ')})
                     </option>
                   ))}
                 </select>
-                {/* Kolo 12: rezervace k vyzvednutí byly jen přes Akce → Upravit → Vstupenky → Rezervace na pokladně */}
-                {eventId ? (
-                  <a href={`/admin/events/${eventId}/rezervace`} className="mt-1 inline-block text-sm text-primary underline">
-                    Rezervace k vyzvednutí na toto představení →
-                  </a>
-                ) : null}
               </div>
 
               {event ? (
                 <div>
                   <label htmlFor="pos-tt" className="mb-1 block text-xs font-medium">
-                    Cenová zóna / typ vstupenky
+                    Typ lístku
                   </label>
                   <select
                     id="pos-tt"
@@ -241,7 +236,7 @@ export default function PosPage() {
                   id="pos-buyer"
                   value={buyerName}
                   onChange={(e) => setBuyerName(e.target.value)}
-                  placeholder="např. Jan Novák"
+                  placeholder="Walk-in kupující"
                 />
               </div>
 
@@ -302,7 +297,7 @@ export default function PosPage() {
                     (isSeated ? selectedSeatIds.length < 1 : quantity < 1)
                   }
                 >
-                  {loading ? 'Vystavuji…' : 'Vystavit vstupenku'}
+                  {loading ? 'Vystavuji…' : 'Vystavit lístek'}
                 </Button>
               </div>
             </form>
@@ -314,7 +309,7 @@ export default function PosPage() {
           <CardHeader>
             <CardTitle>Poslední prodej</CardTitle>
             <CardDescription>
-              {sale ? 'Vstupenka vystavena — vytiskněte ji a předejte kupci.' : 'Zatím jste nic neprodali.'}
+              {sale ? 'Lístek vystaven — vytiskni a předej kupci.' : 'Žádný prodej v této session.'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -335,32 +330,25 @@ export default function PosPage() {
                   <ul className="space-y-1 text-xs">
                     {sale.tickets.map((t, i) => (
                       <li key={t.ticketId} className="flex items-center justify-between rounded border p-2">
-                        <span>Vstupenka č. {i + 1}</span>
+                        <span>
+                          Lístek #{i + 1}: <code>{t.ticketId.slice(0, 8)}</code>
+                        </span>
                       </li>
                     ))}
                   </ul>
                 </div>
-                {/* Kolo 12: tisk vstupenek s QR kódem (stejné jako tištěné vstupenky u vstupu); dřív window.print()
-                    souhrnu s ID a TOTP tajemstvím — bez QR, tedy nepoužitelné u vstupu, a tajemství nepatří na papír */}
-                <a
-                  href={`/api/admin/orders/${sale.orderId}/print-labels`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                >
-                  <Printer className="mr-2 h-4 w-4" aria-hidden />
-                  Vytisknout vstupenky (s QR kódem)
-                </a>
                 <Button type="button" variant="outline" className="w-full" onClick={handlePrint}>
-                  Vytisknout doklad o prodeji
+                  <Printer className="mr-2 h-4 w-4" aria-hidden />
+                  Vytisknout / uložit jako PDF
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  Vstupenky se otevřou jako PDF — vytiskněte je na tiskárně pokladny a předejte kupci. QR kód načte obsluha u vstupu.
+                  Plný PDF lístek s QR kódem dostane kupec přes mail (pokud zadáš e-mail).
+                  Tady ti stačí potvrzení o vystavení a evidenci pro účetní.
                 </p>
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Po vystavení tu uvidíte souhrn a tlačítko pro tisk vstupenek.
+                Po vystavení tu uvidíš souhrn a tlačítko pro tisk.
               </p>
             )}
           </CardContent>
@@ -370,7 +358,7 @@ export default function PosPage() {
       {/* Print-friendly receipt */}
       {sale ? (
         <div className="hidden print:block">
-          <p className="text-2xl font-bold">{sale.eventTitle}</p>
+          <h1 className="text-2xl font-bold">{sale.eventTitle}</h1>
           <p className="mt-2 text-sm">
             {sale.ticketTypeName} × {sale.tickets.length} · {formatCzk(sale.totalAmountHalire)} ·{' '}
             {sale.paymentMethod === 'cash' ? 'hotově' : 'platba kartou na terminálu'}
@@ -380,7 +368,8 @@ export default function PosPage() {
           <hr className="my-4" />
           {sale.tickets.map((t, i) => (
             <div key={t.ticketId} className="mb-4 break-inside-avoid">
-              <p className="font-medium">Vstupenka č. {i + 1}</p>
+              <p className="font-medium">Lístek #{i + 1}</p>
+              <p className="text-xs">ID: {t.ticketId}</p>
             </div>
           ))}
         </div>

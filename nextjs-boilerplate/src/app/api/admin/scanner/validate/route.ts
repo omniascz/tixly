@@ -246,8 +246,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query('ROLLBACK');
       await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: `invalid_status:${t.status}` });
       return NextResponse.json(
-        // Kolo 12: stav česky (dřív „Neočekávaný stav: transferred")
-        { result: 'invalid_status', status: t.status, message: `Vstupenka není platná (${({ transferred: 'převedena na jiného držitele', refunded: 'vrácená', pending: 'nezaplacená', expired: 'propadlá', cancelled: 'zrušená' } as Record<string, string>)[t.status] ?? 'neplatný stav'}). Nevpouštějte; kupce pošlete na pokladnu.` },
+        { result: 'invalid_status', status: t.status, message: `Neočekávaný stav: ${t.status}` },
         { status: 409 },
       );
     }

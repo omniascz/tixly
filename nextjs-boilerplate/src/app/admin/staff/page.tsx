@@ -25,26 +25,20 @@ interface PendingInvite {
 }
 
 const ROLE_LABELS: Record<string, { label: string; tone: string; description: string }> = {
-  // Kolo 12: role česky; „Pokladna" (box_office) dřív v nabídce chyběla
   owner: {
-    label: 'Vlastník',
+    label: 'Owner',
     tone: 'bg-violet-100 text-violet-800',
-    description: 'Vše včetně výplat, fakturace a správy týmu',
+    description: 'Plná kontrola — výplaty, billing, staff management',
   },
   admin: {
-    label: 'Správce',
+    label: 'Admin',
     tone: 'bg-blue-100 text-blue-800',
-    description: 'Inscenace, termíny, objednávky, marketing — bez výplat a fakturace',
-  },
-  box_office: {
-    label: 'Pokladna',
-    tone: 'bg-emerald-100 text-emerald-800',
-    description: 'Prodej na místě, rezervace k vyzvednutí, tisk vstupenek, kontrola vstupenek',
+    description: 'Spravovat akce, objednávky, marketing — bez billing',
   },
   staff: {
-    label: 'Vstup a provoz',
+    label: 'Staff',
     tone: 'bg-slate-100 text-slate-700',
-    description: 'Kontrola vstupenek a přehled — bez úprav a financí',
+    description: 'Read-only přístup + scanner — bez editace',
   },
 };
 
@@ -54,7 +48,7 @@ export default function StaffPage() {
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [currentRole, setCurrentRole] = useState<string>('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<'admin' | 'staff' | 'box_office'>('staff');
+  const [role, setRole] = useState<'admin' | 'staff'>('staff');
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -188,11 +182,10 @@ export default function StaffPage() {
                 <select
                   className="flex h-10 rounded-md border border-input bg-background px-3 text-sm"
                   value={role}
-                  onChange={(e) => setRole(e.target.value as 'admin' | 'staff' | 'box_office')}
+                  onChange={(e) => setRole(e.target.value as 'admin' | 'staff')}
                 >
-                  <option value="staff">Vstup a provoz (kontrola vstupenek)</option>
-                  <option value="box_office">Pokladna (prodej a rezervace)</option>
-                  <option value="admin">Správce</option>
+                  <option value="staff">Staff</option>
+                  <option value="admin">Admin</option>
                 </select>
               </div>
               <Button type="submit" disabled={loading} className="gap-1">

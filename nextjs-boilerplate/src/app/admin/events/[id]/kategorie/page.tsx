@@ -8,7 +8,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { errorText } from '@/lib/ui/error-text';
 
 interface Category { id: string; code: string; name: string; kind: string; price_mode: 'percent' | 'fixed'; price_value: number; requires_proof: boolean; proof_label: string | null; limit_per_event: number | null }
 interface Zone { id: string; name: string; base_price: number }
@@ -45,7 +44,7 @@ export default function CategoriesPage({ params }: { params: { id: string } }) {
     setErr(null); setMsg(null);
     const r = await api(url, { method, body: JSON.stringify(body) });
     const j = (await r.json().catch(() => ({}))) as Record<string, unknown>;
-    if (!r.ok) { setErr(errorText(j, r.status)); return false; }
+    if (!r.ok) { setErr(String(j.message ?? j.error ?? `HTTP ${r.status}`)); return false; }
     setMsg(ok); await load(); return true;
   }
 
@@ -54,10 +53,8 @@ export default function CategoriesPage({ params }: { params: { id: string } }) {
   async function save() {
     // procento × 100, resp. Kč → haléře
     const priceValue = Math.round(Number(form.price) * 100);
-    // Kolo 12: kód (technický identifikátor) se odvodí z názvu, pokud ho uživatel nevyplní
-    const code = form.code.trim() || form.name.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
     const ok = await send(`/api/admin/events/${params.id}/categories`, 'POST', {
-      code, name: form.name, kind: form.kind, priceMode: form.priceMode, priceValue,
+      code: form.code, name: form.name, kind: form.kind, priceMode: form.priceMode, priceValue,
       requiresProof: form.requiresProof, proofLabel: form.proofLabel || null, limitPerEvent: form.limit ? Number(form.limit) : null,
     }, `Kategorie „${form.name}" uložena.`);
     if (ok) setForm(empty);
@@ -117,8 +114,8 @@ export default function CategoriesPage({ params }: { params: { id: string } }) {
       <section className="max-w-xl space-y-2 rounded-lg border p-4">
         <h2 className="font-semibold">Přidat / upravit kategorii</h2>
         <div className="grid grid-cols-2 gap-2">
-          <Input placeholder="Název (např. Senior)" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <Input placeholder="Kód (např. senior) — nepovinné, doplní se samo" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />
+          <Input placeholder="Kód (např. senior)" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />
+          <Input placeholder="Název" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <select className="rounded border px-2" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}>
             {KINDS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
           </select>
@@ -130,7 +127,7 @@ export default function CategoriesPage({ params }: { params: { id: string } }) {
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.requiresProof} onChange={(e) => setForm({ ...form, requiresProof: e.target.checked })} /> Průkaz při vstupu</label>
           <Input placeholder="Text průkazu (ZTP/P…)" value={form.proofLabel} onChange={(e) => setForm({ ...form, proofLabel: e.target.value })} />
         </div>
-        <Button onClick={() => void save()} disabled={!form.name.trim() || form.price.trim() === ''}>Uložit kategorii</Button>
+        <Button onClick={() => void save()} disabled={!form.code || !form.name}>Uložit kategorii</Button>
       </section>
     </div>
   );

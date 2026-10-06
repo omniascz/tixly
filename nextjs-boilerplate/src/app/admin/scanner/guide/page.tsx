@@ -80,7 +80,7 @@ const TROUBLESHOOT = [
   },
   {
     q: 'Zákazník tvrdí, že má platný lístek, ale app říká "nenalezen"',
-    a: 'Ověřte, zda zákazník otevřel správnou appku nebo email. Opište kód ze vstupenky do pole „Kód vstupenky" a ověřte ho ručně. Volejte vedoucímu — neřešte sami.',
+    a: 'Ověřte, zda zákazník otevřel správnou appku nebo email. Zkontrolujte ticket ID ručně. Volejte vedoucímu — neřešte sami.',
   },
   {
     q: 'App se zasekla nebo nereaguje',

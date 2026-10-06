@@ -8,7 +8,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { errorText } from '@/lib/ui/error-text';
 
 interface Card {
   id: string; title: string; subtitle: string | null; description: string | null; author: string | null; director: string | null;
@@ -24,9 +23,6 @@ interface Venue { id: string; name: string; city: string; capacity: number; zone
 const api = (url: string, init?: RequestInit) =>
   fetch(url, { ...init, credentials: 'include', headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) } });
 
-const TERM_TOOLS: Array<[string, string]> = [
-  ['Blokace', 'blokace'], ['Rezervace', 'rezervace'], ['Firemní', 'firemni'], ['Reporty', 'reporty'], ['Zrušení a přesun', 'zruseni'],
-];
 const STATUS: Record<string, string> = { published: 'V prodeji', pending_review: 'Ke schválení', draft: 'Koncept', cancelled: 'Zrušeno' };
 
 export default function ProductionDetailPage({ params }: { params: { id: string } }) {
@@ -35,9 +31,7 @@ export default function ProductionDetailPage({ params }: { params: { id: string 
   const [venues, setVenues] = useState<Venue[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  // Kolo 12: obsazení po řádcích (dřív textové pole se syntaxí „role: jméno"); poslední řádek je vždy prázdný pro novou roli
-  const [castRows, setCastRows] = useState<Array<{ role: string; name: string }>>([{ role: '', name: '' }]);
-  const [uploading, setUploading] = useState(false);
+  const [castText, setCastText] = useState('');
   const [photosText, setPhotosText] = useState('');
   // nový termín
   const [city, setCity] = useState('');
@@ -53,11 +47,11 @@ export default function ProductionDetailPage({ params }: { params: { id: string 
 
   async function load() {
     const r = await api(`/api/admin/productions/${params.id}`);
-    if (!r.ok) { setErr(`Inscenaci nelze načíst. ${errorText(await r.json().catch(() => ({})), r.status)}`); return; }
+    if (!r.ok) { setErr(`Inscenaci nelze načíst (HTTP ${r.status}).`); return; }
     const j = (await r.json()) as { production: Card; terms: Term[] };
     setCard(j.production);
     setTerms(j.terms);
-    setCastRows([...j.production.cast.map((c) => ({ role: c.role, name: c.name })), { role: '', name: '' }]);
+    setCastText(j.production.cast.map((c) => `${c.role}: ${c.name}`).join('\n'));
     setPhotosText(j.production.photos.join('\n'));
     if (!copyFrom && j.terms.length > 0) setCopyFrom(j.terms[j.terms.length - 1].id);
   }
@@ -81,31 +75,13 @@ export default function ProductionDetailPage({ params }: { params: { id: string 
   const hallZones = venues.find((v) => v.id === venueId)?.zones ?? [];
   const zonePricesReady = hallZones.length > 0 && hallZones.every((z) => /^\d+([.,]\d{1,2})?$/.test((zonePrice[z.name] ?? '').trim()));
 
-  // Kolo 12: fotka souborem (stejné úložiště jako titulní obrázek akce); dřív jen odkazy
-  async function uploadPhoto(file: File) {
-    setErr(null); setUploading(true);
-    try {
-      const fd = new FormData(); fd.append('file', file);
-      const token = localStorage.getItem('accessToken');
-      const r = await fetch('/api/admin/uploads/cover-image', { method: 'POST', body: fd, credentials: 'include', headers: token ? { Authorization: `Bearer ${token}` } : {} });
-      const j = (await r.json().catch(() => ({}))) as { url?: string; error?: string };
-      if (!r.ok || !j.url) {
-        setErr(r.status === 503 ? 'Nahrávání fotek zatím není na tomto serveru zapnuté (chybí úložiště souborů). Vložte prozatím odkaz na fotku do pole „Odkazy na fotky".'
-          : r.status === 413 ? 'Fotka je větší než 5 MB. Zmenšete ji a nahrajte znovu.'
-          : r.status === 415 ? 'Nahrát jde jen fotka ve formátu JPG, PNG nebo WebP.'
-          : `Fotku se nepodařilo nahrát. ${errorText(j, r.status)}`);
-        return;
-      }
-      const url = j.url;
-      setPhotosText((t) => (t.trim() ? `${t.trim()}\n${url}` : url));
-      setMsg('Fotka nahraná — nezapomeňte kartu uložit.');
-    } finally { setUploading(false); }
-  }
-
   async function saveCard() {
     if (!card) return;
     setErr(null); setMsg(null);
-    const cast = castRows.map((c) => ({ role: c.role.trim(), name: c.name.trim() })).filter((c) => c.name);
+    const cast = castText.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => {
+      const i = l.indexOf(':');
+      return i >= 0 ? { role: l.slice(0, i).trim(), name: l.slice(i + 1).trim() } : { role: '', name: l };
+    });
     const photos = photosText.split('\n').map((l) => l.trim()).filter(Boolean);
     const r = await api(`/api/admin/productions/${params.id}`, {
       method: 'PATCH',
@@ -115,7 +91,7 @@ export default function ProductionDetailPage({ params }: { params: { id: string 
         ageRating: card.ageRating || null, genre: card.genre || null, photos, videoUrl: card.videoUrl || null,
       }),
     });
-    if (!r.ok) { setErr(`Kartu se nepodařilo uložit. ${errorText(await r.json().catch(() => ({})), r.status)}`); return; }
+    if (!r.ok) { setErr(`Uložení selhalo: ${JSON.stringify((await r.json().catch(() => ({}))))}`); return; }
     setMsg('Karta uložena — termíny ji přebírají.');
     await load();
   }
@@ -175,30 +151,12 @@ export default function ProductionDetailPage({ params }: { params: { id: string 
           <textarea className="mt-1 h-28 w-full rounded-md border bg-background p-2 text-sm" value={card.description ?? ''} onChange={set('description')} />
         </label>
         <div className="grid gap-3 md:grid-cols-2">
-          <fieldset className="space-y-2 text-sm" data-testid="cast-editor">
-            <legend className="font-medium">Obsazení</legend>
-            {castRows.map((c, i) => (
-              <div key={i} className="flex gap-2">
-                <Input placeholder="Role (např. Hamlet)" value={c.role} onChange={(e) => setCastRows(castRows.map((x, k) => (k === i ? { ...x, role: e.target.value } : x)))} />
-                <Input placeholder="Jméno herce" value={c.name} onChange={(e) => setCastRows(castRows.map((x, k) => (k === i ? { ...x, name: e.target.value } : x)))} />
-                {i < castRows.length - 1 ? (
-                  <Button type="button" variant="outline" size="sm" aria-label={`Odebrat roli ${c.role || c.name}`} onClick={() => setCastRows(castRows.filter((_, k) => k !== i))}>Odebrat</Button>
-                ) : null}
-              </div>
-            ))}
-            <Button type="button" variant="outline" size="sm" onClick={() => setCastRows([...castRows, { role: '', name: '' }])}>Přidat roli</Button>
-          </fieldset>
-          <div className="space-y-2 text-sm">
-            <span className="font-medium">Fotky</span>
-            <label className="flex items-center gap-2">
-              <span className="inline-flex cursor-pointer rounded-md border px-3 py-1.5 font-medium hover:bg-muted">{uploading ? 'Nahrávám…' : 'Nahrát fotku z počítače'}</span>
-              <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={uploading}
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadPhoto(f); e.target.value = ''; }} />
-            </label>
-            <label className="block">Odkazy na fotky (jeden na řádek)
-              <textarea className="mt-1 h-20 w-full rounded-md border bg-background p-2 text-sm" value={photosText} onChange={(e) => setPhotosText(e.target.value)} />
-            </label>
-          </div>
+          <label className="block text-sm">Obsazení (řádek „role: jméno")
+            <textarea className="mt-1 h-28 w-full rounded-md border bg-background p-2 text-sm" value={castText} onChange={(e) => setCastText(e.target.value)} />
+          </label>
+          <label className="block text-sm">Fotky (jeden odkaz na řádek)
+            <textarea className="mt-1 h-28 w-full rounded-md border bg-background p-2 text-sm" value={photosText} onChange={(e) => setPhotosText(e.target.value)} />
+          </label>
         </div>
         <Button onClick={() => void saveCard()}>Uložit kartu</Button>
       </section>
@@ -257,13 +215,7 @@ export default function ProductionDetailPage({ params }: { params: { id: string 
                 <td>{t.venueName}</td>
                 <td>{t.sold} / {t.capacity}</td>
                 <td>{STATUS[t.status] ?? t.status}</td>
-                {/* Kolo 12: nástroje termínu přímo z karty (dřív Upravit → záložka Vstupenky → karta = 3 kliknutí) */}
-                <td className="space-x-2 whitespace-nowrap text-xs">
-                  <a className="text-primary underline" href={`/admin/events/${t.id}`}>Upravit</a>
-                  {TERM_TOOLS.map(([label, slug]) => (
-                    <a key={slug} className="text-primary underline" href={`/admin/events/${t.id}/${slug}`}>{label}</a>
-                  ))}
-                </td>
+                <td><a className="text-primary underline" href={`/admin/events/${t.id}`}>Upravit</a></td>
               </tr>
             ))}
           </tbody>

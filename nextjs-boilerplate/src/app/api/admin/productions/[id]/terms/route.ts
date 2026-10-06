@@ -45,7 +45,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const parsed = schema.safeParse(await req.json().catch(() => ({})));
     if (!parsed.success) return NextResponse.json({ error: 'INVALID_BODY', issues: parsed.error.issues }, { status: 422 });
     if (parsed.data.salesEndAt && parsed.data.dateEnd && parsed.data.salesEndAt > parsed.data.dateEnd) {
-      return NextResponse.json({ error: 'SALES_END_AFTER_EVENT_END', message: 'Konec prodeje je až po skončení představení. Zvolte dřívější konec prodeje.' }, { status: 422 });
+      return NextResponse.json({ error: 'SALES_END_AFTER_EVENT_END' }, { status: 422 });
     }
     const client = await db().connect();
     try {

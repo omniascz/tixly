@@ -64,10 +64,9 @@ export function Topbar({ title, subtitle }: TopbarProps) {
   const initial = (user?.name ?? user?.email ?? '?').slice(0, 1).toUpperCase();
 
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-card pl-16 pr-4 md:px-6">
+    <header className="flex h-16 items-center justify-between border-b bg-card px-6">
       <div>
-        {/* Kolo 12: ne <h1> — hlavní nadpis má každá stránka (PageHeader) */}
-        <p className="text-lg font-semibold">{title}</p>
+        <h1 className="text-lg font-semibold">{title}</h1>
         {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
       </div>
       <div className="flex items-center gap-3">

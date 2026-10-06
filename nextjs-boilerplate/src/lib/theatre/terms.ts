@@ -67,8 +67,8 @@ export async function createTerm(client: PoolClient, promoterId: string, userId:
   )).rows[0];
   if (!prod) throw new TermError('PRODUCTION_NOT_FOUND', 'Inscenace nenalezena.');
 
-  const venue = (await client.query<{ id: string; name: string }>(
-    `SELECT id, name FROM catalog.venues WHERE id = $1 AND (promoter_id = $2 OR promoter_id IS NULL)`,
+  const venue = (await client.query<{ id: string }>(
+    `SELECT id FROM catalog.venues WHERE id = $1 AND (promoter_id = $2 OR promoter_id IS NULL)`,
     [input.venueId, promoterId],
   )).rows[0];
   if (!venue) throw new TermError('VENUE_NOT_FOUND', 'Sál nenalezen.');
@@ -151,17 +151,12 @@ export async function createTerm(client: PoolClient, promoterId: string, userId:
     [ev.id],
   );
 
-  // Kolo 12: sál, jehož plánek nemá místa přiřazená do cenových zón, dřív vytvořil termín „v prodeji (0 míst)".
-  // Celá transakce se vrátí (route ROLLBACK) — nevznikne termín, který nejde prodávat.
+  // Kolo 12/13: sál bez míst v cenových zónách dřív dal termín „v prodeji (0 míst)" — chyba vrátí celou transakci.
   if (ticketTypes.some((t) => t.isSeated)) {
     const sellable = (await client.query<{ n: number }>(
       `SELECT count(*)::int AS n FROM catalog.event_seats WHERE event_id = $1 AND status = 'available' AND ticket_type_id IS NOT NULL`, [ev.id],
     )).rows[0]?.n ?? 0;
-    if (sellable === 0) {
-      throw new TermError('NO_SELLABLE_SEATS',
-        `Termín nejde založit: plánek sálu „${venue.name}" nemá žádná místa přiřazená do cenových zón (${seats.insertedSeats} míst bez zóny). ` +
-        'Otevřete Sály → Editor plánku, vyberte místa, v části „Cenové zóny" klikněte na „Přiřadit výběru" a plánek uložte. Pak termín založte znovu.');
-    }
+    if (sellable === 0) throw new TermError('NO_SELLABLE_SEATS', 'Sál nemá místa přiřazená do cenových zón.');
   }
 
   let status: CreateTermResult['status'] = 'pending_review';

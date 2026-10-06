@@ -80,7 +80,6 @@ export default function MarketingPage() {
     return (
       <div className="space-y-4">
         <PageHeader title="Marketing" />
-        <a href="/admin/promo-codes" className="text-sm text-primary underline">Promo kódy (slevové kódy)</a>
         {error ? (
           <div className="rounded-md border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900">
             {error}
@@ -118,12 +117,6 @@ export default function MarketingPage() {
           </div>
         }
       />
-      {/* Kolo 12: promo kódy byly dosažitelné jen přes „Vše" */}
-      <div className="flex flex-wrap gap-2">
-        <a href="/admin/promo-codes" className="inline-flex items-center rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted">
-          Promo kódy (slevové kódy)
-        </a>
-      </div>
 
       {/* Top stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
