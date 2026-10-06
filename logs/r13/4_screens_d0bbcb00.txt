@@ -1,0 +1,7 @@
+
+Running 3 tests using 1 worker
+
+[1A[2K[1/3] [golden-path] › tests\golden-path-r13-screens.spec.ts:59:5 › administrace — desktop 1440
+[1A[2K[2/3] [golden-path] › tests\golden-path-r13-screens.spec.ts:66:5 › administrace — mobil 390 (menu, pokladna, skener)
+[1A[2K[3/3] [golden-path] › tests\golden-path-r13-screens.spec.ts:73:5 › web akce — desktop a mobil
+[1A[2K  3 passed (1.5m)
