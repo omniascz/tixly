@@ -38,8 +38,10 @@ export function withRedisTimeout<T>(p: Promise<T>, ms: number = REDIS_COMMAND_TI
  */
 export function withCommandTimeouts<T extends object>(client: T, ms: number = REDIS_COMMAND_TIMEOUT_MS): T {
   return new Proxy(client, {
-    get(target, prop, receiver) {
-      const v: unknown = Reflect.get(target, prop, receiver);
+    get(target, prop) {
+      // receiver = target (ne proxy): node-redis 4 má privátní pole (#socket…) a getter typu `isOpen`
+      // by s `this` = proxy hodil „Cannot read private member".
+      const v: unknown = Reflect.get(target, prop, target);
       if (typeof v !== 'function') return v;
       return (...args: unknown[]) => {
         const r: unknown = (v as (...a: unknown[]) => unknown).apply(target, args);

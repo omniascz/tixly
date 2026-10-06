@@ -124,3 +124,21 @@ describe('statické předgenerování (výstup next build, kolo 10) — síťov�
   });
 });
 
+
+describe('withCommandTimeouts — Proxy nesmí rozbít klienta s privátními poli (node-redis 4)', () => {
+  it('gettery i metody fungují, visící příkaz skončí chybou do limitu', async () => {
+    const { withCommandTimeouts } = await import('@/lib/redis/options');
+    class FakeRedis {
+      #open = true;
+      get isOpen(): boolean { return this.#open; }
+      incr(): Promise<number> { return Promise.resolve(this.#open ? 1 : 0); }
+      hang(): Promise<never> { return new Promise(() => {}); }
+    }
+    const c = withCommandTimeouts(new FakeRedis(), 200);
+    expect(c.isOpen).toBe(true);
+    await expect(c.incr()).resolves.toBe(1);
+    const t = Date.now();
+    await expect(c.hang()).rejects.toThrow(/timeout 200 ms/);
+    expect(Date.now() - t).toBeLessThan(1000);
+  });
+});
