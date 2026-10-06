@@ -6,8 +6,10 @@
  * vrácení (pokladna, firemní faktury, selhané refundy).
  */
 import { useEffect, useState } from 'react';
+import { ConfirmDialog, type ConfirmRequest } from '@/components/admin/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { errorText } from '@/lib/ui/error-text';
 
 interface ManualRefund { orderId: string; channel: string; buyer: string | null; email: string | null; amountMinor: number; currency: string; paymentType: string | null; invoiceNumber: string | null; note: string | null }
 interface State { status: string; cancelled_at: string | null; cancellation_reason: string | null; manualRefunds: ManualRefund[] }
@@ -27,6 +29,7 @@ export default function CancelPostponePage({ params }: { params: { id: string } 
   const [confirm, setConfirm] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [ask, setAsk] = useState<ConfirmRequest | null>(null);
 
   async function load() {
     const r = await api(`/api/admin/events/${params.id}/cancel-term`);
@@ -43,7 +46,7 @@ export default function CancelPostponePage({ params }: { params: { id: string } 
       method: 'POST', body: JSON.stringify({ newStart: new Date(newStart).toISOString(), reason: pReason, refundDays: Number(days) }),
     });
     const j = (await r.json().catch(() => ({}))) as { message?: string; error?: string; recipients?: number; responseDeadline?: string };
-    if (!r.ok) { setErr(j.message ?? j.error ?? `HTTP ${r.status}`); return; }
+    if (!r.ok) { setErr(errorText(j, r.status)); return; }
     setMsg(`Termín přesunut. E-mail s odkazem na vrácení (do ${new Date(j.responseDeadline ?? '').toLocaleString('cs-CZ')}) odešel ${j.recipients ?? 0} kupcům.`);
   }
 
@@ -51,7 +54,7 @@ export default function CancelPostponePage({ params }: { params: { id: string } 
     setErr(null); setMsg(null);
     const r = await api(`/api/admin/events/${params.id}/cancel-term`, { method: 'POST', body: JSON.stringify({ reason: cReason }) });
     const j = (await r.json().catch(() => ({}))) as { message?: string; error?: string; refunded?: number; refundFailed?: number; ticketsRevoked?: number; buyersEmailed?: number; manualRefunds?: ManualRefund[] };
-    if (!r.ok) { setErr(j.message ?? j.error ?? `HTTP ${r.status}`); return; }
+    if (!r.ok) { setErr(errorText(j, r.status)); return; }
     setMsg(`Termín zrušen: vráceno online ${j.refunded ?? 0}, selhalo ${j.refundFailed ?? 0}, zneplatněno ${j.ticketsRevoked ?? 0} vstupenek, e-mailů ${j.buyersEmailed ?? 0}. K ručnímu vrácení: ${j.manualRefunds?.length ?? 0}.`);
     await load();
   }
@@ -60,6 +63,7 @@ export default function CancelPostponePage({ params }: { params: { id: string } 
   return (
     <div className="space-y-6 p-4">
       <h1 className="text-xl font-semibold">Zrušení a přesun termínu</h1>
+      <ConfirmDialog request={ask} onClose={() => setAsk(null)} />
       {msg && <p className="rounded bg-emerald-50 p-2 text-sm text-emerald-800" data-testid="term-msg">{msg}</p>}
       {err && <p role="alert" className="rounded bg-rose-50 p-2 text-sm text-rose-800">{err}</p>}
       {cancelled && <p className="rounded bg-rose-100 p-3 text-rose-900">Termín je zrušený ({st?.cancelled_at ? new Date(st.cancelled_at).toLocaleString('cs-CZ') : ''}): {st?.cancellation_reason}</p>}
@@ -71,7 +75,22 @@ export default function CancelPostponePage({ params }: { params: { id: string } 
           <label className="block text-sm">Nové datum a čas <Input type="datetime-local" value={newStart} onChange={(e) => setNewStart(e.target.value)} /></label>
           <Input placeholder="Důvod přesunu" value={pReason} onChange={(e) => setPReason(e.target.value)} />
           <label className="block text-sm">Lhůta pro vrácení (dní) <Input className="w-24" value={days} onChange={(e) => setDays(e.target.value)} /></label>
-          <Button onClick={() => void postpone()} disabled={!newStart || pReason.trim().length < 2}>Přesunout a informovat kupce</Button>
+          {/* Kolo 12: přesun hned rozešle e-maily všem kupcům — dřív bez potvrzení */}
+          <Button
+            onClick={() => setAsk({
+              title: `Přesunout termín na ${new Date(newStart).toLocaleString('cs-CZ', { dateStyle: 'long', timeStyle: 'short' })}?`,
+              consequences: [
+                'Všem kupcům vstupenek hned odejde e-mail s novým datem a odkazem na vrácení vstupného.',
+                `Kupci mají ${days} dní na to, aby si o vrácení požádali; jinak vstupenky platí na nové datum.`,
+                'E-maily nelze vzít zpět — zkontrolujte datum a čas.',
+              ],
+              confirmLabel: 'Přesunout a poslat e-maily',
+              onConfirm: () => postpone(),
+            })}
+            disabled={!newStart || pReason.trim().length < 2}
+          >
+            Přesunout a informovat kupce
+          </Button>
         </section>
       )}
 
