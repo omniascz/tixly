@@ -12,7 +12,7 @@ import { z } from 'zod';
 
 
 const patchSchema = z.object({
-  role: z.enum(['admin', 'staff']),
+  role: z.enum(['admin', 'staff', 'box_office']), // kolo 12: + pokladna
 });
 
 export async function PATCH(

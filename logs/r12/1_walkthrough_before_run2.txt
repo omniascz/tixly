@@ -1,0 +1,184 @@
+
+Running 11 tests using 1 worker
+
+[1A[2K[1/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:189:7 › vlastník › 1 — nová inscenace s fotkou a obsazením
+[1A[2K[2/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:228:7 › vlastník › 2 — nové místo a sál v novém městě: generátor + obkreslení podkladu
+[1A[2K[3/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:281:7 › vlastník › 3 — nový termín v novém sále, převzetí ceníku, šablona kategorií, zveřejnění
+[1A[2K[4/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:314:7 › vlastník › 4 — blokace pro firmu a tisk, uvolnění části do prodeje
+[1A[2K  1) [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:314:7 › vlastník › 4 — blokace pro firmu a tisk, uvolnění části do prodeje 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('svg[aria-label="Plánek s blokacemi"] circle').filter({ has: locator('title').filter({ hasText: /Firma Alfa/ }) }).first()[22m
+
+
+       at helpers\ux-meter.ts:61
+
+      59 |   async click(l: Locator, opts?: Parameters<Locator['click']>[0]): Promise<void> {
+      60 |     this.cur!.clicks++;
+    > 61 |     await l.click(opts);
+         |             ^
+      62 |   }
+      63 |   async fill(l: Locator, v: string): Promise<void> { this.cur!.fills++; await l.fill(v); }
+      64 |   async select(l: Locator, v: string | { label: string }): Promise<void> { this.cur!.clicks++; await l.selectOption(v); }
+        at UxMeter.click (C:\Users\omnia\Documents\tixly\e2e\tests\helpers\ux-meter.ts:61:13)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-walkthrough.spec.ts:331:45
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-walkthr-7768c-k-uvolnění-části-do-prodeje-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-walkthr-7768c-k-uvolnění-části-do-prodeje-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-walkthr-7768c-k-uvolnění-části-do-prodeje-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-walkthr-7768c-k-uvolnění-části-do-prodeje-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-walkthr-7768c-k-uvolnění-části-do-prodeje-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-walkthr-7768c-k-uvolnění-části-do-prodeje-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[5/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:347:7 › vlastník › 5 — firemní objednávka na fakturu a označení zaplacení
+[1A[2K  2) [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:347:7 › vlastník › 5 — firemní objednávka na fakturu a označení zaplacení 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveValue[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByPlaceholder('Název firmy')
+    Expected: [32m"Firma [7mAlfa[27m s.r.o."[39m
+    Received: [31m"Firma [7mXY[27m s.r.o."[39m
+    Timeout:  10000ms
+
+    Call log:
+    [2m  - Expect "toHaveValue" with timeout 10000ms[22m
+    [2m  - waiting for getByPlaceholder('Název firmy')[22m
+    [2m    2 × locator resolved to <input value="" type="text" placeholder="Název firmy" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"/>[22m
+    [2m      - unexpected value ""[22m
+    [2m    11 × locator resolved to <input type="text" value="Firma XY s.r.o." placeholder="Název firmy" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"/>[22m
+    [2m       - unexpected value "Firma XY s.r.o."[22m
+
+
+      353 |     await meter.fill(page.getByPlaceholder('IČO'), '27082440');
+      354 |     await meter.click(page.getByRole('button', { name: /Načíst z ARES|Načíst údaje/ }));
+    > 355 |     await expect(page.getByPlaceholder('Název firmy')).toHaveValue('Firma Alfa s.r.o.');
+          |                                                        ^
+      356 |     await meter.fill(page.getByPlaceholder('Jméno'), 'Jan Nákupčí');
+      357 |     await meter.fill(page.getByPlaceholder('E-mail'), `nakup-${RUN}@firma-alfa.test`);
+      358 |     await pickOption(page.locator('select').filter({ hasText: 'Volná místa' }), /Firma Alfa/);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-walkthrough.spec.ts:355:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-walkthr-0218b-akturu-a-označení-zaplacení-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-walkthr-0218b-akturu-a-označení-zaplacení-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-walkthr-0218b-akturu-a-označení-zaplacení-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-walkthr-0218b-akturu-a-označení-zaplacení-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-walkthr-0218b-akturu-a-označení-zaplacení-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-walkthr-0218b-akturu-a-označení-zaplacení-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[6/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:377:7 › vlastník › 6 — promo kód omezený na kategorii
+[1A[2K[7/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:402:7 › vlastník › 7 — přesun a zrušení termínu
+[1A[2K[8/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:426:7 › vlastník › 8 — reporty termínu a seznam pro uvaděčky
+[1A[2K[9/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:441:7 › kupec na mobilu › K — najít představení ve svém městě, místa a kategorie, zaplatit; rezervace
+[1A[2K[10/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:538:7 › pokladní › P — rezervace: vyhledání a platba na pokladně, prodej na místě, tisk
+[1A[2K  3) [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:538:7 › pokladní › P — rezervace: vyhledání a platba na pokladně, prodej na místě, tisk 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: /Vystavit (lístek|vstupenku)|Prodat/ })[22m
+    [2m    - locator resolved to <button disabled type="submit" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:opacity-90 h-10 px-4 py-2">Vystavit lístek</button>[22m
+    [2m  - attempting click action[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not enabled[22m
+    [2m    - retrying click action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not enabled[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 100ms[22m
+    [2m    19 × waiting for element to be visible, enabled and stable[22m
+    [2m       - element is not enabled[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+
+
+       at helpers\ux-meter.ts:61
+
+      59 |   async click(l: Locator, opts?: Parameters<Locator['click']>[0]): Promise<void> {
+      60 |     this.cur!.clicks++;
+    > 61 |     await l.click(opts);
+         |             ^
+      62 |   }
+      63 |   async fill(l: Locator, v: string): Promise<void> { this.cur!.fills++; await l.fill(v); }
+      64 |   async select(l: Locator, v: string | { label: string }): Promise<void> { this.cur!.clicks++; await l.selectOption(v); }
+        at UxMeter.click (C:\Users\omnia\Documents\tixly\e2e\tests\helpers\ux-meter.ts:61:13)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-walkthrough.spec.ts:593:17
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-walkthr-e47f8-kladně-prodej-na-místě-tisk-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-walkthr-e47f8-kladně-prodej-na-místě-tisk-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-walkthr-e47f8-kladně-prodej-na-místě-tisk-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-walkthr-e47f8-kladně-prodej-na-místě-tisk-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-walkthr-e47f8-kladně-prodej-na-místě-tisk-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[11/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:608:7 › vstup › V — skenování na mobilu: běžná, Ověřit průkaz, Jiný termín, Už použito
+[1A[2K  4) [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:608:7 › vstup › V — skenování na mobilu: běžná, Ověřit průkaz, Jiný termín, Už použito 
+
+    TypeError: Cannot read properties of undefined (reading 'setPage')
+
+      609 |     test.setTimeout(180_000);
+      610 |     const { ctx, page } = await ctxFor(browser, true);
+    > 611 |     meter.setPage(page);
+          |           ^
+      612 |     meter.start('V vstup');
+      613 |     await login(page, GATE, PASS);
+      614 |     await meter.screen('V-01-prehled-mobil');
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-walkthrough.spec.ts:611:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-walkthr-01adb-ůkaz-Jiný-termín-Už-použito-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-walkthr-01adb-ůkaz-Jiný-termín-Už-použito-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-walkthr-01adb-ůkaz-Jiný-termín-Už-použito-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-walkthr-01adb-ůkaz-Jiný-termín-Už-použito-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-walkthr-01adb-ůkaz-Jiný-termín-Už-použito-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  4 failed
+    [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:314:7 › vlastník › 4 — blokace pro firmu a tisk, uvolnění části do prodeje 
+    [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:347:7 › vlastník › 5 — firemní objednávka na fakturu a označení zaplacení 
+    [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:538:7 › pokladní › P — rezervace: vyhledání a platba na pokladně, prodej na místě, tisk 
+    [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:608:7 › vstup › V — skenování na mobilu: běžná, Ověřit průkaz, Jiný termín, Už použito 
+  7 passed (2.6m)

@@ -74,7 +74,7 @@ async function purchaseTwoSeatsFromPrizemi(
   });
 
   await test.step('Hold + redirect na checkout', async () => {
-    await page.getByRole('button', { name: /Pokračovat na pokladnu/i }).click();
+    await page.getByRole('button', { name: /Pokračovat (na pokladnu|k objednávce)/i }).click();
     await page.waitForURL(/\/cs\/checkout/, { timeout: 15_000 });
   });
 

@@ -1,0 +1,16 @@
+
+Running 12 tests using 1 worker
+
+[1A[2K[1/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:84:7 › vlastník › F1 navigace: Inscenace v menu, promo kódy z Marketingu, nástroje termínu přímo z karty inscenace
+[1A[2K[2/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:97:7 › vlastník › F2 seznam akcí: město, zrušený termín „Zrušeno", česky
+[1A[2K[3/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:113:7 › vlastník › F3 blokace: bez volných míst se nezaloží prázdná; uvolnění s potvrzením; česky na plánku
+[1A[2K[4/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:135:7 › vlastník › F4 firemní objednávka: místa seřazená číselně, zaplacení a zrušení s potvrzením v okně aplikace (žádný prompt)
+[1A[2K[5/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:164:7 › vlastník › F5 přesun termínu: potvrzení s důsledky (e-mail kupcům)
+[1A[2K[6/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:178:7 › vlastník › F6 promo kód: potvrzení vytvoření, kategorie názvem, chyby česky
+[1A[2K[7/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:196:7 › vlastník › F7 termín v sále bez míst v cenových zónách se nezaloží (dřív „v prodeji, 0 míst")
+[1A[2K[8/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:211:7 › vlastník › F8 editor plánku: česky, „Zpět" vede do knihovny míst
+[1A[2K[9/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:224:7 › vlastník › F9 inscenace: fotka souborem, obsazení po řádcích; chyby česky
+[1A[2K[10/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:239:7 › pokladní a vstup › F10 role pokladny: jen provozní menu; pokladna česky, s městem, odkaz na rezervace, tisk s QR
+[1A[2K[11/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:264:7 › pokladní a vstup › F11 vstup na mobilu: menu se schová, velké barevné stavy, zvuk a vibrace i u jiného termínu, výpadek sítě není zelený
+[1A[2K[12/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:317:7 › kupec › F12 web: odkaz Program v hlavičce, „Pokračovat k objednávce"
+[1A[2K  12 passed (20.6s)

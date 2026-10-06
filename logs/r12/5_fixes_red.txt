@@ -1,0 +1,152 @@
+
+Running 12 tests using 1 worker
+
+[1A[2K[1/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:84:7 › vlastník › F1 navigace: Inscenace v menu, promo kódy z Marketingu, nástroje termínu přímo z karty inscenace
+[1A[2K[2/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:97:7 › vlastník › F2 seznam akcí: město, zrušený termín „Zrušeno", česky
+[1A[2K[3/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:113:7 › vlastník › F3 blokace: bez volných míst se nezaloží prázdná; uvolnění s potvrzením; česky na plánku
+[1A[2K[4/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:135:7 › vlastník › F4 firemní objednávka: místa seřazená číselně, zaplacení a zrušení s potvrzením v okně aplikace (žádný prompt)
+[1A[2K[5/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:164:7 › vlastník › F5 přesun termínu: potvrzení s důsledky (e-mail kupcům)
+[1A[2K[6/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:178:7 › vlastník › F6 promo kód: potvrzení vytvoření, kategorie názvem, chyby česky
+[1A[2K[7/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:196:7 › vlastník › F7 termín v sále bez míst v cenových zónách se nezaloží (dřív „v prodeji, 0 míst")
+[1A[2K[8/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:211:7 › vlastník › F8 editor plánku: česky, „Zpět" vede do knihovny míst
+[1A[2K  1) [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:211:7 › vlastník › F8 editor plánku: česky, „Zpět" vede do knihovny míst 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mnot[2m.[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected pattern: not [32m/Seating|canvas/i[39m
+    Received string:      [31m"[7mSeating[27m chart editor canvas | Název sekce | Počet řad | Míst v řadě | Barva zóny Zóna A | Smazat zónu Zóna A | Barva zóny Zóna B | Smazat zónu Zóna B"[39m
+
+      217 |     await expect(page.getByRole('link', { name: /Zpět/ }).first()).toHaveAttribute('href', '/admin/venues');
+      218 |     // i popisek plátna pro čtečku obrazovky česky
+    > 219 |     expect(await page.locator('main [aria-label]').evaluateAll((els) => els.map((e) => e.getAttribute('aria-label') ?? '').join(' | '))).not.toMatch(/Seating|canvas/i);
+          |                                                                                                                                              ^
+      220 |     await page.goto('/admin/venues');
+      221 |     await expect(page.getByRole('link', { name: 'Plánek sedadel' })).toHaveCount(0);
+      222 |   });
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:219:142
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-5f35e-„Zpět-vede-do-knihovny-míst-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-5f35e-„Zpět-vede-do-knihovny-míst-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-5f35e-„Zpět-vede-do-knihovny-míst-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-5f35e-„Zpět-vede-do-knihovny-míst-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-5f35e-„Zpět-vede-do-knihovny-míst-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-fixes-v-5f35e-„Zpět-vede-do-knihovny-míst-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[9/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:224:7 › vlastník › F9 inscenace: fotka souborem, obsazení po řádcích; chyby česky
+[1A[2K[10/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:239:7 › pokladní a vstup › F10 role pokladny: jen provozní menu; pokladna česky, s městem, odkaz na rezervace, tisk s QR
+[1A[2K[11/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:264:7 › pokladní a vstup › F11 vstup na mobilu: menu se schová, velké barevné stavy, zvuk a vibrace i u jiného termínu, výpadek sítě není zelený
+[1A[2K  2) [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:264:7 › pokladní a vstup › F11 vstup na mobilu: menu se schová, velké barevné stavy, zvuk a vibrace i u jiného termínu, výpadek sítě není zelený 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mnot[2m.[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected pattern: not [32m/ticket ID/i[39m
+    Received string:      [31m"Kontrola vstupenek[39m
+    [31m[39m
+    [31mNačtěte QR kód kamerou (nebo opište kód ze vstupenky). Zelená = pustit, oranžová = zkontrolovat, červená = nepouštět.[39m
+    [31m[39m
+    [31m📋 Průvodce pro personál[39m
+    [31mPřipojeno — každá vstupenka se ověřuje na serveru[39m
+    [31mBrána[39m
+    [31mSkrýt[39m
+    [31m[39m
+    [31mNačítám představení… Pokud se žádné neobjeví, nemáte nadcházející představení — založte ho v sekci „Inscenace\".[39m
+    [31m[39m
+    [31mJednotlivě[39m
+    [31m👥 Skupina[39m
+    [31mNačíst vstupenku[39m
+    [31mKód vstupenky[39m
+    [31mVstupenka s měnícím se kódem v mobilu[39m
+    [31mRežim skenování[39m
+    [31mBěžný[39m
+    [31m⇄ Průchod[39m
+    [31m↪ Vstup[39m
+    [31m↩ Výstup[39m
+    [31mOvěřit vstupenku[39m
+    [31mPodrobnosti[39m
+    [31m[39m
+    [31mNaskenuj nebo vlož [7mticket ID[27m, abys viděl výsledek."[39m
+
+      274 |     await expect(page.getByLabel('Kód vstupenky')).toBeVisible();
+      275 |     expect(await page.locator('main').innerText()).not.toMatch(/TOTP|payload|Ticket ID|Scanner/);
+    > 276 |     expect(await page.locator('main').innerText()).not.toMatch(/ticket ID/i);
+          |                                                        ^
+      277 |     await page.evaluate(() => {
+      278 |       const w = window as unknown as { __vib: unknown[]; __snd: number[] };
+      279 |       w.__vib = []; w.__snd = [];
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:276:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-p-fe9ba-nu-výpadek-sítě-není-zelený-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-fixes-p-fe9ba-nu-výpadek-sítě-není-zelený-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-p-fe9ba-nu-výpadek-sítě-není-zelený-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-p-fe9ba-nu-výpadek-sítě-není-zelený-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-fixes-p-fe9ba-nu-výpadek-sítě-není-zelený-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[12/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:317:7 › kupec › F12 web: odkaz Program v hlavičce, „Pokračovat k objednávce"
+[1A[2K  3) [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:317:7 › kupec › F12 web: odkaz Program v hlavičce, „Pokračovat k objednávce" 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: locator('footer').getByRole('link', { name: 'Stav služby' })
+    Expected: [32m"/cs/status"[39m
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 10000ms[22m
+    [2m  - waiting for locator('footer').getByRole('link', { name: 'Stav služby' })[22m
+
+
+      322 |     await expect(page.getByRole('link', { name: 'Program' }).first()).toHaveAttribute('href', /\/cs\/program/);
+      323 |     const footer = page.locator('footer');
+    > 324 |     await expect(footer.getByRole('link', { name: 'Stav služby' })).toHaveAttribute('href', '/cs/status');
+          |                                                                     ^
+      325 |     expect(await footer.innerText()).not.toMatch(/Status/);
+      326 |     await page.goto(`/cs/events/${T.rBrno}/seats`);
+      327 |     await expect(page.getByRole('button', { name: /Pokračovat k objednávce/ })).toHaveCount(1);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:324:69
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-k-29259-e-„Pokračovat-k-objednávce--golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-fixes-k-29259-e-„Pokračovat-k-objednávce--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-k-29259-e-„Pokračovat-k-objednávce--golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-k-29259-e-„Pokračovat-k-objednávce--golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-fixes-k-29259-e-„Pokračovat-k-objednávce--golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  3 failed
+    [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:211:7 › vlastník › F8 editor plánku: česky, „Zpět" vede do knihovny míst 
+    [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:264:7 › pokladní a vstup › F11 vstup na mobilu: menu se schová, velké barevné stavy, zvuk a vibrace i u jiného termínu, výpadek sítě není zelený 
+    [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:317:7 › kupec › F12 web: odkaz Program v hlavičce, „Pokračovat k objednávce" 
+  9 passed (38.8s)

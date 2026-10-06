@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { errorText } from '@/lib/ui/error-text';
 
 interface Production {
   id: string;
@@ -77,7 +78,7 @@ function ManageEventsPanel({
       });
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(j.error ?? `HTTP ${res.status}`);
+        setError(errorText(j, res.status));
         return;
       }
       await loadLinked();
@@ -96,7 +97,7 @@ function ManageEventsPanel({
       });
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(j.error ?? `HTTP ${res.status}`);
+        setError(errorText(j, res.status));
         return;
       }
       await loadLinked();
@@ -199,7 +200,7 @@ export default function ProductionsPage() {
     try {
       const res = await adminFetch('/api/admin/productions');
       if (!res.ok) {
-        setLoadError(`HTTP ${res.status}`);
+        setLoadError(`Inscenace se nepodařilo načíst. ${errorText({}, res.status)}`);
         return;
       }
       const j = (await res.json()) as { productions: Production[] };
@@ -225,7 +226,7 @@ export default function ProductionsPage() {
       });
       const j = (await res.json().catch(() => ({}))) as { production?: Production; error?: string };
       if (!res.ok) {
-        setCreateError(j.error ?? `HTTP ${res.status}`);
+        setCreateError(errorText(j, res.status));
         return;
       }
       setNewTitle('');
@@ -278,7 +279,7 @@ export default function ProductionsPage() {
         <p className="text-sm text-muted-foreground">Načítám…</p>
       ) : productions.length === 0 ? (
         <div className="rounded-md border bg-muted/30 p-6 text-center">
-          <p className="text-sm text-muted-foreground">Zatím žádné produkce. Vytvořte první výše.</p>
+          <p className="text-sm text-muted-foreground">Zatím žádné inscenace. Založte první — napište název nahoře a klikněte na „Vytvořit".</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -288,7 +289,7 @@ export default function ProductionsPage() {
                 <div>
                   <div className="font-semibold">{prod.title}</div>
                   <div className="text-xs text-muted-foreground">
-                    slug: {prod.slug} · {prod.event_count} {prod.event_count === 1 ? 'repríza' : 'reprízy'}
+                    {prod.event_count} {prod.event_count === 1 ? 'termín' : prod.event_count >= 2 && prod.event_count <= 4 ? 'termíny' : 'termínů'}
                   </div>
                 </div>
                 <div className="flex gap-2">

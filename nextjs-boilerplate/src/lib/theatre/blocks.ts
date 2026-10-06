@@ -68,7 +68,12 @@ export async function createBlock(
   if (seats.length === 0) throw new BlockError('NO_SEATS', 'Vyberte místa nebo sekci.');
   const free = seats.filter((s) => s.status === 'available');
   const skipped = seats.filter((s) => s.status !== 'available').map((s) => `${s.sector} ${s.row}/${s.seat_number}`);
-  if (free.length > 0) {
+  // Kolo 12: dřív vznikla prázdná blokace (0 míst) s hláškou „založena" — uživatel nevěděl, že nic neblokoval.
+  // Chyba zruší celou transakci (route dělá ROLLBACK), takže prázdná blokace nezůstane.
+  if (free.length === 0) {
+    throw new BlockError('NO_SEATS', `Ve výběru nejsou žádná volná místa (${skipped.length} je už prodaných, rezervovaných nebo v jiné blokaci). Blokace se nezaložila — vyberte na plánku volná (světlá) místa.`);
+  }
+  {
     const ids = free.map((s) => s.id);
     await q.query(
       `UPDATE catalog.event_seats SET status = 'blocked', hold_kind = 'block', hold_label = $2, hold_user_id = NULL,

@@ -119,7 +119,7 @@ export function LotteryRedeemClient({ token, locale }: { token: string; locale: 
         ({hoursLeft}h zbývá) — pokud nezaplatíš, slot půjde dalšímu losovanému.
       </div>
       <Button onClick={proceed} disabled={busy} className="w-full">
-        {busy ? 'Přesměrovávám…' : 'Pokračovat na pokladnu'}
+        {busy ? 'Přesměrovávám…' : 'Pokračovat k objednávce'}
       </Button>
     </div>
   );

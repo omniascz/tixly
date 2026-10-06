@@ -36,7 +36,7 @@ const schema = z.object({
 });
 
 const STATUS: Record<TermError['code'], number> = {
-  PRODUCTION_NOT_FOUND: 404, VENUE_NOT_FOUND: 404, SOURCE_NOT_FOUND: 404, NO_TICKET_TYPES: 422, VAT_NOT_CONFIGURED: 422,
+  PRODUCTION_NOT_FOUND: 404, VENUE_NOT_FOUND: 404, SOURCE_NOT_FOUND: 404, NO_TICKET_TYPES: 422, VAT_NOT_CONFIGURED: 422, NO_SELLABLE_SEATS: 422,
 };
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const parsed = schema.safeParse(await req.json().catch(() => ({})));
     if (!parsed.success) return NextResponse.json({ error: 'INVALID_BODY', issues: parsed.error.issues }, { status: 422 });
     if (parsed.data.salesEndAt && parsed.data.dateEnd && parsed.data.salesEndAt > parsed.data.dateEnd) {
-      return NextResponse.json({ error: 'SALES_END_AFTER_EVENT_END' }, { status: 422 });
+      return NextResponse.json({ error: 'SALES_END_AFTER_EVENT_END', message: 'Konec prodeje je až po skončení představení. Zvolte dřívější konec prodeje.' }, { status: 422 });
     }
     const client = await db().connect();
     try {

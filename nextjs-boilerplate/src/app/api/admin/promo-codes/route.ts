@@ -29,6 +29,7 @@ interface PromoCodeRow {
   applicable_event_ids: string[] | null;
   zone_names: string[] | null;
   event_names: string[] | null;
+  category_names: string[] | null;
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
@@ -41,7 +42,10 @@ export async function GET(req: NextRequest): Promise<Response> {
             (SELECT array_agg(COALESCE(tt.zone, tt.name) ORDER BY tt.base_price DESC) FROM catalog.ticket_types tt
               WHERE tt.id = ANY(promo_codes.applicable_ticket_type_ids)) AS zone_names,
             (SELECT array_agg(e.title || ' ' || to_char(e.date_start AT TIME ZONE 'Europe/Prague', 'DD.MM.YYYY HH24:MI') ORDER BY e.date_start)
-               FROM catalog.events e WHERE e.id = ANY(promo_codes.applicable_event_ids)) AS event_names
+               FROM catalog.events e WHERE e.id = ANY(promo_codes.applicable_event_ids)) AS event_names,
+            -- kolo 12: názvy slevových kategorií (v přehledu se dřív ukazoval kód, např. „senior")
+            (SELECT array_agg(DISTINCT pc.name) FROM catalog.price_categories pc
+              WHERE pc.promoter_id = promo_codes.created_by_organizer_id AND pc.code = ANY(promo_codes.applicable_category_codes)) AS category_names
      FROM marketing.promo_codes
      WHERE created_by_organizer_id = $1
      ORDER BY created_at DESC
@@ -65,6 +69,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       applicableEventIds: row.applicable_event_ids ?? [],
       zoneNames: row.zone_names ?? [],
       eventNames: row.event_names ?? [],
+      categoryNames: row.category_names ?? [],
     })),
   });
 

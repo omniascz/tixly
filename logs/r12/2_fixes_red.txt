@@ -1,0 +1,498 @@
+
+Running 12 tests using 1 worker
+
+[1A[2K[1/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:84:7 › vlastník › F1 navigace: Inscenace v menu, promo kódy z Marketingu, nástroje termínu přímo z karty inscenace
+[1A[2K  1) [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:84:7 › vlastník › F1 navigace: Inscenace v menu, promo kódy z Marketingu, nástroje termínu přímo z karty inscenace 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByRole('navigation', { name: 'Hlavní navigace' }).getByRole('link', { name: 'Inscenace' })
+    Expected: [32m"/admin/productions"[39m
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 10000ms[22m
+    [2m  - waiting for getByRole('navigation', { name: 'Hlavní navigace' }).getByRole('link', { name: 'Inscenace' })[22m
+
+
+      85 |     await page.goto('/admin');
+      86 |     const nav = page.getByRole('navigation', { name: 'Hlavní navigace' });
+    > 87 |     await expect(nav.getByRole('link', { name: 'Inscenace' })).toHaveAttribute('href', '/admin/productions');
+         |                                                                ^
+      88 |     await page.goto('/admin/marketing');
+      89 |     await expect(page.getByRole('link', { name: /Promo kódy/ }).first()).toBeVisible();
+      90 |     await page.goto('/admin/productions/00000000-0000-4000-a000-000000000401');
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:87:64
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-01f52-ínu-přímo-z-karty-inscenace-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-01f52-ínu-přímo-z-karty-inscenace-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-01f52-ínu-přímo-z-karty-inscenace-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-01f52-ínu-přímo-z-karty-inscenace-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-01f52-ínu-přímo-z-karty-inscenace-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-fixes-v-01f52-ínu-přímo-z-karty-inscenace-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[2/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:97:7 › vlastník › F2 seznam akcí: město, zrušený termín „Zrušeno", česky
+[1A[2K  2) [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:97:7 › vlastník › F2 seznam akcí: město, zrušený termín „Zrušeno", česky 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  locator('tbody tr').filter({ hasText: 'Racek' }).filter({ hasText: 'Brno' })
+    Expected: [32m1[39m
+    Received: [31m0[39m
+    Timeout:  10000ms
+
+    Call log:
+    [2m  - Expect "toHaveCount" with timeout 10000ms[22m
+    [2m  - waiting for locator('tbody tr').filter({ hasText: 'Racek' }).filter({ hasText: 'Brno' })[22m
+    [2m    14 × locator resolved to 0 elements[22m
+    [2m       - unexpected value "0"[22m
+
+
+      104 |     const racek = page.locator('tbody tr').filter({ hasText: 'Racek' });
+      105 |     await racek.first().waitFor();
+    > 106 |     await expect(racek.filter({ hasText: 'Brno' })).toHaveCount(1);
+          |                                                     ^
+      107 |     await expect(racek.filter({ hasText: 'Ostrava' })).toHaveCount(1);
+      108 |     await expect(page.locator('tbody tr').filter({ hasText: 'Ostrava' }).filter({ hasText: 'Hamlet' })).toContainText('Zrušeno');
+      109 |     const text = await page.locator('main').innerText();
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:106:53
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-baa77-ušený-termín-„Zrušeno-česky-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-baa77-ušený-termín-„Zrušeno-česky-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-baa77-ušený-termín-„Zrušeno-česky-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-baa77-ušený-termín-„Zrušeno-česky-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-baa77-ušený-termín-„Zrušeno-česky-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-fixes-v-baa77-ušený-termín-„Zrušeno-česky-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[3/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:113:7 › vlastník › F3 blokace: bez volných míst se nezaloží prázdná; uvolnění s potvrzením; česky na plánku
+[1A[2K  3) [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:113:7 › vlastník › F3 blokace: bez volných míst se nezaloží prázdná; uvolnění s potvrzením; česky na plánku 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m422[39m
+    Received: [31m201[39m
+
+      113 |   test('F3 blokace: bez volných míst se nezaloží prázdná; uvolnění s potvrzením; česky na plánku', async () => {
+      114 |     const r = await api(page, 'POST', `/api/admin/events/${T.rBrno}/blocks`, { name: `Prázdná ${RUN}`, sector: 'Balkon' });
+    > 115 |     expect(r.status).toBe(422);
+          |                      ^
+      116 |     expect(String(r.json.message)).toMatch(/volná místa/);
+      117 |     expect(await q(`SELECT 1 FROM catalog.seat_blocks WHERE event_id = $1 AND name = $2`, [T.rBrno, `Prázdná ${RUN}`])).toHaveLength(0);
+      118 |     await page.goto(`/admin/events/${T.rBrno}/blokace`);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:115:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-3b153--potvrzením-česky-na-plánku-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-3b153--potvrzením-česky-na-plánku-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-3b153--potvrzením-česky-na-plánku-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-3b153--potvrzením-česky-na-plánku-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-3b153--potvrzením-česky-na-plánku-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-fixes-v-3b153--potvrzením-česky-na-plánku-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[4/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:134:7 › vlastník › F4 firemní objednávka: místa seřazená číselně, zaplacení a zrušení s potvrzením v okně aplikace (žádný prompt)
+[1A[2K  4) [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:134:7 › vlastník › F4 firemní objednávka: místa seřazená číselně, zaplacení a zrušení s potvrzením v okně aplikace (žádný prompt) 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('corp-seat').first() to be visible[22m
+
+
+      135 |     await page.goto(`/admin/events/${T.rBrno}/firemni`);
+      136 |     const chips = page.getByTestId('corp-seat');
+    > 137 |     await chips.first().waitFor();
+          |                         ^
+      138 |     const first = await chips.evaluateAll((els) => els.slice(0, 3).map((e) => e.textContent?.trim()));
+      139 |     expect(first).toEqual(['Přízemí 1/1', 'Přízemí 1/2', 'Přízemí 1/3']);
+      140 |     // objednávka přes API (rychle), pak „Zaplaceno" v UI
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:137:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-91f72-okně-aplikace-žádný-prompt--golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-91f72-okně-aplikace-žádný-prompt--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-91f72-okně-aplikace-žádný-prompt--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-91f72-okně-aplikace-žádný-prompt--golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-91f72-okně-aplikace-žádný-prompt--golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-fixes-v-91f72-okně-aplikace-žádný-prompt--golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[5/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:163:7 › vlastník › F5 přesun termínu: potvrzení s důsledky (e-mail kupcům)
+[1A[2K  5) [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:163:7 › vlastník › F5 přesun termínu: potvrzení s důsledky (e-mail kupcům) 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByTestId('confirm-dialog')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByTestId('confirm-dialog')[22m
+
+
+      168 |     await page.getByRole('button', { name: /Přesunout a informovat kupce/ }).click();
+      169 |     const dlg = page.getByTestId('confirm-dialog');
+    > 170 |     await expect(dlg).toBeVisible();
+          |                       ^
+      171 |     await expect(dlg).toContainText(/e-mail/);
+      172 |     await dlg.getByRole('button', { name: 'Zpět' }).click();
+      173 |     const ev = await q<{ d: Date }>(`SELECT date_start AS d FROM catalog.events WHERE id = $1`, [T.rOstrava]);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:170:23
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-69b5a-í-s-důsledky-e-mail-kupcům--golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-69b5a-í-s-důsledky-e-mail-kupcům--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-69b5a-í-s-důsledky-e-mail-kupcům--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-69b5a-í-s-důsledky-e-mail-kupcům--golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-69b5a-í-s-důsledky-e-mail-kupcům--golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-fixes-v-69b5a-í-s-důsledky-e-mail-kupcům--golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[6/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:177:7 › vlastník › F6 promo kód: potvrzení vytvoření, kategorie názvem, chyby česky
+[1A[2K  6) [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:177:7 › vlastník › F6 promo kód: potvrzení vytvoření, kategorie názvem, chyby česky 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByTestId('promo-msg')
+    Expected substring: [32m"SENIATID"[39m
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toContainText" with timeout 10000ms[22m
+    [2m  - waiting for getByTestId('promo-msg')[22m
+
+
+      184 |     await page.getByTestId('promo-restrictions').getByLabel(/Senior/).first().check();
+      185 |     await page.getByRole('button', { name: /Vytvořit kód/ }).click();
+    > 186 |     await expect(page.getByTestId('promo-msg')).toContainText(code);
+          |                                                 ^
+      187 |     await expect(page.locator('tr', { hasText: code })).toContainText('Senior');
+      188 |     await page.getByPlaceholder('LETO2026').fill(code);
+      189 |     await page.locator('form input[type="number"]').first().fill('15');
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:186:49
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-d5b90-ategorie-názvem-chyby-česky-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-d5b90-ategorie-názvem-chyby-česky-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-d5b90-ategorie-názvem-chyby-česky-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-d5b90-ategorie-názvem-chyby-česky-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-d5b90-ategorie-názvem-chyby-česky-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-fixes-v-d5b90-ategorie-názvem-chyby-česky-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[7/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:195:7 › vlastník › F7 termín v sále bez míst v cenových zónách se nezaloží (dřív „v prodeji, 0 míst")
+[1A[2K  7) [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:195:7 › vlastník › F7 termín v sále bez míst v cenových zónách se nezaloží (dřív „v prodeji, 0 míst") 
+
+    Error: {"eventId":"ac9f5430-a5c2-438f-8d3b-cee173f6239e","status":"published","ticketTypes":2,"seats":0}
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m422[39m
+    Received: [31m201[39m
+
+      203 |       venueId, copyPricingFromEventId: src, dateStart: new Date(Date.now() + 90 * 86_400_000).toISOString(),
+      204 |     });
+    > 205 |     expect(r.status, JSON.stringify(r.json)).toBe(422);
+          |                                              ^
+      206 |     expect(String(r.json.message)).toMatch(/cenov/);
+      207 |     expect(await q(`SELECT 1 FROM catalog.events WHERE venue_id = $1`, [venueId])).toHaveLength(0);
+      208 |   });
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:205:46
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-ef5b4-oží-dřív-„v-prodeji-0-míst--golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-ef5b4-oží-dřív-„v-prodeji-0-míst--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-ef5b4-oží-dřív-„v-prodeji-0-míst--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-ef5b4-oží-dřív-„v-prodeji-0-míst--golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-ef5b4-oží-dřív-„v-prodeji-0-míst--golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-fixes-v-ef5b4-oží-dřív-„v-prodeji-0-míst--golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[8/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:210:7 › vlastník › F8 editor plánku: česky, „Zpět" vede do knihovny míst
+[1A[2K  8) [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:210:7 › vlastník › F8 editor plánku: česky, „Zpět" vede do knihovny míst 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('heading', { name: 'Editor plánku sálu' })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByRole('heading', { name: 'Editor plánku sálu' })[22m
+
+
+      210 |   test('F8 editor plánku: česky, „Zpět" vede do knihovny míst', async () => {
+      211 |     await page.goto('/admin/venues/00000000-0000-4000-a000-000000000201/seating-chart/editor');
+    > 212 |     await expect(page.getByRole('heading', { name: 'Editor plánku sálu' })).toBeVisible();
+          |                                                                             ^
+      213 |     for (const b of ['Výběr', 'Posun', 'Vrátit', 'Znovu', 'Uložit plánek']) await expect(page.getByRole('button', { name: new RegExp(b) }).first()).toBeVisible();
+      214 |     const text = await page.locator('main').innerText();
+      215 |     expect(text).not.toMatch(/Seating editor|\bSelect\b|\bUndo\b|\bRedo\b|Uložit layout|layout|Čísla seat|Default/);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:212:77
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-5f35e-„Zpět-vede-do-knihovny-míst-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-5f35e-„Zpět-vede-do-knihovny-míst-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-5f35e-„Zpět-vede-do-knihovny-míst-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-5f35e-„Zpět-vede-do-knihovny-míst-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-5f35e-„Zpět-vede-do-knihovny-míst-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-fixes-v-5f35e-„Zpět-vede-do-knihovny-míst-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[9/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:221:7 › vlastník › F9 inscenace: fotka souborem, obsazení po řádcích; chyby česky
+[1A[2K  9) [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:221:7 › vlastník › F9 inscenace: fotka souborem, obsazení po řádcích; chyby česky 
+
+    TimeoutError: page.waitForURL: Timeout 20000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+
+      48 |   await page.getByLabel('Heslo').fill(pass);
+      49 |   await Promise.all([page.waitForResponse((r) => r.url().endsWith('/api/auth/login')), page.getByRole('button', { name: /^Přihlásit$/ }).click()]);
+    > 50 |   await page.waitForURL(/\/admin(?!\/?login)/, { timeout: 20_000 });
+         |              ^
+      51 |   sessions.set(email, await page.context().storageState());
+      52 | }
+      53 | async function token(page: Page): Promise<string> { return page.evaluate(() => localStorage.getItem('accessToken') ?? ''); }
+        at login (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:50:14)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:81:93
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-94327-zení-po-řádcích-chyby-česky-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-94327-zení-po-řádcích-chyby-česky-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-94327-zení-po-řádcích-chyby-česky-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-v-94327-zení-po-řádcích-chyby-česky-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-v-94327-zení-po-řádcích-chyby-česky-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-fixes-v-94327-zení-po-řádcích-chyby-česky-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[10/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:236:7 › pokladní a vstup › F10 role pokladny: jen provozní menu; pokladna česky, s městem, odkaz na rezervace, tisk s QR
+[1A[2K  10) [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:236:7 › pokladní a vstup › F10 role pokladny: jen provozní menu; pokladna česky, s městem, odkaz na rezervace, tisk s QR 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mnot[2m.[22mtoContain[2m([22m[32mexpected[39m[2m) // indexOf[22m
+
+    Expected value: not [32m"Finance"[39m
+    Received array:     [31m["Přehled", "Akce", "Objednávky", "Zákazníci", "Pokladna", "Vstup", "Marketing", "Partneři", [7m"Finance"[27m, "Sály", "Tým", "Nastavení", "Vše"][39m
+
+      240 |     await page.goto('/admin');
+      241 |     const labels = (await page.getByRole('navigation', { name: 'Hlavní navigace' }).getByRole('link').allTextContents()).map((s) => s.trim());
+    > 242 |     for (const hidden of ['Finance', 'Tým', 'Nastavení', 'Marketing', 'Partneři', 'Sály']) expect(labels).not.toContain(hidden);
+          |                                                                                                               ^
+      243 |     for (const shown of ['Pokladna', 'Vstup', 'Akce']) expect(labels).toContain(shown);
+      244 |     await page.goto('/admin/pos');
+      245 |     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Pokladna');
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:242:111
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-p-ad434-dkaz-na-rezervace-tisk-s-QR-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-fixes-p-ad434-dkaz-na-rezervace-tisk-s-QR-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-p-ad434-dkaz-na-rezervace-tisk-s-QR-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-p-ad434-dkaz-na-rezervace-tisk-s-QR-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-fixes-p-ad434-dkaz-na-rezervace-tisk-s-QR-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[11/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:260:7 › pokladní a vstup › F11 vstup na mobilu: menu se schová, velké barevné stavy, zvuk a vibrace i u jiného termínu, výpadek sítě není zelený
+[1A[2K  11) [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:260:7 › pokladní a vstup › F11 vstup na mobilu: menu se schová, velké barevné stavy, zvuk a vibrace i u jiného termínu, výpadek sítě není zelený 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeHidden[2m([22m[2m)[22m failed
+
+    Locator:  locator('aside')
+    Expected: hidden
+    Received: visible
+    Timeout:  10000ms
+
+    Call log:
+    [2m  - Expect "toBeHidden" with timeout 10000ms[22m
+    [2m  - waiting for locator('aside')[22m
+    [2m    13 × locator resolved to <aside class="flex h-screen w-60 flex-col border-r bg-card">…</aside>[22m
+    [2m       - unexpected value "visible"[22m
+
+
+      263 |     await login(page, T.gate, PASS);
+      264 |     await page.goto('/admin');
+    > 265 |     await expect(page.locator('aside')).toBeHidden();
+          |                                         ^
+      266 |     await page.getByRole('button', { name: 'Menu' }).click();
+      267 |     await page.getByRole('navigation', { name: 'Hlavní navigace' }).getByRole('link', { name: 'Vstup' }).click();
+      268 |     await page.waitForURL(/scanner/);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:265:41
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-p-fe9ba-nu-výpadek-sítě-není-zelený-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-fixes-p-fe9ba-nu-výpadek-sítě-není-zelený-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-p-fe9ba-nu-výpadek-sítě-není-zelený-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-p-fe9ba-nu-výpadek-sítě-není-zelený-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-fixes-p-fe9ba-nu-výpadek-sítě-není-zelený-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[12/12] [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:307:7 › kupec › F12 web: odkaz Program v hlavičce, „Pokračovat k objednávce"
+[1A[2K  12) [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:307:7 › kupec › F12 web: odkaz Program v hlavičce, „Pokračovat k objednávce" 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByRole('link', { name: 'Program' }).first()
+    Expected pattern: [32m/\/cs\/program/[39m
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 10000ms[22m
+    [2m  - waiting for getByRole('link', { name: 'Program' }).first()[22m
+
+
+      310 |     const menuBtn = page.getByRole('button', { name: /Menu/ });
+      311 |     if (await menuBtn.isVisible().catch(() => false)) await menuBtn.click();
+    > 312 |     await expect(page.getByRole('link', { name: 'Program' }).first()).toHaveAttribute('href', /\/cs\/program/);
+          |                                                                       ^
+      313 |     await page.goto(`/cs/events/${T.rBrno}/seats`);
+      314 |     await expect(page.getByRole('button', { name: /Pokračovat k objednávce/ })).toHaveCount(1);
+      315 |     await ctx.close();
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-fixes.spec.ts:312:71
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-k-29259-e-„Pokračovat-k-objednávce--golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-fixes-k-29259-e-„Pokračovat-k-objednávce--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-fixes-k-29259-e-„Pokračovat-k-objednávce--golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-fixes-k-29259-e-„Pokračovat-k-objednávce--golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-fixes-k-29259-e-„Pokračovat-k-objednávce--golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  12 failed
+    [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:84:7 › vlastník › F1 navigace: Inscenace v menu, promo kódy z Marketingu, nástroje termínu přímo z karty inscenace 
+    [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:97:7 › vlastník › F2 seznam akcí: město, zrušený termín „Zrušeno", česky 
+    [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:113:7 › vlastník › F3 blokace: bez volných míst se nezaloží prázdná; uvolnění s potvrzením; česky na plánku 
+    [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:134:7 › vlastník › F4 firemní objednávka: místa seřazená číselně, zaplacení a zrušení s potvrzením v okně aplikace (žádný prompt) 
+    [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:163:7 › vlastník › F5 přesun termínu: potvrzení s důsledky (e-mail kupcům) 
+    [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:177:7 › vlastník › F6 promo kód: potvrzení vytvoření, kategorie názvem, chyby česky 
+    [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:195:7 › vlastník › F7 termín v sále bez míst v cenových zónách se nezaloží (dřív „v prodeji, 0 míst") 
+    [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:210:7 › vlastník › F8 editor plánku: česky, „Zpět" vede do knihovny míst 
+    [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:221:7 › vlastník › F9 inscenace: fotka souborem, obsazení po řádcích; chyby česky 
+    [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:236:7 › pokladní a vstup › F10 role pokladny: jen provozní menu; pokladna česky, s městem, odkaz na rezervace, tisk s QR 
+    [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:260:7 › pokladní a vstup › F11 vstup na mobilu: menu se schová, velké barevné stavy, zvuk a vibrace i u jiného termínu, výpadek sítě není zelený 
+    [golden-path] › tests\golden-path-r12-ux-fixes.spec.ts:307:7 › kupec › F12 web: odkaz Program v hlavičce, „Pokračovat k objednávce" 

@@ -26,6 +26,8 @@ interface EventRow {
   date_start: string;
   status: string;
   rejection_reason: string | null;
+  venue_city: string | null;
+  venue_name: string | null;
 }
 
 export async function GET(request: NextRequest): Promise<Response> {
@@ -41,8 +43,11 @@ export async function GET(request: NextRequest): Promise<Response> {
         WHERE log.event_id = e.id AND log.decision = 'rejected'
         ORDER BY log.created_at DESC
         LIMIT 1
-      ) ELSE NULL END AS rejection_reason
+      ) ELSE NULL END AS rejection_reason,
+      -- Kolo 12: město a sál — termíny jedné inscenace se jinak v seznamu nedaly rozlišit
+      v.city AS venue_city, v.name AS venue_name
     FROM catalog.events e
+    LEFT JOIN catalog.venues v ON v.id = e.venue_id
     WHERE e.promoter_id = $1
     ORDER BY e.date_start DESC
     LIMIT 100
@@ -56,6 +61,8 @@ export async function GET(request: NextRequest): Promise<Response> {
       date: row.date_start,
       moderationStatus: row.status,
       rejectionReason: row.rejection_reason,
+      venueCity: row.venue_city,
+      venueName: row.venue_name,
     })),
   );
 
