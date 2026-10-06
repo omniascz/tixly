@@ -4,6 +4,8 @@
  */
 
 import { type Client as PgClient } from 'pg';
+import { pgClientOptions } from '@/lib/db/pg-options';
+import { redisClientOptions } from '@/lib/redis/options';
 
 /**
  * Initialize PostgreSQL client for health checks
@@ -21,7 +23,7 @@ export async function initializeDatabaseClient(
 
   try {
     const { Client } = await import('pg');
-    const client = new Client({ connectionString });
+    const client = new Client(pgClientOptions(connectionString)); // kolo 11: timeouty spojení i dotazu
 
     // Don't keep connection open - create new ones for each check
     // This allows for proper connection pooling in production
@@ -45,7 +47,7 @@ export async function initializeRedisClient(redisUrl?: string): Promise<unknown>
 
   try {
     const { createClient } = await import('redis');
-    const redis = createClient({ url: redisUrl });
+    const redis = createClient(redisClientOptions(redisUrl)); // kolo 11: connectTimeout, konečné opakování
 
     // Don't auto-connect - let health check handle connection lifecycle
     return redis;

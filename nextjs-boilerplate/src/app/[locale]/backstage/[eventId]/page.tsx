@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { Pool } from 'pg';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { Play } from 'lucide-react';
 import { ShareButton } from './ShareButton';
 
@@ -39,7 +40,7 @@ function minutesUntil(dateStr: string): number {
 }
 
 async function fetchData(eventId: string): Promise<PageData | null> {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const pool = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const [mRes, eRes] = await Promise.all([
       pool.query<BackstageMomentRow>(

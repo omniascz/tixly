@@ -6,6 +6,7 @@
  */
 import Link from 'next/link';
 import { Pool } from 'pg';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { Calendar, MapPin } from 'lucide-react';
 import { formatCzechDate } from '@/lib/format';
 
@@ -27,7 +28,7 @@ interface EventRow {
 
 let pool: Pool | null = null;
 function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  if (!pool) pool = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   return pool;
 }
 

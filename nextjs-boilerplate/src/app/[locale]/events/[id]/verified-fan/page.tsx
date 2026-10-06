@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { notFound } from 'next/navigation';
 import { VerifiedFanForm } from './VerifiedFanForm';
 
@@ -15,7 +16,7 @@ interface EventRow {
 
 async function fetchEvent(id: string): Promise<EventRow | null> {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const r = await db.query<EventRow>(
       `SELECT e.id, e.title, e.date_start::text,

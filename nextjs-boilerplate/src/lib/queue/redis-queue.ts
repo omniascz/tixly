@@ -17,6 +17,7 @@
  */
 
 import { createClient, type RedisClientType } from 'redis';
+import { redisClientOptions, withCommandTimeouts, withRedisTimeout } from '@/lib/redis/options';
 
 let client: RedisClientType | null = null;
 let connectPromise: Promise<RedisClientType | null> | null = null;
@@ -35,11 +36,17 @@ export async function getClient(): Promise<RedisClientType | null> {
 
   connectPromise = (async () => {
     try {
-      const c = createClient({ url: process.env.REDIS_URL }) as RedisClientType;
+      // Kolo 11: connectTimeout + konečné opakování + limit na connect() i každý příkaz (nic nevisí).
+      const c = createClient(redisClientOptions(process.env.REDIS_URL)) as RedisClientType;
       c.on('error', (err) => console.error('[redis-queue]', err));
-      await c.connect();
-      client = c;
-      return c;
+      try {
+        await withRedisTimeout(c.connect(), undefined, 'Redis connect');
+      } catch (err) {
+        await c.disconnect().catch(() => {}); // zastaví případné další pokusy o spojení
+        throw err;
+      }
+      client = withCommandTimeouts(c);
+      return client;
     } catch (err) {
       console.error('[redis-queue] connect failed:', err);
       return null;

@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Pool } from 'pg';
 import { Card, CardContent } from '@/components/ui/card';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { launchFeatureEnabled } from '@/lib/features/launch-flags';
 import { formatDate } from '@/lib/format';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
@@ -68,7 +69,7 @@ async function fetchPromoter(slug: string): Promise<{
   events: EventRow[];
   stats: PromoterStats;
 } | null> {
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const pRes = await db.query<PromoterRow>(
       `SELECT id, name, slug, contact_email, brand_color_hex, brand_logo_url, brand_tagline
@@ -210,7 +211,7 @@ export default async function PromoterPage({
   if (!data) {
     // /p/ je route pořadatele. Pokud slug odpovídá AKCI (starý/špatný odkaz,
     // záložka), přesměruj na detail akce místo tvrdého 404.
-    const db = new Pool({ connectionString: process.env.DATABASE_URL });
+    const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
     let eventSlug: string | null = null;
     try {
       const r = await db.query<{ slug: string }>(

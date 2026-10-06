@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Pool } from 'pg';
 import { Card, CardContent } from '@/components/ui/card';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 
 interface Article {
   id: string;
@@ -15,7 +16,7 @@ interface Article {
 }
 
 async function fetchArticles(category: string | null): Promise<Article[]> {
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const args: unknown[] = [];
     let where = `WHERE status = 'published'`;

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Pool } from 'pg';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 import { formatDate } from '@/lib/format';
 
@@ -24,7 +25,7 @@ async function fetchActor(artistId: string): Promise<{
   artist: ArtistRow;
   performances: PerformanceRow[];
 } | null> {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const pool = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const aRes = await pool.query<ArtistRow>(
       `SELECT id, name, bio, cover_image_url

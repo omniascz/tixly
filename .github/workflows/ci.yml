@@ -59,6 +59,37 @@ jobs:
       - name: Unit testy
         run: npx vitest run --maxWorkers=2 --minWorkers=1   # vitest 1.6: max bez min → RangeError
 
+  # Kolo 11: Vercel build padal na „Static page generation for /api/health/redis is still timing out after
+  # 3 attempts" — Next předgeneroval routu, která se při buildu připojovala k Redisu, a spojení tam viselo.
+  # Tady čistý `next build`: síťové proměnné na nesměrovatelnou 10.255.255.1 (spojení visí, jako na Vercelu)
+  # a preload scripts/ci/no-network-preload.cjs ukončí build při JAKÉMKOLI síťovém spojení z kódu aplikace
+  # (vypíše cíl, routu a stacktrace). Výjimka: písma next/font/google.
+  build-no-network:
+    name: Build bez sítě (pojistka prerenderu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: nextjs-boilerplate
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: nextjs-boilerplate/package-lock.json
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      - name: next build bez sítě (DB/Redis/SMTP → 10.255.255.1, síťová spojení zakázána)
+        run: bash scripts/ci/build-no-network.sh
+
+      - name: Zachycená síťová spojení (při chybě)
+        if: failure()
+        run: cat build-no-network.violations.log 2>/dev/null || tail -60 build-no-network.log || true
+
   live:
     name: Live sada (Postgres z migrací, tixly_app)
     runs-on: ubuntu-latest

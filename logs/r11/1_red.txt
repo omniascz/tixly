@@ -1,0 +1,399 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r11-network-timeouts.test.ts[2m > [22m[2mklienti s timeouty[2m > [22m[2mRedis (redis-queue.getClient) na nedostupný host → null do 5,5 s, žádné nekonečné opakování[22m[39m
+[redis-queue] ConnectionTimeoutError: Connection timeout
+    at Socket.<anonymous> [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4m@redis\client[24m\dist\lib\client\socket.js:177:124[90m)[39m
+[90m    at Object.onceWrapper (node:events:622:28)[39m
+[90m    at Socket.emit (node:events:508:28)[39m
+[90m    at Socket._onTimeout (node:net:604:8)[39m
+[90m    at listOnTimeout (node:internal/timers:605:17)[39m
+[90m    at processTimers (node:internal/timers:541:7)[39m
+
+[90mstderr[2m | tests/fix-r11-network-timeouts.test.ts[2m > [22m[2mklienti s timeouty[2m > [22m[2mRedis (redis-queue.getClient) na nedostupný host → null do 5,5 s, žádné nekonečné opakování[22m[39m
+[redis-queue] ConnectionTimeoutError: Connection timeout
+    at Socket.<anonymous> [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4m@redis\client[24m\dist\lib\client\socket.js:177:124[90m)[39m
+[90m    at Object.onceWrapper (node:events:622:28)[39m
+[90m    at Socket.emit (node:events:508:28)[39m
+[90m    at Socket._onTimeout (node:net:604:8)[39m
+[90m    at listOnTimeout (node:internal/timers:605:17)[39m
+[90m    at processTimers (node:internal/timers:541:7)[39m
+
+[90mstderr[2m | tests/fix-r11-network-timeouts.test.ts[2m > [22m[2mklienti s timeouty[2m > [22m[2mRedis (redis-queue.getClient) na nedostupný host → null do 5,5 s, žádné nekonečné opakování[22m[39m
+[redis-queue] ConnectionTimeoutError: Connection timeout
+    at Socket.<anonymous> [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4m@redis\client[24m\dist\lib\client\socket.js:177:124[90m)[39m
+[90m    at Object.onceWrapper (node:events:622:28)[39m
+[90m    at Socket.emit (node:events:508:28)[39m
+[90m    at Socket._onTimeout (node:net:604:8)[39m
+[90m    at listOnTimeout (node:internal/timers:605:17)[39m
+[90m    at processTimers (node:internal/timers:541:7)[39m
+
+[90mstderr[2m | tests/fix-r11-network-timeouts.test.ts[2m > [22m[2mklienti s timeouty[2m > [22m[2mDB (rls-pool db().query) na nedostupný host → chyba do 5,5 s[22m[39m
+[redis-queue] ConnectionTimeoutError: Connection timeout
+    at Socket.<anonymous> [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4m@redis\client[24m\dist\lib\client\socket.js:177:124[90m)[39m
+[90m    at Object.onceWrapper (node:events:622:28)[39m
+[90m    at Socket.emit (node:events:508:28)[39m
+[90m    at Socket._onTimeout (node:net:604:8)[39m
+[90m    at listOnTimeout (node:internal/timers:605:17)[39m
+[90m    at processTimers (node:internal/timers:541:7)[39m
+
+[90mstderr[2m | tests/fix-r11-network-timeouts.test.ts[2m > [22m[2mklienti s timeouty[2m > [22m[2mDB (rls-pool db().query) na nedostupný host → chyba do 5,5 s[22m[39m
+[redis-queue] ConnectionTimeoutError: Connection timeout
+    at Socket.<anonymous> [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4m@redis\client[24m\dist\lib\client\socket.js:177:124[90m)[39m
+[90m    at Object.onceWrapper (node:events:622:28)[39m
+[90m    at Socket.emit (node:events:508:28)[39m
+[90m    at Socket._onTimeout (node:net:604:8)[39m
+[90m    at listOnTimeout (node:internal/timers:605:17)[39m
+[90m    at processTimers (node:internal/timers:541:7)[39m
+
+ [33m❯[39m tests/fix-r11-network-timeouts.test.ts [2m ([22m[2m11 tests[22m [2m|[22m [31m9 failed[39m[2m)[22m[33m 70344[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r11-network-timeouts.test.ts[2m > [22mhealth routy na nedostupnou síť → 503 do 5 s[2m > [22mGET /api/health/redis[39m
+[31m     → Test timed out in 20000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [33m❯[31m tests/fix-r11-network-timeouts.test.ts[2m > [22mhealth routy na nedostupnou síť → 503 do 5 s[2m > [22mGET /api/health/ready (DB i Redis visí)[39m
+[31m     → Test timed out in 20000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [33m❯[31m tests/fix-r11-network-timeouts.test.ts[2m > [22mklienti s timeouty[2m > [22mRedis (redis-queue.getClient) na nedostupný host → null do 5,5 s, žádné nekonečné opakování[39m
+[31m     → Test timed out in 20000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [33m❯[31m tests/fix-r11-network-timeouts.test.ts[2m > [22mklienti s timeouty[2m > [22mDB (rls-pool db().query) na nedostupný host → chyba do 5,5 s[39m
+[31m     → expected 8011 to be less than 5500[39m
+[31m   [33m❯[31m tests/fix-r11-network-timeouts.test.ts[2m > [22mkaždý DB / Redis klient v aplikaci jde přes sdílené volby s timeouty[2m > [22mnew Pool / new Client (pg) a createClient (redis) bez sdílených voleb[39m
+[31m     → expected [ …(34) ] to deeply equal [][39m
+[31m   [33m❯[31m tests/fix-r11-network-timeouts.test.ts[2m > [22mstatické předgenerování (výstup next build, kolo 10) — síťové routy dynamické[2m > [22mapi/health/ready/route.ts: export const dynamic = force-dynamic[39m
+[31m     → expected 'import { NextResponse } from \'next/s…' to match /^export const dynamic = 'force-dynam…/m[39m
+[31m   [33m❯[31m tests/fix-r11-network-timeouts.test.ts[2m > [22mstatické předgenerování (výstup next build, kolo 10) — síťové routy dynamické[2m > [22mapi/health/redis/route.ts: export const dynamic = force-dynamic[39m
+[31m     → expected 'import { NextResponse } from \'next/s…' to match /^export const dynamic = 'force-dynam…/m[39m
+[31m   [33m❯[31m tests/fix-r11-network-timeouts.test.ts[2m > [22mstatické předgenerování (výstup next build, kolo 10) — síťové routy dynamické[2m > [22mapi/subscriptions/plans/route.ts: export const dynamic = force-dynamic[39m
+[31m     → expected '/**\r\n * GET /api/subscriptions/plan…' to match /^export const dynamic = 'force-dynam…/m[39m
+[31m   [33m❯[31m tests/fix-r11-network-timeouts.test.ts[2m > [22mstatické předgenerování (výstup next build, kolo 10) — síťové routy dynamické[2m > [22msitemap.ts: export const dynamic = force-dynamic[39m
+[31m     → expected 'import type { MetadataRoute } from \'…' to match /^export const dynamic = 'force-dynam…/m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 9 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mhealth routy na nedostupnou síť → 503 do 5 s[2m > [22mGET /api/health/redis
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mhealth routy na nedostupnou síť → 503 do 5 s[2m > [22mGET /api/health/ready (DB i Redis visí)
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mklienti s timeouty[2m > [22mRedis (redis-queue.getClient) na nedostupný host → null do 5,5 s, žádné nekonečné opakování
+[31m[1mError[22m: Test timed out in 20000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mklienti s timeouty[2m > [22mDB (rls-pool db().query) na nedostupný host → chyba do 5,5 s
+[31m[1mAssertionError[22m: expected 8011 to be less than 5500[39m
+[36m [2m❯[22m tests/fix-r11-network-timeouts.test.ts:[2m66:28[22m[39m
+    [90m 64| [39m    [35mconst[39m t [33m=[39m [33mDate[39m[33m.[39m[34mnow[39m()[33m;[39m
+    [90m 65| [39m    [35mawait[39m [34mexpect[39m([34mdb[39m()[33m.[39m[34mquery[39m([32m'SELECT 1'[39m))[33m.[39mrejects[33m.[39m[34mtoThrow[39m()[33m;[39m
+    [90m 66| [39m    [34mexpect[39m([33mDate[39m[33m.[39m[34mnow[39m() [33m-[39m t)[33m.[39m[34mtoBeLessThan[39m([34m5500[39m)[33m;[39m
+    [90m   | [39m                           [31m^[39m
+    [90m 67| [39m    [35mawait[39m ([34mdb[39m() [35mas[39m unknown [35mas[39m { end[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m[35mvoid[39m[33m>[39m })[33m.[39m[34mend[39m()[33m.[39m[35mcatc[39m…
+    [90m 68| [39m  }[33m,[39m [34m20_000[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mkaždý DB / Redis klient v aplikaci jde přes sdílené volby s timeouty[2m > [22mnew Pool / new Client (pg) a createClient (redis) bez sdílených voleb
+[31m[1mAssertionError[22m: expected [ …(34) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [][39m
+[31m+ Array [[39m
+[31m+   "app/api/health/ready/route.ts: new Client({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/api/health/ready/route.ts: createClient({ url: process.env.REDIS_URL })",[39m
+[31m+   "app/api/health/redis/route.ts: createClient({ url })",[39m
+[31m+   "app/embed/event/[id]/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/embed/promoter/[slug]/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/oauth/authorize/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/signage/[venueId]/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/sitemap.ts: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/actors/[id]/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/backstage/[eventId]/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/blog/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/city/[city]/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/cross-passes/[id]/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/events/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/events/[id]/accreditation/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/events/[id]/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/events/[id]/slots/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/events/[id]/verified-fan/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/p/[slug]/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/p/[slug]/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/p/[slug]/subscriptions/[packageSlug]/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/p/[slug]/vouchers/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/resale/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "app/[locale]/tixly-plus/page.tsx: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "lib/db/rls-pool.ts: new Pool({[39m
+[31m+       connectionString: process.env.D)",[39m
+[31m+   "lib/db/rls-pool.ts: new Pool({[39m
+[31m+       connectionString: process.env.D)",[39m
+[31m+   "lib/db/rls-pool.ts: new Pool(...)",[39m
+[31m+   "lib/db/rls-pool.ts: new Pool(...)",[39m
+[31m+   "lib/db/rls-pool.ts: new Pool({ connectionString: ... })",[39m
+[31m+   "lib/db/with-context.ts: new Pool({ connectionString: process.env.DATABASE)",[39m
+[31m+   "lib/health-check/health.integration.ts: new Client({ connectionString })",[39m
+[31m+   "lib/health-check/health.integration.ts: createClient({ url: redisUrl })",[39m
+[31m+   "lib/queue/redis-queue.ts: createClient({ url: process.env.REDIS_URL })",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/fix-r11-network-timeouts.test.ts:[2m110:17[22m[39m
+    [90m108| [39m      }
+    [90m109| [39m    }
+    [90m110| [39m    [34mexpect[39m(bad)[33m.[39m[34mtoEqual[39m([])[33m;[39m
+    [90m   | [39m                [31m^[39m
+    [90m111| [39m  })[33m;[39m
+    [90m112| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mstatické předgenerování (výstup next build, kolo 10) — síťové routy dynamické[2m > [22mapi/health/ready/route.ts: export const dynamic = force-dynamic
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mstatické předgenerování (výstup next build, kolo 10) — síťové routy dynamické[2m > [22mapi/health/redis/route.ts: export const dynamic = force-dynamic
+[31m[1mAssertionError[22m: expected 'import { NextResponse } from \'next/s…' to match /^export const dynamic = 'force-dynam…/m[39m
+
+[32m- Expected:[39m 
+/^export const dynamic = 'force-dynamic';/m
+
+[31m+ Received:[39m 
+"import { NextResponse } from 'next/server';
+
+// Readiness probe — ověří připojení k DB a Redis.
+// Vrací 200 OK pouze pokud jsou obě služby dostupné.
+// Používá se v CI před spuštěním integračních testů.
+export async function GET(): Promise<Response> {
+  const checks: Record<string, string> = {};
+
+  // DB check
+  try {
+    const { Client } = await import('pg');
+    const client = new Client({ connectionString: process.env.DATABASE_URL });
+    await client.connect();
+    await client.query('SELECT 1');
+    await client.end();
+    checks.database = 'ok';
+  } catch {
+    checks.database = 'error';
+  }
+
+  // Redis check
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { createClient } = await import('redis');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    const redis = createClient({ url: process.env.REDIS_URL });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    await redis.connect();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    await redis.ping();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    await redis.disconnect();
+    checks.redis = 'ok';
+  } catch {
+    checks.redis = 'error';
+  }
+
+  const allOk = Object.values(checks).every((v) => v === 'ok');
+
+  const statusCode = allOk ? 200 : 503;
+  const responseStatus = allOk ? 'ok' : 'degraded';
+
+  return NextResponse.json(
+    { status: responseStatus, checks },
+    { status: statusCode },
+  );
+}
+"
+
+[36m [2m❯[22m tests/fix-r11-network-timeouts.test.ts:[2m118:22[22m[39m
+    [90m116| [39m  it[33m.[39m[34meach[39m([[32m'api/health/ready/route.ts'[39m[33m,[39m [32m'api/health/redis/route.ts'[39m[33m,[39m [32m'[39m…
+    [90m117| [39m    [32m'%s: export const dynamic = force-dynamic'[39m[33m,[39m (p) [33m=>[39m {
+    [90m118| [39m      [34mexpect[39m([34mapp[39m(p))[33m.[39m[34mtoMatch[39m([36m/^export const dynamic = 'force-dynamic';[39m…
+    [90m   | [39m                     [31m^[39m
+    [90m119| [39m    })[33m;[39m
+    [90m120| [39m  [34mit[39m([32m'sitemap.xml: revalidate 1 hodina'[39m[33m,[39m () [33m=>[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mstatické předgenerování (výstup next build, kolo 10) — síťové routy dynamické[2m > [22mapi/subscriptions/plans/route.ts: export const dynamic = force-dynamic
+[31m[1mAssertionError[22m: expected '/**\r\n * GET /api/subscriptions/plan…' to match /^export const dynamic = 'force-dynam…/m[39m
+
+[32m- Expected:[39m 
+/^export const dynamic = 'force-dynamic';/m
+
+[31m+ Received:[39m 
+"/**
+ * GET /api/subscriptions/plans — public list of active plans (Tixly+ landing).
+ * Optional query: ?promoter=<slug> filter by promoter.
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db/rls-pool';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
+
+
+export async function GET(req: NextRequest): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('subscriptions');
+  if (featureOff) return featureOff;
+  const slug = req.nextUrl.searchParams.get('promoter');
+  const params: unknown[] = [];
+  let where = `p.active = true`;
+  if (slug) {
+    params.push(slug);
+    where += ` AND pr.slug = $${params.length}`;
+  }
+
+  const r = await db().query<{
+    id: string;
+    name: string;
+    description: string | null;
+    price_halire: number;
+    billing_cycle: string;
+    allowance_per_period: number;
+    promoter_name: string | null;
+  }>(
+    `SELECT p.id, p.name, p.description, p.price_halire, p.billing_cycle,
+            p.allowance_per_period, pr.name AS promoter_name
+     FROM subscriptions.plans p
+     LEFT JOIN platform.promoters pr ON pr.id = p.promoter_id
+     WHERE ${where}
+     ORDER BY p.price_halire ASC
+     LIMIT 50`,
+    params,
+  );
+  return NextResponse.json({ plans: r.rows });
+}
+"
+
+[36m [2m❯[22m tests/fix-r11-network-timeouts.test.ts:[2m118:22[22m[39m
+    [90m116| [39m  it[33m.[39m[34meach[39m([[32m'api/health/ready/route.ts'[39m[33m,[39m [32m'api/health/redis/route.ts'[39m[33m,[39m [32m'[39m…
+    [90m117| [39m    [32m'%s: export const dynamic = force-dynamic'[39m[33m,[39m (p) [33m=>[39m {
+    [90m118| [39m      [34mexpect[39m([34mapp[39m(p))[33m.[39m[34mtoMatch[39m([36m/^export const dynamic = 'force-dynamic';[39m…
+    [90m   | [39m                     [31m^[39m
+    [90m119| [39m    })[33m;[39m
+    [90m120| [39m  [34mit[39m([32m'sitemap.xml: revalidate 1 hodina'[39m[33m,[39m () [33m=>[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mstatické předgenerování (výstup next build, kolo 10) — síťové routy dynamické[2m > [22msitemap.ts: export const dynamic = force-dynamic
+[31m[1mAssertionError[22m: expected 'import type { MetadataRoute } from \'…' to match /^export const dynamic = 'force-dynam…/m[39m
+
+[32m- Expected:[39m 
+/^export const dynamic = 'force-dynamic';/m
+
+[31m+ Received:[39m 
+"import type { MetadataRoute } from 'next';
+import { Pool } from 'pg';
+import { LOCALES_ACTIVE } from '@/lib/i18n';
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+// Sitemap publikuje jen produkčně přeložené locales — vyhneme se duplicate
+// content penalizaci v Google když 7 z 8 locales je hardcoded česky.
+const LOCALES = LOCALES_ACTIVE;
+
+let pool: Pool | null = null;
+function db(): Pool {
+  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  return pool;
+}
+
+export const revalidate = 3600; // re-generate hourly
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const staticPaths = [
+    { path: '', priority: 1.0, changeFrequency: 'daily' as const },
+    { path: '/events', priority: 0.9, changeFrequency: 'hourly' as const },
+    { path: '/events/map', priority: 0.8, changeFrequency: 'daily' as const },
+    { path: '/blog', priority: 0.7, changeFrequency: 'daily' as const },
+    { path: '/about', priority: 0.6, changeFrequency: 'monthly' as const },
+    { path: '/contact', priority: 0.6, changeFrequency: 'monthly' as const },
+    { path: '/loyalty', priority: 0.5, changeFrequency: 'monthly' as const },
+    { path: '/tixly-plus', priority: 0.6, changeFrequency: 'weekly' as const },
+    { path: '/api-docs', priority: 0.5, changeFrequency: 'monthly' as const },
+    { path: '/legal/terms', priority: 0.3, changeFrequency: 'yearly' as const },
+    { path: '/legal/privacy', priority: 0.3, changeFrequency: 'yearly' as const },
+    { path: '/login', priority: 0.4, changeFrequency: 'yearly' as const },
+    { path: '/register', priority: 0.4, changeFrequency: 'yearly' as const },
+  ];
+
+  const entries: MetadataRoute.Sitemap = [];
+  for (const p of staticPaths) {
+    for (const locale of LOCALES) {
+      entries.push({
+        url: `${BASE_URL}/${locale}${p.path}`,
+        lastModified: new Date(),
+        changeFrequency: p.changeFrequency,
+        priority: p.priority,
+        alternates: {
+          languages: Object.fromEntries(
+            LOCALES.map((l) => [l, `${BASE_URL}/${l}${p.path}`]),
+          ),
+        },
+      });
+    }
+  }
+
+  // Published, future events
+  try {
+    const events = await db().query<{ id: string; updated_at: string; date_start: string }>(
+      `SELECT id, updated_at, date_start
+       FROM catalog.events
+       WHERE status = 'published' AND date_start > NOW() - INTERVAL '7 days'
+       ORDER BY date_start ASC
+       LIMIT 1000`,
+    );
+    for (const ev of events.rows) {
+      for (const locale of LOCALES) {
+        entries.push({
+          url: `${BASE_URL}/${locale}/events/${ev.id}`,
+          lastModified: new Date(ev.updated_at),
+          changeFrequency: 'daily',
+          priority: 0.8,
+        });
+      }
+    }
+  } catch (err) {
+    console.error('[sitemap events]', err);
+  }
+
+  // Active promoter profile pages (/p/{slug}) — pro veřejné brand pages
+  try {
+    const promoters = await db().query<{ slug: string; updated_at: string }>(
+      `SELECT slug, updated_at FROM platform.promoters
+       WHERE status = 'active' AND slug IS NOT NULL
+       ORDER BY updated_at DESC
+       LIMIT 500`,
+    );
+    for (const p of promoters.rows) {
+      for (const locale of LOCALES) {
+        entries.push({
+          url: `${BASE_URL}/${locale}/p/${p.slug}`,
+          lastModified: new Date(p.updated_at),
+          changeFrequency: 'weekly',
+          priority: 0.7,
+        });
+      }
+    }
+  } catch (err) {
+    console.error('[sitemap promoters]', err);
+  }
+
+  return entries;
+}
+"
+
+[36m [2m❯[22m tests/fix-r11-network-timeouts.test.ts:[2m118:22[22m[39m
+    [90m116| [39m  it[33m.[39m[34meach[39m([[32m'api/health/ready/route.ts'[39m[33m,[39m [32m'api/health/redis/route.ts'[39m[33m,[39m [32m'[39m…
+    [90m117| [39m    [32m'%s: export const dynamic = force-dynamic'[39m[33m,[39m (p) [33m=>[39m {
+    [90m118| [39m      [34mexpect[39m([34mapp[39m(p))[33m.[39m[34mtoMatch[39m([36m/^export const dynamic = 'force-dynamic';[39m…
+    [90m   | [39m                     [31m^[39m
+    [90m119| [39m    })[33m;[39m
+    [90m120| [39m  [34mit[39m([32m'sitemap.xml: revalidate 1 hodina'[39m[33m,[39m () [33m=>[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m9 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (11)[39m
+[2m   Start at [22m 09:16:15
+[2m   Duration [22m 71.83s[2m (transform 303ms, setup 261ms, collect 17ms, tests 70.34s, environment 605ms, prepare 92ms)[22m
+

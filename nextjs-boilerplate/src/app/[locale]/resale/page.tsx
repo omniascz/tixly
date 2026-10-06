@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Pool } from 'pg';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +27,7 @@ interface Listing {
 
 let pool: Pool | null = null;
 function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  if (!pool) pool = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   return pool;
 }
 

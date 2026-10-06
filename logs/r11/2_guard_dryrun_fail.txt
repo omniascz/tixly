@@ -1,0 +1,57 @@
+[copy-pdf-worker] OK: 1.31 MB → public/pdf.worker.min.mjs
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+  ▲ Next.js 14.2.35
+  - Experiments (use with caution):
+    · instrumentationHook
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings
+
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/opentelemetry/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/server/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./sentry.server.config.ts
+
+./node_modules/require-in-the-middle/index.js
+Critical dependency: require function is used in a way in which dependencies cannot be statically extracted
+
+Import trace for requested module:
+./node_modules/require-in-the-middle/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/opentelemetry/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/server/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./sentry.server.config.ts
+
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+ ⚠ Using edge runtime on a page currently disables static generation for that page
+   Generating static pages (0/389) ...
+   Generating static pages (97/389) 
+   Generating static pages (194/389) 
+
+[no-network-build] ZAKÁZANÉ SÍŤOVÉ SPOJENÍ BĚHEM BUILDU: net.connect → 10.255.255.1:6379
+[no-network-build] routa/stránka: api/health/redis/route.js
+[no-network-build] Oprava: export const dynamic = 'force-dynamic' (routa/stránka se nesmí předgenerovat), viz ROUND11_REPORT.md
+    at Object.patched [as connect] (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\scripts\ci\no-network-preload.cjs:66:5)
+    at P.I (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\79984.js:1:60895)
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\79984.js:1:60261
+    at new Promise (<anonymous>)
+    at P.h (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\79984.js:1:60134)
+    at P.p (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\79984.js:1:59734)
+    at P.connect (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\79984.js:1:58044)
+    at n.connect (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\79984.js:1:39586)
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\health\redis\route.js:1:1064
+ ⨯ Next.js build worker exited with code: 97 and signal: null
