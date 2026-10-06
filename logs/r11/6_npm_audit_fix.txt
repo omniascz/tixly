@@ -1,0 +1,333 @@
+
+changed 1 package, and audited 905 packages in 20s
+
+# npm audit report
+
+@fastify/busboy  <=3.2.1
+Severity: high
+@fastify/busboy vulnerable to Denial of Service via prototype-named multipart part header - https://github.com/advisories/GHSA-x8mw-p69m-v3mx
+@fastify/busboy vulnerable to CRLF injection via multipart Content-Disposition filename and name - https://github.com/advisories/GHSA-gxm5-99cw-xjw9
+fix available via `npm audit fix --force`
+Will install @vercel/blob@2.8.0, which is a breaking change
+node_modules/@fastify/busboy
+  undici  <=6.28.0
+  Depends on vulnerable versions of @fastify/busboy
+  node_modules/undici
+    @vercel/blob  0.0.3 - 2.0.0
+    Depends on vulnerable versions of undici
+    node_modules/@vercel/blob
+
+@opentelemetry/core  <2.8.0
+Severity: moderate
+OpenTelemetry Core: Unbounded memory allocation in W3C Baggage propagation - https://github.com/advisories/GHSA-8988-4f7v-96qf
+fix available via `npm audit fix --force`
+Will install @sentry/nextjs@11.4.0, which is a breaking change
+node_modules/@opentelemetry/core
+  @opentelemetry/instrumentation-amqplib  <=0.46.1
+  Depends on vulnerable versions of @opentelemetry/core
+  node_modules/@opentelemetry/instrumentation-amqplib
+    @sentry/node  8.0.0-alpha.1 - 10.53.1
+    Depends on vulnerable versions of @opentelemetry/core
+    Depends on vulnerable versions of @opentelemetry/instrumentation-amqplib
+    Depends on vulnerable versions of @opentelemetry/instrumentation-connect
+    Depends on vulnerable versions of @opentelemetry/instrumentation-express
+    Depends on vulnerable versions of @opentelemetry/instrumentation-fastify
+    Depends on vulnerable versions of @opentelemetry/instrumentation-fs
+    Depends on vulnerable versions of @opentelemetry/instrumentation-hapi
+    Depends on vulnerable versions of @opentelemetry/instrumentation-http
+    Depends on vulnerable versions of @opentelemetry/instrumentation-knex
+    Depends on vulnerable versions of @opentelemetry/instrumentation-koa
+    Depends on vulnerable versions of @opentelemetry/instrumentation-mongoose
+    Depends on vulnerable versions of @opentelemetry/instrumentation-mysql
+    Depends on vulnerable versions of @opentelemetry/instrumentation-mysql2
+    Depends on vulnerable versions of @opentelemetry/instrumentation-pg
+    Depends on vulnerable versions of @opentelemetry/instrumentation-tedious
+    Depends on vulnerable versions of @opentelemetry/instrumentation-undici
+    Depends on vulnerable versions of @opentelemetry/resources
+    Depends on vulnerable versions of @opentelemetry/sdk-trace-base
+    Depends on vulnerable versions of @prisma/instrumentation
+    node_modules/@sentry/node
+      @sentry/nextjs  8.0.0-alpha.2 - 10.39.0
+      Depends on vulnerable versions of @sentry/node
+      Depends on vulnerable versions of @sentry/webpack-plugin
+      Depends on vulnerable versions of rollup
+      node_modules/@sentry/nextjs
+  @opentelemetry/instrumentation-connect  <=0.43.1
+  Depends on vulnerable versions of @opentelemetry/core
+  node_modules/@opentelemetry/instrumentation-connect
+  @opentelemetry/instrumentation-express  <=0.47.1
+  Depends on vulnerable versions of @opentelemetry/core
+  node_modules/@opentelemetry/instrumentation-express
+  @opentelemetry/instrumentation-fastify  <=0.44.2
+  Depends on vulnerable versions of @opentelemetry/core
+  node_modules/@opentelemetry/instrumentation-fastify
+  @opentelemetry/instrumentation-fs  <=0.19.1
+  Depends on vulnerable versions of @opentelemetry/core
+  node_modules/@opentelemetry/instrumentation-fs
+  @opentelemetry/instrumentation-hapi  0.24.0 - 0.45.2
+  Depends on vulnerable versions of @opentelemetry/core
+  node_modules/@opentelemetry/instrumentation-hapi
+  @opentelemetry/instrumentation-http  <=0.16.0 || 0.19.1-alpha.7 - 0.218.0
+  Depends on vulnerable versions of @opentelemetry/core
+  node_modules/@opentelemetry/instrumentation-http
+  @opentelemetry/instrumentation-koa  <=0.15.0 || 0.20.0 - 0.47.1
+  Depends on vulnerable versions of @opentelemetry/core
+  node_modules/@opentelemetry/instrumentation-koa
+  @opentelemetry/instrumentation-mongoose  <=0.66.0
+  Depends on vulnerable versions of @opentelemetry/core
+  node_modules/@opentelemetry/instrumentation-mongoose
+  @opentelemetry/instrumentation-pg  <=0.72.0
+  Depends on vulnerable versions of @opentelemetry/core
+  Depends on vulnerable versions of @opentelemetry/sql-common
+  node_modules/@opentelemetry/instrumentation-pg
+  @opentelemetry/instrumentation-undici  <=0.10.1
+  Depends on vulnerable versions of @opentelemetry/core
+  node_modules/@opentelemetry/instrumentation-undici
+  @opentelemetry/resources  0.8.0 - 2.7.1
+  Depends on vulnerable versions of @opentelemetry/core
+  node_modules/@opentelemetry/resources
+  @opentelemetry/sdk-trace-base  <=2.7.1
+  Depends on vulnerable versions of @opentelemetry/core
+  Depends on vulnerable versions of @opentelemetry/resources
+  node_modules/@opentelemetry/sdk-trace-base
+    @prisma/instrumentation  4.14.0-dev.1 - 6.1.0-integration-expose-deserialize-raw-result.1
+    Depends on vulnerable versions of @opentelemetry/sdk-trace-base
+    node_modules/@prisma/instrumentation
+  @opentelemetry/sql-common  <=0.40.1
+  Depends on vulnerable versions of @opentelemetry/core
+  node_modules/@opentelemetry/sql-common
+    @opentelemetry/instrumentation-mysql2  <=0.66.0
+    Depends on vulnerable versions of @opentelemetry/sql-common
+    node_modules/@opentelemetry/instrumentation-mysql2
+
+@opentelemetry/instrumentation-knex  <0.65.0
+Severity: moderate
+Multiple @opentelemetry/instrumentation-* packages expose database username via unconditional db.user span attribute - https://github.com/advisories/GHSA-qqmp-wf37-98f9
+fix available via `npm audit fix --force`
+Will install @sentry/nextjs@11.4.0, which is a breaking change
+node_modules/@opentelemetry/instrumentation-knex
+
+
+@opentelemetry/instrumentation-mysql  <0.67.0
+Severity: moderate
+Multiple @opentelemetry/instrumentation-* packages expose database username via unconditional db.user span attribute - https://github.com/advisories/GHSA-qqmp-wf37-98f9
+fix available via `npm audit fix`
+node_modules/@opentelemetry/instrumentation-mysql
+
+
+
+@opentelemetry/instrumentation-tedious  <0.40.0
+Severity: moderate
+Multiple @opentelemetry/instrumentation-* packages expose database username via unconditional db.user span attribute - https://github.com/advisories/GHSA-qqmp-wf37-98f9
+fix available via `npm audit fix`
+node_modules/@opentelemetry/instrumentation-tedious
+
+@simplewebauthn/server  <=13.3.1
+SimpleWebAuthn: Registration verification does not sufficiently ensure that attestation certificates chain to a trust anchor - https://github.com/advisories/GHSA-6hxq-p678-4hr2
+fix available via `npm audit fix --force`
+Will install @simplewebauthn/server@14.0.3, which is a breaking change
+node_modules/@simplewebauthn/server
+
+braces  *
+Severity: high
+braces vulnerable to stack-exhaustion denial of service through deeply nested patterns - https://github.com/advisories/GHSA-vfj7-8cjw-p6xm
+fix available via `npm audit fix --force`
+Will install tailwindcss@4.3.3, which is a breaking change
+node_modules/braces
+  chokidar  2.0.0 - 3.6.0
+  Depends on vulnerable versions of braces
+  node_modules/chokidar
+    tailwindcss  <=0.0.0-oxide-insiders.ff2c25f || 0.5.0 - 3.4.19
+    Depends on vulnerable versions of chokidar
+    Depends on vulnerable versions of fast-glob
+    Depends on vulnerable versions of micromatch
+    Depends on vulnerable versions of postcss-nested
+    Depends on vulnerable versions of postcss-selector-parser
+    node_modules/tailwindcss
+    unplugin  0.4.0 - 1.12.2
+    Depends on vulnerable versions of chokidar
+    node_modules/unplugin
+      @sentry/bundler-plugin-core  <=4.9.1
+      Depends on vulnerable versions of unplugin
+      node_modules/@sentry/bundler-plugin-core
+      @sentry/webpack-plugin  2.0.0-alpha.1 - 5.1.1
+      Depends on vulnerable versions of @sentry/bundler-plugin-core
+      Depends on vulnerable versions of unplugin
+      Depends on vulnerable versions of uuid
+      node_modules/@sentry/webpack-plugin
+  micromatch  >=0.2.0
+  Depends on vulnerable versions of braces
+  node_modules/micromatch
+    fast-glob  *
+    Depends on vulnerable versions of micromatch
+    node_modules/fast-glob
+      @vitest/ui  0.26.0 - 2.1.0-beta.7
+      Depends on vulnerable versions of fast-glob
+      node_modules/@vitest/ui
+      globby  >=8.0.0
+      Depends on vulnerable versions of fast-glob
+      node_modules/globby
+        @typescript-eslint/typescript-estree  3.10.2-alpha.0 - 8.2.1-alpha.25
+        Depends on vulnerable versions of globby
+        Depends on vulnerable versions of minimatch
+        node_modules/@typescript-eslint/typescript-estree
+          @typescript-eslint/parser  6.16.0 - 7.5.0
+          Depends on vulnerable versions of @typescript-eslint/typescript-estree
+          node_modules/@typescript-eslint/parser
+          @typescript-eslint/type-utils  6.16.0 - 7.5.0
+          Depends on vulnerable versions of @typescript-eslint/typescript-estree
+          Depends on vulnerable versions of @typescript-eslint/utils
+          node_modules/@typescript-eslint/type-utils
+            @typescript-eslint/eslint-plugin  6.16.0 - 7.5.0
+            Depends on vulnerable versions of @typescript-eslint/type-utils
+            Depends on vulnerable versions of @typescript-eslint/utils
+            node_modules/@typescript-eslint/eslint-plugin
+          @typescript-eslint/utils  6.16.0 - 7.5.0
+          Depends on vulnerable versions of @typescript-eslint/typescript-estree
+          node_modules/@typescript-eslint/utils
+
+esbuild  <=0.24.2
+Severity: moderate
+esbuild enables any website to send any requests to the development server and read the response - https://github.com/advisories/GHSA-67mh-4wv8-2f99
+fix available via `npm audit fix --force`
+Will install vitest@5.0.3, which is a breaking change
+node_modules/esbuild
+  vite  <=6.4.2
+  Depends on vulnerable versions of esbuild
+  node_modules/vite
+    vite-node  <=2.2.0-beta.2
+    Depends on vulnerable versions of vite
+    node_modules/vite-node
+      vitest  <=4.0.0-beta.19
+      Depends on vulnerable versions of tinypool
+      Depends on vulnerable versions of vite
+      Depends on vulnerable versions of vite-node
+      node_modules/vitest
+
+glob  10.2.0 - 10.4.5
+Severity: high
+glob CLI: Command injection via -c/--cmd executes matches with shell:true - https://github.com/advisories/GHSA-5j98-mcp5-4vw2
+fix available via `npm audit fix --force`
+Will install eslint-config-next@16.3.8, which is a breaking change
+node_modules/glob
+  @next/eslint-plugin-next  14.0.5-canary.0 - 15.0.0-rc.1
+  Depends on vulnerable versions of glob
+  node_modules/@next/eslint-plugin-next
+    eslint-config-next  14.0.5-canary.0 - 15.0.0-rc.1
+    Depends on vulnerable versions of @next/eslint-plugin-next
+    node_modules/eslint-config-next
+
+minimatch  9.0.0 - 9.0.6
+Severity: high
+minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern - https://github.com/advisories/GHSA-3ppc-4f35-3m26
+minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments - https://github.com/advisories/GHSA-7r86-cg39-jmmj
+minimatch ReDoS: nested *() extglobs generate catastrophically backtracking regular expressions - https://github.com/advisories/GHSA-23c5-xmqv-rm74
+fix available via `npm audit fix --force`
+Will install @typescript-eslint/parser@8.71.1, which is a breaking change
+node_modules/minimatch
+
+next  9.3.4-canary.0 - 16.3.0-preview.10
+Severity: critical
+Next.js self-hosted applications vulnerable to DoS via Image Optimizer remotePatterns configuration - https://github.com/advisories/GHSA-9g9p-9gw9-jx7f
+Next.js HTTP request deserialization can lead to DoS when using insecure React Server Components - https://github.com/advisories/GHSA-h25m-26qc-wcjf
+Next.js: HTTP request smuggling in rewrites - https://github.com/advisories/GHSA-ggv3-7p47-pfv8
+Next.js: Unbounded next/image disk cache growth can exhaust storage - https://github.com/advisories/GHSA-3x4c-7xq6-9pq8
+Next.js has a Denial of Service with Server Components - https://github.com/advisories/GHSA-q4gf-8mx6-v5v3
+Next.js Vulnerable to Denial of Service with Server Components - https://github.com/advisories/GHSA-8h8q-6873-q5fj
+Next.js's Middleware / Proxy redirects can be cache-poisoned - https://github.com/advisories/GHSA-3g8h-86w9-wvmq
+Next.js vulnerable to cross-site scripting in App Router applications using CSP nonces - https://github.com/advisories/GHSA-ffhc-5mcf-pf4q
+Next.js vulnerable to cache poisoning via collisions in React Server Component cache-busting - https://github.com/advisories/GHSA-vfv6-92ff-j949
+Next.js has cross-site scripting in beforeInteractive scripts with untrusted input - https://github.com/advisories/GHSA-gx5p-jg67-6x7h
+Next.js has a Denial of Service in the Image Optimization API - https://github.com/advisories/GHSA-h64f-5h5j-jqjh
+Next.js vulnerable to server-side request forgery in applications using WebSocket upgrades - https://github.com/advisories/GHSA-c4j6-fc7j-m34r
+Next.js vulnerable to cache poisoning in React Server Component responses - https://github.com/advisories/GHSA-wfc6-r584-vfw7
+Next.js has a Middleware / Proxy bypass in Pages Router applications using i18n - https://github.com/advisories/GHSA-36qx-fr4f-26g5
+Next.js: Denial of Service in App Router using Server Actions - https://github.com/advisories/GHSA-m99w-x7hq-7vfj
+Next.js: Server-Side Request Forgery in Server Actions on custom servers - https://github.com/advisories/GHSA-89xv-2m56-2m9x
+Next.js: Cache confusion of response bodies for requests with bodies - https://github.com/advisories/GHSA-68g3-v927-f742
+Next.js: Cache confusion of response bodies for requests with bodies containing invalid UTF-8 byte sequences - https://github.com/advisories/GHSA-4633-3j49-mh5q
+Next.js: Unbounded Server Action payload in Edge runtime - https://github.com/advisories/GHSA-4c39-4ccg-62r3
+Next.js: Server-Side Request Forgery in rewrites via attacker-controlled destination hostname - https://github.com/advisories/GHSA-p9j2-gv94-2wf4
+Next.js: Unauthenticated disclosure of internal Server Function endpoints - https://github.com/advisories/GHSA-955p-x3mx-jcvp
+Next.js: Unauthenticated Remote Code Execution on windows-hosted servers - https://github.com/advisories/GHSA-p293-qw3h-jr36
+Next.js: Unauthenticated Remote Code Execution in Image Optimization API when AVIF files are used - https://github.com/advisories/GHSA-2xp9-vwfh-vxw4
+Depends on vulnerable versions of postcss
+fix available via `npm audit fix --force`
+Will install next@16.3.8, which is a breaking change
+node_modules/next
+
+node-forge  *
+Severity: high
+node-forge RSA PKCS#1 v1.5 signature verification accepts extra nested DigestAlgorithm elements - https://github.com/advisories/GHSA-86w9-cpqp-85rv
+No fix available
+node_modules/node-forge
+
+nodemailer  <=10.0.5
+Severity: high
+Nodemailer: Message-level raw option bypasses disableFileAccess/disableUrlAccess, enabling arbitrary file read and full-response SSRF in the delivered message - https://github.com/advisories/GHSA-p6gq-j5cr-w38f
+Nodemailer: resolveContent() on a MailMessage bypasses disableFileAccess/disableUrlAccess when called with the legacy signature - https://github.com/advisories/GHSA-8m3c-c648-2xjj
+Nodemailer: IDN/Punycode domain allow-list bypass leads to email delivery to an attacker-controlled domain - https://github.com/advisories/GHSA-wmmp-3585-3rmp
+Nodemailer: Quadratic (O(n²)) time complexity in addressparser allows remote denial of service via a crafted address list - https://github.com/advisories/GHSA-2x7j-588g-ccc2
+Nodemailer: Recipient-domain validation bypass via RFC 5322 comment mis-parsing leads to email delivery to an attacker-controlled domain - https://github.com/advisories/GHSA-cc9r-2j5m-2m83
+Nodemailer: Process-global DNS cache reuses TLS `servername` across transports, enabling cross-tenant SMTP credential disclosure - https://github.com/advisories/GHSA-6vj9-mwq6-2f5v
+Nodemailer: Nested structured recipient arrays bypass the parser depth limit and cause stack exhaustion DoS - https://github.com/advisories/GHSA-8vvx-rff5-p5rq
+Nodemailer: Quadratic backtracking in the addressparser free-text fallback allows remote denial of service - https://github.com/advisories/GHSA-v53p-9fqp-m79j
+fix available via `npm audit fix --force`
+Will install nodemailer@10.0.15, which is a breaking change
+node_modules/nodemailer
+
+postcss  <=8.5.22
+Severity: high
+PostCSS has XSS via Unescaped </style> in its CSS Stringify Output - https://github.com/advisories/GHSA-qx2v-qp2m-jg93
+PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments - https://github.com/advisories/GHSA-6g55-p6wh-862q
+PostCSS: incomplete fix of GHSA-6g55-p6wh-862q — attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset - https://github.com/advisories/GHSA-fxqj-rqcc-2cmp
+PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure - https://github.com/advisories/GHSA-r28c-9q8g-f849
+fix available via `npm audit fix --force`
+Will install next@16.3.8, which is a breaking change
+node_modules/next/node_modules/postcss
+
+postcss-selector-parser  <7.1.6
+Severity: moderate
+PostCSS: Quadratic complexity in flat selector parsing allows CPU exhaustion - https://github.com/advisories/GHSA-rj75-hqrm-r3gf
+fix available via `npm audit fix --force`
+Will install tailwindcss@4.3.3, which is a breaking change
+node_modules/postcss-selector-parser
+  postcss-nested  2.0.3 - 6.2.0
+  Depends on vulnerable versions of postcss-selector-parser
+  node_modules/postcss-nested
+
+rollup  3.0.0 - 3.29.5
+Severity: high
+Rollup 4 has Arbitrary File Write via Path Traversal - https://github.com/advisories/GHSA-mw96-cpmx-2vgc
+fix available via `npm audit fix --force`
+Will install @sentry/nextjs@11.4.0, which is a breaking change
+node_modules/@sentry/nextjs/node_modules/rollup
+
+tinypool  <=2.1.1
+Severity: critical
+Tinypool: Prototype Pollution gadget in worker options leads to Remote Code Execution - https://github.com/advisories/GHSA-5gmw-xhrv-c9v3
+Tinypool: Prototype Pollution Gadget to RCE in run() options - https://github.com/advisories/GHSA-85c8-ppgw-ccpr
+fix available via `npm audit fix --force`
+Will install vitest@5.0.3, which is a breaking change
+node_modules/tinypool
+
+
+uuid  <11.1.1
+Severity: moderate
+uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided - https://github.com/advisories/GHSA-w5hq-g745-h8pq
+fix available via `npm audit fix --force`
+Will install @sentry/nextjs@11.4.0, which is a breaking change
+node_modules/uuid
+
+
+
+58 vulnerabilities (1 low, 27 moderate, 27 high, 3 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues possible (including breaking changes), run:
+  npm audit fix --force
+
+Some issues need review, and may require choosing
+a different dependency.
