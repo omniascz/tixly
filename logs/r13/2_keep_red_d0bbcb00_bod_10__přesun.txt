@@ -1,0 +1,44 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [golden-path] › tests\golden-path-r13-keep.spec.ts:148:7 › vlastník › bod 10: přesun a zrušení termínu jen po potvrzení v okně
+[1A[2K  1) [golden-path] › tests\golden-path-r13-keep.spec.ts:148:7 › vlastník › bod 10: přesun a zrušení termínu jen po potvrzení v okně 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m1[39m
+    Received: [31m0[39m
+
+    Call Log:
+    - Timeout 10000ms exceeded while waiting on the predicate
+
+      154 |     await page.getByPlaceholder('Důvod přesunu').fill('Test potvrzení');
+      155 |     await page.getByRole('button', { name: 'Přesunout a informovat kupce' }).click();
+    > 156 |     await expect.poll(() => dialogs.length).toBe(1);
+          |     ^
+      157 |     expect(dialogs[0]).toBe('confirm: Přesunout termín? Všem kupcům odejde e-mail s novým datem.');
+      158 |     await page.getByPlaceholder('Důvod zrušení (pošle se kupcům)').fill('Test potvrzení');
+      159 |     await page.getByPlaceholder('Pro potvrzení napište „ZRUŠIT"').fill('ZRUŠIT');
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r13-keep.spec.ts:156:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-c20a7-ínu-jen-po-potvrzení-v-okně-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r13-keep-vlast-c20a7-ínu-jen-po-potvrzení-v-okně-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-c20a7-ínu-jen-po-potvrzení-v-okně-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-c20a7-ínu-jen-po-potvrzení-v-okně-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-c20a7-ínu-jen-po-potvrzení-v-okně-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r13-keep-vlast-c20a7-ínu-jen-po-potvrzení-v-okně-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  1 failed
+    [golden-path] › tests\golden-path-r13-keep.spec.ts:148:7 › vlastník › bod 10: přesun a zrušení termínu jen po potvrzení v okně 

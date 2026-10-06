@@ -31,7 +31,6 @@ function moderationBadge(status: string | undefined): { label: string; tone: str
       return { label: 'Archivováno', tone: 'bg-slate-100 text-slate-600' };
     case 'draft':
       return { label: 'Koncept', tone: 'bg-slate-100 text-slate-600' };
-    // Kolo 12: zrušený termín se dřív ukazoval jako „Prodej"
     case 'cancelled':
       return { label: 'Zrušeno', tone: 'bg-rose-100 text-rose-800' };
     case 'published':
@@ -59,17 +58,6 @@ const columns: Column<AdminEvent>[] = [
     header: 'Termín',
     render: (row) => (
       <span className="text-muted-foreground">{formatCzechDate(row.date)}</span>
-    ),
-  },
-  {
-    // Kolo 12: bez města se termíny jedné inscenace nedaly rozlišit (pokladní vybrala špatný termín)
-    key: 'venue',
-    header: 'Místo',
-    render: (row) => (
-      <span className="text-muted-foreground">
-        {row.venueCity ? <span className="font-medium text-foreground">{row.venueCity}</span> : null}
-        {row.venueName ? <span className="block text-xs">{row.venueName}</span> : null}
-      </span>
     ),
   },
   {
@@ -109,14 +97,78 @@ const columns: Column<AdminEvent>[] = [
     header: '',
     className: 'text-right',
     render: (row) => (
-      // Kolo 12: dřív 14 odkazů na řádek (část anglicky: Add-ons, Live, Member pricing, Dynamic…); všechny nástroje
-      // jsou v záložkách termínu (Otevřít), sem patří jen to, co se dělá denně.
       <div className="flex justify-end gap-3 text-xs">
-        <Link href={`/admin/events/${row.id}`} className="font-medium text-primary hover:underline">
-          Otevřít
+        <Link
+          href={`/admin/events/${row.id}/edit`}
+          className="font-medium text-primary hover:underline"
+        >
+          Upravit
         </Link>
-        <Link href={`/admin/events/${row.id}/edit`} className="font-medium text-primary hover:underline">
-          Upravit údaje
+        <Link
+          href={`/admin/events/${row.id}/season`}
+          className="font-medium text-primary hover:underline"
+        >
+          Sezóna
+        </Link>
+        <Link
+          href={`/admin/events/${row.id}/addons`}
+          className="font-medium text-primary hover:underline"
+        >
+          Add-ons
+        </Link>
+        <Link
+          href={`/admin/events/${row.id}/settings`}
+          className="font-medium text-primary hover:underline"
+        >
+          Nastavení
+        </Link>
+        <Link
+          href={`/admin/events/${row.id}/wristbands`}
+          className="font-medium text-primary hover:underline"
+        >
+          Náramky
+        </Link>
+        <Link
+          href={`/admin/events/${row.id}/live-ops`}
+          className="font-medium text-emerald-700 hover:underline"
+        >
+          Live
+        </Link>
+        <Link
+          href={`/admin/events/${row.id}/sales-report`}
+          className="font-medium text-primary hover:underline"
+        >
+          Reporty
+        </Link>
+        <Link
+          href={`/admin/events/${row.id}/broadcast`}
+          className="font-medium text-primary hover:underline"
+        >
+          Zpráva
+        </Link>
+        <Link
+          href={`/admin/events/${row.id}/lotteries`}
+          className="font-medium text-primary hover:underline"
+        >
+          Losování
+        </Link>
+        <Link
+          href={`/admin/events/${row.id}/hospitality`}
+          className="font-medium text-primary hover:underline"
+        >
+          Hospitality
+        </Link>
+        <Link
+          href={`/admin/events/${row.id}/member-pricing`}
+          className="font-medium text-primary hover:underline"
+        >
+          Member pricing
+        </Link>
+        <Link
+          href={`/admin/events/${row.id}/dynamic-pricing`}
+          className="font-medium text-amber-700 hover:underline"
+        >
+          🔥 Dynamic
         </Link>
         <CloneButton eventId={row.id} eventTitle={row.name} />
         <Link
@@ -138,7 +190,7 @@ function CloneButton({ eventId, eventTitle }: { eventId: string; eventTitle: str
       onClick={async () => {
         const newTitle = prompt(`Název kopie akce "${eventTitle}":`, `${eventTitle} (kopie)`);
         if (!newTitle) return;
-        const newDate = prompt('Datum a čas kopie (rok-měsíc-den hodina:minuta, např. 2026-12-31 20:00):', '2026-12-31 20:00');
+        const newDate = prompt('Nové datum (YYYY-MM-DD HH:MM):', '2026-12-31 20:00');
         if (!newDate) return;
         try {
           const iso = new Date(newDate.replace(' ', 'T')).toISOString();
@@ -150,7 +202,7 @@ function CloneButton({ eventId, eventTitle }: { eventId: string; eventTitle: str
           });
           const data = await r.json() as { newEventId?: string; error?: string; cloned?: { ticket_types: number } };
           if (!r.ok) {
-            alert(`Kopii se nepodařilo vytvořit (${r.status === 403 ? 'nemáte oprávnění' : 'zkontrolujte datum a zkuste to znovu'}).`);
+            alert(data.error ?? `HTTP ${r.status}`);
             return;
           }
           alert(`Akce naklonována. ${data.cloned?.ticket_types ?? 0} typů lístků zkopírováno.`);
@@ -160,7 +212,7 @@ function CloneButton({ eventId, eventTitle }: { eventId: string; eventTitle: str
         }
       }}
     >
-      Kopírovat
+      📋 Klon
     </button>
   );
 }

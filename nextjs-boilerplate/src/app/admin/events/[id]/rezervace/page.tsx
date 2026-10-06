@@ -8,7 +8,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { errorText } from '@/lib/ui/error-text';
 
 interface Reservation {
   id: string; code: string; buyerName: string; buyerEmail: string; buyerPhone: string | null; seatCount: number;
@@ -36,12 +35,10 @@ export default function ReservationsPage({ params }: { params: { id: string } })
   const [found, setFound] = useState<Reservation[] | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  // Kolo 12: po zaplacení rovnou tisk vstupenek (dřív chyběl)
-  const [paidOrderId, setPaidOrderId] = useState<string | null>(null);
 
   async function load() {
     const r = await api(`/api/admin/events/${params.id}/reservations`);
-    if (!r.ok) { setErr(`Rezervace se nepodařilo načíst. ${errorText({}, r.status)}`); return; }
+    if (!r.ok) { setErr(`Načtení selhalo (HTTP ${r.status}).`); return; }
     const j = (await r.json()) as Data;
     setData(j);
     setForm({ enabled: j.settings.enabled, days: String(j.settings.days), cutoffHours: String(j.settings.cutoffHours) });
@@ -56,7 +53,7 @@ export default function ReservationsPage({ params }: { params: { id: string } })
     const r = await api(`/api/admin/events/${params.id}/reservations`, {
       method: 'PATCH', body: JSON.stringify({ enabled: form.enabled, days: Number(form.days), cutoffHours: Number(form.cutoffHours) }),
     });
-    if (!r.ok) { setErr(`Nastavení se nepodařilo uložit. ${errorText(await r.json().catch(() => ({})), r.status)}`); return; }
+    if (!r.ok) { setErr(`Uložení selhalo (HTTP ${r.status}).`); return; }
     setMsg('Nastavení rezervací uloženo.'); await load();
   }
 
@@ -64,16 +61,15 @@ export default function ReservationsPage({ params }: { params: { id: string } })
     setErr(null);
     const r = await api(`/api/admin/seat-reservations?eventId=${params.id}&q=${encodeURIComponent(q)}`);
     const j = (await r.json().catch(() => ({}))) as { reservations?: Reservation[]; error?: string };
-    if (!r.ok) { setErr(errorText(j, r.status)); return; }
+    if (!r.ok) { setErr(j.error ?? `HTTP ${r.status}`); return; }
     setFound(j.reservations ?? []);
   }
 
   async function pay(res: Reservation, paymentType: 'cash' | 'card') {
-    setErr(null); setMsg(null); setPaidOrderId(null);
+    setErr(null); setMsg(null);
     const r = await api(`/api/admin/seat-reservations/${res.id}/pay`, { method: 'POST', body: JSON.stringify({ paymentType }) });
-    const j = (await r.json().catch(() => ({}))) as { message?: string; error?: string; receiptNumber?: string; tickets?: unknown[]; orderId?: string };
-    if (!r.ok) { setErr(errorText(j, r.status)); return; }
-    setPaidOrderId(j.orderId ?? null);
+    const j = (await r.json().catch(() => ({}))) as { message?: string; error?: string; receiptNumber?: string; tickets?: unknown[] };
+    if (!r.ok) { setErr(j.message ?? j.error ?? `HTTP ${r.status}`); return; }
     setMsg(`Rezervace ${res.code} zaplacena (${paymentType === 'cash' ? 'hotově' : 'kartou'}): ${j.tickets?.length ?? 0} vstupenek, doklad ${j.receiptNumber ?? ''}.`);
     setFound(null); setQ(''); await load();
   }
@@ -84,12 +80,6 @@ export default function ReservationsPage({ params }: { params: { id: string } })
     <div className="space-y-6 p-4">
       <h1 className="text-xl font-semibold">Rezervace s platbou na pokladně</h1>
       {msg && <p className="rounded bg-emerald-50 p-2 text-sm text-emerald-800" data-testid="res-msg">{msg}</p>}
-      {msg && paidOrderId ? (
-        <a href={`/api/admin/orders/${paidOrderId}/print-labels`} target="_blank" rel="noopener noreferrer"
-          className="inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90" data-testid="res-print">
-          Vytisknout vstupenky (s QR kódem)
-        </a>
-      ) : null}
       {err && <p role="alert" className="rounded bg-rose-50 p-2 text-sm text-rose-800">{err}</p>}
 
       {data && (

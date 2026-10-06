@@ -1,0 +1,2658 @@
+diff --git a/nextjs-boilerplate/src/app/[locale]/events/[id]/seats/SeatPicker.tsx b/nextjs-boilerplate/src/app/[locale]/events/[id]/seats/SeatPicker.tsx
+index 1ba4385f..64737d84 100644
+--- a/nextjs-boilerplate/src/app/[locale]/events/[id]/seats/SeatPicker.tsx
++++ b/nextjs-boilerplate/src/app/[locale]/events/[id]/seats/SeatPicker.tsx
+@@ -440,7 +440,7 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
+             onClick={holdAndProceed}
+             disabled={busy || selected.size === 0}
+           >
+-            {busy ? 'Rezervuji…' : 'Pokračovat na pokladnu'}
++            {busy ? 'Rezervuji…' : 'Pokračovat k objednávce'}
+           </Button>
+         </div>
+         {error ? (
+diff --git a/nextjs-boilerplate/src/app/[locale]/events/[id]/slots/SlotPickerClient.tsx b/nextjs-boilerplate/src/app/[locale]/events/[id]/slots/SlotPickerClient.tsx
+index 79b98297..93b1081d 100644
+--- a/nextjs-boilerplate/src/app/[locale]/events/[id]/slots/SlotPickerClient.tsx
++++ b/nextjs-boilerplate/src/app/[locale]/events/[id]/slots/SlotPickerClient.tsx
+@@ -148,7 +148,7 @@ export function SlotPickerClient({ eventId, locale }: { eventId: string; locale:
+                 window.location.href = `/${locale}/checkout?${params.toString()}`;
+               }}
+             >
+-              Pokračovat na pokladnu →
++              Pokračovat k objednávce →
+             </Button>
+           </div>
+         </div>
+diff --git a/nextjs-boilerplate/src/app/[locale]/layout.tsx b/nextjs-boilerplate/src/app/[locale]/layout.tsx
+index 4d444294..8c2fe6a2 100644
+--- a/nextjs-boilerplate/src/app/[locale]/layout.tsx
++++ b/nextjs-boilerplate/src/app/[locale]/layout.tsx
+@@ -41,7 +41,7 @@ export default function LocaleLayout({
+               Soukromí
+             </Link>
+             <Link href={`/${params.locale}/status`} className="hover:underline">
+-              Status
++              Stav služby
+             </Link>
+           </nav>
+         </div>
+diff --git a/nextjs-boilerplate/src/app/[locale]/lottery/redeem/LotteryRedeemClient.tsx b/nextjs-boilerplate/src/app/[locale]/lottery/redeem/LotteryRedeemClient.tsx
+index d6779aac..22035d26 100644
+--- a/nextjs-boilerplate/src/app/[locale]/lottery/redeem/LotteryRedeemClient.tsx
++++ b/nextjs-boilerplate/src/app/[locale]/lottery/redeem/LotteryRedeemClient.tsx
+@@ -119,7 +119,7 @@ export function LotteryRedeemClient({ token, locale }: { token: string; locale:
+         ({hoursLeft}h zbývá) — pokud nezaplatíš, slot půjde dalšímu losovanému.
+       </div>
+       <Button onClick={proceed} disabled={busy} className="w-full">
+-        {busy ? 'Přesměrovávám…' : 'Pokračovat na pokladnu'}
++        {busy ? 'Přesměrovávám…' : 'Pokračovat k objednávce'}
+       </Button>
+     </div>
+   );
+diff --git a/nextjs-boilerplate/src/app/admin/events/[id]/blokace/page.tsx b/nextjs-boilerplate/src/app/admin/events/[id]/blokace/page.tsx
+index c9ddd643..8a27e66a 100644
+--- a/nextjs-boilerplate/src/app/admin/events/[id]/blokace/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/events/[id]/blokace/page.tsx
+@@ -6,8 +6,13 @@
+  * uvolnění vybraných / všech míst, volné vstupenky na jména. Prodej firmě: Firemní objednávky; na pokladně: Pokladna.
+  */
+ import { useEffect, useMemo, useState } from 'react';
++import { ConfirmDialog, type ConfirmRequest } from '@/components/admin/ConfirmDialog';
+ import { Button } from '@/components/ui/button';
+ import { Input } from '@/components/ui/input';
++import { errorText } from '@/lib/ui/error-text';
++
++/** Kolo 12: stav místa česky (dřív v nápovědě „— available"). */
++const SEAT_STATUS: Record<string, string> = { available: 'volné', sold: 'prodáno', blocked: 'blokováno', held: 'drženo', reserved: 'rezervováno' };
+ 
+ interface Block { id: string; name: string; note: string | null; color: string; total: number; blocked: number; released: number; issued: number; sold: number }
+ interface Seat { id: string; sector: string; row: string; seat_number: string; x: number | null; y: number | null; status: string; blockId: string | null; color: string | null; blockName: string | null }
+@@ -29,10 +34,11 @@ export default function BlocksPage({ params }: { params: { id: string } }) {
+   const [compBlock, setCompBlock] = useState('');
+   const [msg, setMsg] = useState<string | null>(null);
+   const [err, setErr] = useState<string | null>(null);
++  const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
+ 
+   async function load() {
+     const r = await api(`/api/admin/events/${params.id}/blocks`);
+-    if (!r.ok) { setErr(`Načtení selhalo (HTTP ${r.status}).`); return; }
++    if (!r.ok) { setErr(`Blokace se nepodařilo načíst. ${errorText(await r.json().catch(() => ({})), r.status)}`); return; }
+     const j = (await r.json()) as { blocks: Block[]; seats: Seat[] };
+     setBlocks(j.blocks); setSeats(j.seats);
+   }
+@@ -48,7 +54,7 @@ export default function BlocksPage({ params }: { params: { id: string } }) {
+     setErr(null); setMsg(null);
+     const r = await api(url, { method: 'POST', body: JSON.stringify(body) });
+     const j = (await r.json().catch(() => ({}))) as Record<string, unknown>;
+-    if (!r.ok) { setErr(String(j.message ?? j.error ?? `HTTP ${r.status}`)); return; }
++    if (!r.ok) { setErr(errorText(j, r.status)); return; }
+     setMsg(ok(j)); setSel(new Set()); await load();
+   }
+ 
+@@ -57,9 +63,27 @@ export default function BlocksPage({ params }: { params: { id: string } }) {
+     ...(sector ? { sector } : { seatIds: [...sel] }),
+   }, (j) => `Blokace „${name}" založena: ${String(j.blocked)} míst${(j.skipped as unknown[]).length ? `, ${(j.skipped as unknown[]).length} obsazených přeskočeno` : ''}.`).then(() => { setName(''); setNote(''); setSector(''); });
+ 
+-  const release = (b: Block, onlySelected: boolean) => run(`/api/admin/events/${params.id}/blocks/${b.id}/release`,
+-    onlySelected ? { seatIds: seats.filter((s) => sel.has(s.id) && s.blockId === b.id).map((s) => s.id) } : {},
++  const doRelease = (b: Block, seatIds: string[] | null) => run(`/api/admin/events/${params.id}/blocks/${b.id}/release`,
++    seatIds ? { seatIds } : {},
+     (j) => `Uvolněno ${String(j.released)} míst z blokace „${b.name}".`);
++  // Kolo 12: uvolnění vrací místa do prodeje — dřív bez potvrzení
++  const release = (b: Block, onlySelected: boolean) => {
++    setErr(null);
++    const ids = onlySelected ? seats.filter((s) => sel.has(s.id) && s.blockId === b.id).map((s) => s.id) : null;
++    if (onlySelected && ids!.length === 0) { setErr(`Nejdřív na plánku vyberte místa z blokace „${b.name}" (barevná kolečka), potom klikněte na „Uvolnit vybraná".`); return; }
++    const n = ids ? ids.length : b.blocked;
++    if (n === 0) { setErr(`Blokace „${b.name}" už nemá žádná zablokovaná místa.`); return; }
++    setConfirm({
++      title: `Uvolnit ${n} ${n === 1 ? 'místo' : n < 5 ? 'místa' : 'míst'} z blokace „${b.name}"?`,
++      consequences: [
++        `Uvolnění vrátí ${n === 1 ? 'místo' : 'místa'} do volného prodeje — koupit si ${n === 1 ? 'ho' : 'je'} může kdokoli na webu i na pokladně.`,
++        'Vstupenky už z blokace prodané nebo vydané na jména zůstávají platné.',
++        'Pro opětovnou blokaci je musíte znovu vybrat a zablokovat.',
++      ],
++      confirmLabel: `Uvolnit ${n} ${n === 1 ? 'místo' : n < 5 ? 'místa' : 'míst'}`,
++      onConfirm: async () => { await doRelease(b, ids); },
++    });
++  };
+ 
+   const compSeats = seats.filter((s) => sel.has(s.id) && s.blockId === compBlock);
+   const issueComps = () => run(`/api/admin/events/${params.id}/blocks/${compBlock}/comps`, {
+@@ -69,6 +93,7 @@ export default function BlocksPage({ params }: { params: { id: string } }) {
+   return (
+     <div className="space-y-6" data-testid="blocks-page">
+       <h2 className="text-xl font-semibold">Blokace míst</h2>
++      <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
+       {msg ? <p className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-800" data-testid="blocks-msg">{msg}</p> : null}
+       {err ? <p className="rounded-md bg-rose-50 p-3 text-sm text-rose-800">{err}</p> : null}
+ 
+@@ -81,7 +106,7 @@ export default function BlocksPage({ params }: { params: { id: string } }) {
+               <circle key={s.id} cx={s.x ?? 0} cy={s.y ?? 0} r={8} fill={fill} stroke={picked ? '#000' : '#fff'} strokeWidth={picked ? 3 : 1}
+                 style={{ cursor: 'pointer' }} data-seat-block={s.blockName ?? ''}
+                 onClick={() => { const n = new Set(sel); if (n.has(s.id)) n.delete(s.id); else n.add(s.id); setSel(n); }}>
+-                <title>{`${s.sector} řada ${s.row} místo ${s.seat_number}${s.blockName ? ` — ${s.blockName}` : ` — ${s.status}`}`}</title>
++                <title>{`${s.sector} řada ${s.row} místo ${s.seat_number}${s.blockName ? ` — ${s.blockName}` : ` — ${SEAT_STATUS[s.status] ?? s.status}`}`}</title>
+               </circle>
+             );
+           })}
+diff --git a/nextjs-boilerplate/src/app/admin/events/[id]/firemni/page.tsx b/nextjs-boilerplate/src/app/admin/events/[id]/firemni/page.tsx
+index 3dc2f2c8..315d852e 100644
+--- a/nextjs-boilerplate/src/app/admin/events/[id]/firemni/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/events/[id]/firemni/page.tsx
+@@ -6,8 +6,15 @@
+  * zrušit / uvolnit místa → dobropis.
+  */
+ import { useEffect, useMemo, useState } from 'react';
++import { ConfirmDialog, type ConfirmRequest } from '@/components/admin/ConfirmDialog';
+ import { Button } from '@/components/ui/button';
+ import { Input } from '@/components/ui/input';
++import { errorText } from '@/lib/ui/error-text';
++
++/** Kolo 12: přirozené řazení míst (1/2 před 1/10; dřív textově 1/1, 1/11, 1/12…). */
++const num = (v: string) => { const n = parseInt(v, 10); return Number.isNaN(n) ? Number.MAX_SAFE_INTEGER : n; };
++const bySeat = (a: { sector: string; row: string; seat_number: string }, b: { sector: string; row: string; seat_number: string }) =>
++  a.sector.localeCompare(b.sector, 'cs') || num(a.row) - num(b.row) || a.row.localeCompare(b.row, 'cs') || num(a.seat_number) - num(b.seat_number);
+ 
+ interface Seat { id: string; sector: string; row: string; seat_number: string; status: string; blockId: string | null; blockName: string | null }
+ interface Block { id: string; name: string; blocked: number }
+@@ -40,6 +47,7 @@ export default function CorporateOrdersPage({ params }: { params: { id: string }
+   const [dueDate, setDueDate] = useState(inDays(14));
+   const [msg, setMsg] = useState<string | null>(null);
+   const [err, setErr] = useState<string | null>(null);
++  const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
+ 
+   async function load() {
+     const [b, c, o] = await Promise.all([
+@@ -61,7 +69,7 @@ export default function CorporateOrdersPage({ params }: { params: { id: string }
+   }, [params.id]);
+ 
+   const offer = useMemo(
+-    () => seats.filter((s) => (source ? s.blockId === source : s.status === 'available')),
++    () => seats.filter((s) => (source ? s.blockId === source : s.status === 'available')).sort(bySeat),
+     [seats, source],
+   );
+ 
+@@ -69,7 +77,7 @@ export default function CorporateOrdersPage({ params }: { params: { id: string }
+     setErr(null);
+     const r = await api(`/api/admin/ares/${company.ico}`);
+     const j = (await r.json().catch(() => ({}))) as { name?: string; address?: string; dic?: string; message?: string; error?: string };
+-    if (!r.ok) { setErr(j.message ?? j.error ?? `ARES: HTTP ${r.status}`); return; }
++    if (!r.ok) { setErr(`Údaje z ARES se nepodařilo načíst. ${r.status === 404 ? 'Firma s tímto IČO v ARES není — zkontrolujte IČO, nebo údaje vyplňte ručně.' : 'Vyplňte údaje firmy ručně.'}`); return; }
+     setCompany({ ...company, name: j.name ?? '', address: j.address ?? '', dic: j.dic ?? '' });
+   }
+ 
+@@ -86,33 +94,53 @@ export default function CorporateOrdersPage({ params }: { params: { id: string }
+       }),
+     });
+     const j = (await r.json().catch(() => ({}))) as { message?: string; error?: string; invoiceNumber?: string; totalMinor?: number };
+-    if (!r.ok) { setErr(j.message ?? j.error ?? `HTTP ${r.status}`); return; }
++    if (!r.ok) { setErr(errorText(j, r.status)); return; }
+     setMsg(`Objednávka založena, faktura ${j.invoiceNumber ?? ''} (${kc(j.totalMinor ?? 0)}) odeslána na ${contact.email}.`);
+     setSel(new Set()); await load();
+   }
+ 
+-  async function act(o: Order, kind: 'paid' | 'cancel') {
++  async function send(o: Order, kind: 'paid' | 'cancel', body: unknown) {
+     setErr(null); setMsg(null);
+-    let body: unknown;
+-    if (kind === 'paid') {
+-      const ref = window.prompt('Reference platby (VS / ID transakce):', o.invoiceNumber ?? '');
+-      if (!ref) return;
+-      body = { paidOn: new Date().toISOString().slice(0, 10), paymentReference: ref };
+-    } else {
+-      const why = window.prompt('Důvod zrušení / uvolnění míst:', '');
+-      if (!why) return;
+-      body = { reason: why };
+-    }
+     const r = await api(`/api/admin/corporate-orders/${o.id}/${kind}`, { method: 'POST', body: JSON.stringify(body) });
+     const j = (await r.json().catch(() => ({}))) as { message?: string; error?: string; tickets?: number; seatsReturned?: number };
+-    if (!r.ok) { setErr(j.message ?? j.error ?? `HTTP ${r.status}`); return; }
++    if (!r.ok) { setErr(errorText(j, r.status)); return; }
+     setMsg(kind === 'paid' ? `Zaplaceno — ${j.tickets ?? 0} vstupenek odesláno na ${o.contactEmail}.` : `Zrušeno — dobropis vystaven, ${j.seatsReturned ?? 0} míst vráceno.`);
+     await load();
+   }
+ 
++  // Kolo 12: potvrzení v okně aplikace s důsledky (dřív window.prompt „Reference platby (VS / ID transakce)").
++  function act(o: Order, kind: 'paid' | 'cancel') {
++    if (kind === 'paid') {
++      setConfirm({
++        title: `Označit objednávku ${o.companyName} jako zaplacenou?`,
++        consequences: [
++          `Vstupenky (${o.seats}) se vystaví a pošlou e-mailem na ${o.contactEmail}.`,
++          'Faktura se označí jako uhrazená. Zkontrolujte, že platba opravdu dorazila na účet.',
++        ],
++        confirmLabel: 'Zaplaceno — vystavit vstupenky',
++        input: { label: 'Variabilní symbol nebo poznámka k platbě', placeholder: 'např. VS 2026001', required: true, initial: o.invoiceNumber ?? '' },
++        onConfirm: (ref) => send(o, 'paid', { paidOn: new Date().toISOString().slice(0, 10), paymentReference: ref }),
++      });
++    } else {
++      setConfirm({
++        title: `Zrušit firemní objednávku ${o.companyName}?`,
++        consequences: [
++          'K faktuře se vystaví dobropis.',
++          o.status === 'paid' ? 'Vydané vstupenky přestanou platit — peníze firmě vraťte převodem.' : 'Nezaplacená místa se vrátí (do blokace, ze které byla, jinak do volného prodeje).',
++          'Akci nelze vrátit zpět.',
++        ],
++        confirmLabel: 'Zrušit objednávku',
++        danger: true,
++        input: { label: 'Důvod zrušení (uvede se na dobropisu)', placeholder: 'např. firma akci zrušila', required: true },
++        onConfirm: (why) => send(o, 'cancel', { reason: why }),
++      });
++    }
++  }
++
+   return (
+     <div className="space-y-6 p-4">
+       <h1 className="text-xl font-semibold">Firemní objednávky na fakturu</h1>
++      <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
+       {msg && <p className="rounded bg-emerald-50 p-2 text-sm text-emerald-800" data-testid="corp-msg">{msg}</p>}
+       {err && <p role="alert" className="rounded bg-rose-50 p-2 text-sm text-rose-800">{err}</p>}
+ 
+@@ -144,7 +172,7 @@ export default function CorporateOrdersPage({ params }: { params: { id: string }
+           </div>
+           <div className="flex max-h-48 flex-wrap gap-1 overflow-auto rounded border p-2">
+             {offer.map((s) => (
+-              <button key={s.id} type="button"
++              <button key={s.id} type="button" data-testid="corp-seat"
+                 onClick={() => { const n = new Set(sel); if (n.has(s.id)) n.delete(s.id); else n.add(s.id); setSel(n); }}
+                 className={`rounded px-2 py-1 text-xs ${sel.has(s.id) ? 'bg-slate-900 text-white' : 'bg-slate-100'}`}>
+                 {s.sector} {s.row}/{s.seat_number}
+@@ -172,15 +200,15 @@ export default function CorporateOrdersPage({ params }: { params: { id: string }
+               <td className="p-2">{o.seats}</td>
+               <td className="p-2">{kc(o.totalMinor)}</td>
+               <td className="p-2">
+-                {o.invoiceId && <><a className="underline" href={`/api/admin/invoices/${o.invoiceId}/pdf`}>{o.invoiceNumber}</a> · <a className="underline" href={`/api/admin/invoices/${o.invoiceId}/isdoc`}>ISDOC</a></>}
++                {o.invoiceId && <><a className="underline" href={`/api/admin/invoices/${o.invoiceId}/pdf`}>{o.invoiceNumber}</a> · <a className="underline" href={`/api/admin/invoices/${o.invoiceId}/isdoc`} title="Soubor faktury pro účetní program">pro účetnictví (ISDOC)</a></>}
+                 {o.creditNoteId && <div className="text-xs"><a className="underline" href={`/api/admin/invoices/${o.creditNoteId}/pdf`}>dobropis</a></div>}
+               </td>
+               <td className="p-2">{o.dueDate}</td>
+               <td className="p-2">{STATUS[o.status] ?? o.status}{o.paymentReference ? <div className="text-xs">ref. {o.paymentReference}</div> : null}</td>
+               <td className="p-2">
+                 <div className="flex gap-1">
+-                  {['confirmed', 'overdue'].includes(o.status) && <Button size="sm" onClick={() => void act(o, 'paid')}>Zaplaceno</Button>}
+-                  {o.status !== 'cancelled' && <Button size="sm" variant="outline" onClick={() => void act(o, 'cancel')}>Zrušit / uvolnit</Button>}
++                  {['confirmed', 'overdue'].includes(o.status) && <Button size="sm" onClick={() => act(o, 'paid')}>Zaplaceno</Button>}
++                  {o.status !== 'cancelled' && <Button size="sm" variant="outline" onClick={() => act(o, 'cancel')}>Zrušit</Button>}
+                 </div>
+               </td>
+             </tr>
+diff --git a/nextjs-boilerplate/src/app/admin/events/[id]/kategorie/page.tsx b/nextjs-boilerplate/src/app/admin/events/[id]/kategorie/page.tsx
+index 7a6cf62b..99ec234a 100644
+--- a/nextjs-boilerplate/src/app/admin/events/[id]/kategorie/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/events/[id]/kategorie/page.tsx
+@@ -8,6 +8,7 @@
+ import { useEffect, useState } from 'react';
+ import { Button } from '@/components/ui/button';
+ import { Input } from '@/components/ui/input';
++import { errorText } from '@/lib/ui/error-text';
+ 
+ interface Category { id: string; code: string; name: string; kind: string; price_mode: 'percent' | 'fixed'; price_value: number; requires_proof: boolean; proof_label: string | null; limit_per_event: number | null }
+ interface Zone { id: string; name: string; base_price: number }
+@@ -44,7 +45,7 @@ export default function CategoriesPage({ params }: { params: { id: string } }) {
+     setErr(null); setMsg(null);
+     const r = await api(url, { method, body: JSON.stringify(body) });
+     const j = (await r.json().catch(() => ({}))) as Record<string, unknown>;
+-    if (!r.ok) { setErr(String(j.message ?? j.error ?? `HTTP ${r.status}`)); return false; }
++    if (!r.ok) { setErr(errorText(j, r.status)); return false; }
+     setMsg(ok); await load(); return true;
+   }
+ 
+@@ -53,8 +54,10 @@ export default function CategoriesPage({ params }: { params: { id: string } }) {
+   async function save() {
+     // procento × 100, resp. Kč → haléře
+     const priceValue = Math.round(Number(form.price) * 100);
++    // Kolo 12: kód (technický identifikátor) se odvodí z názvu, pokud ho uživatel nevyplní
++    const code = form.code.trim() || form.name.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+     const ok = await send(`/api/admin/events/${params.id}/categories`, 'POST', {
+-      code: form.code, name: form.name, kind: form.kind, priceMode: form.priceMode, priceValue,
++      code, name: form.name, kind: form.kind, priceMode: form.priceMode, priceValue,
+       requiresProof: form.requiresProof, proofLabel: form.proofLabel || null, limitPerEvent: form.limit ? Number(form.limit) : null,
+     }, `Kategorie „${form.name}" uložena.`);
+     if (ok) setForm(empty);
+@@ -114,8 +117,8 @@ export default function CategoriesPage({ params }: { params: { id: string } }) {
+       <section className="max-w-xl space-y-2 rounded-lg border p-4">
+         <h2 className="font-semibold">Přidat / upravit kategorii</h2>
+         <div className="grid grid-cols-2 gap-2">
+-          <Input placeholder="Kód (např. senior)" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />
+-          <Input placeholder="Název" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
++          <Input placeholder="Název (např. Senior)" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
++          <Input placeholder="Kód (např. senior) — nepovinné, doplní se samo" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />
+           <select className="rounded border px-2" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}>
+             {KINDS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+           </select>
+@@ -127,7 +130,7 @@ export default function CategoriesPage({ params }: { params: { id: string } }) {
+           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.requiresProof} onChange={(e) => setForm({ ...form, requiresProof: e.target.checked })} /> Průkaz při vstupu</label>
+           <Input placeholder="Text průkazu (ZTP/P…)" value={form.proofLabel} onChange={(e) => setForm({ ...form, proofLabel: e.target.value })} />
+         </div>
+-        <Button onClick={() => void save()} disabled={!form.code || !form.name}>Uložit kategorii</Button>
++        <Button onClick={() => void save()} disabled={!form.name.trim() || form.price.trim() === ''}>Uložit kategorii</Button>
+       </section>
+     </div>
+   );
+diff --git a/nextjs-boilerplate/src/app/admin/events/[id]/reporty/page.tsx b/nextjs-boilerplate/src/app/admin/events/[id]/reporty/page.tsx
+index 79c9a80e..429389b3 100644
+--- a/nextjs-boilerplate/src/app/admin/events/[id]/reporty/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/events/[id]/reporty/page.tsx
+@@ -7,6 +7,7 @@
+ import { useEffect, useState } from 'react';
+ import { Button } from '@/components/ui/button';
+ import { Input } from '@/components/ui/input';
++import { errorText } from '@/lib/ui/error-text';
+ 
+ interface Sales { eventId: string; title: string; dateStart: string; zone: string; category: string; channel: string; sold: number; revenueMinor: number }
+ interface Occ { eventId: string; title: string; dateStart: string; city: string | null; hall: string | null; sellable: number; sold: number; reserved: number; blocked: number; occupiedPct: number }
+@@ -19,14 +20,17 @@ const api = (url: string) => fetch(url, { credentials: 'include', headers: token
+ const kc = (m: number) => `${(m / 100).toLocaleString('cs-CZ')} Kč`;
+ const CH: Record<string, string> = { online: 'online', box_office: 'pokladna', reservation: 'rezervace', corporate: 'firemní', comps: 'volné' };
+ 
+-async function download(url: string, name: string): Promise<void> {
+-  const r = await api(url);
+-  if (!r.ok) return;
++/** Kolo 12: dřív se při chybě nestalo nic (uživatel nevěděl, že soubor nedostal). Vrací chybovou zprávu, nebo null. */
++async function download(url: string, name: string): Promise<string | null> {
++  const r = await api(url).catch(() => null);
++  if (!r) return 'Soubor se nepodařilo stáhnout — zkontrolujte připojení k internetu a zkuste to znovu.';
++  if (!r.ok) return `Soubor se nepodařilo stáhnout. ${errorText(await r.json().catch(() => ({})), r.status)}`;
+   const a = document.createElement('a');
+   a.href = URL.createObjectURL(await r.blob());
+   a.download = name;
+   a.click();
+   URL.revokeObjectURL(a.href);
++  return null;
+ }
+ 
+ export default function TermReportsPage({ params }: { params: { id: string } }) {
+@@ -40,7 +44,7 @@ export default function TermReportsPage({ params }: { params: { id: string } })
+   useEffect(() => {
+     setErr(null);
+     void api(`/api/admin/theatre-reports?${query}`).then(async (r) => {
+-      if (!r.ok) { setErr(`Report se nepodařilo načíst (HTTP ${r.status}).`); return; }
++      if (!r.ok) { setErr(`Report se nepodařilo načíst. ${errorText(await r.json().catch(() => ({})), r.status)}`); return; }
+       const j = (await r.json()) as Report;
+       setRep(j);
+       if (j.productionId) setProductionId(j.productionId);
+@@ -57,10 +61,10 @@ export default function TermReportsPage({ params }: { params: { id: string } })
+         <label className="text-sm">Do <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></label>
+         <Button variant={query.startsWith('scope=period') ? 'default' : 'outline'} onClick={() => setQuery(`scope=period&from=${from}&to=${to}`)}>Období</Button>
+         <span className="flex-1" />
+-        <Button variant="outline" onClick={() => void download(`/api/admin/theatre-reports?${query}&format=csv`, 'report.csv')}>CSV</Button>
+-        <Button variant="outline" onClick={() => void download(`/api/admin/theatre-reports?${query}&format=xlsx`, 'report.xlsx')}>XLSX</Button>
+-        <Button onClick={() => void download(`/api/admin/events/${params.id}/usher-list?format=pdf`, 'uvadeci.pdf')}>Seznam pro uvaděče (PDF)</Button>
+-        <Button variant="outline" onClick={() => void download(`/api/admin/events/${params.id}/usher-list?format=csv`, 'uvadeci.csv')}>Uvaděči CSV</Button>
++        <Button variant="outline" onClick={() => void download(`/api/admin/theatre-reports?${query}&format=csv`, 'report.csv').then((e) => setErr(e))}>CSV</Button>
++        <Button variant="outline" onClick={() => void download(`/api/admin/theatre-reports?${query}&format=xlsx`, 'report.xlsx').then((e) => setErr(e))}>XLSX</Button>
++        <Button onClick={() => void download(`/api/admin/events/${params.id}/usher-list?format=pdf`, 'uvadeci.pdf').then((e) => setErr(e))}>Seznam pro uvaděčky (PDF)</Button>
++        <Button variant="outline" onClick={() => void download(`/api/admin/events/${params.id}/usher-list?format=csv`, 'uvadeci.csv').then((e) => setErr(e))}>Seznam pro uvaděčky (CSV)</Button>
+       </div>
+       {err && <p role="alert" className="rounded bg-rose-50 p-2 text-sm text-rose-800">{err}</p>}
+ 
+diff --git a/nextjs-boilerplate/src/app/admin/events/[id]/rezervace/page.tsx b/nextjs-boilerplate/src/app/admin/events/[id]/rezervace/page.tsx
+index a9aed37d..ecdfacee 100644
+--- a/nextjs-boilerplate/src/app/admin/events/[id]/rezervace/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/events/[id]/rezervace/page.tsx
+@@ -8,6 +8,7 @@
+ import { useEffect, useState } from 'react';
+ import { Button } from '@/components/ui/button';
+ import { Input } from '@/components/ui/input';
++import { errorText } from '@/lib/ui/error-text';
+ 
+ interface Reservation {
+   id: string; code: string; buyerName: string; buyerEmail: string; buyerPhone: string | null; seatCount: number;
+@@ -35,10 +36,12 @@ export default function ReservationsPage({ params }: { params: { id: string } })
+   const [found, setFound] = useState<Reservation[] | null>(null);
+   const [msg, setMsg] = useState<string | null>(null);
+   const [err, setErr] = useState<string | null>(null);
++  // Kolo 12: po zaplacení rovnou tisk vstupenek (dřív chyběl)
++  const [paidOrderId, setPaidOrderId] = useState<string | null>(null);
+ 
+   async function load() {
+     const r = await api(`/api/admin/events/${params.id}/reservations`);
+-    if (!r.ok) { setErr(`Načtení selhalo (HTTP ${r.status}).`); return; }
++    if (!r.ok) { setErr(`Rezervace se nepodařilo načíst. ${errorText({}, r.status)}`); return; }
+     const j = (await r.json()) as Data;
+     setData(j);
+     setForm({ enabled: j.settings.enabled, days: String(j.settings.days), cutoffHours: String(j.settings.cutoffHours) });
+@@ -53,7 +56,7 @@ export default function ReservationsPage({ params }: { params: { id: string } })
+     const r = await api(`/api/admin/events/${params.id}/reservations`, {
+       method: 'PATCH', body: JSON.stringify({ enabled: form.enabled, days: Number(form.days), cutoffHours: Number(form.cutoffHours) }),
+     });
+-    if (!r.ok) { setErr(`Uložení selhalo (HTTP ${r.status}).`); return; }
++    if (!r.ok) { setErr(`Nastavení se nepodařilo uložit. ${errorText(await r.json().catch(() => ({})), r.status)}`); return; }
+     setMsg('Nastavení rezervací uloženo.'); await load();
+   }
+ 
+@@ -61,15 +64,16 @@ export default function ReservationsPage({ params }: { params: { id: string } })
+     setErr(null);
+     const r = await api(`/api/admin/seat-reservations?eventId=${params.id}&q=${encodeURIComponent(q)}`);
+     const j = (await r.json().catch(() => ({}))) as { reservations?: Reservation[]; error?: string };
+-    if (!r.ok) { setErr(j.error ?? `HTTP ${r.status}`); return; }
++    if (!r.ok) { setErr(errorText(j, r.status)); return; }
+     setFound(j.reservations ?? []);
+   }
+ 
+   async function pay(res: Reservation, paymentType: 'cash' | 'card') {
+-    setErr(null); setMsg(null);
++    setErr(null); setMsg(null); setPaidOrderId(null);
+     const r = await api(`/api/admin/seat-reservations/${res.id}/pay`, { method: 'POST', body: JSON.stringify({ paymentType }) });
+-    const j = (await r.json().catch(() => ({}))) as { message?: string; error?: string; receiptNumber?: string; tickets?: unknown[] };
+-    if (!r.ok) { setErr(j.message ?? j.error ?? `HTTP ${r.status}`); return; }
++    const j = (await r.json().catch(() => ({}))) as { message?: string; error?: string; receiptNumber?: string; tickets?: unknown[]; orderId?: string };
++    if (!r.ok) { setErr(errorText(j, r.status)); return; }
++    setPaidOrderId(j.orderId ?? null);
+     setMsg(`Rezervace ${res.code} zaplacena (${paymentType === 'cash' ? 'hotově' : 'kartou'}): ${j.tickets?.length ?? 0} vstupenek, doklad ${j.receiptNumber ?? ''}.`);
+     setFound(null); setQ(''); await load();
+   }
+@@ -80,6 +84,12 @@ export default function ReservationsPage({ params }: { params: { id: string } })
+     <div className="space-y-6 p-4">
+       <h1 className="text-xl font-semibold">Rezervace s platbou na pokladně</h1>
+       {msg && <p className="rounded bg-emerald-50 p-2 text-sm text-emerald-800" data-testid="res-msg">{msg}</p>}
++      {msg && paidOrderId ? (
++        <a href={`/api/admin/orders/${paidOrderId}/print-labels`} target="_blank" rel="noopener noreferrer"
++          className="inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90" data-testid="res-print">
++          Vytisknout vstupenky (s QR kódem)
++        </a>
++      ) : null}
+       {err && <p role="alert" className="rounded bg-rose-50 p-2 text-sm text-rose-800">{err}</p>}
+ 
+       {data && (
+diff --git a/nextjs-boilerplate/src/app/admin/events/[id]/zruseni/page.tsx b/nextjs-boilerplate/src/app/admin/events/[id]/zruseni/page.tsx
+index 04296f1b..48db6db3 100644
+--- a/nextjs-boilerplate/src/app/admin/events/[id]/zruseni/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/events/[id]/zruseni/page.tsx
+@@ -6,8 +6,10 @@
+  * vrácení (pokladna, firemní faktury, selhané refundy).
+  */
+ import { useEffect, useState } from 'react';
++import { ConfirmDialog, type ConfirmRequest } from '@/components/admin/ConfirmDialog';
+ import { Button } from '@/components/ui/button';
+ import { Input } from '@/components/ui/input';
++import { errorText } from '@/lib/ui/error-text';
+ 
+ interface ManualRefund { orderId: string; channel: string; buyer: string | null; email: string | null; amountMinor: number; currency: string; paymentType: string | null; invoiceNumber: string | null; note: string | null }
+ interface State { status: string; cancelled_at: string | null; cancellation_reason: string | null; manualRefunds: ManualRefund[] }
+@@ -27,6 +29,7 @@ export default function CancelPostponePage({ params }: { params: { id: string }
+   const [confirm, setConfirm] = useState('');
+   const [msg, setMsg] = useState<string | null>(null);
+   const [err, setErr] = useState<string | null>(null);
++  const [ask, setAsk] = useState<ConfirmRequest | null>(null);
+ 
+   async function load() {
+     const r = await api(`/api/admin/events/${params.id}/cancel-term`);
+@@ -43,7 +46,7 @@ export default function CancelPostponePage({ params }: { params: { id: string }
+       method: 'POST', body: JSON.stringify({ newStart: new Date(newStart).toISOString(), reason: pReason, refundDays: Number(days) }),
+     });
+     const j = (await r.json().catch(() => ({}))) as { message?: string; error?: string; recipients?: number; responseDeadline?: string };
+-    if (!r.ok) { setErr(j.message ?? j.error ?? `HTTP ${r.status}`); return; }
++    if (!r.ok) { setErr(errorText(j, r.status)); return; }
+     setMsg(`Termín přesunut. E-mail s odkazem na vrácení (do ${new Date(j.responseDeadline ?? '').toLocaleString('cs-CZ')}) odešel ${j.recipients ?? 0} kupcům.`);
+   }
+ 
+@@ -51,7 +54,7 @@ export default function CancelPostponePage({ params }: { params: { id: string }
+     setErr(null); setMsg(null);
+     const r = await api(`/api/admin/events/${params.id}/cancel-term`, { method: 'POST', body: JSON.stringify({ reason: cReason }) });
+     const j = (await r.json().catch(() => ({}))) as { message?: string; error?: string; refunded?: number; refundFailed?: number; ticketsRevoked?: number; buyersEmailed?: number; manualRefunds?: ManualRefund[] };
+-    if (!r.ok) { setErr(j.message ?? j.error ?? `HTTP ${r.status}`); return; }
++    if (!r.ok) { setErr(errorText(j, r.status)); return; }
+     setMsg(`Termín zrušen: vráceno online ${j.refunded ?? 0}, selhalo ${j.refundFailed ?? 0}, zneplatněno ${j.ticketsRevoked ?? 0} vstupenek, e-mailů ${j.buyersEmailed ?? 0}. K ručnímu vrácení: ${j.manualRefunds?.length ?? 0}.`);
+     await load();
+   }
+@@ -60,6 +63,7 @@ export default function CancelPostponePage({ params }: { params: { id: string }
+   return (
+     <div className="space-y-6 p-4">
+       <h1 className="text-xl font-semibold">Zrušení a přesun termínu</h1>
++      <ConfirmDialog request={ask} onClose={() => setAsk(null)} />
+       {msg && <p className="rounded bg-emerald-50 p-2 text-sm text-emerald-800" data-testid="term-msg">{msg}</p>}
+       {err && <p role="alert" className="rounded bg-rose-50 p-2 text-sm text-rose-800">{err}</p>}
+       {cancelled && <p className="rounded bg-rose-100 p-3 text-rose-900">Termín je zrušený ({st?.cancelled_at ? new Date(st.cancelled_at).toLocaleString('cs-CZ') : ''}): {st?.cancellation_reason}</p>}
+@@ -71,7 +75,22 @@ export default function CancelPostponePage({ params }: { params: { id: string }
+           <label className="block text-sm">Nové datum a čas <Input type="datetime-local" value={newStart} onChange={(e) => setNewStart(e.target.value)} /></label>
+           <Input placeholder="Důvod přesunu" value={pReason} onChange={(e) => setPReason(e.target.value)} />
+           <label className="block text-sm">Lhůta pro vrácení (dní) <Input className="w-24" value={days} onChange={(e) => setDays(e.target.value)} /></label>
+-          <Button onClick={() => void postpone()} disabled={!newStart || pReason.trim().length < 2}>Přesunout a informovat kupce</Button>
++          {/* Kolo 12: přesun hned rozešle e-maily všem kupcům — dřív bez potvrzení */}
++          <Button
++            onClick={() => setAsk({
++              title: `Přesunout termín na ${new Date(newStart).toLocaleString('cs-CZ', { dateStyle: 'long', timeStyle: 'short' })}?`,
++              consequences: [
++                'Všem kupcům vstupenek hned odejde e-mail s novým datem a odkazem na vrácení vstupného.',
++                `Kupci mají ${days} dní na to, aby si o vrácení požádali; jinak vstupenky platí na nové datum.`,
++                'E-maily nelze vzít zpět — zkontrolujte datum a čas.',
++              ],
++              confirmLabel: 'Přesunout a poslat e-maily',
++              onConfirm: () => postpone(),
++            })}
++            disabled={!newStart || pReason.trim().length < 2}
++          >
++            Přesunout a informovat kupce
++          </Button>
+         </section>
+       )}
+ 
+diff --git a/nextjs-boilerplate/src/app/admin/events/page.tsx b/nextjs-boilerplate/src/app/admin/events/page.tsx
+index 22060700..0bb83b27 100644
+--- a/nextjs-boilerplate/src/app/admin/events/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/events/page.tsx
+@@ -31,6 +31,9 @@ function moderationBadge(status: string | undefined): { label: string; tone: str
+       return { label: 'Archivováno', tone: 'bg-slate-100 text-slate-600' };
+     case 'draft':
+       return { label: 'Koncept', tone: 'bg-slate-100 text-slate-600' };
++    // Kolo 12: zrušený termín se dřív ukazoval jako „Prodej"
++    case 'cancelled':
++      return { label: 'Zrušeno', tone: 'bg-rose-100 text-rose-800' };
+     case 'published':
+       return null; // Publikované ukazujeme jen prodejní status (computeStatus)
+     default:
+@@ -58,6 +61,17 @@ const columns: Column<AdminEvent>[] = [
+       <span className="text-muted-foreground">{formatCzechDate(row.date)}</span>
+     ),
+   },
++  {
++    // Kolo 12: bez města se termíny jedné inscenace nedaly rozlišit (pokladní vybrala špatný termín)
++    key: 'venue',
++    header: 'Místo',
++    render: (row) => (
++      <span className="text-muted-foreground">
++        {row.venueCity ? <span className="font-medium text-foreground">{row.venueCity}</span> : null}
++        {row.venueName ? <span className="block text-xs">{row.venueName}</span> : null}
++      </span>
++    ),
++  },
+   {
+     key: 'status',
+     header: 'Stav',
+@@ -95,78 +109,14 @@ const columns: Column<AdminEvent>[] = [
+     header: '',
+     className: 'text-right',
+     render: (row) => (
++      // Kolo 12: dřív 14 odkazů na řádek (část anglicky: Add-ons, Live, Member pricing, Dynamic…); všechny nástroje
++      // jsou v záložkách termínu (Otevřít), sem patří jen to, co se dělá denně.
+       <div className="flex justify-end gap-3 text-xs">
+-        <Link
+-          href={`/admin/events/${row.id}/edit`}
+-          className="font-medium text-primary hover:underline"
+-        >
+-          Upravit
+-        </Link>
+-        <Link
+-          href={`/admin/events/${row.id}/season`}
+-          className="font-medium text-primary hover:underline"
+-        >
+-          Sezóna
+-        </Link>
+-        <Link
+-          href={`/admin/events/${row.id}/addons`}
+-          className="font-medium text-primary hover:underline"
+-        >
+-          Add-ons
+-        </Link>
+-        <Link
+-          href={`/admin/events/${row.id}/settings`}
+-          className="font-medium text-primary hover:underline"
+-        >
+-          Nastavení
+-        </Link>
+-        <Link
+-          href={`/admin/events/${row.id}/wristbands`}
+-          className="font-medium text-primary hover:underline"
+-        >
+-          Náramky
+-        </Link>
+-        <Link
+-          href={`/admin/events/${row.id}/live-ops`}
+-          className="font-medium text-emerald-700 hover:underline"
+-        >
+-          Live
+-        </Link>
+-        <Link
+-          href={`/admin/events/${row.id}/sales-report`}
+-          className="font-medium text-primary hover:underline"
+-        >
+-          Reporty
+-        </Link>
+-        <Link
+-          href={`/admin/events/${row.id}/broadcast`}
+-          className="font-medium text-primary hover:underline"
+-        >
+-          Zpráva
+-        </Link>
+-        <Link
+-          href={`/admin/events/${row.id}/lotteries`}
+-          className="font-medium text-primary hover:underline"
+-        >
+-          Losování
+-        </Link>
+-        <Link
+-          href={`/admin/events/${row.id}/hospitality`}
+-          className="font-medium text-primary hover:underline"
+-        >
+-          Hospitality
++        <Link href={`/admin/events/${row.id}`} className="font-medium text-primary hover:underline">
++          Otevřít
+         </Link>
+-        <Link
+-          href={`/admin/events/${row.id}/member-pricing`}
+-          className="font-medium text-primary hover:underline"
+-        >
+-          Member pricing
+-        </Link>
+-        <Link
+-          href={`/admin/events/${row.id}/dynamic-pricing`}
+-          className="font-medium text-amber-700 hover:underline"
+-        >
+-          🔥 Dynamic
++        <Link href={`/admin/events/${row.id}/edit`} className="font-medium text-primary hover:underline">
++          Upravit údaje
+         </Link>
+         <CloneButton eventId={row.id} eventTitle={row.name} />
+         <Link
+@@ -188,7 +138,7 @@ function CloneButton({ eventId, eventTitle }: { eventId: string; eventTitle: str
+       onClick={async () => {
+         const newTitle = prompt(`Název kopie akce "${eventTitle}":`, `${eventTitle} (kopie)`);
+         if (!newTitle) return;
+-        const newDate = prompt('Nové datum (YYYY-MM-DD HH:MM):', '2026-12-31 20:00');
++        const newDate = prompt('Datum a čas kopie (rok-měsíc-den hodina:minuta, např. 2026-12-31 20:00):', '2026-12-31 20:00');
+         if (!newDate) return;
+         try {
+           const iso = new Date(newDate.replace(' ', 'T')).toISOString();
+@@ -200,7 +150,7 @@ function CloneButton({ eventId, eventTitle }: { eventId: string; eventTitle: str
+           });
+           const data = await r.json() as { newEventId?: string; error?: string; cloned?: { ticket_types: number } };
+           if (!r.ok) {
+-            alert(data.error ?? `HTTP ${r.status}`);
++            alert(`Kopii se nepodařilo vytvořit (${r.status === 403 ? 'nemáte oprávnění' : 'zkontrolujte datum a zkuste to znovu'}).`);
+             return;
+           }
+           alert(`Akce naklonována. ${data.cloned?.ticket_types ?? 0} typů lístků zkopírováno.`);
+@@ -210,7 +160,7 @@ function CloneButton({ eventId, eventTitle }: { eventId: string; eventTitle: str
+         }
+       }}
+     >
+-      📋 Klon
++      Kopírovat
+     </button>
+   );
+ }
+diff --git a/nextjs-boilerplate/src/app/admin/layout.tsx b/nextjs-boilerplate/src/app/admin/layout.tsx
+index 07462b82..5ae493d2 100644
+--- a/nextjs-boilerplate/src/app/admin/layout.tsx
++++ b/nextjs-boilerplate/src/app/admin/layout.tsx
+@@ -15,14 +15,15 @@ export default async function AdminLayout({ children }: { children: ReactNode })
+   if (!roles) redirect('/cs/login?from=/admin');
+   if (!roles.hasPromoter) redirect(roles.isPlatformAdmin ? '/platform' : '/cs/events');
+ 
+-  const isStaff = roles.promoterRole === 'staff';
++  // Kolo 12: srozumitelný popisek role (dřív „Tixly Admin / Promotér")
++  const roleLabel = roles.promoterRole === 'staff' ? 'Provoz a vstup' : roles.promoterRole === 'box_office' ? 'Pokladna' : 'Pořadatel';
+ 
+   return (
+     <div className="flex min-h-screen bg-background">
+       <Sidebar promoterRole={roles.promoterRole} />
+       <div className="flex min-w-0 flex-1 flex-col">
+-        <Topbar title="Tixly Admin" subtitle={isStaff ? 'Produkce / personál' : 'Promotér'} />
+-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
++        <Topbar title="Administrace" subtitle={roleLabel} />
++        <main className="flex-1 overflow-y-auto p-3 md:p-6">{children}</main>
+       </div>
+     </div>
+   );
+diff --git a/nextjs-boilerplate/src/app/admin/marketing/page.tsx b/nextjs-boilerplate/src/app/admin/marketing/page.tsx
+index 888ea7b9..526357d5 100644
+--- a/nextjs-boilerplate/src/app/admin/marketing/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/marketing/page.tsx
+@@ -80,6 +80,7 @@ export default function MarketingPage() {
+     return (
+       <div className="space-y-4">
+         <PageHeader title="Marketing" />
++        <a href="/admin/promo-codes" className="text-sm text-primary underline">Promo kódy (slevové kódy)</a>
+         {error ? (
+           <div className="rounded-md border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900">
+             {error}
+@@ -117,6 +118,12 @@ export default function MarketingPage() {
+           </div>
+         }
+       />
++      {/* Kolo 12: promo kódy byly dosažitelné jen přes „Vše" */}
++      <div className="flex flex-wrap gap-2">
++        <a href="/admin/promo-codes" className="inline-flex items-center rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted">
++          Promo kódy (slevové kódy)
++        </a>
++      </div>
+ 
+       {/* Top stats */}
+       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+diff --git a/nextjs-boilerplate/src/app/admin/pos/page.tsx b/nextjs-boilerplate/src/app/admin/pos/page.tsx
+index 7e8c4e79..c4768d4d 100644
+--- a/nextjs-boilerplate/src/app/admin/pos/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/pos/page.tsx
+@@ -12,6 +12,7 @@ interface EventOption {
+   id: string;
+   title: string;
+   dateStart: string;
++  venueCity?: string | null;
+   ticketTypes: { id: string; name: string; basePrice: number; remainingQty: number; isSeated: boolean }[];
+ }
+ 
+@@ -122,8 +123,8 @@ export default function PosPage() {
+   return (
+     <div className="space-y-6">
+       <PageHeader
+-        title="Pokladna (POS)"
+-        description="Hotovostní/terminálový prodej u kasy. Vystaví lístek okamžitě s QR pro scanner."
++        title="Pokladna"
++        description="Prodej vstupenek na místě — hotově nebo kartou na terminálu. Vstupenku hned vytisknete."
+       />
+ 
+       <div className="grid gap-6 lg:grid-cols-2 print:hidden">
+@@ -131,7 +132,7 @@ export default function PosPage() {
+         <Card>
+           <CardHeader>
+             <CardTitle>Nový prodej</CardTitle>
+-            <CardDescription>Vyber představení a počet lístků.</CardDescription>
++            <CardDescription>Vyberte představení, místa a způsob platby.</CardDescription>
+           </CardHeader>
+           <CardContent>
+             <form onSubmit={handleSubmit} className="space-y-4">
+@@ -149,19 +150,25 @@ export default function PosPage() {
+                   required
+                   className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                 >
+-                  <option value="">— vyber představení —</option>
++                  <option value="">— vyberte představení —</option>
+                   {events.map((ev) => (
+                     <option key={ev.id} value={ev.id}>
+-                      {ev.title} ({new Date(ev.dateStart).toLocaleDateString('cs-CZ')})
++                      {ev.title}{ev.venueCity ? ` — ${ev.venueCity}` : ''} ({new Date(ev.dateStart).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })})
+                     </option>
+                   ))}
+                 </select>
++                {/* Kolo 12: rezervace k vyzvednutí byly jen přes Akce → Upravit → Vstupenky → Rezervace na pokladně */}
++                {eventId ? (
++                  <a href={`/admin/events/${eventId}/rezervace`} className="mt-1 inline-block text-sm text-primary underline">
++                    Rezervace k vyzvednutí na toto představení →
++                  </a>
++                ) : null}
+               </div>
+ 
+               {event ? (
+                 <div>
+                   <label htmlFor="pos-tt" className="mb-1 block text-xs font-medium">
+-                    Typ lístku
++                    Cenová zóna / typ vstupenky
+                   </label>
+                   <select
+                     id="pos-tt"
+@@ -234,7 +241,7 @@ export default function PosPage() {
+                   id="pos-buyer"
+                   value={buyerName}
+                   onChange={(e) => setBuyerName(e.target.value)}
+-                  placeholder="Walk-in kupující"
++                  placeholder="např. Jan Novák"
+                 />
+               </div>
+ 
+@@ -295,7 +302,7 @@ export default function PosPage() {
+                     (isSeated ? selectedSeatIds.length < 1 : quantity < 1)
+                   }
+                 >
+-                  {loading ? 'Vystavuji…' : 'Vystavit lístek'}
++                  {loading ? 'Vystavuji…' : 'Vystavit vstupenku'}
+                 </Button>
+               </div>
+             </form>
+@@ -307,7 +314,7 @@ export default function PosPage() {
+           <CardHeader>
+             <CardTitle>Poslední prodej</CardTitle>
+             <CardDescription>
+-              {sale ? 'Lístek vystaven — vytiskni a předej kupci.' : 'Žádný prodej v této session.'}
++              {sale ? 'Vstupenka vystavena — vytiskněte ji a předejte kupci.' : 'Zatím jste nic neprodali.'}
+             </CardDescription>
+           </CardHeader>
+           <CardContent>
+@@ -328,25 +335,32 @@ export default function PosPage() {
+                   <ul className="space-y-1 text-xs">
+                     {sale.tickets.map((t, i) => (
+                       <li key={t.ticketId} className="flex items-center justify-between rounded border p-2">
+-                        <span>
+-                          Lístek #{i + 1}: <code>{t.ticketId.slice(0, 8)}</code>
+-                        </span>
++                        <span>Vstupenka č. {i + 1}</span>
+                       </li>
+                     ))}
+                   </ul>
+                 </div>
+-                <Button type="button" variant="outline" className="w-full" onClick={handlePrint}>
++                {/* Kolo 12: tisk vstupenek s QR kódem (stejné jako tištěné vstupenky u vstupu); dřív window.print()
++                    souhrnu s ID a TOTP tajemstvím — bez QR, tedy nepoužitelné u vstupu, a tajemství nepatří na papír */}
++                <a
++                  href={`/api/admin/orders/${sale.orderId}/print-labels`}
++                  target="_blank"
++                  rel="noopener noreferrer"
++                  className="flex w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
++                >
+                   <Printer className="mr-2 h-4 w-4" aria-hidden />
+-                  Vytisknout / uložit jako PDF
++                  Vytisknout vstupenky (s QR kódem)
++                </a>
++                <Button type="button" variant="outline" className="w-full" onClick={handlePrint}>
++                  Vytisknout doklad o prodeji
+                 </Button>
+                 <p className="text-xs text-muted-foreground">
+-                  Plný PDF lístek s QR kódem dostane kupec přes mail (pokud zadáš e-mail).
+-                  Tady ti stačí potvrzení o vystavení a evidenci pro účetní.
++                  Vstupenky se otevřou jako PDF — vytiskněte je na tiskárně pokladny a předejte kupci. QR kód načte obsluha u vstupu.
+                 </p>
+               </div>
+             ) : (
+               <p className="text-sm text-muted-foreground">
+-                Po vystavení tu uvidíš souhrn a tlačítko pro tisk.
++                Po vystavení tu uvidíte souhrn a tlačítko pro tisk vstupenek.
+               </p>
+             )}
+           </CardContent>
+@@ -356,7 +370,7 @@ export default function PosPage() {
+       {/* Print-friendly receipt */}
+       {sale ? (
+         <div className="hidden print:block">
+-          <h1 className="text-2xl font-bold">{sale.eventTitle}</h1>
++          <p className="text-2xl font-bold">{sale.eventTitle}</p>
+           <p className="mt-2 text-sm">
+             {sale.ticketTypeName} × {sale.tickets.length} · {formatCzk(sale.totalAmountHalire)} ·{' '}
+             {sale.paymentMethod === 'cash' ? 'hotově' : 'platba kartou na terminálu'}
+@@ -366,9 +380,7 @@ export default function PosPage() {
+           <hr className="my-4" />
+           {sale.tickets.map((t, i) => (
+             <div key={t.ticketId} className="mb-4 break-inside-avoid">
+-              <p className="font-medium">Lístek #{i + 1}</p>
+-              <p className="text-xs">ID: {t.ticketId}</p>
+-              <p className="text-xs">TOTP secret: {t.totpSecretBase32}</p>
++              <p className="font-medium">Vstupenka č. {i + 1}</p>
+             </div>
+           ))}
+         </div>
+diff --git a/nextjs-boilerplate/src/app/admin/productions/[id]/page.tsx b/nextjs-boilerplate/src/app/admin/productions/[id]/page.tsx
+index bdae182a..8df1ccb7 100644
+--- a/nextjs-boilerplate/src/app/admin/productions/[id]/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/productions/[id]/page.tsx
+@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
+ import { PageHeader } from '@/components/admin/PageHeader';
+ import { Button } from '@/components/ui/button';
+ import { Input } from '@/components/ui/input';
++import { errorText } from '@/lib/ui/error-text';
+ 
+ interface Card {
+   id: string; title: string; subtitle: string | null; description: string | null; author: string | null; director: string | null;
+@@ -23,6 +24,9 @@ interface Venue { id: string; name: string; city: string; capacity: number; zone
+ const api = (url: string, init?: RequestInit) =>
+   fetch(url, { ...init, credentials: 'include', headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) } });
+ 
++const TERM_TOOLS: Array<[string, string]> = [
++  ['Blokace', 'blokace'], ['Rezervace', 'rezervace'], ['Firemní', 'firemni'], ['Reporty', 'reporty'], ['Zrušení a přesun', 'zruseni'],
++];
+ const STATUS: Record<string, string> = { published: 'V prodeji', pending_review: 'Ke schválení', draft: 'Koncept', cancelled: 'Zrušeno' };
+ 
+ export default function ProductionDetailPage({ params }: { params: { id: string } }) {
+@@ -31,7 +35,9 @@ export default function ProductionDetailPage({ params }: { params: { id: string
+   const [venues, setVenues] = useState<Venue[]>([]);
+   const [msg, setMsg] = useState<string | null>(null);
+   const [err, setErr] = useState<string | null>(null);
+-  const [castText, setCastText] = useState('');
++  // Kolo 12: obsazení po řádcích (dřív textové pole se syntaxí „role: jméno"); poslední řádek je vždy prázdný pro novou roli
++  const [castRows, setCastRows] = useState<Array<{ role: string; name: string }>>([{ role: '', name: '' }]);
++  const [uploading, setUploading] = useState(false);
+   const [photosText, setPhotosText] = useState('');
+   // nový termín
+   const [city, setCity] = useState('');
+@@ -47,11 +53,11 @@ export default function ProductionDetailPage({ params }: { params: { id: string
+ 
+   async function load() {
+     const r = await api(`/api/admin/productions/${params.id}`);
+-    if (!r.ok) { setErr(`Inscenaci nelze načíst (HTTP ${r.status}).`); return; }
++    if (!r.ok) { setErr(`Inscenaci nelze načíst. ${errorText(await r.json().catch(() => ({})), r.status)}`); return; }
+     const j = (await r.json()) as { production: Card; terms: Term[] };
+     setCard(j.production);
+     setTerms(j.terms);
+-    setCastText(j.production.cast.map((c) => `${c.role}: ${c.name}`).join('\n'));
++    setCastRows([...j.production.cast.map((c) => ({ role: c.role, name: c.name })), { role: '', name: '' }]);
+     setPhotosText(j.production.photos.join('\n'));
+     if (!copyFrom && j.terms.length > 0) setCopyFrom(j.terms[j.terms.length - 1].id);
+   }
+@@ -75,13 +81,31 @@ export default function ProductionDetailPage({ params }: { params: { id: string
+   const hallZones = venues.find((v) => v.id === venueId)?.zones ?? [];
+   const zonePricesReady = hallZones.length > 0 && hallZones.every((z) => /^\d+([.,]\d{1,2})?$/.test((zonePrice[z.name] ?? '').trim()));
+ 
++  // Kolo 12: fotka souborem (stejné úložiště jako titulní obrázek akce); dřív jen odkazy
++  async function uploadPhoto(file: File) {
++    setErr(null); setUploading(true);
++    try {
++      const fd = new FormData(); fd.append('file', file);
++      const token = localStorage.getItem('accessToken');
++      const r = await fetch('/api/admin/uploads/cover-image', { method: 'POST', body: fd, credentials: 'include', headers: token ? { Authorization: `Bearer ${token}` } : {} });
++      const j = (await r.json().catch(() => ({}))) as { url?: string; error?: string };
++      if (!r.ok || !j.url) {
++        setErr(r.status === 503 ? 'Nahrávání fotek zatím není na tomto serveru zapnuté (chybí úložiště souborů). Vložte prozatím odkaz na fotku do pole „Odkazy na fotky".'
++          : r.status === 413 ? 'Fotka je větší než 5 MB. Zmenšete ji a nahrajte znovu.'
++          : r.status === 415 ? 'Nahrát jde jen fotka ve formátu JPG, PNG nebo WebP.'
++          : `Fotku se nepodařilo nahrát. ${errorText(j, r.status)}`);
++        return;
++      }
++      const url = j.url;
++      setPhotosText((t) => (t.trim() ? `${t.trim()}\n${url}` : url));
++      setMsg('Fotka nahraná — nezapomeňte kartu uložit.');
++    } finally { setUploading(false); }
++  }
++
+   async function saveCard() {
+     if (!card) return;
+     setErr(null); setMsg(null);
+-    const cast = castText.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => {
+-      const i = l.indexOf(':');
+-      return i >= 0 ? { role: l.slice(0, i).trim(), name: l.slice(i + 1).trim() } : { role: '', name: l };
+-    });
++    const cast = castRows.map((c) => ({ role: c.role.trim(), name: c.name.trim() })).filter((c) => c.name);
+     const photos = photosText.split('\n').map((l) => l.trim()).filter(Boolean);
+     const r = await api(`/api/admin/productions/${params.id}`, {
+       method: 'PATCH',
+@@ -91,7 +115,7 @@ export default function ProductionDetailPage({ params }: { params: { id: string
+         ageRating: card.ageRating || null, genre: card.genre || null, photos, videoUrl: card.videoUrl || null,
+       }),
+     });
+-    if (!r.ok) { setErr(`Uložení selhalo: ${JSON.stringify((await r.json().catch(() => ({}))))}`); return; }
++    if (!r.ok) { setErr(`Kartu se nepodařilo uložit. ${errorText(await r.json().catch(() => ({})), r.status)}`); return; }
+     setMsg('Karta uložena — termíny ji přebírají.');
+     await load();
+   }
+@@ -151,12 +175,30 @@ export default function ProductionDetailPage({ params }: { params: { id: string
+           <textarea className="mt-1 h-28 w-full rounded-md border bg-background p-2 text-sm" value={card.description ?? ''} onChange={set('description')} />
+         </label>
+         <div className="grid gap-3 md:grid-cols-2">
+-          <label className="block text-sm">Obsazení (řádek „role: jméno")
+-            <textarea className="mt-1 h-28 w-full rounded-md border bg-background p-2 text-sm" value={castText} onChange={(e) => setCastText(e.target.value)} />
+-          </label>
+-          <label className="block text-sm">Fotky (jeden odkaz na řádek)
+-            <textarea className="mt-1 h-28 w-full rounded-md border bg-background p-2 text-sm" value={photosText} onChange={(e) => setPhotosText(e.target.value)} />
+-          </label>
++          <fieldset className="space-y-2 text-sm" data-testid="cast-editor">
++            <legend className="font-medium">Obsazení</legend>
++            {castRows.map((c, i) => (
++              <div key={i} className="flex gap-2">
++                <Input placeholder="Role (např. Hamlet)" value={c.role} onChange={(e) => setCastRows(castRows.map((x, k) => (k === i ? { ...x, role: e.target.value } : x)))} />
++                <Input placeholder="Jméno herce" value={c.name} onChange={(e) => setCastRows(castRows.map((x, k) => (k === i ? { ...x, name: e.target.value } : x)))} />
++                {i < castRows.length - 1 ? (
++                  <Button type="button" variant="outline" size="sm" aria-label={`Odebrat roli ${c.role || c.name}`} onClick={() => setCastRows(castRows.filter((_, k) => k !== i))}>Odebrat</Button>
++                ) : null}
++              </div>
++            ))}
++            <Button type="button" variant="outline" size="sm" onClick={() => setCastRows([...castRows, { role: '', name: '' }])}>Přidat roli</Button>
++          </fieldset>
++          <div className="space-y-2 text-sm">
++            <span className="font-medium">Fotky</span>
++            <label className="flex items-center gap-2">
++              <span className="inline-flex cursor-pointer rounded-md border px-3 py-1.5 font-medium hover:bg-muted">{uploading ? 'Nahrávám…' : 'Nahrát fotku z počítače'}</span>
++              <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={uploading}
++                onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadPhoto(f); e.target.value = ''; }} />
++            </label>
++            <label className="block">Odkazy na fotky (jeden na řádek)
++              <textarea className="mt-1 h-20 w-full rounded-md border bg-background p-2 text-sm" value={photosText} onChange={(e) => setPhotosText(e.target.value)} />
++            </label>
++          </div>
+         </div>
+         <Button onClick={() => void saveCard()}>Uložit kartu</Button>
+       </section>
+@@ -215,7 +257,13 @@ export default function ProductionDetailPage({ params }: { params: { id: string
+                 <td>{t.venueName}</td>
+                 <td>{t.sold} / {t.capacity}</td>
+                 <td>{STATUS[t.status] ?? t.status}</td>
+-                <td><a className="text-primary underline" href={`/admin/events/${t.id}`}>Upravit</a></td>
++                {/* Kolo 12: nástroje termínu přímo z karty (dřív Upravit → záložka Vstupenky → karta = 3 kliknutí) */}
++                <td className="space-x-2 whitespace-nowrap text-xs">
++                  <a className="text-primary underline" href={`/admin/events/${t.id}`}>Upravit</a>
++                  {TERM_TOOLS.map(([label, slug]) => (
++                    <a key={slug} className="text-primary underline" href={`/admin/events/${t.id}/${slug}`}>{label}</a>
++                  ))}
++                </td>
+               </tr>
+             ))}
+           </tbody>
+diff --git a/nextjs-boilerplate/src/app/admin/productions/page.tsx b/nextjs-boilerplate/src/app/admin/productions/page.tsx
+index 68c3e7d6..336a8175 100644
+--- a/nextjs-boilerplate/src/app/admin/productions/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/productions/page.tsx
+@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
+ import { PageHeader } from '@/components/admin/PageHeader';
+ import { Button } from '@/components/ui/button';
+ import { Input } from '@/components/ui/input';
++import { errorText } from '@/lib/ui/error-text';
+ 
+ interface Production {
+   id: string;
+@@ -77,7 +78,7 @@ function ManageEventsPanel({
+       });
+       if (!res.ok) {
+         const j = (await res.json().catch(() => ({}))) as { error?: string };
+-        setError(j.error ?? `HTTP ${res.status}`);
++        setError(errorText(j, res.status));
+         return;
+       }
+       await loadLinked();
+@@ -96,7 +97,7 @@ function ManageEventsPanel({
+       });
+       if (!res.ok) {
+         const j = (await res.json().catch(() => ({}))) as { error?: string };
+-        setError(j.error ?? `HTTP ${res.status}`);
++        setError(errorText(j, res.status));
+         return;
+       }
+       await loadLinked();
+@@ -199,7 +200,7 @@ export default function ProductionsPage() {
+     try {
+       const res = await adminFetch('/api/admin/productions');
+       if (!res.ok) {
+-        setLoadError(`HTTP ${res.status}`);
++        setLoadError(`Inscenace se nepodařilo načíst. ${errorText({}, res.status)}`);
+         return;
+       }
+       const j = (await res.json()) as { productions: Production[] };
+@@ -225,7 +226,7 @@ export default function ProductionsPage() {
+       });
+       const j = (await res.json().catch(() => ({}))) as { production?: Production; error?: string };
+       if (!res.ok) {
+-        setCreateError(j.error ?? `HTTP ${res.status}`);
++        setCreateError(errorText(j, res.status));
+         return;
+       }
+       setNewTitle('');
+@@ -278,7 +279,7 @@ export default function ProductionsPage() {
+         <p className="text-sm text-muted-foreground">Načítám…</p>
+       ) : productions.length === 0 ? (
+         <div className="rounded-md border bg-muted/30 p-6 text-center">
+-          <p className="text-sm text-muted-foreground">Zatím žádné produkce. Vytvořte první výše.</p>
++          <p className="text-sm text-muted-foreground">Zatím žádné inscenace. Založte první — napište název nahoře a klikněte na „Vytvořit".</p>
+         </div>
+       ) : (
+         <div className="space-y-3">
+@@ -288,7 +289,7 @@ export default function ProductionsPage() {
+                 <div>
+                   <div className="font-semibold">{prod.title}</div>
+                   <div className="text-xs text-muted-foreground">
+-                    slug: {prod.slug} · {prod.event_count} {prod.event_count === 1 ? 'repríza' : 'reprízy'}
++                    {prod.event_count} {prod.event_count === 1 ? 'termín' : prod.event_count >= 2 && prod.event_count <= 4 ? 'termíny' : 'termínů'}
+                   </div>
+                 </div>
+                 <div className="flex gap-2">
+diff --git a/nextjs-boilerplate/src/app/admin/promo-codes/page.tsx b/nextjs-boilerplate/src/app/admin/promo-codes/page.tsx
+index b3395505..9f7beec5 100644
+--- a/nextjs-boilerplate/src/app/admin/promo-codes/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/promo-codes/page.tsx
+@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/admin/PageHeader';
+ import { Button } from '@/components/ui/button';
+ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+ import { Input } from '@/components/ui/input';
++import { errorText } from '@/lib/ui/error-text';
+ 
+ interface PromoCode {
+   id: string;
+@@ -22,6 +23,7 @@ interface PromoCode {
+   applicableEventIds?: string[];
+   zoneNames?: string[];
+   eventNames?: string[];
++  categoryNames?: string[];
+ }
+ 
+ interface Term { id: string; name: string; date: string }
+@@ -31,7 +33,7 @@ interface TermCatalog { categories: Array<{ code: string; name: string }>; zones
+ function fmtRestriction(c: PromoCode): string {
+   const parts: string[] = [];
+   if (c.eventNames?.length) parts.push(`termín: ${c.eventNames.join(', ')}`);
+-  if (c.applicableCategoryCodes?.length) parts.push(`kategorie: ${c.applicableCategoryCodes.join(', ')}`);
++  if (c.applicableCategoryCodes?.length) parts.push(`kategorie: ${(c.categoryNames?.length ? c.categoryNames : c.applicableCategoryCodes).join(', ')}`);
+   if (c.zoneNames?.length) parts.push(`zóny: ${c.zoneNames.join(', ')}`);
+   return parts.length ? parts.join(' · ') : 'bez omezení';
+ }
+@@ -50,6 +52,7 @@ export default function PromoCodesPage() {
+   const [maxUses, setMaxUses] = useState('');
+   const [validUntil, setValidUntil] = useState('');
+   const [error, setError] = useState<string | null>(null);
++  const [okMsg, setOkMsg] = useState<string | null>(null);
+   const [loading, setLoading] = useState(false);
+   // Kolo 9: omezení na termín, slevové kategorie a cenové zóny (dřív jen přes API)
+   const [terms, setTerms] = useState<Term[]>([]);
+@@ -100,6 +103,7 @@ export default function PromoCodesPage() {
+   async function handleSubmit(e: FormEvent) {
+     e.preventDefault();
+     setError(null);
++    setOkMsg(null);
+     setLoading(true);
+     try {
+       const token = localStorage.getItem('accessToken');
+@@ -125,16 +129,18 @@ export default function PromoCodesPage() {
+       });
+       const data = await r.json();
+       if (!r.ok) {
+-        setError(data.error ?? `HTTP ${r.status}`);
++        setError(r.status === 409 || data.error === 'CODE_ALREADY_EXISTS' ? `Kód ${code.toUpperCase()} už existuje. Zvolte jiný název kódu.` : errorText(data, r.status));
+         return;
+       }
++      // Kolo 12: dřív se formulář jen vyprázdnil bez potvrzení
++      setOkMsg(`Kód ${code.toUpperCase()} je vytvořený a platí od teď${validUntil ? ` do ${new Date(validUntil).toLocaleString('cs-CZ')}` : ''}.`);
+       setCode('');
+       setMaxUses('');
+       setValidUntil('');
+       setTermId('');
+       await reload();
+     } catch {
+-      setError('Síťová chyba');
++      setError('Nepodařilo se spojit se serverem. Zkontrolujte připojení k internetu a zkuste to znovu.');
+     } finally {
+       setLoading(false);
+     }
+@@ -144,7 +150,7 @@ export default function PromoCodesPage() {
+     <div className="space-y-6">
+       <PageHeader
+         title="Promo kódy"
+-        description="Sleva pro kupce — % nebo pevná částka. Aplikuje se v checkoutu."
++        description="Sleva pro kupce — % nebo pevná částka. Kupec kód zadá při objednávce vstupenek."
+       />
+ 
+       <Card>
+@@ -252,8 +258,8 @@ export default function PromoCodesPage() {
+                 {loading ? 'Ukládám…' : 'Vytvořit kód'}
+               </Button>
+             </div>
+-            {error && (
+-              <p className="md:col-span-5 text-sm text-destructive">{error}</p>
++            {(error || okMsg) && (
++              <p data-testid="promo-msg" className={`md:col-span-5 text-sm ${error ? 'text-destructive' : 'text-emerald-700'}`}>{error ?? okMsg}</p>
+             )}
+           </form>
+         </CardContent>
+diff --git a/nextjs-boilerplate/src/app/admin/scanner/ScanState.tsx b/nextjs-boilerplate/src/app/admin/scanner/ScanState.tsx
+new file mode 100644
+index 00000000..7b83183a
+--- /dev/null
++++ b/nextjs-boilerplate/src/app/admin/scanner/ScanState.tsx
+@@ -0,0 +1,109 @@
++'use client';
++
++/**
++ * Kolo 12 — výsledek skenu pro obsluhu vstupu: velký barevný pruh čitelný na slunci i ve tmě, krátké heslo velkým
++ * písmem, zvuk a vibrace. Obsluha kouká na příchozího, ne do telefonu — každý stav má vlastní zvuk i vibraci:
++ *   ok    zelená  VSTUP POVOLEN        1 vysoké pípnutí, 1 dlouhá vibrace
++ *   warn  oranžová OVĚŘTE PRŮKAZ / RUČNĚ 2 střední pípnutí, 3 krátké vibrace
++ *   deny  červená NEVPOUŠTĚT / JINÝ TERMÍN / UŽ POUŽITO   2 hluboké tóny, výrazná dvojitá vibrace
++ *   info  modrá   ODCHOD / UŽ NAČTENO  1 krátké pípnutí
++ * (iOS Safari vibraci nepodporuje — zvuk proto hraje vždy.)
++ */
++import { useEffect, useState } from 'react';
++
++export type ScanTone = 'ok' | 'warn' | 'deny' | 'info';
++
++export interface ScanStateInput {
++  result: string;
++  message?: string;
++  unverified?: boolean;
++  direction?: 'entry' | 'exit';
++  ticket?: { verifyId?: string | null; seat?: string | null } | null;
++}
++
++export function scanVerdict(r: ScanStateInput): { tone: ScanTone; headline: string } {
++  if (r.result === 'admitted') {
++    if (r.unverified) return { tone: 'warn', headline: 'OVĚŘTE RUČNĚ' };
++    // verifyId nese celý pokyn ze serveru („Ověřit průkaz: ZTP/P")
++    if (r.ticket?.verifyId) return { tone: 'warn', headline: r.ticket.verifyId };
++    return { tone: 'ok', headline: r.direction === 'exit' ? 'ODCHOD' : 'VSTUP POVOLEN' };
++  }
++  switch (r.result) {
++    case 'exited': case 'released': return { tone: 'info', headline: 'ODCHOD' };
++    case 'duplicate': return { tone: 'info', headline: 'UŽ NAČTENO' };
++    case 'undone': return { tone: 'info', headline: 'PRŮCHOD VZAT ZPĚT' };
++    case 'wrong_event': return { tone: 'deny', headline: 'JINÝ TERMÍN' };
++    case 'already_used': case 'already_redeemed_today': case 'already_inside': return { tone: 'deny', headline: 'UŽ POUŽITO' };
++    case 'not_found': case 'invalid_token': return { tone: 'deny', headline: 'NEPLATNÁ VSTUPENKA' };
++    case 'revoked': return { tone: 'deny', headline: 'ZRUŠENÁ VSTUPENKA' };
++    case 'error': return { tone: 'deny', headline: 'CHYBA — ZKUSTE ZNOVU' };
++    default: return { tone: 'deny', headline: 'NEVPOUŠTĚT' };
++  }
++}
++
++const TONE_CLASS: Record<ScanTone, string> = {
++  ok: 'bg-emerald-600 text-white border-emerald-800',
++  warn: 'bg-amber-400 text-black border-amber-700',
++  deny: 'bg-red-600 text-white border-red-900',
++  info: 'bg-sky-600 text-white border-sky-900',
++};
++const VIBRATE: Record<ScanTone, number | number[]> = { ok: 100, warn: [100, 60, 100, 60, 100], deny: [200, 80, 200], info: 40 };
++const BEEPS: Record<ScanTone, Array<[number, number]>> = {
++  ok: [[880, 120]], warn: [[660, 120], [660, 120]], deny: [[220, 350], [180, 350]], info: [[520, 80]],
++};
++
++let ctx: AudioContext | null = null;
++function beep(tone: ScanTone): void {
++  try {
++    const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
++    if (!AC) return;
++    ctx = ctx ?? new AC();
++    if (ctx.state === 'suspended') void ctx.resume();
++    let t = ctx.currentTime;
++    for (const [freq, ms] of BEEPS[tone]) {
++      const o = ctx.createOscillator();
++      const g = ctx.createGain();
++      o.frequency.value = freq;
++      o.type = tone === 'deny' ? 'square' : 'sine';
++      g.gain.value = 0.25;
++      o.connect(g); g.connect(ctx.destination);
++      o.start(t); o.stop(t + ms / 1000);
++      t += ms / 1000 + 0.08;
++    }
++  } catch { /* zvuk je doplněk — bez něj skener funguje dál */ }
++}
++
++/**
++ * Na mobilu panel přilepený u spodního okraje (obsluha ho vidí hned po klepnutí na „Ověřit", bez posouvání), na počítači
++ * v toku stránky. Klepnutí panel zavře; zelený a modrý zmizí sám po 3 s, červený a oranžový po 8 s.
++ */
++export function ScanState({ result }: { result: ScanStateInput | null }): JSX.Element | null {
++  const v = result ? scanVerdict(result) : null;
++  const [hidden, setHidden] = useState(false);
++  useEffect(() => {
++    setHidden(false);
++    if (!v) return;
++    beep(v.tone);
++    try { navigator.vibrate?.(VIBRATE[v.tone]); } catch { /* */ }
++    // zelený/modrý po 3 s, červený/oranžový po 8 s (obsluha mezitím řeší příchozího); klepnutím kdykoli
++    const t = setTimeout(() => setHidden(true), v.tone === 'ok' || v.tone === 'info' ? 3000 : 8000);
++    return () => clearTimeout(t);
++  }, [result]); // eslint-disable-line react-hooks/exhaustive-deps
++  if (!result || !v || hidden) return null;
++  return (
++    <div
++      role="status"
++      aria-live="assertive"
++      data-testid="scan-state"
++      data-tone={v.tone}
++      className={`fixed inset-x-2 bottom-2 z-40 cursor-pointer rounded-xl border-4 px-4 py-6 text-center shadow-2xl md:static md:cursor-default md:shadow-lg ${TONE_CLASS[v.tone]}`}
++      onClick={() => setHidden(true)}
++      title="Klepnutím zavřete"
++    >
++      <div data-testid="scan-headline" className="text-4xl font-black uppercase leading-tight tracking-wide sm:text-5xl">{v.headline}</div>
++      {result.ticket?.seat ? <div className="mt-2 text-2xl font-bold">{result.ticket.seat}</div> : null}
++      {result.message ? <div className="mt-2 text-base font-semibold">{result.message}</div> : null}
++      <div className="mt-3 text-xs font-medium opacity-80 md:hidden">Klepnutím zavřete</div>
++    </div>
++  );
++}
+diff --git a/nextjs-boilerplate/src/app/admin/scanner/guide/page.tsx b/nextjs-boilerplate/src/app/admin/scanner/guide/page.tsx
+index 6bd9668f..b815b8fb 100644
+--- a/nextjs-boilerplate/src/app/admin/scanner/guide/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/scanner/guide/page.tsx
+@@ -80,7 +80,7 @@ const TROUBLESHOOT = [
+   },
+   {
+     q: 'Zákazník tvrdí, že má platný lístek, ale app říká "nenalezen"',
+-    a: 'Ověřte, zda zákazník otevřel správnou appku nebo email. Zkontrolujte ticket ID ručně. Volejte vedoucímu — neřešte sami.',
++    a: 'Ověřte, zda zákazník otevřel správnou appku nebo email. Opište kód ze vstupenky do pole „Kód vstupenky" a ověřte ho ručně. Volejte vedoucímu — neřešte sami.',
+   },
+   {
+     q: 'App se zasekla nebo nereaguje',
+diff --git a/nextjs-boilerplate/src/app/admin/scanner/page.tsx b/nextjs-boilerplate/src/app/admin/scanner/page.tsx
+index 196e4633..258d4219 100644
+--- a/nextjs-boilerplate/src/app/admin/scanner/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/scanner/page.tsx
+@@ -1,14 +1,14 @@
+ 'use client';
+ 
+ import { FormEvent, useEffect, useState, useCallback } from 'react';
+-import Link from 'next/link';
+ import { CheckCircle2, XCircle, AlertTriangle, ScanLine, Settings2, Wifi, WifiOff, Camera } from 'lucide-react';
++import Link from 'next/link';
++import { GroupScanPanel } from '@/components/admin/GroupScanPanel';
+ import { PageHeader } from '@/components/admin/PageHeader';
++import { QrScannerCamera } from '@/components/admin/QrScannerCamera';
+ import { Button } from '@/components/ui/button';
+ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+ import { Input } from '@/components/ui/input';
+-import { QrScannerCamera } from '@/components/admin/QrScannerCamera';
+-import { GroupScanPanel } from '@/components/admin/GroupScanPanel';
+ import {
+   enqueueScan,
+   flushQueue,
+@@ -21,6 +21,7 @@ import {
+   type ManifestMeta,
+   type OfflineCheck,
+ } from '@/lib/scanner/offline-queue';
++import { ScanState } from './ScanState';
+ 
+ type ScanResult = {
+   result:
+@@ -50,6 +51,8 @@ type ScanResult = {
+     | 'undone'
+     | 'error';
+   kind?: 'single_use' | 'multi_day_redemption' | 'entry' | 'reentry';
++  /** Kolo 12: vpuštěno bez ověření (výpadek sítě, seznam nestažen) — obsluha musí vstupenku zkontrolovat očima. */
++  unverified?: boolean;
+   /** Z /scanner/passage — směr, který server odvodil, a stav pro obsluhu. */
+   direction?: 'entry' | 'exit';
+   label?: string;
+@@ -130,33 +133,20 @@ export default function ScannerPage() {
+     setTicketId(trimmed);
+   }
+   const [cameraOpen, setCameraOpen] = useState(false);
++  const [autoSubmit, setAutoSubmit] = useState(false);
+   const [result, setResult] = useState<ScanResult | null>(null);
+   const [loading, setLoading] = useState(false);
+   const [events, setEvents] = useState<GateEvent[]>([]);
+   const [gate, setGate] = useState<GateState>({ eventId: null, eventDayId: null, zoneId: null });
+   const [showSettings, setShowSettings] = useState(true);
+-  // Haptic feedback on scan result (Vibration API — mobile browsers)
++  // Kolo 12: zvuk a vibrace výsledku dělá <ScanState> (dřív jen vibrace a bez „jiného termínu").
++
++  // Kolo 12: QR z kamery se ověří hned (stav se nastaví v onDetected, ověření až s novým kódem ve stavu)
+   useEffect(() => {
+-    if (!result || typeof navigator === 'undefined' || !navigator.vibrate) return;
+-    const denied: ScanResult['result'][] = [
+-      'already_used', 'already_redeemed_today', 'revoked', 'not_found',
+-      'invalid_token', 'wrong_promoter', 'totp_mismatch', 'invalid_status',
+-      'wrong_zone_or_day', 'flex_limit_exhausted', 'day_not_picked',
+-      'already_inside', 'reentry_limit_exceeded', 'not_inside',
+-      'reentry_disabled', 'error',
+-    ];
+-    // Obsluha se dívá na příchozího, ne do telefonu — vstup a odchod proto
+-    // musí být rozeznatelné poslepu. Tři různé vzorce: vstup, odchod, zamítnutí.
+-    if (result.result === 'released' || result.direction === 'exit') {
+-      navigator.vibrate([60, 50, 60]); // dvě krátké = odchod
+-    } else if (result.result === 'admitted' || result.result === 'exited') {
+-      navigator.vibrate(100); // jedna dlouhá = vstup
+-    } else if (result.result === 'duplicate') {
+-      navigator.vibrate(40); // jemné ťuknutí = už načteno, nic se nestalo
+-    } else if (denied.includes(result.result)) {
+-      navigator.vibrate([200, 80, 200]); // výrazné = zamítnutí
+-    }
+-  }, [result]);
++    if (!autoSubmit || !ticketId) return;
++    setAutoSubmit(false);
++    void handleSubmit();
++  }, [autoSubmit, ticketId]); // eslint-disable-line react-hooks/exhaustive-deps
+ 
+   // Poslední průchod si držíme kvůli tlačítku „opravit".
+   useEffect(() => {
+@@ -326,8 +316,24 @@ export default function ScannerPage() {
+     ? `${selectedEvent.title}${selectedDay ? ' · ' + (selectedDay.label ?? `Den ${selectedDay.dayIndex + 1}`) : ''}${selectedZone ? ' · ' + selectedZone.name : ''}`
+     : 'Žádná brána zvolena';
+ 
+-  async function handleSubmit(e: FormEvent) {
+-    e.preventDefault();
++  /** Ověření proti staženému seznamu (offline). Bez seznamu NEPOUŠTÍ automaticky na zelenou — obsluha ověří ručně. */
++  async function offlineVerdict(payload: Record<string, unknown>, raw: string, isPrintToken: boolean, why: string): Promise<ScanResult> {
++    await enqueueScan(payload as Parameters<typeof enqueueScan>[0], gateLabel);
++    await refreshPending();
++    const offlineTicketId = isPrintToken ? decodePrintTokenUuid(raw) ?? undefined : raw;
++    let check: OfflineCheck = 'no_manifest';
++    if (gate.eventId && offlineTicketId) check = await validateOffline(gate.eventId, offlineTicketId);
++    if (check === 'not_found') return { result: 'not_found', message: `${why} Vstupenka NENÍ v seznamu platných — nevpouštějte.` };
++    if (check === 'already_used') return { result: 'already_used', message: `${why} Vstupenka už byla na tomto zařízení odbavena.` };
++    if (check === 'admitted') return { result: 'admitted', message: `${why} Ověřeno proti staženému seznamu. Po obnovení internetu se odešle.` };
++    return {
++      result: 'admitted', unverified: true,
++      message: `${why} Vstupenku NENÍ JAK OVĚŘIT (seznam pro výpadek není stažený). Zkontrolujte na vstupence název a datum představení.`,
++    };
++  }
++
++  async function handleSubmit(e?: FormEvent) {
++    e?.preventDefault();
+     setLoading(true);
+     setResult(null);
+     const raw = ticketId.trim();
+@@ -348,45 +354,11 @@ export default function ScannerPage() {
+     // vstup zachyť lokálně. Bez whitelistu padáme na optimistic accept (provoz nestojí).
+     if (!online) {
+       try {
+-        await enqueueScan(payload, gateLabel);
+-        await refreshPending();
+-
+-        const offlineTicketId = isPrintToken
+-          ? decodePrintTokenUuid(raw) ?? undefined
+-          : raw;
+-        let check: OfflineCheck = 'no_manifest';
+-        if (gate.eventId && offlineTicketId) {
+-          check = await validateOffline(gate.eventId, offlineTicketId);
+-        }
+-
+-        if (check === 'not_found') {
+-          setResult({
+-            result: 'not_found',
+-            message: 'OFFLINE: lístek NENÍ ve staženém seznamu platných — NEVPOUŠTĚT.',
+-          });
+-        } else if (check === 'already_used') {
+-          setResult({
+-            result: 'already_used',
+-            message: 'OFFLINE: tento lístek už byl tímto zařízením odbaven.',
+-          });
+-        } else if (check === 'admitted') {
+-          setResult({
+-            result: 'admitted',
+-            message: 'Přijato offline (ověřeno proti staženému seznamu). Sync po obnovení.',
+-          });
+-          setTicketId('');
+-          setTotpCode('');
+-        } else {
+-          // no_manifest → optimistic accept, ale jasně upozorni, že NEbylo ověřeno
+-          setResult({
+-            result: 'admitted',
+-            message: '⚠ Přijato offline BEZ ověření (není stažený seznam). Sync po obnovení.',
+-          });
+-          setTicketId('');
+-          setTotpCode('');
+-        }
++        const v = await offlineVerdict(payload, raw, isPrintToken, 'Bez internetu.');
++        setResult(v);
++        if (v.result === 'admitted') { setTicketId(''); setTotpCode(''); }
+       } catch {
+-        setResult({ result: 'error', message: 'Offline queue selhala (IndexedDB nedostupný).' });
++        setResult({ result: 'error', message: 'Uložení skenu v zařízení selhalo. Vstupenku zkontrolujte ručně.' });
+       } finally {
+         setLoading(false);
+       }
+@@ -425,19 +397,14 @@ export default function ScannerPage() {
+         setTotpCode('');
+       }
+     } catch {
+-      // Síť spadla mezi click a fetch — fallback do queue
++      // Kolo 12: síť spadla během ověření — dřív se ukázalo zelené „vpuštěno" bez jakékoli kontroly.
+       try {
+-        await enqueueScan(payload, gateLabel);
+-        await refreshPending();
+-        setResult({
+-          result: 'admitted',
+-          message: 'Síť spadla — uloženo do offline queue. Sync po obnovení.',
+-        });
+-        setTicketId('');
+-        setTotpCode('');
++        const v = await offlineVerdict(payload, raw, isPrintToken, 'Výpadek internetu.');
++        setResult(v);
++        if (v.result === 'admitted') { setTicketId(''); setTotpCode(''); }
+         setOnline(false);
+       } catch {
+-        setResult({ result: 'error', message: 'Síťová chyba i offline queue selhala.' });
++        setResult({ result: 'error', message: 'Výpadek internetu a uložení skenu selhalo. Vstupenku zkontrolujte ručně.' });
+       }
+     } finally {
+       setLoading(false);
+@@ -447,8 +414,8 @@ export default function ScannerPage() {
+   return (
+     <div className="space-y-6">
+       <PageHeader
+-        title="Scanner"
+-        description="Manuální validace QR lístku. Pro festivaly nastav bránu (akce + den + zóna) a scanner bude validovat per gate."
++        title="Kontrola vstupenek"
++        description="Načtěte QR kód kamerou (nebo opište kód ze vstupenky). Zelená = pustit, oranžová = zkontrolovat, červená = nepouštět."
+         actions={
+           <Link href="/admin/scanner/guide" className="text-sm text-primary hover:underline">
+             📋 Průvodce pro personál
+@@ -466,11 +433,11 @@ export default function ScannerPage() {
+       >
+         <span className="flex items-center gap-2 font-medium">
+           {online ? <Wifi className="h-4 w-4" aria-hidden /> : <WifiOff className="h-4 w-4" aria-hidden />}
+-          {online ? 'Online — server validuje každý sken' : 'Offline — skeny jdou do lokální fronty'}
++          {online ? 'Připojeno — každá vstupenka se ověřuje na serveru' : 'Bez internetu — vstupenky se ověřují podle staženého seznamu'}
+         </span>
+         {pendingCount > 0 ? (
+           <span className="flex items-center gap-2">
+-            <span className="font-semibold">{pendingCount} čeká na sync</span>
++            <span className="font-semibold">{pendingCount} čeká na odeslání</span>
+             <Button
+               type="button"
+               size="sm"
+@@ -478,7 +445,7 @@ export default function ScannerPage() {
+               onClick={() => void handleFlush()}
+               disabled={!online}
+             >
+-              Synchronizovat
++              Odeslat
+             </Button>
+           </span>
+         ) : null}
+@@ -507,11 +474,11 @@ export default function ScannerPage() {
+           <span className="text-muted-foreground">
+             {manifestMeta ? (
+               <>
+-                Offline seznam: <strong className="text-foreground">{manifestMeta.count.toLocaleString('cs-CZ')}</strong>{' '}
+-                lístků · staženo {new Date(manifestMeta.savedAt).toLocaleString('cs-CZ')}
++                Seznam pro výpadek internetu: <strong className="text-foreground">{manifestMeta.count.toLocaleString('cs-CZ')}</strong>{' '}
++                vstupenek · staženo {new Date(manifestMeta.savedAt).toLocaleString('cs-CZ')}
+               </>
+             ) : (
+-              <>⚠ Offline seznam není stažený — offline sken nepůjde ověřit. Stáhni před akcí (online).</>
++              <>⚠ Seznam pro výpadek internetu není stažený — bez internetu nepůjde vstupenky ověřit. Stáhněte ho před začátkem představení.</>
+             )}
+           </span>
+           <Button
+@@ -522,7 +489,7 @@ export default function ScannerPage() {
+             disabled={manifestLoading || !online}
+             title={!online ? 'Stažení vyžaduje připojení' : undefined}
+           >
+-            {manifestLoading ? 'Stahuji…' : manifestMeta ? 'Aktualizovat' : 'Stáhnout offline seznam'}
++            {manifestLoading ? 'Stahuji…' : manifestMeta ? 'Aktualizovat seznam' : 'Stáhnout seznam'}
+           </Button>
+         </div>
+       ) : null}
+@@ -549,14 +516,13 @@ export default function ScannerPage() {
+             </div>
+           ) : events.length === 0 ? (
+             <p className="text-sm text-muted-foreground">
+-              Načítání akcí… Pokud nemáš žádnou nadcházející akci, vytvoř ji
+-              v sekci „Akce".
++              Načítám představení… Pokud se žádné neobjeví, nemáte nadcházející představení — založte ho v sekci „Inscenace".
+             </p>
+           ) : (
+             <div className="space-y-3">
+               <div>
+                 <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+-                  Akce
++                  Představení
+                 </label>
+                 <select
+                   value={gate.eventId ?? ''}
+@@ -569,7 +535,7 @@ export default function ScannerPage() {
+                   }
+                   className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                 >
+-                  <option value="">— vyber akci —</option>
++                  <option value="">— vyberte představení —</option>
+                   {events.map((ev) => (
+                     <option key={ev.id} value={ev.id}>
+                       {ev.title} ({new Date(ev.dateStart).toLocaleDateString('cs-CZ')})
+@@ -581,7 +547,7 @@ export default function ScannerPage() {
+               {selectedEvent && selectedEvent.days.length > 0 ? (
+                 <div>
+                   <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+-                    Den{selectedEvent.days.length > 1 ? ' (povinné pro multi-day)' : ''}
++                    Den{selectedEvent.days.length > 1 ? ' (povinné u vícedenních akcí)' : ''}
+                   </label>
+                   <div className="flex flex-wrap gap-1">
+                     <ChipButton
+@@ -665,6 +631,8 @@ export default function ScannerPage() {
+         </button>
+       </div>
+ 
++      {entryMode === 'single' ? <ScanState result={result} /> : null}
++
+       {entryMode === 'group' ? (
+         <GroupScanPanel />
+       ) : (
+@@ -672,23 +640,21 @@ export default function ScannerPage() {
+         <Card>
+           <CardHeader>
+             <CardTitle className="flex items-center gap-2">
+-              <ScanLine className="h-5 w-5" aria-hidden /> Validace
++              <ScanLine className="h-5 w-5" aria-hidden /> Načíst vstupenku
+             </CardTitle>
+           </CardHeader>
+           <CardContent>
+             <form onSubmit={handleSubmit} className="space-y-3">
+               <div>
+-                <label className="mb-1 block text-xs font-medium">
+-                  Ticket ID nebo QR payload{' '}
+-                  <code className="text-[11px] text-muted-foreground">
+-                    {'tixly:<id>:<code>'}
+-                  </code>
++                <label htmlFor="scanner-ticket" className="mb-1 block text-xs font-medium">
++                  Kód vstupenky
+                 </label>
+                 <div className="flex gap-2">
+                   <Input
+                     value={ticketId}
+                     onChange={(e) => setTicketIdSmart(e.target.value)}
+-                    placeholder="8a4f7b2e-… / tixly:…:123456 / TXP2.…"
++                    id="scanner-ticket"
++                    placeholder="QR kamerou nebo kód ze vstupenky"
+                     required
+                     pattern="([0-9a-fA-F-]{36}|TXP[12]\..+)"
+                     autoFocus
+@@ -699,16 +665,18 @@ export default function ScannerPage() {
+                     type="button"
+                     variant="outline"
+                     onClick={() => setCameraOpen(true)}
+-                    title="Otevřít kameru pro sken QR"
++                    title="Načíst QR kód kamerou"
++                    aria-label="Načíst QR kód kamerou"
+                     data-testid="scanner-open-camera"
+                   >
+                     <Camera className="h-4 w-4" aria-hidden />
+                   </Button>
+                 </div>
+               </div>
+-              <div>
+-                <label className="mb-1 block text-xs font-medium">
+-                  TOTP kód (volitelné, z autentikační appky)
++              <details className="text-xs text-muted-foreground">
++                <summary className="cursor-pointer">Vstupenka s měnícím se kódem v mobilu</summary>
++                <label className="mb-1 mt-2 block text-xs font-medium">
++                  Šestimístný kód z mobilu kupce
+                 </label>
+                 <Input
+                   value={totpCode}
+@@ -718,7 +686,7 @@ export default function ScannerPage() {
+                   inputMode="numeric"
+                   maxLength={6}
+                 />
+-              </div>
++              </details>
+               <div>
+                 <label className="mb-1 block text-xs font-medium">Režim skenování</label>
+                 <div className="grid grid-cols-2 gap-1 rounded-md border p-1 text-xs sm:grid-cols-4">
+@@ -727,7 +695,7 @@ export default function ScannerPage() {
+                     className={`rounded px-2 py-1.5 ${scanMode === 'auto' ? 'bg-emerald-600 text-white' : 'hover:bg-muted'}`}
+                     onClick={() => setScanMode('auto')}
+                   >
+-                    Standard
++                    Běžný
+                   </button>
+                   <button
+                     type="button"
+@@ -754,17 +722,16 @@ export default function ScannerPage() {
+                 </div>
+                 {scanMode !== 'auto' ? (
+                   <p className="mt-1 text-[11px] text-muted-foreground">
+-                    Re-entry režim pro festivaly / open-air. Vyžaduje event s
+-                    <code className="mx-1">reentry_allowed=TRUE</code>.
++                    Opakovaný vstup (festivaly, open-air). Funguje jen u akcí, kde má opakovaný vstup zapnutý pořadatel.
+                   </p>
+                 ) : null}
+               </div>
+               <Button type="submit" disabled={loading} className="w-full">
+                 {loading
+-                  ? 'Validuji…'
++                  ? 'Ověřuji…'
+                   : scanMode === 'reentry_exit'
+                     ? 'Označit výstup'
+-                    : 'Validovat lístek'}
++                    : 'Ověřit vstupenku'}
+               </Button>
+             </form>
+           </CardContent>
+@@ -772,7 +739,7 @@ export default function ScannerPage() {
+ 
+         <Card>
+           <CardHeader>
+-            <CardTitle>Výsledek</CardTitle>
++            <CardTitle>Podrobnosti</CardTitle>
+           </CardHeader>
+           <CardContent className="space-y-3">
+             {renderResult(result)}
+@@ -800,6 +767,7 @@ export default function ScannerPage() {
+         onDetected={(raw) => {
+           setTicketIdSmart(raw);
+           setCameraOpen(false);
++          setAutoSubmit(true);
+         }}
+         onClose={() => setCameraOpen(false)}
+       />
+@@ -835,7 +803,7 @@ function renderResult(r: ScanResult | null) {
+   if (!r) {
+     return (
+       <p className="text-sm text-muted-foreground">
+-        Naskenuj nebo vlož ticket ID, abys viděl výsledek.
++        Načtěte QR kód nebo opište kód ze vstupenky — výsledek se ukáže tady.
+       </p>
+     );
+   }
+@@ -976,17 +944,17 @@ function labelFor(r: ScanResult['result']): string {
+     case 'invalid_token':
+       return 'Neplatný kód vstupenky';
+     case 'wrong_promoter':
+-      return 'Lístek jiného promotéra';
++      return 'Vstupenka jiného pořadatele';
+     case 'wrong_event':
+-      return 'Lístek na jinou akci';
++      return 'Vstupenka na jiný termín';
+     case 'totp_mismatch':
+-      return 'TOTP kód neodpovídá';
++      return 'Kód z mobilu nesouhlasí';
+     case 'invalid_status':
+-      return 'Neplatný stav';
++      return 'Vstupenka není platná';
+     case 'wrong_zone_or_day':
+       return 'Lístek nemá přístup do této zóny / dne';
+     case 'flex_limit_exhausted':
+-      return 'Flex pass vyčerpán';
++      return 'Permanentka je vyčerpaná';
+     case 'day_not_picked':
+       return 'Tento den není mezi vybranými termíny';
+     case 'reentry_disabled':
+@@ -998,6 +966,6 @@ function labelFor(r: ScanResult['result']): string {
+     case 'not_inside':
+       return 'Držitel není evidovaný uvnitř';
+     default:
+-      return 'Chyba';
++      return 'Chyba — zkuste to znovu';
+   }
+ }
+diff --git a/nextjs-boilerplate/src/app/admin/staff/page.tsx b/nextjs-boilerplate/src/app/admin/staff/page.tsx
+index bb8d80c4..9b61f453 100644
+--- a/nextjs-boilerplate/src/app/admin/staff/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/staff/page.tsx
+@@ -25,20 +25,26 @@ interface PendingInvite {
+ }
+ 
+ const ROLE_LABELS: Record<string, { label: string; tone: string; description: string }> = {
++  // Kolo 12: role česky; „Pokladna" (box_office) dřív v nabídce chyběla
+   owner: {
+-    label: 'Owner',
++    label: 'Vlastník',
+     tone: 'bg-violet-100 text-violet-800',
+-    description: 'Plná kontrola — výplaty, billing, staff management',
++    description: 'Vše včetně výplat, fakturace a správy týmu',
+   },
+   admin: {
+-    label: 'Admin',
++    label: 'Správce',
+     tone: 'bg-blue-100 text-blue-800',
+-    description: 'Spravovat akce, objednávky, marketing — bez billing',
++    description: 'Inscenace, termíny, objednávky, marketing — bez výplat a fakturace',
++  },
++  box_office: {
++    label: 'Pokladna',
++    tone: 'bg-emerald-100 text-emerald-800',
++    description: 'Prodej na místě, rezervace k vyzvednutí, tisk vstupenek, kontrola vstupenek',
+   },
+   staff: {
+-    label: 'Staff',
++    label: 'Vstup a provoz',
+     tone: 'bg-slate-100 text-slate-700',
+-    description: 'Read-only přístup + scanner — bez editace',
++    description: 'Kontrola vstupenek a přehled — bez úprav a financí',
+   },
+ };
+ 
+@@ -48,7 +54,7 @@ export default function StaffPage() {
+   const [currentUserId, setCurrentUserId] = useState<string>('');
+   const [currentRole, setCurrentRole] = useState<string>('');
+   const [email, setEmail] = useState('');
+-  const [role, setRole] = useState<'admin' | 'staff'>('staff');
++  const [role, setRole] = useState<'admin' | 'staff' | 'box_office'>('staff');
+   const [error, setError] = useState<string | null>(null);
+   const [feedback, setFeedback] = useState<string | null>(null);
+   const [loading, setLoading] = useState(false);
+@@ -182,10 +188,11 @@ export default function StaffPage() {
+                 <select
+                   className="flex h-10 rounded-md border border-input bg-background px-3 text-sm"
+                   value={role}
+-                  onChange={(e) => setRole(e.target.value as 'admin' | 'staff')}
++                  onChange={(e) => setRole(e.target.value as 'admin' | 'staff' | 'box_office')}
+                 >
+-                  <option value="staff">Staff</option>
+-                  <option value="admin">Admin</option>
++                  <option value="staff">Vstup a provoz (kontrola vstupenek)</option>
++                  <option value="box_office">Pokladna (prodej a rezervace)</option>
++                  <option value="admin">Správce</option>
+                 </select>
+               </div>
+               <Button type="submit" disabled={loading} className="gap-1">
+diff --git a/nextjs-boilerplate/src/app/admin/team/page.tsx b/nextjs-boilerplate/src/app/admin/team/page.tsx
+index bdf33f4a..fb8596dc 100644
+--- a/nextjs-boilerplate/src/app/admin/team/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/team/page.tsx
+@@ -157,8 +157,9 @@ export default function TeamPage() {
+               onChange={(e) => setInviteRole(e.target.value as 'admin' | 'staff')}
+               className="rounded-md border bg-background px-3 py-2 text-sm"
+             >
+-              <option value="admin">Admin</option>
+-              <option value="staff">Staff (scanner / read-only)</option>
++              <option value="admin">Správce</option>
++              <option value="box_office">Pokladna (prodej a rezervace)</option>
++              <option value="staff">Vstup a provoz (kontrola vstupenek)</option>
+             </select>
+             <Button type="submit" disabled={busy || !inviteEmail}>
+               {busy ? 'Posílám…' : 'Pozvat'}
+@@ -196,9 +197,10 @@ export default function TeamPage() {
+                         onChange={(e) => changeRole(m.user_id, e.target.value)}
+                         className="rounded border bg-background px-2 py-1 text-xs"
+                       >
+-                        <option value="owner">Owner</option>
+-                        <option value="admin">Admin</option>
+-                        <option value="staff">Staff</option>
++                        <option value="owner">Vlastník</option>
++                        <option value="admin">Správce</option>
++                        <option value="box_office">Pokladna</option>
++                        <option value="staff">Vstup a provoz</option>
+                       </select>
+                     </td>
+                     <td>
+diff --git a/nextjs-boilerplate/src/app/admin/venues/[venueId]/seating-chart/editor/page.tsx b/nextjs-boilerplate/src/app/admin/venues/[venueId]/seating-chart/editor/page.tsx
+index 8e89e6ef..9aa50719 100644
+--- a/nextjs-boilerplate/src/app/admin/venues/[venueId]/seating-chart/editor/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/venues/[venueId]/seating-chart/editor/page.tsx
+@@ -33,7 +33,7 @@ export default function AdminVenueEditorPage({
+ }) {
+   const { venueId } = params;
+   const [initialLayout, setInitialLayout] = useState<Layout | null>(null);
+-  const [chartName, setChartName] = useState('Default');
++  const [chartName, setChartName] = useState('Plánek sálu');
+   const [loaded, setLoaded] = useState(false);
+   const [error, setError] = useState<string | null>(null);
+   const [forbidden, setForbidden] = useState(false);
+@@ -86,12 +86,12 @@ export default function AdminVenueEditorPage({
+         <h1 className="text-xl font-bold">Sdílený sál — editace zakázána</h1>
+         <p className="text-sm text-muted-foreground max-w-lg">
+           Tento sál je sdíleným katalogem Tixly a může ho editovat pouze platformní správce.
+-          Pokud potřebujete změnit layout, kontaktujte <strong>support@tixly.cz</strong>.
++          Pokud potřebujete změnit plánek, kontaktujte <strong>support@tixly.cz</strong>.
+         </p>
+         <p className="text-sm">
+           Chcete vlastní editovatelný sál?{' '}
+-          <Link href="/admin/venues/new" className="text-primary underline">
+-            Vytvořte si nový soukromý sál →
++          <Link href="/admin/venues" className="text-primary underline">
++            Založte si vlastní sál v knihovně míst →
+           </Link>
+         </p>
+       </div>
+@@ -101,7 +101,7 @@ export default function AdminVenueEditorPage({
+   if (error) {
+     return (
+       <div className="p-6 rounded-md border border-rose-300 bg-rose-50 text-sm text-rose-900">
+-        Chyba při načítání: {error}
++        Plánek se nepodařilo načíst ({error}). Obnovte stránku; pokud to nepomůže, vraťte se do knihovny míst a otevřete editor znovu.
+       </div>
+     );
+   }
+@@ -110,12 +110,12 @@ export default function AdminVenueEditorPage({
+     <div className="space-y-4">
+       <div className="flex items-start justify-between gap-3">
+         <div>
+-          <Link href={`/admin/venues/${venueId}`} className="text-sm text-primary hover:underline">
+-            ← Zpět na detail sálu
++          <Link href="/admin/venues" className="text-sm text-primary hover:underline">
++            ← Zpět do knihovny míst
+           </Link>
+-          <h1 className="mt-1 text-2xl font-bold">Seating editor</h1>
++          <h1 className="mt-1 text-2xl font-bold">Editor plánku sálu</h1>
+           <p className="mt-1 text-sm text-muted-foreground">
+-            Drag-and-draw editor pro layout sedadel. Změny se projeví na všech budoucích akcích v tomto sálu.
++            Rozmístění sedadel, sekcí a cenových zón. Změny platí pro termíny založené od teď; už založené termíny se nemění.
+           </p>
+         </div>
+       </div>
+diff --git a/nextjs-boilerplate/src/app/admin/venues/page.tsx b/nextjs-boilerplate/src/app/admin/venues/page.tsx
+index cbced779..a7c4f4f3 100644
+--- a/nextjs-boilerplate/src/app/admin/venues/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/venues/page.tsx
+@@ -67,7 +67,7 @@ export default function VenuesPage() {
+           <MapPin className="mx-auto h-8 w-8 text-muted-foreground" aria-hidden />
+           <p className="mt-3 text-sm font-medium">Zatím nemáte žádný sál</p>
+           <p className="mt-1 text-sm text-muted-foreground">
+-            Sál se založí při vytváření akce — vyplň místo konání a uloží se sem.
++            Sál založíte výše v knihovně míst: přidejte místo (název, město) a v něm sál — rovnou se otevře editor plánku.
+           </p>
+           <Link
+             href="/admin/events/new"
+@@ -88,10 +88,11 @@ export default function VenuesPage() {
+               </p>
+               <div className="mt-3 flex flex-wrap gap-3 text-sm">
+                 <Link
+-                  href={`/admin/venues/${v.id}/seating-chart`}
++                  href={`/admin/venues/${v.id}/seating-chart/editor`}
+                   className="font-medium text-primary hover:underline"
+                 >
+-                  Plánek sedadel
++                  {/* Kolo 12: dřív „Plánek sedadel" na stránku jen pro čtení („kontaktuj master admina"), která odporovala editoru */}
++                  Editor plánku
+                 </Link>
+                 <Link
+                   href={`/admin/venues/${v.id}/gates`}
+diff --git a/nextjs-boilerplate/src/app/api/admin/events/route.ts b/nextjs-boilerplate/src/app/api/admin/events/route.ts
+index 1855ee3e..32821afc 100644
+--- a/nextjs-boilerplate/src/app/api/admin/events/route.ts
++++ b/nextjs-boilerplate/src/app/api/admin/events/route.ts
+@@ -26,6 +26,8 @@ interface EventRow {
+   date_start: string;
+   status: string;
+   rejection_reason: string | null;
++  venue_city: string | null;
++  venue_name: string | null;
+ }
+ 
+ export async function GET(request: NextRequest): Promise<Response> {
+@@ -41,8 +43,11 @@ export async function GET(request: NextRequest): Promise<Response> {
+         WHERE log.event_id = e.id AND log.decision = 'rejected'
+         ORDER BY log.created_at DESC
+         LIMIT 1
+-      ) ELSE NULL END AS rejection_reason
++      ) ELSE NULL END AS rejection_reason,
++      -- Kolo 12: město a sál — termíny jedné inscenace se jinak v seznamu nedaly rozlišit
++      v.city AS venue_city, v.name AS venue_name
+     FROM catalog.events e
++    LEFT JOIN catalog.venues v ON v.id = e.venue_id
+     WHERE e.promoter_id = $1
+     ORDER BY e.date_start DESC
+     LIMIT 100
+@@ -56,6 +61,8 @@ export async function GET(request: NextRequest): Promise<Response> {
+       date: row.date_start,
+       moderationStatus: row.status,
+       rejectionReason: row.rejection_reason,
++      venueCity: row.venue_city,
++      venueName: row.venue_name,
+     })),
+   );
+ 
+diff --git a/nextjs-boilerplate/src/app/api/admin/pos/events/route.ts b/nextjs-boilerplate/src/app/api/admin/pos/events/route.ts
+index e3b3dee3..82e85a77 100644
+--- a/nextjs-boilerplate/src/app/api/admin/pos/events/route.ts
++++ b/nextjs-boilerplate/src/app/api/admin/pos/events/route.ts
+@@ -17,6 +17,7 @@ interface EventRow {
+   id: string;
+   title: string;
+   date_start: string;
++  venue_city: string | null;
+ }
+ 
+ interface TicketTypeRow {
+@@ -32,7 +33,9 @@ export async function GET(req: NextRequest): Promise<Response> {
+   return runAsActivePromoter(req, async (promoter) => {
+   // Načti akce + ticket types per akce v 1 query (less round-trips)
+   const events = await db().query<EventRow>(
+-    `SELECT id, title, date_start
++    `SELECT id, title, date_start,
++            -- kolo 12: město — termíny jedné inscenace se v pokladně nedaly rozlišit
++            (SELECT v.city FROM catalog.venues v WHERE v.id = catalog.events.venue_id) AS venue_city
+      FROM catalog.events
+      WHERE promoter_id = $1
+        AND status = 'published'
+@@ -68,6 +71,7 @@ export async function GET(req: NextRequest): Promise<Response> {
+       id: ev.id,
+       title: ev.title,
+       dateStart: ev.date_start,
++      venueCity: ev.venue_city,
+       ticketTypes: (ttByEvent.get(ev.id) ?? []).map((t) => ({
+         id: t.id,
+         name: t.name,
+diff --git a/nextjs-boilerplate/src/app/api/admin/productions/[id]/terms/route.ts b/nextjs-boilerplate/src/app/api/admin/productions/[id]/terms/route.ts
+index d04e4480..0d2e73e6 100644
+--- a/nextjs-boilerplate/src/app/api/admin/productions/[id]/terms/route.ts
++++ b/nextjs-boilerplate/src/app/api/admin/productions/[id]/terms/route.ts
+@@ -36,7 +36,7 @@ const schema = z.object({
+ });
+ 
+ const STATUS: Record<TermError['code'], number> = {
+-  PRODUCTION_NOT_FOUND: 404, VENUE_NOT_FOUND: 404, SOURCE_NOT_FOUND: 404, NO_TICKET_TYPES: 422, VAT_NOT_CONFIGURED: 422,
++  PRODUCTION_NOT_FOUND: 404, VENUE_NOT_FOUND: 404, SOURCE_NOT_FOUND: 404, NO_TICKET_TYPES: 422, VAT_NOT_CONFIGURED: 422, NO_SELLABLE_SEATS: 422,
+ };
+ 
+ export async function POST(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+@@ -45,7 +45,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string
+     const parsed = schema.safeParse(await req.json().catch(() => ({})));
+     if (!parsed.success) return NextResponse.json({ error: 'INVALID_BODY', issues: parsed.error.issues }, { status: 422 });
+     if (parsed.data.salesEndAt && parsed.data.dateEnd && parsed.data.salesEndAt > parsed.data.dateEnd) {
+-      return NextResponse.json({ error: 'SALES_END_AFTER_EVENT_END' }, { status: 422 });
++      return NextResponse.json({ error: 'SALES_END_AFTER_EVENT_END', message: 'Konec prodeje je až po skončení představení. Zvolte dřívější konec prodeje.' }, { status: 422 });
+     }
+     const client = await db().connect();
+     try {
+diff --git a/nextjs-boilerplate/src/app/api/admin/promo-codes/route.ts b/nextjs-boilerplate/src/app/api/admin/promo-codes/route.ts
+index a3749f6e..37fd13a9 100644
+--- a/nextjs-boilerplate/src/app/api/admin/promo-codes/route.ts
++++ b/nextjs-boilerplate/src/app/api/admin/promo-codes/route.ts
+@@ -29,6 +29,7 @@ interface PromoCodeRow {
+   applicable_event_ids: string[] | null;
+   zone_names: string[] | null;
+   event_names: string[] | null;
++  category_names: string[] | null;
+ }
+ 
+ export async function GET(req: NextRequest): Promise<Response> {
+@@ -41,7 +42,10 @@ export async function GET(req: NextRequest): Promise<Response> {
+             (SELECT array_agg(COALESCE(tt.zone, tt.name) ORDER BY tt.base_price DESC) FROM catalog.ticket_types tt
+               WHERE tt.id = ANY(promo_codes.applicable_ticket_type_ids)) AS zone_names,
+             (SELECT array_agg(e.title || ' ' || to_char(e.date_start AT TIME ZONE 'Europe/Prague', 'DD.MM.YYYY HH24:MI') ORDER BY e.date_start)
+-               FROM catalog.events e WHERE e.id = ANY(promo_codes.applicable_event_ids)) AS event_names
++               FROM catalog.events e WHERE e.id = ANY(promo_codes.applicable_event_ids)) AS event_names,
++            -- kolo 12: názvy slevových kategorií (v přehledu se dřív ukazoval kód, např. „senior")
++            (SELECT array_agg(DISTINCT pc.name) FROM catalog.price_categories pc
++              WHERE pc.promoter_id = promo_codes.created_by_organizer_id AND pc.code = ANY(promo_codes.applicable_category_codes)) AS category_names
+      FROM marketing.promo_codes
+      WHERE created_by_organizer_id = $1
+      ORDER BY created_at DESC
+@@ -65,6 +69,7 @@ export async function GET(req: NextRequest): Promise<Response> {
+       applicableEventIds: row.applicable_event_ids ?? [],
+       zoneNames: row.zone_names ?? [],
+       eventNames: row.event_names ?? [],
++      categoryNames: row.category_names ?? [],
+     })),
+   });
+ 
+diff --git a/nextjs-boilerplate/src/app/api/admin/scanner/validate/route.ts b/nextjs-boilerplate/src/app/api/admin/scanner/validate/route.ts
+index 799a7419..da9dd2c8 100644
+--- a/nextjs-boilerplate/src/app/api/admin/scanner/validate/route.ts
++++ b/nextjs-boilerplate/src/app/api/admin/scanner/validate/route.ts
+@@ -246,7 +246,8 @@ export async function POST(req: NextRequest): Promise<Response> {
+       await client.query('ROLLBACK');
+       await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: `invalid_status:${t.status}` });
+       return NextResponse.json(
+-        { result: 'invalid_status', status: t.status, message: `Neočekávaný stav: ${t.status}` },
++        // Kolo 12: stav česky (dřív „Neočekávaný stav: transferred")
++        { result: 'invalid_status', status: t.status, message: `Vstupenka není platná (${({ transferred: 'převedena na jiného držitele', refunded: 'vrácená', pending: 'nezaplacená', expired: 'propadlá', cancelled: 'zrušená' } as Record<string, string>)[t.status] ?? 'neplatný stav'}). Nevpouštějte; kupce pošlete na pokladnu.` },
+         { status: 409 },
+       );
+     }
+diff --git a/nextjs-boilerplate/src/app/api/admin/staff/[userId]/route.ts b/nextjs-boilerplate/src/app/api/admin/staff/[userId]/route.ts
+index 8bba671f..bb3c2d77 100644
+--- a/nextjs-boilerplate/src/app/api/admin/staff/[userId]/route.ts
++++ b/nextjs-boilerplate/src/app/api/admin/staff/[userId]/route.ts
+@@ -12,7 +12,7 @@ import { z } from 'zod';
+ 
+ 
+ const patchSchema = z.object({
+-  role: z.enum(['admin', 'staff']),
++  role: z.enum(['admin', 'staff', 'box_office']), // kolo 12: + pokladna
+ });
+ 
+ export async function PATCH(
+diff --git a/nextjs-boilerplate/src/app/api/admin/staff/route.ts b/nextjs-boilerplate/src/app/api/admin/staff/route.ts
+index 324b7b67..61a5b688 100644
+--- a/nextjs-boilerplate/src/app/api/admin/staff/route.ts
++++ b/nextjs-boilerplate/src/app/api/admin/staff/route.ts
+@@ -94,7 +94,7 @@ export async function GET(req: NextRequest): Promise<Response> {
+ 
+ const inviteSchema = z.object({
+   email: z.string().email().max(200),
+-  role: z.enum(['admin', 'staff']),
++  role: z.enum(['admin', 'staff', 'box_office']), // kolo 12: + pokladna
+ });
+ 
+ export async function POST(req: NextRequest): Promise<Response> {
+diff --git a/nextjs-boilerplate/src/app/platform/venues/[id]/seating-chart/editor/VisualEditor.tsx b/nextjs-boilerplate/src/app/platform/venues/[id]/seating-chart/editor/VisualEditor.tsx
+index d4bf7999..18dd1892 100644
+--- a/nextjs-boilerplate/src/app/platform/venues/[id]/seating-chart/editor/VisualEditor.tsx
++++ b/nextjs-boilerplate/src/app/platform/venues/[id]/seating-chart/editor/VisualEditor.tsx
+@@ -618,7 +618,11 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }:
+         zones: zones.length > 0 ? zones : undefined,
+         underlay: floorPlanUrl ? underlay : undefined,
+       });
+-      setFeedback('Layout uložen.');
++      // Kolo 12: místa bez cenové zóny se v termínech neprodávají — dřív se na to přišlo až u zakládání termínu
++      const noZone = sectors.flatMap((sec) => sec.rows.flatMap((row) => row.seats)).filter((st) => !st.zone && st.type !== 'unsellable' && !st.blocked).length;
++      setFeedback(noZone > 0
++        ? `Plánek uložen. Pozor: ${noZone} míst nemá cenovou zónu a v termínech se nebudou prodávat — vyberte je a v části „Cenové zóny" klikněte na „Přiřadit výběru".`
++        : 'Plánek uložen.');
+     } catch (e) {
+       setError((e as Error).message);
+     } finally {
+@@ -730,11 +734,11 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }:
+         <Input
+           value={chartName}
+           onChange={(e) => setChartName(e.target.value)}
+-          placeholder="Název layoutu"
++          placeholder="Název plánku"
+           className="max-w-xs"
+         />
+         <ToolButton active={tool === 'select'} onClick={() => setTool('select')}>
+-          ↖ Select <kbd>1</kbd>
++          ↖ Výběr <kbd>1</kbd>
+         </ToolButton>
+         <ToolButton active={tool === 'row-straight'} onClick={() => { setTool('row-straight'); setPendingPoints([]); }}>
+           ─ Řada <kbd>2</kbd>
+@@ -743,7 +747,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }:
+           ⌒ Oblouk <kbd>3</kbd>
+         </ToolButton>
+         <ToolButton active={tool === 'pan'} onClick={() => setTool('pan')}>
+-          ✋ Pan <kbd>4</kbd>
++          ✋ Posun <kbd>4</kbd>
+         </ToolButton>
+         <ToolButton active={tool === 'overlay'} onClick={() => { setTool('overlay'); setPendingPoints([]); }}>
+           🏟 Objekty <kbd>5</kbd>
+@@ -789,10 +793,10 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }:
+         ) : null}
+         <div className="ml-2 h-6 w-px bg-border" />
+         <Button variant="outline" size="sm" onClick={undo} disabled={history.length === 0}>
+-          ↶ Undo
++          ↶ Vrátit
+         </Button>
+         <Button variant="outline" size="sm" onClick={redo} disabled={redoStack.length === 0}>
+-          ↷ Redo
++          ↷ Znovu
+         </Button>
+         <div className="ml-2 h-6 w-px bg-border" />
+         <label className="flex items-center gap-1 text-xs">
+@@ -817,7 +821,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }:
+             checked={showSeatNums}
+             onChange={(e) => setShowSeatNums(e.target.checked)}
+           />
+-          Čísla seat
++          Čísla míst
+         </label>
+         <div className="ml-2 h-6 w-px bg-border" />
+         {selectedSeats.size > 0 ? (
+@@ -826,7 +830,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }:
+               Vybráno {selectedSeats.size} sedadel
+             </span>
+             <Button variant="outline" size="sm" onClick={toggleAccessibility}>
+-              ♿ Accessibility
++              ♿ Pro vozíčkáře
+             </Button>
+             <Button variant="destructive" size="sm" onClick={deleteSelected}>
+               🗑 Smazat
+@@ -879,17 +883,17 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }:
+             type="button"
+             onClick={resetView}
+             className="rounded border bg-background px-2 py-1 text-xs hover:bg-accent"
+-            title="Reset"
++            title="Původní pohled"
+           >⟲</button>
+           <button
+             type="button"
+             onClick={() => setFullscreen(!fullscreen)}
+             className="rounded border bg-background px-2 py-1 text-xs hover:bg-accent"
+-            title={fullscreen ? 'Zavřít fullscreen (Esc)' : 'Fullscreen'}
++            title={fullscreen ? 'Zavřít celou obrazovku (Esc)' : 'Na celou obrazovku'}
+           >{fullscreen ? '✕' : '⛶'}</button>
+           <div className="ml-2 h-6 w-px bg-border" />
+           <Button onClick={save} disabled={saving}>
+-            {saving ? 'Ukládám…' : 'Uložit layout'}
++            {saving ? 'Ukládám…' : 'Uložit plánek'}
+           </Button>
+         </div>
+       </div>
+@@ -1130,7 +1134,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }:
+                 if (draggingLabel) setDraggingLabel(null);
+               }}
+               role="application"
+-              aria-label="Seating chart editor canvas"
++              aria-label="Plátno editoru plánku sálu"
+             >
+               {floorPlanUrl ? (
+                 <image
+@@ -1693,7 +1697,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }:
+                 </button>
+               ) : null}
+               <p className="text-xs text-muted-foreground">
+-                Zobrazí se pod sedadly jako předloha k obkreslení. Ukládá se s layoutem.
++                Zobrazí se pod sedadly jako předloha k obkreslení. Uloží se spolu s plánkem.
+               </p>
+             </CardContent>
+           </Card>
+@@ -1703,10 +1707,10 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }:
+               <CardTitle className="text-sm">Jak na to</CardTitle>
+             </CardHeader>
+             <CardContent className="space-y-1 text-xs text-muted-foreground">
+-              <div><strong>Posunout sedadlo:</strong> Select → chyť a táhni</div>
++              <div><strong>Posunout sedadlo:</strong> Výběr → chyť a táhni</div>
+               <div><strong>Vybrat víc:</strong> táhni rámeček přes sedadla</div>
+               <div><strong>Jeviště:</strong> tlačítko 🎭 → chyť tělo (posun), roh (velikost), kolečko nahoře (rotace)</div>
+-              <div className="pt-1"><kbd>1</kbd>–<kbd>6</kbd> Tool · <kbd>Ctrl+Z</kbd> Undo · <kbd>Del</kbd> Smazat · <kbd>Esc</kbd> Zrušit · <kbd>Shift+klik</kbd> Multi</div>
++              <div className="pt-1"><kbd>1</kbd>–<kbd>6</kbd> nástroje · <kbd>Ctrl+Z</kbd> vrátit · <kbd>Del</kbd> smazat · <kbd>Esc</kbd> zrušit · <kbd>Shift+klik</kbd> vybrat víc</div>
+             </CardContent>
+           </Card>
+         </div>
+@@ -1743,14 +1747,14 @@ function ToolHints({ tool, pendingCount }: { tool: Tool; pendingCount: number })
+   if (tool === 'overlay') {
+     return (
+       <div className="mb-2 rounded-md bg-violet-50 px-3 py-1.5 text-xs text-violet-900">
+-        <strong>Objekty:</strong> klikni na canvas pro vložení objektu. V režimu Select pak klikni na objekt pro výběr a smazání.
++        <strong>Objekty:</strong> klikni na plátno pro vložení objektu. V režimu Výběr pak klikni na objekt pro výběr a smazání.
+       </div>
+     );
+   }
+   if (tool === 'select') {
+     return (
+       <div className="mb-2 rounded-md bg-muted/50 px-3 py-1.5 text-xs">
+-        <strong>Select:</strong> chyť a táhni sedadlo · rámeček přes sedadla = hromadný výběr · Shift+klik = přidat · Del smaže
++        <strong>Výběr:</strong> chyť a táhni sedadlo · rámeček přes sedadla = hromadný výběr · Shift+klik = přidat · Del smaže
+       </div>
+     );
+   }
+@@ -1776,14 +1780,14 @@ function ToolHints({ tool, pendingCount }: { tool: Tool; pendingCount: number })
+   }
+   if (tool === 'row-bezier') {
+     const steps = [
+-      'Klikni na START křivky (P0)',
+-      'Klikni na KONEC křivky (P3)',
+-      'Klikni na 1. řídící bod (P1 — tvaruje začátek)',
+-      'Klikni na 2. řídící bod (P2 — tvaruje konec) → zadej počet sedadel',
++      'Klikni na ZAČÁTEK křivky',
++      'Klikni na KONEC křivky',
++      'Klikni na 1. řídicí bod (tvaruje začátek)',
++      'Klikni na 2. řídicí bod (tvaruje konec) → zadej počet sedadel',
+     ];
+     return (
+       <div className="mb-2 rounded-md bg-blue-50 px-3 py-1.5 text-xs text-blue-900">
+-        <strong>Bézier křivka ({pendingCount}/4):</strong> {steps[pendingCount] ?? ''}
++        <strong>Křivka ({pendingCount}/4):</strong> {steps[pendingCount] ?? ''}
+       </div>
+     );
+   }
+diff --git a/nextjs-boilerplate/src/components/admin/ConfirmDialog.tsx b/nextjs-boilerplate/src/components/admin/ConfirmDialog.tsx
+new file mode 100644
+index 00000000..ea9fce07
+--- /dev/null
++++ b/nextjs-boilerplate/src/components/admin/ConfirmDialog.tsx
+@@ -0,0 +1,85 @@
++'use client';
++
++/**
++ * Kolo 12 — potvrzení nevratných / dopadových akcí v okně aplikace (místo window.confirm / window.prompt).
++ *
++ * Říká, CO se stane (důsledky v bodech), a volitelně se zeptá na doplňující údaj (např. variabilní symbol, důvod).
++ * Tlačítka: „Zpět" (nic se nestane) a potvrzovací akce s konkrétním názvem („Uvolnit 5 míst", „Zrušit objednávku").
++ */
++import { useEffect, useRef, useState } from 'react';
++import { Button } from '@/components/ui/button';
++
++export interface ConfirmRequest {
++  title: string;
++  /** Důsledky — každá položka jeden řádek („Místa se vrátí do volného prodeje."). */
++  consequences: string[];
++  confirmLabel: string;
++  /** Destruktivní akce (zrušení, storno) — červené tlačítko. */
++  danger?: boolean;
++  /** Volitelné pole (např. „Variabilní symbol platby"). */
++  input?: { label: string; placeholder?: string; required?: boolean; initial?: string };
++  onConfirm: (value: string) => void | Promise<void>;
++}
++
++export function ConfirmDialog({ request, onClose }: { request: ConfirmRequest | null; onClose: () => void }): JSX.Element | null {
++  const [value, setValue] = useState('');
++  const [busy, setBusy] = useState(false);
++  const confirmRef = useRef<HTMLButtonElement>(null);
++  useEffect(() => {
++    setValue(request?.input?.initial ?? '');
++    setBusy(false);
++    if (request && !request.input) setTimeout(() => confirmRef.current?.focus(), 0);
++  }, [request]);
++  useEffect(() => {
++    if (!request) return;
++    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
++    window.addEventListener('keydown', onKey);
++    return () => window.removeEventListener('keydown', onKey);
++  }, [request, onClose]);
++  if (!request) return null;
++  const disabled = busy || (request.input?.required === true && value.trim() === '');
++  return (
++    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-3 sm:items-center" onClick={onClose}>
++      <div
++        role="alertdialog"
++        aria-modal="true"
++        aria-labelledby="confirm-dialog-title"
++        data-testid="confirm-dialog"
++        className="w-full max-w-md rounded-lg bg-card p-5 shadow-xl"
++        onClick={(e) => e.stopPropagation()}
++      >
++        <h2 id="confirm-dialog-title" className="text-lg font-semibold">{request.title}</h2>
++        <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
++          {request.consequences.map((c) => <li key={c}>{c}</li>)}
++        </ul>
++        {request.input ? (
++          <label className="mt-4 block text-sm font-medium">
++            {request.input.label}
++            <input
++              autoFocus
++              className="mt-1 block w-full rounded-md border bg-background px-3 py-2 text-sm"
++              placeholder={request.input.placeholder}
++              value={value}
++              onChange={(e) => setValue(e.target.value)}
++            />
++          </label>
++        ) : null}
++        <div className="mt-5 flex justify-end gap-2">
++          <Button type="button" variant="outline" onClick={onClose}>Zpět</Button>
++          <Button
++            ref={confirmRef}
++            type="button"
++            variant={request.danger ? 'destructive' : 'default'}
++            disabled={disabled}
++            onClick={async () => {
++              setBusy(true);
++              try { await request.onConfirm(value.trim()); } finally { onClose(); }
++            }}
++          >
++            {request.confirmLabel}
++          </Button>
++        </div>
++      </div>
++    </div>
++  );
++}
+diff --git a/nextjs-boilerplate/src/components/admin/PageHeader.tsx b/nextjs-boilerplate/src/components/admin/PageHeader.tsx
+index 1c777124..82996497 100644
+--- a/nextjs-boilerplate/src/components/admin/PageHeader.tsx
++++ b/nextjs-boilerplate/src/components/admin/PageHeader.tsx
+@@ -10,7 +10,8 @@ export function PageHeader({ title, description, actions }: PageHeaderProps) {
+   return (
+     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+       <div>
+-        <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
++        {/* Kolo 12: hlavní nadpis stránky (hlavička administrace už <h1> nemá) */}
++        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+         {description && (
+           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+         )}
+diff --git a/nextjs-boilerplate/src/components/admin/Sidebar.tsx b/nextjs-boilerplate/src/components/admin/Sidebar.tsx
+index c4a1782e..75627f8b 100644
+--- a/nextjs-boilerplate/src/components/admin/Sidebar.tsx
++++ b/nextjs-boilerplate/src/components/admin/Sidebar.tsx
+@@ -1,5 +1,6 @@
+ 'use client';
+ 
++import { useEffect, useState } from 'react';
+ import {
+   LayoutDashboard,
+   CalendarDays,
+@@ -14,6 +15,9 @@ import {
+   UserCog,
+   Settings,
+   LayoutGrid,
++  Clapperboard,
++  Menu,
++  X,
+   Plus,
+   type LucideIcon,
+ } from 'lucide-react';
+@@ -53,15 +57,30 @@ const ICONS: Record<OrgIconName, LucideIcon> = {
+   UserCog,
+   Settings,
+   LayoutGrid,
++  Clapperboard,
+ };
+ 
+ export function Sidebar({ promoterRole }: { promoterRole?: string | null }) {
+   const pathname = usePathname();
+-  const isStaff = promoterRole === 'staff';
++  const isStaff = promoterRole === 'staff' || promoterRole === 'box_office';
+   const items = orgNavForRole(promoterRole);
++  // Kolo 12: na mobilu (obsluha vstupu, pokladna) menu nezabírá 240 px z obrazovky — otevírá se tlačítkem „Menu".
++  const [open, setOpen] = useState(false);
++  useEffect(() => { setOpen(false); }, [pathname]);
+ 
+   return (
+-    <aside className="flex h-screen w-60 flex-col border-r bg-card">
++    <>
++    <button
++      type="button"
++      aria-label="Menu"
++      aria-expanded={open}
++      onClick={() => setOpen((o) => !o)}
++      className="absolute left-3 top-3 z-50 flex h-10 w-10 items-center justify-center rounded-md border bg-card shadow-sm md:hidden"
++    >
++      {open ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
++    </button>
++    {open ? <div className="fixed inset-0 z-30 bg-black/40 md:hidden" aria-hidden onClick={() => setOpen(false)} /> : null}
++    <aside className={cn('h-screen w-60 flex-col border-r bg-card', open ? 'fixed inset-y-0 left-0 z-40 flex' : 'hidden md:flex')}>
+       <div className="flex h-16 items-center border-b px-6">
+         <Link href="/admin" className="flex items-center gap-2">
+           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-brand-500 font-bold text-white">
+@@ -73,7 +92,7 @@ export function Sidebar({ promoterRole }: { promoterRole?: string | null }) {
+ 
+       {isStaff ? (
+         <p className="mx-3 mt-3 rounded-md bg-secondary px-3 py-1.5 text-[11px] font-medium text-muted-foreground">
+-          Produkční přístup — finanční a nastavovací sekce jsou skryté
++          {promoterRole === 'box_office' ? 'Přístup pokladny' : 'Přístup pro provoz a vstup'} — finance a nastavení jsou skryté
+         </p>
+       ) : (
+         <div className="px-3 pt-3">
+@@ -99,6 +118,7 @@ export function Sidebar({ promoterRole }: { promoterRole?: string | null }) {
+ 
+       <p className="border-t p-4 text-xs text-muted-foreground">Administrace pořadatele</p>
+     </aside>
++    </>
+   );
+ }
+ 
+diff --git a/nextjs-boilerplate/src/components/admin/Topbar.tsx b/nextjs-boilerplate/src/components/admin/Topbar.tsx
+index 9e3130a4..0170c4ae 100644
+--- a/nextjs-boilerplate/src/components/admin/Topbar.tsx
++++ b/nextjs-boilerplate/src/components/admin/Topbar.tsx
+@@ -64,9 +64,10 @@ export function Topbar({ title, subtitle }: TopbarProps) {
+   const initial = (user?.name ?? user?.email ?? '?').slice(0, 1).toUpperCase();
+ 
+   return (
+-    <header className="flex h-16 items-center justify-between border-b bg-card px-6">
++    <header className="flex h-16 items-center justify-between border-b bg-card pl-16 pr-4 md:px-6">
+       <div>
+-        <h1 className="text-lg font-semibold">{title}</h1>
++        {/* Kolo 12: ne <h1> — hlavní nadpis má každá stránka (PageHeader) */}
++        <p className="text-lg font-semibold">{title}</p>
+         {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+       </div>
+       <div className="flex items-center gap-3">
+diff --git a/nextjs-boilerplate/src/components/public/TopNav.tsx b/nextjs-boilerplate/src/components/public/TopNav.tsx
+index 7c77388a..c6504b35 100644
+--- a/nextjs-boilerplate/src/components/public/TopNav.tsx
++++ b/nextjs-boilerplate/src/components/public/TopNav.tsx
+@@ -75,6 +75,7 @@ export function TopNav({ locale }: { locale: string }) {
+     return (
+       <nav className="flex items-center gap-4 text-sm">
+         <Link href={`/${locale}/events`}>Akce</Link>
++        <Link href={`/${locale}/program`}>Program</Link>
+       </nav>
+     );
+   }
+@@ -82,6 +83,8 @@ export function TopNav({ locale }: { locale: string }) {
+   return (
+     <nav className="flex items-center gap-4 text-sm">
+       <Link href={`/${locale}/events`}>Akce</Link>
++      {/* Kolo 12: program podle měst (dřív na něj nevedl žádný odkaz) */}
++      <Link href={`/${locale}/program`}>Program</Link>
+ 
+       {auth.user ? (
+         <>
+diff --git a/nextjs-boilerplate/src/lib/admin-auth.ts b/nextjs-boilerplate/src/lib/admin-auth.ts
+index 9c48a6b6..23175f0d 100644
+--- a/nextjs-boilerplate/src/lib/admin-auth.ts
++++ b/nextjs-boilerplate/src/lib/admin-auth.ts
+@@ -91,14 +91,20 @@ export async function runAsPromoterOwner<T>(
+   return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
+ }
+ 
+-/** requirePromoter + role !== 'staff' (vzor `!promoter || role === 'staff'`). */
++/**
++ * Kolo 12: role jen pro provoz — staff (vstup, produkce) a box_office (pokladna). Dřív se omezovala jen staff a pokladna
++ * měla na serveru přístup jako admin (finance, nastavení, tým), i když jí menu tyto sekce neukazuje.
++ */
++const OPERATIONS_ONLY = new Set(['staff', 'box_office']);
++
++/** requirePromoter + role není provozní (staff / box_office). */
+ export async function runAsPromoterNonStaff<T>(
+   req: NextRequest,
+   callback: (ctx: PromoterContext) => Promise<T>,
+ ): Promise<T | Response> {
+   const ctx = await requirePromoter(req);
+   if (!ctx) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+-  if (ctx.role === 'staff') return rejectPromoter();
++  if (OPERATIONS_ONLY.has(ctx.role)) return rejectPromoter();
+   return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
+ }
+ 
+@@ -120,7 +126,7 @@ export async function runAsActivePromoterNonStaff<T>(
+ ): Promise<T | Response> {
+   const ctx = await requirePromoter(req);
+   if (!ctx || ctx.status !== 'active') return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+-  if (ctx.role === 'staff') return rejectPromoter();
++  if (OPERATIONS_ONLY.has(ctx.role)) return rejectPromoter();
+   return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
+ }
+ 
+diff --git a/nextjs-boilerplate/src/lib/admin/nav.ts b/nextjs-boilerplate/src/lib/admin/nav.ts
+index 58e9035b..74410ef7 100644
+--- a/nextjs-boilerplate/src/lib/admin/nav.ts
++++ b/nextjs-boilerplate/src/lib/admin/nav.ts
+@@ -58,7 +58,8 @@ export type OrgIconName =
+   | 'MapPin'
+   | 'UserCog'
+   | 'Settings'
+-  | 'LayoutGrid';
++  | 'LayoutGrid'
++  | 'Clapperboard';
+ 
+ /**
+  * Dvanáct položek. Původních 49 se nesmazalo — zbytek je dosažitelný
+@@ -81,7 +82,6 @@ export const ORG_NAV: OrgNavItem[] = [
+       '/admin/calendar',
+       '/admin/event-groups',
+       '/admin/event-templates',
+-      '/admin/productions',
+       '/admin/season',
+       '/admin/collections',
+       '/admin/subscriptions',
+@@ -89,6 +89,12 @@ export const ORG_NAV: OrgNavItem[] = [
+       '/admin/subscription-plans',
+     ],
+   },
++  // Kolo 12: inscenace (karta, termíny, ceník) byly jen přes „Vše" → „Produkce a reprízy"
++  {
++    href: '/admin/productions',
++    label: 'Inscenace',
++    icon: 'Clapperboard',
++  },
+   {
+     href: '/admin/orders',
+     label: 'Objednávky',
+@@ -596,14 +602,17 @@ export function isFeatureEnabled(
+ }
+ 
+ /** Záložky viditelné pro danou roli. */
++/** Kolo 12: pokladna (box_office) má stejně úzké provozní menu jako staff (dřív viděla Finance, Tým, Nastavení…). */
++const OPERATIONS_ROLES = new Set(['staff', 'box_office']);
++
+ export function tabsForRole(role: PromoterRole | null | undefined): EventTab[] {
+-  if (role !== 'staff') return EVENT_TABS;
++  if (!OPERATIONS_ROLES.has(role ?? '')) return EVENT_TABS;
+   return EVENT_TABS.filter((t) => t.staffAllowed);
+ }
+ 
+ /** Položky levého menu viditelné pro danou roli. */
+ export function orgNavForRole(role: PromoterRole | null | undefined): OrgNavItem[] {
+-  if (role !== 'staff') return ORG_NAV;
++  if (!OPERATIONS_ROLES.has(role ?? '')) return ORG_NAV;
+   return ORG_NAV.filter((i) => i.staffAllowed);
+ }
+ 
+diff --git a/nextjs-boilerplate/src/lib/theatre/blocks.ts b/nextjs-boilerplate/src/lib/theatre/blocks.ts
+index 35eb74ae..7735ad75 100644
+--- a/nextjs-boilerplate/src/lib/theatre/blocks.ts
++++ b/nextjs-boilerplate/src/lib/theatre/blocks.ts
+@@ -68,7 +68,12 @@ export async function createBlock(
+   if (seats.length === 0) throw new BlockError('NO_SEATS', 'Vyberte místa nebo sekci.');
+   const free = seats.filter((s) => s.status === 'available');
+   const skipped = seats.filter((s) => s.status !== 'available').map((s) => `${s.sector} ${s.row}/${s.seat_number}`);
+-  if (free.length > 0) {
++  // Kolo 12: dřív vznikla prázdná blokace (0 míst) s hláškou „založena" — uživatel nevěděl, že nic neblokoval.
++  // Chyba zruší celou transakci (route dělá ROLLBACK), takže prázdná blokace nezůstane.
++  if (free.length === 0) {
++    throw new BlockError('NO_SEATS', `Ve výběru nejsou žádná volná místa (${skipped.length} je už prodaných, rezervovaných nebo v jiné blokaci). Blokace se nezaložila — vyberte na plánku volná (světlá) místa.`);
++  }
++  {
+     const ids = free.map((s) => s.id);
+     await q.query(
+       `UPDATE catalog.event_seats SET status = 'blocked', hold_kind = 'block', hold_label = $2, hold_user_id = NULL,
+diff --git a/nextjs-boilerplate/src/lib/theatre/terms.ts b/nextjs-boilerplate/src/lib/theatre/terms.ts
+index 4ac2a8ef..3c790cf6 100644
+--- a/nextjs-boilerplate/src/lib/theatre/terms.ts
++++ b/nextjs-boilerplate/src/lib/theatre/terms.ts
+@@ -15,7 +15,7 @@ import { copyLayoutToEventSeats } from '@/lib/seats/copy-layout-to-event-seats';
+ import { vatReadinessProblems } from '@/lib/tax/vat-readiness';
+ 
+ export class TermError extends Error {
+-  constructor(public code: 'PRODUCTION_NOT_FOUND' | 'VENUE_NOT_FOUND' | 'SOURCE_NOT_FOUND' | 'NO_TICKET_TYPES' | 'VAT_NOT_CONFIGURED', message: string, public details?: unknown) {
++  constructor(public code: 'PRODUCTION_NOT_FOUND' | 'VENUE_NOT_FOUND' | 'SOURCE_NOT_FOUND' | 'NO_TICKET_TYPES' | 'VAT_NOT_CONFIGURED' | 'NO_SELLABLE_SEATS', message: string, public details?: unknown) {
+     super(message);
+   }
+ }
+@@ -67,8 +67,8 @@ export async function createTerm(client: PoolClient, promoterId: string, userId:
+   )).rows[0];
+   if (!prod) throw new TermError('PRODUCTION_NOT_FOUND', 'Inscenace nenalezena.');
+ 
+-  const venue = (await client.query<{ id: string }>(
+-    `SELECT id FROM catalog.venues WHERE id = $1 AND (promoter_id = $2 OR promoter_id IS NULL)`,
++  const venue = (await client.query<{ id: string; name: string }>(
++    `SELECT id, name FROM catalog.venues WHERE id = $1 AND (promoter_id = $2 OR promoter_id IS NULL)`,
+     [input.venueId, promoterId],
+   )).rows[0];
+   if (!venue) throw new TermError('VENUE_NOT_FOUND', 'Sál nenalezen.');
+@@ -151,6 +151,19 @@ export async function createTerm(client: PoolClient, promoterId: string, userId:
+     [ev.id],
+   );
+ 
++  // Kolo 12: sál, jehož plánek nemá místa přiřazená do cenových zón, dřív vytvořil termín „v prodeji (0 míst)".
++  // Celá transakce se vrátí (route ROLLBACK) — nevznikne termín, který nejde prodávat.
++  if (ticketTypes.some((t) => t.isSeated)) {
++    const sellable = (await client.query<{ n: number }>(
++      `SELECT count(*)::int AS n FROM catalog.event_seats WHERE event_id = $1 AND status = 'available' AND ticket_type_id IS NOT NULL`, [ev.id],
++    )).rows[0]?.n ?? 0;
++    if (sellable === 0) {
++      throw new TermError('NO_SELLABLE_SEATS',
++        `Termín nejde založit: plánek sálu „${venue.name}" nemá žádná místa přiřazená do cenových zón (${seats.insertedSeats} míst bez zóny). ` +
++        'Otevřete Sály → Editor plánku, vyberte místa, v části „Cenové zóny" klikněte na „Přiřadit výběru" a plánek uložte. Pak termín založte znovu.');
++    }
++  }
++
+   let status: CreateTermResult['status'] = 'pending_review';
+   if (prod.published_terms > 0) {
+     const problems = await vatReadinessProblems(client, ev.id);
+diff --git a/nextjs-boilerplate/src/lib/ui/error-text.ts b/nextjs-boilerplate/src/lib/ui/error-text.ts
+new file mode 100644
+index 00000000..51ada70b
+--- /dev/null
++++ b/nextjs-boilerplate/src/lib/ui/error-text.ts
+@@ -0,0 +1,38 @@
++/**
++ * Kolo 12 — chyby API česky: co se stalo a co udělat (dřív se v administraci ukazovaly kódy jako INVALID_BODY, HTTP 422
++ * nebo celé JSON). Serverová `message` (už česky) má přednost; jinak překlad kódu; jinak obecná věta s radou.
++ */
++const CODES: Record<string, string> = {
++  INVALID_BODY: 'Některé údaje ve formuláři chybí nebo nejsou ve správném tvaru. Zkontrolujte vyplněná pole a uložte znovu.',
++  'Validation failed': 'Některé údaje ve formuláři chybí nebo nejsou ve správném tvaru. Zkontrolujte vyplněná pole a uložte znovu.',
++  BAD_ID: 'Záznam se nenašel. Obnovte stránku a zkuste to znovu.',
++  NOT_FOUND: 'Záznam se nenašel — možná ho mezitím někdo smazal. Obnovte stránku.',
++  FORBIDDEN: 'K této akci nemáte oprávnění. Požádejte vlastníka účtu.',
++  UNAUTHORIZED: 'Přihlášení vypršelo. Přihlaste se znovu.',
++  TOKEN_MISSING: 'Přihlášení vypršelo. Přihlaste se znovu.',
++  TOKEN_INVALID: 'Přihlášení vypršelo. Přihlaste se znovu.',
++  CODE_ALREADY_EXISTS: 'Kód už existuje. Zvolte jiný název kódu.',
++  NAME_TAKEN: 'Tento název už je použitý. Zvolte jiný.',
++  DUPLICATE_SEAT: 'Některé místo je vybrané dvakrát. Zrušte výběr a vyberte místa znovu.',
++  SEAT_NOT_AVAILABLE: 'Některé místo mezitím někdo prodal nebo zablokoval. Obnovte stránku a vyberte jiná místa.',
++  VAT_NOT_CONFIGURED: 'Termín nelze zveřejnit — chybí sazba DPH. V Nastavení → Fakturace doplňte DPH a založte termín znovu.',
++  SALES_END_AFTER_EVENT_END: 'Konec prodeje je až po skončení představení. Zvolte dřívější konec prodeje.',
++  NO_TICKET_TYPES: 'Termín nemá ceník. Vyberte termín, ze kterého se ceník převezme, nebo zadejte ceny zón.',
++  NO_SELLABLE_SEATS: 'Sál nemá žádná místa přiřazená do cenových zón. V editoru plánku vyberte místa a přiřaďte je zóně.',
++  RATE_LIMITED: 'Příliš mnoho pokusů za krátkou dobu. Počkejte chvíli a zkuste to znovu.',
++};
++
++export function errorText(j: { message?: unknown; error?: unknown } | null | undefined, status?: number): string {
++  const msg = typeof j?.message === 'string' && j.message.trim() ? j.message.trim() : '';
++  // serverová zpráva je česky, jen pokud nejde o anglickou hlášku validace
++  if (msg && !/^[A-Za-z][A-Za-z ,.'-]+$/.test(msg)) return msg;
++  const e = j?.error;
++  const code = typeof e === 'string' ? e : e && typeof e === 'object' && 'code' in e ? String((e as { code: unknown }).code) : '';
++  if (code && CODES[code]) return CODES[code];
++  if (status === 401) return CODES.UNAUTHORIZED;
++  if (status === 403) return CODES.FORBIDDEN;
++  if (status === 404) return CODES.NOT_FOUND;
++  if (status === 429) return CODES.RATE_LIMITED;
++  if (status && status >= 500) return 'Na serveru se něco pokazilo. Zkuste to za chvíli znovu; pokud to přetrvá, kontaktujte podporu Tixly.';
++  return 'Akci se nepodařilo dokončit. Zkontrolujte údaje a zkuste to znovu.';
++}
+diff --git a/nextjs-boilerplate/src/types/admin.ts b/nextjs-boilerplate/src/types/admin.ts
+index 61152b54..b19e57fb 100644
+--- a/nextjs-boilerplate/src/types/admin.ts
++++ b/nextjs-boilerplate/src/types/admin.ts
+@@ -11,7 +11,8 @@ export type ModerationStatus =
+   | 'flagged'
+   | 'published'
+   | 'rejected'
+-  | 'archived';
++  | 'archived'
++  | 'cancelled';
+ 
+ export interface AdminEvent {
+   id: string;
+@@ -19,6 +20,9 @@ export interface AdminEvent {
+   date: string;
+   moderationStatus?: ModerationStatus;
+   rejectionReason?: string | null;
++  /** Kolo 12: město a sál termínu (seznam akcí). */
++  venueCity?: string | null;
++  venueName?: string | null;
+ }
+ 
+ export interface AdminEventDetail extends AdminEvent {

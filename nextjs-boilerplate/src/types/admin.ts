@@ -20,9 +20,6 @@ export interface AdminEvent {
   date: string;
   moderationStatus?: ModerationStatus;
   rejectionReason?: string | null;
-  /** Kolo 12: město a sál termínu (seznam akcí). */
-  venueCity?: string | null;
-  venueName?: string | null;
 }
 
 export interface AdminEventDetail extends AdminEvent {

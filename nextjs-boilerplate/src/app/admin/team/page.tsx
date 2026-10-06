@@ -157,9 +157,8 @@ export default function TeamPage() {
               onChange={(e) => setInviteRole(e.target.value as 'admin' | 'staff')}
               className="rounded-md border bg-background px-3 py-2 text-sm"
             >
-              <option value="admin">Správce</option>
-              <option value="box_office">Pokladna (prodej a rezervace)</option>
-              <option value="staff">Vstup a provoz (kontrola vstupenek)</option>
+              <option value="admin">Admin</option>
+              <option value="staff">Staff (scanner / read-only)</option>
             </select>
             <Button type="submit" disabled={busy || !inviteEmail}>
               {busy ? 'Posílám…' : 'Pozvat'}
@@ -197,10 +196,9 @@ export default function TeamPage() {
                         onChange={(e) => changeRole(m.user_id, e.target.value)}
                         className="rounded border bg-background px-2 py-1 text-xs"
                       >
-                        <option value="owner">Vlastník</option>
-                        <option value="admin">Správce</option>
-                        <option value="box_office">Pokladna</option>
-                        <option value="staff">Vstup a provoz</option>
+                        <option value="owner">Owner</option>
+                        <option value="admin">Admin</option>
+                        <option value="staff">Staff</option>
                       </select>
                     </td>
                     <td>

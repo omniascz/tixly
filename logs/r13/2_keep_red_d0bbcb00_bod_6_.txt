@@ -1,0 +1,50 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [golden-path] › tests\golden-path-r13-keep.spec.ts:113:7 › vlastník › bod 6: „Zpět" z editoru plánku vede na existující stránku
+[1A[2K  1) [golden-path] › tests\golden-path-r13-keep.spec.ts:113:7 › vlastník › bod 6: „Zpět" z editoru plánku vede na existující stránku 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByRole('link', { name: /Zpět na detail sálu/ })
+    Expected: [32m"/admin/venues"[39m
+    Received: [31m"/admin/venues[7m/00000000-0000-4000-a000-000000000201[27m"[39m
+    Timeout:  10000ms
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 10000ms[22m
+    [2m  - waiting for getByRole('link', { name: /Zpět na detail sálu/ })[22m
+    [2m    11 × locator resolved to <a class="text-sm text-primary hover:underline" href="/admin/venues/00000000-0000-4000-a000-000000000201">← Zpět na detail sálu</a>[22m
+    [2m       - unexpected value "/admin/venues/00000000-0000-4000-a000-000000000201"[22m
+
+
+      114 |     await page.goto('/admin/venues/00000000-0000-4000-a000-000000000201/seating-chart/editor');
+      115 |     const back = page.getByRole('link', { name: /Zpět na detail sálu/ });
+    > 116 |     await expect(back).toHaveAttribute('href', '/admin/venues');
+          |                        ^
+      117 |     await back.click();
+      118 |     await page.waitForURL(/\/admin\/venues$/);
+      119 |     await expect(page.getByText('404')).toHaveCount(0);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r13-keep.spec.ts:116:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  1 failed
+    [golden-path] › tests\golden-path-r13-keep.spec.ts:113:7 › vlastník › bod 6: „Zpět" z editoru plánku vede na existující stránku 

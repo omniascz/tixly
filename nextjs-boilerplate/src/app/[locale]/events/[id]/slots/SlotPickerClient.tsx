@@ -148,7 +148,7 @@ export function SlotPickerClient({ eventId, locale }: { eventId: string; locale:
                 window.location.href = `/${locale}/checkout?${params.toString()}`;
               }}
             >
-              Pokračovat k objednávce →
+              Pokračovat na pokladnu →
             </Button>
           </div>
         </div>

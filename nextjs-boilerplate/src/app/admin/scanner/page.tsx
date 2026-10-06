@@ -1,14 +1,14 @@
 'use client';
 
 import { FormEvent, useEffect, useState, useCallback } from 'react';
-import { CheckCircle2, XCircle, AlertTriangle, ScanLine, Settings2, Wifi, WifiOff, Camera } from 'lucide-react';
 import Link from 'next/link';
-import { GroupScanPanel } from '@/components/admin/GroupScanPanel';
+import { CheckCircle2, XCircle, AlertTriangle, ScanLine, Settings2, Wifi, WifiOff, Camera } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';
-import { QrScannerCamera } from '@/components/admin/QrScannerCamera';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { QrScannerCamera } from '@/components/admin/QrScannerCamera';
+import { GroupScanPanel } from '@/components/admin/GroupScanPanel';
 import {
   enqueueScan,
   flushQueue,
@@ -21,7 +21,6 @@ import {
   type ManifestMeta,
   type OfflineCheck,
 } from '@/lib/scanner/offline-queue';
-import { ScanState } from './ScanState';
 
 type ScanResult = {
   result:
@@ -51,8 +50,6 @@ type ScanResult = {
     | 'undone'
     | 'error';
   kind?: 'single_use' | 'multi_day_redemption' | 'entry' | 'reentry';
-  /** Kolo 12: vpuštěno bez ověření (výpadek sítě, seznam nestažen) — obsluha musí vstupenku zkontrolovat očima. */
-  unverified?: boolean;
   /** Z /scanner/passage — směr, který server odvodil, a stav pro obsluhu. */
   direction?: 'entry' | 'exit';
   label?: string;
@@ -133,20 +130,33 @@ export default function ScannerPage() {
     setTicketId(trimmed);
   }
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [autoSubmit, setAutoSubmit] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState<GateEvent[]>([]);
   const [gate, setGate] = useState<GateState>({ eventId: null, eventDayId: null, zoneId: null });
   const [showSettings, setShowSettings] = useState(true);
-  // Kolo 12: zvuk a vibrace výsledku dělá <ScanState> (dřív jen vibrace a bez „jiného termínu").
-
-  // Kolo 12: QR z kamery se ověří hned (stav se nastaví v onDetected, ověření až s novým kódem ve stavu)
+  // Haptic feedback on scan result (Vibration API — mobile browsers)
   useEffect(() => {
-    if (!autoSubmit || !ticketId) return;
-    setAutoSubmit(false);
-    void handleSubmit();
-  }, [autoSubmit, ticketId]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!result || typeof navigator === 'undefined' || !navigator.vibrate) return;
+    const denied: ScanResult['result'][] = [
+      'already_used', 'already_redeemed_today', 'revoked', 'not_found',
+      'invalid_token', 'wrong_promoter', 'totp_mismatch', 'invalid_status',
+      'wrong_zone_or_day', 'flex_limit_exhausted', 'day_not_picked',
+      'already_inside', 'reentry_limit_exceeded', 'not_inside',
+      'reentry_disabled', 'error',
+    ];
+    // Obsluha se dívá na příchozího, ne do telefonu — vstup a odchod proto
+    // musí být rozeznatelné poslepu. Tři různé vzorce: vstup, odchod, zamítnutí.
+    if (result.result === 'released' || result.direction === 'exit') {
+      navigator.vibrate([60, 50, 60]); // dvě krátké = odchod
+    } else if (result.result === 'admitted' || result.result === 'exited') {
+      navigator.vibrate(100); // jedna dlouhá = vstup
+    } else if (result.result === 'duplicate') {
+      navigator.vibrate(40); // jemné ťuknutí = už načteno, nic se nestalo
+    } else if (denied.includes(result.result)) {
+      navigator.vibrate([200, 80, 200]); // výrazné = zamítnutí
+    }
+  }, [result]);
 
   // Poslední průchod si držíme kvůli tlačítku „opravit".
   useEffect(() => {
@@ -316,24 +326,8 @@ export default function ScannerPage() {
     ? `${selectedEvent.title}${selectedDay ? ' · ' + (selectedDay.label ?? `Den ${selectedDay.dayIndex + 1}`) : ''}${selectedZone ? ' · ' + selectedZone.name : ''}`
     : 'Žádná brána zvolena';
 
-  /** Ověření proti staženému seznamu (offline). Bez seznamu NEPOUŠTÍ automaticky na zelenou — obsluha ověří ručně. */
-  async function offlineVerdict(payload: Record<string, unknown>, raw: string, isPrintToken: boolean, why: string): Promise<ScanResult> {
-    await enqueueScan(payload as Parameters<typeof enqueueScan>[0], gateLabel);
-    await refreshPending();
-    const offlineTicketId = isPrintToken ? decodePrintTokenUuid(raw) ?? undefined : raw;
-    let check: OfflineCheck = 'no_manifest';
-    if (gate.eventId && offlineTicketId) check = await validateOffline(gate.eventId, offlineTicketId);
-    if (check === 'not_found') return { result: 'not_found', message: `${why} Vstupenka NENÍ v seznamu platných — nevpouštějte.` };
-    if (check === 'already_used') return { result: 'already_used', message: `${why} Vstupenka už byla na tomto zařízení odbavena.` };
-    if (check === 'admitted') return { result: 'admitted', message: `${why} Ověřeno proti staženému seznamu. Po obnovení internetu se odešle.` };
-    return {
-      result: 'admitted', unverified: true,
-      message: `${why} Vstupenku NENÍ JAK OVĚŘIT (seznam pro výpadek není stažený). Zkontrolujte na vstupence název a datum představení.`,
-    };
-  }
-
-  async function handleSubmit(e?: FormEvent) {
-    e?.preventDefault();
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
     setLoading(true);
     setResult(null);
     const raw = ticketId.trim();
@@ -351,14 +345,50 @@ export default function ScannerPage() {
 
     // Offline: zapiš do queue (kvůli serverové rekonciliaci) a pokud máme stažený
     // whitelist pro akci, ověř proti němu — padělaný/cizí lístek odmítni, dvojí
-    // vstup zachyť lokálně. Bez whitelistu padáme na optimistic accept (provoz nestojí).
+    // vstup zachyť lokálně. Bez whitelistu lístek nejde ověřit — obsluha ho zkontroluje ručně
+    // (kolo 12/13: dřív „Přijato offline BEZ ověření" = zelený vstup bez kontroly).
+    const offlineCheck = async () => {
+      await enqueueScan(payload, gateLabel);
+      await refreshPending();
+
+      const offlineTicketId = isPrintToken
+        ? decodePrintTokenUuid(raw) ?? undefined
+        : raw;
+      let check: OfflineCheck = 'no_manifest';
+      if (gate.eventId && offlineTicketId) {
+        check = await validateOffline(gate.eventId, offlineTicketId);
+      }
+
+      if (check === 'not_found') {
+        setResult({
+          result: 'not_found',
+          message: 'OFFLINE: lístek NENÍ ve staženém seznamu platných — NEVPOUŠTĚT.',
+        });
+      } else if (check === 'already_used') {
+        setResult({
+          result: 'already_used',
+          message: 'OFFLINE: tento lístek už byl tímto zařízením odbaven.',
+        });
+      } else if (check === 'admitted') {
+        setResult({
+          result: 'admitted',
+          message: 'Přijato offline (ověřeno proti staženému seznamu). Sync po obnovení.',
+        });
+        setTicketId('');
+        setTotpCode('');
+      } else {
+        setResult({
+          result: 'error',
+          message: 'OFFLINE: lístek nelze ověřit (není stažený seznam) — zkontroluj ho ručně.',
+        });
+      }
+    };
+
     if (!online) {
       try {
-        const v = await offlineVerdict(payload, raw, isPrintToken, 'Bez internetu.');
-        setResult(v);
-        if (v.result === 'admitted') { setTicketId(''); setTotpCode(''); }
+        await offlineCheck();
       } catch {
-        setResult({ result: 'error', message: 'Uložení skenu v zařízení selhalo. Vstupenku zkontrolujte ručně.' });
+        setResult({ result: 'error', message: 'Offline queue selhala (IndexedDB nedostupný).' });
       } finally {
         setLoading(false);
       }
@@ -397,14 +427,13 @@ export default function ScannerPage() {
         setTotpCode('');
       }
     } catch {
-      // Kolo 12: síť spadla během ověření — dřív se ukázalo zelené „vpuštěno" bez jakékoli kontroly.
+      // Síť spadla mezi click a fetch — ověř proti staženému seznamu jako offline
+      // (kolo 12/13: dřív „Síť spadla — uloženo" jako zelený vstup bez kontroly)
       try {
-        const v = await offlineVerdict(payload, raw, isPrintToken, 'Výpadek internetu.');
-        setResult(v);
-        if (v.result === 'admitted') { setTicketId(''); setTotpCode(''); }
+        await offlineCheck();
         setOnline(false);
       } catch {
-        setResult({ result: 'error', message: 'Výpadek internetu a uložení skenu selhalo. Vstupenku zkontrolujte ručně.' });
+        setResult({ result: 'error', message: 'Síťová chyba i offline queue selhala.' });
       }
     } finally {
       setLoading(false);
@@ -414,8 +443,8 @@ export default function ScannerPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Kontrola vstupenek"
-        description="Načtěte QR kód kamerou (nebo opište kód ze vstupenky). Zelená = pustit, oranžová = zkontrolovat, červená = nepouštět."
+        title="Scanner"
+        description="Manuální validace QR lístku. Pro festivaly nastav bránu (akce + den + zóna) a scanner bude validovat per gate."
         actions={
           <Link href="/admin/scanner/guide" className="text-sm text-primary hover:underline">
             📋 Průvodce pro personál
@@ -433,11 +462,11 @@ export default function ScannerPage() {
       >
         <span className="flex items-center gap-2 font-medium">
           {online ? <Wifi className="h-4 w-4" aria-hidden /> : <WifiOff className="h-4 w-4" aria-hidden />}
-          {online ? 'Připojeno — každá vstupenka se ověřuje na serveru' : 'Bez internetu — vstupenky se ověřují podle staženého seznamu'}
+          {online ? 'Online — server validuje každý sken' : 'Offline — skeny jdou do lokální fronty'}
         </span>
         {pendingCount > 0 ? (
           <span className="flex items-center gap-2">
-            <span className="font-semibold">{pendingCount} čeká na odeslání</span>
+            <span className="font-semibold">{pendingCount} čeká na sync</span>
             <Button
               type="button"
               size="sm"
@@ -445,7 +474,7 @@ export default function ScannerPage() {
               onClick={() => void handleFlush()}
               disabled={!online}
             >
-              Odeslat
+              Synchronizovat
             </Button>
           </span>
         ) : null}
@@ -474,11 +503,11 @@ export default function ScannerPage() {
           <span className="text-muted-foreground">
             {manifestMeta ? (
               <>
-                Seznam pro výpadek internetu: <strong className="text-foreground">{manifestMeta.count.toLocaleString('cs-CZ')}</strong>{' '}
-                vstupenek · staženo {new Date(manifestMeta.savedAt).toLocaleString('cs-CZ')}
+                Offline seznam: <strong className="text-foreground">{manifestMeta.count.toLocaleString('cs-CZ')}</strong>{' '}
+                lístků · staženo {new Date(manifestMeta.savedAt).toLocaleString('cs-CZ')}
               </>
             ) : (
-              <>⚠ Seznam pro výpadek internetu není stažený — bez internetu nepůjde vstupenky ověřit. Stáhněte ho před začátkem představení.</>
+              <>⚠ Offline seznam není stažený — offline sken nepůjde ověřit. Stáhni před akcí (online).</>
             )}
           </span>
           <Button
@@ -489,7 +518,7 @@ export default function ScannerPage() {
             disabled={manifestLoading || !online}
             title={!online ? 'Stažení vyžaduje připojení' : undefined}
           >
-            {manifestLoading ? 'Stahuji…' : manifestMeta ? 'Aktualizovat seznam' : 'Stáhnout seznam'}
+            {manifestLoading ? 'Stahuji…' : manifestMeta ? 'Aktualizovat' : 'Stáhnout offline seznam'}
           </Button>
         </div>
       ) : null}
@@ -516,13 +545,14 @@ export default function ScannerPage() {
             </div>
           ) : events.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Načítám představení… Pokud se žádné neobjeví, nemáte nadcházející představení — založte ho v sekci „Inscenace".
+              Načítání akcí… Pokud nemáš žádnou nadcházející akci, vytvoř ji
+              v sekci „Akce".
             </p>
           ) : (
             <div className="space-y-3">
               <div>
                 <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
-                  Představení
+                  Akce
                 </label>
                 <select
                   value={gate.eventId ?? ''}
@@ -535,7 +565,7 @@ export default function ScannerPage() {
                   }
                   className="w-full rounded-md border bg-background px-3 py-2 text-sm"
                 >
-                  <option value="">— vyberte představení —</option>
+                  <option value="">— vyber akci —</option>
                   {events.map((ev) => (
                     <option key={ev.id} value={ev.id}>
                       {ev.title} ({new Date(ev.dateStart).toLocaleDateString('cs-CZ')})
@@ -547,7 +577,7 @@ export default function ScannerPage() {
               {selectedEvent && selectedEvent.days.length > 0 ? (
                 <div>
                   <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
-                    Den{selectedEvent.days.length > 1 ? ' (povinné u vícedenních akcí)' : ''}
+                    Den{selectedEvent.days.length > 1 ? ' (povinné pro multi-day)' : ''}
                   </label>
                   <div className="flex flex-wrap gap-1">
                     <ChipButton
@@ -631,8 +661,6 @@ export default function ScannerPage() {
         </button>
       </div>
 
-      {entryMode === 'single' ? <ScanState result={result} /> : null}
-
       {entryMode === 'group' ? (
         <GroupScanPanel />
       ) : (
@@ -640,21 +668,23 @@ export default function ScannerPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <ScanLine className="h-5 w-5" aria-hidden /> Načíst vstupenku
+              <ScanLine className="h-5 w-5" aria-hidden /> Validace
             </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
-                <label htmlFor="scanner-ticket" className="mb-1 block text-xs font-medium">
-                  Kód vstupenky
+                <label className="mb-1 block text-xs font-medium">
+                  Ticket ID nebo QR payload{' '}
+                  <code className="text-[11px] text-muted-foreground">
+                    {'tixly:<id>:<code>'}
+                  </code>
                 </label>
                 <div className="flex gap-2">
                   <Input
                     value={ticketId}
                     onChange={(e) => setTicketIdSmart(e.target.value)}
-                    id="scanner-ticket"
-                    placeholder="QR kamerou nebo kód ze vstupenky"
+                    placeholder="8a4f7b2e-… / tixly:…:123456 / TXP2.…"
                     required
                     pattern="([0-9a-fA-F-]{36}|TXP[12]\..+)"
                     autoFocus
@@ -665,18 +695,16 @@ export default function ScannerPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setCameraOpen(true)}
-                    title="Načíst QR kód kamerou"
-                    aria-label="Načíst QR kód kamerou"
+                    title="Otevřít kameru pro sken QR"
                     data-testid="scanner-open-camera"
                   >
                     <Camera className="h-4 w-4" aria-hidden />
                   </Button>
                 </div>
               </div>
-              <details className="text-xs text-muted-foreground">
-                <summary className="cursor-pointer">Vstupenka s měnícím se kódem v mobilu</summary>
-                <label className="mb-1 mt-2 block text-xs font-medium">
-                  Šestimístný kód z mobilu kupce
+              <div>
+                <label className="mb-1 block text-xs font-medium">
+                  TOTP kód (volitelné, z autentikační appky)
                 </label>
                 <Input
                   value={totpCode}
@@ -686,7 +714,7 @@ export default function ScannerPage() {
                   inputMode="numeric"
                   maxLength={6}
                 />
-              </details>
+              </div>
               <div>
                 <label className="mb-1 block text-xs font-medium">Režim skenování</label>
                 <div className="grid grid-cols-2 gap-1 rounded-md border p-1 text-xs sm:grid-cols-4">
@@ -695,7 +723,7 @@ export default function ScannerPage() {
                     className={`rounded px-2 py-1.5 ${scanMode === 'auto' ? 'bg-emerald-600 text-white' : 'hover:bg-muted'}`}
                     onClick={() => setScanMode('auto')}
                   >
-                    Běžný
+                    Standard
                   </button>
                   <button
                     type="button"
@@ -722,16 +750,17 @@ export default function ScannerPage() {
                 </div>
                 {scanMode !== 'auto' ? (
                   <p className="mt-1 text-[11px] text-muted-foreground">
-                    Opakovaný vstup (festivaly, open-air). Funguje jen u akcí, kde má opakovaný vstup zapnutý pořadatel.
+                    Re-entry režim pro festivaly / open-air. Vyžaduje event s
+                    <code className="mx-1">reentry_allowed=TRUE</code>.
                   </p>
                 ) : null}
               </div>
               <Button type="submit" disabled={loading} className="w-full">
                 {loading
-                  ? 'Ověřuji…'
+                  ? 'Validuji…'
                   : scanMode === 'reentry_exit'
                     ? 'Označit výstup'
-                    : 'Ověřit vstupenku'}
+                    : 'Validovat lístek'}
               </Button>
             </form>
           </CardContent>
@@ -739,7 +768,7 @@ export default function ScannerPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Podrobnosti</CardTitle>
+            <CardTitle>Výsledek</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {renderResult(result)}
@@ -767,7 +796,6 @@ export default function ScannerPage() {
         onDetected={(raw) => {
           setTicketIdSmart(raw);
           setCameraOpen(false);
-          setAutoSubmit(true);
         }}
         onClose={() => setCameraOpen(false)}
       />
@@ -803,7 +831,7 @@ function renderResult(r: ScanResult | null) {
   if (!r) {
     return (
       <p className="text-sm text-muted-foreground">
-        Načtěte QR kód nebo opište kód ze vstupenky — výsledek se ukáže tady.
+        Naskenuj nebo vlož ticket ID, abys viděl výsledek.
       </p>
     );
   }
@@ -944,17 +972,17 @@ function labelFor(r: ScanResult['result']): string {
     case 'invalid_token':
       return 'Neplatný kód vstupenky';
     case 'wrong_promoter':
-      return 'Vstupenka jiného pořadatele';
+      return 'Lístek jiného promotéra';
     case 'wrong_event':
-      return 'Vstupenka na jiný termín';
+      return 'Lístek na jinou akci';
     case 'totp_mismatch':
-      return 'Kód z mobilu nesouhlasí';
+      return 'TOTP kód neodpovídá';
     case 'invalid_status':
-      return 'Vstupenka není platná';
+      return 'Neplatný stav';
     case 'wrong_zone_or_day':
       return 'Lístek nemá přístup do této zóny / dne';
     case 'flex_limit_exhausted':
-      return 'Permanentka je vyčerpaná';
+      return 'Flex pass vyčerpán';
     case 'day_not_picked':
       return 'Tento den není mezi vybranými termíny';
     case 'reentry_disabled':
@@ -966,6 +994,6 @@ function labelFor(r: ScanResult['result']): string {
     case 'not_inside':
       return 'Držitel není evidovaný uvnitř';
     default:
-      return 'Chyba — zkuste to znovu';
+      return 'Chyba';
   }
 }

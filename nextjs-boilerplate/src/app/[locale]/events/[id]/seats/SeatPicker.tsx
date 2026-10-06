@@ -440,7 +440,7 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
             onClick={holdAndProceed}
             disabled={busy || selected.size === 0}
           >
-            {busy ? 'Rezervuji…' : 'Pokračovat k objednávce'}
+            {busy ? 'Rezervuji…' : 'Pokračovat na pokladnu'}
           </Button>
         </div>
         {error ? (

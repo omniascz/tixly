@@ -6,13 +6,8 @@
  * uvolnění vybraných / všech míst, volné vstupenky na jména. Prodej firmě: Firemní objednávky; na pokladně: Pokladna.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { ConfirmDialog, type ConfirmRequest } from '@/components/admin/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { errorText } from '@/lib/ui/error-text';
-
-/** Kolo 12: stav místa česky (dřív v nápovědě „— available"). */
-const SEAT_STATUS: Record<string, string> = { available: 'volné', sold: 'prodáno', blocked: 'blokováno', held: 'drženo', reserved: 'rezervováno' };
 
 interface Block { id: string; name: string; note: string | null; color: string; total: number; blocked: number; released: number; issued: number; sold: number }
 interface Seat { id: string; sector: string; row: string; seat_number: string; x: number | null; y: number | null; status: string; blockId: string | null; color: string | null; blockName: string | null }
@@ -34,11 +29,10 @@ export default function BlocksPage({ params }: { params: { id: string } }) {
   const [compBlock, setCompBlock] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
 
   async function load() {
     const r = await api(`/api/admin/events/${params.id}/blocks`);
-    if (!r.ok) { setErr(`Blokace se nepodařilo načíst. ${errorText(await r.json().catch(() => ({})), r.status)}`); return; }
+    if (!r.ok) { setErr(`Načtení selhalo (HTTP ${r.status}).`); return; }
     const j = (await r.json()) as { blocks: Block[]; seats: Seat[] };
     setBlocks(j.blocks); setSeats(j.seats);
   }
@@ -54,7 +48,7 @@ export default function BlocksPage({ params }: { params: { id: string } }) {
     setErr(null); setMsg(null);
     const r = await api(url, { method: 'POST', body: JSON.stringify(body) });
     const j = (await r.json().catch(() => ({}))) as Record<string, unknown>;
-    if (!r.ok) { setErr(errorText(j, r.status)); return; }
+    if (!r.ok) { setErr(String(j.message ?? j.error ?? `HTTP ${r.status}`)); return; }
     setMsg(ok(j)); setSel(new Set()); await load();
   }
 
@@ -63,27 +57,9 @@ export default function BlocksPage({ params }: { params: { id: string } }) {
     ...(sector ? { sector } : { seatIds: [...sel] }),
   }, (j) => `Blokace „${name}" založena: ${String(j.blocked)} míst${(j.skipped as unknown[]).length ? `, ${(j.skipped as unknown[]).length} obsazených přeskočeno` : ''}.`).then(() => { setName(''); setNote(''); setSector(''); });
 
-  const doRelease = (b: Block, seatIds: string[] | null) => run(`/api/admin/events/${params.id}/blocks/${b.id}/release`,
-    seatIds ? { seatIds } : {},
+  const release = (b: Block, onlySelected: boolean) => run(`/api/admin/events/${params.id}/blocks/${b.id}/release`,
+    onlySelected ? { seatIds: seats.filter((s) => sel.has(s.id) && s.blockId === b.id).map((s) => s.id) } : {},
     (j) => `Uvolněno ${String(j.released)} míst z blokace „${b.name}".`);
-  // Kolo 12: uvolnění vrací místa do prodeje — dřív bez potvrzení
-  const release = (b: Block, onlySelected: boolean) => {
-    setErr(null);
-    const ids = onlySelected ? seats.filter((s) => sel.has(s.id) && s.blockId === b.id).map((s) => s.id) : null;
-    if (onlySelected && ids!.length === 0) { setErr(`Nejdřív na plánku vyberte místa z blokace „${b.name}" (barevná kolečka), potom klikněte na „Uvolnit vybraná".`); return; }
-    const n = ids ? ids.length : b.blocked;
-    if (n === 0) { setErr(`Blokace „${b.name}" už nemá žádná zablokovaná místa.`); return; }
-    setConfirm({
-      title: `Uvolnit ${n} ${n === 1 ? 'místo' : n < 5 ? 'místa' : 'míst'} z blokace „${b.name}"?`,
-      consequences: [
-        `Uvolnění vrátí ${n === 1 ? 'místo' : 'místa'} do volného prodeje — koupit si ${n === 1 ? 'ho' : 'je'} může kdokoli na webu i na pokladně.`,
-        'Vstupenky už z blokace prodané nebo vydané na jména zůstávají platné.',
-        'Pro opětovnou blokaci je musíte znovu vybrat a zablokovat.',
-      ],
-      confirmLabel: `Uvolnit ${n} ${n === 1 ? 'místo' : n < 5 ? 'místa' : 'míst'}`,
-      onConfirm: async () => { await doRelease(b, ids); },
-    });
-  };
 
   const compSeats = seats.filter((s) => sel.has(s.id) && s.blockId === compBlock);
   const issueComps = () => run(`/api/admin/events/${params.id}/blocks/${compBlock}/comps`, {
@@ -93,7 +69,6 @@ export default function BlocksPage({ params }: { params: { id: string } }) {
   return (
     <div className="space-y-6" data-testid="blocks-page">
       <h2 className="text-xl font-semibold">Blokace míst</h2>
-      <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
       {msg ? <p className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-800" data-testid="blocks-msg">{msg}</p> : null}
       {err ? <p className="rounded-md bg-rose-50 p-3 text-sm text-rose-800">{err}</p> : null}
 
@@ -106,7 +81,7 @@ export default function BlocksPage({ params }: { params: { id: string } }) {
               <circle key={s.id} cx={s.x ?? 0} cy={s.y ?? 0} r={8} fill={fill} stroke={picked ? '#000' : '#fff'} strokeWidth={picked ? 3 : 1}
                 style={{ cursor: 'pointer' }} data-seat-block={s.blockName ?? ''}
                 onClick={() => { const n = new Set(sel); if (n.has(s.id)) n.delete(s.id); else n.add(s.id); setSel(n); }}>
-                <title>{`${s.sector} řada ${s.row} místo ${s.seat_number}${s.blockName ? ` — ${s.blockName}` : ` — ${SEAT_STATUS[s.status] ?? s.status}`}`}</title>
+                <title>{`${s.sector} řada ${s.row} místo ${s.seat_number}${s.blockName ? ` — ${s.blockName}` : ` — ${s.status}`}`}</title>
               </circle>
             );
           })}

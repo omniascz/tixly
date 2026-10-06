@@ -1,0 +1,5 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [golden-path] › tests\golden-path-r13-keep.spec.ts:170:7 › vlastník › bod 10: storno firemní objednávky jen po potvrzení v okně (beze změny od d0bbcb00)
+[1A[2K  1 passed (5.9s)

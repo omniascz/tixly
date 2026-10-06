@@ -6,15 +6,8 @@
  * zrušit / uvolnit místa → dobropis.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { ConfirmDialog, type ConfirmRequest } from '@/components/admin/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { errorText } from '@/lib/ui/error-text';
-
-/** Kolo 12: přirozené řazení míst (1/2 před 1/10; dřív textově 1/1, 1/11, 1/12…). */
-const num = (v: string) => { const n = parseInt(v, 10); return Number.isNaN(n) ? Number.MAX_SAFE_INTEGER : n; };
-const bySeat = (a: { sector: string; row: string; seat_number: string }, b: { sector: string; row: string; seat_number: string }) =>
-  a.sector.localeCompare(b.sector, 'cs') || num(a.row) - num(b.row) || a.row.localeCompare(b.row, 'cs') || num(a.seat_number) - num(b.seat_number);
 
 interface Seat { id: string; sector: string; row: string; seat_number: string; status: string; blockId: string | null; blockName: string | null }
 interface Block { id: string; name: string; blocked: number }
@@ -47,7 +40,6 @@ export default function CorporateOrdersPage({ params }: { params: { id: string }
   const [dueDate, setDueDate] = useState(inDays(14));
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
 
   async function load() {
     const [b, c, o] = await Promise.all([
@@ -69,7 +61,7 @@ export default function CorporateOrdersPage({ params }: { params: { id: string }
   }, [params.id]);
 
   const offer = useMemo(
-    () => seats.filter((s) => (source ? s.blockId === source : s.status === 'available')).sort(bySeat),
+    () => seats.filter((s) => (source ? s.blockId === source : s.status === 'available')),
     [seats, source],
   );
 
@@ -77,7 +69,7 @@ export default function CorporateOrdersPage({ params }: { params: { id: string }
     setErr(null);
     const r = await api(`/api/admin/ares/${company.ico}`);
     const j = (await r.json().catch(() => ({}))) as { name?: string; address?: string; dic?: string; message?: string; error?: string };
-    if (!r.ok) { setErr(`Údaje z ARES se nepodařilo načíst. ${r.status === 404 ? 'Firma s tímto IČO v ARES není — zkontrolujte IČO, nebo údaje vyplňte ručně.' : 'Vyplňte údaje firmy ručně.'}`); return; }
+    if (!r.ok) { setErr(j.message ?? j.error ?? `ARES: HTTP ${r.status}`); return; }
     setCompany({ ...company, name: j.name ?? '', address: j.address ?? '', dic: j.dic ?? '' });
   }
 
@@ -94,53 +86,33 @@ export default function CorporateOrdersPage({ params }: { params: { id: string }
       }),
     });
     const j = (await r.json().catch(() => ({}))) as { message?: string; error?: string; invoiceNumber?: string; totalMinor?: number };
-    if (!r.ok) { setErr(errorText(j, r.status)); return; }
+    if (!r.ok) { setErr(j.message ?? j.error ?? `HTTP ${r.status}`); return; }
     setMsg(`Objednávka založena, faktura ${j.invoiceNumber ?? ''} (${kc(j.totalMinor ?? 0)}) odeslána na ${contact.email}.`);
     setSel(new Set()); await load();
   }
 
-  async function send(o: Order, kind: 'paid' | 'cancel', body: unknown) {
+  async function act(o: Order, kind: 'paid' | 'cancel') {
     setErr(null); setMsg(null);
+    let body: unknown;
+    if (kind === 'paid') {
+      const ref = window.prompt('Reference platby (VS / ID transakce):', o.invoiceNumber ?? '');
+      if (!ref) return;
+      body = { paidOn: new Date().toISOString().slice(0, 10), paymentReference: ref };
+    } else {
+      const why = window.prompt('Důvod zrušení / uvolnění míst:', '');
+      if (!why) return;
+      body = { reason: why };
+    }
     const r = await api(`/api/admin/corporate-orders/${o.id}/${kind}`, { method: 'POST', body: JSON.stringify(body) });
     const j = (await r.json().catch(() => ({}))) as { message?: string; error?: string; tickets?: number; seatsReturned?: number };
-    if (!r.ok) { setErr(errorText(j, r.status)); return; }
+    if (!r.ok) { setErr(j.message ?? j.error ?? `HTTP ${r.status}`); return; }
     setMsg(kind === 'paid' ? `Zaplaceno — ${j.tickets ?? 0} vstupenek odesláno na ${o.contactEmail}.` : `Zrušeno — dobropis vystaven, ${j.seatsReturned ?? 0} míst vráceno.`);
     await load();
-  }
-
-  // Kolo 12: potvrzení v okně aplikace s důsledky (dřív window.prompt „Reference platby (VS / ID transakce)").
-  function act(o: Order, kind: 'paid' | 'cancel') {
-    if (kind === 'paid') {
-      setConfirm({
-        title: `Označit objednávku ${o.companyName} jako zaplacenou?`,
-        consequences: [
-          `Vstupenky (${o.seats}) se vystaví a pošlou e-mailem na ${o.contactEmail}.`,
-          'Faktura se označí jako uhrazená. Zkontrolujte, že platba opravdu dorazila na účet.',
-        ],
-        confirmLabel: 'Zaplaceno — vystavit vstupenky',
-        input: { label: 'Variabilní symbol nebo poznámka k platbě', placeholder: 'např. VS 2026001', required: true, initial: o.invoiceNumber ?? '' },
-        onConfirm: (ref) => send(o, 'paid', { paidOn: new Date().toISOString().slice(0, 10), paymentReference: ref }),
-      });
-    } else {
-      setConfirm({
-        title: `Zrušit firemní objednávku ${o.companyName}?`,
-        consequences: [
-          'K faktuře se vystaví dobropis.',
-          o.status === 'paid' ? 'Vydané vstupenky přestanou platit — peníze firmě vraťte převodem.' : 'Nezaplacená místa se vrátí (do blokace, ze které byla, jinak do volného prodeje).',
-          'Akci nelze vrátit zpět.',
-        ],
-        confirmLabel: 'Zrušit objednávku',
-        danger: true,
-        input: { label: 'Důvod zrušení (uvede se na dobropisu)', placeholder: 'např. firma akci zrušila', required: true },
-        onConfirm: (why) => send(o, 'cancel', { reason: why }),
-      });
-    }
   }
 
   return (
     <div className="space-y-6 p-4">
       <h1 className="text-xl font-semibold">Firemní objednávky na fakturu</h1>
-      <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
       {msg && <p className="rounded bg-emerald-50 p-2 text-sm text-emerald-800" data-testid="corp-msg">{msg}</p>}
       {err && <p role="alert" className="rounded bg-rose-50 p-2 text-sm text-rose-800">{err}</p>}
 
@@ -172,7 +144,7 @@ export default function CorporateOrdersPage({ params }: { params: { id: string }
           </div>
           <div className="flex max-h-48 flex-wrap gap-1 overflow-auto rounded border p-2">
             {offer.map((s) => (
-              <button key={s.id} type="button" data-testid="corp-seat"
+              <button key={s.id} type="button"
                 onClick={() => { const n = new Set(sel); if (n.has(s.id)) n.delete(s.id); else n.add(s.id); setSel(n); }}
                 className={`rounded px-2 py-1 text-xs ${sel.has(s.id) ? 'bg-slate-900 text-white' : 'bg-slate-100'}`}>
                 {s.sector} {s.row}/{s.seat_number}
@@ -200,15 +172,15 @@ export default function CorporateOrdersPage({ params }: { params: { id: string }
               <td className="p-2">{o.seats}</td>
               <td className="p-2">{kc(o.totalMinor)}</td>
               <td className="p-2">
-                {o.invoiceId && <><a className="underline" href={`/api/admin/invoices/${o.invoiceId}/pdf`}>{o.invoiceNumber}</a> · <a className="underline" href={`/api/admin/invoices/${o.invoiceId}/isdoc`} title="Soubor faktury pro účetní program">pro účetnictví (ISDOC)</a></>}
+                {o.invoiceId && <><a className="underline" href={`/api/admin/invoices/${o.invoiceId}/pdf`}>{o.invoiceNumber}</a> · <a className="underline" href={`/api/admin/invoices/${o.invoiceId}/isdoc`}>ISDOC</a></>}
                 {o.creditNoteId && <div className="text-xs"><a className="underline" href={`/api/admin/invoices/${o.creditNoteId}/pdf`}>dobropis</a></div>}
               </td>
               <td className="p-2">{o.dueDate}</td>
               <td className="p-2">{STATUS[o.status] ?? o.status}{o.paymentReference ? <div className="text-xs">ref. {o.paymentReference}</div> : null}</td>
               <td className="p-2">
                 <div className="flex gap-1">
-                  {['confirmed', 'overdue'].includes(o.status) && <Button size="sm" onClick={() => act(o, 'paid')}>Zaplaceno</Button>}
-                  {o.status !== 'cancelled' && <Button size="sm" variant="outline" onClick={() => act(o, 'cancel')}>Zrušit</Button>}
+                  {['confirmed', 'overdue'].includes(o.status) && <Button size="sm" onClick={() => void act(o, 'paid')}>Zaplaceno</Button>}
+                  {o.status !== 'cancelled' && <Button size="sm" variant="outline" onClick={() => void act(o, 'cancel')}>Zrušit / uvolnit</Button>}
                 </div>
               </td>
             </tr>

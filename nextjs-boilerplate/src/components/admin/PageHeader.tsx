@@ -10,8 +10,7 @@ export function PageHeader({ title, description, actions }: PageHeaderProps) {
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div>
-        {/* Kolo 12: hlavní nadpis stránky (hlavička administrace už <h1> nemá) */}
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+        <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
         {description && (
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         )}

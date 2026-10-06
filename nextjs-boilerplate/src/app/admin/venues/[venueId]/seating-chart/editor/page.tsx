@@ -33,7 +33,7 @@ export default function AdminVenueEditorPage({
 }) {
   const { venueId } = params;
   const [initialLayout, setInitialLayout] = useState<Layout | null>(null);
-  const [chartName, setChartName] = useState('Plánek sálu');
+  const [chartName, setChartName] = useState('Default');
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [forbidden, setForbidden] = useState(false);
@@ -86,12 +86,12 @@ export default function AdminVenueEditorPage({
         <h1 className="text-xl font-bold">Sdílený sál — editace zakázána</h1>
         <p className="text-sm text-muted-foreground max-w-lg">
           Tento sál je sdíleným katalogem Tixly a může ho editovat pouze platformní správce.
-          Pokud potřebujete změnit plánek, kontaktujte <strong>support@tixly.cz</strong>.
+          Pokud potřebujete změnit layout, kontaktujte <strong>support@tixly.cz</strong>.
         </p>
         <p className="text-sm">
           Chcete vlastní editovatelný sál?{' '}
-          <Link href="/admin/venues" className="text-primary underline">
-            Založte si vlastní sál v knihovně míst →
+          <Link href="/admin/venues/new" className="text-primary underline">
+            Vytvořte si nový soukromý sál →
           </Link>
         </p>
       </div>
@@ -101,7 +101,7 @@ export default function AdminVenueEditorPage({
   if (error) {
     return (
       <div className="p-6 rounded-md border border-rose-300 bg-rose-50 text-sm text-rose-900">
-        Plánek se nepodařilo načíst ({error}). Obnovte stránku; pokud to nepomůže, vraťte se do knihovny míst a otevřete editor znovu.
+        Chyba při načítání: {error}
       </div>
     );
   }
@@ -111,11 +111,11 @@ export default function AdminVenueEditorPage({
       <div className="flex items-start justify-between gap-3">
         <div>
           <Link href="/admin/venues" className="text-sm text-primary hover:underline">
-            ← Zpět do knihovny míst
+            ← Zpět na detail sálu
           </Link>
-          <h1 className="mt-1 text-2xl font-bold">Editor plánku sálu</h1>
+          <h1 className="mt-1 text-2xl font-bold">Seating editor</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Rozmístění sedadel, sekcí a cenových zón. Změny platí pro termíny založené od teď; už založené termíny se nemění.
+            Drag-and-draw editor pro layout sedadel. Změny se projeví na všech budoucích akcích v tomto sálu.
           </p>
         </div>
       </div>

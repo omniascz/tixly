@@ -1,0 +1,48 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [golden-path] › tests\golden-path-r13-keep.spec.ts:136:7 › vlastník › bod 8: nepovedené stažení reportu ohlásí chybu
+[1A[2K  1) [golden-path] › tests\golden-path-r13-keep.spec.ts:136:7 › vlastník › bod 8: nepovedené stažení reportu ohlásí chybu 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('alert').filter({ hasText: 'Soubor se nepodařilo stáhnout (HTTP 500).' })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByRole('alert').filter({ hasText: 'Soubor se nepodařilo stáhnout (HTTP 500).' })[22m
+
+
+      139 |     await page.route('**/api/admin/theatre-reports?*format=csv*', (r) => r.fulfill({ status: 500, body: '{}' }));
+      140 |     await page.getByRole('button', { name: 'CSV', exact: true }).click();
+    > 141 |     await expect(page.getByRole('alert').filter({ hasText: 'Soubor se nepodařilo stáhnout (HTTP 500).' })).toBeVisible();
+          |                                                                                                            ^
+      142 |     await page.unroute('**/api/admin/theatre-reports?*format=csv*');
+      143 |     // původní popisky tlačítek
+      144 |     await expect(page.getByRole('button', { name: 'Seznam pro uvaděče (PDF)' })).toBeVisible();
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r13-keep.spec.ts:141:108
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-f83eb-tažení-reportu-ohlásí-chybu-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r13-keep-vlast-f83eb-tažení-reportu-ohlásí-chybu-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-f83eb-tažení-reportu-ohlásí-chybu-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-f83eb-tažení-reportu-ohlásí-chybu-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-f83eb-tažení-reportu-ohlásí-chybu-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r13-keep-vlast-f83eb-tažení-reportu-ohlásí-chybu-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  1 failed
+    [golden-path] › tests\golden-path-r13-keep.spec.ts:136:7 › vlastník › bod 8: nepovedené stažení reportu ohlásí chybu 
