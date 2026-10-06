@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { errorText } from '@/lib/ui/error-text';
 
 interface PromoCode {
   id: string;
@@ -22,6 +23,7 @@ interface PromoCode {
   applicableEventIds?: string[];
   zoneNames?: string[];
   eventNames?: string[];
+  categoryNames?: string[];
 }
 
 interface Term { id: string; name: string; date: string }
@@ -31,7 +33,7 @@ interface TermCatalog { categories: Array<{ code: string; name: string }>; zones
 function fmtRestriction(c: PromoCode): string {
   const parts: string[] = [];
   if (c.eventNames?.length) parts.push(`termín: ${c.eventNames.join(', ')}`);
-  if (c.applicableCategoryCodes?.length) parts.push(`kategorie: ${c.applicableCategoryCodes.join(', ')}`);
+  if (c.applicableCategoryCodes?.length) parts.push(`kategorie: ${(c.categoryNames?.length ? c.categoryNames : c.applicableCategoryCodes).join(', ')}`);
   if (c.zoneNames?.length) parts.push(`zóny: ${c.zoneNames.join(', ')}`);
   return parts.length ? parts.join(' · ') : 'bez omezení';
 }
@@ -50,6 +52,7 @@ export default function PromoCodesPage() {
   const [maxUses, setMaxUses] = useState('');
   const [validUntil, setValidUntil] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [okMsg, setOkMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   // Kolo 9: omezení na termín, slevové kategorie a cenové zóny (dřív jen přes API)
   const [terms, setTerms] = useState<Term[]>([]);
@@ -100,6 +103,7 @@ export default function PromoCodesPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setOkMsg(null);
     setLoading(true);
     try {
       const token = localStorage.getItem('accessToken');
@@ -125,16 +129,18 @@ export default function PromoCodesPage() {
       });
       const data = await r.json();
       if (!r.ok) {
-        setError(data.error ?? `HTTP ${r.status}`);
+        setError(r.status === 409 || data.error === 'CODE_ALREADY_EXISTS' ? `Kód ${code.toUpperCase()} už existuje. Zvolte jiný název kódu.` : errorText(data, r.status));
         return;
       }
+      // Kolo 12: dřív se formulář jen vyprázdnil bez potvrzení
+      setOkMsg(`Kód ${code.toUpperCase()} je vytvořený a platí od teď${validUntil ? ` do ${new Date(validUntil).toLocaleString('cs-CZ')}` : ''}.`);
       setCode('');
       setMaxUses('');
       setValidUntil('');
       setTermId('');
       await reload();
     } catch {
-      setError('Síťová chyba');
+      setError('Nepodařilo se spojit se serverem. Zkontrolujte připojení k internetu a zkuste to znovu.');
     } finally {
       setLoading(false);
     }
@@ -144,7 +150,7 @@ export default function PromoCodesPage() {
     <div className="space-y-6">
       <PageHeader
         title="Promo kódy"
-        description="Sleva pro kupce — % nebo pevná částka. Aplikuje se v checkoutu."
+        description="Sleva pro kupce — % nebo pevná částka. Kupec kód zadá při objednávce vstupenek."
       />
 
       <Card>
@@ -252,8 +258,8 @@ export default function PromoCodesPage() {
                 {loading ? 'Ukládám…' : 'Vytvořit kód'}
               </Button>
             </div>
-            {error && (
-              <p className="md:col-span-5 text-sm text-destructive">{error}</p>
+            {(error || okMsg) && (
+              <p data-testid="promo-msg" className={`md:col-span-5 text-sm ${error ? 'text-destructive' : 'text-emerald-700'}`}>{error ?? okMsg}</p>
             )}
           </form>
         </CardContent>
