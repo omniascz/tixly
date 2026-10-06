@@ -1,0 +1,14 @@
+
+Running 10 tests using 1 worker
+
+[1A[2K[1/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:82:7 › vlastník › bod 4: termín v sále bez míst v cenových zónách se nezaloží (ani nezveřejní)
+[1A[2K[2/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:96:7 › vlastník › bod 5: blokace bez volných míst se nezaloží prázdná
+[1A[2K[3/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:113:7 › vlastník › bod 6: „Zpět" z editoru plánku vede na existující stránku
+[1A[2K[4/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:123:7 › vlastník › bod 7: zrušený termín v seznamu akcí „Zrušeno", ne „Prodej"
+[1A[2K[5/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:136:7 › vlastník › bod 8: nepovedené stažení reportu ohlásí chybu
+[1A[2K[6/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:148:7 › vlastník › bod 10: přesun a zrušení termínu jen po potvrzení v okně
+[1A[2K[7/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:170:7 › vlastník › bod 10: storno firemní objednávky jen po potvrzení v okně (beze změny od d0bbcb00)
+[1A[2K[8/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:191:7 › pokladní a vstup › bod 3: role Pokladna má na serveru omezený přístup (ne správce); vlastník beze změny
+[1A[2K[9/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:208:7 › pokladní a vstup › body 2 a 9: pokladna — termíny odlišené městem, tisk = PDF vstupenek s QR, bez TOTP
+[1A[2K[10/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:238:7 › pokladní a vstup › bod 1: skener při výpadku sítě nehlásí „Vstup povolen" bez ověření
+[1A[2K  10 passed (20.6s)

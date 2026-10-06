@@ -22,3 +22,7 @@ Větev `fix/round13-revert-ux-2026-10-06` z `2a1c9102` (integrate po kole 12). R
   Seating editor, Uložit layout, Scanner, Validovat lístek, okna prohlížeče u Zaplaceno / přesunu / zrušení).
 - Obrázky z průchodu na výsledku kola 13 (logs/r13/walk; průchod kola 12 dočasně, jen s původním aria-label plátna; do repa
   nevrácen) a skener z logs/r13/screens.
+
+## Závěr — lokální sada
+- tsc 0, lint bez nárůstu, unit 707, live 83/83 (359), build + build bez sítě, audity 01–12 + 07b + 08 zelené, turné 10/10,
+  body 1–10 10/10. ROUND13_REPORT.md. Dál: PR do integrate, CI + Vercel, merge, fast-forward.
