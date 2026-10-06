@@ -1,0 +1,54 @@
+
+Running 11 tests using 1 worker
+
+[1A[2K[1/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:187:7 › vlastník › 1 — nová inscenace s fotkou a obsazením
+[1A[2K  1) [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:187:7 › vlastník › 1 — nová inscenace s fotkou a obsazením 
+
+    [31mTest timeout of 180000ms exceeded.[39m
+
+    Error: page.screenshot: Target page, context or browser has been closed
+
+       at helpers\ux-meter.ts:75
+
+      73 |     await p.waitForLoadState('networkidle').catch(() => {});
+      74 |     const file = `${name}.png`;
+    > 75 |     await p.screenshot({ path: join(this.dir, file), fullPage: true });
+         |             ^
+      76 |     this.cur!.shots.push(file);
+      77 |     if (opts.mobile) {
+      78 |       const vp = p.viewportSize();
+        at UxMeter.screen (C:\Users\omnia\Documents\tixly\e2e\tests\helpers\ux-meter.ts:75:13)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-walkthrough.spec.ts:223:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-walkthr-7284a-cenace-s-fotkou-a-obsazením-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-walkthr-7284a-cenace-s-fotkou-a-obsazením-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-walkthr-7284a-cenace-s-fotkou-a-obsazením-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-walkthr-7284a-cenace-s-fotkou-a-obsazením-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-walkthr-7284a-cenace-s-fotkou-a-obsazením-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-walkthr-7284a-cenace-s-fotkou-a-obsazením-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[2/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:226:7 › vlastník › 2 — nové místo a sál v novém městě: generátor + obkreslení podkladu
+[1A[2K[3/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:279:7 › vlastník › 3 — nový termín v novém sále, převzetí ceníku, šablona kategorií, zveřejnění
+[1A[2K[4/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:312:7 › vlastník › 4 — blokace pro firmu a tisk, uvolnění části do prodeje
+[1A[2K[5/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:345:7 › vlastník › 5 — firemní objednávka na fakturu a označení zaplacení
+[1A[2K[6/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:375:7 › vlastník › 6 — promo kód omezený na kategorii
+[1A[2K[7/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:400:7 › vlastník › 7 — přesun a zrušení termínu
+[1A[2K[8/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:424:7 › vlastník › 8 — reporty termínu a seznam pro uvaděčky
+[1A[2K[9/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:439:7 › kupec na mobilu › K — najít představení ve svém městě, místa a kategorie, zaplatit; rezervace
+[1A[2K[10/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:536:7 › pokladní › P — rezervace: vyhledání a platba na pokladně, prodej na místě, tisk
+[1A[2K[11/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:606:7 › vstup › V — skenování na mobilu: běžná, Ověřit průkaz, Jiný termín, Už použito
+[1A[2K  1 failed
+    [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:187:7 › vlastník › 1 — nová inscenace s fotkou a obsazením 
+  10 did not run
