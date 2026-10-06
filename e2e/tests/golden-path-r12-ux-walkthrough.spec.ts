@@ -145,10 +145,30 @@ async function openTermTool(page: Page, production: string, city: string, tab: s
   await meter.click(c);
   await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
 }
+/** Hláška po akci: úspěch (data-testid) nebo chybový pruh (role=alert / červený rámeček). */
 async function msgOf(page: Page, testId: string): Promise<string> {
-  const l = page.getByTestId(testId);
-  await l.waitFor({ timeout: 15_000 }).catch(() => {});
-  return ((await l.textContent().catch(() => '')) ?? '').trim();
+  const ok = page.getByTestId(testId);
+  // bez oznamovače navigace Next.js (#__next-route-announcer__ má role=alert a je prázdný)
+  const bad = page.locator('[role="alert"]:not(#__next-route-announcer__), p.bg-rose-50, div.bg-rose-50').filter({ hasText: /\S/ }).first();
+  await Promise.race([ok.waitFor({ timeout: 15_000 }), bad.waitFor({ timeout: 15_000 })]).catch(() => {});
+  await page.waitForTimeout(300);
+  if (await ok.isVisible().catch(() => false)) return ((await ok.textContent().catch(() => '')) ?? '').trim();
+  if (await bad.isVisible().catch(() => false)) return `CHYBA: ${((await bad.textContent().catch(() => '')) ?? '').trim()}`;
+  return '';
+}
+/** Výběr rámečkem v editoru plánku (tah myší přes sedadla sekce) — jako uživatel; počítá se 1 akce. */
+async function marqueeSelect(page: Page, sectorPrefix: string): Promise<void> {
+  await page.keyboard.press('Escape');
+  const box = await page.evaluate((prefix) => {
+    const rs = [...document.querySelectorAll('svg[aria-label="Seating chart editor canvas"] circle')]
+      .filter((c) => (c.querySelector('title')?.textContent ?? '').startsWith(prefix)).map((c) => c.getBoundingClientRect());
+    return { x0: Math.min(...rs.map((r) => r.left)), y0: Math.min(...rs.map((r) => r.top)), x1: Math.max(...rs.map((r) => r.right)), y1: Math.max(...rs.map((r) => r.bottom)) };
+  }, sectorPrefix);
+  await page.mouse.move(box.x0 - 6, box.y0 - 6);
+  await page.mouse.down();
+  await page.mouse.move((box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2, { steps: 4 });
+  await page.mouse.move(box.x1 + 6, box.y1 + 6, { steps: 4 });
+  await page.mouse.up();
 }
 async function pickOption(sel: Locator, text: RegExp): Promise<void> {
   const opt = sel.locator('option').filter({ hasText: text }).first();
@@ -259,7 +279,10 @@ test.describe('vlastník', () => {
     await meter.click(page.getByTestId('generate-section'));
     await meter.fill(page.getByTestId('zone-name'), 'Zóna A');
     await meter.click(page.getByTestId('zone-add'));
-    await page.keyboard.press('Control+a').catch(() => {});
+    // výběr všech sedadel přízemí tažením rámečku (nástroj Výběr = klávesa 1), pak přiřazení zóny
+    await page.keyboard.press('1');
+    await marqueeSelect(page, 'Přízemí ·');
+    meter.stats[meter.stats.length - 1].clicks++;
     await meter.click(page.getByTestId('zone-assign-Zóna A'));
     // podklad + obkreslení jedné řady nástrojem Řada
     await page.locator('input[type="file"][accept*="image"]').first().setInputFiles(PHOTO);
@@ -567,7 +590,12 @@ test.describe('pokladní', () => {
     await meter.screen('P-01-prehled-pokladni', { mobile: true });
     // rezervace: jedno vyhledávací pole (pokladna → rezervace), jinak přes akci
     if (await menu(page, /^Pokladna$/)) {
-      const resLink = page.getByRole('link', { name: /Rezervace/ }).first();
+      const posSel = page.locator('#pos-event');
+      await posSel.locator('option', { hasText: 'Racek' }).first().waitFor({ state: 'attached', timeout: 15_000 }).catch(() => {});
+      const opts0 = (await posSel.locator('option').allTextContents()).filter((o) => o.includes('Racek'));
+      const brno0 = opts0.find((o) => o.includes('Brno'));
+      if (brno0) await pickOption(posSel, new RegExp(brno0.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+      const resLink = page.getByRole('link', { name: /Rezervace k vyzvednutí/ }).first();
       if (await resLink.isVisible().catch(() => false)) await meter.click(resLink);
       else {
         meter.note('nav', 'Z Pokladny nevede cesta k rezervacím — přes Akce → Upravit → Vstupenky → Rezervace na pokladně');
@@ -633,7 +661,8 @@ test.describe('pokladní', () => {
     const printBtn = page.getByRole('link', { name: /Tisk|Vytisknout/ }).or(page.getByRole('button', { name: /Tisk|Vytisknout/ })).first();
     if (await printBtn.isVisible().catch(() => false)) {
       const [popup] = await Promise.all([page.waitForEvent('popup', { timeout: 5000 }).catch(() => null), page.evaluate(() => { (window as unknown as { print: () => void }).print = () => { (window as unknown as { __printed: boolean }).__printed = true; }; }).then(() => meter.click(printBtn))]);
-      meter.note('result', `tisk: ${popup ? `nové okno ${new URL(popup.url()).pathname}` : 'window.print'}`);
+      const href = await printBtn.getAttribute('href').catch(() => null);
+      meter.note('result', `tisk: ${href ? `odkaz ${href.replace(/[0-9a-f-]{36}/, ':order')}` : popup ? 'nové okno' : 'window.print (bez QR)'}`);
       if (popup) { await popup.waitForLoadState().catch(() => {}); await popup.close().catch(() => {}); }
     } else meter.note('stuck', 'Po prodeji chybí tisk vstupenky');
     await ctx.close();
@@ -659,6 +688,8 @@ test.describe('vstup', () => {
     const done = page.getByRole('button', { name: /^Hotovo$/ });
     if (await done.isVisible().catch(() => false)) await meter.click(done);
     const scan = async (id: string, name: string) => {
+      const prev = page.getByTestId('scan-state');
+      if (await prev.isVisible().catch(() => false)) await meter.click(prev); // obsluha zavře výsledek klepnutím
       await meter.fill(page.getByTestId('scanner-ticket-input'), id);
       await Promise.all([page.waitForResponse((r) => r.url().includes('/api/admin/scanner/validate')), meter.click(page.getByRole('button', { name: /Ověřit|Validovat|Odbavit/ }).last())]);
       await page.waitForTimeout(400);

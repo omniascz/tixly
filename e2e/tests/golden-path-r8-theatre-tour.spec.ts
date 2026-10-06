@@ -26,7 +26,7 @@ import pg from 'pg';
 const BASE = process.env.BASE_URL ?? 'http://localhost:3200';
 const OWNER_URL = process.env.AUDIT_OWNER_URL ?? 'postgresql://neondb_owner:fixowner@localhost:55632/r8z';
 const MAILPIT = process.env.MAILPIT ?? 'http://localhost:58225';
-const SHOTS = join(__dirname, '..', '..', 'logs', 'r8', 'tour');
+const SHOTS = process.env.TOUR_SHOTS ?? join(__dirname, '..', '..', 'logs', 'r8', 'tour');
 const APP_ENV = join(__dirname, '..', '..', 'nextjs-boilerplate', 'fix.app.env');
 // Kolo 9: na stagingu se secret předá env (CRON_SECRET); lokálně z fix.app.env
 const CRON_SECRET = process.env.CRON_SECRET
@@ -295,7 +295,7 @@ test('1 — inscenace a dva sály ve dvou městech v editoru (generátor / obkre
   await pick(['Přízemí · řada 8 · sedadlo 2', 'Přízemí · řada 8 · sedadlo 14']);
   await page.getByTestId('seat-type-companion').click();
   await shot(page, '01c-editor-generator');
-  await page.getByRole('button', { name: 'Uložit layout' }).click();
+  await page.getByRole('button', { name: /Uložit (layout|plánek)/ }).click();
   await expect.poll(async () => (await q(`SELECT 1 FROM catalog.venue_seating_charts WHERE venue_id = $1`, [S.halls['Velký sál']])).length, { timeout: 15_000 }).toBe(1);
 
   // sál 2: podklad (PNG) + obkreslení 3 řad nástrojem Řada
@@ -322,7 +322,7 @@ test('1 — inscenace a dva sály ve dvou městech v editoru (generátor / obkre
   await marqueeSelect(page, 'Sektor A ·');
   await page.getByTestId('zone-assign-Zóna A').click();
   await shot(page, '01d-editor-obkresleni-podkladu');
-  await page.getByRole('button', { name: 'Uložit layout' }).click();
+  await page.getByRole('button', { name: /Uložit (layout|plánek)/ }).click();
   await expect.poll(async () => (await q(`SELECT 1 FROM catalog.venue_seating_charts WHERE venue_id = $1`, [S.halls['Komorní scéna']])).length, { timeout: 15_000 }).toBe(1);
 
   await page.goto('/admin/venues');
@@ -481,7 +481,7 @@ test('5 — online nákup s výběrem místa a kategorie přes simulátor GoPay 
   await buyerSeat(page, 'Přízemí', '2', '7');
   await noHorizontalScroll(page);
   await shot(page, '05a-mobil-vyber-mist');
-  await page.getByRole('button', { name: /Pokračovat na pokladnu/ }).click();
+  await page.getByRole('button', { name: /Pokračovat (na pokladnu|k objednávce)/ }).click();
   await page.waitForURL(/\/seats\/kategorie/);
   await page.locator('[data-testid="seat-category-row"]').first().waitFor();
   await pickOption(page.getByLabel('Kategorie pro řadu 2 místo 5'), /^Plné/);
@@ -515,7 +515,7 @@ test('5 — online nákup s výběrem místa a kategorie přes simulátor GoPay 
   const { ctx: c2, page: p2 } = await mobile(browser);
   await p2.goto(`/cs/events/${S.terms[1]}/seats`);
   await buyerSeat(p2, 'Sektor A', 'A', '3');
-  await p2.getByRole('button', { name: /Pokračovat na pokladnu/ }).click();
+  await p2.getByRole('button', { name: /Pokračovat (na pokladnu|k objednávce)/ }).click();
   await p2.waitForURL(/\/seats\/kategorie/);
   await p2.getByPlaceholder('E-mail').fill(`ostrava-${RUN}@tixly.test`);
   await p2.getByPlaceholder('Jméno a příjmení').fill('Petr Ostravák');
@@ -542,7 +542,7 @@ test('6 — rezervace → vyzvednutí a platba na pokladně; druhá rezervace �
     const { ctx, page: m } = await mobile(browser);
     await m.goto(`/cs/events/${t1}/seats`);
     for (const s of seats) await buyerSeat(m, 'Přízemí', '3', s);
-    await m.getByRole('button', { name: /Pokračovat na pokladnu/ }).click();
+    await m.getByRole('button', { name: /Pokračovat (na pokladnu|k objednávce)/ }).click();
     await m.waitForURL(/\/seats\/kategorie/);
     await m.getByPlaceholder('E-mail').fill(email);
     await m.getByPlaceholder('Jméno a příjmení').fill('Jana Rezervující');
@@ -602,6 +602,11 @@ test('7 — Firma XY 15 míst na fakturu → zaplaceno → vstupenky; 5 míst uv
   await shot(page, '07a-firemni-objednavka-faktura');
   await mail(`nakup-${RUN}@firma-xy.test`, 'Faktura');
   await page.locator('[data-testid="corp-table"] tr', { hasText: 'Firma XY' }).getByRole('button', { name: 'Zaplaceno' }).click();
+  const payDlg = page.getByTestId('confirm-dialog');
+  if (await payDlg.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await payDlg.locator('input').fill('VS 2026-15');
+    await payDlg.getByRole('button', { name: /Zaplaceno/ }).click();
+  }
   await expect(page.getByTestId('corp-msg')).toContainText('15 vstupenek');
   await shot(page, '07b-firemni-zaplaceno');
   const tm = await mail(`nakup-${RUN}@firma-xy.test`, 'vstupenky');
@@ -610,6 +615,8 @@ test('7 — Firma XY 15 míst na fakturu → zaplaceno → vstupenky; 5 míst uv
   // zbylých 5 míst Firma XY uvolnit; Tisk 4× na jména
   await page.goto(`/admin/events/${t1}/blokace`);
   await page.locator('[data-testid="blocks-table"] tr', { hasText: 'Firma XY' }).getByRole('button', { name: 'Uvolnit vše' }).click();
+  const relDlg = page.getByTestId('confirm-dialog');
+  if (await relDlg.isVisible({ timeout: 2000 }).catch(() => false)) await relDlg.getByRole('button', { name: /^Uvolnit/ }).click();
   await expect(page.getByTestId('blocks-msg')).toBeVisible();
   await page.locator('select').filter({ hasText: '— blokace —' }).selectOption({ label: 'Tisk' });
   for (const s of ['7', '8', '9', '10']) await page.locator('svg[aria-label="Plánek s blokacemi"] circle').filter({ has: page.locator('title', { hasText: `Přízemí řada 1 místo ${s} — Tisk` }) }).click();
@@ -636,7 +643,7 @@ test('8 — vstupní kontrola: běžná, ZTP/P (ověřit průkaz), jiný termín
   await consent(context);
   await login(page, S.promoterEmail);
   await page.goto('/admin/scanner');
-  await page.locator('select').filter({ hasText: '— vyber akci —' }).selectOption(S.terms[0]);
+  await page.locator('select').filter({ hasText: /vyber(te)? (akci|představení)/ }).selectOption(S.terms[0]);
   const scan = async (ticketId: string, name: string) => {
     await page.getByTestId('scanner-ticket-input').fill(ticketId);
     await Promise.all([

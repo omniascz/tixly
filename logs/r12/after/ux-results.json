@@ -1,0 +1,408 @@
+{
+ "stats": [
+  {
+   "task": "1 inscenace",
+   "clicks": 5,
+   "screens": 3,
+   "fills": 11,
+   "shots": [
+    "1-00-prehled.png",
+    "1-00-prehled-390.png",
+    "1-01-inscenace-seznam.png",
+    "1-02-karta-inscenace.png",
+    "1-02-karta-inscenace-390.png"
+   ]
+  },
+  {
+   "task": "2 místo a sál",
+   "clicks": 12,
+   "screens": 4,
+   "fills": 9,
+   "shots": [
+    "2-01-sály.png",
+    "2-02-editor-prazdny.png",
+    "2-03-editor-generator-obkresleni.png",
+    "2-04-editor-ulozeno.png",
+    "2-05-po-zpet.png"
+   ]
+  },
+  {
+   "task": "3 termín",
+   "clicks": 12,
+   "screens": 8,
+   "fills": 2,
+   "shots": [
+    "3-01-karta-racek.png",
+    "3-02-termin-zalozen.png",
+    "3-03-kategorie-pred.png",
+    "3-04-kategorie-sablona.png"
+   ]
+  },
+  {
+   "task": "4 blokace",
+   "clicks": 27,
+   "screens": 6,
+   "fills": 3,
+   "shots": [
+    "4-01-blokace.png",
+    "4-01b-blokace-prazdna.png",
+    "4-02-blokace-zalozeny.png",
+    "4-03-potvrzeni-uvolneni.png",
+    "4-04-po-uvolneni.png"
+   ]
+  },
+  {
+   "task": "5 firemní",
+   "clicks": 11,
+   "screens": 6,
+   "fills": 4,
+   "shots": [
+    "5-01-firemni.png",
+    "5-02-faktura.png",
+    "5-03-potvrzeni-zaplaceni.png",
+    "5-04-zaplaceno.png"
+   ]
+  },
+  {
+   "task": "6 promo kód",
+   "clicks": 5,
+   "screens": 3,
+   "fills": 2,
+   "shots": [
+    "6-01-promo.png",
+    "6-02-promo-vyplneno.png",
+    "6-03-promo-vytvoren.png"
+   ]
+  },
+  {
+   "task": "7 přesun a zrušení",
+   "clicks": 8,
+   "screens": 6,
+   "fills": 4,
+   "shots": [
+    "7-01-zruseni-presun.png",
+    "7-02-potvrzeni-presunu.png",
+    "7-03-po-presunu.png",
+    "7-04-zruseno.png"
+   ]
+  },
+  {
+   "task": "8 reporty",
+   "clicks": 6,
+   "screens": 6,
+   "fills": 0,
+   "shots": [
+    "8-01-reporty.png",
+    "8-01-reporty-390.png"
+   ]
+  },
+  {
+   "task": "K kupec",
+   "clicks": 12,
+   "screens": 8,
+   "fills": 2,
+   "shots": [
+    "K-01-uvod.png",
+    "K-02-program-brno.png",
+    "K-03-detail.png",
+    "K-04-mista.png",
+    "K-05-kategorie.png",
+    "K-06-potvrzeni.png"
+   ]
+  },
+  {
+   "task": "K kupec — rezervace",
+   "clicks": 3,
+   "screens": 2,
+   "fills": 3,
+   "shots": [
+    "K-07-rezervace.png"
+   ]
+  },
+  {
+   "task": "P pokladna",
+   "clicks": 6,
+   "screens": 4,
+   "fills": 2,
+   "shots": [
+    "P-01-prehled-pokladni.png",
+    "P-01-prehled-pokladni-390.png",
+    "P-02-rezervace.png",
+    "P-03-rezervace-nalezena.png",
+    "P-04-rezervace-zaplacena.png"
+   ]
+  },
+  {
+   "task": "P pokladna — prodej na místě",
+   "clicks": 7,
+   "screens": 2,
+   "fills": 0,
+   "shots": [
+    "P-05-pos.png",
+    "P-06-pos-vyplneno.png",
+    "P-07-pos-vystaveno.png"
+   ]
+  },
+  {
+   "task": "V vstup",
+   "clicks": 11,
+   "screens": 3,
+   "fills": 4,
+   "shots": [
+    "V-01-prehled-mobil.png",
+    "V-02-skener.png",
+    "V-03-bezna.png",
+    "V-04-overit-prukaz.png",
+    "V-05-jiny-termin.png",
+    "V-06-uz-pouzito.png"
+   ]
+  }
+ ],
+ "findings": [
+  {
+   "task": "1 inscenace",
+   "screen": "",
+   "kind": "result",
+   "text": "uložení karty: Karta uložena — termíny ji přebírají.",
+   "shot": ""
+  },
+  {
+   "task": "1 inscenace",
+   "screen": "1-02-karta-inscenace",
+   "kind": "en",
+   "text": "Role ⟨Role (např. Hamlet)⟩",
+   "shot": "1-02-karta-inscenace.png"
+  },
+  {
+   "task": "2 místo a sál",
+   "screen": "2-02-editor-prazdny",
+   "kind": "en",
+   "text": "Seating ⟨Seating chart editor canvas⟩",
+   "shot": "2-02-editor-prazdny.png"
+  },
+  {
+   "task": "2 místo a sál",
+   "screen": "",
+   "kind": "result",
+   "text": "podklad nahrán",
+   "shot": ""
+  },
+  {
+   "task": "2 místo a sál",
+   "screen": "",
+   "kind": "result",
+   "text": "plánek uložen: true",
+   "shot": ""
+  },
+  {
+   "task": "3 termín",
+   "screen": "",
+   "kind": "result",
+   "text": "založení termínu: Termín založen a je v prodeji (72 míst).",
+   "shot": ""
+  },
+  {
+   "task": "3 termín",
+   "screen": "",
+   "kind": "result",
+   "text": "stav termínu po založení: 25. 11. 2026 19:30OlomoucMoravské divadlo muwl65at – Velký sál0 / 72V prodejiUpravitBlokaceRezervaceFiremníReportyZrušení a přesun",
+   "shot": ""
+  },
+  {
+   "task": "3 termín",
+   "screen": "",
+   "kind": "result",
+   "text": "kategorie po šabloně: 7",
+   "shot": ""
+  },
+  {
+   "task": "3 termín",
+   "screen": "",
+   "kind": "result",
+   "text": "termín: stav published, typů vstupenek 2",
+   "shot": ""
+  },
+  {
+   "task": "4 blokace",
+   "screen": "",
+   "kind": "result",
+   "text": "firma (celý balkon): CHYBA: Ve výběru nejsou žádná volná místa (20 je už prodaných, rezervovaných nebo v jiné blokaci). Blokace se nezaložila — vyberte na plánku volná (světlá) místa.",
+   "shot": ""
+  },
+  {
+   "task": "4 blokace",
+   "screen": "",
+   "kind": "result",
+   "text": "firma (8 vybraných míst): Blokace „Firma Alfa 65at B\" založena: 8 míst.",
+   "shot": ""
+  },
+  {
+   "task": "4 blokace",
+   "screen": "",
+   "kind": "result",
+   "text": "tisk: Blokace „Tisk premiéra 65at\" založena: 2 míst.",
+   "shot": ""
+  },
+  {
+   "task": "4 blokace",
+   "screen": "",
+   "kind": "result",
+   "text": "uvolnění: Uvolněno 5 míst z blokace „Firma Alfa 65at B\".",
+   "shot": ""
+  },
+  {
+   "task": "4 blokace",
+   "screen": "",
+   "kind": "result",
+   "text": "Firma Alfa 65at: [{\"state\":\"blocked\",\"n\":3},{\"state\":\"released\",\"n\":5}]",
+   "shot": ""
+  },
+  {
+   "task": "5 firemní",
+   "screen": "",
+   "kind": "result",
+   "text": "objednávka: Objednávka založena, faktura 2026-0001 (1 350 Kč) odeslána na nakup-muwl65at@firma-alfa.test.",
+   "shot": ""
+  },
+  {
+   "task": "5 firemní",
+   "screen": "",
+   "kind": "result",
+   "text": "zaplaceno: Zaplaceno — 3 vstupenek odesláno na nakup-muwl65at@firma-alfa.test.",
+   "shot": ""
+  },
+  {
+   "task": "6 promo kód",
+   "screen": "",
+   "kind": "result",
+   "text": "kód STUDENT65AT: [{\"cats\":[\"student\"]}]",
+   "shot": ""
+  },
+  {
+   "task": "7 přesun a zrušení",
+   "screen": "",
+   "kind": "result",
+   "text": "přesun: Termín přesunut. E-mail s odkazem na vrácení (do 20. 10. 2026 13:20:00) odešel 0 kupcům.",
+   "shot": ""
+  },
+  {
+   "task": "7 přesun a zrušení",
+   "screen": "",
+   "kind": "result",
+   "text": "zrušení: Termín zrušen: vráceno online 0, selhalo 0, zneplatněno 0 vstupenek, e-mailů 0. K ručnímu vrácení: 0.",
+   "shot": ""
+  },
+  {
+   "task": "8 reporty",
+   "screen": "",
+   "kind": "result",
+   "text": "seznam pro uvaděče: uvadeci.pdf",
+   "shot": ""
+  },
+  {
+   "task": "K kupec",
+   "screen": "K-01-uvod",
+   "kind": "en",
+   "text": "Status ⟨Status⟩",
+   "shot": "K-01-uvod.png"
+  },
+  {
+   "task": "K kupec",
+   "screen": "K-02-program-brno",
+   "kind": "en",
+   "text": "Status ⟨Status⟩",
+   "shot": "K-02-program-brno.png"
+  },
+  {
+   "task": "K kupec",
+   "screen": "K-03-detail",
+   "kind": "en",
+   "text": "Status ⟨Status⟩",
+   "shot": "K-03-detail.png"
+  },
+  {
+   "task": "K kupec",
+   "screen": "K-04-mista",
+   "kind": "en",
+   "text": "Status ⟨Status⟩",
+   "shot": "K-04-mista.png"
+  },
+  {
+   "task": "K kupec",
+   "screen": "K-05-kategorie",
+   "kind": "en",
+   "text": "Status ⟨Status⟩",
+   "shot": "K-05-kategorie.png"
+  },
+  {
+   "task": "K kupec — rezervace",
+   "screen": "",
+   "kind": "result",
+   "text": "vstupenky kupce: 2, rezervace EF76E5W8",
+   "shot": ""
+  },
+  {
+   "task": "P pokladna",
+   "screen": "",
+   "kind": "result",
+   "text": "hledání podle telefonu (posledních 6 číslic): nalezeno",
+   "shot": ""
+  },
+  {
+   "task": "P pokladna",
+   "screen": "",
+   "kind": "result",
+   "text": "platba rezervace: Rezervace EF76E5W8 zaplacena (hotově): 1 vstupenek, doklad 2026-0002.",
+   "shot": ""
+  },
+  {
+   "task": "P pokladna — prodej na místě",
+   "screen": "",
+   "kind": "result",
+   "text": "titulek sedadla v pokladně: Přízemí 37",
+   "shot": ""
+  },
+  {
+   "task": "P pokladna — prodej na místě",
+   "screen": "",
+   "kind": "result",
+   "text": "tisk: odkaz /api/admin/orders/:order/print-labels",
+   "shot": ""
+  },
+  {
+   "task": "V vstup",
+   "screen": "V-02-skener",
+   "kind": "tech",
+   "text": "ID ⟨Naskenuj nebo vlož ticket ID, abys viděl výsledek.⟩",
+   "shot": "V-02-skener.png"
+  },
+  {
+   "task": "V vstup",
+   "screen": "",
+   "kind": "result",
+   "text": "V-03-bezna: vibrace=100 zvuk=880",
+   "shot": ""
+  },
+  {
+   "task": "V vstup",
+   "screen": "",
+   "kind": "result",
+   "text": "V-04-overit-prukaz: vibrace=[100,60,100,60,100] zvuk=660",
+   "shot": ""
+  },
+  {
+   "task": "V vstup",
+   "screen": "",
+   "kind": "result",
+   "text": "V-05-jiny-termin: vibrace=[200,80,200] zvuk=180",
+   "shot": ""
+  },
+  {
+   "task": "V vstup",
+   "screen": "",
+   "kind": "result",
+   "text": "V-06-uz-pouzito: vibrace=[200,80,200] zvuk=180",
+   "shot": ""
+  }
+ ]
+}

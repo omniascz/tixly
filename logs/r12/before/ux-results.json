@@ -15,7 +15,7 @@
   },
   {
    "task": "2 místo a sál",
-   "clicks": 11,
+   "clicks": 12,
    "screens": 4,
    "fills": 9,
    "shots": [
@@ -322,7 +322,7 @@
    "task": "2 místo a sál",
    "screen": "",
    "kind": "stuck",
-   "text": "„Zpět\" z editoru vede na neexistující stránku (/admin/venues/07366524-0c42-437e-9a8b-e5bbdaf21b58)",
+   "text": "„Zpět\" z editoru vede na neexistující stránku (/admin/venues/37edd248-0e27-47ef-bfc5-d03d317e8008)",
    "shot": ""
   },
   {
@@ -343,14 +343,14 @@
    "task": "3 termín",
    "screen": "",
    "kind": "result",
-   "text": "založení termínu: Termín založen a je v prodeji (0 míst).",
+   "text": "založení termínu: Termín založen a je v prodeji (72 míst).",
    "shot": ""
   },
   {
    "task": "3 termín",
    "screen": "",
    "kind": "result",
-   "text": "stav termínu po založení: 25. 11. 2026 19:30OlomoucMoravské divadlo muwhu206 – Velký sál0 / 0V prodejiUpravit",
+   "text": "stav termínu po založení: 25. 11. 2026 19:30OlomoucMoravské divadlo muwk5us3 – Velký sál0 / 72V prodejiUpravit",
    "shot": ""
   },
   {
@@ -399,28 +399,28 @@
    "task": "4 blokace",
    "screen": "",
    "kind": "result",
-   "text": "firma (celý balkon): Blokace „Firma Alfa u206\" založena: 0 míst, 20 obsazených přeskočeno.",
+   "text": "firma (celý balkon): Blokace „Firma Alfa 5us3\" založena: 0 míst, 20 obsazených přeskočeno.",
    "shot": ""
   },
   {
    "task": "4 blokace",
    "screen": "",
    "kind": "stuck",
-   "text": "Blokace celé sekce, kde už nic volného není, se založila s 0 místy bez varování (hláška: Blokace „Firma Alfa u206\" založena: 0 míst, 20 obsazených přeskočeno.)",
+   "text": "Blokace celé sekce, kde už nic volného není, se založila s 0 místy bez varování (hláška: Blokace „Firma Alfa 5us3\" založena: 0 míst, 20 obsazených přeskočeno.)",
    "shot": ""
   },
   {
    "task": "4 blokace",
    "screen": "",
    "kind": "result",
-   "text": "firma (8 vybraných míst): Blokace „Firma Alfa u206 B\" založena: 8 míst.",
+   "text": "firma (8 vybraných míst): Blokace „Firma Alfa 5us3 B\" založena: 8 míst.",
    "shot": ""
   },
   {
    "task": "4 blokace",
    "screen": "",
    "kind": "result",
-   "text": "tisk: Blokace „Tisk premiéra u206\" založena: 2 míst.",
+   "text": "tisk: Blokace „Tisk premiéra 5us3\" založena: 2 míst.",
    "shot": ""
   },
   {
@@ -434,14 +434,14 @@
    "task": "4 blokace",
    "screen": "",
    "kind": "result",
-   "text": "uvolnění: Uvolněno 5 míst z blokace „Firma Alfa u206 B\".",
+   "text": "uvolnění: Uvolněno 5 míst z blokace „Firma Alfa 5us3 B\".",
    "shot": ""
   },
   {
    "task": "4 blokace",
    "screen": "",
    "kind": "result",
-   "text": "Firma Alfa u206: [{\"state\":\"blocked\",\"n\":3},{\"state\":\"released\",\"n\":5}]",
+   "text": "Firma Alfa 5us3: [{\"state\":\"blocked\",\"n\":3},{\"state\":\"released\",\"n\":5}]",
    "shot": ""
   },
   {
@@ -462,7 +462,7 @@
    "task": "5 firemní",
    "screen": "",
    "kind": "result",
-   "text": "objednávka: Objednávka založena, faktura 2026-0001 (1 350 Kč) odeslána na nakup-muwhu206@firma-alfa.test.",
+   "text": "objednávka: Objednávka založena, faktura 2026-0001 (1 350 Kč) odeslána na nakup-muwk5us3@firma-alfa.test.",
    "shot": ""
   },
   {
@@ -476,7 +476,7 @@
    "task": "5 firemní",
    "screen": "",
    "kind": "result",
-   "text": "zaplaceno: Zaplaceno — 3 vstupenek odesláno na nakup-muwhu206@firma-alfa.test.",
+   "text": "zaplaceno: Zaplaceno — 3 vstupenek odesláno na nakup-muwk5us3@firma-alfa.test.",
    "shot": ""
   },
   {
@@ -497,7 +497,7 @@
    "task": "6 promo kód",
    "screen": "",
    "kind": "result",
-   "text": "kód STUDENTU206: [{\"cats\":[\"student\"]}]",
+   "text": "kód STUDENT5US3: [{\"cats\":[\"student\"]}]",
    "shot": ""
   },
   {
@@ -525,7 +525,7 @@
    "task": "7 přesun a zrušení",
    "screen": "",
    "kind": "result",
-   "text": "přesun: Termín přesunut. E-mail s odkazem na vrácení (do 20. 10. 2026 11:46:52) odešel 0 kupcům.",
+   "text": "přesun: Termín přesunut. E-mail s odkazem na vrácení (do 20. 10. 2026 12:52:06) odešel 0 kupcům.",
    "shot": ""
   },
   {
@@ -609,7 +609,7 @@
    "task": "K kupec — rezervace",
    "screen": "",
    "kind": "result",
-   "text": "vstupenky kupce: 2, rezervace 6QVH6MZH",
+   "text": "vstupenky kupce: 2, rezervace JUMJYR8L",
    "shot": ""
   },
   {
@@ -651,7 +651,7 @@
    "task": "P pokladna",
    "screen": "",
    "kind": "result",
-   "text": "platba rezervace: Rezervace 6QVH6MZH zaplacena (hotově): 1 vstupenek, doklad 2026-0002.",
+   "text": "platba rezervace: Rezervace JUMJYR8L zaplacena (hotově): 1 vstupenek, doklad 2026-0002.",
    "shot": ""
   },
   {
@@ -686,7 +686,7 @@
    "task": "P pokladna — prodej na místě",
    "screen": "",
    "kind": "result",
-   "text": "tisk: window.print",
+   "text": "tisk: window.print (bez QR)",
    "shot": ""
   },
   {

@@ -4,7 +4,7 @@ set -u
 cd /c/Users/omnia/Documents/tixly
 bash logs/r12/reset_demo.sh > "logs/r12/0_reset_$1.txt" 2>&1 || { echo reset-fail; exit 1; }
 cd nextjs-boilerplate
-(bash ../logs/r12/serve_r12.sh > "../logs/r12/0_server_$1.txt" 2>&1 &)
+(bash "${SERVE:-../logs/r12/serve_r12.sh}" > "../logs/r12/0_server_$1.txt" 2>&1 &)
 for i in $(seq 1 40); do c=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3200/api/health/db); [ "$c" = 200 ] && break; sleep 3; done
 echo "health=$c"
 cd ../e2e

@@ -116,6 +116,7 @@ test.describe('vlastník', () => {
     expect(String(r.json.message)).toMatch(/volná místa/);
     expect(await q(`SELECT 1 FROM catalog.seat_blocks WHERE event_id = $1 AND name = $2`, [T.rBrno, `Prázdná ${RUN}`])).toHaveLength(0);
     await page.goto(`/admin/events/${T.rBrno}/blokace`);
+    await page.locator('svg[aria-label="Plánek s blokacemi"] circle').first().waitFor();
     const titles = await page.locator('svg[aria-label="Plánek s blokacemi"] title').allTextContents();
     expect(titles.length).toBeGreaterThan(0);
     expect(titles.join('\n')).not.toMatch(/available|sold|blocked|held/);
@@ -248,7 +249,8 @@ test.describe('pokladní a vstup', () => {
     expect(await page.locator('main').innerText()).not.toMatch(/POS|Walk-in|session/);
     await page.locator('#pos-event').selectOption(T.rBrno);
     await expect(page.getByRole('link', { name: /Rezervace k vyzvednutí/ })).toHaveAttribute('href', `/admin/events/${T.rBrno}/rezervace`);
-    await page.locator('#pos-tt').selectOption({ index: 1 });
+    const ttSel = page.locator('#pos-tt');
+    await ttSel.selectOption((await ttSel.locator('option').filter({ hasText: /Zóna A/ }).first().getAttribute('value'))!);
     await page.locator('button[title^="Přízemí"]').filter({ hasText: /^9$/ }).nth(2).click();
     await page.getByRole('button', { name: 'Vystavit vstupenku' }).click();
     const print = page.getByRole('link', { name: /Vytisknout vstupenky/ });
@@ -290,10 +292,12 @@ test.describe('pokladní a vstup', () => {
     await expect(state).toContainText('JINÝ TERMÍN');
     const fs = await state.evaluate((el) => parseFloat(getComputedStyle(el.querySelector('[data-testid="scan-headline"]')!).fontSize));
     expect(fs).toBeGreaterThanOrEqual(32);
-    const w = await page.evaluate(() => (window as unknown as { __vib: unknown[]; __snd: number[] }));
+    const w = await page.evaluate(() => { const x = window as unknown as { __vib: unknown[]; __snd: number[] }; return { __vib: x.__vib, __snd: x.__snd }; });
     expect(w.__vib.at(-1)).toEqual([200, 80, 200]);
     expect(w.__snd.length).toBeGreaterThan(0);
     // výpadek sítě bez staženého seznamu → oranžové „Ověřte ručně", ne zelené vpuštění
+    await state.click(); // obsluha panel zavře klepnutím
+    await expect(state).toBeHidden();
     await page.route('**/api/admin/scanner/validate', (r) => r.abort('internetdisconnected'));
     await page.getByLabel('Kód vstupenky').fill('11111111-2222-4333-8444-555555555555');
     await page.getByRole('button', { name: 'Ověřit vstupenku' }).click();
