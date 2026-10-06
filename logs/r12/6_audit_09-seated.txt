@@ -1,0 +1,27 @@
+# E2E 09_seated  base=http://localhost:3200  2026-10-06T12:56:07.354Z
+PASS Z0  vytvoreni typu vstupenky k sezeni
+       {"status":201,"body":"{\"id\":\"960608f9-f354-41a8-99a1-63d68c26a9ab\"}","db":{"id":"960608f9-f354-41a8-99a1-63d68c26a9ab","is_seated":true,"kind":"seated"}}
+PASS Z1  rezervace 2 sedadel (hold) s expiraci
+       {"status":200,"body":"{\"holdToken\":\"8187714a-bea7-4862-a19b-3463f0de03a8\",\"seatIds\":[\"e82a3bcb-59f9-487b-be92-e2ed0f022a8a\",\"97e39b55-e7f4-4fe5-b7b6-ab9e28fdd33f\"],\"expiresAt\":\"2026-10-06T13:11:08.366Z\"}","seat":{"status":"held","held":false,"hold_until":"2026-10-06T13:11:08.366Z","order_id":null,"ticket_id":null}}
+PASS Z2  jiny zakaznik nemuze rezervovat jiz drzene sedadlo
+       {"status":409,"body":"{\"error\":\"SEAT_UNAVAILABLE\",\"unavailableIds\":[\"e82a3bcb-59f9-487b-be92-e2ed0f022a8a\"]}"}
+PASS Z3  30 soubeznych rezervaci JEDNOHO sedadla -> vyhraje prave 1
+       {"409:SEAT_UNAVAILABLE":29,"200:OK":1}
+PASS Z4  checkout drzenych sedadel
+       {"status":200,"body":"{\"orderId\":\"97a12a05-c611-4089-9e50-624c3fd0b6d4\",\"paymentId\":\"3289597517\",\"gatewayUrl\":\"http://localhost:3998/gw/3289597517\",\"provider\":\"gopay\",\"variableSymbol\":null,\"subtotalAmount\":140000,\"discountAmount\":0,\"volumeDiscountAmount\":0,\"volumeDiscountPct\":0,\"addonsSubtotal\":0,\"bundleDiscountAmount\":0,\"bundleId\":null,\"voucherRedeemedHalire\":0,\…
+PASS Z5  po zaplaceni: 2 vstupenky navazane na 2 ruzna sedadla, sedadla sold
+       {"tickets":[{"id":"7a915800-d3e9-4b82-bfd4-a8ff923943be","event_seat_id":"e82a3bcb-59f9-487b-be92-e2ed0f022a8a"},{"id":"3e67a6f2-d45e-4cc2-ac45-6bb4839f15bd","event_seat_id":"97e39b55-e7f4-4fe5-b7b6-ab9e28fdd33f"}],"seat0":{"status":"sold","held":false,"hold_until":null,"order_id":"97a12a05-c611-4089-9e50-624c3fd0b6d4","ticket_id":"7a915800-d3e9-4b82-bfd4-a8ff923943be"}}
+PASS Z6  jiz prodane sedadlo nelze koupit znovu (ani s puvodnim hold tokenem)
+       {"status":409,"body":"{\"error\":\"SEAT_NOT_HELD\",\"seatId\":\"e82a3bcb-59f9-487b-be92-e2ed0f022a8a\",\"status\":\"sold\"}"}
+PASS Z7  nakup sedadla bez platne rezervace (cizi/falesny token) odmitnut
+       {"status":409,"body":"{\"error\":\"SEAT_HOLD_MISMATCH\",\"message\":\"Některá sedadla nepatří k tomuto holdu nebo expirovala.\"}"}
+PASS Z8  typ k sezeni nelze koupit bez vyberu sedadla
+       {"status":422,"body":"{\"error\":\"SEATS_REQUIRED\",\"message\":\"Tento typ vstupenky vyžaduje výběr sedadel.\"}"}
+PASS Z9  cron uvolni prosle rezervace sedadel (held -> available)
+       {"status":200,"body":"{\"releasedCount\":1,\"promoterHoldsReleased\":0,\"ts\":\"2026-10-06T12:56:09.954Z\"}","seat":{"status":"available","held":false,"hold_until":null,"order_id":null,"ticket_id":null}}
+PASS Z10  uvolnene sedadlo lze znovu rezervovat
+       {"status":200,"body":"{\"holdToken\":\"47207620-827e-4dc2-bd2f-602e2be07892\",\"seatIds\":[\"2bd1fb77-456e-46b5-9d23-ca5f9531224e\"],\"expiresAt\":\"2026-10-06T13:11:09.964Z\"}"}
+PASS Z11  invariant: zadne sedadlo nema 2 platne vstupenky
+       []
+
+# SUMMARY {"PASS":12,"FAIL":0,"INFO":0}

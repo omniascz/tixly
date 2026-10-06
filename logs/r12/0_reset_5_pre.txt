@@ -1,0 +1,16 @@
+[staging] migrace od nuly do databáze r12demo
+NOTICE:  database "r12demo" does not exist, skipping
+OK   505_corporate_orders.sql
+OK   506_term_cancel_postpone.sql
+FAILED_FILES=0
+[staging] nahrávám demo data agentury
+ mista | inscenace | terminy | sedadla | kategorie | blokovana_mista 
+-------+-----------+---------+---------+-----------+-----------------
+     2 |         2 |       4 |     400 |        20 |              24
+(1 row)
+
+[staging] ověřuji role a RLS
+tixly_app NOBYPASSRLS
+policies=871
+tixly_app vidí publikovaných termínů: 4
+[staging] hotovo — proměnné zapsané do logs/r12/staging.env (práva 600); demo pořadatel demo@tixly-staging.test

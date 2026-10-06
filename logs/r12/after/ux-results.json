@@ -175,13 +175,6 @@
   },
   {
    "task": "2 místo a sál",
-   "screen": "2-02-editor-prazdny",
-   "kind": "en",
-   "text": "Seating ⟨Seating chart editor canvas⟩",
-   "shot": "2-02-editor-prazdny.png"
-  },
-  {
-   "task": "2 místo a sál",
    "screen": "",
    "kind": "result",
    "text": "podklad nahrán",
@@ -205,7 +198,7 @@
    "task": "3 termín",
    "screen": "",
    "kind": "result",
-   "text": "stav termínu po založení: 25. 11. 2026 19:30OlomoucMoravské divadlo muwl65at – Velký sál0 / 72V prodejiUpravitBlokaceRezervaceFiremníReportyZrušení a přesun",
+   "text": "stav termínu po založení: 25. 11. 2026 19:30OlomoucMoravské divadlo muwnn01s – Velký sál0 / 72V prodejiUpravitBlokaceRezervaceFiremníReportyZrušení a přesun",
    "shot": ""
   },
   {
@@ -233,56 +226,56 @@
    "task": "4 blokace",
    "screen": "",
    "kind": "result",
-   "text": "firma (8 vybraných míst): Blokace „Firma Alfa 65at B\" založena: 8 míst.",
+   "text": "firma (8 vybraných míst): Blokace „Firma Alfa n01s B\" založena: 8 míst.",
    "shot": ""
   },
   {
    "task": "4 blokace",
    "screen": "",
    "kind": "result",
-   "text": "tisk: Blokace „Tisk premiéra 65at\" založena: 2 míst.",
+   "text": "tisk: Blokace „Tisk premiéra n01s\" založena: 2 míst.",
    "shot": ""
   },
   {
    "task": "4 blokace",
    "screen": "",
    "kind": "result",
-   "text": "uvolnění: Uvolněno 5 míst z blokace „Firma Alfa 65at B\".",
+   "text": "uvolnění: Uvolněno 5 míst z blokace „Firma Alfa n01s B\".",
    "shot": ""
   },
   {
    "task": "4 blokace",
    "screen": "",
    "kind": "result",
-   "text": "Firma Alfa 65at: [{\"state\":\"blocked\",\"n\":3},{\"state\":\"released\",\"n\":5}]",
+   "text": "Firma Alfa n01s: [{\"state\":\"blocked\",\"n\":3},{\"state\":\"released\",\"n\":5}]",
    "shot": ""
   },
   {
    "task": "5 firemní",
    "screen": "",
    "kind": "result",
-   "text": "objednávka: Objednávka založena, faktura 2026-0001 (1 350 Kč) odeslána na nakup-muwl65at@firma-alfa.test.",
+   "text": "objednávka: Objednávka založena, faktura 2026-0001 (1 350 Kč) odeslána na nakup-muwnn01s@firma-alfa.test.",
    "shot": ""
   },
   {
    "task": "5 firemní",
    "screen": "",
    "kind": "result",
-   "text": "zaplaceno: Zaplaceno — 3 vstupenek odesláno na nakup-muwl65at@firma-alfa.test.",
+   "text": "zaplaceno: Zaplaceno — 3 vstupenek odesláno na nakup-muwnn01s@firma-alfa.test.",
    "shot": ""
   },
   {
    "task": "6 promo kód",
    "screen": "",
    "kind": "result",
-   "text": "kód STUDENT65AT: [{\"cats\":[\"student\"]}]",
+   "text": "kód STUDENTN01S: [{\"cats\":[\"student\"]}]",
    "shot": ""
   },
   {
    "task": "7 přesun a zrušení",
    "screen": "",
    "kind": "result",
-   "text": "přesun: Termín přesunut. E-mail s odkazem na vrácení (do 20. 10. 2026 13:20:00) odešel 0 kupcům.",
+   "text": "přesun: Termín přesunut. E-mail s odkazem na vrácení (do 20. 10. 2026 14:29:09) odešel 0 kupcům.",
    "shot": ""
   },
   {
@@ -300,45 +293,10 @@
    "shot": ""
   },
   {
-   "task": "K kupec",
-   "screen": "K-01-uvod",
-   "kind": "en",
-   "text": "Status ⟨Status⟩",
-   "shot": "K-01-uvod.png"
-  },
-  {
-   "task": "K kupec",
-   "screen": "K-02-program-brno",
-   "kind": "en",
-   "text": "Status ⟨Status⟩",
-   "shot": "K-02-program-brno.png"
-  },
-  {
-   "task": "K kupec",
-   "screen": "K-03-detail",
-   "kind": "en",
-   "text": "Status ⟨Status⟩",
-   "shot": "K-03-detail.png"
-  },
-  {
-   "task": "K kupec",
-   "screen": "K-04-mista",
-   "kind": "en",
-   "text": "Status ⟨Status⟩",
-   "shot": "K-04-mista.png"
-  },
-  {
-   "task": "K kupec",
-   "screen": "K-05-kategorie",
-   "kind": "en",
-   "text": "Status ⟨Status⟩",
-   "shot": "K-05-kategorie.png"
-  },
-  {
    "task": "K kupec — rezervace",
    "screen": "",
    "kind": "result",
-   "text": "vstupenky kupce: 2, rezervace EF76E5W8",
+   "text": "vstupenky kupce: 2, rezervace E5ST3SDW",
    "shot": ""
   },
   {
@@ -352,7 +310,7 @@
    "task": "P pokladna",
    "screen": "",
    "kind": "result",
-   "text": "platba rezervace: Rezervace EF76E5W8 zaplacena (hotově): 1 vstupenek, doklad 2026-0002.",
+   "text": "platba rezervace: Rezervace E5ST3SDW zaplacena (hotově): 1 vstupenek, doklad 2026-0002.",
    "shot": ""
   },
   {
@@ -368,13 +326,6 @@
    "kind": "result",
    "text": "tisk: odkaz /api/admin/orders/:order/print-labels",
    "shot": ""
-  },
-  {
-   "task": "V vstup",
-   "screen": "V-02-skener",
-   "kind": "tech",
-   "text": "ID ⟨Naskenuj nebo vlož ticket ID, abys viděl výsledek.⟩",
-   "shot": "V-02-skener.png"
   },
   {
    "task": "V vstup",

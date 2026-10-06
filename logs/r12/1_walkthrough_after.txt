@@ -12,4 +12,4 @@ Running 11 tests using 1 worker
 [1A[2K[9/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › kupec na mobilu › K — najít představení ve svém městě, místa a kategorie, zaplatit; rezervace
 [1A[2K[10/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › pokladní › P — rezervace: vyhledání a platba na pokladně, prodej na místě, tisk
 [1A[2K[11/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › vstup › V — skenování na mobilu: běžná, Ověřit průkaz, Jiný termín, Už použito
-[1A[2K  11 passed (1.9m)
+[1A[2K  11 passed (2.1m)

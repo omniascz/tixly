@@ -14,8 +14,8 @@ Po přihlášení máte v menu: **Přehled · Akce · Objednávky · Pokladna ·
 
 1. Menu **Pokladna** → v poli **Představení** vyberte představení (název — město, datum a čas).
 2. Klikněte na **Rezervace k vyzvednutí na toto představení**.
-3. Do jednoho pole napište **kód rezervace, jméno, e-mail nebo telefon** (stačí část, např. posledních 6 číslic telefonu) a
-   klikněte na **Hledat**.
+3. Do jednoho pole napište **kód rezervace, jméno, e-mail nebo telefon** a klikněte na **Hledat** (nebo Enter). Kód celý;
+   u jména a e-mailu stačí část; u telefonu aspoň 6 číslic (např. posledních 6).
 4. U rezervace klikněte na **Hotově** nebo **Kartou**. Objeví se „Rezervace … zaplacena: … vstupenek, doklad …".
 5. Klikněte na **Vytisknout vstupenky (s QR kódem)** a vstupenky předejte. Kupec je dostane i e-mailem.
 

@@ -26,3 +26,12 @@ Větev `fix/round12-ux-2026-10-06` z `d0bbcb00`. Výstupy a screenshoty `logs/r1
   0 zaseknutí / 0 zablokovaných úloh (před: 11 zaseknutí + 1 prompt).
 - Vizuálně zkontrolováno: skener na mobilu (JINÝ TERMÍN), pokladna po prodeji, potvrzení uvolnění blokace, karta inscenace, editor.
 - Nalezeno navíc: pokladna (box_office) měla na serveru přístup jako správce → zúženo jako staff; tisk v POS obsahoval TOTP tajemství.
+
+## Krok 3 — příručky
+- `docs/prirucka/` (README, pro-agenturu, pro-pokladnu, pro-vstup) s obrázky z průchodu po opravách; popisky ověřeny proti kódu.
+
+## Závěr — lokální sada a report
+- Zbylé texty z automatické kontroly (skener „ticket ID", patička „Status", aria-label editoru) → 4902a427, F8/F11/F12 RED → GREEN 12/12.
+- Sada na finálním kódu (DB r12a z migrací): tsc 0, lint bez nárůstu, unit 707, live 83/83 (359), build + build bez sítě,
+  audity 01–12 + 07b + 08 zelené, turné 10/10, průchod po opravách 11/11. Viz ROUND12_REPORT.md.
+- Dál: PR do integrate/2026-10-04, CI + Vercel, merge, fast-forward lokálního integrate.
