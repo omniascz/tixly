@@ -1,0 +1,7 @@
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3200
+
+ ✓ Starting...
+ ✓ Ready in 1186ms
+[mailer] provider=mailhog-dev host=localhost:51225 authed=false
+[gopay webhook] amount/currency mismatch order=75066f84-3165-42b5-93df-3d7806c12096 expected=50000CZK paid=100CZK

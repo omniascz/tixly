@@ -31,3 +31,11 @@ Větev `fix/round11-build-2026-10-06` z `7a8ae83b`. Výstupy `logs/r11/`.
   still timing out after 3 attempts" (shodně s Vercelem; `3_red_7a8ae83_blackhole.txt`).
 - **GREEN fix/round11** (s pojistkou): exit 0 za 3 min 17 s, 0 síťových spojení (`3_green_fix_guarded.*`). Statické zůstaly jen
   /api/graphql/schema, /api/public/push/vapid-key, /robots.txt, ikony.
+
+## Krok 3 — Vercel a sloučení
+- PR #8 (9f5f6f3f): Vercel nextjs-boilerplate **success**, GitHub Actions zelené → sloučeno 96eb50ed.
+- PR #2 po PR #8: Vercel success, ale Dependency audit (nextjs-boilerplate) selhal na nové advisory source-map-js → PR #9
+  (jen lockfile 1.2.1 → 1.2.2), Vercel success, CI zelené → sloučeno 7e7af821.
+- PR #2 (7e7af821): Vercel nextjs-boilerplate success + všechny GitHub Actions zelené. Lokální integrate fast-forward.
+- Lokální sada: tsc 0, lint bez nárůstu, unit 707, live 83/83, build OK, audity 01–12 vč. 07b a 08 bez chyb.
+- Během sady nalezena a opravena vada Proxy (privátní pole node-redis) — 9f5f6f3f.
