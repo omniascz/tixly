@@ -75,6 +75,7 @@ export function TopNav({ locale }: { locale: string }) {
     return (
       <nav className="flex items-center gap-4 text-sm">
         <Link href={`/${locale}/events`}>Akce</Link>
+        <Link href={`/${locale}/program`}>Program</Link>
       </nav>
     );
   }
@@ -82,6 +83,8 @@ export function TopNav({ locale }: { locale: string }) {
   return (
     <nav className="flex items-center gap-4 text-sm">
       <Link href={`/${locale}/events`}>Akce</Link>
+      {/* Kolo 12: program podle měst (dřív na něj nevedl žádný odkaz) */}
+      <Link href={`/${locale}/program`}>Program</Link>
 
       {auth.user ? (
         <>
