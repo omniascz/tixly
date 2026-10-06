@@ -17,6 +17,7 @@ interface EventRow {
   id: string;
   title: string;
   date_start: string;
+  venue_city: string | null;
 }
 
 interface TicketTypeRow {
@@ -32,7 +33,9 @@ export async function GET(req: NextRequest): Promise<Response> {
   return runAsActivePromoter(req, async (promoter) => {
   // Načti akce + ticket types per akce v 1 query (less round-trips)
   const events = await db().query<EventRow>(
-    `SELECT id, title, date_start
+    `SELECT id, title, date_start,
+            -- kolo 12: město — termíny jedné inscenace se v pokladně nedaly rozlišit
+            (SELECT v.city FROM catalog.venues v WHERE v.id = catalog.events.venue_id) AS venue_city
      FROM catalog.events
      WHERE promoter_id = $1
        AND status = 'published'
@@ -68,6 +71,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       id: ev.id,
       title: ev.title,
       dateStart: ev.date_start,
+      venueCity: ev.venue_city,
       ticketTypes: (ttByEvent.get(ev.id) ?? []).map((t) => ({
         id: t.id,
         name: t.name,
