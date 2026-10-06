@@ -1,13 +1,14 @@
 import Link from 'next/link';
 import { Pool } from 'pg';
 import { Card, CardContent } from '@/components/ui/card';
-import { formatCzechDate } from '@/lib/format';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import {
   TOP_CATEGORIES,
   TOP_CATEGORY_MAP,
   FORMATS,
   getSubLabel,
 } from '@/lib/events/categories';
+import { formatCzechDate } from '@/lib/format';
 
 interface EventRow {
   id: string;
@@ -44,7 +45,7 @@ async function fetchEvents(filter: {
   subcategory?: string;
   format?: string;
 }): Promise<EventRow[]> {
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const conditions: string[] = [
       `e.date_start >= NOW()`,

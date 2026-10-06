@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { Pool } from 'pg';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { formatMoney } from '@/lib/format';
 import { CrossPassBuyer } from './CrossPassBuyer';
 
@@ -26,7 +27,7 @@ interface EventRow {
 }
 
 async function fetchBundle(id: string) {
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const b = await db.query<BundleRow>(
       `SELECT b.id, b.name, b.description, b.price_halire, b.remaining_qty,

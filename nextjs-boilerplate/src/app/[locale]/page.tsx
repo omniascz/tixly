@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { Pool } from 'pg';
+import { ForYouFeed } from '@/components/ForYouFeed';
 import { Card, CardContent } from '@/components/ui/card';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { formatDate } from '@/lib/format';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
-import { ForYouFeed } from '@/components/ForYouFeed';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,7 +54,7 @@ async function fetchLanding(): Promise<{
   promoters: PromoterRow[];
   categories: CategoryRow[];
 }> {
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const upcomingPromise = db.query<EventRow>(
       `SELECT ${SELECT_EVENT_FIELDS}

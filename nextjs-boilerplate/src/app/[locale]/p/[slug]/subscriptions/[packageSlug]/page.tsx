@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Pool } from 'pg';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { BuyButton } from './BuyButton';
 
 interface PackageRow {
@@ -39,7 +40,7 @@ async function fetchPackage(
   if (!/^[a-z0-9-]{2,80}$/.test(promoterSlug)) return null;
   if (!/^[a-z0-9-]{2,80}$/.test(packageSlug)) return null;
 
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const pkg = await db.query<PackageRow>(
       `SELECT pkg.id, pkg.name, pkg.description, pkg.season_label, pkg.category,

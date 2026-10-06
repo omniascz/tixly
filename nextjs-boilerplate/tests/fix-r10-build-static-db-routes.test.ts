@@ -31,7 +31,8 @@ describe('build bez DB — statické GET handlery nečtou databázi', () => {
       .filter((f) => {
         const src = readFileSync(f, 'utf8');
         const staticGet = /export\s+(async\s+)?function\s+GET\s*\(\s*\)/.test(src);
-        const readsDb = /@\/lib\/db|from\s+'pg'/.test(src);
+        // Kolo 11: i dynamický import('pg') a Redis (tím unikly /api/health/ready a /api/health/redis)
+        const readsDb = /@\/lib\/db|from\s+'pg'|import\('pg'\)|from\s+'redis'|import\('redis'\)|@\/lib\/queue|@\/lib\/redis/.test(src);
         // Jen skutečný export na začátku řádku — ne text v komentáři.
         const optedOut = /^export\s+const\s+(dynamic|revalidate)\s*=/m.test(src);
         return staticGet && readsDb && !optedOut;

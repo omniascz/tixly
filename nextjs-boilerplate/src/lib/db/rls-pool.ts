@@ -26,6 +26,7 @@
  */
 import { AsyncLocalStorage } from 'async_hooks';
 import { Pool, PoolClient, QueryConfig, QueryResult, QueryResultRow } from 'pg';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { assertStagingIsolated } from '@/lib/env/staging-guard';
 
 interface RlsContext {
@@ -71,13 +72,14 @@ let connectPool: Pool | null = null;
 function getConnectPool(): Pool {
   if (!connectPool) {
     assertStagingIsolated(); // kolo 9: staging se nikdy nepřipojí k produkční DB
-    connectPool = new Pool({
-      connectionString: process.env.DATABASE_URL_DIRECT || process.env.DATABASE_URL,
+    // Kolo 11: pgPoolOptions doplní query_timeout (klient nečeká na server, který neodpovídá). Výpůjčka/spojení
+    // zůstává 8 s — v pg-pool platí i pro čekání na volné spojení pod náporem (vyladěno zátěžovým testem).
+    connectPool = new Pool(pgPoolOptions(process.env.DATABASE_URL_DIRECT || process.env.DATABASE_URL, {
       max: Number(process.env.PG_DIRECT_POOL_MAX ?? 4),
       statement_timeout: Number(process.env.PG_STATEMENT_TIMEOUT_MS ?? 15000),
       connectionTimeoutMillis: 8000,
       idleTimeoutMillis: Number(process.env.PG_DIRECT_IDLE_TIMEOUT_MS ?? 10000),
-    });
+    }));
   }
   return connectPool;
 }
@@ -85,8 +87,7 @@ function getConnectPool(): Pool {
 function getRawPool(): Pool {
   if (!pool) {
     assertStagingIsolated();
-    pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
+    pool = new Pool(pgPoolOptions(process.env.DATABASE_URL, {
       // Concurrency safety net (po load testu): omezený pool + timeouty, aby se
       // pod onsale náporem nehromadily zaseknuté transakce (viděno: 27 zombie lock-waiterů).
       max: Number(process.env.PG_POOL_MAX ?? 10),
@@ -97,9 +98,9 @@ function getRawPool(): Pool {
       // Prepinatelne kvuli R-15 (§118): mereni, jestli za zamenou spojeni stoji
       // vyhazovani necinnych spojeni z poolu.
       idleTimeoutMillis: Number(process.env.PG_IDLE_TIMEOUT_MS ?? 30000),
-    });
+    }));
     if (process.env.RLS_POOL_DEBUG === '1') {
-      pool.on('error', (e) => console.warn('[POOL-ERROR]', (e as Error)?.message?.slice(0, 80)));
+      pool.on('error', (e) => console.warn('[POOL-ERROR]', (e)?.message?.slice(0, 80)));
       pool.on('remove', () => console.warn('[POOL-REMOVE] spojeni odstraneno z poolu'));
     }
   }

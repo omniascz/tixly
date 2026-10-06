@@ -8,6 +8,7 @@
  * URL: /signage/<venue_id>?promoterId=<optional>&theme=dark
  */
 import { Pool } from 'pg';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { SignageView } from './SignageView';
 
 interface PageProps {
@@ -31,7 +32,7 @@ interface EventAvail {
 
 let pool: Pool | null = null;
 function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  if (!pool) pool = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   return pool;
 }
 

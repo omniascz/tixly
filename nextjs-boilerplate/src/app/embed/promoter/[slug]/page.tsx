@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Pool } from 'pg';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { PromoterEmbedClient } from './PromoterEmbedClient';
 
 interface PromoterRow {
@@ -27,7 +28,7 @@ async function fetchPromoterAndEvents(
   limit: number,
 ): Promise<{ promoter: PromoterRow; events: EventRow[] } | null> {
   if (!/^[a-z0-9-]{2,80}$/.test(slug)) return null;
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const p = await db.query<PromoterRow>(
       `SELECT id, slug, name, brand_color_hex, brand_logo_url

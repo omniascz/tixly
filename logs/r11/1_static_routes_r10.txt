@@ -1,0 +1,9 @@
+/api/graphql/schema
+/api/health/ready
+/api/health/redis
+/api/public/push/vapid-key
+/api/subscriptions/plans
+/apple-icon.png
+/icon.png
+/robots.txt
+/sitemap.xml

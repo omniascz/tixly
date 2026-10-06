@@ -7,6 +7,7 @@ import { GtmHeadScript, GtmNoScript } from '@/components/tracking/GtmScript';
 import { MetaPixel } from '@/components/tracking/MetaPixel';
 import { PixelManager } from '@/components/tracking/PixelManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { formatDate } from '@/lib/format';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 import { getDict } from '@/lib/i18n-dictionaries';
@@ -107,7 +108,7 @@ interface EventZone {
 }
 
 async function fetchDetail(id: string) {
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const eventResult = await db.query<EventDetail>(
       `

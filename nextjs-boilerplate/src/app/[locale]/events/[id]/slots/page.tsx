@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Pool } from 'pg';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { SlotPickerClient } from './SlotPickerClient';
 
 interface EventRow {
@@ -10,7 +11,7 @@ interface EventRow {
 
 async function fetchEvent(eventId: string): Promise<EventRow | null> {
   if (!/^[0-9a-f-]{36}$/i.test(eventId)) return null;
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const r = await db.query<EventRow>(
       `SELECT id, title, COALESCE(timed_entry_enabled, FALSE) AS timed_entry_enabled
