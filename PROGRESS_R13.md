@@ -16,3 +16,9 @@ Větev `fix/round13-revert-ux-2026-10-06` z `2a1c9102` (integrate po kole 12). R
   firemní, promo, reporty, zrušení/přesun, pokladna desktop/mobil, skener desktop/mobil, sály, web úvod/akce/místa desktop/mobil)
   proti d0bbcb00 (čistý klon) a výsledku nad stejnou DB r13demo. 19 pixelově shodných; rozdíl jen 02-akce-seznam (bod 7 „Zrušeno",
   posun sloupce šířkou štítku) a 11-pokladna 1440/390 (bod 9 město). `logs/r13/4_screens_compare.txt`, `logs/r13/screens/`.
+
+## Krok 5 — příručky
+- docs/prirucka přepsány na původní UI (popisky ověřeny proti kódu, Vše → Produkce a reprízy, Akce → Upravit → Vstupenky,
+  Seating editor, Uložit layout, Scanner, Validovat lístek, okna prohlížeče u Zaplaceno / přesunu / zrušení).
+- Obrázky z průchodu na výsledku kola 13 (logs/r13/walk; průchod kola 12 dočasně, jen s původním aria-label plátna; do repa
+  nevrácen) a skener z logs/r13/screens.

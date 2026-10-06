@@ -1,0 +1,26 @@
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3200
+
+ ✓ Starting...
+ ✓ Ready in 1313ms
+[mailer] provider=mailhog-dev host=localhost:51225 authed=false
+TypeError: r.event_date_start.replace is not a function
+    at j (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\[locale]\order-confirmation\[orderId]\page.js:31:7411)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  digest: '208627224'
+}
+TypeError: r.event_date_start.replace is not a function
+    at j (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\[locale]\order-confirmation\[orderId]\page.js:31:7411)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  digest: '208627224'
+}
+TypeError: r.event_date_start.replace is not a function
+    at j (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\[locale]\order-confirmation\[orderId]\page.js:31:7411)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  digest: '208627224'
+}
+TypeError: r.event_date_start.replace is not a function
+    at j (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\[locale]\order-confirmation\[orderId]\page.js:31:7411)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  digest: '208627224'
+}
