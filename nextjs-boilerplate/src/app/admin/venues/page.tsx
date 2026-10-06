@@ -67,7 +67,7 @@ export default function VenuesPage() {
           <MapPin className="mx-auto h-8 w-8 text-muted-foreground" aria-hidden />
           <p className="mt-3 text-sm font-medium">Zatím nemáte žádný sál</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Sál se založí při vytváření akce — vyplň místo konání a uloží se sem.
+            Sál založíte výše v knihovně míst: přidejte místo (název, město) a v něm sál — rovnou se otevře editor plánku.
           </p>
           <Link
             href="/admin/events/new"
@@ -88,10 +88,11 @@ export default function VenuesPage() {
               </p>
               <div className="mt-3 flex flex-wrap gap-3 text-sm">
                 <Link
-                  href={`/admin/venues/${v.id}/seating-chart`}
+                  href={`/admin/venues/${v.id}/seating-chart/editor`}
                   className="font-medium text-primary hover:underline"
                 >
-                  Plánek sedadel
+                  {/* Kolo 12: dřív „Plánek sedadel" na stránku jen pro čtení („kontaktuj master admina"), která odporovala editoru */}
+                  Editor plánku
                 </Link>
                 <Link
                   href={`/admin/venues/${v.id}/gates`}

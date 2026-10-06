@@ -618,7 +618,11 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
         zones: zones.length > 0 ? zones : undefined,
         underlay: floorPlanUrl ? underlay : undefined,
       });
-      setFeedback('Layout uložen.');
+      // Kolo 12: místa bez cenové zóny se v termínech neprodávají — dřív se na to přišlo až u zakládání termínu
+      const noZone = sectors.flatMap((sec) => sec.rows.flatMap((row) => row.seats)).filter((st) => !st.zone && st.type !== 'unsellable' && !st.blocked).length;
+      setFeedback(noZone > 0
+        ? `Plánek uložen. Pozor: ${noZone} míst nemá cenovou zónu a v termínech se nebudou prodávat — vyberte je a v části „Cenové zóny" klikněte na „Přiřadit výběru".`
+        : 'Plánek uložen.');
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -730,11 +734,11 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
         <Input
           value={chartName}
           onChange={(e) => setChartName(e.target.value)}
-          placeholder="Název layoutu"
+          placeholder="Název plánku"
           className="max-w-xs"
         />
         <ToolButton active={tool === 'select'} onClick={() => setTool('select')}>
-          ↖ Select <kbd>1</kbd>
+          ↖ Výběr <kbd>1</kbd>
         </ToolButton>
         <ToolButton active={tool === 'row-straight'} onClick={() => { setTool('row-straight'); setPendingPoints([]); }}>
           ─ Řada <kbd>2</kbd>
@@ -743,7 +747,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
           ⌒ Oblouk <kbd>3</kbd>
         </ToolButton>
         <ToolButton active={tool === 'pan'} onClick={() => setTool('pan')}>
-          ✋ Pan <kbd>4</kbd>
+          ✋ Posun <kbd>4</kbd>
         </ToolButton>
         <ToolButton active={tool === 'overlay'} onClick={() => { setTool('overlay'); setPendingPoints([]); }}>
           🏟 Objekty <kbd>5</kbd>
@@ -789,10 +793,10 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
         ) : null}
         <div className="ml-2 h-6 w-px bg-border" />
         <Button variant="outline" size="sm" onClick={undo} disabled={history.length === 0}>
-          ↶ Undo
+          ↶ Vrátit
         </Button>
         <Button variant="outline" size="sm" onClick={redo} disabled={redoStack.length === 0}>
-          ↷ Redo
+          ↷ Znovu
         </Button>
         <div className="ml-2 h-6 w-px bg-border" />
         <label className="flex items-center gap-1 text-xs">
@@ -817,7 +821,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
             checked={showSeatNums}
             onChange={(e) => setShowSeatNums(e.target.checked)}
           />
-          Čísla seat
+          Čísla míst
         </label>
         <div className="ml-2 h-6 w-px bg-border" />
         {selectedSeats.size > 0 ? (
@@ -826,7 +830,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
               Vybráno {selectedSeats.size} sedadel
             </span>
             <Button variant="outline" size="sm" onClick={toggleAccessibility}>
-              ♿ Accessibility
+              ♿ Pro vozíčkáře
             </Button>
             <Button variant="destructive" size="sm" onClick={deleteSelected}>
               🗑 Smazat
@@ -879,17 +883,17 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
             type="button"
             onClick={resetView}
             className="rounded border bg-background px-2 py-1 text-xs hover:bg-accent"
-            title="Reset"
+            title="Původní pohled"
           >⟲</button>
           <button
             type="button"
             onClick={() => setFullscreen(!fullscreen)}
             className="rounded border bg-background px-2 py-1 text-xs hover:bg-accent"
-            title={fullscreen ? 'Zavřít fullscreen (Esc)' : 'Fullscreen'}
+            title={fullscreen ? 'Zavřít celou obrazovku (Esc)' : 'Na celou obrazovku'}
           >{fullscreen ? '✕' : '⛶'}</button>
           <div className="ml-2 h-6 w-px bg-border" />
           <Button onClick={save} disabled={saving}>
-            {saving ? 'Ukládám…' : 'Uložit layout'}
+            {saving ? 'Ukládám…' : 'Uložit plánek'}
           </Button>
         </div>
       </div>
@@ -1693,7 +1697,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
                 </button>
               ) : null}
               <p className="text-xs text-muted-foreground">
-                Zobrazí se pod sedadly jako předloha k obkreslení. Ukládá se s layoutem.
+                Zobrazí se pod sedadly jako předloha k obkreslení. Uloží se spolu s plánkem.
               </p>
             </CardContent>
           </Card>
@@ -1703,10 +1707,10 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
               <CardTitle className="text-sm">Jak na to</CardTitle>
             </CardHeader>
             <CardContent className="space-y-1 text-xs text-muted-foreground">
-              <div><strong>Posunout sedadlo:</strong> Select → chyť a táhni</div>
+              <div><strong>Posunout sedadlo:</strong> Výběr → chyť a táhni</div>
               <div><strong>Vybrat víc:</strong> táhni rámeček přes sedadla</div>
               <div><strong>Jeviště:</strong> tlačítko 🎭 → chyť tělo (posun), roh (velikost), kolečko nahoře (rotace)</div>
-              <div className="pt-1"><kbd>1</kbd>–<kbd>6</kbd> Tool · <kbd>Ctrl+Z</kbd> Undo · <kbd>Del</kbd> Smazat · <kbd>Esc</kbd> Zrušit · <kbd>Shift+klik</kbd> Multi</div>
+              <div className="pt-1"><kbd>1</kbd>–<kbd>6</kbd> nástroje · <kbd>Ctrl+Z</kbd> vrátit · <kbd>Del</kbd> smazat · <kbd>Esc</kbd> zrušit · <kbd>Shift+klik</kbd> vybrat víc</div>
             </CardContent>
           </Card>
         </div>
@@ -1743,14 +1747,14 @@ function ToolHints({ tool, pendingCount }: { tool: Tool; pendingCount: number })
   if (tool === 'overlay') {
     return (
       <div className="mb-2 rounded-md bg-violet-50 px-3 py-1.5 text-xs text-violet-900">
-        <strong>Objekty:</strong> klikni na canvas pro vložení objektu. V režimu Select pak klikni na objekt pro výběr a smazání.
+        <strong>Objekty:</strong> klikni na plátno pro vložení objektu. V režimu Výběr pak klikni na objekt pro výběr a smazání.
       </div>
     );
   }
   if (tool === 'select') {
     return (
       <div className="mb-2 rounded-md bg-muted/50 px-3 py-1.5 text-xs">
-        <strong>Select:</strong> chyť a táhni sedadlo · rámeček přes sedadla = hromadný výběr · Shift+klik = přidat · Del smaže
+        <strong>Výběr:</strong> chyť a táhni sedadlo · rámeček přes sedadla = hromadný výběr · Shift+klik = přidat · Del smaže
       </div>
     );
   }
@@ -1776,14 +1780,14 @@ function ToolHints({ tool, pendingCount }: { tool: Tool; pendingCount: number })
   }
   if (tool === 'row-bezier') {
     const steps = [
-      'Klikni na START křivky (P0)',
-      'Klikni na KONEC křivky (P3)',
-      'Klikni na 1. řídící bod (P1 — tvaruje začátek)',
-      'Klikni na 2. řídící bod (P2 — tvaruje konec) → zadej počet sedadel',
+      'Klikni na ZAČÁTEK křivky',
+      'Klikni na KONEC křivky',
+      'Klikni na 1. řídicí bod (tvaruje začátek)',
+      'Klikni na 2. řídicí bod (tvaruje konec) → zadej počet sedadel',
     ];
     return (
       <div className="mb-2 rounded-md bg-blue-50 px-3 py-1.5 text-xs text-blue-900">
-        <strong>Bézier křivka ({pendingCount}/4):</strong> {steps[pendingCount] ?? ''}
+        <strong>Křivka ({pendingCount}/4):</strong> {steps[pendingCount] ?? ''}
       </div>
     );
   }
