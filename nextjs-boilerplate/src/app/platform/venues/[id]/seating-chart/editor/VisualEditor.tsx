@@ -1134,7 +1134,7 @@ export function VisualEditor({ initialLayout, chartName: initialName, onSave }: 
                 if (draggingLabel) setDraggingLabel(null);
               }}
               role="application"
-              aria-label="Seating chart editor canvas"
+              aria-label="Plátno editoru plánku sálu"
             >
               {floorPlanUrl ? (
                 <image

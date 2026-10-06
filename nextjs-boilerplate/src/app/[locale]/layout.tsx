@@ -41,7 +41,7 @@ export default function LocaleLayout({
               Soukromí
             </Link>
             <Link href={`/${params.locale}/status`} className="hover:underline">
-              Status
+              Stav služby
             </Link>
           </nav>
         </div>

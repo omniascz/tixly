@@ -160,7 +160,7 @@ async function msgOf(page: Page, testId: string): Promise<string> {
 async function marqueeSelect(page: Page, sectorPrefix: string): Promise<void> {
   await page.keyboard.press('Escape');
   const box = await page.evaluate((prefix) => {
-    const rs = [...document.querySelectorAll('svg[aria-label="Seating chart editor canvas"] circle')]
+    const rs = [...document.querySelectorAll('svg[aria-label="Plátno editoru plánku sálu"] circle')]
       .filter((c) => (c.querySelector('title')?.textContent ?? '').startsWith(prefix)).map((c) => c.getBoundingClientRect());
     return { x0: Math.min(...rs.map((r) => r.left)), y0: Math.min(...rs.map((r) => r.top)), x1: Math.max(...rs.map((r) => r.right)), y1: Math.max(...rs.map((r) => r.bottom)) };
   }, sectorPrefix);
@@ -290,7 +290,7 @@ test.describe('vlastník', () => {
     const underlay = page.getByTestId('chart-underlay');
     await underlay.waitFor({ timeout: 15_000 });
     await page.keyboard.press('2');
-    const canvas = page.locator('svg[aria-label="Seating chart editor canvas"], svg[aria-label="Plátno editoru plánku"]').first();
+    const canvas = page.locator('svg[aria-label="Plátno editoru plánku sálu"], svg[aria-label="Plátno editoru plánku"]').first();
     const ub = (await underlay.boundingBox())!; const cb = (await canvas.boundingBox())!;
     const y = ub.y + ub.height * (280 / 400) - cb.y;
     await meter.click(canvas, { position: { x: ub.x - cb.x + ub.width * (130 / 600), y } });

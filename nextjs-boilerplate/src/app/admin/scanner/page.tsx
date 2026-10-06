@@ -803,7 +803,7 @@ function renderResult(r: ScanResult | null) {
   if (!r) {
     return (
       <p className="text-sm text-muted-foreground">
-        Naskenuj nebo vlož ticket ID, abys viděl výsledek.
+        Načtěte QR kód nebo opište kód ze vstupenky — výsledek se ukáže tady.
       </p>
     );
   }

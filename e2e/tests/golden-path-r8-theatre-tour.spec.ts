@@ -151,13 +151,13 @@ async function seatCircle(page: Page, title: string) {
 async function marqueeSelect(page: Page, sectorPrefix: string): Promise<void> {
   await page.keyboard.press('Escape');
   await page.evaluate((prefix) => {
-    const c = [...document.querySelectorAll('svg[aria-label="Seating chart editor canvas"] circle')]
+    const c = [...document.querySelectorAll('svg[aria-label="Plátno editoru plánku sálu"] circle')]
       .find((x) => (x.querySelector('title')?.textContent ?? '').startsWith(prefix));
     c?.scrollIntoView({ block: 'center' });
   }, sectorPrefix);
   await page.waitForTimeout(200);
   const box = await page.evaluate((prefix) => {
-    const rs = [...document.querySelectorAll('svg[aria-label="Seating chart editor canvas"] circle')]
+    const rs = [...document.querySelectorAll('svg[aria-label="Plátno editoru plánku sálu"] circle')]
       .filter((c) => (c.querySelector('title')?.textContent ?? '').startsWith(prefix)).map((c) => c.getBoundingClientRect());
     return { x0: Math.min(...rs.map((r) => r.left)), y0: Math.min(...rs.map((r) => r.top)), x1: Math.max(...rs.map((r) => r.right)), y1: Math.max(...rs.map((r) => r.bottom)) };
   }, sectorPrefix);
@@ -306,7 +306,7 @@ test('1 — inscenace a dva sály ve dvou městech v editoru (generátor / obkre
   const underlay = page.getByTestId('chart-underlay');
   await underlay.waitFor({ timeout: 15_000 });
   await page.keyboard.press('2');
-  const canvas = page.locator('svg[aria-label="Seating chart editor canvas"]');
+  const canvas = page.locator('svg[aria-label="Plátno editoru plánku sálu"]');
   const ub = (await underlay.boundingBox())!;
   for (let row = 0; row < 3; row++) {
     const y = ub.y + ub.height * ((140 + row * 70) / 400);

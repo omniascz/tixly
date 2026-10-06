@@ -215,6 +215,8 @@ test.describe('vlastník', () => {
     const text = await page.locator('main').innerText();
     expect(text).not.toMatch(/Seating editor|\bSelect\b|\bUndo\b|\bRedo\b|Uložit layout|layout|Čísla seat|Default/);
     await expect(page.getByRole('link', { name: /Zpět/ }).first()).toHaveAttribute('href', '/admin/venues');
+    // i popisek plátna pro čtečku obrazovky česky
+    expect(await page.locator('main [aria-label]').evaluateAll((els) => els.map((e) => e.getAttribute('aria-label') ?? '').join(' | '))).not.toMatch(/Seating|canvas/i);
     await page.goto('/admin/venues');
     await expect(page.getByRole('link', { name: 'Plánek sedadel' })).toHaveCount(0);
   });
@@ -271,6 +273,7 @@ test.describe('pokladní a vstup', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Kontrola vstupenek');
     await expect(page.getByLabel('Kód vstupenky')).toBeVisible();
     expect(await page.locator('main').innerText()).not.toMatch(/TOTP|payload|Ticket ID|Scanner/);
+    expect(await page.locator('main').innerText()).not.toMatch(/ticket ID/i);
     await page.evaluate(() => {
       const w = window as unknown as { __vib: unknown[]; __snd: number[] };
       w.__vib = []; w.__snd = [];
@@ -303,6 +306,9 @@ test.describe('pokladní a vstup', () => {
     await page.getByRole('button', { name: 'Ověřit vstupenku' }).click();
     await expect(state).toHaveAttribute('data-tone', 'warn');
     await expect(state).toContainText(/OVĚŘTE RUČNĚ|NENÍ OVĚŘENO/);
+    await page.unroute('**/api/admin/scanner/validate');
+    await page.goto('/admin/scanner/guide');
+    expect(await page.locator('main').innerText()).not.toMatch(/ticket ID/i);
     await ctx.close();
   });
 });
@@ -314,6 +320,9 @@ test.describe('kupec', () => {
     const menuBtn = page.getByRole('button', { name: /Menu/ });
     if (await menuBtn.isVisible().catch(() => false)) await menuBtn.click();
     await expect(page.getByRole('link', { name: 'Program' }).first()).toHaveAttribute('href', /\/cs\/program/);
+    const footer = page.locator('footer');
+    await expect(footer.getByRole('link', { name: 'Stav služby' })).toHaveAttribute('href', '/cs/status');
+    expect(await footer.innerText()).not.toMatch(/Status/);
     await page.goto(`/cs/events/${T.rBrno}/seats`);
     await expect(page.getByRole('button', { name: /Pokračovat k objednávce/ })).toHaveCount(1);
     await ctx.close();
