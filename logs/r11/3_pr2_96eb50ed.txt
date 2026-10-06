@@ -1,0 +1,16 @@
+Vercel – nextjs-boilerplate	pending
+Vercel – nextjs-boilerplate	success
+Vercel – tixly	pending
+Vercel – tixly	success
+Vercel Preview Comments	completed	success
+RLS verify (produkce vs snapshot)	completed	skipped
+Build bez sítě (pojistka prerenderu)	completed	success
+Live sada (Postgres z migrací, tixly_app)	completed	success
+Install · typecheck · lint · unit	completed	success
+Schema drift (SQL vs schéma z migrací)	completed	success
+Dependency audit (mobile)	completed	success
+Dependency audit (nextjs-boilerplate)	completed	failure
+Dependency audit (mobile-promoter)	completed	success
+Dependency audit (e2e)	completed	success
+Secret scan (Gitleaks)	completed	success
+RLS verify (DB z migrací vs snapshot)	completed	success

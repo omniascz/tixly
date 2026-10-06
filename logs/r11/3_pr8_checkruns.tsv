@@ -1,0 +1,6 @@
+Build bez sítě (pojistka prerenderu)	completed	success
+Install · typecheck · lint · unit	completed	success
+Live sada (Postgres z migrací, tixly_app)	completed	success
+Schema drift (SQL vs schéma z migrací)	completed	success
+Schema drift (SQL vs schéma z migrací)	completed	success
+Vercel Preview Comments	completed	success
