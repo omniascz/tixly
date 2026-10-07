@@ -28,6 +28,45 @@ const FONT_DIR = join(process.cwd(), 'src', 'lib', 'tickets', 'fonts');
 const FONT_REGULAR = join(FONT_DIR, 'NotoSans-Regular.ttf');
 const FONT_BOLD = join(FONT_DIR, 'NotoSans-Bold.ttf');
 
+/**
+ * Kolo 14 / krok 2 (C-60): při náporu prodeje stálo parsování TTF ~23 % CPU serveru — pdfkit každé PDF znovu
+ * parsoval NotoSans (fontkit/restructure). Rozparsované písmo (objekt fontkitu) se teď drží za běh procesu a každý
+ * dokument nad ním dostane vlastní EmbeddedFont (vlastní subset, vlastní ID). Opírá se o vnitřní pole pdfkit 0.18
+ * (_fontFamilies, _fontCount, _font) — když chybí, padá zpět na běžnou registraci (stejný výstup, jen pomaleji).
+ */
+type PdfDoc = InstanceType<typeof PDFDocument>;
+interface PdfkitInternals { _fontFamilies?: Record<string, unknown>; _fontCount?: number; _font?: { font?: unknown; constructor: unknown } }
+type EmbeddedFontCtor = new (doc: PdfDoc, font: unknown, id: string) => unknown;
+const parsedFonts = new Map<string, unknown>();
+let embeddedFontCtor: EmbeddedFontCtor | null = null;
+let fontParses = 0;
+
+/** Pro testy a diagnostiku: kolikrát se písmo skutečně parsovalo (nejvýš jednou na řez za běh procesu). */
+export function pdfFontCacheStats(): { parses: number; cached: number } {
+  return { parses: fontParses, cached: parsedFonts.size };
+}
+
+function attachFont(doc: PdfDoc, name: string, path: string): void {
+  doc.registerFont(name, path);
+  const d = doc as unknown as PdfkitInternals;
+  const cached = parsedFonts.get(path);
+  if (cached && embeddedFontCtor && d._fontFamilies && typeof d._fontCount === 'number') {
+    d._fontCount += 1;
+    d._fontFamilies[name] = new embeddedFontCtor(doc, cached, `F${d._fontCount}`);
+    return;
+  }
+  // první použití: pdfkit písmo rozparsuje sám, objekt fontkitu a třídu EmbeddedFont si ponecháme
+  const prev = d._font;
+  doc.font(name);
+  fontParses += 1;
+  const ef = d._font;
+  if (ef?.font) {
+    parsedFonts.set(path, ef.font);
+    embeddedFontCtor = ef.constructor as EmbeddedFontCtor;
+  }
+  if (prev) d._font = prev;
+}
+
 export interface TicketPdfData {
   ticketId: string;
   ticketTypeName: string;
@@ -74,8 +113,8 @@ export async function renderTicketsPdf(
   tickets: TicketPdfData[],
 ): Promise<Buffer> {
   const doc = new PDFDocument({ size: 'A4', margin: 48 });
-  doc.registerFont('main', FONT_REGULAR);
-  doc.registerFont('bold', FONT_BOLD);
+  attachFont(doc, 'main', FONT_REGULAR);
+  attachFont(doc, 'bold', FONT_BOLD);
   doc.font('main');
   const chunks: Buffer[] = [];
   doc.on('data', (c: Buffer) => chunks.push(c));
