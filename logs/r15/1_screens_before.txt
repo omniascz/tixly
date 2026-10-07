@@ -1,0 +1,8 @@
+
+Running 3 tests using 1 worker
+
+  ok 1 [golden-path] › tests\golden-path-r15-screens.spec.ts:65:5 › administrace — desktop 1440 (37.5s)
+  ok 2 [golden-path] › tests\golden-path-r15-screens.spec.ts:72:5 › administrace — mobil 390 (menu, pokladna, skener) (17.1s)
+  ok 3 [golden-path] › tests\golden-path-r15-screens.spec.ts:79:5 › veřejný web — desktop a mobil (53.4s)
+
+  3 passed (1.9m)

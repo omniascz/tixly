@@ -1,0 +1,26 @@
+== next@14.2.35
+critical	GHSA-2xp9-vwfh-vxw4	Next.js: Unauthenticated Remote Code Execution in Image Optimization API when AVIF files are used
+critical	GHSA-p293-qw3h-jr36	Next.js: Unauthenticated Remote Code Execution on windows-hosted servers
+high	GHSA-36qx-fr4f-26g5	Next.js has a Middleware / Proxy bypass in Pages Router applications using i18n
+high	GHSA-89xv-2m56-2m9x	Next.js: Server-Side Request Forgery in Server Actions on custom servers
+high	GHSA-8h8q-6873-q5fj	Next.js Vulnerable to Denial of Service with Server Components
+high	GHSA-c4j6-fc7j-m34r	Next.js vulnerable to server-side request forgery in applications using WebSocket upgrades
+high	GHSA-h25m-26qc-wcjf	Next.js HTTP request deserialization can lead to DoS when using insecure React Server Components
+high	GHSA-m99w-x7hq-7vfj	Next.js: Denial of Service in App Router using Server Actions
+high	GHSA-p9j2-gv94-2wf4	Next.js: Server-Side Request Forgery in rewrites via attacker-controlled destination hostname
+high	GHSA-q4gf-8mx6-v5v3	Next.js has a Denial of Service with Server Components
+low	GHSA-3g8h-86w9-wvmq	Next.js's Middleware / Proxy redirects can be cache-poisoned
+low	GHSA-vfv6-92ff-j949	Next.js vulnerable to cache poisoning via collisions in React Server Component cache-busting
+medium	GHSA-3x4c-7xq6-9pq8	Next.js: Unbounded next/image disk cache growth can exhaust storage
+medium	GHSA-4633-3j49-mh5q	Next.js: Cache confusion of response bodies for requests with bodies containing invalid UTF-8 byte sequences
+medium	GHSA-4c39-4ccg-62r3	Next.js: Unbounded Server Action payload in Edge runtime
+medium	GHSA-68g3-v927-f742	Next.js: Cache confusion of response bodies for requests with bodies
+medium	GHSA-955p-x3mx-jcvp	Next.js: Unauthenticated disclosure of internal Server Function endpoints
+medium	GHSA-9g9p-9gw9-jx7f	Next.js self-hosted applications vulnerable to DoS via Image Optimizer remotePatterns configuration
+medium	GHSA-ffhc-5mcf-pf4q	Next.js vulnerable to cross-site scripting in App Router applications using CSP nonces
+medium	GHSA-ggv3-7p47-pfv8	Next.js: HTTP request smuggling in rewrites
+medium	GHSA-gx5p-jg67-6x7h	Next.js has cross-site scripting in beforeInteractive scripts with untrusted input
+medium	GHSA-h64f-5h5j-jqjh	Next.js has a Denial of Service in the Image Optimization API
+medium	GHSA-wfc6-r584-vfw7	Next.js vulnerable to cache poisoning in React Server Component responses
+== next@15.5.27
+Get "https://api.github.com/advisories?ecosystem=npm&affects=next@15.5.27&per_page=100": dial tcp 140.82.121.5:443: connectex: Pokus o připojení selhal, protože připojená strana v časovém intervalu řádně neodpověděla, nebo vytvořené připojení selhalo, protože neodpověděl připojený hostitel.
