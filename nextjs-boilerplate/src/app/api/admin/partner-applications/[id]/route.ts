@@ -22,10 +22,8 @@ const schema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('reject') }),
 ]);
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const admin = await requirePlatformAdmin(req);
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

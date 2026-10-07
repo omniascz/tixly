@@ -46,7 +46,7 @@ run('Kolo 8 — slevové kategorie', () => {
     const { POST } = await import('@/app/api/events/[id]/seats/hold/route');
     const r = await (POST as unknown as H)(new Request(`http://localhost/api/events/${c.eventId}/seats/hold`, {
       method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': ip() }, body: JSON.stringify({ seatIds: ids }),
-    }) as unknown as NextRequest, { params: { id: c.eventId } });
+    }) as unknown as NextRequest, { params: Promise.resolve({ id: c.eventId }) });
     const j = await r.json() as { holdToken: string };
     expect(r.status, JSON.stringify(j)).toBe(200);
     return j.holdToken;
@@ -96,18 +96,18 @@ run('Kolo 8 — slevové kategorie', () => {
 
   it('výchozí šablona jedním krokem; ceny kategorií v zónách; výjimka pro zónu', async () => {
     const r = await admin('POST', `/api/admin/events/${c.eventId}/categories`, () => import('@/app/api/admin/events/[id]/categories/route'),
-      { applyTemplate: true }, { params: { id: c.eventId } });
+      { applyTemplate: true }, { params: Promise.resolve({ id: c.eventId }) });
     expect(r.status, r.text).toBe(201);
     expect(r.json.applied).toBe(7);
     for (const x of r.json.categories as Array<{ id: string; code: string }>) cat[x.code] = x.id;
     // senior v zóně B pevně 200 Kč, dítě max 1 kus na termín
     const p = await admin('PUT', `/api/admin/events/${c.eventId}/categories/${cat.senior}/prices`, () => import('@/app/api/admin/events/[id]/categories/[categoryId]/prices/route'),
-      { ticketTypeId: zoneB, priceMode: 'fixed', priceValue: 20000 }, { params: { id: c.eventId, categoryId: cat.senior } });
+      { ticketTypeId: zoneB, priceMode: 'fixed', priceValue: 20000 }, { params: Promise.resolve({ id: c.eventId, categoryId: cat.senior }) });
     expect(p.status, p.text).toBe(200);
     await admin('POST', `/api/admin/events/${c.eventId}/categories`, () => import('@/app/api/admin/events/[id]/categories/route'),
-      { code: 'dite', name: 'Dítě', kind: 'child', priceMode: 'percent', priceValue: 5000, limitPerEvent: 1 }, { params: { id: c.eventId } });
+      { code: 'dite', name: 'Dítě', kind: 'child', priceMode: 'percent', priceValue: 5000, limitPerEvent: 1 }, { params: Promise.resolve({ id: c.eventId }) });
     const pub = await (await import('@/app/api/public/events/[id]/seat-prices/route')).GET(
-      new Request(`http://localhost/api/public/events/${c.eventId}/seat-prices`) as unknown as NextRequest, { params: { id: c.eventId } });
+      new Request(`http://localhost/api/public/events/${c.eventId}/seat-prices`) as unknown as NextRequest, { params: Promise.resolve({ id: c.eventId }) });
     const pj = await pub.json() as { prices: Array<{ categoryId: string; ticketTypeId: string; priceMinor: number }>; seats: unknown[] };
     const price = (code: string, tt: string) => pj.prices.find((x) => x.categoryId === cat[code] && x.ticketTypeId === tt)!.priceMinor;
     expect(price('plne', c.ticketTypeId)).toBe(50000);
@@ -139,7 +139,7 @@ run('Kolo 8 — slevové kategorie', () => {
 
   it('objednávka za 0 Kč (kategorie zdarma) se dokončí bez brány a vystaví vstupenku', async () => {
     const k = await admin('POST', `/api/admin/events/${c.eventId}/categories`, () => import('@/app/api/admin/events/[id]/categories/route'),
-      { code: 'zdarma', name: 'Čestná', kind: 'custom', priceMode: 'fixed', priceValue: 0 }, { params: { id: c.eventId } });
+      { code: 'zdarma', name: 'Čestná', kind: 'custom', priceMode: 'fixed', priceValue: 0 }, { params: Promise.resolve({ id: c.eventId }) });
     expect(k.status, k.text).toBe(201);
     const r = await buy([{ seatId: seat.A10, categoryId: k.json.id as string }]);
     expect(r.status, r.text).toBe(200);

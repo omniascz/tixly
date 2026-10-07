@@ -7,11 +7,12 @@ export const metadata: Metadata = {
     'Každý nákup na Tixly je krytý: okamžité doručení lístku, platný vstup, shoda s objednávkou a vrácení peněz při zrušení akce.',
 };
 
-export default function BuyerGuaranteePage({
-  params,
-}: {
-  params: { locale: string };
-}): React.JSX.Element {
+export default async function BuyerGuaranteePage(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+): Promise<React.JSX.Element> {
+  const params = await props.params;
   return (
     <div className="mx-auto max-w-3xl py-10">
       <BuyerGuarantee variant="full" locale={params.locale} />

@@ -4,7 +4,7 @@
  * /platform/travel/[hotelId] — detail hotelu + správa typů pokojů
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,7 +50,8 @@ function fmtPrice(halire: number) {
   return `${(halire / 100).toLocaleString('cs-CZ', { minimumFractionDigits: 0 })} Kč`;
 }
 
-export default function HotelDetailPage({ params }: { params: { hotelId: string } }) {
+export default function HotelDetailPage(props: { params: Promise<{ hotelId: string }> }) {
+  const params = use(props.params);
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);

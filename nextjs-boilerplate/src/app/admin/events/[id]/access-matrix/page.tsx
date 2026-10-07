@@ -7,7 +7,7 @@
  */
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type JSX } from 'react';
 import { useParams } from 'next/navigation';
 
 type Tt = { id: string; name: string; base_price: number };

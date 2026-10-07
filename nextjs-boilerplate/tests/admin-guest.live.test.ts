@@ -230,7 +230,7 @@ describe.skipIf(!hasLiveDb)('admin cesty — guest-create přes helper (live)', 
       req(`http://x/api/admin/events/${eventId}/accreditation/${reqId}`, 'PATCH', {
         action: 'approve',
       }),
-      { params: { id: eventId, reqId } },
+      { params: Promise.resolve({ id: eventId, reqId }) },
     );
     expect(res.status).toBeLessThan(400);
 
@@ -254,7 +254,7 @@ describe.skipIf(!hasLiveDb)('admin cesty — guest-create přes helper (live)', 
     );
     const res = await PATCH(
       req(`http://x/api/admin/events/${eventId}/waitlist/${entryId}`, 'PATCH', { status: 'converted' }),
-      { params: { id: eventId, entryId } },
+      { params: Promise.resolve({ id: eventId, entryId }) },
     );
     expect(res.status, await res.clone().text()).toBeLessThan(400);
     expect(await ordersOf(existingId)).toBe(1);
@@ -278,7 +278,7 @@ describe.skipIf(!hasLiveDb)('admin cesty — guest-create přes helper (live)', 
         buyerEmail: email,
         buyerName: 'Jméno Od Pokladní',
       }),
-      { params: { id: eventId } },
+      { params: Promise.resolve({ id: eventId }) },
     );
     expect(res.status, await res.clone().text()).toBeLessThan(400);
     const body = (await res.json()) as { orderId: string; tickets: unknown[] };

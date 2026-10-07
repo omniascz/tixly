@@ -17,7 +17,8 @@ const schema = z.object({
   cutoffHours: z.number().int().min(0).max(336).optional(),
 });
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!UUID.test(params.id)) return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
     const ev = (await db().query<{ reservations_enabled: boolean; reservation_days: number; reservation_cutoff_hours: number }>(
@@ -53,7 +54,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   });
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!UUID.test(params.id)) return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
     const parsed = schema.safeParse(await req.json().catch(() => ({})));

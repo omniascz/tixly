@@ -77,7 +77,8 @@ function formatDate(iso: string) {
     .format(new Date(iso));
 }
 
-export default async function KioskHomePage({ params }: { params: { slug: string } }) {
+export default async function KioskHomePage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const data = await getKioskData(params.slug);
   if (!data) notFound();
   const { promoter, events } = data;

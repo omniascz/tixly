@@ -18,7 +18,11 @@ const schema = z.object({
   recipientName: z.string().max(200).optional(),
 });
 
-export async function POST(req: NextRequest, { params }: { params: { id: string; blockId: string } }): Promise<Response> {
+export async function POST(
+  req: NextRequest,
+  props: { params: Promise<{ id: string; blockId: string }> }
+): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!UUID.test(params.id) || !UUID.test(params.blockId)) return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
     const parsed = schema.safeParse(await req.json().catch(() => ({})));

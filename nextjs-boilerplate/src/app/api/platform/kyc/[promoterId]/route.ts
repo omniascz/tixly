@@ -19,10 +19,8 @@ const schema = z.discriminatedUnion('decision', [
   }),
 ]);
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { promoterId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ promoterId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (admin) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);

@@ -5,7 +5,7 @@
  * před začátkem), obsazenost prodáno vs. rezervováno, seznam rezervací a pokladna: hledání podle kódu / jména /
  * e-mailu / telefonu, platba hotově nebo kartou → vstupenky + doklad.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -28,7 +28,8 @@ const api = (url: string, init?: RequestInit) => {
 const kc = (m: number) => `${(m / 100).toLocaleString('cs-CZ')} Kč`;
 const STATUS: Record<string, string> = { active: 'aktivní', paid: 'zaplaceno', expired: 'propadlá', cancelled: 'zrušená' };
 
-export default function ReservationsPage({ params }: { params: { id: string } }) {
+export default function ReservationsPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const [data, setData] = useState<Data | null>(null);
   const [form, setForm] = useState({ enabled: false, days: '5', cutoffHours: '2' });
   const [q, setQ] = useState('');

@@ -2,7 +2,9 @@
  * Layout pro /admin/events/[id]/* — sub-menu s navigací mezi všemi
  * features event-detail (30+ sub-pages).
  */
+import type { JSX } from 'react';
 import { EventDetailNav } from './EventDetailNav';
+
 
 interface Props {
   children: React.ReactNode;

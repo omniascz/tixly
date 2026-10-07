@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 import { Shield, Trash2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 

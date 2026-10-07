@@ -140,11 +140,12 @@ async function fetchPromoter(slug: string): Promise<{
   }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { locale: string; slug: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ locale: string; slug: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const data = await fetchPromoter(params.slug);
   if (!data) return { title: 'Tixly' };
   const title = `${data.promoter.name} — vstupenky online`;
@@ -202,11 +203,12 @@ const STRINGS = {
   },
 } as const;
 
-export default async function PromoterPage({
-  params,
-}: {
-  params: { locale: string; slug: string };
-}) {
+export default async function PromoterPage(
+  props: {
+    params: Promise<{ locale: string; slug: string }>;
+  }
+) {
+  const params = await props.params;
   const data = await fetchPromoter(params.slug);
   if (!data) {
     // /p/ je route pořadatele. Pokud slug odpovídá AKCI (starý/špatný odkaz,

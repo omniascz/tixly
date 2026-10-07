@@ -6,7 +6,8 @@ export const metadata: Metadata = {
   description: 'Tixly je česká platforma pro prodej vstupenek na divadelní, hudební a sportovní akce.',
 };
 
-export default function AboutPage({ params }: { params: { locale: string } }) {
+export default async function AboutPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   return (
     <div className="mx-auto max-w-3xl space-y-8 py-10">
       <section className="text-center">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { Plus, Pencil, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Badge } from '@/components/ui/badge';
@@ -59,11 +59,12 @@ function authFetch(url: string, opts?: RequestInit): Promise<Response> {
   });
 }
 
-export default function TicketTypesPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function TicketTypesPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = use(props.params);
   const { id: eventId } = useRouteParams(params);
   const [types, setTypes] = useState<TicketType[]>([]);
   const [loading, setLoading] = useState(true);

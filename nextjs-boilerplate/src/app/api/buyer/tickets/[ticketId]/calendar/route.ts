@@ -18,10 +18,8 @@ function icsDate(iso: string): string {
   return new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   const r = await db().query<{
     id: string;

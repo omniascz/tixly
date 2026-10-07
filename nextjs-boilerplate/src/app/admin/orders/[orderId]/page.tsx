@@ -207,11 +207,12 @@ async function fetchOrder(orderId: string): Promise<OrderDetail | null> {
   });
 }
 
-export default async function AdminOrderDetailPage({
-  params,
-}: {
-  params: { orderId: string };
-}) {
+export default async function AdminOrderDetailPage(
+  props: {
+    params: Promise<{ orderId: string }>;
+  }
+) {
+  const params = await props.params;
   const data = await fetchOrder(params.orderId);
   if (!data) notFound();
 

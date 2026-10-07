@@ -41,11 +41,11 @@ describe.each([
 
   it('plánek GET /api/events/[id]/seats', async () => {
     const { GET } = await import('@/app/api/events/[id]/seats/route');
-    await expectBusy(await GET(new NextRequest(`http://localhost/api/events/${EV}/seats`), { params: { id: EV } }));
+    await expectBusy(await GET(new NextRequest(`http://localhost/api/events/${EV}/seats`), { params: Promise.resolve({ id: EV }) }));
   });
   it('hold POST /api/events/[id]/seats/hold', async () => {
     const { POST } = await import('@/app/api/events/[id]/seats/hold/route');
-    await expectBusy(await POST(json(`http://localhost/api/events/${EV}/seats/hold`, { seatIds: [SEAT] }), { params: { id: EV } }));
+    await expectBusy(await POST(json(`http://localhost/api/events/${EV}/seats/hold`, { seatIds: [SEAT] }), { params: Promise.resolve({ id: EV }) }));
   });
   it('checkout POST /api/checkout/seats', async () => {
     const { POST } = await import('@/app/api/checkout/seats/route');
@@ -63,7 +63,7 @@ describe('jiná chyba DB zůstává chybou (žádné maskování)', () => {
   it('hold s obecnou chybou neodpoví 503', async () => {
     failure.err = new Error('relation "catalog.event_seats" does not exist');
     const { POST } = await import('@/app/api/events/[id]/seats/hold/route');
-    const res = await POST(json(`http://localhost/api/events/${EV}/seats/hold`, { seatIds: [SEAT] }), { params: { id: EV } }).catch(() => null);
+    const res = await POST(json(`http://localhost/api/events/${EV}/seats/hold`, { seatIds: [SEAT] }), { params: Promise.resolve({ id: EV }) }).catch(() => null);
     expect(res?.status ?? 500).not.toBe(503);
   });
 });

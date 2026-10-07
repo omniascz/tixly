@@ -31,10 +31,8 @@ interface HoldRow {
   artist_name: string | null;
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { holdId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ holdId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const raw: unknown = await req.json().catch(() => ({}));
     const parsed = bodySchema.safeParse(raw);

@@ -46,10 +46,8 @@ const COLUMN_MAP: Record<string, string> = {
   status: 'status',
 };
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (_admin) => {
   const r = await db().query<Record<string, unknown>>(
     `SELECT v.id, v.name, v.venue_type, v.city, v.country, v.address, v.capacity,
@@ -76,10 +74,8 @@ export async function GET(
   });
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (admin) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
@@ -131,10 +127,8 @@ export async function PATCH(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (admin) => {
   const usage = await db().query<{ upcoming: number }>(
     `SELECT COUNT(*)::int AS upcoming FROM catalog.events

@@ -34,10 +34,8 @@ function sseEvent(event: string, data: unknown): string {
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
     return new Response('Invalid id', { status: 422 });
   }

@@ -4,7 +4,9 @@
  * Buyer self-service: edit attendee info per ticket (jméno/email/telefon).
  * Eventbrite "Each attendee" mode.
  */
+import type { JSX } from 'react';
 import { AttendeeEditClient } from './AttendeeEditClient';
+
 
 interface Props {
   params: Promise<{ locale: string; ticketId: string }>;

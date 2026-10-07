@@ -209,11 +209,12 @@ async function fetchDetail(id: string) {
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { locale: string; id: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ locale: string; id: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const data = await fetchDetail(params.id);
   if (!data) return { title: 'Tixly — akce' };
   const { event } = data;
@@ -244,11 +245,12 @@ export async function generateMetadata({
   };
 }
 
-export default async function EventDetailPage({
-  params,
-}: {
-  params: { locale: string; id: string };
-}) {
+export default async function EventDetailPage(
+  props: {
+    params: Promise<{ locale: string; id: string }>;
+  }
+) {
+  const params = await props.params;
   const data = await fetchDetail(params.id);
   if (!data) notFound();
   const { event, ticketTypes, days, zones } = data;

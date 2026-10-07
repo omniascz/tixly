@@ -1,7 +1,9 @@
+import type { JSX } from 'react';
 import { notFound } from 'next/navigation';
 import { Pool } from 'pg';
 import { pgPoolOptions } from '@/lib/db/pg-options';
 import { VoucherCheckoutForm } from './VoucherCheckoutForm';
+
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -40,11 +42,12 @@ async function fetchPromoter(slug: string): Promise<PromoterRow | null> {
   }
 }
 
-export default async function PromoterVouchersPage({
-  params,
-}: {
-  params: { locale: string; slug: string };
-}): Promise<JSX.Element> {
+export default async function PromoterVouchersPage(
+  props: {
+    params: Promise<{ locale: string; slug: string }>;
+  }
+): Promise<JSX.Element> {
+  const params = await props.params;
   const promoter = await fetchPromoter(params.slug);
   if (!promoter) notFound();
 

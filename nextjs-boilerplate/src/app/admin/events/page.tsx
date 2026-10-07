@@ -1,5 +1,6 @@
 'use client';
 
+import type { JSX } from 'react';
 import { CalendarDays, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { DataTable, Column } from '@/components/admin/DataTable';

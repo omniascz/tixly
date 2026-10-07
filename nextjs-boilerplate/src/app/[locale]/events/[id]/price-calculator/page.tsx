@@ -4,7 +4,9 @@
  * Fanoušek si předem spočítá, kolik zaplatí na různých kanálech.
  * No login required.
  */
+import type { JSX } from 'react';
 import { PriceCalculator } from './PriceCalculator';
+
 
 interface PageProps {
   params: Promise<{ locale: string; id: string }>;

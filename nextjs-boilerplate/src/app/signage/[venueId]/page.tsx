@@ -7,9 +7,11 @@
  *
  * URL: /signage/<venue_id>?promoterId=<optional>&theme=dark
  */
+import type { JSX } from 'react';
 import { Pool } from 'pg';
 import { pgPoolOptions } from '@/lib/db/pg-options';
 import { SignageView } from './SignageView';
+
 
 interface PageProps {
   params: Promise<{ venueId: string }>;

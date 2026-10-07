@@ -81,10 +81,8 @@ async function loadActive(venueId: string): Promise<ChartRow | null> {
   return r.rows[0] ?? null;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (_admin) => {
   const chart = await loadActive(params.id);
   if (!chart) return NextResponse.json({ chart: null, suggestions: [] });
@@ -127,10 +125,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (admin) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = bodySchema.safeParse(body);

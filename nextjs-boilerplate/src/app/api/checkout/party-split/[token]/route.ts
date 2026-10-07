@@ -76,10 +76,8 @@ async function getSession(token: string): Promise<{ session: SessionRow; slots: 
   return { session: res.rows[0], slots: slots.rows };
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
     const data = await getSession(params.token);
     if (!data) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
@@ -123,10 +121,8 @@ const PaySchema = z.object({
   locale:        z.enum(['cs', 'sk', 'en', 'de', 'pl']).default('cs'),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   let body: z.infer<typeof PaySchema>;
   try {
     body = PaySchema.parse(await req.json());

@@ -20,8 +20,9 @@ async function ownsEvent(eventId: string, promoterId: string): Promise<boolean> 
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; entryId: string } },
+  props: { params: Promise<{ id: string; entryId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!(await ownsEvent(params.id, promoter.promoterId))) {
       return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, use } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,11 +74,12 @@ const SOURCE_LABELS: Record<string, string> = {
   restore: 'Restored',
 };
 
-export default function PlatformVenueVersionsPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function PlatformVenueVersionsPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = use(props.params);
   const venueId = params.id;
   const [versions, setVersions] = useState<Version[]>([]);
   const [error, setError] = useState<string | null>(null);

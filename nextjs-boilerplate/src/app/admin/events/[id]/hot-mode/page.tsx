@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 import { useParams } from 'next/navigation';
 import { Flame, Shield, ShieldCheck, Phone, Gift, EyeOff, Camera } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';

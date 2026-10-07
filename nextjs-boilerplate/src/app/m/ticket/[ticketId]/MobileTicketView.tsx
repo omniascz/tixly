@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 import { Apple, Smartphone, Send, X, RotateCw, Nfc, Shield } from 'lucide-react';
 import { computeDeviceFingerprint } from '@/lib/safetix/fingerprint';
 

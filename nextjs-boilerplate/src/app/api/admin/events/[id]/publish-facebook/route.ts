@@ -22,10 +22,8 @@ const schema = z.object({
   pageId: z.string().uuid(),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
@@ -159,10 +157,8 @@ export async function POST(
 }
 
 // GET — list existing publishes pro tento event (status indikátor v UI)
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (_promoter) => {
   const r = await db().query<{
     id: string;

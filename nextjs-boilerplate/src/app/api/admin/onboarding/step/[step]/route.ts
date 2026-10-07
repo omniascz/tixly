@@ -28,10 +28,8 @@ async function markStepDone(promoterId: string, step: number, data: Record<strin
   );
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { step: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ step: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const step = parseInt(params.step, 10);
     if (isNaN(step) || step < 1 || step > 8) {

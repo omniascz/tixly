@@ -11,10 +11,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithPromoterContext } from '@/lib/db/rls-pool';
 import { requireApiAuth, rateLimitCheck } from '@/lib/oauth/guard';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const auth = await requireApiAuth(req, 'read_events');
   if (!auth.ok) return auth.response;
   const ctx = auth.ctx;

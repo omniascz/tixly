@@ -15,10 +15,8 @@ const patchSchema = z.object({
   isActive: z.boolean(),
 });
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const owns = await db().query(
       `SELECT 1 FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
@@ -37,10 +35,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const owns = await db().query<{ id: string }>(
       `SELECT id FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
@@ -82,10 +78,8 @@ export async function POST(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const r = await db().query(
       `DELETE FROM catalog.backstage_moments bm
@@ -105,10 +99,8 @@ export async function DELETE(
   });
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const body: unknown = await req.json().catch(() => ({}));
     const parsed = patchSchema.safeParse(body);

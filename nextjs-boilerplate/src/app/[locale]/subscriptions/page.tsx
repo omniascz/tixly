@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { Calendar, CheckCircle2, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -45,7 +45,8 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function SubscriptionsPage({ params }: { params: { locale: string } }) {
+export default function SubscriptionsPage(props: { params: Promise<{ locale: string }> }) {
+  const params = use(props.params);
   const sp = useSearchParams();
   const promoterSlug = sp.get('p');
   const [mine, setMine] = useState<MySub[]>([]);

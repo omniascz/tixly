@@ -38,8 +38,8 @@ run('K2 refund přes bránu (izolovaná DB + fake-gopay)', () => {
   let pool: Pool;
   let checkoutPOST: (r: NextRequest) => Promise<Response>;
   let webhookGET: (r: NextRequest) => Promise<Response>;
-  let adminRefundPOST: (r: NextRequest, ctx: { params: { orderId: string } }) => Promise<Response>;
-  let selfRefundPOST: (r: NextRequest, ctx: { params: { orderId: string } }) => Promise<Response>;
+  let adminRefundPOST: (r: NextRequest, ctx: { params: Promise<{ orderId: string }> }) => Promise<Response>;
+  let selfRefundPOST: (r: NextRequest, ctx: { params: Promise<{ orderId: string }> }) => Promise<Response>;
 
   /** Reálný zaplacený order: checkout (guest) → fake-gopay PAID → webhook → paid + vydané lístky. */
   async function paidOrder(): Promise<{ orderId: string; paymentId: string; adminUserId: string; promoterId: string }> {
@@ -80,7 +80,7 @@ run('K2 refund přes bránu (izolovaná DB + fake-gopay)', () => {
   it('úspěch: admin refund zavolá bránu 1×, order refunded, lístky revoked, odpověď brány uložena', async () => {
     const o = await paidOrder();
     const before = await refundCallCount(o.paymentId);
-    const r = await adminRefundPOST(reqJSON('POST', `/api/admin/orders/${o.orderId}/refund`, { reason: 'customer_request' }, { 'x-user-id': o.adminUserId }), { params: { orderId: o.orderId } });
+    const r = await adminRefundPOST(reqJSON('POST', `/api/admin/orders/${o.orderId}/refund`, { reason: 'customer_request' }, { 'x-user-id': o.adminUserId }), { params: Promise.resolve({ orderId: o.orderId }) });
     expect(r.status, await r.clone().text()).toBe(200);
     // PŘED opravou: 0 volání brány (jen DB). PO opravě: právě 1.
     expect(await refundCallCount(o.paymentId) - before, 'brána zavolána právě 1×').toBe(1);
@@ -93,9 +93,9 @@ run('K2 refund přes bránu (izolovaná DB + fake-gopay)', () => {
   it('idempotence: druhý refund už bránu nevolá, zůstává jeden refund', async () => {
     const o = await paidOrder();
     const before = await refundCallCount(o.paymentId);
-    const r1 = await adminRefundPOST(reqJSON('POST', `/api/admin/orders/${o.orderId}/refund`, {}, { 'x-user-id': o.adminUserId }), { params: { orderId: o.orderId } });
+    const r1 = await adminRefundPOST(reqJSON('POST', `/api/admin/orders/${o.orderId}/refund`, {}, { 'x-user-id': o.adminUserId }), { params: Promise.resolve({ orderId: o.orderId }) });
     expect(r1.status).toBe(200);
-    const r2 = await adminRefundPOST(reqJSON('POST', `/api/admin/orders/${o.orderId}/refund`, {}, { 'x-user-id': o.adminUserId }), { params: { orderId: o.orderId } });
+    const r2 = await adminRefundPOST(reqJSON('POST', `/api/admin/orders/${o.orderId}/refund`, {}, { 'x-user-id': o.adminUserId }), { params: Promise.resolve({ orderId: o.orderId }) });
     expect(r2.status).toBe(200);
     expect(await refundCallCount(o.paymentId) - before, 'dvojí požadavek = jedno volání brány').toBe(1);
     expect((await orderRow(o.orderId)).status).toBe('refunded');
@@ -104,7 +104,7 @@ run('K2 refund přes bránu (izolovaná DB + fake-gopay)', () => {
   it('chyba brány → refund_failed, žádné revoke, HTTP 502', async () => {
     const o = await paidOrder();
     await refundMode(o.paymentId, 'error');
-    const r = await adminRefundPOST(reqJSON('POST', `/api/admin/orders/${o.orderId}/refund`, {}, { 'x-user-id': o.adminUserId }), { params: { orderId: o.orderId } });
+    const r = await adminRefundPOST(reqJSON('POST', `/api/admin/orders/${o.orderId}/refund`, {}, { 'x-user-id': o.adminUserId }), { params: Promise.resolve({ orderId: o.orderId }) });
     expect(r.status).toBe(502);
     const row = await orderRow(o.orderId);
     expect(row.status).toBe('refund_failed');
@@ -115,7 +115,7 @@ run('K2 refund přes bránu (izolovaná DB + fake-gopay)', () => {
   it('timeout brány → refund_failed', async () => {
     const o = await paidOrder();
     await refundMode(o.paymentId, 'timeout');
-    const r = await adminRefundPOST(reqJSON('POST', `/api/admin/orders/${o.orderId}/refund`, {}, { 'x-user-id': o.adminUserId }), { params: { orderId: o.orderId } });
+    const r = await adminRefundPOST(reqJSON('POST', `/api/admin/orders/${o.orderId}/refund`, {}, { 'x-user-id': o.adminUserId }), { params: Promise.resolve({ orderId: o.orderId }) });
     expect(r.status).toBe(502);
     expect((await orderRow(o.orderId)).status).toBe('refund_failed');
     expect(await validTickets(o.orderId)).toBe(1);
@@ -128,7 +128,7 @@ run('K2 refund přes bránu (izolovaná DB + fake-gopay)', () => {
     await pool.query(`INSERT INTO platform.refund_policies (promoter_id, allow_customer_self_refund) VALUES ($1, true)
                       ON CONFLICT (promoter_id) DO UPDATE SET allow_customer_self_refund = true`, [o.promoterId]);
     const before = await refundCallCount(o.paymentId);
-    const r = await selfRefundPOST(reqJSON('POST', `/api/buyer/orders/${o.orderId}/refund`, { reason: 'audit' }, { 'x-user-id': buyerId }), { params: { orderId: o.orderId } });
+    const r = await selfRefundPOST(reqJSON('POST', `/api/buyer/orders/${o.orderId}/refund`, { reason: 'audit' }, { 'x-user-id': buyerId }), { params: Promise.resolve({ orderId: o.orderId }) });
     const status = (await orderRow(o.orderId)).status;
     const gatewayCalls = await refundCallCount(o.paymentId) - before;
     // Buď refund proběhl (pak MUSEL zavolat bránu), nebo neproběhl (pak order není refunded).

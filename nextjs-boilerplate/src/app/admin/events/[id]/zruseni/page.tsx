@@ -5,7 +5,7 @@
  * zrušení s hromadným vrácením online plateb, dobropisy, zneplatněním vstupenek a e-maily; seznam plateb k ručnímu
  * vrácení (pokladna, firemní faktury, selhané refundy).
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -18,7 +18,8 @@ const api = (url: string, init?: RequestInit) => {
 };
 const CHANNEL: Record<string, string> = { box_office: 'pokladna', corporate: 'firemní faktura', gateway_failed: 'refund brány selhal', other: 'jiné' };
 
-export default function CancelPostponePage({ params }: { params: { id: string } }) {
+export default function CancelPostponePage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const [st, setSt] = useState<State | null>(null);
   const [newStart, setNewStart] = useState('');
   const [pReason, setPReason] = useState('');

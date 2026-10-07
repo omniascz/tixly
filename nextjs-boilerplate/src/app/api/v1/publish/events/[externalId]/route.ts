@@ -53,10 +53,8 @@ async function resolveEvent(ctx: { keyId: string; promoterId: string }, external
   );
 }
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { externalId: string } },
-): Promise<Response> {
+export async function PUT(req: NextRequest, props: { params: Promise<{ externalId: string }> }): Promise<Response> {
+  const params = await props.params;
   const ctx = await verifyB2bToken(req);
   if (!ctx) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401, headers: b2bResponseHeaders() });
@@ -148,10 +146,8 @@ export async function PUT(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { externalId: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ externalId: string }> }): Promise<Response> {
+  const params = await props.params;
   const ctx = await verifyB2bToken(req);
   if (!ctx) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401, headers: b2bResponseHeaders() });

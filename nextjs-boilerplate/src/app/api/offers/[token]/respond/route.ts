@@ -81,10 +81,8 @@ function hashTerms(o: OfferForResponse): string {
     .digest('hex');
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   const raw: unknown = await req.json().catch(() => ({}));
   const parsed = bodySchema.safeParse(raw);
   if (!parsed.success) {

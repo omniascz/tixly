@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { verifyDistributionToken } from '@/lib/distribution/auth';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   // Kolo 2 / 3B: partner ověřen tokenem; distribution_* pod RLS jen svc/admin
   return runWithServiceContext(async () => {
   const ctx = await verifyDistributionToken(req);

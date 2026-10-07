@@ -1,16 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, use } from 'react';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouteParams } from '@/lib/next/route-params';
 
-export default function EmbedAdminPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function EmbedAdminPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = use(props.params);
   const { id: eventId } = useRouteParams(params);
   const [variant, setVariant] = useState<'card' | 'button'>('card');
   const [copied, setCopied] = useState<string | null>(null);

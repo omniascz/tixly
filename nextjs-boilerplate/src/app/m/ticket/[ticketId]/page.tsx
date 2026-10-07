@@ -4,11 +4,13 @@
  * TM-style: minimální chrome, velký QR, Apple/Google Wallet buttons,
  * lock-screen optimized brightness, transfer button.
  */
+import type { JSX } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { verifyToken } from '@/lib/auth';
 import { db as rlsDb, runWithUserContext } from '@/lib/db/rls-pool';
 import { MobileTicketView } from './MobileTicketView';
+
 
 export const dynamic = 'force-dynamic';
 

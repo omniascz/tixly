@@ -16,8 +16,9 @@ async function assertOwner(agreementId: string, promoterId: string) {
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; agreementId: string } },
+  props: { params: Promise<{ id: string; agreementId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     if (!(await assertOwner(params.agreementId, ctx.promoterId))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -53,8 +54,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; agreementId: string } },
+  props: { params: Promise<{ id: string; agreementId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     if (!(await assertOwner(params.agreementId, ctx.promoterId))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -76,8 +78,9 @@ export async function DELETE(
 /** GET — ledger záznamy pro tuto smlouvu */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string; agreementId: string } },
+  props: { params: Promise<{ id: string; agreementId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     if (!(await assertOwner(params.agreementId, ctx.promoterId))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });

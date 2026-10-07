@@ -35,10 +35,8 @@ interface EventRow {
   is_headliner: boolean;
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { slug: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ slug: string }> }): Promise<Response> {
+  const params = await props.params;
   const { slug } = params;
 
   return runWithServiceContext(async () => {

@@ -21,8 +21,9 @@ interface AgreementRow extends AgreementTermsRow {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string; agreementId: string } },
+  props: { params: Promise<{ id: string; agreementId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     const agrRes = await runWithServiceContext(() =>
       db().query<AgreementRow>(

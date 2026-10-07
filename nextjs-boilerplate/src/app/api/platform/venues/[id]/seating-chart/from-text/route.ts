@@ -64,7 +64,8 @@ Pravidla:
 Vrať POUZE JSON, nic jiného, v tomto tvaru:
 {"stage":"top|bottom|none","sectors":[{"name":"Přízemí","placement":"front","groups":[{"from":1,"to":15,"seats":17}]},{"name":"Balkon vlevo","placement":"left","groups":[{"from":1,"to":3,"seats":10}]}]}`;
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async () => {
     void params;
     const apiKey = process.env.ANTHROPIC_API_KEY;

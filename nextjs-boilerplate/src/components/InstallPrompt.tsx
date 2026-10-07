@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 
 /**
  * PWA Install prompt — DACH P2-5 (Tixly diferenciátor).

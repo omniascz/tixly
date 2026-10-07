@@ -13,8 +13,9 @@ import { logAction, extractRequestContext } from '@/lib/audit/log';
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string; chartId: string } },
+  props: { params: Promise<{ id: string; chartId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (admin) => {
   const client = await db().connect();
   try {

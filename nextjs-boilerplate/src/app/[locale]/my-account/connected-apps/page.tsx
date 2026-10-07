@@ -3,7 +3,9 @@
  *
  * Buyer vidí 3rd party apps s OAuth accessem do jeho účtu. Může revoke.
  */
+import type { JSX } from 'react';
 import { ConnectedAppsClient } from './ConnectedAppsClient';
+
 
 interface Props {
   params: Promise<{ locale: string }>;

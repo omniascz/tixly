@@ -15,10 +15,8 @@ interface MembershipRow {
   email: string;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { membershipId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ membershipId: string }> }): Promise<Response> {
+  const params = await props.params;
   // Kolo 4: přihlášení před kontrolou konfigurace (anonym dřív dostal 503 a stav konfigurace).
   return runAsUser(req, async (userId) => {
     if (

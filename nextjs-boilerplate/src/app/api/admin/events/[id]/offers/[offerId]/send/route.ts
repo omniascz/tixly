@@ -22,8 +22,9 @@ const bodySchema = z.object({
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string; offerId: string } },
+  props: { params: Promise<{ id: string; offerId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const raw: unknown = await req.json().catch(() => ({}));
     const parsed = bodySchema.safeParse(raw);

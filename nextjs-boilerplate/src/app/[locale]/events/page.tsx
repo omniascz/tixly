@@ -90,13 +90,14 @@ async function fetchEvents(filter: {
 
 export const dynamic = 'force-dynamic';
 
-export default async function EventsPage({
-  params,
-  searchParams,
-}: {
-  params: { locale: string };
-  searchParams: { category?: string; subcategory?: string; format?: string };
-}) {
+export default async function EventsPage(
+  props: {
+    params: Promise<{ locale: string }>;
+    searchParams: Promise<{ category?: string; subcategory?: string; format?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const activeTop = searchParams.category && TOP_CATEGORY_MAP[searchParams.category]
     ? searchParams.category
     : null;

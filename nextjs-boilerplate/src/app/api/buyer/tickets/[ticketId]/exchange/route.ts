@@ -23,10 +23,8 @@ interface AvailableEvent {
   available_seats_count: number;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
     if (!/^[0-9a-f-]{36}$/i.test(params.ticketId)) {
       return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
@@ -95,10 +93,8 @@ const postSchema = z.object({
   targetSeatId: z.string().uuid().optional(),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
     if (!/^[0-9a-f-]{36}$/i.test(params.ticketId)) {
       return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });

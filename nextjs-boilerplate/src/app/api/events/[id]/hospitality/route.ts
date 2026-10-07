@@ -12,10 +12,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }
@@ -49,10 +47,8 @@ const inquirySchema = z.object({
   notes: z.string().max(2000).optional(),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = inquirySchema.safeParse(body);
   if (!parsed.success) {

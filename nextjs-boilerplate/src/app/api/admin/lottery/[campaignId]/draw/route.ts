@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { campaignId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ campaignId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const client = await db().connect();
     try {

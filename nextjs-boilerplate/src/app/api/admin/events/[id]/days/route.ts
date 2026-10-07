@@ -27,10 +27,8 @@ async function ensureOwnership(eventId: string, promoterId: string): Promise<boo
   return r.rows.length > 0;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
   if (!(await ensureOwnership(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -66,10 +64,8 @@ const createSchema = z.object({
   notes: z.string().max(1000).nullable().optional(),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
   if (!(await ensureOwnership(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });

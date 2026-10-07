@@ -20,10 +20,8 @@ import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 const schema = z.object({ seatId: z.string().uuid() });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
     if (!/^[A-Za-z0-9_-]{20,80}$/.test(params.token)) {
       return NextResponse.json({ error: 'INVALID_TOKEN' }, { status: 400 });

@@ -48,10 +48,8 @@ async function assertOwnership(
   }
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
   const own = await assertOwnership(params.id, promoter.promoterId);
   if (!own.ok) return NextResponse.json({ error: own.error }, { status: own.status });
@@ -80,10 +78,8 @@ export async function GET(
   });
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterNonStaff(req, async (promoter) => {
   const own = await assertOwnership(params.id, promoter.promoterId);
   if (!own.ok) return NextResponse.json({ error: own.error }, { status: own.status });

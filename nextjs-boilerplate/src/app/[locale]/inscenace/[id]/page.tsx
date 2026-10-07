@@ -14,12 +14,14 @@ async function load(id: string) {
   return loadPublicProduction(db(), id);
 }
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const d = await load(params.id);
   return d ? { title: `${d.production.title} — Tixly`, description: d.production.subtitle ?? d.production.description ?? undefined } : {};
 }
 
-export default async function ProductionPage({ params }: { params: { locale: string; id: string } }) {
+export default async function ProductionPage(props: { params: Promise<{ locale: string; id: string }> }) {
+  const params = await props.params;
   const d = await load(params.id);
   if (!d) notFound();
   const locale = isValidLocale(params.locale) ? params.locale : DEFAULT_LOCALE;

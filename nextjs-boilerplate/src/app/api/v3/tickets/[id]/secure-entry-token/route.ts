@@ -15,10 +15,8 @@ const schema = z.object({
   partnerAccountId: z.string().min(1).max(200),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const auth = await requireApiAuth(req, 'read_tickets');
   if (!auth.ok) return auth.response;
 

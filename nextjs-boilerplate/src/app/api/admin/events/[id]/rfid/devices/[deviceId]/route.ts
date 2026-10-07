@@ -27,8 +27,9 @@ async function assertEventOwner(eventId: string, promoterId: string): Promise<bo
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; deviceId: string } },
+  props: { params: Promise<{ id: string; deviceId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     if (!(await assertEventOwner(params.id, ctx.promoterId))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -57,8 +58,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; deviceId: string } },
+  props: { params: Promise<{ id: string; deviceId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     if (!(await assertEventOwner(params.id, ctx.promoterId))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });

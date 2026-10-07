@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, type JSX } from 'react';
 import { useParams } from 'next/navigation';
 import { Plus, Trash2, Power, Settings } from 'lucide-react';
 import { EventDetailNav } from '@/app/admin/events/[id]/EventDetailNav';

@@ -11,8 +11,9 @@ export const dynamic = 'force-dynamic';
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { venueId: string; screenId: string } },
+  props: { params: Promise<{ venueId: string; screenId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     const own = await db().query(
       `SELECT cs.id FROM catalog.cinema_screens cs
@@ -44,8 +45,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { venueId: string; screenId: string } },
+  props: { params: Promise<{ venueId: string; screenId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     const own = await db().query(
       `SELECT cs.id FROM catalog.cinema_screens cs

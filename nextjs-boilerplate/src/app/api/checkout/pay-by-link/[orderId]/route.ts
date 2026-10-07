@@ -29,10 +29,8 @@ function verifyToken(orderId: string, token: string): boolean {
   }
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { orderId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ orderId: string }> }): Promise<Response> {
+  const params = await props.params;
   const { orderId } = params;
   const token = req.nextUrl.searchParams.get('token') ?? '';
 

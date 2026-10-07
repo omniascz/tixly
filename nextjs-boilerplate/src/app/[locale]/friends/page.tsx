@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState, type JSX } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,

@@ -104,7 +104,8 @@ const STEPS: { n: string; title: string; text: string }[] = [
   { n: '4', title: 'Výplata na účet', text: 'Sledujete prodej naživo, peníze chodí na váš účet, daňové doklady jsou hotové.' },
 ];
 
-export default function ProPoradatelePage({ params }: { params: { locale: string } }) {
+export default async function ProPoradatelePage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const locale = params.locale || 'cs';
   const reg = `/${locale}/register-promoter`;
 

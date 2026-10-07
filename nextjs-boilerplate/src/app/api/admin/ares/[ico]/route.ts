@@ -8,7 +8,8 @@ import { checkAres } from '@/lib/compliance/ares';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest, { params }: { params: { ico: string } }): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ ico: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async () => {
     if (!/^\d{1,8}$/.test(params.ico)) return NextResponse.json({ error: 'INVALID_ICO' }, { status: 422 });
     const r = await checkAres(params.ico);

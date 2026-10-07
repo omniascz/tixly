@@ -34,8 +34,9 @@ interface TokenRow {
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { eventId: string; token: string } },
+  props: { params: Promise<{ eventId: string; token: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
 
   if (!/^[0-9a-f-]{36}$/i.test(params.token) || !/^[0-9a-f-]{36}$/i.test(params.eventId)) {
@@ -59,7 +60,7 @@ export async function GET(
   // Try Redis fast-path — pouze pro FIFO. Random mód řadí dle draw_seed v DB
   // (Redis udržuje jen FCFS pořadí), proto pro random jdeme přímo DB cestou.
   try {
-    if (!isRandom && await redisAvailable()) {
+    if (!isRandom && (await redisAvailable())) {
       const rs = await getQueueStatusRedis(params.eventId, params.token);
       if (rs.status === 'admitted') {
         // Sync DB pokud ještě není

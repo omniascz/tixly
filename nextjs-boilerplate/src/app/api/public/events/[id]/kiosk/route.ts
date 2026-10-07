@@ -21,10 +21,8 @@ interface TicketTypeRow {
   capacity: number | null;
 }
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.id)) {
     return NextResponse.json({ error: 'INVALID_ID' }, { status: 422 });
   }

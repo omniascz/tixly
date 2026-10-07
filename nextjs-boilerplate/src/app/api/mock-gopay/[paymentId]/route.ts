@@ -9,10 +9,8 @@ interface OrderRow {
   status: string;
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { paymentId: string } },
-): Promise<Response> {
+export async function POST(request: NextRequest, props: { params: Promise<{ paymentId: string }> }): Promise<Response> {
+  const params = await props.params;
   const blocked = mockPaymentBlockedResponse();
   if (blocked) return blocked;
   return runWithServiceContext(async () => {

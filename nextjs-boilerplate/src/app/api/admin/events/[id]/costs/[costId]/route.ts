@@ -46,8 +46,9 @@ async function loadCost(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; costId: string } },
+  props: { params: Promise<{ id: string; costId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const cost = await loadCost(params.id, params.costId, promoter.promoterId);
     if (!cost) return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -104,8 +105,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; costId: string } },
+  props: { params: Promise<{ id: string; costId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const cost = await loadCost(params.id, params.costId, promoter.promoterId);
     if (!cost) return NextResponse.json({ error: 'Not found' }, { status: 404 });

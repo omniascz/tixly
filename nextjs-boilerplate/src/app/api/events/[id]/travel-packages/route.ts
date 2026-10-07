@@ -36,10 +36,8 @@ interface PackageRow {
   display_order: number;
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const client = await db().connect();
   try {
     const r = await client.query<PackageRow>(

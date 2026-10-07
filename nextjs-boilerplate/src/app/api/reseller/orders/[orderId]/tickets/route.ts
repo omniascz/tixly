@@ -13,10 +13,8 @@ import { signEventPrintToken } from '@/lib/tickets/print-token';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { orderId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ orderId: string }> }): Promise<Response> {
+  const params = await props.params;
   let session: ResellerSession;
   try {
     session = await requireReseller(req);

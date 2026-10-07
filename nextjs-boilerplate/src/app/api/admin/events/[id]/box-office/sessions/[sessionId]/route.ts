@@ -8,8 +8,9 @@ import { runAsPromoter } from '@/lib/admin-auth';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string; sessionId: string } },
+  props: { params: Promise<{ id: string; sessionId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     const client = await db().connect();
     try {
@@ -42,8 +43,9 @@ export async function GET(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; sessionId: string } },
+  props: { params: Promise<{ id: string; sessionId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     const client = await db().connect();
     try {

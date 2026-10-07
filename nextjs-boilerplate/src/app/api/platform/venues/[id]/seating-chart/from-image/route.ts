@@ -43,7 +43,8 @@ const builderOut = z.object({
   sectors: z.array(z.object({ name: z.string().min(1).max(100), groups: z.array(groupOut).min(1).max(100) })).min(1).max(50),
 });
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async () => {
     void params;
     const apiKey = process.env.ANTHROPIC_API_KEY;

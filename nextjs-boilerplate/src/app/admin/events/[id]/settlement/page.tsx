@@ -5,7 +5,7 @@
  * a uzavře — uzavřením se čísla zmrazí a založí se výplata.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, use } from 'react';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -56,7 +56,8 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function SettlementPage({ params }: { params: Promise<{ id: string }> }) {
+export default function SettlementPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const { id: eventId } = useRouteParams(params);
   const [agreements, setAgreements] = useState<Agreement[]>([]);
   const [settlements, setSettlements] = useState<Settlement[]>([]);

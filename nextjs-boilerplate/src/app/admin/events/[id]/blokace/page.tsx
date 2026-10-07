@@ -5,7 +5,7 @@
  * (blokace | míst celkem | uvolněno | vydáno | prodáno | zbývá), založení z výběru nebo celé sekce,
  * uvolnění vybraných / všech míst, volné vstupenky na jména. Prodej firmě: Firemní objednávky; na pokladně: Pokladna.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, use } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -18,7 +18,8 @@ const api = (url: string, init?: RequestInit) => {
 };
 const COLORS = ['#7c3aed', '#dc2626', '#0891b2', '#d97706', '#16a34a', '#db2777'];
 
-export default function BlocksPage({ params }: { params: { id: string } }) {
+export default function BlocksPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [seats, setSeats] = useState<Seat[]>([]);
   const [sel, setSel] = useState<Set<string>>(new Set());

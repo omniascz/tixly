@@ -116,10 +116,8 @@ async function loadEventFinancials(
   };
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     const r = await runWithServiceContext(() =>
       db().query(
@@ -138,10 +136,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const raw: unknown = await req.json().catch(() => ({}));
     const parsed = postSchema.safeParse(raw);

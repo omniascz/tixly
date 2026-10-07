@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use, type JSX } from 'react';
 
 type Preview = {
   status: string;
@@ -17,11 +17,12 @@ type Preview = {
   expiresAt: string;
 };
 
-export default function CharityClaimPage({
-  params,
-}: {
-  params: { token: string; locale: string };
-}): JSX.Element {
+export default function CharityClaimPage(
+  props: {
+    params: Promise<{ token: string; locale: string }>;
+  }
+): JSX.Element {
+  const params = use(props.params);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState('');

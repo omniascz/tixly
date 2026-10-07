@@ -829,7 +829,7 @@ function CompletionScreen({
   confettiRef,
 }: {
   data: WizardData;
-  confettiRef: React.RefObject<HTMLDivElement>;
+  confettiRef: React.RefObject<HTMLDivElement | null>; // React 19: useRef(null) je RefObject<T | null>
 }) {
   const [copied, setCopied] = useState(false);
   const shareUrl = data.eventId

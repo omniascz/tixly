@@ -11,10 +11,8 @@ import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { listingId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ listingId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
     const b = await req.json() as {
       payment_method?: string;

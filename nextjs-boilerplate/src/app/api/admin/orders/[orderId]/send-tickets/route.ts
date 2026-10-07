@@ -27,10 +27,8 @@ const bodySchema = z.object({
   note: z.string().max(500).optional(),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { orderId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ orderId: string }> }): Promise<Response> {
+  const params = await props.params;
   // Kolo 5: jen AKTIVNÍ pořadatel — routa rozesílá vstupenky (i na toOverride), pozastavený je nesmí vyvést.
   return runAsActivePromoter(req, async (ctx) => {
     if (!/^[0-9a-f-]{36}$/i.test(params.orderId)) {

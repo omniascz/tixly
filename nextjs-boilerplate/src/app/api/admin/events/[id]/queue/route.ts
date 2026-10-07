@@ -29,10 +29,8 @@ interface EventRow {
   promoter_id: string;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     const evR = await db().query<EventRow>(
       `SELECT id, title, queue_enabled, queue_max_concurrent, queue_mode, promoter_id
@@ -101,10 +99,8 @@ const patchSchema = z.object({
   queueMode:     z.enum(['fifo', 'random']).optional(),
 });
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     const evR = await db().query<{ promoter_id: string }>(
       `SELECT promoter_id FROM catalog.events WHERE id = $1`,
@@ -144,10 +140,8 @@ export async function PATCH(
 
 const admitSchema = z.object({ count: z.number().int().min(1).max(500).default(10) });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     const evR = await db().query<{ promoter_id: string }>(
       `SELECT promoter_id FROM catalog.events WHERE id = $1`,

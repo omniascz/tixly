@@ -85,10 +85,8 @@ function buildRefundEmailHtml(input: {
 </body></html>`;
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { orderId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ orderId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
   // Refunds: max 60/min per tenant.
   const rl = await checkRateLimit(`${promoter.promoterId}:refund`, {

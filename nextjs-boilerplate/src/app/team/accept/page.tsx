@@ -2,11 +2,12 @@ import { TeamAcceptClient } from './TeamAcceptClient';
 
 export const dynamic = 'force-dynamic';
 
-export default function TeamAcceptPage({
-  searchParams,
-}: {
-  searchParams: { token?: string };
-}) {
+export default async function TeamAcceptPage(
+  props: {
+    searchParams: Promise<{ token?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   return (
     <div className="mx-auto max-w-md py-12">
       <h1 className="mb-4 text-2xl font-bold">Přijmout pozvánku do týmu</h1>

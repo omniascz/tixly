@@ -12,10 +12,8 @@ import { ImageResponse } from 'next/og';
 export const runtime = 'edge';
 export const revalidate = 3600;
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
     return new Response('Invalid id', { status: 422 });
   }

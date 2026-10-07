@@ -6,10 +6,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { code: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ code: string }> }): Promise<Response> {
+  const params = await props.params;
   const code = params.code.trim().toUpperCase();
   if (!code || code.length < 4) {
     return NextResponse.json({ error: 'Invalid code' }, { status: 400 });

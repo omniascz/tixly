@@ -41,10 +41,8 @@ const schema = z.object({
   message: z.string().max(500).optional(),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { slug: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ slug: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
 
   if (!/^[a-z0-9-]{2,80}$/.test(params.slug)) {

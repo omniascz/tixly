@@ -22,6 +22,8 @@ import { pgPoolOptions } from '@/lib/db/pg-options';
 import { lookupClient } from '@/lib/oauth/flow';
 import { ConsentForm } from './ConsentForm';
 
+import type { JSX } from 'react';
+
 let pool: Pool | null = null;
 function db(): Pool {
   if (!pool) pool = new Pool(pgPoolOptions(process.env.DATABASE_URL));

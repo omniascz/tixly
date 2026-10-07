@@ -8,8 +8,9 @@ import { runAsPromoter } from '@/lib/admin-auth';
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; packageId: string } },
+  props: { params: Promise<{ id: string; packageId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     let body: {
       totalCapacity?: number;
@@ -62,8 +63,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; packageId: string } },
+  props: { params: Promise<{ id: string; packageId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     const client = await db().connect();
     try {

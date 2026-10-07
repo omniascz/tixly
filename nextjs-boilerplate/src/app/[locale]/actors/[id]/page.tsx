@@ -1,9 +1,11 @@
-import { notFound } from 'next/navigation';
+import type { JSX } from 'react';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { Pool } from 'pg';
 import { pgPoolOptions } from '@/lib/db/pg-options';
-import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 import { formatDate } from '@/lib/format';
+import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
+
 
 interface ArtistRow {
   id: string;

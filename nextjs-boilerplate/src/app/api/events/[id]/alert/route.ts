@@ -89,16 +89,18 @@ async function DELETEImpl(
 // `app_current_user_id() IS NULL` byla zmerena a otevira cele upozorneni vsem:
 // anonym pod ni videl 3 ze 3 radku vcetne 3 cizich e-mailu. Servisni kontext
 // drzi rozhodnuti v routе, kde je videt.
-type AlertCtx = { params: { id: string } };
+type AlertCtx = { params: Promise<{ id: string }> };
 
 export async function POST(req: NextRequest, ctx: AlertCtx): Promise<Response> {
   // Kolo 4 (migrace 491): zápis do ticket_alerts smí jen servisní kontext — politika s `true`
   // dovolovala komukoli vložit řádek s cizím user_id. Routa sama validuje vstup a user_id
   // bere výhradně z ověřené hlavičky middlewaru (x-user-id), proto zapisuje servisně vždy
   // (i pro přihlášeného — ON CONFLICT na řádek založený dřív jako host by jinak narazil na RLS).
-  return runWithServiceContext(() => POSTImpl(req, ctx));
+  const params = await ctx.params; // Next 15: params je Promise
+  return runWithServiceContext(() => POSTImpl(req, { params }));
 }
 
 export async function DELETE(req: NextRequest, ctx: AlertCtx): Promise<Response> {
-  return runWithServiceContext(() => DELETEImpl(req, ctx));
+  const params = await ctx.params; // Next 15: params je Promise
+  return runWithServiceContext(() => DELETEImpl(req, { params }));
 }

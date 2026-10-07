@@ -34,11 +34,12 @@ async function fetchPlans(): Promise<PlanRow[]> {
   }
 }
 
-export default async function TixlyPlusPage({
-  params,
-}: {
-  params: { locale: string };
-}) {
+export default async function TixlyPlusPage(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+) {
+  const params = await props.params;
   const plans = await fetchPlans();
 
   return (

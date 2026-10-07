@@ -8,10 +8,8 @@ const postSchema = z.object({
   ticketTypeId: z.string().uuid().optional(),
 });
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
     const totalRes = await db().query<{ total: string }>(
       `SELECT COUNT(*)::text AS total FROM orders.waiting_list
@@ -30,10 +28,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) {
@@ -105,10 +101,8 @@ export async function POST(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const email = req.nextUrl.searchParams.get('email');
   const token = req.nextUrl.searchParams.get('token');
   if (!email || !token) {

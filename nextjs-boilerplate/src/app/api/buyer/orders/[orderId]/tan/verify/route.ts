@@ -17,10 +17,8 @@ const schema = z.object({
   code: z.string().regex(/^\d{6}$/),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { orderId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ orderId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);

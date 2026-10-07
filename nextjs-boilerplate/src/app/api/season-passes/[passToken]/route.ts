@@ -28,10 +28,8 @@ interface UseRow {
   event_date: string;
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { passToken: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ passToken: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
     const { passToken } = params;
 
@@ -103,10 +101,8 @@ export async function GET(
 
 const useSchema = z.object({ eventId: z.string().uuid() });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { passToken: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ passToken: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
     const { passToken } = params;
     const body: unknown = await req.json().catch(() => ({}));

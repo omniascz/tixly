@@ -10,10 +10,8 @@ import { db } from '@/lib/db/rls-pool';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { pageId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ pageId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
   if (!/^[0-9a-f-]{36}$/i.test(params.pageId)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });

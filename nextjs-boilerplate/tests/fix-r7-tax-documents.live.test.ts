@@ -134,7 +134,7 @@ run('Kolo 7 — daňové doklady, řady, dobropisy', () => {
     } as never);
     const { GET } = await import('@/app/api/admin/invoices/[id]/pdf/route');
     const r = await throughMiddleware(new Request(`http://localhost/api/admin/invoices/${invoiceId}/pdf`, { headers: { authorization: `Bearer ${tok}` } }),
-      GET as unknown as H, { params: { id: invoiceId } });
+      GET as unknown as H, { params: Promise.resolve({ id: invoiceId }) });
     expect(r.status).toBe(200);
     expect(r.headers.get('content-type')).toBe('application/pdf');
     expect((await r.arrayBuffer()).byteLength).toBeGreaterThan(1000);
@@ -174,7 +174,7 @@ run('Kolo 7 — daňové doklady, řady, dobropisy', () => {
     const { POST: refund } = await import('@/app/api/admin/orders/[orderId]/refund/route');
     const rr = await refund(new Request(`http://localhost/api/admin/orders/${cj.orderId}/refund`, {
       method: 'POST', headers: { 'content-type': 'application/json', 'x-user-id': c.adminUserId }, body: '{}',
-    }) as unknown as NextRequest, { params: { orderId: cj.orderId } });
+    }) as unknown as NextRequest, { params: Promise.resolve({ orderId: cj.orderId }) });
     expect(rr.status, await rr.clone().text()).toBe(200);
     const cn = (await clone.pool.query(
       `SELECT id, invoice_number n, total_minor::int t, corrects_invoice_id c FROM orders.invoices WHERE order_id=$1 AND doc_type='credit_note'`, [cj.orderId])).rows;
@@ -194,7 +194,7 @@ run('Kolo 7 — daňové doklady, řady, dobropisy', () => {
     const { GET } = await import('@/app/api/buyer/orders/[orderId]/invoice/route');
     for (let i = 0; i < 2; i++) {
       const r = await throughMiddleware(new Request(`http://localhost/api/buyer/orders/${orderId}/invoice`, { headers: { authorization: `Bearer ${tok}` } }),
-        GET as unknown as H, { params: { orderId } });
+        GET as unknown as H, { params: Promise.resolve({ orderId }) });
       expect(r.status, await r.clone().text()).toBe(200);
       expect(r.headers.get('content-disposition')).toMatch(/danovy-doklad/);
     }

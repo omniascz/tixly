@@ -20,7 +20,8 @@ const schema = z.object({
   bankReference: z.string().trim().min(1).max(140),
 });
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (admin) => {
     if (!/^[0-9a-f-]{36}$/i.test(params.id)) return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
     const parsed = schema.safeParse(await req.json().catch(() => ({})));

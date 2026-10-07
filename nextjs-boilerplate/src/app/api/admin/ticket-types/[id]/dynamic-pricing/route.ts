@@ -31,10 +31,8 @@ async function ensureOwnership(promoterId: string, ttId: string): Promise<boolea
   return r.rows.length > 0;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
   if (!(await ensureOwnership(promoter.promoterId, params.id))) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -53,10 +51,8 @@ export async function GET(
   });
 }
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterNonStaff(req, async (promoter) => {
   if (!(await ensureOwnership(promoter.promoterId, params.id))) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -108,10 +104,8 @@ export async function PUT(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterNonStaff(req, async (promoter) => {
   if (!(await ensureOwnership(promoter.promoterId, params.id))) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });

@@ -8,7 +8,8 @@ import { db } from '@/lib/db/rls-pool';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest, { params }: { params: { eventId: string } }): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ eventId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!/^[0-9a-f-]{36}$/i.test(params.eventId)) return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
     const own = await db().query(`SELECT 1 FROM catalog.events WHERE id = $1 AND promoter_id = $2`, [params.eventId, promoter.promoterId]);

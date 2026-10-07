@@ -69,8 +69,8 @@ run('Krok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut', () => {
   it('PDF: vlastník stáhne PDF; cizí kupec ani anonym ne', async () => {
     const o = await paidOrder();
     const { GET } = await import('@/app/api/buyer/orders/[orderId]/ticket-pdf/route');
-    const h = GET as H<{ params: { orderId: string } }>;
-    const ctx = { params: { orderId: o.orderId } };
+    const h = GET as H<{ params: Promise<{ orderId: string }> }>;
+    const ctx = { params: Promise.resolve({ orderId: o.orderId }) };
     const own = await throughMiddleware(req('GET', `/api/buyer/orders/${o.orderId}/ticket-pdf`, o.ownerToken), h, ctx);
     const body = Buffer.from(await own.arrayBuffer());
     expect(own.status, body.toString('utf8').slice(0, 200)).toBe(200);
@@ -87,8 +87,8 @@ run('Krok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut', () => {
   it('storno: vlastník stornuje zaplacenou objednávku (cancelled, vstupenky revoked, refund_request, kapacita zpět); cizí ne', async () => {
     const o = await paidOrder();
     const { POST } = await import('@/app/api/buyer/orders/[orderId]/cancel/route');
-    const h = POST as H<{ params: { orderId: string } }>;
-    const ctx = { params: { orderId: o.orderId } };
+    const h = POST as H<{ params: Promise<{ orderId: string }> }>;
+    const ctx = { params: Promise.resolve({ orderId: o.orderId }) };
 
     const remBefore = await remaining(o.ticketTypeId);
     const foreign = await throughMiddleware(req('POST', `/api/buyer/orders/${o.orderId}/cancel`, await foreignBuyerToken(), { reason: 'x' }), h, ctx);
@@ -140,8 +140,8 @@ run('Krok 2 — V2 pod tixly_app: legitimní uspěje, cizí odmítnut', () => {
     await pool.query(`INSERT INTO platform.refund_policies (promoter_id, allow_customer_self_refund) VALUES ($1, true)
                       ON CONFLICT (promoter_id) DO UPDATE SET allow_customer_self_refund = true`, [o.promoterId]);
     const { POST } = await import('@/app/api/buyer/orders/[orderId]/refund/route');
-    const h = POST as H<{ params: { orderId: string } }>;
-    const ctx = { params: { orderId: o.orderId } };
+    const h = POST as H<{ params: Promise<{ orderId: string }> }>;
+    const ctx = { params: Promise.resolve({ orderId: o.orderId }) };
     const refundCalls = async () => ((await (await fetch(`${FAKE}/_ctl/refund-calls`)).json()) as Array<{ path: string }>)
       .filter((c) => c.path === `/api/payments/payment/${o.gopayId}/refund`).length;
 

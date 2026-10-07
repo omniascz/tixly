@@ -1,5 +1,7 @@
 'use client';
 
+import type { JSX } from 'react';
+
 /**
  * Offline fallback page (PWA P2-5).
  *

@@ -29,10 +29,8 @@ interface EventOptionRow {
   remaining_qty: number;
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
     const token = params.token;
     if (!token || token.length < 10) {
@@ -117,10 +115,8 @@ const postSchema = z.object({
   selectedSeatId: z.string().uuid().optional(),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
     const token = params.token;
     const body: unknown = await req.json().catch(() => null);

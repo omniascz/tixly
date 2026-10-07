@@ -24,10 +24,8 @@ interface OrderRow {
 }
 
 /** GET — vrátí info o platbě pro zobrazení na mock Wero stránce */
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { paymentId: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ paymentId: string }> }): Promise<Response> {
+  const params = await props.params;
   const blocked = mockPaymentBlockedResponse();
   if (blocked) return blocked;
   return runWithServiceContext(async () => {
@@ -55,10 +53,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { paymentId: string } },
-): Promise<Response> {
+export async function POST(request: NextRequest, props: { params: Promise<{ paymentId: string }> }): Promise<Response> {
+  const params = await props.params;
   const blocked = mockPaymentBlockedResponse();
   if (blocked) return blocked;
   return runWithServiceContext(async () => {

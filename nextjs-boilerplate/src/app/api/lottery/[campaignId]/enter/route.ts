@@ -7,10 +7,8 @@ const schema = z.object({
   name: z.string().min(1).max(200),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { campaignId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ campaignId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
     const body: unknown = await req.json().catch(() => ({}));
     const parsed = schema.safeParse(body);

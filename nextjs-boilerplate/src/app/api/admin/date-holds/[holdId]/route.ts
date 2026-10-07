@@ -57,10 +57,8 @@ const toDomain = (h: HoldRow): DateHold => ({
   status: h.status as DateHold['status'],
 });
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { holdId: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ holdId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const client = await db().connect();
     try {

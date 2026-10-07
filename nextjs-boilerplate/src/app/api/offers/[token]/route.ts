@@ -70,10 +70,8 @@ async function loadOfferByToken(token: string): Promise<OfferRow | null> {
   return r.rows[0] ?? null;
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   const offer = await loadOfferByToken(params.token);
   const now = new Date();
 

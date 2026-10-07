@@ -23,10 +23,8 @@ const postSchema = z.object({
   members: z.array(memberSchema).min(1).max(1000),
 });
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { groupId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ groupId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
   // Ownership
   const owns = await db().query(
@@ -55,10 +53,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { groupId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ groupId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoterNonStaff(req, async (promoter) => {
   const owns = await db().query(
     `SELECT 1 FROM platform.member_groups WHERE id = $1 AND promoter_id = $2`,

@@ -14,10 +14,8 @@ import { db, runWithUserContext } from '@/lib/db/rls-pool';
 import { renderTicketsPdf } from '@/lib/tickets/pdf-renderer';
 import { renderFanTicketPdf } from '@/lib/tickets/fan-ticket-renderer';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { orderId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ orderId: string }> }): Promise<Response> {
+  const params = await props.params;
   const userId = req.headers.get('x-user-id');
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

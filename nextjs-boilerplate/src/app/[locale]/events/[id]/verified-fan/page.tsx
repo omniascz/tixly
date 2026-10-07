@@ -37,11 +37,12 @@ async function fetchEvent(id: string): Promise<EventRow | null> {
 
 export const dynamic = 'force-dynamic';
 
-export default async function VerifiedFanRegisterPage({
-  params,
-}: {
-  params: { locale: string; id: string };
-}) {
+export default async function VerifiedFanRegisterPage(
+  props: {
+    params: Promise<{ locale: string; id: string }>;
+  }
+) {
+  const params = await props.params;
   const event = await fetchEvent(params.id);
   if (!event) notFound();
   if (!event.verified_fan_enabled) {

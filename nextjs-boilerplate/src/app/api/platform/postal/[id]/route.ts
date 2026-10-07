@@ -5,10 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithPlatformAdminContext } from '@/lib/db/rls-pool';
 import { requirePlatformAdmin } from '@/lib/platform-auth';
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const admin = await requirePlatformAdmin(req);
   if (!admin) return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
 

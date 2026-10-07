@@ -33,10 +33,8 @@ interface EventRow {
   status: string;
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { eventId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ eventId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
 
   if (!/^[0-9a-f-]{36}$/i.test(params.eventId)) {

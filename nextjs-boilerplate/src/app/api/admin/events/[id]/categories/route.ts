@@ -17,7 +17,8 @@ async function owned(promoterId: string, eventId: string): Promise<boolean> {
   return (await db().query(`SELECT 1 FROM catalog.events WHERE id = $1 AND promoter_id = $2`, [eventId, promoterId])).rows.length > 0;
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!UUID.test(params.id)) return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
     if (!(await owned(promoter.promoterId, params.id))) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
@@ -25,7 +26,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   });
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!UUID.test(params.id)) return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
     if (!(await owned(promoter.promoterId, params.id))) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });

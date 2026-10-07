@@ -39,10 +39,8 @@ async function verifyEventOwnership(
   return Number(r.rows[0]?.count ?? 0) > 0;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
   const client = await db().connect();
   try {
@@ -104,10 +102,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = upsertSchema.safeParse(body);

@@ -12,10 +12,8 @@ import { buildInvoicePdf, documentTitle } from '@/lib/accounting/invoice-pdf';
 import { runAsUser } from '@/lib/auth';
 import { asSystemInTx, db } from '@/lib/db/rls-pool';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { orderId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ orderId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
     const { orderId } = params;
     if (!/^[0-9a-f-]{36}$/i.test(orderId)) {

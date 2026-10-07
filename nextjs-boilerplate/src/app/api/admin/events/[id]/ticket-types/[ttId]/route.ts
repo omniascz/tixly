@@ -48,10 +48,8 @@ async function ensureOwnership(eventId: string, ttId: string, promoterId: string
     | undefined;
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string; ttId: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string; ttId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (
       !/^[0-9a-f-]{36}$/i.test(params.id) ||
@@ -142,10 +140,8 @@ export async function PATCH(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string; ttId: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string; ttId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (
       !/^[0-9a-f-]{36}$/i.test(params.id) ||

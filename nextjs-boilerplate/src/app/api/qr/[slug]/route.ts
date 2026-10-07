@@ -24,10 +24,8 @@ function hashIp(ip: string | null): string | null {
   return createHash('sha256').update(`${ip}|tixly-qr-salt`).digest('hex').slice(0, 32);
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { slug: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ slug: string }> }): Promise<Response> {
+  const params = await props.params;
   // Kolo 2 / 3B: veřejný sken QR = systémový zápis (qr_scans pod RLS)
   return runWithServiceContext(async () => {
   const slug = params.slug.toLowerCase();

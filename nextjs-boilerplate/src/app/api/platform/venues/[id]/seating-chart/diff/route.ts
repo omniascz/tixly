@@ -15,10 +15,8 @@ interface ChartLayout {
   sectors: { name: string; color?: string; rows: { label: string; seats: { num: string; x: number; y: number; accessibility?: boolean }[] }[] }[];
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (_admin) => {
   const fromId = req.nextUrl.searchParams.get('from');
   const toId = req.nextUrl.searchParams.get('to');
