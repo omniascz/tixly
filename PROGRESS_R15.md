@@ -73,3 +73,6 @@ Větev `fix/round15-next15-2026-10-07` z `f2af248a`. Výstupy `logs/r15/`. Skrip
   496/500 vstupenek). `3_load_compare.md`, `3_load_tables.md`. CPU profil Next 15 při zátěži `load/cpuprof`.
 - npm audit po upgradu: 2 critical (vitest/tinypool — testy), 26 high, 28 moderate, 1 low; next = moderate (zabudovaný
   postcss). Před upgradem: 3 critical (vč. next), 27 high. Tabulka `3_npm_audit_table.md`.
+- Závěrečně: tsc 0, lint bez nové chyby (971 < 1008), unit 712 (`9_unit.txt`). fix-r11 „GET /api/health/redis":
+  přerušované vypršení 20 s — bez instrumentace 3 ze 7 plných běhů, s výpisy času 0 z 9 (import ~1 s, GET ~4 s);
+  falešné časovače vyloučeny; příčina nepotvrzena, limit neoslaben; rozhodne CI.
