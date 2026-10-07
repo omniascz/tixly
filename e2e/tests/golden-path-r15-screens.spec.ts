@@ -30,6 +30,9 @@ async function open(browser: Browser, mobile: boolean, auth: boolean): Promise<P
   page.on('dialog', (d) => void d.dismiss());
   if (auth) {
     await page.goto('/cs/login', { waitUntil: 'domcontentloaded' });
+    // Vyplnit až po hydrataci: e-mail napsaný před ní React při dalším vykreslení (vyplnění hesla) smaže — stejně
+    // v Next 14 i 15 (logs/r15/3_hydration_race.txt), jen časování se liší.
+    await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
     await page.getByLabel('E-mail').fill(OWNER.email);
     await page.getByLabel('Heslo').fill(OWNER.pass);
     await Promise.all([page.waitForResponse((r) => r.url().endsWith('/api/auth/login')), page.getByRole('button', { name: /^Přihlásit$/ }).click()]);
@@ -41,7 +44,7 @@ async function shot(page: Page, path: string, name: string, prep?: (p: Page) => 
   await page.goto(path, { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
   if (prep) await prep(page);
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(Number(process.env.SETTLE_MS ?? 800));
   await page.screenshot({ path: join(SHOTS, `${name}.png`), fullPage: true, animations: 'disabled', caret: 'hide' });
 }
 const seatsReady = async (p: Page): Promise<void> => { await p.locator('svg circle, button[aria-label*="řada"], [data-seat]').first().waitFor({ timeout: 8000 }).catch(() => {}); };

@@ -1,0 +1,7 @@
+Kolo 15 — selhání přihlášení ve snímkovacím testu (e-mail prázdný, heslo vyplněné) na Next 15.
+Scénář: JS zdržený, e-mail vyplněn PŘED hydratací, heslo AŽ PO ní (scratchpad/cacheprobe/hydrate_login2.mjs, /cs/login):
+  next15 {"emailPoHydrataci":"demo@tixly-staging.test","emailPoVyplneniHesla":""}  (2×)
+  next14 {"emailPoHydrataci":"demo@tixly-staging.test","emailPoVyplneniHesla":""}  (2×)
+Obě pole před hydratací (zdržení 0 / 2000 ms) — hodnoty zůstanou v obou verzích (hydrate_login.mjs, 3× každá).
+Řízené pole: React při vykreslení po hydrataci nastaví hodnotu ze stavu ('') — stejně React 18 i 19 → není změna
+chování upgradu; test teď před vyplněním čeká na networkidle.

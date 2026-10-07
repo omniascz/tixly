@@ -40,3 +40,7 @@ Větev `fix/round15-next15-2026-10-07` z `f2af248a`. Výstupy `logs/r15/`. Skrip
 - Ověření: tsc 0 (i s .next/types po buildu), lint bez nové chyby (971 < 1008), unit 712. Přerušované selhání
   fix-r11 „GET /api/health/redis" (limit 20 s) ve 2 z 8 plných běhů; měření v 5 bězích: import 0,9–1,7 s, GET 4,04 s —
   příčina nepotvrzena, limit neoslaben, sledovat v CI.
+
+## Krok 3 — ověření (průběh)
+- Systém ukončil kvůli paměti blok „build + reset + screenshoty" (build doběhl, exit 0) → dál po menších krocích:
+  zvlášť reset demo, zvlášť server + screenshoty.

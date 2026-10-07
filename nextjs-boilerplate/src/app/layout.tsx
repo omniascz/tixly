@@ -1,6 +1,5 @@
 import { ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { PushOptInPrompt } from '@/components/PushOptInPrompt';
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar';
@@ -10,7 +9,9 @@ import { WhiteLabelTheme } from '@/components/WhiteLabelTheme';
 import { Providers } from './providers';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin', 'latin-ext'], variable: '--font-inter' });
+// Kolo 15: next/font Inter odstraněn. V Next 14 měl jeho @font-face hashovaný název (__Inter_65423c) a CSS aplikace
+// (Tailwind sans: 'Inter', …) ho nikdy nepoužilo — text se vykresloval systémovým písmem. Next 15.5 název nehashuje
+// (@font-face 'Inter'), takže by doslovné 'Inter' nově načetlo webfont = jiný vzhled. Bez importu je vykreslení jako v 14.
 
 export const metadata: Metadata = {
   title: 'Tixly',
@@ -41,7 +42,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="cs" className={inter.variable} suppressHydrationWarning>
+    <html lang="cs" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
