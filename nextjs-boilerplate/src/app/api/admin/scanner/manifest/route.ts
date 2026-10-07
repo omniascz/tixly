@@ -1,17 +1,19 @@
 /**
  * GET /api/admin/scanner/manifest?eventId=<uuid>[&eventDayId=<uuid>]
  *
- * Vrátí seznam ID platných (status='valid') vstupenek pro danou akci promotéra.
+ * Vrátí offline seznam vstupenek termínu (lib/scanner/offline-manifest — kolo 14: platné, použité i zrušené vstupenky
+ * s údaji, podle kterých skener offline rozhoduje stejně jako online).
  * Scanner si ho stáhne PŘED začátkem představení a uloží do IndexedDB. Při výpadku
  * sítě pak offline ověřuje sken proti tomuto whitelistu (+ lokální evidence použití),
  * místo slepého „optimistic accept" — padělaný / cizí lístek se offline odmítne.
  *
  * Bezpečnost: scoped na promotéra (vlastní akce), runAsActivePromoter. Vrací jen
- * holá ticket UUID (to, co stejně je v QR), žádné PII. Strop 100k řádků.
+ * ticket UUID, stav, kategorie, místo, otisky tokenů a časově omezené TOTP kódy — žádné PII. Strop 100k řádků.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsActivePromoter } from '@/lib/admin-auth';
+import { buildOfflineManifest } from '@/lib/scanner/offline-manifest';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,22 +36,12 @@ export async function GET(req: NextRequest): Promise<Response> {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    const r = await db().query<{ id: string }>(
-      `SELECT t.id
-         FROM tickets.tickets t
-         JOIN orders.orders o ON o.id = t.order_id
-        WHERE o.event_id = $1
-          AND t.status = 'valid'
-        ORDER BY t.id
-        LIMIT 100000`,
-      [eventId],
-    );
-
-    return NextResponse.json({
-      eventId,
-      ticketIds: r.rows.map((x) => x.id),
-      count: r.rowCount,
-      generatedAt: new Date().toISOString(),
-    });
+    // Kolo 14: stav, kategorie s průkazem, otisky tiskových tokenů a omezené okno TOTP kódů — offline stejná pravidla jako online
+    const client = await db().connect();
+    try {
+      return NextResponse.json(await buildOfflineManifest(client, eventId));
+    } finally {
+      client.release();
+    }
   });
 }
