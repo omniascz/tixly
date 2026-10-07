@@ -14,6 +14,7 @@
  */
 
 import * as Sentry from '@sentry/nextjs';
+import { scrubSentryEvent } from './src/lib/observability/scrub-pii';
 
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
 if (dsn) {
@@ -53,7 +54,8 @@ if (dsn) {
         console.warn('[sentry dev]', event.exception?.values?.[0]?.value ?? hint.originalException);
         return null;
       }
-      return event;
+      // Kolo 14 / krok 3: osobní údaje kupců (e-maily, jména, telefony) se do Sentry neposílají
+      return scrubSentryEvent(event);
     },
   });
 }

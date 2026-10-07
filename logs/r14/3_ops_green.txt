@@ -1,0 +1,72 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v1.6.1 C:/Users/omnia/Documents/tixly/nextjs-boilerplate
+
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > */5 * * * * → 5 min
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > */15 * * * * → 15 min
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 * * * * → 60 min
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 */6 * * * → 360 min
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 8 * * * → 1440 min
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 7 * * 1 → 10080 min
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > */50 * * * * → 50 min
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 1 1 * * → 44640 min
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 5,6 * * * → 1380 min
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > registr obsahuje všechny crony z vercel.json + týdenní zálohu DB
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > Kolo 14 / krok 3 — hlídání provozu > dispatcher zapíše heartbeat jen po úspěšném běhu jobu; neúspěch = poslední stav a chyba 693ms
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > Kolo 14 / krok 3 — hlídání provozu > kontrolní job: cron neproběhl > 2× interval → e-mail; do 30 min stejný problém znovu neposílá 6464ms
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > Kolo 14 / krok 3 — hlídání provozu > zaplaceno u brány, ale bez vstupenek po 10 min → e-mail (čerstvě zaplacené ne) 841ms
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > Kolo 14 / krok 3 — hlídání provozu > refund ve stavu refund_failed → e-mail 785ms
+stderr | tests/fix-r14-ops-monitoring.live.test.ts > Kolo 14 / krok 3 — hlídání provozu > selhání webhooku brány → e-mail
+[gopay webhook] getPaymentStatus failed: Error: GoPay getPayment HTTP 404
+    at Module.getGopayPaymentStatus (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\lib\payment\gopay-real.ts:214:22)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at handleWebhook (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\api\payments\gopay\webhook\route.ts:99:14)
+    at Module.withDbOverload (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\lib\db\overload.ts:36:12)
+    at Module.withWebhookAlert (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\lib\ops\webhook-alert.ts:26:11)
+    at C:\Users\omnia\Documents\tixly\nextjs-boilerplate\tests\fix-r14-ops-monitoring.live.test.ts:158:17
+    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:958:5)
+
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > Kolo 14 / krok 3 — hlídání provozu > selhání webhooku brány → e-mail 686ms
+stderr | tests/fix-r14-ops-monitoring.live.test.ts > Kolo 14 / krok 3 — hlídání provozu > selhání e-mailu se vstupenkami → e-mail provozu
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at internalConnectMultiple (node:net:1142:49)
+      at afterConnectMultiple (node:net:1723:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at internalConnectMultiple (node:net:1142:49)
+      at afterConnectMultiple (node:net:1723:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+
+stderr | tests/fix-r14-ops-monitoring.live.test.ts > Kolo 14 / krok 3 — hlídání provozu > selhání e-mailu se vstupenkami → e-mail provozu
+[order-completed] email failed: Error: SMTP 421 simulace výpadku
+    at sendMail (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\tests\fix-r14-ops-monitoring.live.test.ts:7:104)
+    at C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\api\internal\order-completed\route.ts:801:11
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at C:\Users\omnia\Documents\tixly\nextjs-boilerplate\tests\fix-r14-ops-monitoring.live.test.ts:170:15
+    at runTest (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/@vitest/runner/dist/index.js:967:3)
+    at file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node_modules/vitest/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:116:7
+
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > Kolo 14 / krok 3 — hlídání provozu > selhání e-mailu se vstupenkami → e-mail provozu 1487ms
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > Kolo 14 / krok 3 — hlídání provozu > záloha: selhání → e-mail; úspěch → heartbeat db-backup; bez tajemství 403 561ms
+ ✓ tests/fix-r14-ops-monitoring.live.test.ts > Kolo 14 / krok 3 — hlídání provozu > denní souhrn v 7:00 Europe/Prague: včerejší prodeje po termínech; jednou za den; mimo 7:00 nic 6098ms
+
+ Test Files  1 passed (1)
+      Tests  18 passed (18)
+   Start at  13:08:27
+   Duration  18.06s (transform 455ms, setup 0ms, collect 104ms, tests 17.76s, environment 0ms, prepare 72ms)
+
