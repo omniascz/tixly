@@ -22,6 +22,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { withWebhookAlert } from '@/lib/ops/webhook-alert';
 import { getWiseConfig, getWiseTransferStatus, verifyWiseWebhookSignature } from '@/lib/payouts/wise';
 
 export const dynamic = 'force-dynamic';
@@ -43,7 +44,12 @@ function isWiseEvent(x: unknown): x is WiseWebhookEvent {
     && !!e.data && typeof e.data === 'object' && !!e.data.resource && Number.isFinite(Number(e.data.resource.id));
 }
 
+// Kolo 14 / krok 3: selhání webhooku → upozornění provozu (lib/ops/webhook-alert)
 export async function POST(req: NextRequest): Promise<Response> {
+  return withWebhookAlert('wise', req, () => handlePost(req));
+}
+
+async function handlePost(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
     const rawBody = await req.text();
 

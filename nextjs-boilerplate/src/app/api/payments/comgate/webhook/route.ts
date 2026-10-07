@@ -15,8 +15,9 @@
  */
 
 import { timingSafeEqual } from 'crypto';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { withWebhookAlert } from '@/lib/ops/webhook-alert';
 import { getComGatePaymentStatus, getComGateConfig } from '@/lib/payment/comgate';
 
 
@@ -45,7 +46,12 @@ async function readNotification(req: NextRequest): Promise<Record<string, unknow
   return Object.fromEntries(new URLSearchParams(raw));
 }
 
+// Kolo 14 / krok 3: selhání webhooku → upozornění provozu (lib/ops/webhook-alert)
 export async function POST(req: NextRequest): Promise<Response> {
+  return withWebhookAlert('comgate', req, () => handlePost(req));
+}
+
+async function handlePost(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
 
   const fields = await readNotification(req);

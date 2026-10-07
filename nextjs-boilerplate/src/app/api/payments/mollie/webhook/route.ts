@@ -16,11 +16,17 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { withWebhookAlert } from '@/lib/ops/webhook-alert';
 import { getMollieConfig, getMolliePayment } from '@/lib/payment/mollie';
 
 export const dynamic = 'force-dynamic';
 
+// Kolo 14 / krok 3: selhání webhooku → upozornění provozu (lib/ops/webhook-alert)
 export async function POST(req: NextRequest): Promise<Response> {
+  return withWebhookAlert('mollie', req, () => handlePost(req));
+}
+
+async function handlePost(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
     // Mollie sends application/x-www-form-urlencoded: id=tr_xxx
     const contentType = req.headers.get('content-type') ?? '';

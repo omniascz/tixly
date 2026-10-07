@@ -808,6 +808,14 @@ export async function POST(request: NextRequest): Promise<Response> {
     emailSent = true;
   } catch (err) {
     optional('email', err); console.error('[order-completed] email failed:', err);
+    // Kolo 14 / krok 3: kupec vstupenky e-mailem nedostal → upozornění provozu (1 / 30 min) + denní souhrn
+    const { alertOps } = await import('@/lib/ops/alerts');
+    await alertOps({
+      kind: 'ticket_email_failed', key: 'ticket_email_failed',
+      subject: 'Selhal e-mail se vstupenkami',
+      text: `Objednávka ${orderId} (${order.event_title}) — e-mail se vstupenkami se nepodařilo odeslat: `
+        + `${err instanceof Error ? err.message : String(err)}\n\nVstupenky jsou vystavené; pošlete je znovu z detailu objednávky (Poslat znovu).`,
+    });
   }
 
   // SMS vstupenky (SMSticket-style) — link na magic show page per ticket.

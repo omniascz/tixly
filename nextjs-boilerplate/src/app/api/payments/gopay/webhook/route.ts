@@ -20,13 +20,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import type { Pool } from 'pg';
 import { busyResponse, isDbOverloaded, withDbOverload } from '@/lib/db/overload';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
-import { getGopayConfig, getGopayPaymentStatus } from '@/lib/payment/gopay-real';
-import { releaseOrderCapacity } from '@/lib/orders/release-capacity';
-import { executeOrderRefund } from '@/lib/payment/refund-order';
+import { withWebhookAlert } from '@/lib/ops/webhook-alert';
 import { reacquireOrderCapacity } from '@/lib/orders/reacquire-capacity';
-import type { Pool } from 'pg';
+import { releaseOrderCapacity } from '@/lib/orders/release-capacity';
+import { getGopayConfig, getGopayPaymentStatus } from '@/lib/payment/gopay-real';
+import { executeOrderRefund } from '@/lib/payment/refund-order';
 
 /** Stavy, ze kterých refund hlášený bránou dokončíme (pending: kapacita je ještě držená). */
 const EXTERNAL_REFUNDABLE = ['paid', 'paid_partial', 'refund_failed', 'pending'];
@@ -339,7 +340,7 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
 export async function GET(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
 
-  return withDbOverload(() => handleWebhook(req, 'GET'));
+  return withWebhookAlert('gopay', req, () => withDbOverload(() => handleWebhook(req, 'GET')));
 
   });
 }
@@ -347,7 +348,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 export async function POST(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
 
-  return withDbOverload(() => handleWebhook(req, 'POST'));
+  return withWebhookAlert('gopay', req, () => withDbOverload(() => handleWebhook(req, 'POST')));
 
   });
 }
