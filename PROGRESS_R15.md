@@ -76,3 +76,7 @@ Větev `fix/round15-next15-2026-10-07` z `f2af248a`. Výstupy `logs/r15/`. Skrip
 - Závěrečně: tsc 0, lint bez nové chyby (971 < 1008), unit 712 (`9_unit.txt`). fix-r11 „GET /api/health/redis":
   přerušované vypršení 20 s — bez instrumentace 3 ze 7 plných běhů, s výpisy času 0 z 9 (import ~1 s, GET ~4 s);
   falešné časovače vyloučeny; příčina nepotvrzena, limit neoslaben; rozhodne CI.
+
+## Závěr
+- PR #13 → CI vše pass, Vercel nextjs-boilerplate i tixly pass → sloučeno e6f45c68, lokální integrate fast-forward.
+- ROUND15_REPORT.md na integrate.
