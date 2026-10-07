@@ -1,0 +1,58 @@
+time="2026-10-08T00:31:42+02:00" level=warning msg="Request Failed" error="Get \"http://localhost:3200/api/payments/gopay/webhook?id=3411971238\": request timeout"
+time="2026-10-08T00:31:45+02:00" level=warning msg="Request Failed" error="Get \"http://localhost:3200/api/payments/gopay/webhook?id=3411971239\": request timeout"
+time="2026-10-08T00:31:45+02:00" level=warning msg="Request Failed" error="Get \"http://localhost:3200/api/payments/gopay/webhook?id=3411971240\": request timeout"
+time="2026-10-08T00:31:47+02:00" level=warning msg="Request Failed" error="Get \"http://localhost:3200/api/payments/gopay/webhook?id=3411971241\": request timeout"
+time="2026-10-08T00:31:48+02:00" level=warning msg="Request Failed" error="Get \"http://localhost:3200/api/payments/gopay/webhook?id=3411971242\": request timeout"
+time="2026-10-08T00:31:50+02:00" level=warning msg="Request Failed" error="Get \"http://localhost:3200/api/payments/gopay/webhook?id=3411971244\": request timeout"
+time="2026-10-08T00:32:03+02:00" level=warning msg="Request Failed" error="Get \"http://localhost:3200/api/payments/gopay/webhook?id=3411971251\": request timeout"
+time="2026-10-08T00:32:04+02:00" level=warning msg="Request Failed" error="Get \"http://localhost:3200/api/payments/gopay/webhook?id=3411971253\": request timeout"
+time="2026-10-08T00:32:11+02:00" level=warning msg="Request Failed" error="Get \"http://localhost:3200/api/payments/gopay/webhook?id=3411971256\": request timeout"
+time="2026-10-08T00:32:17+02:00" level=warning msg="Request Failed" error="Get \"http://localhost:3200/api/payments/gopay/webhook?id=3411971276\": request timeout"
+time="2026-10-08T00:32:19+02:00" level=warning msg="Request Failed" error="Get \"http://localhost:3200/api/payments/gopay/webhook?id=3411971284\": request timeout"
+time="2026-10-08T00:32:20+02:00" level=warning msg="Request Failed" error="Get \"http://localhost:3200/api/payments/gopay/webhook?id=3411971286\": request timeout"
+time="2026-10-08T00:32:28+02:00" level=warning msg="Request Failed" error="Get \"http://localhost:3200/api/payments/gopay/webhook?id=3411971298\": request timeout"
+
+
+  █ TOTAL RESULTS 
+
+    CUSTOM
+    bought_seats...................: 382    2.555781/s
+    err_webhook....................: 13     0.086977/s
+    hold_conflict..................: 176    1.177533/s
+    ok_checkout....................: 187    1.251129/s
+    ok_hold........................: 374    2.502257/s
+    ok_page........................: 300    2.007158/s
+    ok_pay.........................: 187    1.251129/s
+    ok_plan........................: 300    2.007158/s
+    ok_webhook.....................: 167    1.117318/s
+    s503_checkout..................: 35     0.234168/s
+    s503_hold......................: 88     0.588766/s
+    s503_webhook...................: 17     0.113739/s
+    s503final_checkout.............: 11     0.073596/s
+    s503final_hold.................: 48     0.321145/s
+    s503final_webhook..............: 7      0.046834/s
+    t_checkout.....................: p(50)=15.96s p(95)=26.7s  p(99)=28.49s max=28.66s count=198 
+    t_hold.........................: p(50)=10.06s p(95)=14.87s p(99)=15.31s max=15.67s count=422 
+    t_page.........................: p(50)=1.32s  p(95)=2.53s  p(99)=2.77s  max=2.84s  count=300 
+    t_pay..........................: p(50)=1.87ms p(95)=4.87ms p(99)=7.06ms max=8.28ms count=187 
+    t_plan.........................: p(50)=6.36s  p(95)=11.48s p(99)=11.96s max=12.09s count=300 
+    t_webhook......................: p(50)=38.96s p(95)=1m0s   p(99)=1m0s   max=1m0s   count=187 
+
+    HTTP
+    http_req_duration..............: p(50)=8.1s   p(95)=35.73s p(99)=52.87s max=1m0s   count=2210
+      { expected_response:true }...: p(50)=5.97s  p(95)=37.45s p(99)=50.77s max=59.76s count=1815
+    http_req_failed................: 17.87% 395 out of 2210
+    http_reqs......................: 2210   14.786065/s
+
+    EXECUTION
+    iteration_duration.............: p(50)=1m45s  p(95)=2m29s  p(99)=2m29s  max=2m29s  count=300 
+    iterations.....................: 300    2.007158/s
+    vus............................: 49     min=49          max=300
+    vus_max........................: 300    min=300         max=300
+
+    NETWORK
+    data_received..................: 100 MB 669 kB/s
+    data_sent......................: 624 kB 4.2 kB/s
+
+
+

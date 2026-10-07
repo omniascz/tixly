@@ -65,3 +65,11 @@ Větev `fix/round15-next15-2026-10-07` z `f2af248a`. Výstupy `logs/r15/`. Skrip
   (`3_offline_poll*.txt`): Next 15 ve 2 ze 4 bězích stránku po načtení dokreslí na klientu (serverová kopie skrytá
   ~650 ms, viditelné vždy jen jedno pole), Next 14 0 ze 3 běhů. Funkce beze změny. Spec čeká na jediné pole.
   Přihlášení ve specu má stejný souboj s hydratací i na Next 14 (poll14a). Finální běh 6/6 (`3_offline.txt`).
+- Zátěž (scénář kola 14: 300 kupců / 60 s, 500 míst, PgBouncer pool 10; `logs/r15/load/`): první běh Next 15 hold
+  p95 4,57 s vs kolo 14 0,16 s → stejný test teď na Next 14 (čistý klon f2af248a) hold 6,74 s → zhoršení je stavem
+  stroje (volno 0,6 GB, 3 procesy python ~60 000 s CPU a Docker mimo session), ne upgradem. Střídavě Next 14 (4 běhy) /
+  Next 15 (5 běhů): p95 průměr/medián — hold +7,0/+11,2 %, checkout +7,7/+10,8 %, webhook +2,2/+4,6 %, page −16/−22 %,
+  plan +62,8 % (průměr, jediný běh 4,11 s) / −15,3 % (medián). Konzistence Next 15 OK ve všech 5 bězích (Next 14 jednou
+  496/500 vstupenek). `3_load_compare.md`, `3_load_tables.md`. CPU profil Next 15 při zátěži `load/cpuprof`.
+- npm audit po upgradu: 2 critical (vitest/tinypool — testy), 26 high, 28 moderate, 1 low; next = moderate (zabudovaný
+  postcss). Před upgradem: 3 critical (vč. next), 27 high. Tabulka `3_npm_audit_table.md`.
