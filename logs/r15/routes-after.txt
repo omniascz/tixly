@@ -201,7 +201,7 @@ Route (app)                                                                     
 ├ ƒ /admin/events/[id]/provoz                                                                 1.65 kB         115 kB
 ├ ƒ /admin/events/[id]/publikum                                                               1.65 kB         115 kB
 ├ ƒ /admin/events/[id]/publish-facebook                                                          4 kB         117 kB
-├ ƒ /admin/events/[id]/queue                                                                  3.84 kB         117 kB
+├ ƒ /admin/events/[id]/queue                                                                  3.84 kB         116 kB
 ├ ƒ /admin/events/[id]/reporty                                                                3.96 kB         114 kB
 ├ ƒ /admin/events/[id]/resale-marketplace                                                     3.43 kB         107 kB
 ├ ƒ /admin/events/[id]/resale-policy                                                          4.76 kB         115 kB
@@ -244,7 +244,7 @@ Route (app)                                                                     
 ├ ƒ /admin/films/[id]                                                                          3.1 kB         110 kB
 ├ ƒ /admin/fraud-queue                                                                        2.62 kB         116 kB
 ├ ƒ /admin/gdpr                                                                               3.54 kB         113 kB
-├ ƒ /admin/gift-cards                                                                         4.63 kB         115 kB
+├ ƒ /admin/gift-cards                                                                         4.63 kB         114 kB
 ├ ƒ /admin/chargebacks                                                                        2.29 kB         112 kB
 ├ ƒ /admin/import                                                                              7.1 kB         117 kB
 ├ ƒ /admin/invoices                                                                           4.98 kB         115 kB
@@ -281,7 +281,7 @@ Route (app)                                                                     
 ├ ƒ /admin/scanner/guide                                                                      4.33 kB         118 kB
 ├ ƒ /admin/season                                                                             5.05 kB         118 kB
 ├ ƒ /admin/season-passes                                                                      5.19 kB         115 kB
-├ ƒ /admin/settings                                                                           8.63 kB         119 kB
+├ ƒ /admin/settings                                                                           8.63 kB         118 kB
 ├ ƒ /admin/settings/branding                                                                  4.25 kB         114 kB
 ├ ƒ /admin/settings/domains                                                                   3.83 kB         114 kB
 ├ ƒ /admin/settings/kyc                                                                        4.9 kB         115 kB
@@ -1088,7 +1088,7 @@ Route (app)                                                                     
 ├ ƒ /nabidka/[token]                                                                          2.71 kB         106 kB
 ├ ƒ /oauth/authorize                                                                           2.7 kB         111 kB
 ├ ƒ /offline                                                                                    651 B         104 kB
-├ ƒ /partner/apply                                                                               3 kB         110 kB
+├ ƒ /partner/apply                                                                               3 kB         109 kB
 ├ ƒ /platform                                                                                   222 B         107 kB
 ├ ƒ /platform/analytics                                                                        2.6 kB         112 kB
 ├ ƒ /platform/audit-log                                                                       2.09 kB         105 kB
@@ -1110,7 +1110,7 @@ Route (app)                                                                     
 ├ ƒ /platform/venues/[id]/seating-chart/import                                                6.33 kB         120 kB
 ├ ƒ /platform/venues/[id]/seating-chart/stadium                                               7.03 kB         120 kB
 ├ ƒ /platform/venues/[id]/seating-chart/tools                                                 6.76 kB         120 kB
-├ ƒ /platform/venues/[id]/seating-chart/versions                                              5.24 kB         119 kB
+├ ƒ /platform/venues/[id]/seating-chart/versions                                              5.24 kB         118 kB
 ├ ƒ /platform/venues/[id]/seating-chart/view-photos                                           5.53 kB         119 kB
 ├ ƒ /platform/verifications                                                                   3.39 kB         113 kB
 ├ ƒ /platform/webhooks                                                                        1.68 kB         105 kB
@@ -1126,7 +1126,7 @@ Route (app)                                                                     
 + First Load JS shared by all                                                                  103 kB
   ├ chunks/31255-67ce899b29c7cdc2.js                                                          46.2 kB
   ├ chunks/4bd1b696-bad92808725a934a.js                                                       54.2 kB
-  └ other shared chunks (total)                                                               2.67 kB
+  └ other shared chunks (total)                                                               2.66 kB
 
 
 ƒ Middleware                                                                                  89.9 kB

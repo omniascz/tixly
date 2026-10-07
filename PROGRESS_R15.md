@@ -44,3 +44,19 @@ Větev `fix/round15-next15-2026-10-07` z `f2af248a`. Výstupy `logs/r15/`. Skrip
 ## Krok 3 — ověření (průběh)
 - Systém ukončil kvůli paměti blok „build + reset + screenshoty" (build doběhl, exit 0) → dál po menších krocích:
   zvlášť reset demo, zvlášť server + screenshoty.
+- Screenshoty: viz `logs/r15/3_screens_summary.md` (oprava písma 7ac57953 → 25/28 shodných, zbytek šum hran).
+  Tabulka rout po upgradu (build po opravě písma) beze změny ○/ƒ.
+- Live (r15a z migrací, po 20 souborech, 1 worker): n00 83, n01 49, n02 73, n03 37 (bez simulátoru); g00 163 + opt-in
+  přeskočen, g01 77, fix-r3-webhook-pool 2/2 (se simulátorem) → 106 souborů zelených + 1 opt-in, 484 testů (= kolo 14).
+- Build bez sítě (čistý klon, 7ac57953, Next 15.5.27): OK, 0 síťových spojení (`3_build_no_network.console.txt`).
+- Audity: první běh na pozadí ukončil systém kvůli paměti (volno 0,8 GB — ffmpeg a jiné procesy mimo session);
+  smyčka pak běžela bez serveru → výsledky zahozeny (`3_audits_summary_killed.txt`). Znovu po blocích v popředí na čerstvé
+  r15a: 01 26, 02 36, 03 23, 04 14, 05 8, 06 21, 07 6, 07b všechny zápisy 0 řádků (shodné s kolem 13/14), 08 2
+  (166 rout × 3 aktéři), 09 12, 10 7, 11 8, 12 5 PASS, 0 FAIL (= kolo 14). Při prvním pokusu o 01–03 při 0,8 GB volné
+  paměti trval první /api/health 41 s (další 20–43 ms) → 01 timeout; po uvolnění paměti vše prošlo.
+- Turné nad čerstvou r15a 10/10 (`3_tour.txt`, `logs/r15/tour`).
+- golden-path-r13-keep spadl: úvodní POST přihlášení timeout 10 s. Měření studeného startu (`3_coldstart_*.txt`):
+  Next 14 první požadavek 0,23 s, Next 15 21–23 s (jednou sonda portu 109 s). register() 64–684 ms. CPU profil
+  (`logs/r15/cpuprof`, `analyze-cpuprofile.mjs`): prvních ~30 s plné CPU v loadComponents všech rout — Next 15
+  experimental.preloadEntriesOnStart (výchozí true) načte a vykoná moduly všech 1124 rout při startu, Next 14 líně.
+  Oprava: preloadEntriesOnStart: false → první požadavek 0,25 s. (Vysvětluje i dřívější 41 s u /api/health a timeout 01.)

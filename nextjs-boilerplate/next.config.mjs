@@ -21,6 +21,10 @@ const nextConfig = {
     // Kolo 9: instrumentation.ts (Sentry, pojistka stagingu) — Next 15 ho načítá vždy, instrumentationHook zrušen.
     // Kolo 15: klientský router cache jako v Next 14 (dynamické stránky 30 s; Next 15 má výchozí 0 s).
     staleTimes: { dynamic: 30, static: 300 },
+    // Kolo 15: Next 15 při `next start` načte a vykoná moduly VŠECH rout (preloadEntriesOnStart, výchozí true) — s 1124
+    // routami ~30 s CPU, první požadavek čekal 21–109 s (CPU profil logs/r15/cpuprof). Next 14 načítal routu až s prvním
+    // požadavkem na ni → původní chování. Na Vercelu (minimal mode) se preload nespouští.
+    preloadEntriesOnStart: false,
   },
   images: {
     // Kolo 9: zmírnění bez změny hlavní verze Next (14.2.35):

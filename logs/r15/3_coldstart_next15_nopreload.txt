@@ -1,0 +1,7 @@
+next15-nopreload-b port otevřen po 1942 ms
+next15-nopreload-b login#1 401 0.245779s
+next15-nopreload-b login#2 401 0.016525s
+next15-nopreload-b login#3 401 0.029505s
+next15-nopreload-b /api/health 200 0.029762s
+next15-nopreload-b /cs 200 0.125545s
+next15-nopreload-b /admin 307 0.007635s
