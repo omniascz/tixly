@@ -19,9 +19,9 @@ import type { Pool } from 'pg';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 
-import { createLiveClone, makeSeed, hasNeonKey, type LiveClone, type Seed } from './helpers/live-fixture';
+import { createLiveClone, makeSeed, hasLiveDb, type LiveClone, type Seed } from './helpers/live-fixture';
 
-describe.skipIf(!hasNeonKey)('auth/reset-password proti reálnému schématu (live)', () => {
+describe.skipIf(!hasLiveDb)('auth/reset-password proti reálnému schématu (live)', () => {
   let clone: LiveClone;
   let pool: Pool;
   let seed: Seed;

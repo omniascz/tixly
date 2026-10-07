@@ -19,6 +19,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { withWebhookAlert } from '@/lib/ops/webhook-alert';
 import { getPayPalConfig, getPayPalOrder, verifyPayPalWebhookSignature } from '@/lib/payment/paypal';
 
 export const dynamic = 'force-dynamic';
@@ -45,7 +46,12 @@ function isPayPalEvent(x: unknown): x is PayPalWebhookEvent {
     && !!e.resource && typeof e.resource === 'object';
 }
 
+// Kolo 14 / krok 3: selhání webhooku → upozornění provozu (lib/ops/webhook-alert)
 export async function POST(req: NextRequest): Promise<Response> {
+  return withWebhookAlert('paypal', req, () => handlePost(req));
+}
+
+async function handlePost(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
     const rawBody = await req.text();
 

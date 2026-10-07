@@ -1,0 +1,675 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal[2m > [22m[2mchybějící PAYPAL_WEBHOOK_ID → 4xx, nic se nezmění[22m[39m
+[paypal webhook] PAYPAL_WEBHOOK_ID / API credentials missing — rejecting
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal[2m > [22m[2mchybějící PAYPAL_WEBHOOK_ID → 4xx, nic se nezmění[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:paypal
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal[2m > [22m[2mbez podpisu / se špatným podpisem → 4xx[22m[39m
+[paypal webhook] invalid signature
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal[2m > [22m[2mbez podpisu / se špatným podpisem → 4xx[22m[39m
+[paypal webhook] invalid signature
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal[2m > [22m[2mlegitimní: platný podpis + API COMPLETED s plnou částkou → paid[22m[39m
+[paypal webhook] order-completed trigger failed: [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mWise (výplaty)[2m > [22m[2mchybějící klíč / bez podpisu / špatný podpis / HMAC místo RSA → 4xx, výplata beze změny[22m[39m
+[wise webhook] WISE_WEBHOOK_PUBLIC_KEY / API credentials missing — rejecting
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mWise (výplaty)[2m > [22m[2mchybějící klíč / bez podpisu / špatný podpis / HMAC místo RSA → 4xx, výplata beze změny[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:wise
+
+[90mstdout[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mWise (výplaty)[2m > [22m[2mlegitimní: platný RSA podpis + API outgoing_payment_sent → paid[22m[39m
+[wise webhook] paid transferId=384042647 rowsUpdated=1
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mGoPay[2m > [22m[2mnenakonfigurovaná brána (i mimo produkci: DEV_STUB) → 4xx, nic se nezmění[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mGoPay[2m > [22m[2mnenakonfigurovaná brána (i mimo produkci: DEV_STUB) → 4xx, nic se nezmění[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:gopay
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mGoPay[2m > [22m[2mnenakonfigurovaná brána (i mimo produkci: DEV_STUB) → 4xx, nic se nezmění[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mGoPay[2m > [22m[2mAPI brány hlásí PAID s nulovou částkou → nezaplaceno[22m[39m
+[gopay webhook] amount/currency mismatch order=3c631366-bd8c-4b13-9a90-a33301e525c4 expected=50000CZK paid=0CZK
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mGoPay[2m > [22m[2mlegitimní: API PAID s plnou částkou → paid[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mComGate[2m > [22m[2mchybějící tajemství / špatné tajemství → 4xx, nic se nezmění[22m[39m
+[payment] ComGate není nakonfigurovaný — checkout poběží v mock režimu. Nastavte COMGATE_MERCHANT, COMGATE_SECRET.
+[comgate webhook] not configured — rejecting
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mComGate[2m > [22m[2mchybějící tajemství / špatné tajemství → 4xx, nic se nezmění[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:comgate
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mStripe[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:stripe
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mStripe[2m > [22m[2mplatný podpis, ale API session nezaplacená / nižší částka → nezaplaceno[22m[39m
+[stripe webhook] session cs_45fc01d8 NOT confirmed by API for order 2307f06c-a159-4211-a2c5-cbded65a00cd
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mStripe[2m > [22m[2mplatný podpis, ale API session nezaplacená / nižší částka → nezaplaceno[22m[39m
+[stripe webhook] session cs_45fc01d8 NOT confirmed by API for order 2307f06c-a159-4211-a2c5-cbded65a00cd
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mStripe[2m > [22m[2mlegitimní → paid[22m[39m
+[stripe webhook] order-completed trigger failed: [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mTriple-A[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[payment] Triple-A není nakonfigurovaný — krypto platba poběží v mock režimu. Nastavte TRIPLEA_CLIENT_ID, TRIPLEA_CLIENT_SECRET, TRIPLEA_API_ID, TRIPLEA_NOTIFY_SECRET.
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mTriple-A[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:triplea
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mTriple-A[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[triplea webhook] podpis neplatný: NO_SIGNATURE
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mTriple-A[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[triplea webhook] podpis neplatný: SIGNATURE_MISMATCH
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mTriple-A[2m > [22m[2mlegitimní: podpis + API good s plnou částkou → paid[22m[39m
+[triplea webhook] order-completed trigger failed: [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mMollie[2m > [22m[2mchybějící API klíč / platba u brány neexistuje → 4xx[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:mollie
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mMollie[2m > [22m[2mchybějící API klíč / platba u brány neexistuje → 4xx[22m[39m
+[mollie webhook] getMolliePayment failed: Error: Mollie GET tr_b1830ad1 → HTTP 404
+    at Module.getMolliePayment [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\payment\mollie.ts:112:25[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\mollie\webhook\route.ts:59:17
+    at Module.withWebhookAlert [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\ops\webhook-alert.ts:26:11[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r2-webhooks.live.test.ts:345:29
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m {
+  httpStatus: [33m404[39m
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mMollie[2m > [22m[2mlegitimní: API paid s plnou částkou → paid[22m[39m
+[mollie webhook] order-completed trigger failed: [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPrzelewy24[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:przelewy24
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPrzelewy24[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[p24 webhook] invalid signature for sessionId 73c9725c-bfc6-41d1-8720-a38f941b69a2
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPluxee legitimní: platný podpis + plná částka → paid (route musí fungovat pod tixly_app)[22m[39m
+[pluxee callback] order-completed trigger failed: [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal capture: PayPal objednávka jiné Tixly objednávky nezaplatí tuto[22m[39m
+[paypal capture] token does not belong to order a16c88d4-4266-4c70-b98b-2483a068586c
+
+ [32m✓[39m tests/fix-r2-webhooks.live.test.ts [2m ([22m[2m29 tests[22m[2m)[22m[33m 3450[2mms[22m[39m
+[90mstdout[2m | tests/fix-r3-escalations.live.test.ts[2m > [22m[2mKrok 3 (kolo 3) — routy po odstranění eskalací[2m > [22m[2m3 — anonym a servisní routy bez admin eskalace[2m > [22m[2mOTP: request + verify (anonymní, servisní kontext)[22m[39m
+[OTP MOCK] SMS → +420384048660: Tixly kód: 513865 (platí 10 min)
+
+ [32m✓[39m tests/fix-r3-escalations.live.test.ts [2m ([22m[2m17 tests[22m[2m)[22m[33m 3248[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-guard-trigger.live.test.ts [2m ([22m[2m23 tests[22m[2m)[22m[33m 3100[2mms[22m[39m
+[90mstderr[2m | tests/fix-r14-ops-monitoring.live.test.ts[2m > [22m[2mKolo 14 / krok 3 — hlídání provozu[2m > [22m[2mselhání webhooku brány → e-mail[22m[39m
+[gopay webhook] getPaymentStatus failed: Error: GoPay getPayment HTTP 404
+    at Module.getGopayPaymentStatus [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\payment\gopay-real.ts:214:22[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at handleWebhook [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:99:14[90m)[39m
+    at Module.withDbOverload [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\db\overload.ts:36:12[90m)[39m
+    at Module.withWebhookAlert [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\ops\webhook-alert.ts:26:11[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r14-ops-monitoring.live.test.ts:158:17
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m
+
+[90mstderr[2m | tests/fix-r14-ops-monitoring.live.test.ts[2m > [22m[2mKolo 14 / krok 3 — hlídání provozu[2m > [22m[2mselhání e-mailu se vstupenkami → e-mail provozu[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r14-ops-monitoring.live.test.ts[2m > [22m[2mKolo 14 / krok 3 — hlídání provozu[2m > [22m[2mselhání e-mailu se vstupenkami → e-mail provozu[22m[39m
+[order-completed] email failed: Error: SMTP 421 simulace výpadku
+    at sendMail [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r14-ops-monitoring.live.test.ts:7:104[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\order-completed\route.ts:801:11
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r14-ops-monitoring.live.test.ts:170:15
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m
+    at startTests [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:967:3[90m)[39m
+    at [90mfile:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4mvitest[24m/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:116:7
+
+ [32m✓[39m tests/fix-r14-ops-monitoring.live.test.ts [2m ([22m[2m18 tests[22m[2m)[22m[33m 32443[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-v2-tixly-app.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 1896[2mms[22m[39m
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[22m[39m
+[live-local-clone] live_cron_contract_muy7u0y4: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mconsent-log-purge: pri odepreni prava NEVRATI ok:true[22m[39m
+[consent-log-purge] [33m500[39m {"ok":false,"processed":0,"failed":1,"errors":["purge: P0001"],"purged":0,"error":"PURGE_FAILED","code":"P0001"}
+
+[90mstderr[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mconsent-log-purge: pri odepreni prava NEVRATI ok:true[22m[39m
+[consent-log-purge] SELHALO: error: vynucene selhani zapisu
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at RlsAwarePool.query [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:298:22[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\cron\consent-log-purge\route.ts:31:15
+    at call [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\cron-contract.live.test.ts:22:15[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\cron-contract.live.test.ts:45:17
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m {
+  length: [33m134[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'P0001'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [32m'PL/pgSQL function audit._boom() line 1 at RAISE'[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'pl_exec.c'[39m,
+  line: [32m'3911'[39m,
+  routine: [32m'exec_stmt_raise'[39m
+}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mverify-event-completion: pri rozbitem uvodnim dotazu NEVRATI ok:true[22m[39m
+[verify-event-completion] [33m200[39m {"ok":false,"processed":0,"failed":1,"errors":["stats query: permission denied for table events"]}
+
+[90mstderr[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mverify-event-completion: pri rozbitem uvodnim dotazu NEVRATI ok:true[22m[39m
+[verify-event-completion] uvodni dotaz selhal: error: permission denied for table events
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at RlsAwarePool.query [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:298:22[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\cron\verify-event-completion\route.ts:53:15
+    at call [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\cron-contract.live.test.ts:22:15[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\cron-contract.live.test.ts:56:17
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m {
+  length: [33m94[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42501'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'aclchk.c'[39m,
+  line: [32m'2843'[39m,
+  routine: [32m'aclcheck_error'[39m
+}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mseat-upgrade-notify: tvar odpovedi obsahuje failed i errors[22m[39m
+[seat-upgrade-notify] [33m200[39m {"ok":true,"processed":0,"notified":0,"failed":0,"errors":[],"candidates":0}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2monboarding-reminder: pri rozbite tabulce NEVRATI ok:true[22m[39m
+[onboarding-reminder] [33m200[39m {"ok":false,"processed":0,"failed":1,"errors":["candidates query: permission denied for table promoters"]}
+
+[90mstderr[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2monboarding-reminder: pri rozbite tabulce NEVRATI ok:true[22m[39m
+[onboarding-reminder] uvodni dotaz selhal: error: permission denied for table promoters
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at RlsAwarePool.query [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:298:22[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\cron\onboarding-reminder\route.ts:61:9
+    at call [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\cron-contract.live.test.ts:22:15[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\cron-contract.live.test.ts:79:17
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m {
+  length: [33m97[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42501'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'aclchk.c'[39m,
+  line: [32m'2843'[39m,
+  routine: [32m'aclcheck_error'[39m
+}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mbank-sync-fio: tvar obsahuje ok/processed/failed/errors[22m[39m
+[bank-sync-fio] [33m200[39m {"ok":true,"processed":0,"failed":0,"errors":[],"results":[]}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mweb-vitals: pri rozbitem zapisu NEVRATI ok:true[22m[39m
+[web-vitals] [33m200[39m {"ok":false,"processed":0,"failed":1,"errors":["permission denied for schema marketing | retry: permission denied for schema marketing"]}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2morder-completed: pri selhani KRITICKEHO kroku NEVRATI ok:true[22m[39m
+item seed: 23502 null value in column "total_price" of relation "order_items" violates 
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2morder-completed: pri selhani KRITICKEHO kroku NEVRATI ok:true[22m[39m
+<empty line>
+[90mstderr[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2morder-completed: pri selhani KRITICKEHO kroku NEVRATI ok:true[22m[39m
+[order-completed] ticket issue / PDF failed: error: permission denied for table tickets
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at Module.issueTicketsForOrder [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\tickets\demo-issuer.ts:82:20[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\order-completed\route.ts:443:16
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\cron-contract.live.test.ts:125:17
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m
+    at startTests [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:967:3[90m)[39m {
+  length: [33m95[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42501'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'aclchk.c'[39m,
+  line: [32m'2843'[39m,
+  routine: [32m'aclcheck_error'[39m
+}
+
+[90mstderr[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2morder-completed: pri selhani KRITICKEHO kroku NEVRATI ok:true[22m[39m
+<empty line>
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2morder-completed: pri selhani KRITICKEHO kroku NEVRATI ok:true[22m[39m
+[order-completed] [33m200[39m {"ok":false,"processed":0,"failed":1,"errors":["ticket_issue: permission denied for table tickets"],"degraded":[],"success":false,"orderId":"fbac55f6-8762-495a-bff7-6d7ebaa721db","emailSent":false,"smsSent":false,"items"
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mrelease-rolling-reserves: cela cesta uvolneni PROJDE (D4)[22m[39m
+[release-rolling-reserves] [33m200[39m {"ok":true,"processed":1,"failed":0,"errors":[],"releasedCount":1,"totalAmount":12345,"byPromoter":{"729a793e-839d-4abd-aa3c-0b7a257b13cf":12345}}
+   rezerva released = [33mtrue[39m | audit = {"action":"UPDATE","actor_type":"system","op":"BULK_RELEASE"}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mD12 verify-event-completion: zapise anomaly_alert (drive 42703/23502/23514)[22m[39m
+[D12] [33m200[39m {"ok":true,"processed":0,"failed":0,"errors":[],"checked":1,"completed":0,"suspicious":0,"noShow":1,"zeroTickets":0}
+   alert = {"alert_type":"low_velocity","severity":"critical","message":"Akce \"D12 akce\" skoncila bez jedineho naskenovaneho listku (5 prodanych).","event_id":"d9993ea6-5c05-4c2f-acb8-bddc638b2e39","rate":"0"}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mdemand-forecast: PEEL cele cesty[22m[39m
+[demand-forecast] [33m200[39m {"ok":false,"failed":2,"processed":0,"total":2,"errors":[{"eventId":"440be91c-c321-48d2-a1c6-27fbce919809","error":"column \"tickets_sold\" of relation \"demand_forecasts\" does not exist"},
+
+ [32m✓[39m tests/cron-contract.live.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[33m 2012[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-identity-headers.live.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[33m 601[2mms[22m[39m
+[90mstderr[2m | tests/fix-k2-refund.live.test.ts[2m > [22m[2mK2 refund přes bránu (izolovaná DB + fake-gopay)[2m > [22m[2múspěch: admin refund zavolá bránu 1×, order refunded, lístky revoked, odpověď brány uložena[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-k2-refund.live.test.ts[2m > [22m[2mK2 refund přes bránu (izolovaná DB + fake-gopay)[2m > [22m[2midempotence: druhý refund už bránu nevolá, zůstává jeden refund[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-k2-refund.live.test.ts[2m > [22m[2mK2 refund přes bránu (izolovaná DB + fake-gopay)[2m > [22m[2mchyba brány → refund_failed, žádné revoke, HTTP 502[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-k2-refund.live.test.ts[2m > [22m[2mK2 refund přes bránu (izolovaná DB + fake-gopay)[2m > [22m[2mtimeout brány → refund_failed[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-k2-refund.live.test.ts[2m > [22m[2mK2 refund přes bránu (izolovaná DB + fake-gopay)[2m > [22m[2mself-refund: NIKDY nenastaví refunded bez volání brány (invariant)[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-k2-refund.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 6253[2mms[22m[39m
+[90mstdout[2m | tests/checkout-guest.live.test.ts[2m > [22m[2mcheckout — guest-create (live, celá cesta)[22m[39m
+[live-local-clone] live_checkout_guest_muy7u8ox: handlery běží jako tixly_app (RLS platí)
+
+ [32m✓[39m tests/checkout-guest.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 1477[2mms[22m[39m
+ [32m✓[39m tests/fix-k3-capacity.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 2147[2mms[22m[39m
+[90mstderr[2m | tests/fix-r3-r6-paid-after-expiry.live.test.ts[2m > [22m[2mKrok 2 (kolo 3) — R6: zaplaceno po expiraci[2m > [22m[2mkapacita volná → objednávka obnovena (paid), kapacita znovu rezervována, lístky vydány; retry nic nezdvojí[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r3-r6-paid-after-expiry.live.test.ts[2m > [22m[2mKrok 2 (kolo 3) — R6: zaplaceno po expiraci[2m > [22m[2msouběh: 2 expirované objednávky po 1 ks, volný 1 ks → jen jedna obnovena, druhá refundována (nikdy nad kapacitu)[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r3-r6-paid-after-expiry.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 1757[2mms[22m[39m
+[90mstderr[2m | tests/fix-r3-r5-webhook-refunded.live.test.ts[2m > [22m[2mKrok 2 (kolo 3) — R5: webhook REFUNDED → refunded + revoke + kapacita, idempotentně, bez 2. refundu[2m > [22m[2mPARTIALLY_REFUNDED: objednávka NENÍ označena jako celá refundovaná a lístky se hromadně nezneplatní[22m[39m
+[gopay webhook] PARTIALLY_REFUNDED order=fe909a10-8098-4677-8475-5ab600048d5c — ponecháno k ručnímu dořešení
+
+ [32m✓[39m tests/fix-r3-r5-webhook-refunded.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 580[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-k5-csrf.live.test.ts [2m ([22m[2m9 tests[22m[2m)[22m[33m 336[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-mobile-rate-limit.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 1758[2mms[22m[39m
+[90mstderr[2m | tests/fix-r2-v6-free-ticket.live.test.ts[2m > [22m[2mKrok 5 — V6: vstupenka zdarma se dokončí bez brány; placený typ ne[2m > [22m[2mtyp za 0 Kč: objednávka paid bez brány, vstupenka vystavena, e-mail odeslán[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r2-v6-free-ticket.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 1678[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/checkout-stress.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [33m1 skipped[39m[2m)[22m
+[90mstderr[2m | tests/fix-r2-s1-payment-paid-once.live.test.ts[2m > [22m[2mKrok 5 — S1: 3× stejný webhook → 1 payment_paid[2m > [22m[2m3× postupně → 1 payment_paid, žádné 5xx[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r2-s1-payment-paid-once.live.test.ts[2m > [22m[2mKrok 5 — S1: 3× stejný webhook → 1 payment_paid[2m > [22m[2m3× souběžně → 1 payment_paid, žádné 5xx[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r2-s1-payment-paid-once.live.test.ts[2m > [22m[2mKrok 5 — S1: 3× stejný webhook → 1 payment_paid[2m > [22m[2mDB: druhý payment_paid pro stejnou objednávku nevznikne ani přímým INSERTem[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r2-s1-payment-paid-once.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 1615[2mms[22m[39m
+[90mstderr[2m | tests/fix-r14-overload-503.live.test.ts[2m > [22m[2mpřetížení (fronta poolu) → 503 Retry-After[2m > [22m[2mplánek GET /api/events/[id]/seats[22m[39m
+[overload] DB pool vyčerpán → 503 Retry-After
+
+[90mstderr[2m | tests/fix-r14-overload-503.live.test.ts[2m > [22m[2mpřetížení (fronta poolu) → 503 Retry-After[2m > [22m[2mhold POST /api/events/[id]/seats/hold[22m[39m
+[overload] DB pool vyčerpán → 503 Retry-After
+
+[90mstderr[2m | tests/fix-r14-overload-503.live.test.ts[2m > [22m[2mpřetížení (fronta poolu) → 503 Retry-After[2m > [22m[2mcheckout POST /api/checkout/seats[22m[39m
+[overload] DB pool vyčerpán → 503 Retry-After
+
+[90mstderr[2m | tests/fix-r14-overload-503.live.test.ts[2m > [22m[2mpřetížení (fronta poolu) → 503 Retry-After[2m > [22m[2mwebhook GET /api/payments/gopay/webhook[22m[39m
+[overload] DB pool vyčerpán → 503 Retry-After
+
+[90mstderr[2m | tests/fix-r14-overload-503.live.test.ts[2m > [22m[2mpřetížení (spojení do DB) → 503 Retry-After[2m > [22m[2mplánek GET /api/events/[id]/seats[22m[39m
+[overload] DB pool vyčerpán → 503 Retry-After
+
+[90mstderr[2m | tests/fix-r14-overload-503.live.test.ts[2m > [22m[2mpřetížení (spojení do DB) → 503 Retry-After[2m > [22m[2mhold POST /api/events/[id]/seats/hold[22m[39m
+[overload] DB pool vyčerpán → 503 Retry-After
+
+[90mstderr[2m | tests/fix-r14-overload-503.live.test.ts[2m > [22m[2mpřetížení (spojení do DB) → 503 Retry-After[2m > [22m[2mcheckout POST /api/checkout/seats[22m[39m
+[overload] DB pool vyčerpán → 503 Retry-After
+
+[90mstderr[2m | tests/fix-r14-overload-503.live.test.ts[2m > [22m[2mpřetížení (spojení do DB) → 503 Retry-After[2m > [22m[2mwebhook GET /api/payments/gopay/webhook[22m[39m
+[overload] DB pool vyčerpán → 503 Retry-After
+
+ [32m✓[39m tests/fix-r14-overload-503.live.test.ts [2m ([22m[2m9 tests[22m[2m)[22m[90m 243[2mms[22m[39m
+[90mstderr[2m | tests/fix-r10-order-completed-email-once.live.test.ts[2m > [22m[2mKolo 10 — order-completed pošle potvrzení právě jednou[2m > [22m[2mdvě po sobě jdoucí volání → 1 e-mail, vstupenky jednou[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r10-order-completed-email-once.live.test.ts[2m > [22m[2mKolo 10 — order-completed pošle potvrzení právě jednou[2m > [22m[2mtři souběžná volání → 1 e-mail[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r10-order-completed-email-once.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 2395[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-mobile-auth.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 726[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m19 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (20)[39m
+[2m      Tests [22m [1m[32m163 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (164)[39m
+[2m   Start at [22m 16:40:41
+[2m   Duration [22m 76.06s[2m (transform 1.70s, setup 3ms, collect 2.00s, tests 67.72s, environment 5ms, prepare 2.92s)[22m
+

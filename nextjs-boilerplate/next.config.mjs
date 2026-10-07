@@ -217,6 +217,8 @@ try {
       project: process.env.SENTRY_PROJECT,
       authToken: process.env.SENTRY_AUTH_TOKEN,
       hideSourceMaps: true,
+      // Kolo 14: vygenerované source mapy po nahrání smazat — jinak zůstanou veřejně v /_next/static (varování Sentry SDK)
+      sourcemaps: { deleteSourcemapsAfterUpload: true },
       disableLogger: true,
       tunnelRoute: '/api/monitoring',
     });

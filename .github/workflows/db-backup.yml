@@ -38,6 +38,8 @@ jobs:
     timeout-minutes: 30
     env:
       HAS_SLACK: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+      # Kolo 14 / krok 3: výsledek zálohy do aplikace (heartbeat db-backup + e-mail provozu při selhání)
+      HAS_OPS: ${{ secrets.TIXLY_APP_URL != '' && secrets.CRON_SECRET != '' }}
 
     steps:
       - name: Kontrola secretů
@@ -135,3 +137,14 @@ jobs:
         run: |
           curl -fsS -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"⚠️ Tixly DB backup failed: $RUN_URL\"}" "$SLACK_WEBHOOK_URL"
+
+      - name: Hlášení výsledku do aplikace (heartbeat / upozornění provozu)
+        if: always() && env.HAS_OPS == 'true'
+        env:
+          TIXLY_APP_URL: ${{ secrets.TIXLY_APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          STATUS=$([ "$JOB_STATUS" = "success" ] && echo success || echo failure)
+          curl -fsS -X POST "$TIXLY_APP_URL/api/ops/backup-status"             -H "Authorization: Bearer $CRON_SECRET" -H 'Content-Type: application/json'             --data "{\"status\":\"$STATUS\",\"runUrl\":\"$RUN_URL\"}"

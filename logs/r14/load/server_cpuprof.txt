@@ -1,0 +1,16 @@
+Debugger listening on ws://127.0.0.1:64476/e6a632de-c10c-42c8-9a08-482680835cd6
+For help, see: https://nodejs.org/en/docs/inspector
+Debugger listening on ws://127.0.0.1:64480/1d5b9471-5b07-4fc5-bffc-281f971fbdfb
+For help, see: https://nodejs.org/en/docs/inspector
+Debugger listening on ws://127.0.0.1:64484/c4d778ac-d54c-4119-b796-4c65d3ffebf9
+For help, see: https://nodejs.org/en/docs/inspector
+   the --inspect option was detected, the Next.js router server should be inspected at port 127.
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3200
+
+ ✓ Starting...
+ ✓ Ready in 1200ms
+Debugger attached.
+[mailer] provider=mailhog-dev host=localhost:51225 authed=false
+Debugger ending on ws://127.0.0.1:64484/c4d778ac-d54c-4119-b796-4c65d3ffebf9
+For help, see: https://nodejs.org/en/docs/inspector

@@ -3,8 +3,11 @@
 //   - /cs/my-tickets, /cs/order-confirmation/*: stale-while-revalidate
 //   - /api/buyer/my-tickets, /api/buyer/tickets/*: network-first, cache fallback
 //   - Static assets: cache-first
+//   - Kolo 14 (C-50): skener u vstupu se otevře i bez internetu — stránku /admin/scanner a její /_next/static soubory
+//     uloží stránka skeneru do RUNTIME_CACHE po stažení offline seznamu; tady se při výpadku vrátí z cache.
+//     Seznam bran (/api/admin/scanner/gates): network-first s cache fallbackem.
 
-const CACHE_VERSION = 'tixly-v2';
+const CACHE_VERSION = 'tixly-v3';
 const RUNTIME_CACHE = 'tixly-runtime';
 const OFFLINE_URL = '/offline';
 
@@ -34,6 +37,16 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (event.request.method !== 'GET') return;
   if (!url.pathname.startsWith('/')) return;
+
+  // Kolo 14: neměnné soubory buildu (hash v názvu) — při výpadku z cache
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(networkFallbackToCache(event.request));
+    return;
+  }
+  if (url.pathname === '/api/admin/scanner/gates') {
+    event.respondWith(networkFirst(event.request));
+    return;
+  }
 
   // Network-first pro buyer ticket APIs
   if (
@@ -81,6 +94,17 @@ async function networkFirst(request) {
       status: 503,
       headers: { 'Content-Type': 'application/json' },
     });
+  }
+}
+
+/** Síť, a když není, uložená kopie (soubory buildu se cachují až stránkou skeneru — ne každá návštěva webu). */
+async function networkFallbackToCache(request) {
+  try {
+    return await fetch(request);
+  } catch (err) {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    throw err;
   }
 }
 

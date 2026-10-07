@@ -1,0 +1,44 @@
+time="2026-10-07T09:35:08Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:3998/_ctl/3362898490\": dial: i/o timeout"
+time="2026-10-07T09:35:09Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:3998/_ctl/3362898492\": dial: i/o timeout"
+time="2026-10-07T09:35:10Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:3998/_ctl/3362898495\": dial: i/o timeout"
+time="2026-10-07T09:35:13Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:3998/_ctl/3362898500\": dial: i/o timeout"
+
+
+  █ TOTAL RESULTS 
+
+    CUSTOM
+    bought_seats...................: 500    6.387617/s
+    err_pay........................: 4      0.051101/s
+    hold_conflict..................: 116    1.481927/s
+    ok_checkout....................: 217    2.772226/s
+    ok_hold........................: 333    4.254153/s
+    ok_page........................: 300    3.83257/s
+    ok_pay.........................: 213    2.721125/s
+    ok_plan........................: 300    3.83257/s
+    ok_webhook.....................: 217    2.772226/s
+    sold_out.......................: 50     0.638762/s
+    t_checkout.....................: p(50)=1.79s    p(95)=3.54s    p(99)=4.06s  max=4.34s   count=217 
+    t_hold.........................: p(50)=1.41s    p(95)=3.2s     p(99)=3.65s  max=3.82s   count=333 
+    t_page.........................: p(50)=338.03ms p(95)=978.56ms p(99)=2.04s  max=2.64s   count=300 
+    t_pay..........................: p(50)=1.64ms   p(95)=5.9ms    p(99)=11.8ms max=87.76ms count=217 
+    t_plan.........................: p(50)=116.8ms  p(95)=693.2ms  p(99)=1.38s  max=2.41s   count=300 
+    t_webhook......................: p(50)=13.61s   p(95)=18.81s   p(99)=19.2s  max=19.75s  count=217 
+
+    HTTP
+    http_req_duration..............: p(50)=380.7ms  p(95)=14.03s   p(99)=18.37s max=19.75s  count=2000
+      { expected_response:true }...: p(50)=338.66ms p(95)=14.4s    p(99)=18.4s  max=19.75s  count=1880
+    http_req_failed................: 6.00%  120 out of 2000
+    http_reqs......................: 2000   25.550466/s
+
+    EXECUTION
+    iteration_duration.............: p(50)=48.1s    p(95)=1m2s     p(99)=1m13s  max=1m18s   count=300 
+    iterations.....................: 300    3.83257/s
+    vus............................: 1      min=1           max=300
+    vus_max........................: 300    min=300         max=300
+
+    NETWORK
+    data_received..................: 93 MB  1.2 MB/s
+    data_sent......................: 587 kB 7.5 kB/s
+
+
+

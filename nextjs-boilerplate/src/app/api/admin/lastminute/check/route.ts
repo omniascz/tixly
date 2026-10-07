@@ -1,7 +1,8 @@
 import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { runAsActivePromoter } from '@/lib/admin-auth';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { recordCronRun } from '@/lib/ops/heartbeat';
 import { isCronAuthorized } from '@/lib/security/cron-auth';
 
 function safeEqual(a: string, b: string): boolean {
@@ -123,7 +124,15 @@ export async function GET(req: NextRequest): Promise<Response> {
   if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
   }
-  return runWithServiceContext(async () => NextResponse.json(await runCheck(null)));
+  // Kolo 14: heartbeat cronu (Vercel volá GET přímo, ne přes dispatcher)
+  try {
+    const result = await runWithServiceContext(async () => runCheck(null));
+    await recordCronRun('lastminute-check', true, 200);
+    return NextResponse.json(result);
+  } catch (err) {
+    await recordCronRun('lastminute-check', false, 500, err instanceof Error ? err.message : String(err));
+    throw err;
+  }
 }
 
 export async function POST(req: NextRequest): Promise<Response> {

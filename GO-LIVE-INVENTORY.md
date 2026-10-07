@@ -104,7 +104,7 @@ Do povinných se počítají tři proměnné GoPay a dvě ComGate jako alternati
 | `MODERATION_AUTO_PUBLISH_DISABLED` | `=1` → žádná akce se nepublikuje automaticky, vždy schvaluje master admin | volitelná (doporučeno `1` na start, `.env.example:155`) | — | `src/lib/moderation/ai-gate.ts:340` |
 | `MODERATION_PROVIDER` | `mock` vynutí mock moderaci i s klíčem | volitelná (v prod **nenastavovat `mock`**) | — | `src/lib/moderation/ai-gate.ts:292` |
 | `TICKET_PDF_PRODUCTION_MODE` | `=1` skryje vodoznak „Demo vstupenka" v PDF | **povinná** (`1`) | — | `src/lib/tickets/label-pdf.ts:73`, `src/lib/tickets/pdf-renderer.ts:87` |
-| `PLATFORM_ADMIN_EMAIL` | Adresa pro urgentní alerty (DSA high-severity, AML); bez ní se alert jen zaloguje | volitelná (silně doporučená) | e-mail provozovatele | `src/lib/notifications/platform-notify.ts:15` |
+| `PLATFORM_ADMIN_EMAIL` | Adresa pro urgentní alerty (DSA high-severity, AML) a **kolo 14: upozornění provozu** (cron neproběhl > 2× interval, selhání webhooku brány, zaplaceno bez vstupenek po 10 min, selhání e-mailu se vstupenkami, refund_failed, selhání zálohy; nejvýš 1 e-mail / 30 min na problém) a **denní souhrn v 7:00** Europe/Prague; bez ní se upozornění jen zapíše do `monitoring.ops_events` | **povinná pro hlídání provozu** | e-mail provozovatele (schránka, kterou někdo čte) | `src/lib/notifications/platform-notify.ts:15`, `src/lib/ops/alerts.ts`, `src/app/api/internal/cron/ops-daily-summary/route.ts` |
 
 ### 1.4 Platby — výběr brány a mock pojistky
 
@@ -226,11 +226,18 @@ Do povinných se počítají tři proměnné GoPay a dvě ComGate jako alternati
 
 | Název | K čemu slouží | Povinná v produkci? | Kde ji vlastník získá | Soubor:řádek |
 |---|---|---|---|---|
-| `SENTRY_DSN` | Sentry server/edge; zároveň zapíná `withSentryConfig` při buildu | volitelná (doporučená) | Sentry → projekt → Project Settings → Client Keys (DSN) | `sentry.server.config.ts:15`, `next.config.mjs:211` |
+| `SENTRY_DSN` | Sentry server/edge; zároveň zapíná `withSentryConfig` při buildu. **Kolo 14: musí být nastavená i pro BUILD** (Vercel env pro Production včetně buildu) — jinak se route handlery neobalí a jejich neošetřené chyby do Sentry nedojdou. Ověřeno lokálně proti simulátoru Sentry: chyba z route handleru i selhání cronu dorazí, e-maily / jména / telefony maskované (`src/lib/observability/scrub-pii.ts`). Po nasazení ověřit `POST /api/ops/sentry-check` (Bearer `CRON_SECRET`) → v Sentry chyba „Sentry kontrola: kupec [email], tel. [telefon]" | volitelná (doporučená) | Sentry → projekt → Project Settings → Client Keys (DSN) | `sentry.server.config.ts:15`, `next.config.mjs:211` |
 | `NEXT_PUBLIC_SENTRY_DSN` | Sentry klient | volitelná | dtto | `sentry.client.config.ts:18` |
 | `SENTRY_ORG` | Upload source map | volitelná | Sentry (slug organizace) | `next.config.mjs:214` |
 | `SENTRY_PROJECT` | Upload source map | volitelná | Sentry (slug projektu) | `next.config.mjs:215` |
 | `SENTRY_AUTH_TOKEN` | Upload source map při buildu | volitelná | Sentry → Settings → Auth Tokens | `next.config.mjs:216` |
+
+**Hlídání provozu (kolo 14 / krok 3)** — nové crony ve `vercel.json`: `ops-watchdog` (každých 15 min: heartbeat cronů,
+zaplaceno bez vstupenek, refund_failed) a `ops-daily-summary` (5:00 a 6:00 UTC, odešle se jen v 7:00 Europe/Prague).
+Heartbeat zapisuje dispatcher (`/api/cron/dispatch`) po úspěšném běhu jobu; selhání jobu vrací 502 a jde do Sentry.
+Záloha DB hlásí výsledek na `POST /api/ops/backup-status` (GitHub secrets `TIXLY_APP_URL`, `CRON_SECRET` — viz §3).
+Tabulky `monitoring.cron_heartbeats`, `monitoring.ops_alerts`, `monitoring.ops_events` (migrace 508). Nové env proměnné
+v aplikaci nejsou — stačí `PLATFORM_ADMIN_EMAIL` (§1.3) a funkční e-mail (§1.8).
 
 ### 1.10 AI a compliance
 
@@ -396,9 +403,11 @@ Všechna `secrets.X` z `.github/workflows/*.yml` (v `.github/actions/**` žádn�
 | `AWS_REGION` | `db-backup.yml:49,122` | Region bucketu | **povinná** pro zálohy |
 | `BACKUP_ENCRYPTION_KEY` | `db-backup.yml:50,94,106` | Symetrické šifrování dumpu (`openssl rand -base64 32`, `db-backup.yml:22`) | **povinná** pro zálohy |
 | `SLACK_WEBHOOK_URL` | `db-backup.yml:40,133` | Notifikace o selhání zálohy | volitelná |
+| `TIXLY_APP_URL` | `db-backup.yml` (`HAS_OPS`, krok „Hlášení výsledku do aplikace") | Kolo 14: veřejná URL aplikace (např. `https://app.tixly.cz`) — výsledek zálohy na `/api/ops/backup-status` (heartbeat `db-backup`, e-mail provozu při selhání) | doporučená (bez ní se výsledek zálohy do aplikace nehlásí a kontrolní job ohlásí zálohu jako neprobíhající po 2 týdnech) |
+| `CRON_SECRET` | `db-backup.yml` (dtto) | Kolo 14: stejná hodnota jako `CRON_SECRET` ve Vercelu (Bearer pro `/api/ops/backup-status`) | doporučená (spolu s `TIXLY_APP_URL`) |
 | `GITHUB_TOKEN` | `security.yml:72` (gitleaks) | Automatický token GitHubu | automatický (nezadává se) |
 
-**Celkem:** 10 jmen. Vlastník musí zadat 9, `GITHUB_TOKEN` je automatický.
+**Celkem:** 12 jmen. Vlastník musí zadat 11, `GITHUB_TOKEN` je automatický (kolo 14 přidalo `TIXLY_APP_URL` a `CRON_SECRET`).
 
 **Zjištěné problémy (z kódu):**
 

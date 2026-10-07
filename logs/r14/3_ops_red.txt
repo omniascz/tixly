@@ -1,0 +1,121 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v1.6.1 C:/Users/omnia/Documents/tixly/nextjs-boilerplate
+
+ × tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > */5 * * * * → 5 min
+   → Cannot find module '@/lib/ops/cron-schedule' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r14-ops-monitoring.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors
+ × tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > */15 * * * * → 15 min
+   → Cannot find module '@/lib/ops/cron-schedule' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r14-ops-monitoring.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors
+ × tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 * * * * → 60 min
+   → Cannot find module '@/lib/ops/cron-schedule' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r14-ops-monitoring.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors
+ × tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 */6 * * * → 360 min
+   → Cannot find module '@/lib/ops/cron-schedule' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r14-ops-monitoring.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors
+ × tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 8 * * * → 1440 min
+   → Cannot find module '@/lib/ops/cron-schedule' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r14-ops-monitoring.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors
+ × tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 7 * * 1 → 10080 min
+   → Cannot find module '@/lib/ops/cron-schedule' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r14-ops-monitoring.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors
+ × tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > */50 * * * * → 50 min
+   → Cannot find module '@/lib/ops/cron-schedule' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r14-ops-monitoring.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors
+ × tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 1 1 * * → 44640 min
+   → Cannot find module '@/lib/ops/cron-schedule' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r14-ops-monitoring.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors
+ × tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 5,6 * * * → 1380 min
+   → Cannot find module '@/lib/ops/cron-schedule' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r14-ops-monitoring.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors
+ × tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > registr obsahuje všechny crony z vercel.json + týdenní zálohu DB
+   → Cannot find module '@/lib/ops/cron-schedule' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r14-ops-monitoring.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/fix-r14-ops-monitoring.live.test.ts > Kolo 14 / krok 3 — hlídání provozu
+error: relation "monitoring.ops_alerts" does not exist
+ ❯ node_modules/pg-pool/index.js:45:11
+ ❯ tests/fix-r14-ops-monitoring.live.test.ts:80:5
+     78|     process.env.PLATFORM_ADMIN_EMAIL = ADMIN;
+     79|     // čistý stav upozornění (sdílená DB testů)
+     80|     await clone.pool.query(`DELETE FROM monitoring.ops_alerts`);
+       |     ^
+     81|   }, 120_000);
+     82|   afterAll(async () => { await clone?.cleanup(); }, 30_000);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { length: 120, severity: 'ERROR', code: '42P01', detail: undefined, hint: undefined, position: '13', internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'parse_relation.c', line: '1428', routine: 'parserOpenTable' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > */5 * * * * → 5 min
+ FAIL  tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > */15 * * * * → 15 min
+ FAIL  tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 * * * * → 60 min
+ FAIL  tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 */6 * * * → 360 min
+ FAIL  tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 8 * * * → 1440 min
+ FAIL  tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 7 * * 1 → 10080 min
+ FAIL  tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > */50 * * * * → 50 min
+ FAIL  tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 1 1 * * → 44640 min
+ FAIL  tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > 0 5,6 * * * → 1380 min
+Error: Cannot find module '@/lib/ops/cron-schedule' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r14-ops-monitoring.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors
+ ❯ tests/fix-r14-ops-monitoring.live.test.ts:60:37
+     58|     ['0 7 * * 1', 10080], ['*/50 * * * *', 50], ['0 1 1 * *', 31 * 144…
+     59|   ])('%s → %i min', async (expr, minutes) => {
+     60|     const { cronIntervalMinutes } = await import('@/lib/ops/cron-sched…
+       |                                     ^
+     61|     expect(cronIntervalMinutes(expr as string)).toBe(minutes);
+     62|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/11]⎯
+
+ FAIL  tests/fix-r14-ops-monitoring.live.test.ts > cron-schedule: interval z výrazu cronu (nejdelší mezera mezi běhy, UTC) > registr obsahuje všechny crony z vercel.json + týdenní zálohu DB
+Error: Cannot find module '@/lib/ops/cron-schedule' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r14-ops-monitoring.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors
+ ❯ tests/fix-r14-ops-monitoring.live.test.ts:64:30
+     62|   });
+     63|   it('registr obsahuje všechny crony z vercel.json + týdenní zálohu DB…
+     64|     const { cronRegistry } = await import('@/lib/ops/cron-schedule');
+       |                              ^
+     65|     const reg = cronRegistry();
+     66|     for (const j of ['expire-pending-orders', 'release-expired-seat-ho…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/11]⎯
+
+ Test Files  1 failed (1)
+      Tests  10 failed (18)
+   Start at  13:00:15
+   Duration  502ms (transform 79ms, setup 0ms, collect 90ms, tests 77ms, environment 0ms, prepare 73ms)
+

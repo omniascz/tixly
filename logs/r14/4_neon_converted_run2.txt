@@ -1,0 +1,849 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[22m[39m
+[live-local-clone] live_booking_muy1z5iu: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mmigrace 472–478 jsou na klonu[22m[39m
+[schema] {"a":"catalog.event_costs","b":"lineups.artist_settlements","c":"catalog.venue_date_holds","d":"lineups.artist_offers","cols":5}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mA: smlouva → accrue → vyplatni davka (cesta penez umelci)[22m[39m
+[A] create agreement [33m201[39m {"id":"a57bd0c6-e4e2-4b10-ad58-26bacc3ecfe0","event_id":"1e3c9548-fec6-4c4b-9da7-3921dcf327b6","promoter_id":"559ebbda-1eee-4d46-a2a1-273a79b41786","artist_id":null,"artist_name":"Live Kapela","artist
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mA: smlouva → accrue → vyplatni davka (cesta penez umelci)[22m[39m
+[A] accrue [33m200[39m {"accrued":1,"results":[{"agreementId":"a57bd0c6-e4e2-4b10-ad58-26bacc3ecfe0","royaltyHalire":2000}]}
+[A] ledger [{"royalty_amount_halire":2000,"ticket_revenue_halire":10000}]
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mA: smlouva → accrue → vyplatni davka (cesta penez umelci)[22m[39m
+[A] payouts calculate [33m200[39m {"created":1,"payouts":[{"id":"d19d4649-56e9-430c-9282-37e5d1406cf2","artist_name":"Live Kapela","net_payout_halire":2000,"currency":"CZK"}]}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mA: smlouva → accrue → vyplatni davka (cesta penez umelci)[22m[39m
+[A] artist_payouts [{"id":"d19d4649-56e9-430c-9282-37e5d1406cf2","agreement_id":"a57bd0c6-e4e2-4b10-ad58-26bacc3ecfe0","promoter_id":"559ebbda-1eee-4d46-a2a1-273a79b41786","artist_name":"Live Kapela","artist_email":"kapela@example.cz","bank_iban":null,"bank_bic":null,"period_from":"2026-10-06T11:57:36.885Z","period_to":"2026-10-08T11:57:36.885Z","gross_royalties_halire":2000,"adjustments_halire":0,"net_payout_halire":2000,"currency":"CZK","status":"pending","paid_at":null,"payout_method":null,"external_ref":null,"notes":null,"created_by_user_id":"17163267-3011-41dc-890c-6927a043b2bc","created_at":"2026-10-07T11:57:36.897Z","updated_at":"2026-10-07T11:57:36.897Z"}]
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mA: smlouva → accrue → vyplatni davka (cesta penez umelci)[22m[39m
+[A] preview [33m200[39m {"currency":"CZK","capacity":100,"averagePriceMinor":10000,"ticketVatRatePct":12,"rows":[{"occupancyPct":30,"ticketsSold":30,"payableMinor":59500,"feeMinor":60000},{"occupancyPct":50,"ticketsSold":50,"payableMinor":99500,"feeMinor":100000},{"occupancyPct":70,"ticketsSold":70,"payableMinor":139500,"f
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mB: rozpocet + bod zlomu[22m[39m
+[B] add costs [33m201[39m [33m201[39m {"ok":true,"id":"c507711c-d236-48ad-bdec-ca19f6aa42cf"}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mB: rozpocet + bod zlomu[22m[39m
+[B] list [33m200[39m {"costs":[{"id":"c507711c-d236-48ad-bdec-ca19f6aa42cf","category":"venue","description":"Pronajem","amountMinor":1000000,"vatRatePct":21,"isPerAttendee":false,"supplier":null,"dueDate":null,"paid":false,"fromAgreement":false,"notes":null},{"id":"7508cb59-01e7-49de-9294-42ebdac5529e","category":"prod
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mB: rozpocet + bod zlomu[22m[39m
+[B] break-even [33m200[39m {"currency":"CZK","ticketVatRatePct":12,"platformFeeBps":500,"vatPayer":true,"breakEven":{"costs":{"fixedMinor":1000000,"perAttendeeMinor":1000,"fixedVatMinor":210000},"contributionPerTicketMinor":7429,"ticketsNeeded":185,"ticketsRemaining":184,"ticketsSold":1,"ticketsAvailable":100,"coveragePct":1,"reachable":false,"currentResultMinor":-994571,"soldOutResultMinor":-457100,"summary":"K pokrytí nák
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD: vyuctovani — vytvorit, uzavrit, snimek se nemeni[22m[39m
+[D] create [33m201[39m {"ok":true,"id":"d869513d-db7f-4e5b-b53f-10557d89b12a","status":"draft","payableMinor":1500,"lines":[{"key":"percent","label":"20 % z tržby","amountMinor":2000},{"key":"deposit","label":"Odečtena záloha","amountMinor":-500}]}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD: vyuctovani — vytvorit, uzavrit, snimek se nemeni[22m[39m
+[D] close [33m200[39m {"ok":true,"status":"closed","documentHash":"20d90c560e0891608d1c74ee28abc149e9e3856417aa82a46b3bd1bcad1a6bff","payoutId":"936b1b75-f75b-41de-90cb-50a7625ed8b1","message":"Vyúčtování uzavřeno a výplata založena."}
+[D] db {"status":"closed","payable_minor":1500,"tickets_sold":1}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD: vyuctovani — vytvorit, uzavrit, snimek se nemeni[22m[39m
+[D] close podruhe [33m409[39m
+[D] vyplaty smlouvy po uzavreni [{"status":"cancelled","net_payout_halire":2000},{"status":"pending","net_payout_halire":1500}]
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD: vyuctovani — vytvorit, uzavrit, snimek se nemeni[22m[39m
+[D] calculate po uzavreni [33m200[39m {"created":0,"payouts":[]}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD: vyuctovani — vytvorit, uzavrit, snimek se nemeni[22m[39m
+[D] get [33m200[39m {"settlement":{"id":"d869513d-db7f-4e5b-b53f-10557d89b12a","status":"closed","artistName":"Live Kapela","artistEmail":"kapela@example.cz","currency":"CZK","capacity":100,"ticketsSold":1,"grossRevenueM
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD2: schvalena prubezna vyplata se odecte; zmena mezi konceptem a uzavrenim -> 409[22m[39m
+[D2] calculate [33m200[39m {"created":1,"payouts":[{"id":"d923931d-a39e-41c2-acf4-31809a90b67b","artist_name":"Predkapela","net_payout_halire":1000,"currency":"CZK"}]}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD2: schvalena prubezna vyplata se odecte; zmena mezi konceptem a uzavrenim -> 409[22m[39m
+[D2] koncept (vyplata jeste pending) [33m201[39m {"ok":true,"id":"7dce4adc-4270-4ecf-9915-01dfe9d2004e","status":"draft","payableMinor":1000,"lines":[{"key":"percent","label":"10 % z tržby","amountMinor":1000}]}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD2: schvalena prubezna vyplata se odecte; zmena mezi konceptem a uzavrenim -> 409[22m[39m
+[D2] uzavreni zastaraleho konceptu [33m409[39m {"error":"STALE_DRAFT","message":"Od sestavení vyúčtování se změnily výplaty umělci. Sestav vyúčtování znovu, ať sedí „j
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD2: schvalena prubezna vyplata se odecte; zmena mezi konceptem a uzavrenim -> 409[22m[39m
+[D2] novy koncept [33m201[39m {"ok":true,"id":"7dce4adc-4270-4ecf-9915-01dfe9d2004e","status":"draft","payableMinor":0,"lines":[{"key":"percent","label":"10 % z tržby","amountMinor":1000},{"key":"already_paid","label":"Již vyplaceno z průběžného podílu","amountMinor":-1000}]}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD2: schvalena prubezna vyplata se odecte; zmena mezi konceptem a uzavrenim -> 409[22m[39m
+[D2] uzavreni [33m200[39m {"ok":true,"status":"closed","documentHash":"cb75f3c4f1e6999234b3cd01a544a92f6a7191da1a32fb517d67759e03bce90d","payoutId":null,"message":"Vyúčtování uzavřeno. V
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD2: schvalena prubezna vyplata se odecte; zmena mezi konceptem a uzavrenim -> 409[22m[39m
+[D2] vyplaty [{"status":"approved","net_payout_halire":1000}]
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mE: opce na termin — poradi, potvrzeni zalozi akci[22m[39m
+[E] holds [33m201[39m [33m201[39m {"ok":true,"id":"bfe7949f-694a-4c53-93dc-b5e2d38998bf","optionRank":1,"message":"Termín držíš jako první v pořadí."} {"ok":true,"id":"f9f2e71b-7cc4-45f3-8e05-40273ebd2c59","optionRank":2,"message":"Termín držíš jako 2. v pořadí — potvrdit může až první."}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mE: opce na termin — poradi, potvrzeni zalozi akci[22m[39m
+[E] db [{"title":"Opce 1","option_rank":1,"status":"held"},{"title":"Opce 2","option_rank":2,"status":"held"}]
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mE: opce na termin — poradi, potvrzeni zalozi akci[22m[39m
+[E] list [33m200[39m {"holds":[{"id":"bfe7949f-694a-4c53-93dc-b5e2d38998bf","venueId":"0497033a-093a-4f59-bdd2-6092438b514f","venueName":"Test Sál","date":"2027-01-05","optionRank":1,"title":"Opce 1","artistName":"Kapela 
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mE: opce na termin — poradi, potvrzeni zalozi akci[22m[39m
+[E] confirm [33m200[39m {"ok":true,"eventId":"48705768-8ee0-4118-bc3a-757c8c8d2cc0","droppedOptions":1,"message":"Termín potvrzen a založen koncept akce. Zrušeno 1 dalších opcí na ten den."}
+[E] po potvrzeni {"status":"confirmed","event_id":"48705768-8ee0-4118-bc3a-757c8c8d2cc0","ev_status":"draft"}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mE: opce na termin — poradi, potvrzeni zalozi akci[22m[39m
+[E] cron expire [33m200[39m {"expiredCount":0,"promotedToPrimary":[],"ts":"2026-10-07T11:57:37.741Z"}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mE2: opce na sal BEZ poradatele (sdileny sal) — co se stane pod RLS[22m[39m
+[E2] sdileny sal -> [33m201[39m {"ok":true,"id":"3425f491-2ed1-4e6f-b098-8077ec1abc8d","optionRank":1,"message":"Termín držíš jako první v pořadí."}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mF: nabidka → odkaz → prijeti agentem → smlouva + nakladova polozka[22m[39m
+[F] create [33m201[39m {"ok":true,"id":"c12a3c6a-b0ed-4c43-a9cb-2a03a62db32f","status":"draft"}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mF: nabidka → odkaz → prijeti agentem → smlouva + nakladova polozka[22m[39m
+[F] send [33m200[39m {"ok":true,"status":"sent","link":"http://localhost:3100/nabidka/45HApvoqF3XAopC60SCciHIDI8DE5HbYvckBEkWBH3Q","expiresAt":"2026-10-14T11:57:37.866Z","recipient":"agent@example.cz","message":"Odkaz vyd
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mF: nabidka → odkaz → prijeti agentem → smlouva + nakladova polozka[22m[39m
+[F] agent view [33m200[39m {"offer":{"artistName":"Nabidnuta Kapela","agentName":null,"promoterName":"Test Promoter","eventTitle":"Test Akce","performanceDate":"2026-11-06","venueName":"Test Sál","setLengthMinutes":null,"curren
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mF: nabidka → odkaz → prijeti agentem → smlouva + nakladova polozka[22m[39m
+[F] accept [33m200[39m {"ok":true,"status":"accepted","documentHash":"e3740919886cb8e36f2904254d0fc70b3fbfbd4081debe585afa5fcf8a115f6b","message":"Nabídka přijata a podepsána. Pořadateli se podmínky propsaly do smlouvy."}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mF: nabidka → odkaz → prijeti agentem → smlouva + nakladova polozka[22m[39m
+[F] db {"status":"accepted","agreement_id":"a20628f7-22e3-4804-91f7-087c610d7aef","cost_id":"1ab98918-643f-4f63-b19a-491f8728ffe0","percent_rate":"15.0000","min_guarantee_halire":2000000,"amount_minor":2000000,"category":"artist"}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mF: nabidka → odkaz → prijeti agentem → smlouva + nakladova polozka[22m[39m
+[F] vyuctovani z nabidky [33m201[39m fixed_costs_minor = [33m1000000[39m
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mF: nabidka → odkaz → prijeti agentem → smlouva + nakladova polozka[22m[39m
+[F] accept podruhe [33m409[39m
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mG: re-entry — automaticky smer, undo[22m[39m
+[G] 1. pruchod [33m200[39m {"result":"admitted","direction":"entry","label":"VSTUP","feedback":{"tone":"in","vibrate":[100]},"scanEventId":"86daf30e-e65d-40ad-99e7-6b246bf03576","scanCount":1,"remainingEntries":2,"occupancy":1,"ticket":{"ticketId":"9028c8a2-bc47-45ca-82f3-c7a2
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mG: re-entry — automaticky smer, undo[22m[39m
+[G] 2. pruchod [33m200[39m {"result":"released","direction":"exit","label":"ODCHOD","feedback":{"tone":"out","vibrate":[60,50,60]},"scanEventId":"50516610-2bb8-4a83-a0b4-48cd60488fb2","scanCount":1,"remainingEntries":2,"occupancy":0,"ticket":{"ticketId":"9028c8a2-bc47-45ca-82f
+[G] po 2 pruchodech {"currently_inside":false,"scan_count":1}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mG: re-entry — automaticky smer, undo[22m[39m
+[G] undo [33m200[39m {"ok":true,"undoneDirection":"exit","currentlyInside":true,"scanCount":1,"occupancy":1,"message":"Odchod vzat zpět — držitel je veden jako uvnitř."}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mG: re-entry — automaticky smer, undo[22m[39m
+[G] po undo {"currently_inside":true} undone scanu: [33m1[39m
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mG: re-entry — automaticky smer, undo[22m[39m
+[G] occupancy [33m200[39m {"eventTitle":"Test Akce","reentryAllowed":true,"inside":1,"admittedEver":1,"sold":1,"outsideWithReentry":0,"capacity":500,"occupancyPct":0,"gates":[{"gate":"bez brány","entries":1,"exits":0}],"lastSc
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mdashboard overview[22m[39m
+[stats] [33m200[39m {"currency":"CZK","hasOtherCurrencies":false,"feePercent":5,"showsMoney":true,"today":{"grossHalire":10000,"ordersCount":1,"tickets":1},"week":{"currentGrossHalire":10000,"previousGrossHalire":0,"changePercent":null},"totals":{"ordersCount":1,"customersCount":1,"grossHalire":10000,"refundsHalire":0,
+
+ [32m✓[39m tests/booking-settlement.live.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[33m 32512[2mms[22m[39m
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[22m[39m
+[live-local-clone] live_buyerpol_muy1zv2t: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   1. auth.passkey_challenges.p_rls_passkey_challenges           sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   2. compliance.dsa_reports.dsa_reports_own                     sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   3. identity.user_secrets.p_user_secrets_scope                 sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   4. identity.oauth_accounts.p_oauth_accounts_owner_read        sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   5. orders.postal_deliveries.postal_deliveries_buyer           sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   6. marketing.loyalty_transactions.loyalty_tx_owner            sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   7. marketing.user_spotify_connections.p_spotify_conn_own      sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   8. orders.identity_verifications.identity_verif_own_select    sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   9. catalog.scanner_devices.platform_admin_devices             buyer=0 admin=1  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  10. identity.eudi_verifications.p_eudi_verifications_scope     sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  11. identity.magic_link_tokens.magic_link_tokens_owner         sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  12. identity.oauth_accounts.oauth_accounts_own                 sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  13. lineups.artist_follows.artist_follows_own                  sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  14. marketing.ticket_alerts.ticket_alerts_select               sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  15. orders.party_split_slots.party_split_slots_write           sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  16. orders.ticket_transfers.p_ticket_transfers_service         sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  17. orders.ticket_transfers.ticket_transfers_sender            sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  18. orders.transit_passes.transit_passes_buyer_owns            sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  19. resale.resale_listings.resale_listings_buyer_view          sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  R-53 transit_passes: admin PRED mig471=0  PO=1   | buyer sve=1 cizi=0
+  DIAG {"a":false,"u":"399026e6-6ec4-42c2-be9f-8f5f01f61673","g":null} cizich orders videt: [33m0[39m {"r":true,"f":false} {"cu":"tixly_app"}
+  POL transit_passes_buyer_owns (app_is_platform_admin() OR (order_id IN ( SELECT o.id
+   FROM orders.orders o
+  WHERE (o.user_id = app_current_user_id(
+
+  SOUHRN vzorcu: OK=19  UNIK=0  ROZBITE=0  NEVIM=0  z 19
+
+ [32m✓[39m tests/buyer-policies.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 2289[2mms[22m[39m
+[90mstdout[2m | tests/admin-guest.live.test.ts[2m > [22m[2madmin cesty — guest-create přes helper (live)[22m[39m
+[live-local-clone] live_admin_guest_muy1zx6m: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/admin-guest.live.test.ts[2m > [22m[2madmin cesty — guest-create přes helper (live)[2m > [22m[2mpress — schválení akreditace vydá vstupenku existujícímu guestovi[22m[39m
+Press ticket issued: Jan Novinář - Deník
+
+ [33m❯[39m tests/admin-guest.live.test.ts [2m ([22m[2m6 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 3150[2mms[22m[39m
+[31m   [33m❯[31m tests/admin-guest.live.test.ts[2m > [22madmin cesty — guest-create přes helper (live)[2m > [22mwaitlist — guest se najde, ale konverze padá na T-WAITLIST-PROVIDER (23514 walkin)[39m
+[31m     → expected undefined to be '23514' // Object.is equality[39m
+[31m   [33m❯[31m tests/admin-guest.live.test.ts[2m > [22madmin cesty — guest-create přes helper (live)[2m > [22mbox-office — prodej padá na T-BOXOFFICE-EXPIRES (23502 expires_at)[39m
+[31m     → expected 422 to be greater than or equal to 500[39m
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[22m[39m
+[live-local-clone] live_wrapped_routes_muy1zzyi: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[22m[39m
+[seed] order= a8b81664-0c5d-4838-99f8-ee0859c4c4d7 user= ffcfdda3-f13f-4a2a-8f3d-80f1e8f7b785 listku= [33m1[39m
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/orders/[id]/upgrade-options — vlastnik vs cizi[22m[39m
+[upgrade-options] vlastnik [33m200[39m {"tickets":[{"ticketId":"03dc5394-8ba0-4a23-bf8b-35d4e1ddd5e1","ticketTypeId":"ecd6f072-7ebd-4c06-8101-efc209a9d8b4","ticketTypeNa
+[upgrade-options] CIZI     [33m404[39m {"error":"NOT_FOUND"}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/tickets — vlastnik vidi svuj listek[22m[39m
+[tickets] prvni listek id = 03dc5394-8ba0-4a23-bf8b-35d4e1ddd5e1
+[tickets] vydano v DB = [33m1[39m
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mplatform/artists — platform admin kontext[22m[39m
+[platform/artists] [33m403[39m {"error":"FORBIDDEN"}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mplatform/artists — s platform-admin tokenem (drive 403)[22m[39m
+[platform/artists] [33m200[39m {"artists":[]}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mplatform/postal — GET seznam s admin tokenem[22m[39m
+[platform/postal] [33m200[39m {"deliveries":[]}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/tickets/[ticketId]/transfer — GET vlastnik vs CIZI (izolace)[22m[39m
+[my/tickets/transfer] vlastnik 200 {"ticket":{"id":"03dc5394-8ba0-4a23-bf8b-35d4e1ddd5e1","status":"valid
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/tickets/[ticketId]/transfer — GET vlastnik vs CIZI (izolace)[22m[39m
+[my/tickets/transfer] CIZI     404 {"error":"NOT_FOUND"}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mcron/release-group-invite-holds — servisni kontext[22m[39m
+[cron/release-group-invite-holds] [33m200[39m {"ok":true,"releasedHoldSeats":0,"releasedUnpaidClaims":0}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/tickets/transfer POST -> tickets/transfer/[token] GET+POST[22m[39m
+[my/tickets/transfer POST] [33m201[39m {"token":"VsnBslp1dBTE1xRBoVKJIpTFAlKiv81d","toEmail":"cizi-1791374289812-w27bf@tixly.test","fromEmail":"buyer
+[transfer] token v DB = ANO
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/tickets/transfer POST -> tickets/transfer/[token] GET+POST[22m[39m
+[transfer/token GET verejny] [33m200[39m {"transfer":{"to_email":"cizi-1791374289812-w27bf@tixly.test","expires_at":"2026-10-10T11:58:10.305Z
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/tickets/transfer POST -> tickets/transfer/[token] GET+POST[22m[39m
+[transfer/token POST prijemce] [33m200[39m {"claimed":true,"ticketId":"03dc5394-8ba0-4a23-bf8b-35d4e1ddd5e1"}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mplatform/postal/[id] PATCH s admin tokenem[22m[39m
+[platform/postal/[id] PATCH] [33m200[39m {"updated":true}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mR-40 bisect: ktery JOIN zahazuje radek prevodu[22m[39m
+   [bisect] 1 jen ticket_transfers rowCount=1
+   [bisect] 2 + tickets            rowCount=1
+   [bisect] 3 + orders             rowCount=1
+   [bisect] 4 + events             rowCount=1
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mR-40 bisect: ktery JOIN zahazuje radek prevodu[22m[39m
+   [bisect] 5 + venues             rowCount=1
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mR-40 bisect: ktery JOIN zahazuje radek prevodu[22m[39m
+   [bisect] 6 + ticket_types       rowCount=1
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mR-40 bisect: ktery JOIN zahazuje radek prevodu[22m[39m
+   [bisect/app] 1 jen ticket_transfers rowCount=1
+   [bisect/app] 2 + tickets            rowCount=1
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mR-40 bisect: ktery JOIN zahazuje radek prevodu[22m[39m
+   [bisect/app] 3 + orders             rowCount=1
+   [bisect/app] 4 + events             rowCount=1
+   [bisect/app] 5 + venues             rowCount=1
+   [bisect/app] 6 + ticket_types       rowCount=1
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/orders/[id]/upgrade — vlastnik vs CIZI (posledni z 8)[22m[39m
+[my/orders/upgrade] vlastnik 404 {"error":"TICKET_NOT_FOUND"}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/orders/[id]/upgrade — vlastnik vs CIZI (posledni z 8)[22m[39m
+[my/orders/upgrade] CIZI     404 {"error":"TICKET_NOT_FOUND"}
+
+ [32m✓[39m tests/wrapped-routes.live.test.ts [2m ([22m[2m11 tests[22m[2m)[22m[33m 1274[2mms[22m[39m
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[22m[39m
+[live-local-clone] live_cron_contract_muy201an: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mconsent-log-purge: pri odepreni prava NEVRATI ok:true[22m[39m
+trig: 42P01
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mconsent-log-purge: pri odepreni prava NEVRATI ok:true[22m[39m
+[consent-log-purge] [33m200[39m {"ok":true,"processed":0,"failed":0,"errors":[],"purged":0}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mverify-event-completion: pri rozbitem uvodnim dotazu NEVRATI ok:true[22m[39m
+[verify-event-completion] [33m200[39m {"ok":false,"processed":0,"failed":1,"errors":["stats query: permission denied for table events"]}
+
+[90mstderr[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mverify-event-completion: pri rozbitem uvodnim dotazu NEVRATI ok:true[22m[39m
+[verify-event-completion] uvodni dotaz selhal: error: permission denied for table events
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at RlsAwarePool.query [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:298:22[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\cron\verify-event-completion\route.ts:53:15
+    at call [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\cron-contract.live.test.ts:22:15[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\cron-contract.live.test.ts:54:17
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m {
+  length: [33m94[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42501'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'aclchk.c'[39m,
+  line: [32m'2843'[39m,
+  routine: [32m'aclcheck_error'[39m
+}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mseat-upgrade-notify: tvar odpovedi obsahuje failed i errors[22m[39m
+[seat-upgrade-notify] [33m200[39m {"ok":true,"processed":0,"notified":0,"failed":0,"errors":[],"candidates":0}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2monboarding-reminder: pri rozbite tabulce NEVRATI ok:true[22m[39m
+[onboarding-reminder] [33m200[39m {"ok":false,"processed":0,"failed":1,"errors":["candidates query: permission denied for table promoters"]}
+
+[90mstderr[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2monboarding-reminder: pri rozbite tabulce NEVRATI ok:true[22m[39m
+[onboarding-reminder] uvodni dotaz selhal: error: permission denied for table promoters
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at RlsAwarePool.query [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:298:22[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\cron\onboarding-reminder\route.ts:61:9
+    at call [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\cron-contract.live.test.ts:22:15[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\cron-contract.live.test.ts:77:17
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m {
+  length: [33m97[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42501'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'aclchk.c'[39m,
+  line: [32m'2843'[39m,
+  routine: [32m'aclcheck_error'[39m
+}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mbank-sync-fio: tvar obsahuje ok/processed/failed/errors[22m[39m
+[bank-sync-fio] [33m200[39m {"ok":true,"processed":0,"failed":0,"errors":[],"results":[]}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mweb-vitals: pri rozbitem zapisu NEVRATI ok:true[22m[39m
+[web-vitals] [33m200[39m {"ok":false,"processed":0,"failed":1,"errors":["permission denied for schema marketing | retry: permission denied for schema marketing"]}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2morder-completed: pri selhani KRITICKEHO kroku NEVRATI ok:true[22m[39m
+item seed: 23502 null value in column "total_price" of relation "order_items" violates 
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2morder-completed: pri selhani KRITICKEHO kroku NEVRATI ok:true[22m[39m
+<empty line>
+[90mstderr[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2morder-completed: pri selhani KRITICKEHO kroku NEVRATI ok:true[22m[39m
+[order-completed] ticket issue / PDF failed: error: permission denied for table tickets
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at Module.issueTicketsForOrder [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\tickets\demo-issuer.ts:82:20[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\order-completed\route.ts:443:16
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\cron-contract.live.test.ts:123:17
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m
+    at startTests [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:967:3[90m)[39m {
+  length: [33m95[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42501'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'aclchk.c'[39m,
+  line: [32m'2843'[39m,
+  routine: [32m'aclcheck_error'[39m
+}
+
+[90mstderr[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2morder-completed: pri selhani KRITICKEHO kroku NEVRATI ok:true[22m[39m
+<empty line>
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2morder-completed: pri selhani KRITICKEHO kroku NEVRATI ok:true[22m[39m
+[order-completed] [33m200[39m {"ok":false,"processed":0,"failed":1,"errors":["ticket_issue: permission denied for table tickets"],"degraded":[],"success":false,"orderId":"81254e6d-bf72-4321-a850-c24b27ad6268","emailSent":false,"smsSent":false,"items"
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mrelease-rolling-reserves: cela cesta uvolneni PROJDE (D4)[22m[39m
+[release-rolling-reserves] [33m200[39m {"ok":true,"processed":1,"failed":0,"errors":[],"releasedCount":1,"totalAmount":12345,"byPromoter":{"813006fc-b029-4913-bae6-bb6608a376d4":12345}}
+   rezerva released = [33mtrue[39m | audit = {"action":"UPDATE","actor_type":"system","op":"BULK_RELEASE"}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mD12 verify-event-completion: zapise anomaly_alert (drive 42703/23502/23514)[22m[39m
+[D12] [33m200[39m {"ok":true,"processed":0,"failed":0,"errors":[],"checked":1,"completed":0,"suspicious":0,"noShow":1,"zeroTickets":0}
+   alert = {"alert_type":"low_velocity","severity":"critical","message":"Akce \"D12 akce\" skoncila bez jedineho naskenovaneho listku (5 prodanych).","event_id":"7e73f502-7e08-4342-aa22-df84bb46922e","rate":"0"}
+
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[2m > [22m[2mdemand-forecast: PEEL cele cesty[22m[39m
+[demand-forecast] [33m200[39m {"ok":false,"failed":2,"processed":0,"total":2,"errors":[{"eventId":"8a2a116f-525a-4ced-b345-6b731b8117b4","error":"column \"tickets_sold\" of relation \"demand_forecasts\" does not exist"},
+
+ [33m❯[39m tests/cron-contract.live.test.ts [2m ([22m[2m10 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 1529[2mms[22m[39m
+[31m   [33m❯[31m tests/cron-contract.live.test.ts[2m > [22mkontrakt cronu (C2)[2m > [22mconsent-log-purge: pri odepreni prava NEVRATI ok:true[39m
+[31m     → expected true not to be true // Object.is equality[39m
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[22m[39m
+[live-local-clone] live_party_split_muy202s1: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[2m > [22m[2mPOST /api/checkout/party-split založí session a vrátí share_token[22m[39m
+[party-split create] [33m201[39m {"sessionId":"7fd99782-a060-4e44-b067-0b744faef583","shareToken":"bdNxy6AF7VRUpKt9sH0TH3oN","shareUrl":"http://localhost:3100/party/bdNxy6AF7VRUpKt9sH0TH3oN","perPersonAmount":50000,"currency":"CZK","
+
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[2m > [22m[2mkapacitni kontrola cte remaining_qty (ne neexistujici sloupec)[22m[39m
+[party-split capacity] [33m409[39m {"error":"INSUFFICIENT_CAPACITY","available":5}
+
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[2m > [22m[2m[token] POST prijme slot a dekrementuje remaining_qty PRESNE o 1[22m[39m
+[party-split pay] [33m422[39m {"error":"VAT_NOT_CONFIGURED","message":"Akci zatím nelze prodávat: pořadatel je plátce DPH, ale v profilu nemá platné DIČ; placené typy vstupenek bez sazby DPH: TT, Scarce.","problems":[{"problem":"VAT_DIC_MISSING","tic
+[remaining_qty] [33m100[39m -> [33m100[39m
+
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[2m > [22m[2mopakovane prijeti: druhy platce dostane JINY slot, dekrement presne 1x[22m[39m
+[opakovane] [33m422[39m slot [90mundefined[39m | [33m422[39m slot [90mundefined[39m | remaining [33m100[39m -> [33m100[39m -> [33m100[39m
+
+ [33m❯[39m tests/party-split.live.test.ts [2m ([22m[2m7 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 1018[2mms[22m[39m
+[31m   [33m❯[31m tests/party-split.live.test.ts[2m > [22mparty-split přes skutečné handlery[2m > [22m[token] POST prijme slot a dekrementuje remaining_qty PRESNE o 1[39m
+[31m     → expected +0 to be 1 // Object.is equality[39m
+[31m   [33m❯[31m tests/party-split.live.test.ts[2m > [22mparty-split přes skutečné handlery[2m > [22mopakovane prijeti: druhy platce dostane JINY slot, dekrement presne 1x[39m
+[31m     → expected +0 to be 1 // Object.is equality[39m
+[90mstdout[2m | tests/guest-user.live.test.ts[2m > [22m[2mcreateOrGetGuestUser (live, ephemeral Neon branch)[22m[39m
+[live-local-clone] live_guest_user_muy203vm: handlery běží jako tixly_app (RLS platí)
+
+ [32m✓[39m tests/guest-user.live.test.ts [2m ([22m[2m12 tests[22m[2m)[22m[33m 686[2mms[22m[39m
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[22m[39m
+[live-local-clone] live_public_routes_muy204qw: handlery běží jako tixly_app (RLS platí)
+
+(node:27324) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2mdiscover vraci publikovanou akci (drive prazdno pod tixly_app)[22m[39m
+[discover] [33m200[39m akci: [33m1[39m
+
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2martists/[slug] vraci umelce (drive 404 z prazdneho vysledku)[22m[39m
+[artists] [33m200[39m
+
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2mRED: puvodni dotaz BEZ JOINu na events vydal balicek draft akce[22m[39m
+[R-13 RED] draft bez JOINu: [33m1[39m radku
+
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2mGREEN: routa NEvyda balicky draft akce[22m[39m
+[R-13 GREEN draft] { status: [33m200[39m, count: [33m0[39m }
+
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2mGREEN: routa porad vydava balicky publikovane akce[22m[39m
+[R-13 GREEN pub] { status: [33m200[39m, count: [33m1[39m }
+
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2malert: anonymni prihlaseni k hlidacimu psu (servisni kontext)[22m[39m
+[alert anonym] {
+  status: [33m200[39m,
+  body: [32m'{"token":"T9Q6RMJByLLfP35zR2OHqw","eventTitle":"PUB-9a16f346"}'[39m
+}
+
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2malert: prihlaseny uzivatel (uzivatelsky kontext)[22m[39m
+[alert user] {
+  status: [33m200[39m,
+  body: [32m'{"token":"0QI5TKd2e43969e4HVxqrg","eventTitle":"PUB-9a16f346"}'[39m
+}
+
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2malert: servisni kontext NEzustava po requestu (anonym pak nevidi cizi)[22m[39m
+[alert leak-check] v tabulce: [33m3[39m | anonym vidi: [33m0[39m
+
+ [32m✓[39m tests/public-routes.live.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[33m 841[2mms[22m[39m
+[90mstdout[2m | tests/checkout-guest.live.test.ts[2m > [22m[2mcheckout — guest-create (live, celá cesta)[22m[39m
+[live-local-clone] live_checkout_guest_muy205p5: handlery běží jako tixly_app (RLS platí)
+
+ [33m❯[39m tests/checkout-guest.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[33m 854[2mms[22m[39m
+[31m   [33m❯[31m tests/checkout-guest.live.test.ts[2m > [22mcheckout — guest-create (live, celá cesta)[2m > [22mnový kupující — checkout doběhne a založí guest usera[39m
+[31m     → expected 422 to be less than 400[39m
+[31m   [33m❯[31m tests/checkout-guest.live.test.ts[2m > [22mcheckout — guest-create (live, celá cesta)[2m > [22mdruhý nákup týmž e-mailem — dedup: druhá objednávka, pořád jeden user[39m
+[31m     → expected 422 to be less than 400[39m
+[31m   [33m❯[31m tests/checkout-guest.live.test.ts[2m > [22mcheckout — guest-create (live, celá cesta)[2m > [22mvelká písmena v e-mailu nevytvoří druhého uživatele[39m
+[31m     → expected 422 to be less than 400[39m
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[22m[39m
+[live-local-clone] live_mig455_muy206ot: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[22m[39m
+wero seed: 23502 null value in column "amount_halire" of relation "wero_payments" viola
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  catalog.event_distribution_partners    NEVIM (FK retez: neresitelny uuid sloupec)
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  catalog.event_sponsors                 [promoter] vlastni=1 cizi=0  OK
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  catalog.event_travel_links             [promoter] vlastni=1 cizi=0  OK
+  catalog.event_travel_packages          NEVIM (FK retez: neresitelny uuid sloupec)
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  catalog.venue_gates                    [promoter] vlastni=1 cizi=0  OK
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  identity.magic_link_tokens             [user] vlastni=1 cizi=0  OK
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  lineups.performance_cast               [promoter] vlastni=1 cizi=0  OK
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  marketing.ticket_alerts                [user] vlastni=1 cizi=0  OK
+  orders.box_office_sales                NEVIM (FK retez: neresitelny uuid sloupec)
+  orders.box_office_sessions             NEVIM (FK retez: neresitelny uuid sloupec)
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  orders.postal_deliveries               [user] vlastni=1 cizi=0  OK
+  orders.seat_upgrades                   NEVIM (FK retez: neresitelny uuid sloupec)
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  orders.ticket_transfers                [user] vlastni=1 cizi=0  OK
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  orders.travel_bookings                 NEVIM (FK retez: neresitelny uuid sloupec)
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  payments.wero_payments                 [promoter] vlastni=1 cizi=0  OK
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  payments.wero_webhooks                 [promoter] vlastni=0 cizi=0  vlastni NEVIDI
+
+  SOUHRN: OK=9  UNIK=0  NEVIM=6  z 16 tabulek
+
+ [32m✓[39m tests/mig455.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 1062[2mms[22m[39m
+[90mstdout[2m | tests/auth-reset-password.live.test.ts[2m > [22m[2mauth/reset-password proti reálnému schématu (live)[22m[39m
+[live-local-clone] live_reset_pw_muy207us: handlery běží jako tixly_app (RLS platí)
+
+ [32m✓[39m tests/auth-reset-password.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 2720[2mms[22m[39m
+[90mstdout[2m | tests/rls-pool-pooler.live.test.ts[2m > [22m[2mR-56 — dva pooly: connect() primy, query() poolovany[22m[39m
+[live-local-clone] live_r56_dva_pooly_muy20a9f: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/rls-pool-pooler.live.test.ts[2m > [22m[2mR-56 — dva pooly: connect() primy, query() poolovany[2m > [22m[2mconnect() přímo na POOLERU (bez přímého URL) je těsný[22m[39m
+[R-56] connect na POOLERU {"n":60,"bad":0,"foreign":0,"empty":0}
+
+[90mstdout[2m | tests/rls-pool-pooler.live.test.ts[2m > [22m[2mR-56 — dva pooly: connect() primy, query() poolovany[2m > [22m[2mOPRAVA: DATABASE_URL = pooler -> connect() 0/60 i query() 0/60[22m[39m
+[R-56] connect() (odvozeny direct) {"n":60,"bad":0,"foreign":0,"empty":0}
+[R-56] query()   (pooler)          {"n":60,"bad":0,"foreign":0,"empty":0}
+
+ [32m✓[39m tests/rls-pool-pooler.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 2163[2mms[22m[39m
+[90mstdout[2m | tests/fan-bonus-r57.live.test.ts[2m > [22m[2mR-57 — spici SET LOCAL v buyer/fan-bonus[22m[39m
+[live-local-clone] live_fan_bonus_r57_muy20cb9: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/fan-bonus-r57.live.test.ts[2m > [22m[2mR-57 — spici SET LOCAL v buyer/fan-bonus[2m > [22m[2mRED->GREEN: odstraneny radek by UVNITR transakce udelal z kupujiciho admina[22m[39m
+[R-57] RED (s radkem, v transakci) = "true"
+[R-57] GREEN (bez radku)           = ""
+
+[90mstdout[2m | tests/fan-bonus-r57.live.test.ts[2m > [22m[2mR-57 — spici SET LOCAL v buyer/fan-bonus[2m > [22m[2mNEREGRESE: kupujici vidi svuj bonus a NEVIDI cizi[22m[39m
+[fan-bonus] vlastnik [33m200[39m {"totalAvailable":5000,"history":[{"orderId":"160dfcc8-6c1d-4a96-9892-108f3ffc469d","eventId":"6842cadb-b22c-4112-bf49-6f179e535d0d","earnedHalire":5000,"bonusPct":2.5,"voucherCode":"R57-VLASTNI","bal
+
+[90mstdout[2m | tests/fan-bonus-r57.live.test.ts[2m > [22m[2mR-57 — spici SET LOCAL v buyer/fan-bonus[2m > [22m[2mNEREGRESE: kupujici vidi svuj bonus a NEVIDI cizi[22m[39m
+[fan-bonus] CIZI     [33m200[39m {"totalAvailable":7000,"history":[{"orderId":"00ebed1c-66b3-428f-b310-5ddea0bbab03","eventId":"6842cadb-b22c-4112-bf49-6f179e535d0d","earnedHalire":7000,"bonusPct":2.5,"voucherCode":"R57-CIZI","balanc
+
+ [32m✓[39m tests/fan-bonus-r57.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 887[2mms[22m[39m
+[90mstdout[2m | tests/payouts-select.live.test.ts[2m > [22m[2m§207 vyplaty — RED->GREEN na SELECTu + PEEL[22m[39m
+[live-local-clone] live_payouts_select_muy20dfs: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/payouts-select.live.test.ts[2m > [22m[2m§207 vyplaty — RED->GREEN na SELECTu + PEEL[2m > [22m[2mRED: puvodni dotaz pada na 42703[22m[39m
+[§207] RED  = 42703
+
+[90mstdout[2m | tests/payouts-select.live.test.ts[2m > [22m[2m§207 vyplaty — RED->GREEN na SELECTu + PEEL[2m > [22m[2mGREEN: opraveny dotaz vrati radek[22m[39m
+[§207] GREEN radku = [33m1[39m {"payout_id":"b2ec2d94-f8e0-4308-9f38-8447f27e781e","promoter_id":"87094aac-770e-4837-9463-e13e6ea2d340","net_payout":500000,"currency":"CZK","retry_count":0,"p
+
+[90mstdout[2m | tests/payouts-select.live.test.ts[2m > [22m[2m§207 vyplaty — RED->GREEN na SELECTu + PEEL[2m > [22m[2mPEEL: projde servisni UPDATE na platform.payouts? (R-30)[22m[39m
+[§207] PEEL UPDATE rowCount = [33m1[39m <- projde
+
+ [32m✓[39m tests/payouts-select.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 617[2mms[22m[39m
+[90mstdout[2m | tests/live-fixture.live.test.ts[2m > [22m[2mlive-fixture seed factory[22m[39m
+[live-local-clone] live_seed_smoke_muy20ec9: handlery běží jako tixly_app (RLS platí)
+
+ [32m✓[39m tests/live-fixture.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 685[2mms[22m[39m
+[90mstdout[2m | tests/publish-events.live.test.ts[2m > [22m[2mv1/publish/events PUT pres skutecny handler[22m[39m
+[live-local-clone] live_publish_events_muy20f8c: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/publish-events.live.test.ts[2m > [22m[2mv1/publish/events PUT pres skutecny handler[2m > [22m[2mPUT projde a zapise base_price + remaining_qty (drive 42703)[22m[39m
+[publish PUT] [33m200[39m {"ok":true,"eventId":"aeedf62d-681a-4b83-9c2b-663d4dabd51b"}
+
+[90mstdout[2m | tests/publish-events.live.test.ts[2m > [22m[2mv1/publish/events PUT pres skutecny handler[2m > [22m[2mPUT projde a zapise base_price + remaining_qty (drive 42703)[22m[39m
+[ticket_type] { base_price: [33m33000[39m, remaining_qty: [33m42[39m }
+
+ [32m✓[39m tests/publish-events.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 772[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/checkout-stress.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [33m1 skipped[39m[2m)[22m
+[90mstdout[2m | tests/red-green-488.live.test.ts[2m > [22m[2mRED->GREEN 488 royalty_* policies[22m[39m
+[live-local-clone] RED stav — vynechano: 488
+
+[90mstdout[2m | tests/red-green-488.live.test.ts[2m > [22m[2mRED->GREEN 488 royalty_* policies[22m[39m
+[live-local-clone] live_rg488_muy20gq6: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/red-green-488.live.test.ts[2m > [22m[2mRED->GREEN 488 royalty_* policies[2m > [22m[2mRED 42501 → GREEN 201, cizi poradatel nevidi[22m[39m
+[488] RED  = 42501
+
+[90mstdout[2m | tests/red-green-488.live.test.ts[2m > [22m[2mRED->GREEN 488 royalty_* policies[2m > [22m[2mRED 42501 → GREEN 201, cizi poradatel nevidi[22m[39m
+[488] GREEN = [33m201[39m {"id":"70798058-5d75-448c-8c83-356064984b9c","event_id":"a08f75fb-8d58-4cf6-9d90-bf36aa5108df","promoter_id":"935856e5-e
+
+[90mstdout[2m | tests/red-green-488.live.test.ts[2m > [22m[2mRED->GREEN 488 royalty_* policies[2m > [22m[2mRED 42501 → GREEN 201, cizi poradatel nevidi[22m[39m
+[488] cizi poradatel GET cizi akce = [33m403[39m
+
+[90mstdout[2m | tests/red-green-488.live.test.ts[2m > [22m[2mRED->GREEN 488 royalty_* policies[2m > [22m[2mRED 42501 → GREEN 201, cizi poradatel nevidi[22m[39m
+[488] cizi poradatel vidi radku = [33m0[39m
+
+ [32m✓[39m tests/red-green-488.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 3537[2mms[22m[39m
+[90mstdout[2m | tests/red-green-470-471.live.test.ts[2m > [22m[2mRED->GREEN migraci 470 a 471 (RED = klon BEZ nich)[22m[39m
+[live-local-clone] RED stav — vynechano: 470, 471
+
+[90mstdout[2m | tests/red-green-470-471.live.test.ts[2m > [22m[2mRED->GREEN migraci 470 a 471 (RED = klon BEZ nich)[22m[39m
+[live-local-clone] live_redgreen_muy20jtw: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/red-green-470-471.live.test.ts[2m > [22m[2mRED->GREEN migraci 470 a 471 (RED = klon BEZ nich)[2m > [22m[2m470 ticket_transfers + 471 transit_passes[22m[39m
+  --- 470 orders.ticket_transfers ---
+  servisni kontext vidi transfer             RED=0  GREEN=1  OPRAVENO
+  platform admin vidi transfer               RED=1  GREEN=1  uz drive OK (RED nebyl RED)
+  --- 471 orders.transit_passes ---
+  platform admin vidi transit pass           RED=0  GREEN=1  OPRAVENO
+  vlastnik ho vidi porad                     RED=1  GREEN=1  uz drive OK (RED nebyl RED)
+
+ [32m✓[39m tests/red-green-470-471.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 3349[2mms[22m[39m
+[90mstdout[2m | tests/consent-purge.live.test.ts[2m > [22m[2mconsent-log-purge[22m[39m
+[live-local-clone] live_consent_purge_muy20mxe: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/consent-purge.live.test.ts[2m > [22m[2mconsent-log-purge[2m > [22m[2msmaze stare zaznamy a vrati skutecny pocet[22m[39m
+[purge] [33m200[39m {"ok":true,"processed":3,"failed":0,"errors":[],"purged":3}
+
+[90mstdout[2m | tests/consent-purge.live.test.ts[2m > [22m[2mconsent-log-purge[2m > [22m[2mJINA chyba nez 42P01 se NEPOLYKA — vraci 500 a ok:false[22m[39m
+[purge 42703] [33m500[39m {"ok":false,"processed":0,"failed":1,"errors":["purge: 42703"],"purged":0,"error":"PURGE_FAILED","code":"42703"}
+
+[90mstderr[2m | tests/consent-purge.live.test.ts[2m > [22m[2mconsent-log-purge[2m > [22m[2mJINA chyba nez 42P01 se NEPOLYKA — vraci 500 a ok:false[22m[39m
+[consent-log-purge] SELHALO: error: column "decided_at" does not exist
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at RlsAwarePool.query [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:298:22[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\cron\consent-log-purge\route.ts:31:15
+    at call [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\consent-purge.live.test.ts:16:15[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\consent-purge.live.test.ts:55:17
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m {
+  length: [33m188[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42703'[39m,
+  detail: [90mundefined[39m,
+  hint: [32m'Perhaps you meant to reference the column "cookie_consent_log.decided_at_x".'[39m,
+  position: [32m'82'[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'parse_relation.c'[39m,
+  line: [32m'3723'[39m,
+  routine: [32m'errorMissingColumn'[39m
+}
+
+[90mstdout[2m | tests/consent-purge.live.test.ts[2m > [22m[2mconsent-log-purge[2m > [22m[2m42P01 se preskoci (tabulka fakt chybi)[22m[39m
+[purge 42P01] [33m200[39m {"ok":true,"processed":0,"failed":0,"errors":[],"purged":0,"skipped":"table_missing"}
+
+[90mstderr[2m | tests/consent-purge.live.test.ts[2m > [22m[2mconsent-log-purge[2m > [22m[2m42P01 se preskoci (tabulka fakt chybi)[22m[39m
+[consent-log-purge] tabulka neexistuje, preskakuji: 42P01
+
+ [32m✓[39m tests/consent-purge.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 583[2mms[22m[39m
+[90mstdout[2m | tests/payouts-processing.live.test.ts[2m > [22m[2m§208 — RED->GREEN migrace 468 na skutecne ceste[22m[39m
+[live-local-clone] RED stav — vynechano: 468
+
+[90mstdout[2m | tests/payouts-processing.live.test.ts[2m > [22m[2m§208 — RED->GREEN migrace 468 na skutecne ceste[22m[39m
+[live-local-clone] live_payouts_red_muy20ntn: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/payouts-processing.live.test.ts[2m > [22m[2m§208 — RED->GREEN migrace 468 na skutecne ceste[2m > [22m[2mRED (bez 468): zapis processing pada na 23514[22m[39m
+[§208] RED (bez 468)  = PROSLO
+
+[90mstdout[2m | tests/payouts-processing.live.test.ts[2m > [22m[2m§208 — RED->GREEN migrace 468 na skutecne ceste[2m > [22m[2mGREEN (s 468): zapis processing projde[22m[39m
+[live-local-clone] live_payouts_green_muy20q3b: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/payouts-processing.live.test.ts[2m > [22m[2m§208 — RED->GREEN migrace 468 na skutecne ceste[2m > [22m[2mGREEN (s 468): zapis processing projde[22m[39m
+[§208] GREEN (s 468) = PROSLO
+
+ [33m❯[39m tests/payouts-processing.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 6806[2mms[22m[39m
+[31m   [33m❯[31m tests/payouts-processing.live.test.ts[2m > [22m§208 — RED->GREEN migrace 468 na skutecne ceste[2m > [22mRED (bez 468): zapis processing pada na 23514[39m
+[31m     → expected 'PROSLO' to be '23514' // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 9 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/admin-guest.live.test.ts[2m > [22madmin cesty — guest-create přes helper (live)[2m > [22mwaitlist — guest se najde, ale konverze padá na T-WAITLIST-PROVIDER (23514 walkin)
+[31m[1mAssertionError[22m: expected undefined to be '23514' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"23514"
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/admin-guest.live.test.ts:[2m274:26[22m[39m
+    [90m272| [39m      thrown [33m=[39m e [35mas[39m { code[33m?[39m[33m:[39m string[33m;[39m constraint[33m?[39m[33m:[39m string }[33m;[39m
+    [90m273| [39m    }
+    [90m274| [39m    [34mexpect[39m(thrown[33m?.[39mcode)[33m.[39m[34mtoBe[39m([32m'23514'[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m275| [39m    [34mexpect[39m(thrown[33m?.[39mconstraint)[33m.[39m[34mtoBe[39m([32m'orders_payment_provider_check'[39m)[33m;[39m
+    [90m276| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/admin-guest.live.test.ts[2m > [22madmin cesty — guest-create přes helper (live)[2m > [22mbox-office — prodej padá na T-BOXOFFICE-EXPIRES (23502 expires_at)
+[31m[1mAssertionError[22m: expected 422 to be greater than or equal to 500[39m
+[36m [2m❯[22m tests/admin-guest.live.test.ts:[2m310:24[22m[39m
+    [90m308| [39m
+    [90m309| [39m    [90m// Fail-closed: neuspěje, žádná objednávka.[39m
+    [90m310| [39m    [34mexpect[39m(res[33m.[39mstatus)[33m.[39m[34mtoBeGreaterThanOrEqual[39m([34m500[39m)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m311| [39m    [34mexpect[39m([35mawait[39m [34mordersOf[39m(existingId))[33m.[39m[34mtoBe[39m([34m0[39m)[33m;[39m
+    [90m312| [39m    [34mexpect[39m([35mawait[39m [34musersWithEmail[39m(email))[33m.[39m[34mtoEqual[39m([existingId])[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/checkout-guest.live.test.ts[2m > [22mcheckout — guest-create (live, celá cesta)[2m > [22mnový kupující — checkout doběhne a založí guest usera
+[31m[1mAssertionError[22m: expected 422 to be less than 400[39m
+[36m [2m❯[22m tests/checkout-guest.live.test.ts:[2m136:20[22m[39m
+    [90m134| [39m    })[33m;[39m
+    [90m135| [39m
+    [90m136| [39m    [34mexpect[39m(status)[33m.[39m[34mtoBeLessThan[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                   [31m^[39m
+    [90m137| [39m    [34mexpect[39m(json[33m.[39morderId)[33m.[39m[34mtoBeTruthy[39m()[33m;[39m
+    [90m138| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/checkout-guest.live.test.ts[2m > [22mcheckout — guest-create (live, celá cesta)[2m > [22mdruhý nákup týmž e-mailem — dedup: druhá objednávka, pořád jeden user
+[31m[1mAssertionError[22m: expected 422 to be less than 400[39m
+[36m [2m❯[22m tests/checkout-guest.live.test.ts:[2m168:26[22m[39m
+    [90m166| [39m      paymentMethod[33m:[39m [32m'gopay'[39m[33m,[39m
+    [90m167| [39m    })[33m;[39m
+    [90m168| [39m    [34mexpect[39m(first[33m.[39mstatus)[33m.[39m[34mtoBeLessThan[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m169| [39m
+    [90m170| [39m    [35mconst[39m second [33m=[39m [35mawait[39m [34mpostCheckout[39m({
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/checkout-guest.live.test.ts[2m > [22mcheckout — guest-create (live, celá cesta)[2m > [22mvelká písmena v e-mailu nevytvoří druhého uživatele
+[31m[1mAssertionError[22m: expected 422 to be less than 400[39m
+[36m [2m❯[22m tests/checkout-guest.live.test.ts:[2m219:22[22m[39m
+    [90m217| [39m      paymentMethod[33m:[39m [32m'gopay'[39m[33m,[39m
+    [90m218| [39m    })[33m;[39m
+    [90m219| [39m    [34mexpect[39m(a[33m.[39mstatus)[33m.[39m[34mtoBeLessThan[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m220| [39m
+    [90m221| [39m    [35mconst[39m b [33m=[39m [35mawait[39m [34mpostCheckout[39m({
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/cron-contract.live.test.ts[2m > [22mkontrakt cronu (C2)[2m > [22mconsent-log-purge: pri odepreni prava NEVRATI ok:true
+[31m[1mAssertionError[22m: expected true not to be true // Object.is equality[39m
+[36m [2m❯[22m tests/cron-contract.live.test.ts:[2m46:29[22m[39m
+    [90m 44| [39m      [32m'/api/internal/cron/consent-log-purge'[39m)[33m;[39m
+    [90m 45| [39m    console[33m.[39m[34mlog[39m([32m'[consent-log-purge]'[39m[33m,[39m out[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(out[33m.[39m…
+    [90m 46| [39m    [34mexpect[39m(out[33m.[39mbody[33m.[39mok)[33m.[39mnot[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 47| [39m    [34mexpect[39m(out[33m.[39mbody)[33m.[39m[34mtoHaveProperty[39m([32m'failed'[39m)[33m;[39m
+    [90m 48| [39m    [34mexpect[39m(out[33m.[39mbody)[33m.[39m[34mtoHaveProperty[39m([32m'errors'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/party-split.live.test.ts[2m > [22mparty-split přes skutečné handlery[2m > [22m[token] POST prijme slot a dekrementuje remaining_qty PRESNE o 1
+[31m[1mAssertionError[22m: expected +0 to be 1 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/party-split.live.test.ts:[2m144:44[22m[39m
+    [90m142| [39m
+    [90m143| [39m    [34mexpect[39m(pres[33m.[39mstatus)[33m.[39m[34mtoBeLessThan[39m([34m500[39m)[33m;[39m
+    [90m144| [39m    [34mexpect[39m([33mNumber[39m(before) [33m-[39m [33mNumber[39m(after))[33m.[39m[34mtoBe[39m([34m1[39m)[33m;[39m   [90m// presne o 1, n[39m…
+    [90m   | [39m                                           [31m^[39m
+    [90m145| [39m  }[33m,[39m [34m180_000[39m)[33m;[39m
+    [90m146| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/party-split.live.test.ts[2m > [22mparty-split přes skutečné handlery[2m > [22mopakovane prijeti: druhy platce dostane JINY slot, dekrement presne 1x
+[31m[1mAssertionError[22m: expected +0 to be 1 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/party-split.live.test.ts:[2m196:26[22m[39m
+    [90m194| [39m                [32m'| remaining'[39m[33m,[39m before[33m,[39m [32m'->'[39m[33m,[39m mid[33m,[39m [32m'->'[39m[33m,[39m after)[33m;[39m
+    [90m195| [39m
+    [90m196| [39m    [34mexpect[39m(before [33m-[39m mid)[33m.[39m[34mtoBe[39m([34m1[39m)[33m;[39m      [90m// prvni prijeti: presne 1[39m
+    [90m   | [39m                         [31m^[39m
+    [90m197| [39m    [34mexpect[39m(mid [33m-[39m after)[33m.[39m[34mtoBe[39m([34m1[39m)[33m;[39m       [90m// druhe prijeti: dalsi slot, z[39m…
+    [90m198| [39m    [34mexpect[39m(b2[33m.[39mslotIndex)[33m.[39mnot[33m.[39m[34mtoBe[39m(b1[33m.[39mslotIndex)[33m;[39m  [90m// NE tyz slot dvakr[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/payouts-processing.live.test.ts[2m > [22m§208 — RED->GREEN migrace 468 na skutecne ceste[2m > [22mRED (bez 468): zapis processing pada na 23514
+[31m[1mAssertionError[22m: expected 'PROSLO' to be '23514' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 23514[39m
+[31m+ PROSLO[39m
+
+[36m [2m❯[22m tests/payouts-processing.live.test.ts:[2m61:15[22m[39m
+    [90m 59| [39m    [35mconst[39m v [33m=[39m [35mawait[39m [34mzkusProcessing[39m(red[33m,[39m id)[33m;[39m
+    [90m 60| [39m    console[33m.[39m[34mlog[39m([32m'[§208] RED (bez 468)  ='[39m[33m,[39m v)[33m;[39m
+    [90m 61| [39m    [34mexpect[39m(v)[33m.[39m[34mtoBe[39m([32m'23514'[39m)[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 62| [39m  }[33m,[39m [34m180_000[39m)[33m;[39m
+    [90m 63| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m5 failed[39m[22m[2m | [22m[1m[32m15 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (21)[39m
+[2m      Tests [22m [1m[31m9 failed[39m[22m[2m | [22m[1m[32m88 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (98)[39m
+[2m   Start at [22m 13:57:29
+[2m   Duration [22m 78.01s[2m (transform 1.69s, setup 0ms, collect 2.19s, tests 67.33s, environment 7ms, prepare 3.67s)[22m
+

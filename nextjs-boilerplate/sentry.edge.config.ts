@@ -8,6 +8,7 @@
  */
 
 import * as Sentry from '@sentry/nextjs';
+import { scrubSentryEvent } from './src/lib/observability/scrub-pii';
 
 const dsn = process.env.SENTRY_DSN;
 if (dsn) {
@@ -16,5 +17,7 @@ if (dsn) {
     environment: process.env.NODE_ENV ?? 'production',
     tracesSampleRate: 0.1,
     sendDefaultPii: false,
+    // Kolo 14 / krok 3: osobní údaje kupců (e-maily, jména, telefony) se do Sentry neposílají
+    beforeSend: (event) => scrubSentryEvent(event),
   });
 }

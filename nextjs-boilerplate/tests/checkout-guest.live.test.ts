@@ -16,39 +16,16 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { NextRequest } from 'next/server';
 import { Pool } from 'pg';
-import { readFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
-import { readdirSync } from 'fs';
-import { join } from 'path';
+import { createLiveClone, hasLiveDb, type LiveClone } from './helpers/live-fixture';
 
-const NEON_API = 'https://console.neon.tech/api/v2';
-const PROJECT = 'fragrant-wildflower-75132205';
-const PARENT_BRANCH = 'br-rough-paper-alom0zky';
-const DB_NAME = 'neondb';
-const ROLE = 'neondb_owner';
 
 /** Migrace, které ještě NEJSOU na produkci — klon je bez nich, checkout je potřebuje. */
-// Migrace se ctou z disku — vlastni kopie seznamu znamenala, ze se tu
-// nikdy neaplikovaly 453-459 a testy merily schema o devet migraci pozadu
-// (FINDINGS 82: nastroj s kopii reality meri vedle).
-const PENDING_MIGRATIONS = readdirSync(join('..', 'migrations'))
-  .filter((f) => /^\d{3}_.*\.sql$/.test(f) && !f.startsWith('000_'))
-  .sort();
 
-const apiKey = process.env.NEON_API_KEY;
 
-async function neon(path: string, init: RequestInit = {}) {
-  const res = await fetch(NEON_API + path, {
-    ...init,
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-  });
-  const body = await res.text();
-  if (!res.ok) throw new Error(`Neon API ${res.status}: ${body}`);
-  return body ? JSON.parse(body) : null;
-}
 
-describe.skipIf(!apiKey)('checkout — guest-create (live, celá cesta)', () => {
-  let branchId: string | null = null;
+describe.skipIf(!hasLiveDb)('checkout — guest-create (live, celá cesta)', () => {
+  let clone: LiveClone | undefined;
   let pool: Pool;
   // Route handler bere NextRequest; ten dědí z Request, takže mu plain Request
   // za běhu stačí — přetypování je jen kvůli signatuře.
@@ -87,38 +64,9 @@ describe.skipIf(!apiKey)('checkout — guest-create (live, celá cesta)', () => 
   }
 
   beforeAll(async () => {
-    const created = await neon(`/projects/${PROJECT}/branches`, {
-      method: 'POST',
-      body: JSON.stringify({
-        branch: { parent_id: PARENT_BRANCH, name: `checkout-guest-${run}` },
-        endpoints: [{ type: 'read_write' }],
-      }),
-    });
-    branchId = created.branch.id;
-    await new Promise((r) => setTimeout(r, 4000));
-    const { uri } = await neon(
-      `/projects/${PROJECT}/connection_uri?branch_id=${branchId}&role_name=${ROLE}&database_name=${DB_NAME}`,
-    );
-
-    // Route si pool bere z DATABASE_URL — musí být nastavené PŘED prvním dotazem.
-    process.env.DATABASE_URL = uri;
-    process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
-
-    pool = new Pool({ connectionString: uri, max: 4 });
-
-    // Handlery jedou jako `tixly_app` (BYPASSRLS=false), tedy pod rolí, kterou
-    // má používat produkce. `LIVE_AS_OWNER=1` to přepne na ownera — jen tam,
-    // kde test měří něco jiného než oprávnění. Default se otočil, protože
-    // owner RLS míjí a sada tím hlásila falešná PROŠLO (FINDINGS §77).
-    if (process.env.LIVE_AS_OWNER !== '1') {
-      const pw = `LiveTest_${randomUUID().slice(0, 12)}`;
-      await pool.query(`ALTER ROLE tixly_app WITH PASSWORD '${pw}'`);
-      process.env.DATABASE_URL = uri.replace(/\/\/[^@]+@/, `//tixly_app:${pw}@`);
-    }
-    console.log(`[live] role: ${process.env.LIVE_AS_OWNER === '1' ? 'neondb_owner (RLS SE NEMĚŘÍ)' : 'tixly_app'}`);
-    for (const m of PENDING_MIGRATIONS) {
-      await pool.query(await readFile(`../migrations/${m}`, 'utf8'));
-    }
+    // Kolo 14 / krok 4: sdílená dráha — Neon klon, nebo bez NEON_API_KEY lokální DB z migrací (FIX_E2E=1)
+    clone = await createLiveClone('checkout-guest');
+    pool = clone.pool;
 
     // NESOUVISEJÍCÍ PŘEDEXISTUJÍCÍ VADA — neutralizace, ne oprava.
     // `release()` v rls-pool dělá `RESET app.role`, jenže RESET u custom GUC
@@ -145,7 +93,7 @@ describe.skipIf(!apiKey)('checkout — guest-create (live, celá cesta)', () => 
       $patch$;
     `);
 
-    await pool.query(`INSERT INTO platform.promoters (id, email, name) VALUES ($1, $2, 'Test promotér')`, [
+    await pool.query(`INSERT INTO platform.promoters (id, email, name, company_dic) VALUES ($1, $2, 'Test promotér', 'CZ12345678')`, [ // kolo 14: DIČ plátce (C-54)
       promoterId,
       `promoter-${run}@tixly.test`,
     ]);
@@ -161,9 +109,9 @@ describe.skipIf(!apiKey)('checkout — guest-create (live, celá cesta)', () => 
     );
     await pool.query(
       `INSERT INTO catalog.ticket_types
-         (id, event_id, name, kind, base_price, total_qty, remaining_qty, visibility)
-       VALUES ($1, $3, 'Standard', 'standing', 50000, 100, 100, 'public'),
-              ($2, $3, 'Vyprodaný', 'standing', 50000, 10, 0, 'public')`,
+         (id, event_id, name, kind, base_price, total_qty, remaining_qty, visibility, vat_rate_code)
+       VALUES ($1, $3, 'Standard', 'standing', 50000, 100, 100, 'public', 'CZ_REDUCED'),
+              ($2, $3, 'Vyprodaný', 'standing', 50000, 10, 0, 'public', 'CZ_REDUCED')`,
       [ticketTypeId, soldOutTypeId, eventId],
     );
 
@@ -171,20 +119,7 @@ describe.skipIf(!apiKey)('checkout — guest-create (live, celá cesta)', () => 
   }, 180_000);
 
   afterAll(async () => {
-    if (pool) await pool.end().catch(() => undefined);
-    // Viz admin-guest.live.test.ts: líný pool z rls-pool musí zmizet PŘED
-    // smazáním větve, jinak `Connection terminated unexpectedly` → exit 1.
-    try {
-      const { db: appDb } = await import('@/lib/db/rls-pool');
-      await appDb().end();
-    } catch {
-      /* nikdy neinicializován / už zavřený */
-    }
-    if (branchId) {
-      await neon(`/projects/${PROJECT}/branches/${branchId}`, { method: 'DELETE' }).catch((e) =>
-        console.error('[cleanup] větev se nepodařilo smazat:', branchId, e),
-      );
-    }
+    await clone?.cleanup();
   }, 60_000);
 
   it('nový kupující — checkout doběhne a založí guest usera', async () => {

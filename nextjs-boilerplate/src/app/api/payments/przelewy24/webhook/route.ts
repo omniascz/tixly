@@ -15,6 +15,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { withWebhookAlert } from '@/lib/ops/webhook-alert';
 import { getP24Config, verifyP24NotificationSign, verifyP24Transaction } from '@/lib/payment/przelewy24';
 
 export const dynamic = 'force-dynamic';
@@ -32,7 +33,12 @@ interface P24Notification {
   sign: string;
 }
 
+// Kolo 14 / krok 3: selhání webhooku → upozornění provozu (lib/ops/webhook-alert)
 export async function POST(req: NextRequest): Promise<Response> {
+  return withWebhookAlert('przelewy24', req, () => handlePost(req));
+}
+
+async function handlePost(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
     const cfg = getP24Config();
     // Kolo 2: bez CRC klíče nelze podpis ověřit → fail-closed 4xx.

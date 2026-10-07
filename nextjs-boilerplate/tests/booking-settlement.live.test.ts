@@ -13,9 +13,9 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { NextRequest } from 'next/server';
-import { createLiveClone, makeSeed, hasNeonKey, type LiveClone } from './helpers/live-fixture';
+import { createLiveClone, makeSeed, hasLiveDb, type LiveClone } from './helpers/live-fixture';
 
-const d = hasNeonKey ? describe : describe.skip;
+const d = hasLiveDb ? describe : describe.skip;
 const BASE = 'http://localhost:3000';
 
 let clone: LiveClone;

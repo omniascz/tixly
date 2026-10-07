@@ -12,7 +12,7 @@ interface Sales { eventId: string; title: string; dateStart: string; zone: strin
 interface Occ { eventId: string; title: string; dateStart: string; city: string | null; hall: string | null; sellable: number; sold: number; reserved: number; blocked: number; occupiedPct: number }
 interface Blk { eventId: string; title: string; block: string; total: number; released: number; issued: number; sold: number; remaining: number }
 interface Res { eventId: string; title: string; active: number; paid: number; expired: number; cancelled: number; expiredSeats: number }
-interface Report { productionId?: string | null; events: number; sales: Sales[]; occupancy: Occ[]; blocks: Blk[]; reservations: Res[]; totals: { sold: number; revenueMinor: number } }
+interface Report { productionId?: string | null; events: number; sales: Sales[]; occupancy: Occ[]; blocks: Blk[]; reservations: Res[]; totals: { sold: number; revenueMinor: number; offlineDuplicates?: number } }
 
 const token = () => (typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null);
 const api = (url: string) => fetch(url, { credentials: 'include', headers: token() ? { Authorization: `Bearer ${token()}` } : {} });
@@ -67,7 +67,7 @@ export default function TermReportsPage({ params }: { params: { id: string } }) 
 
       {rep && (
         <>
-          <p className="text-sm text-slate-600">Termínů: {rep.events} · prodáno {rep.totals.sold} · tržba {kc(rep.totals.revenueMinor)}</p>
+          <p className="text-sm text-slate-600">Termínů: {rep.events} · prodáno {rep.totals.sold} · tržba {kc(rep.totals.revenueMinor)} · duplicitní offline vstupy {rep.totals.offlineDuplicates ?? 0}</p>
           <section>
             <h2 className="mb-1 font-semibold">Obsazenost</h2>
             <table className="min-w-full text-sm" data-testid="rep-occupancy">

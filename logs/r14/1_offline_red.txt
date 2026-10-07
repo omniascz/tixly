@@ -1,0 +1,226 @@
+
+Running 6 tests using 1 worker
+
+[1A[2K[1/6] [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:171:5 › bod 1: stažení seznamu vstupenek termínu do zařízení a kdy byl stažen
+[1A[2K  1) [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:171:5 › bod 1: stažení seznamu vstupenek termínu do zařízení a kdy byl stažen 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m14[39m
+    Received: [31m10[39m
+
+      180 |   const n = Number(((await meta.innerText()).match(/Offline seznam: ([\d\s ]+) lístků/)?.[1] ?? '').replace(/\s/g, ''));
+      181 |   const db_ = (await q<{ n: number }>(`SELECT count(*)::int n FROM tickets.tickets t JOIN orders.orders o ON o.id = t.order_id WHERE o.event_id = $1 AND t.status IN ('valid','used','revoked')`, [S.rBrno]))[0].n;
+    > 182 |   expect(n).toBe(db_);
+          |             ^
+      183 |   expect(await meta.innerText()).toMatch(/staženo \d{1,2}\. \d{1,2}\. \d{4}/);
+      184 |   await ctx.close();
+      185 | });
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:182:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-c2080-o-zařízení-a-kdy-byl-stažen-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r14-offline-sc-c2080-o-zařízení-a-kdy-byl-stažen-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r14-offline-sc-c2080-o-zařízení-a-kdy-byl-stažen-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-c2080-o-zařízení-a-kdy-byl-stažen-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r14-offline-sc-c2080-o-zařízení-a-kdy-byl-stažen-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[2/6] [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:187:5 › bod 2: offline — pravidla jako online
+[1A[2K  2) [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:187:5 › bod 2: offline — pravidla jako online 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected pattern: [32m/Lístek už byl použit/[39m
+    Received string:  [31m"Výsledek Lístek nenalezen OFFLINE: lístek NENÍ ve staženém seznamu platných — NEVPOUŠTĚT."[39m
+
+      196 |   expect(await scan(gatePage, S.t.valid.id)).toMatch(/Lístek už byl použit/);
+      197 |   // použitá dříve online
+    > 198 |   expect(await scan(gatePage, S.t.usedOnline.id)).toMatch(/Lístek už byl použit/);
+          |                                                   ^
+      199 |   // stornovaná
+      200 |   expect(await scan(gatePage, S.t.revoked.id)).toMatch(/Lístek zrušen/);
+      201 |   // jiný termín
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:198:51
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-e4c6c-line-—-pravidla-jako-online-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r14-offline-sc-e4c6c-line-—-pravidla-jako-online-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r14-offline-sc-e4c6c-line-—-pravidla-jako-online-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-e4c6c-line-—-pravidla-jako-online-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r14-offline-sc-e4c6c-line-—-pravidla-jako-online-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[3/6] [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:227:5 › bod 3: po obnovení sítě se odbavení odešlou idempotentně a zapíšou do scan_logs
+[1A[2K  3) [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:227:5 › bod 3: po obnovení sítě se odbavení odešlou idempotentně a zapíšou do scan_logs 
+
+    error: column "offline" does not exist
+
+      35 |
+      36 | let db: pg.Client;
+    > 37 | const q = async <R = Record<string, unknown>>(sql: string, p: unknown[] = []): Promise<R[]> => (await db.query(sql, p)).rows as R[];
+         |                                                                                                 ^
+      38 | const S = {
+      39 |   promoterId: '', rBrno: '', rOstrava: '', hBrno: '', gate: `vstup-off-${RUN}@agentura.test`,
+      40 |   t: {} as Record<string, { id: string; secret: Buffer; eventId: string }>,
+        at C:\Users\omnia\Documents\tixly\e2e\node_modules\pg\lib\client.js:646:17
+        at q (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:37:97)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:239:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-02e8c-ntně-a-zapíšou-do-scan-logs-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r14-offline-sc-02e8c-ntně-a-zapíšou-do-scan-logs-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r14-offline-sc-02e8c-ntně-a-zapíšou-do-scan-logs-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-02e8c-ntně-a-zapíšou-do-scan-logs-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r14-offline-sc-02e8c-ntně-a-zapíšou-do-scan-logs-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[4/6] [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:258:5 › bod 4: dva skenery offline tutéž vstupenku → po synchronizaci duplicitní, počet v reportu
+[1A[2K  4) [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:258:5 › bod 4: dva skenery offline tutéž vstupenku → po synchronizaci duplicitní, počet v reportu 
+
+    error: column "offline" does not exist
+
+      35 |
+      36 | let db: pg.Client;
+    > 37 | const q = async <R = Record<string, unknown>>(sql: string, p: unknown[] = []): Promise<R[]> => (await db.query(sql, p)).rows as R[];
+         |                                                                                                 ^
+      38 | const S = {
+      39 |   promoterId: '', rBrno: '', rOstrava: '', hBrno: '', gate: `vstup-off-${RUN}@agentura.test`,
+      40 |   t: {} as Record<string, { id: string; secret: Buffer; eventId: string }>,
+        at C:\Users\omnia\Documents\tixly\e2e\node_modules\pg\lib\client.js:646:17
+        at q (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:37:97)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:263:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-d226f--duplicitní-počet-v-reportu-golden-path\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-d226f--duplicitní-počet-v-reportu-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r14-offline-sc-d226f--duplicitní-počet-v-reportu-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r14-offline-sc-d226f--duplicitní-počet-v-reportu-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-d226f--duplicitní-počet-v-reportu-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r14-offline-sc-d226f--duplicitní-počet-v-reportu-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[5/6] [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:277:5 › bod 5: zavření a znovuotevření prohlížeče offline — seznam i neodeslaná odbavení přežijí
+[1A[2K  5) [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:277:5 › bod 5: zavření a znovuotevření prohlížeče offline — seznam i neodeslaná odbavení přežijí 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Offline — skeny jdou do lokální fronty/)
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Offline — skeny jdou do lokální fronty/)[22m
+
+
+      301 |   await page.goto('/admin/scanner');
+      302 |   await expect(page.getByPlaceholder(PLACEHOLDER)).toBeVisible();
+    > 303 |   await expect(page.getByText(/Offline — skeny jdou do lokální fronty/)).toBeVisible();
+          |                                                                          ^
+      304 |   await expect(page.getByText(/1 čeká na sync/)).toBeVisible();
+      305 |   await expect(page.getByText(/Offline seznam: .* lístků · staženo/)).toBeVisible();
+      306 |   expect(await scan(page, S.t.persist2.id)).toMatch(/Vstup povolen/);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:303:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-2eee8-neodeslaná-odbavení-přežijí-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-2eee8-neodeslaná-odbavení-přežijí-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r14-offline-sc-2eee8-neodeslaná-odbavení-přežijí-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r14-offline-sc-2eee8-neodeslaná-odbavení-přežijí-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-2eee8-neodeslaná-odbavení-přežijí-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r14-offline-sc-2eee8-neodeslaná-odbavení-přežijí-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[6/6] [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:315:5 › bod 6: storno po stažení seznamu — online vždy odmítnuto, offline jen se seznamem staženým po stornu
+[1A[2K  6) [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:315:5 › bod 6: storno po stažení seznamu — online vždy odmítnuto, offline jen se seznamem staženým po stornu 
+
+    error: column "offline" does not exist
+
+      35 |
+      36 | let db: pg.Client;
+    > 37 | const q = async <R = Record<string, unknown>>(sql: string, p: unknown[] = []): Promise<R[]> => (await db.query(sql, p)).rows as R[];
+         |                                                                                                 ^
+      38 | const S = {
+      39 |   promoterId: '', rBrno: '', rOstrava: '', hBrno: '', gate: `vstup-off-${RUN}@agentura.test`,
+      40 |   t: {} as Record<string, { id: string; secret: Buffer; eventId: string }>,
+        at C:\Users\omnia\Documents\tixly\e2e\node_modules\pg\lib\client.js:646:17
+        at q (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:37:97)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:328:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-c40d6-seznamem-staženým-po-stornu-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r14-offline-sc-c40d6-seznamem-staženým-po-stornu-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r14-offline-sc-c40d6-seznamem-staženým-po-stornu-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-c40d6-seznamem-staženým-po-stornu-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r14-offline-sc-c40d6-seznamem-staženým-po-stornu-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  6 failed
+    [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:171:5 › bod 1: stažení seznamu vstupenek termínu do zařízení a kdy byl stažen 
+    [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:187:5 › bod 2: offline — pravidla jako online 
+    [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:227:5 › bod 3: po obnovení sítě se odbavení odešlou idempotentně a zapíšou do scan_logs 
+    [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:258:5 › bod 4: dva skenery offline tutéž vstupenku → po synchronizaci duplicitní, počet v reportu 
+    [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:277:5 › bod 5: zavření a znovuotevření prohlížeče offline — seznam i neodeslaná odbavení přežijí 
+    [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:315:5 › bod 6: storno po stažení seznamu — online vždy odmítnuto, offline jen se seznamem staženým po stornu 

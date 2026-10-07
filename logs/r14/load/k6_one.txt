@@ -1,0 +1,35 @@
+
+
+  █ TOTAL RESULTS 
+
+    CUSTOM
+    bought_seats...................: 2      2.39811/s
+    ok_checkout....................: 1      1.199055/s
+    ok_hold........................: 1      1.199055/s
+    ok_page........................: 1      1.199055/s
+    ok_pay.........................: 1      1.199055/s
+    ok_plan........................: 1      1.199055/s
+    ok_webhook.....................: 1      1.199055/s
+    t_checkout.....................: p(50)=84.66ms  p(95)=84.66ms  p(99)=84.66ms  max=84.66ms  count=1
+    t_hold.........................: p(50)=18.48ms  p(95)=18.48ms  p(99)=18.48ms  max=18.48ms  count=1
+    t_page.........................: p(50)=82.17ms  p(95)=82.17ms  p(99)=82.17ms  max=82.17ms  count=1
+    t_pay..........................: p(50)=1.02ms   p(95)=1.02ms   p(99)=1.02ms   max=1.02ms   count=1
+    t_plan.........................: p(50)=20.25ms  p(95)=20.25ms  p(99)=20.25ms  max=20.25ms  count=1
+    t_webhook......................: p(50)=581.59ms p(95)=581.59ms p(99)=581.59ms max=581.59ms count=1
+
+    HTTP
+    http_req_duration..............: p(50)=33.08ms  p(95)=432.51ms p(99)=551.78ms max=581.59ms count=7
+      { expected_response:true }...: p(50)=33.08ms  p(95)=432.51ms p(99)=551.78ms max=581.59ms count=7
+    http_req_failed................: 0.00%  0 out of 7
+    http_reqs......................: 7      8.393383/s
+
+    EXECUTION
+    iteration_duration.............: p(50)=833.67ms p(95)=833.67ms p(99)=833.67ms max=833.67ms count=1
+    iterations.....................: 1      1.199055/s
+
+    NETWORK
+    data_received..................: 271 kB 325 kB/s
+    data_sent......................: 2.1 kB 2.5 kB/s
+
+
+

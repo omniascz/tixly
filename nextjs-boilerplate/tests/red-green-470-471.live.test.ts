@@ -11,10 +11,10 @@
  */
 import { describe, it, beforeAll, afterAll } from 'vitest';
 import { readFileSync } from 'fs';
-import { createLiveClone, makeSeed, hasNeonKey, type LiveClone, type Seed } from './helpers/live-fixture';
+import { createLiveClone, makeSeed, hasLiveDb, type LiveClone, type Seed } from './helpers/live-fixture';
 import { makeInserter, seesRow } from './helpers/catalog-seed';
 
-const d = hasNeonKey ? describe : describe.skip;
+const d = hasLiveDb ? describe : describe.skip;
 let clone: LiveClone;
 let seed: Seed;
 let chain: Awaited<ReturnType<Seed['fullChain']>>;

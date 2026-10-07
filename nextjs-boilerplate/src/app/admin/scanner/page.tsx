@@ -15,11 +15,10 @@ import {
   getPendingCount,
   saveManifest,
   getManifestMeta,
-  validateOffline,
-  decodePrintTokenUuid,
+  validateOfflineScan,
   type FlushResult,
   type ManifestMeta,
-  type OfflineCheck,
+  type OfflineManifestPayload,
 } from '@/lib/scanner/offline-queue';
 
 type ScanResult = {
@@ -235,6 +234,24 @@ export default function ScannerPage() {
     };
   }, [refreshPending]);
 
+  // Kolo 14 (C-50): navigator.onLine lže, když je zařízení na Wi-Fi bez internetu (častý stav v sálech) nebo po
+  // znovuotevření offline. Skutečné spojení ověří lehký /api/health (service worker ho necachuje) — při otevření
+  // a pak každých 30 s, dokud je skener offline; po návratu spojení se fronta odešle sama.
+  useEffect(() => {
+    let stop = false;
+    const probe = async () => {
+      try {
+        const r = await fetch('/api/health', { cache: 'no-store' });
+        if (!stop) setOnline(r.ok);
+      } catch {
+        if (!stop) setOnline(false);
+      }
+    };
+    void probe();
+    const id = setInterval(() => { if (!online) void probe(); }, 30_000);
+    return () => { stop = true; clearInterval(id); };
+  }, [online]);
+
   // Když se vrátí spojení a queue není prázdná, automaticky flushni.
   useEffect(() => {
     if (online && pendingCount > 0) {
@@ -300,9 +317,10 @@ export default function ScannerPage() {
         setResult({ result: 'error', message: `Stažení seznamu selhalo (HTTP ${res.status}).` });
         return;
       }
-      const json = (await res.json()) as { ticketIds: string[]; generatedAt: string };
-      await saveManifest(gate.eventId, json.ticketIds, json.generatedAt);
+      const json = (await res.json()) as OfflineManifestPayload;
+      await saveManifest(gate.eventId, json);
       await refreshManifestMeta(gate.eventId);
+      void cacheScannerShell();
     } catch {
       setResult({ result: 'error', message: 'Stažení seznamu selhalo (síť).' });
     } finally {
@@ -348,39 +366,23 @@ export default function ScannerPage() {
     // vstup zachyť lokálně. Bez whitelistu lístek nejde ověřit — obsluha ho zkontroluje ručně
     // (kolo 12/13: dřív „Přijato offline BEZ ověření" = zelený vstup bez kontroly).
     const offlineCheck = async () => {
-      await enqueueScan(payload, gateLabel);
+      // Kolo 14 (C-50): stejná pravidla jako online (stav, průkaz, podpis tištěné vstupenky, rotující QR) proti seznamu
+      const v = gate.eventId
+        ? await validateOfflineScan(gate.eventId, isPrintToken ? { printToken: raw } : { ticketId: raw, totpCode: code || undefined })
+        : null;
+      await enqueueScan(payload, gateLabel, { offlineResult: v ? v.result : 'unverified', offlineReason: v ? v.result : 'no_manifest' });
       await refreshPending();
-
-      const offlineTicketId = isPrintToken
-        ? decodePrintTokenUuid(raw) ?? undefined
-        : raw;
-      let check: OfflineCheck = 'no_manifest';
-      if (gate.eventId && offlineTicketId) {
-        check = await validateOffline(gate.eventId, offlineTicketId);
-      }
-
-      if (check === 'not_found') {
-        setResult({
-          result: 'not_found',
-          message: 'OFFLINE: lístek NENÍ ve staženém seznamu platných — NEVPOUŠTĚT.',
-        });
-      } else if (check === 'already_used') {
-        setResult({
-          result: 'already_used',
-          message: 'OFFLINE: tento lístek už byl tímto zařízením odbaven.',
-        });
-      } else if (check === 'admitted') {
-        setResult({
-          result: 'admitted',
-          message: 'Přijato offline (ověřeno proti staženému seznamu). Sync po obnovení.',
-        });
-        setTicketId('');
-        setTotpCode('');
-      } else {
+      if (!v) {
         setResult({
           result: 'error',
           message: 'OFFLINE: lístek nelze ověřit (není stažený seznam) — zkontroluj ho ručně.',
         });
+        return;
+      }
+      setResult(v as ScanResult);
+      if (v.result === 'admitted') {
+        setTicketId('');
+        setTotpCode('');
       }
     };
 
@@ -995,5 +997,23 @@ function labelFor(r: ScanResult['result']): string {
       return 'Držitel není evidovaný uvnitř';
     default:
       return 'Chyba';
+  }
+}
+
+/**
+ * Kolo 14 (C-50): uloží stránku skeneru a její soubory do cache prohlížeče (service worker je při výpadku vrátí),
+ * aby se skener otevřel i po zavření prohlížeče bez internetu. Volá se online po stažení offline seznamu.
+ */
+async function cacheScannerShell(): Promise<void> {
+  try {
+    if (typeof window === 'undefined' || !('caches' in window)) return;
+    const cache = await caches.open('tixly-runtime');
+    const assets = performance
+      .getEntriesByType('resource')
+      .map((e) => e.name)
+      .filter((u) => u.startsWith(window.location.origin) && u.includes('/_next/static/'));
+    await cache.addAll([window.location.pathname, ...new Set(assets)]);
+  } catch {
+    // cache je jen pojistka pro znovuotevření offline — chyba nesmí rozbít stažení seznamu
   }
 }

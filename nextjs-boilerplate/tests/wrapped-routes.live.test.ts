@@ -13,9 +13,9 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { NextRequest } from 'next/server';
-import { createLiveClone, makeSeed, hasNeonKey, type LiveClone, type Seed } from './helpers/live-fixture';
+import { createLiveClone, makeSeed, hasLiveDb, type LiveClone, type Seed } from './helpers/live-fixture';
 
-const d = hasNeonKey ? describe : describe.skip;
+const d = hasLiveDb ? describe : describe.skip;
 let clone: LiveClone;
 let seed: Seed;
 let chain: Awaited<ReturnType<Seed['fullChain']>>;

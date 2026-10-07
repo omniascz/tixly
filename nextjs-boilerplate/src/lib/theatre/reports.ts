@@ -18,7 +18,7 @@ export interface SalesRow { eventId: string; title: string; dateStart: string; z
 export interface OccupancyRow { eventId: string; title: string; dateStart: string; city: string | null; hall: string | null; sellable: number; sold: number; reserved: number; blocked: number; occupiedPct: number }
 export interface BlockRow { eventId: string; title: string; block: string; total: number; released: number; issued: number; sold: number; remaining: number }
 export interface ReservationRow { eventId: string; title: string; active: number; paid: number; expired: number; cancelled: number; expiredSeats: number }
-export interface TheatreReport { scope: Scope; events: number; sales: SalesRow[]; occupancy: OccupancyRow[]; blocks: BlockRow[]; reservations: ReservationRow[]; totals: { sold: number; revenueMinor: number } }
+export interface TheatreReport { scope: Scope; events: number; sales: SalesRow[]; occupancy: OccupancyRow[]; blocks: BlockRow[]; reservations: ReservationRow[]; totals: { sold: number; revenueMinor: number; offlineDuplicates: number } }
 
 async function scopeEvents(q: Q, promoterId: string, scope: Scope): Promise<string[]> {
   const r = scope.kind === 'term'
@@ -35,7 +35,7 @@ async function scopeEvents(q: Q, promoterId: string, scope: Scope): Promise<stri
 
 export async function theatreReport(q: Q, promoterId: string, scope: Scope): Promise<TheatreReport> {
   const ids = await scopeEvents(q, promoterId, scope);
-  if (ids.length === 0) return { scope, events: 0, sales: [], occupancy: [], blocks: [], reservations: [], totals: { sold: 0, revenueMinor: 0 } };
+  if (ids.length === 0) return { scope, events: 0, sales: [], occupancy: [], blocks: [], reservations: [], totals: { sold: 0, revenueMinor: 0, offlineDuplicates: 0 } };
 
   const sales = (await q.query<SalesRow & Record<string, unknown>>(
     `WITH o AS (
@@ -103,9 +103,15 @@ export async function theatreReport(q: Q, promoterId: string, scope: Scope): Pro
     [ids],
   )).rows;
 
+  // Kolo 14: druhé (a další) offline odbavení téže vstupenky jiným skenerem — po synchronizaci 'duplicate' (C-50)
+  const offlineDuplicates = (await q.query<{ n: number }>(
+    `SELECT count(*)::int AS n FROM tickets.scan_logs WHERE event_id = ANY($1::uuid[]) AND offline AND scan_result = 'duplicate'`,
+    [ids],
+  )).rows[0]?.n ?? 0;
+
   return {
     scope, events: ids.length, sales, occupancy, blocks, reservations,
-    totals: { sold: sales.reduce((a, s) => a + s.sold, 0), revenueMinor: sales.reduce((a, s) => a + s.revenueMinor, 0) },
+    totals: { sold: sales.reduce((a, s) => a + s.sold, 0), revenueMinor: sales.reduce((a, s) => a + s.revenueMinor, 0), offlineDuplicates },
   };
 }
 

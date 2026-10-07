@@ -14,6 +14,7 @@
 import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { withDbOverload } from '@/lib/db/overload';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { resolveServiceFee } from '@/lib/fees/service-fee';
 import { createOrGetGuestUser } from '@/lib/identity/guest-user';
@@ -38,7 +39,12 @@ const schema = z.object({
   paymentMethod: z.enum(['gopay', 'box_office_reservation']).default('gopay'),
 });
 
+// Kolo 14: vyčerpaný pool DB při náporu → řízené 503 Retry-After (lib/db/overload)
 export async function POST(req: NextRequest): Promise<Response> {
+  return withDbOverload(() => postCheckoutSeats(req));
+}
+
+async function postCheckoutSeats(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
     const parsed = schema.safeParse(await req.json().catch(() => ({})));
     if (!parsed.success) return NextResponse.json({ error: 'VALIDATION_FAILED', issues: parsed.error.issues }, { status: 422 });

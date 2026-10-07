@@ -1,0 +1,36 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/fix-r4-exchange-single-ticket.live.test.ts[2m > [22m[2mKrok 3e (kolo 4) — výměna mění jen vyměněnou vstupenku[2m > [22m[2mvymění jen jednu vstupenku ze dvou[22m[39m
+[3e] {"moved":{"event_id":"19534755-10cf-4c87-9876-1dc36fe94dd3","ticket_type_id":"4e955b82-e1b0-4589-869c-2ee306bb8918"},"stays":{"event_id":"4549e7f4-6b42-4058-bb0a-e191f86cda04","ticket_type_id":"75a51ba1-190f-4cb2-9e4b-beb8cdbc2712"}}
+
+ [32m✓[39m tests/fix-r4-exchange-single-ticket.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 652[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-printed-qr.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 601[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-v9b-wrong-event.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 1754[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-resale-owner-email.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 1259[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-reseller-print.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 561[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-5xx-ics-kiosk.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 437[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-s2-upgrade-leak.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 418[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-public-contacts.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 389[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-memory-token.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 530[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-x7-invoice-number.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 2935[2mms[22m[39m
+[90mstdout[2m | tests/fix-r4-holders-guard.live.test.ts[2m > [22m[2mKrok 3d (kolo 4) — chráněné sloupce abonentky[2m > [22m[2mkupec nenavýší restwert, nezmění stav ani platnost[22m[39m
+[3d] {"restwert":"42501","status":"42501","price":"42501"}
+
+ [32m✓[39m tests/fix-r4-holders-guard.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[90m 217[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-qes-policy.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 322[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-free-upgrade-capacity.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 416[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-mock-qes-prod.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[90m 233[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-pool-nested.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 497[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-mobile-buyer-orders.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 488[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-auth-before-config.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 1974[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-k8a-invalid-id.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 265[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-my-auth.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 368[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-migration-numbers.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[90m 5[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m20 passed[39m[22m[90m (20)[39m
+[2m      Tests [22m [1m[32m49 passed[39m[22m[90m (49)[39m
+[2m   Start at [22m 16:37:04
+[2m   Duration [22m 26.72s[2m (transform 783ms, setup 1ms, collect 3.23s, tests 14.32s, environment 5ms, prepare 4.41s)[22m
+
