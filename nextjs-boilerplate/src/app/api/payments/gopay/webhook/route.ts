@@ -20,6 +20,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { busyResponse, isDbOverloaded, withDbOverload } from '@/lib/db/overload';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { getGopayConfig, getGopayPaymentStatus } from '@/lib/payment/gopay-real';
 import { releaseOrderCapacity } from '@/lib/orders/release-capacity';
@@ -327,6 +328,7 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
     });
   } catch (err) {
     if (!released) await client.query('ROLLBACK').catch(() => undefined);
+    if (isDbOverloaded(err)) return busyResponse(); // GoPay webhook zopakuje
     console.error('[gopay webhook] processing failed:', err);
     return NextResponse.json({ error: 'INTERNAL' }, { status: 500 });
   } finally {
@@ -337,7 +339,7 @@ async function handleWebhook(req: NextRequest, source: 'GET' | 'POST'): Promise<
 export async function GET(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
 
-  return handleWebhook(req, 'GET');
+  return withDbOverload(() => handleWebhook(req, 'GET'));
 
   });
 }
@@ -345,7 +347,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 export async function POST(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
 
-  return handleWebhook(req, 'POST');
+  return withDbOverload(() => handleWebhook(req, 'POST'));
 
   });
 }

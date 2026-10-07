@@ -14,6 +14,7 @@
 import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { busyResponse, isDbOverloaded, withDbOverload } from '@/lib/db/overload';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
@@ -54,7 +55,12 @@ export function OPTIONS(): Response {
   return new Response(null, { status: 204 });
 }
 
-export async function POST(
+// Kolo 14: vyčerpaný pool DB při náporu → řízené 503 Retry-After (lib/db/overload)
+export async function POST(req: NextRequest, ctx: { params: { id: string } }): Promise<Response> {
+  return withDbOverload(() => postHold(req, ctx));
+}
+
+async function postHold(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
@@ -176,7 +182,8 @@ export async function POST(
         expiresAt: expiresAt.toISOString(),
       });
     } catch (err) {
-      await client.query('ROLLBACK');
+      await client.query('ROLLBACK').catch(() => undefined);
+      if (isDbOverloaded(err)) return busyResponse();
       console.error('[seat hold]', err);
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     } finally {

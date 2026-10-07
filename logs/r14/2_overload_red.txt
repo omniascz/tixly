@@ -1,0 +1,12 @@
+     → timeout exceeded when trying to connect
+     → timeout exceeded when trying to connect
+     → timeout exceeded when trying to connect
+     → timeout exceeded when trying to connect
+     → Connection terminated due to connection timeout
+     → Connection terminated due to connection timeout
+     → Connection terminated due to connection timeout
+     → Connection terminated due to connection timeout
+Error: timeout exceeded when trying to connect
+     38|   ['spojení do DB', 'Connection terminated due to connection timeout'],
+Error: Connection terminated due to connection timeout
+     38|   ['spojení do DB', 'Connection terminated due to connection timeout'],
