@@ -5,13 +5,18 @@ import { TopNav } from '@/components/public/TopNav';
 import { SupportChatWidget } from '@/components/SupportChatWidget';
 import { DirSetter } from '@/components/DirSetter';
 
-export default function LocaleLayout({
-  children,
-  params,
-}: {
-  children: ReactNode;
-  params: { locale: string };
-}) {
+export default async function LocaleLayout(
+  props: {
+    children: ReactNode;
+    params: Promise<{ locale: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    children
+  } = props;
+
   return (
     <div className="min-h-screen flex flex-col">
       <DirSetter locale={params.locale} />

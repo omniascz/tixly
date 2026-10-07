@@ -1,5 +1,7 @@
+import type { JSX } from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+
 
 export const metadata: Metadata = {
   title: 'Ceník — Tixly',
@@ -222,7 +224,8 @@ function getTiers(locale: 'cs' | 'sk' | 'en'): Tier[] {
   ];
 }
 
-export default function PricingPage({ params }: { params: { locale: string } }): JSX.Element {
+export default async function PricingPage(props: { params: Promise<{ locale: string }> }): Promise<JSX.Element> {
+  const params = await props.params;
   const locale: 'cs' | 'sk' | 'en' =
     params.locale === 'sk' || params.locale === 'en' ? params.locale : 'cs';
   const t = STRINGS[locale];

@@ -18,10 +18,8 @@ interface ChartLayout {
   sectors: { name: string; color?: string; rows: { label: string; seats: { num: string }[] }[] }[];
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (_admin) => {
   const r = await db().query<{ id: string; name: string; layout: ChartLayout; total_seats: number; created_at: string }>(
     `SELECT id, name, layout, total_seats, created_at FROM catalog.venue_seating_charts

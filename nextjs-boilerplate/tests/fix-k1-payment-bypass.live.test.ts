@@ -34,7 +34,7 @@ run('K1 vstupenky/hodnota bez platby — 5 cest (izolovaná DB)', () => {
   let pool: Pool;
   let kioskPOST: (r: NextRequest) => Promise<Response>;
   let resalePOST: (r: NextRequest) => Promise<Response>;
-  let upgradePOST: (r: NextRequest, ctx: { params: { ticketId: string } }) => Promise<Response>;
+  let upgradePOST: (r: NextRequest, ctx: { params: Promise<{ ticketId: string }> }) => Promise<Response>;
   let voucherPOST: (r: NextRequest, ctx: { params: Promise<{ paymentId: string }> }) => Promise<Response>;
   let subsPOST: (r: NextRequest, ctx: { params: Promise<{ paymentId: string }> }) => Promise<Response>;
 
@@ -88,9 +88,9 @@ run('K1 vstupenky/hodnota bez platby — 5 cest (izolovaná DB)', () => {
     // Skutečná K1 vada: i nepřihlášený, který zná JEN e-mail vlastníka + ticketId,
     // upgradne lístek bez zaplacení rozdílu. Testujeme přímo tuhle cestu.
     const ownerEmail = fc.email;
-    const anon = await upgradePOST(post(`/api/buyer/tickets/${ticketId}/upgrade`, { targetTicketTypeId: vip, ownerEmail }), { params: { ticketId } });
+    const anon = await upgradePOST(post(`/api/buyer/tickets/${ticketId}/upgrade`, { targetTicketTypeId: vip, ownerEmail }), { params: Promise.resolve({ ticketId }) });
     expect(anon.status, 'upgrade bez platby (jen ownerEmail) nesmí uspět').not.toBe(200);
-    const foreign = await upgradePOST(post(`/api/buyer/tickets/${ticketId}/upgrade`, { targetTicketTypeId: vip, ownerEmail: `cizi-${randomUUID().slice(0, 6)}@x.test` }), { params: { ticketId } });
+    const foreign = await upgradePOST(post(`/api/buyer/tickets/${ticketId}/upgrade`, { targetTicketTypeId: vip, ownerEmail: `cizi-${randomUUID().slice(0, 6)}@x.test` }), { params: Promise.resolve({ ticketId }) });
     expect(foreign.status).not.toBe(200);
     const ttAfter = (await pool.query<{ tt: string }>(`SELECT ticket_type_id tt FROM tickets.tickets WHERE id=$1`, [ticketId])).rows[0].tt;
     expect(ttAfter, 'typ lístku se nezměnil').toBe(ttBefore);

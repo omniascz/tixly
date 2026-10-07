@@ -16,10 +16,8 @@ const patchSchema = z.object({
   status: z.enum(['active', 'suspended', 'revoked']).optional(),
 });
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterNonStaff(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
@@ -66,10 +64,8 @@ export async function PATCH(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterNonStaff(req, async (promoter) => {
   const r = await db().query(
     `DELETE FROM b2b.oauth_clients WHERE id = $1 AND owner_promoter_id = $2 RETURNING id`,

@@ -13,10 +13,8 @@ import { db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   const r = await db().query<{ status: string; cancel_at_period_end: boolean }>(
     `UPDATE subscriptions.subscriptions

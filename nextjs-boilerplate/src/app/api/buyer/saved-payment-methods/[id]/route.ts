@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
     const r = await db().query(
       `DELETE FROM identity.saved_payment_methods WHERE id = $1 AND user_id = $2`,
@@ -18,10 +16,8 @@ export async function DELETE(
   });
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
     const client = await db().connect();
     try {

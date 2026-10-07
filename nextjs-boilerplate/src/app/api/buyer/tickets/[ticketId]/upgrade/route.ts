@@ -36,10 +36,8 @@ interface TicketRow {
   order_status: string;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   if (!/^[0-9a-f-]{36}$/i.test(params.ticketId)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
   }
@@ -119,10 +117,8 @@ const upgradeSchema = z.object({
   ownerEmail: z.string().email().optional(),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   // FIX K1: „demo upgrade" měnil typ lístku a zakládal paid upgrade objednávku BEZ
   // doplatku (stačil ownerEmail). Vypnuto do napojení na platební tok (FIX_REPORT_K.md).
   const disabled = demoPathDisabledResponse();

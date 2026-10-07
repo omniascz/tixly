@@ -38,10 +38,8 @@ interface PlanRow {
   active: boolean;
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { orderId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ orderId: string }> }): Promise<Response> {
+  const params = await props.params;
   // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
   const featureOff = launchFeatureNotFound('installments');
   if (featureOff) return featureOff;

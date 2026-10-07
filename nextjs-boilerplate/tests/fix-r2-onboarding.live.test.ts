@@ -41,7 +41,7 @@ run('Onboarding pořadatele — krok 4 a záznam kroků', () => {
     const { POST } = await import('@/app/api/admin/onboarding/step/[step]/route');
     const r = await throughMiddleware(req('/api/admin/onboarding/step/4', token, {
       productionId: prodId, venueId: c.venueId, dateStart: new Date(Date.now() + 9 * 864e5).toISOString(), durationMinutes: 90,
-    }), POST as H<{ params: { step: string } }>, { params: { step: '4' } });
+    }), POST as H<{ params: Promise<{ step: string }> }>, { params: Promise.resolve({ step: '4' }) });
     const j = await r.json() as { eventId?: string };
     expect(r.status, JSON.stringify(j)).toBe(200);
     const p = (await clone.pool.query<{ q: string }>(`SELECT qr_policy q FROM catalog.events WHERE id=$1`, [j.eventId])).rows[0].q;

@@ -29,8 +29,9 @@ async function ownsSlot(slotId: string, eventId: string, promoterId: string): Pr
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; slotId: string } },
+  props: { params: Promise<{ id: string; slotId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
     if (!(await ownsSlot(params.slotId, params.id, promoter.promoterId))) {
       return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
@@ -90,8 +91,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; slotId: string } },
+  props: { params: Promise<{ id: string; slotId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
     if (!(await ownsSlot(params.slotId, params.id, promoter.promoterId))) {
       return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });

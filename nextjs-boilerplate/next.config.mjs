@@ -13,10 +13,18 @@ const nextConfig = {
   eslint: { ignoreDuringBuilds: true },
   // pdfkit bundles AFM font files via require() — webpack can't statically analyze
   // these, so we externalize it to load directly from node_modules at runtime.
+  // Kolo 15: v Next 15 klíč experimental.serverComponentsExternalPackages → serverExternalPackages.
+  serverExternalPackages: ['pdfkit'],
+  // Kolo 15: Next 14 bral za kořen trasování souborů adresář projektu; Next 15 ho odvozuje z lockfilů (vybral by tixly/).
+  outputFileTracingRoot: __dirname,
   experimental: {
-    serverComponentsExternalPackages: ['pdfkit'],
-    // Kolo 9: bez tohoto Next 14 instrumentation.ts nespouští — nenačítal se Sentry ani pojistka stagingu.
-    instrumentationHook: true,
+    // Kolo 9: instrumentation.ts (Sentry, pojistka stagingu) — Next 15 ho načítá vždy, instrumentationHook zrušen.
+    // Kolo 15: klientský router cache jako v Next 14 (dynamické stránky 30 s; Next 15 má výchozí 0 s).
+    staleTimes: { dynamic: 30, static: 300 },
+    // Kolo 15: Next 15 při `next start` načte a vykoná moduly VŠECH rout (preloadEntriesOnStart, výchozí true) — s 1124
+    // routami ~30 s CPU, první požadavek čekal 21–109 s (CPU profil logs/r15/cpuprof). Next 14 načítal routu až s prvním
+    // požadavkem na ni → původní chování. Na Vercelu (minimal mode) se preload nespouští.
+    preloadEntriesOnStart: false,
   },
   images: {
     // Kolo 9: zmírnění bez změny hlavní verze Next (14.2.35):

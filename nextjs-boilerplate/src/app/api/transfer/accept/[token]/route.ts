@@ -11,10 +11,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
 
   const r = await db().query<{
@@ -72,10 +70,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
 
   const recipientUserId = req.headers.get('x-user-id');

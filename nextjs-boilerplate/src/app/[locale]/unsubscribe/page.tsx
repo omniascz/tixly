@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -12,7 +12,8 @@ const SCOPE_LABELS: Record<string, string> = {
   all: 'všechny propagační e-maily',
 };
 
-export default function UnsubscribePage({ params }: { params: { locale: string } }) {
+export default function UnsubscribePage(props: { params: Promise<{ locale: string }> }) {
+  const params = use(props.params);
   const sp = useSearchParams();
   const token = sp.get('token');
   const [status, setStatus] = useState<'loading' | 'unsubscribed' | 'invalid' | 'network_error'>(

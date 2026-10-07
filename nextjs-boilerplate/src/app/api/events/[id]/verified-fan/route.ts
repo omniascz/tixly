@@ -18,10 +18,8 @@ const schema = z.object({
   motivation: z.string().max(1000).optional(),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
     if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
       return NextResponse.json({ error: 'BAD_EVENT' }, { status: 422 });

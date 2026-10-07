@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { Bell, BellOff } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,8 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function MyFollowsPage({ params }: { params: { locale: string } }) {
+export default function MyFollowsPage(props: { params: Promise<{ locale: string }> }) {
+  const params = use(props.params);
   const [follows, setFollows] = useState<Follow[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

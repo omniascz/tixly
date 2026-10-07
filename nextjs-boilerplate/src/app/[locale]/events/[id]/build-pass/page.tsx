@@ -9,7 +9,7 @@
  */
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type JSX } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
 type Day = { id: string; day_index: number; label: string | null; starts_at: string };

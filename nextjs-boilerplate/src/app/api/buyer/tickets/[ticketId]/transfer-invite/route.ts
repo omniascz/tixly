@@ -22,10 +22,8 @@ const postSchema = z.object({
   message: z.string().max(500).optional(),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
@@ -94,10 +92,8 @@ export async function POST(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   const r = await db().query(
     `UPDATE tickets.transfer_invitations

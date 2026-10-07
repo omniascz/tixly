@@ -5,7 +5,7 @@
  * Stránka je záměrně jednoduchá: podmínky, tři tlačítka, nic víc.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, use } from 'react';
 import { useRouteParams } from '@/lib/next/route-params';
 
 interface BonusTier {
@@ -58,7 +58,8 @@ const TYPE_LABEL: Record<string, string> = {
   percent_plus_flat: 'Pevná částka a podíl z tržby',
 };
 
-export default function OfferPage({ params }: { params: Promise<{ token: string }> }) {
+export default function OfferPage(props: { params: Promise<{ token: string }> }) {
+  const params = use(props.params);
   const { token } = useRouteParams(params);
   const [offer, setOffer] = useState<Offer | null>(null);
   const [canRespond, setCanRespond] = useState(false);

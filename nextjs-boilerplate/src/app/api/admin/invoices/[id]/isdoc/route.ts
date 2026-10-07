@@ -10,10 +10,8 @@ import { taxDocumentResponse } from '@/lib/accounting/render';
 import { runAsPromoterNonStaff } from '@/lib/admin-auth';
 import { asSystemInTx, db } from '@/lib/db/rls-pool';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterNonStaff(req, async (promoter) => {
     if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
       return NextResponse.json({ error: 'Invalid id' }, { status: 422 });

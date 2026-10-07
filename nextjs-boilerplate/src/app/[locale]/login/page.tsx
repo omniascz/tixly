@@ -1,5 +1,5 @@
 'use client';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PasskeyButton } from '@/components/passkey-button';
@@ -15,7 +15,8 @@ import { Input } from '@/components/ui/input';
 
 type Tab = 'password' | 'magic';
 
-export default function LoginPage({ params }: { params: { locale: string } }) {
+export default function LoginPage(props: { params: Promise<{ locale: string }> }) {
+  const params = use(props.params);
   const router = useRouter();
   const searchParams = useSearchParams();
   const fromParam = searchParams.get('from');

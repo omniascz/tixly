@@ -16,7 +16,11 @@ const schema = z.object({
   priceValue: z.number().int().min(0),
 }).refine((c) => c.priceMode !== 'percent' || c.priceValue <= 10000, { message: 'procento nejvýš 100 %' });
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string; categoryId: string } }): Promise<Response> {
+export async function PUT(
+  req: NextRequest,
+  props: { params: Promise<{ id: string; categoryId: string }> }
+): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!UUID.test(params.id) || !UUID.test(params.categoryId)) return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
     const parsed = schema.safeParse(await req.json().catch(() => ({})));

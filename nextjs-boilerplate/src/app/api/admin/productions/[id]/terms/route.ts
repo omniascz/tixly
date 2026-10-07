@@ -39,7 +39,8 @@ const STATUS: Record<TermError['code'], number> = {
   PRODUCTION_NOT_FOUND: 404, VENUE_NOT_FOUND: 404, SOURCE_NOT_FOUND: 404, NO_TICKET_TYPES: 422, VAT_NOT_CONFIGURED: 422, NO_SELLABLE_SEATS: 422,
 };
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!/^[0-9a-f-]{36}$/i.test(params.id)) return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
     const parsed = schema.safeParse(await req.json().catch(() => ({})));

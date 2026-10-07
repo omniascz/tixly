@@ -8,7 +8,7 @@
 'use client';
 
 import { Users } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type JSX } from 'react';
 
 type Created = { inviteUrl: string };
 

@@ -26,8 +26,9 @@ interface EntryRow {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string; lotteryId: string } },
+  props: { params: Promise<{ id: string; lotteryId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoterOwner(req, async (promoter) => {
   const client = await db().connect();
   try {

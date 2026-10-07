@@ -12,10 +12,8 @@ import { runAsPlatformAdmin } from '@/lib/platform-auth';
 import { z } from 'zod';
 
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (_admin) => {
   const detailRes = await db().query<{
     id: string; name: string; slug: string | null;
@@ -134,10 +132,8 @@ const patchSchema = z.object({
   feeOverrideReason: z.string().max(500).optional(),
 });
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (admin) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);

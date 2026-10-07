@@ -17,8 +17,9 @@ async function ensureOwnership(eventId: string, promoterId: string): Promise<boo
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; sponsorId: string } },
+  props: { params: Promise<{ id: string; sponsorId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!(await ensureOwnership(params.id, promoter.promoterId))) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -56,8 +57,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; sponsorId: string } },
+  props: { params: Promise<{ id: string; sponsorId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!(await ensureOwnership(params.id, promoter.promoterId))) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });

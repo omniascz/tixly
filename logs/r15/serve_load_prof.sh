@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Kolo 15 / krok 2: server pro zátěžový test — DB r15load PŘES PgBouncer (fix-pgb :56633, pool_mode transaction,
+# default_pool_size dle /etc/pgbouncer/pgbouncer.ini). Jen localhost.
+cd /c/Users/omnia/Documents/tixly/nextjs-boilerplate
+set -a; . ./fix.app.env; set +a
+export DATABASE_URL=postgresql://tixly_app:fixapp@localhost:56633/r15load
+export DATABASE_URL_DIRECT=$DATABASE_URL
+export DATABASE_URL_SUPER=postgresql://neondb_owner:fixowner@localhost:55632/r15load
+export DATABASE_URL_OPS=$DATABASE_URL_SUPER
+export KV_URL=redis://localhost:56679 KV_REST_API_URL=http://localhost:9 ARES_BASE_URL=http://localhost:3997
+export EXIT_AFTER_MS=170000 NODE_OPTIONS="--cpu-prof --cpu-prof-dir=C:/Users/omnia/Documents/tixly/logs/r15/load/cpuprof --require C:/Users/omnia/Documents/tixly/logs/r15/exit-after.cjs"; exec npx next start -p 3200

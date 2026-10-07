@@ -24,10 +24,8 @@ async function ownsEvent(eventId: string, promoterId: string): Promise<boolean> 
   return Number(r.rows[0]?.count ?? 0) > 0;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
   if (!(await ownsEvent(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
@@ -72,10 +70,8 @@ function generatePresaleCode(): string {
   return `PSL-${randomBytes(4).toString('hex').toUpperCase()}-${randomBytes(4).toString('hex').toUpperCase()}`;
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
   if (!(await ownsEvent(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });

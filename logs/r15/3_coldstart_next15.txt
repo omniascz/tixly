@@ -1,0 +1,7 @@
+next15 port otevřen po 1882 ms
+next15 login#1 401 23.139673s
+next15 login#2 401 0.019871s
+next15 login#3 401 0.019224s
+next15 /api/health 200 0.011572s
+next15 /cs 200 0.291098s
+next15 /admin 307 0.004075s

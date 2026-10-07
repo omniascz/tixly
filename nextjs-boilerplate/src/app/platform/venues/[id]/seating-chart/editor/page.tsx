@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { VisualEditor, type Layout } from './VisualEditor';
 
@@ -16,11 +16,12 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function PlatformVisualEditorPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function PlatformVisualEditorPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = use(props.params);
   const venueId = params.id;
   const [initialLayout, setInitialLayout] = useState<Layout | null>(null);
   const [chartName, setChartName] = useState('Default');

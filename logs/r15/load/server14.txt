@@ -1,0 +1,73 @@
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3200
+
+ ✓ Starting...
+ ✓ Ready in 1175ms
+[mailer] provider=mailhog-dev host=localhost:51225 authed=false
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\pg-pool\index.js:45:11
+    at async R.connect (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\41717.js:1:3812)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\35590.js:113:316
+    at async _ (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:8:291)
+    at async E (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:28:466)
+    at async o (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:11:1338)
+    at async n (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:39:241)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38411
+    at async e_.execute (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:27880)
+    at async e_.handle (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:39943)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\pg-pool\index.js:45:11
+    at async R.connect (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\41717.js:1:3812)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\35590.js:117:392
+    at async _ (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:8:291)
+    at async E (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:28:466)
+    at async o (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:11:1338)
+    at async n (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:39:241)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38411
+    at async e_.execute (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:27880)
+    at async e_.handle (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:39943)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\pg-pool\index.js:45:11
+    at async R.connect (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\41717.js:1:3812)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\35590.js:113:316
+    at async _ (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:8:291)
+    at async E (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:28:466)
+    at async o (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:11:1338)
+    at async n (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:39:241)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38411
+    at async e_.execute (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:27880)
+    at async e_.handle (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:39943)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\pg-pool\index.js:45:11
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at listOnTimeout (node:internal/timers:567:9)
+    at process.processTimers (node:internal/timers:541:7)
+    at async R.connect (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\41717.js:1:3812)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\35590.js:113:316
+    at async _ (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:8:291)
+    at async E (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:28:466)
+    at async o (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:11:1338)
+    at async n (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:39:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\pg-pool\index.js:45:11
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:538:9)
+    at async R.connect (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\41717.js:1:3812)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\35590.js:113:63
+    at async _ (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:8:291)
+    at async E (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:28:466)
+    at async o (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:11:1338)
+    at async n (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:39:241)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38411
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\pg-pool\index.js:45:11
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:538:9)
+    at async R.connect (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\41717.js:1:3812)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\chunks\35590.js:113:316
+    at async _ (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:8:291)
+    at async E (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:28:466)
+    at async o (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:11:1338)
+    at async n (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:39:241)
+    at async C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38411
+[overload] DB pool vyčerpán → 503 Retry-After

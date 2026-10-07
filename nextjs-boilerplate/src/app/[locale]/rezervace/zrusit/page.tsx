@@ -1,9 +1,10 @@
 'use client';
 
 /** Zrušení rezervace odkazem z e-mailu (kolo 8 / krok 5) — kupec potvrdí tlačítkem, místa se vrátí do prodeje. */
-import { useState } from 'react';
+import { useState, use } from 'react';
 
-export default function CancelReservationPage({ searchParams }: { searchParams: { code?: string; token?: string } }) {
+export default function CancelReservationPage(props: { searchParams: Promise<{ code?: string; token?: string }> }) {
+  const searchParams = use(props.searchParams);
   const [state, setState] = useState<'idle' | 'busy' | 'done' | 'error'>('idle');
   const [msg, setMsg] = useState('');
   const code = searchParams.code ?? '';

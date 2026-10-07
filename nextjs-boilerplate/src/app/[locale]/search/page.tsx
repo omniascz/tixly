@@ -2,13 +2,14 @@ import { SearchClient } from './SearchClient';
 
 export const dynamic = 'force-dynamic';
 
-export default function SearchPage({
-  params,
-  searchParams,
-}: {
-  params: { locale: string };
-  searchParams: { q?: string };
-}) {
+export default async function SearchPage(
+  props: {
+    params: Promise<{ locale: string }>;
+    searchParams: Promise<{ q?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   return (
     <div className="space-y-6 py-6">
       <div>

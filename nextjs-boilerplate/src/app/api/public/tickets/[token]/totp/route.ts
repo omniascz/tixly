@@ -27,10 +27,8 @@ interface TicketRow {
   venue_name: string | null;
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   const ticketId = verifyTicketMagicToken(params.token);
   if (!ticketId) {
     return NextResponse.json({ error: 'INVALID_TOKEN' }, { status: 403 });

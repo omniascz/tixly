@@ -20,8 +20,9 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string; settlementId: string } },
+  props: { params: Promise<{ id: string; settlementId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     const r = await runWithServiceContext(() =>
       db().query<{

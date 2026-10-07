@@ -43,10 +43,10 @@ async function loadTicket(client: { query: Pool['query'] }, ticketId: string, us
 
 export async function GET(
   req: NextRequest,
-  ctx: { params: { ticketId: string } },
+  ctx: { params: Promise<{ ticketId: string }> },
 ): Promise<Response> {
   return runAsUser(req, async (userId) => {
-  const ticket = await loadTicket(db() as unknown as Pool, ctx.params.ticketId, userId);
+  const ticket = await loadTicket(db() as unknown as Pool, (await ctx.params).ticketId, userId);
   if (!ticket) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   if (!ticket.pass_kind) {
     return NextResponse.json({ error: 'NOT_A_PASS' }, { status: 422 });
@@ -65,12 +65,12 @@ export async function GET(
 
   const picks = await db().query<{ event_day_id: string; picked_at: string }>(
     `SELECT event_day_id, picked_at FROM tickets.ticket_picks WHERE ticket_id = $1`,
-    [ctx.params.ticketId],
+    [(await ctx.params).ticketId],
   );
 
   const usedDayIds = await db().query<{ event_day_id: string }>(
     `SELECT event_day_id FROM tickets.ticket_redemptions WHERE ticket_id = $1`,
-    [ctx.params.ticketId],
+    [(await ctx.params).ticketId],
   );
 
   return NextResponse.json({
@@ -93,7 +93,7 @@ const postSchema = z.object({
 
 export async function POST(
   req: NextRequest,
-  ctx: { params: { ticketId: string } },
+  ctx: { params: Promise<{ ticketId: string }> },
 ): Promise<Response> {
   return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
@@ -110,7 +110,7 @@ export async function POST(
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    const ticket = await loadTicket(client, ctx.params.ticketId, userId);
+    const ticket = await loadTicket(client, (await ctx.params).ticketId, userId);
     if (!ticket) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -155,7 +155,7 @@ export async function POST(
     // Nelze měnit picks pokud už byl ticket scannován
     const used = await client.query<{ count: string }>(
       `SELECT COUNT(*)::text AS count FROM tickets.ticket_redemptions WHERE ticket_id = $1`,
-      [ctx.params.ticketId],
+      [(await ctx.params).ticketId],
     );
     if (Number(used.rows[0]?.count ?? 0) > 0) {
       await client.query('ROLLBACK');
@@ -167,12 +167,12 @@ export async function POST(
 
     await client.query(
       `DELETE FROM tickets.ticket_picks WHERE ticket_id = $1`,
-      [ctx.params.ticketId],
+      [(await ctx.params).ticketId],
     );
     for (const d of dayIds) {
       await client.query(
         `INSERT INTO tickets.ticket_picks (ticket_id, event_day_id) VALUES ($1, $2)`,
-        [ctx.params.ticketId, d],
+        [(await ctx.params).ticketId, d],
       );
     }
 

@@ -18,8 +18,9 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string; campaignId: string } },
+  props: { params: Promise<{ id: string; campaignId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
 
   // Cross-tenant ochrana: akce (a tím i kampaň) musí patřit promotérovi.

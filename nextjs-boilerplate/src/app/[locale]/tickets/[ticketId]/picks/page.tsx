@@ -2,11 +2,12 @@ import { FlexPassPicker } from './FlexPassPicker';
 
 export const dynamic = 'force-dynamic';
 
-export default function FlexPassPickerPage({
-  params,
-}: {
-  params: { locale: string; ticketId: string };
-}) {
+export default async function FlexPassPickerPage(
+  props: {
+    params: Promise<{ locale: string; ticketId: string }>;
+  }
+) {
+  const params = await props.params;
   return (
     <div className="mx-auto max-w-2xl space-y-4 py-8">
       <h1 className="text-2xl font-bold">Vyber termíny flex passu</h1>

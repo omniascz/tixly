@@ -13,10 +13,8 @@ import { issueTan } from '@/lib/sms/tan';
 import { getEventHotConfig } from '@/lib/hot-events/enforcement';
 
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { orderId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ orderId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   const r = await db().query<{
     id: string;

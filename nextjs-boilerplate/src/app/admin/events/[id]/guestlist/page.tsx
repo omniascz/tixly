@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -48,11 +48,12 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function GuestlistPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function GuestlistPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = use(props.params);
   const { id: eventId } = useRouteParams(params);
 
   const [entries, setEntries] = useState<GuestlistEntry[]>([]);

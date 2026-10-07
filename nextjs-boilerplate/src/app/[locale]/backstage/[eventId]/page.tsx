@@ -63,11 +63,12 @@ async function fetchData(eventId: string): Promise<PageData | null> {
   }
 }
 
-export default async function BackstagePage({
-  params,
-}: {
-  params: { locale: string; eventId: string };
-}) {
+export default async function BackstagePage(
+  props: {
+    params: Promise<{ locale: string; eventId: string }>;
+  }
+) {
+  const params = await props.params;
   const data = await fetchData(params.eventId);
 
   if (!data) {

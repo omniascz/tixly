@@ -156,7 +156,8 @@ function shadeColor(hex: string | null, fallbackHue: number): string {
   return `linear-gradient(135deg, hsl(${fallbackHue}, 60%, 50%), hsl(${(fallbackHue + 60) % 360}, 70%, 40%))`;
 }
 
-export default async function LandingPage({ params }: { params: { locale: string } }) {
+export default async function LandingPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const { events, thisWeek, featured, promoters, categories } = await fetchLanding();
   const locale = isValidLocale(params.locale) ? params.locale : DEFAULT_LOCALE;
 

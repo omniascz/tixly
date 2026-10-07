@@ -25,10 +25,8 @@ interface PlanRow {
   active: boolean;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
   const featureOff = launchFeatureNotFound('installments');
   if (featureOff) return featureOff;
@@ -60,10 +58,8 @@ const createSchema = z.object({
   intervalDays: z.number().int().min(1).max(365).default(30),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
   const featureOff = launchFeatureNotFound('installments');
   if (featureOff) return featureOff;

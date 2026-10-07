@@ -14,7 +14,7 @@ import { generateTotpCode } from '@/lib/totp/verify';
 
 export async function GET(
   req: NextRequest,
-  ctx: { params: { membershipId: string } },
+  ctx: { params: Promise<{ membershipId: string }> },
 ): Promise<Response> {
   return runAsUser(req, async (userId) => {
   const r = await db().query<{
@@ -31,7 +31,7 @@ export async function GET(
      FROM tickets.cross_pass_memberships m
      JOIN catalog.cross_pass_bundles b ON b.id = m.bundle_id
      WHERE m.id = $1 AND m.user_id = $2`,
-    [ctx.params.membershipId, userId],
+    [(await ctx.params).membershipId, userId],
   );
   if (r.rows.length === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });

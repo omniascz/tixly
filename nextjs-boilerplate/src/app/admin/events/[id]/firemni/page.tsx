@@ -5,7 +5,7 @@
  * z blokace, kategorie, upravená cena s důvodem, splatnost → faktura (PDF + ISDOC) e-mailem; zaplaceno → vstupenky;
  * zrušit / uvolnit místa → dobropis.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, use } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -25,7 +25,8 @@ const kc = (m: number) => `${(m / 100).toLocaleString('cs-CZ')} Kč`;
 const STATUS: Record<string, string> = { confirmed: 'čeká na platbu', overdue: 'po splatnosti', paid: 'zaplaceno', cancelled: 'zrušeno' };
 const inDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
 
-export default function CorporateOrdersPage({ params }: { params: { id: string } }) {
+export default function CorporateOrdersPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const [seats, setSeats] = useState<Seat[]>([]);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [cats, setCats] = useState<Category[]>([]);

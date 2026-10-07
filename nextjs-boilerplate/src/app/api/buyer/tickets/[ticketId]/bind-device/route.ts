@@ -26,10 +26,8 @@ function hashIp(ip: string | null): string | null {
   return crypto.createHash('sha256').update(ip).digest('hex').slice(0, 32);
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
@@ -90,10 +88,8 @@ export async function POST(
 /**
  * DELETE — unbind (jen owner)
  */
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   const r = await db().query(
     `UPDATE tickets.tickets

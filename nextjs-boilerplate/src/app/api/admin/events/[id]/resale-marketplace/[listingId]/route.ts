@@ -11,8 +11,9 @@ export const dynamic = 'force-dynamic';
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; listingId: string } },
+  props: { params: Promise<{ id: string; listingId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     const evOwn = await runWithServiceContext(() =>
       db().query(`SELECT id FROM catalog.events WHERE id=$1 AND promoter_id=$2 LIMIT 1`, [params.id, ctx.promoterId]),

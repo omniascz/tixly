@@ -6,8 +6,9 @@ export const dynamic = 'force-dynamic';
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; offerId: string } },
+  props: { params: Promise<{ id: string; offerId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     const own = await runWithServiceContext(() =>
       db().query(
@@ -43,8 +44,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; offerId: string } },
+  props: { params: Promise<{ id: string; offerId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     const own = await runWithServiceContext(() =>
       db().query(

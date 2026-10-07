@@ -9,10 +9,8 @@ import { runAsPlatformAdmin } from '@/lib/platform-auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async () => {
     const b = await req.json() as Partial<{
       name: string; tagline: string; description: string;
@@ -48,10 +46,8 @@ export async function PATCH(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async () => {
     await db().query(
       `UPDATE brands.event_partnerships SET status='cancelled' WHERE campaign_id=$1`,

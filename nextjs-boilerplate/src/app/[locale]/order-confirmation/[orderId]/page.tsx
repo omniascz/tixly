@@ -126,11 +126,12 @@ async function fetchOrder(orderId: string) {
 
 export const dynamic = 'force-dynamic';
 
-export default async function OrderConfirmationPage({
-  params,
-}: {
-  params: { locale: string; orderId: string };
-}) {
+export default async function OrderConfirmationPage(
+  props: {
+    params: Promise<{ locale: string; orderId: string }>;
+  }
+) {
+  const params = await props.params;
   const data = await fetchOrder(params.orderId);
   if (!data) notFound();
   const { order, items, tickets, addons } = data;

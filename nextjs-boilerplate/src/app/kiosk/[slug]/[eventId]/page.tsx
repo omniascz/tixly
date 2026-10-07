@@ -48,7 +48,8 @@ async function getData(slug: string, eventId: string) {
   });
 }
 
-export default async function KioskEventPage({ params }: { params: { slug: string; eventId: string } }) {
+export default async function KioskEventPage(props: { params: Promise<{ slug: string; eventId: string }> }) {
+  const params = await props.params;
   const data = await getData(params.slug, params.eventId);
   if (!data || data.ticketTypes.length === 0) notFound();
 

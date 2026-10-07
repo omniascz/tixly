@@ -4,10 +4,8 @@ import { runAsPlatformAdmin } from '@/lib/platform-auth';
 import { vatNotReadyResponse } from '@/lib/tax/vat-readiness';
 
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { eventId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ eventId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (admin) => {
   // Kolo 7 (C-54): akci s placeným typem plátce bez sazby DPH (nebo bez DIČ) nelze publikovat.
   const vatBlocked = await vatNotReadyResponse(db(), params.eventId, 'publish');

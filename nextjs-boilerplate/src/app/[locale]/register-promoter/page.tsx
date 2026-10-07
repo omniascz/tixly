@@ -1,5 +1,5 @@
 'use client';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -12,11 +12,12 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
-export default function RegisterPromoterPage({
-  params,
-}: {
-  params: { locale: string };
-}) {
+export default function RegisterPromoterPage(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+) {
+  const params = use(props.params);
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

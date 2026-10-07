@@ -149,11 +149,12 @@ const LABEL_MAP: Record<string, string> = {
   scanned: 'Vstup',
 };
 
-export default async function TicketChainPage({
-  params,
-}: {
-  params: { id: string; ticketId: string };
-}) {
+export default async function TicketChainPage(
+  props: {
+    params: Promise<{ id: string; ticketId: string }>;
+  }
+) {
+  const params = await props.params;
   // Promoter kontext z accessToken cookie (server-side). RLS + explicitní
   // e.promoter_id = $2 filtr → lístek se zobrazí jen vlastníkovi akce.
   const data = await runAsServerPromoter(({ promoterId }) =>

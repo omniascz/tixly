@@ -127,14 +127,16 @@ async function POSTImpl(
 //  - GET je verejny (nahled prevodu podle tokenu, prijemce jeste neni prihlasen)
 //    -> SERVISNI kontext, ne USING (true) v policy. Route si filtruje sama tokenem.
 //  - POST prevod prijima prihlaseny uzivatel -> kontext toho uzivatele.
-type TCtx = { params: { token: string } };
+type TCtx = { params: Promise<{ token: string }> };
 
 export async function GET(req: NextRequest, ctx: TCtx): Promise<Response> {
-  return runWithServiceContext(() => GETImpl(req, ctx));
+  const params = await ctx.params; // Next 15: params je Promise
+  return runWithServiceContext(() => GETImpl(req, { params }));
 }
 
 export async function POST(req: NextRequest, ctx: TCtx): Promise<Response> {
   const uid = req.headers.get('x-user-id');
   if (!uid) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-  return runWithUserContext(uid, () => POSTImpl(req, ctx));
+  const params = await ctx.params; // Next 15: params je Promise
+  return runWithUserContext(uid, () => POSTImpl(req, { params }));
 }

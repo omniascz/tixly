@@ -1,0 +1,44 @@
+
+Running 6 tests using 1 worker
+
+  x  1 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:171:5 › bod 1: stažení seznamu vstupenek termínu do zařízení a kdy byl stažen (2ms)
+  -  2 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:187:5 › bod 2: offline — pravidla jako online
+  -  3 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:227:5 › bod 3: po obnovení sítě se odbavení odešlou idempotentně a zapíšou do scan_logs
+  -  4 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:258:5 › bod 4: dva skenery offline tutéž vstupenku → po synchronizaci duplicitní, počet v reportu
+  -  5 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:277:5 › bod 5: zavření a znovuotevření prohlížeče offline — seznam i neodeslaná odbavení přežijí
+  -  6 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:321:5 › bod 6: storno po stažení seznamu — online vždy odmítnuto, offline jen se seznamem staženým po stornu
+
+
+  1) [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:171:5 › bod 1: stažení seznamu vstupenek termínu do zařízení a kdy byl stažen 
+
+    TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event "response"
+
+      79 |   await page.getByLabel('E-mail').fill(email);
+      80 |   await page.getByLabel('Heslo').fill(pass);
+    > 81 |   await Promise.all([page.waitForResponse((r) => r.url().endsWith('/api/auth/login')), page.getByRole('button', { name: /^Přihlásit$/ }).click()]);
+         |                           ^
+      82 |   await page.waitForURL(/\/admin(?!\/?login)/, { timeout: 30_000 });
+      83 | }
+      84 | async function api(page: Page, method: string, path: string, body?: unknown): Promise<{ status: number; json: Record<string, unknown> }> {
+        at login (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:81:27)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:154:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-c2080-o-zařízení-a-kdy-byl-stažen-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r14-offline-sc-c2080-o-zařízení-a-kdy-byl-stažen-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r14-offline-sc-c2080-o-zařízení-a-kdy-byl-stažen-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-c2080-o-zařízení-a-kdy-byl-stažen-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r14-offline-sc-c2080-o-zařízení-a-kdy-byl-stažen-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:171:5 › bod 1: stažení seznamu vstupenek termínu do zařízení a kdy byl stažen 
+  5 did not run

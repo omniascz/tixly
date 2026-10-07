@@ -15,10 +15,8 @@ import { runAsUser } from '@/lib/auth';
 import { signNfcPayload } from '@/lib/safetix/nfc';
 
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   const r = await db().query<{
     status: string;

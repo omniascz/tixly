@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -235,7 +235,8 @@ function generateLayout(stage: StagePos, sectors: BuilderSector[], stageLabel: s
   };
 }
 
-export default function PlatformSeatingChartPage({ params }: { params: { id: string } }) {
+export default function PlatformSeatingChartPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const venueId = params.id;
 
   const [error, setError] = useState<string | null>(null);

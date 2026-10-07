@@ -13,7 +13,8 @@ import { payReservation, ReservationError } from '@/lib/theatre/reservations';
 export const dynamic = 'force-dynamic';
 const schema = z.object({ paymentType: z.enum(['cash', 'card']), cashTenderedMinor: z.number().int().min(0).optional() });
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!/^[0-9a-f-]{36}$/i.test(params.id)) return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
     const parsed = schema.safeParse(await req.json().catch(() => ({})));

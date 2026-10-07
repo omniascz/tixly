@@ -19,7 +19,7 @@ export async function getServerRoles(): Promise<{
   /** Role aktivního členství (owner/manager/staff…) — pro role-scoped navigaci. */
   promoterRole: string | null;
 } | null> {
-  const token = cookies().get('accessToken')?.value;
+  const token = (await cookies()).get('accessToken')?.value;
   if (!token) return null;
   const secret = process.env.JWT_SECRET;
   if (!secret || secret.length < 32) return null;
@@ -54,7 +54,7 @@ export async function getServerRoles(): Promise<{
  * jako middleware (payload.sub + roles.isPlatformAdmin). Null = nepřihlášen/neplatný.
  */
 async function getServerAuth(): Promise<{ userId: string; isPlatformAdmin: boolean } | null> {
-  const token = cookies().get('accessToken')?.value;
+  const token = (await cookies()).get('accessToken')?.value;
   if (!token) return null;
   const secret = process.env.JWT_SECRET;
   if (!secret || secret.length < 32) return null;

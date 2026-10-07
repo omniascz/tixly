@@ -1,7 +1,9 @@
+import type { JSX } from 'react';
 import type { Metadata } from 'next';
 import { Card, CardContent } from '@/components/ui/card';
 import { SCHEMA_SDL } from '@/lib/graphql/schema';
 import { ApiDocsPlayground } from './playground';
+
 
 export const metadata: Metadata = {
   title: 'API Documentation — Tixly GraphQL',

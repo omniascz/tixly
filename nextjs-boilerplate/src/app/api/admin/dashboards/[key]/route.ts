@@ -20,10 +20,8 @@ const layoutSchema = z.object({
   })),
 });
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { key: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ key: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
   const r = await db().query<{ layout_data: { widgets: unknown[] } }>(
     `SELECT layout_data FROM platform.dashboard_layouts
@@ -57,10 +55,8 @@ export async function GET(
   });
 }
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { key: string } },
-): Promise<Response> {
+export async function PUT(req: NextRequest, props: { params: Promise<{ key: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = layoutSchema.safeParse(body);

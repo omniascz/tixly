@@ -173,10 +173,11 @@ async function DELETEImpl(
 type Ctx = { params: { ticketId: string } };
 const withUser = (
   impl: (r: NextRequest, c: Ctx) => Promise<Response>,
-) => async (req: NextRequest, ctx: Ctx): Promise<Response> => {
+) => async (req: NextRequest, ctx: { params: Promise<Ctx['params']> }): Promise<Response> => {
   const uid = req.headers.get('x-user-id');
   if (!uid) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-  return runWithUserContext(uid, () => impl(req, ctx));
+  const params = await ctx.params; // Next 15: params je Promise
+  return runWithUserContext(uid, () => impl(req, { params }));
 };
 
 export const GET = withUser(GETImpl);

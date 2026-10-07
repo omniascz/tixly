@@ -9,7 +9,7 @@
  * Reuse: VisualEditor z /platform/venues/[id]/seating-chart/editor/VisualEditor.tsx
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { VisualEditor, type Layout } from '@/app/platform/venues/[id]/seating-chart/editor/VisualEditor';
@@ -26,11 +26,12 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function AdminVenueEditorPage({
-  params,
-}: {
-  params: { venueId: string };
-}) {
+export default function AdminVenueEditorPage(
+  props: {
+    params: Promise<{ venueId: string }>;
+  }
+) {
+  const params = use(props.params);
   const { venueId } = params;
   const [initialLayout, setInitialLayout] = useState<Layout | null>(null);
   const [chartName, setChartName] = useState('Default');

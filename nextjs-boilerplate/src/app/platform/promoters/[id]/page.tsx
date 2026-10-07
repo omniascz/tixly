@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -93,11 +93,12 @@ interface PromoterDetailResponse {
   feeSchedules: FeeSchedule[];
 }
 
-export default function PromoterDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function PromoterDetailPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = use(props.params);
   const [data, setData] = useState<PromoterDetailResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);

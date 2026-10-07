@@ -13,10 +13,8 @@ import { runAsPlatformAdmin } from '@/lib/platform-auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async () => {
     const body = await req.json().catch(() => ({})) as { event_ids?: string[] };
 

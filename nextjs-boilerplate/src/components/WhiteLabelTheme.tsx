@@ -8,11 +8,13 @@
  *
  * DACH parity #P1-4 (Ticketino TaaS pattern).
  */
+import type { JSX } from 'react';
 import { headers } from 'next/headers';
 import { resolveWhiteLabel } from '@/lib/white-label/domain';
 
+
 export async function WhiteLabelTheme(): Promise<JSX.Element | null> {
-  const h = headers();
+  const h = await headers();
   const host = h.get('x-forwarded-host') ?? h.get('host');
   if (!host) return null;
   const ctx = await resolveWhiteLabel(host).catch(() => null);
@@ -31,7 +33,7 @@ export async function WhiteLabelTheme(): Promise<JSX.Element | null> {
  * Skryje se pokud promotér zaplatil tier s hide_powered_by=true.
  */
 export async function PoweredByTixly(): Promise<JSX.Element | null> {
-  const h = headers();
+  const h = await headers();
   const host = h.get('x-forwarded-host') ?? h.get('host');
   if (!host) {
     return (

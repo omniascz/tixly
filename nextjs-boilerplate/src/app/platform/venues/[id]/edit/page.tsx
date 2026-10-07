@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { VenueLayoutPreview } from '@/components/platform/VenueLayoutPreview';
@@ -49,11 +49,12 @@ const VENUE_TYPES = [
   'outdoor', 'fitness_studio', 'restaurant', 'coworking', 'conference_room', 'online',
 ];
 
-export default function PlatformVenueEditPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function PlatformVenueEditPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = use(props.params);
   const router = useRouter();
   const [venue, setVenue] = useState<VenueDetail | null>(null);
   const [error, setError] = useState<string | null>(null);

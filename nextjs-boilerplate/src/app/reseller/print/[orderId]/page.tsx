@@ -8,7 +8,7 @@
  * objednávky TOHOTO prodejce. Dřív serverová stránka dotazovala DB bez kontextu a ověřovala
  * jen, že objednávku prodal NĚJAKÝ prodejce.
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation'
 import QRCode from 'qrcode'
 
@@ -32,7 +32,8 @@ type LoadState =
   | { kind: 'error' }
   | { kind: 'ok'; tickets: TicketRow[] }
 
-export default function ResellerPrintPage({ params }: { params: { orderId: string } }) {
+export default function ResellerPrintPage(props: { params: Promise<{ orderId: string }> }) {
+  const params = use(props.params);
   const { orderId } = params
   const router = useRouter()
   const [state, setState] = useState<LoadState>({ kind: 'loading' })

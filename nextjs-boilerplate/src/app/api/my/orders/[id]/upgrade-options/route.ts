@@ -7,10 +7,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithUserContext } from '@/lib/db/rls-pool';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const userId = req.headers.get('x-user-id');
   if (!userId) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
 

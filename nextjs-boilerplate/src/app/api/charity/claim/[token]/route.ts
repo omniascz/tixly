@@ -14,10 +14,8 @@ import { z } from 'zod';
 import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
 
   if (!/^[A-Za-z0-9_-]{20,80}$/.test(params.token)) {
@@ -85,10 +83,8 @@ const claimSchema = z.object({
   name: z.string().min(1).max(120).optional(),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
 
   if (!/^[A-Za-z0-9_-]{20,80}$/.test(params.token)) {

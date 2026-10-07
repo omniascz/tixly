@@ -21,10 +21,8 @@ function hexToRgb(hex: string | null | undefined): [number, number, number] {
   return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { membershipId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ membershipId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
     const r = await db().query<MembershipRow>(
       `SELECT m.id, m.membership_code, m.valid_until, m.user_id,

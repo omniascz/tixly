@@ -17,8 +17,9 @@ const patchSchema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; fieldId: string } },
+  props: { params: Promise<{ id: string; fieldId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterNonStaff(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
@@ -63,8 +64,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; fieldId: string } },
+  props: { params: Promise<{ id: string; fieldId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterNonStaff(req, async (promoter) => {
   const r = await db().query(
     `DELETE FROM catalog.event_custom_fields cf

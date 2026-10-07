@@ -2,7 +2,8 @@ import { VerificationsClient } from './VerificationsClient';
 
 export const dynamic = 'force-dynamic';
 
-export default function VerificationsPage({ params }: { params: { locale: string } }) {
+export default async function VerificationsPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   return (
     <div className="mx-auto max-w-md py-8">
       <h1 className="mb-2 text-2xl font-bold">Slevové oprávnění</h1>

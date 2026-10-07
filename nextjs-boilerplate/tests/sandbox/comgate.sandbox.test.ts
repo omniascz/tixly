@@ -67,7 +67,7 @@ describe.skipIf(missing.length > 0)('ComGate test režim — platba, webhook, vs
     expect(await validTickets(cj.orderId), 'vstupenka vydaná').toBe(1);
 
     const { POST: refund } = await import('@/app/api/admin/orders/[orderId]/refund/route');
-    const doRefund = () => refund(jsonReq('POST', `/api/admin/orders/${cj.orderId}/refund`, { reason: 'customer_request' }, { 'x-user-id': c.adminUserId }), { params: { orderId: cj.orderId } });
+    const doRefund = () => refund(jsonReq('POST', `/api/admin/orders/${cj.orderId}/refund`, { reason: 'customer_request' }, { 'x-user-id': c.adminUserId }), { params: Promise.resolve({ orderId: cj.orderId }) });
 
     // Refund při chybě brány: neplatné tajemství → ComGate odmítne (401), peníze se nepohnou.
     const goodSecret = process.env.COMGATE_SECRET!;

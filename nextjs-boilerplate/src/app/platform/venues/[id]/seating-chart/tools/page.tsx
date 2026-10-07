@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -62,11 +62,12 @@ type Operation =
   | { op: 'flatten'; sectorName: string; rowLabel?: string; renumberSeats: boolean }
   | { op: 'set-stage'; stage: Stage | null };
 
-export default function SectorToolsPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function SectorToolsPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = use(props.params);
   const venueId = params.id;
   const router = useRouter();
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);

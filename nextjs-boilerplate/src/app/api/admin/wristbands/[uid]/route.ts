@@ -36,10 +36,8 @@ interface TxRow {
   performed_at: string;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { uid: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ uid: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
   const r = await db().query<WristbandRow>(
     `SELECT w.uid, w.ticket_id, w.balance_halire, w.active, w.bound_at,

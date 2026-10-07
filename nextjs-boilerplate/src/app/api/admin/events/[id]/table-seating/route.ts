@@ -29,10 +29,8 @@ async function ownsEvent(eventId: string, promoterId: string): Promise<boolean> 
   return Number(r.rows[0]?.count ?? 0) > 0;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!(await ownsEvent(params.id, promoter.promoterId))) {
       return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
@@ -71,10 +69,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!(await ownsEvent(params.id, promoter.promoterId))) {
       return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
@@ -144,10 +140,8 @@ export async function POST(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!(await ownsEvent(params.id, promoter.promoterId))) {
       return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });

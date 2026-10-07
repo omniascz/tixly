@@ -18,8 +18,9 @@ export function OPTIONS(): Response {
 }
 
 // Kolo 14: vyčerpaný pool DB při náporu → řízené 503 Retry-After (lib/db/overload)
-export async function GET(req: NextRequest, ctx: { params: { id: string } }): Promise<Response> {
-  return withDbOverload(() => getSeats(req, ctx));
+export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await ctx.params; // Next 15: params je Promise
+  return withDbOverload(() => getSeats(req, { params }));
 }
 
 async function getSeats(

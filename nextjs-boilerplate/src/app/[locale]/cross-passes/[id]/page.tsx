@@ -53,11 +53,12 @@ async function fetchBundle(id: string) {
   }
 }
 
-export default async function CrossPassPage({
-  params,
-}: {
-  params: { locale: string; id: string };
-}) {
+export default async function CrossPassPage(
+  props: {
+    params: Promise<{ locale: string; id: string }>;
+  }
+) {
+  const params = await props.params;
   const data = await fetchBundle(params.id);
   if (!data) notFound();
   const { bundle, events } = data;

@@ -58,10 +58,8 @@ const TEXT = { light: '#111827', dark: '#F9FAFB' };
 const STAGE_FILL = { light: '#E5E7EB', dark: '#374151' };
 const STAGE_TEXT = { light: '#6B7280', dark: '#9CA3AF' };
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
     return new Response('Invalid id', { status: 422 });
   }

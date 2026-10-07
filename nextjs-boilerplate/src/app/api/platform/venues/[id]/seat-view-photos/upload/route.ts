@@ -33,10 +33,8 @@ async function getBlob(): Promise<BlobLib | null> {
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const MAX_BYTES = 10 * 1024 * 1024;
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const admin = await requirePlatformAdmin(req);
   if (!admin) return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
 

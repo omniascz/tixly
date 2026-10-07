@@ -12,7 +12,8 @@ import { assertEventOwned, BlockError, blockOverview, createBlock } from '@/lib/
 export const dynamic = 'force-dynamic';
 const UUID = /^[0-9a-f-]{36}$/i;
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!UUID.test(params.id)) return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
     try {
@@ -33,7 +34,8 @@ const schema = z.object({
   sector: z.string().min(1).max(100).nullable().optional(),
 }).refine((v) => (v.seatIds && v.seatIds.length > 0) || v.sector, { message: 'seatIds nebo sector' });
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!UUID.test(params.id)) return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
     const parsed = schema.safeParse(await req.json().catch(() => ({})));

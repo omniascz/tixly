@@ -52,10 +52,8 @@ function foldLine(line: string): string {
   return chunks.join('\r\n');
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { orderId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ orderId: string }> }): Promise<Response> {
+  const params = await props.params;
   // Neplatné UUID dřív šlo rovnou do SQL (22P02 → 500).
   if (!UUID_RE.test(params.orderId)) {
     return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });

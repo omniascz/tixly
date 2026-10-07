@@ -2,13 +2,14 @@ import { SeatPicker } from './SeatPicker';
 
 export const dynamic = 'force-dynamic';
 
-export default function SeatPickerPage({
-  params,
-  searchParams,
-}: {
-  params: { locale: string; id: string };
-  searchParams: { ticketTypeId?: string; eventDayId?: string };
-}) {
+export default async function SeatPickerPage(
+  props: {
+    params: Promise<{ locale: string; id: string }>;
+    searchParams: Promise<{ ticketTypeId?: string; eventDayId?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   return (
     <div className="space-y-4 py-6">
       <h1 className="text-2xl font-bold">Vyber sedadla</h1>

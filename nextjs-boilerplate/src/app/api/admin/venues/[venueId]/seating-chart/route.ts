@@ -18,10 +18,8 @@ const postSchema = z.object({
   notes: z.string().max(2000).optional(),
 });
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { venueId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ venueId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (_promoter) => {
     const r = await db().query<{
       id: string;
@@ -39,10 +37,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { venueId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ venueId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
     // Pouze pokud venue patří tomuto promotérovi
     const venueRow = await db().query<{ promoter_id: string | null }>(

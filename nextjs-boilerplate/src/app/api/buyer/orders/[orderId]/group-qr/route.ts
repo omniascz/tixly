@@ -10,10 +10,8 @@ import { db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 import { signGroupToken } from '@/lib/safetix/group-token';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { orderId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ orderId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
     if (!/^[0-9a-f-]{36}$/i.test(params.orderId)) {
       return NextResponse.json({ error: 'INVALID_ID' }, { status: 422 });

@@ -2,13 +2,14 @@ import { GiftRedeemClient } from './GiftRedeemClient';
 
 export const dynamic = 'force-dynamic';
 
-export default function GiftRedeemPage({
-  params,
-  searchParams,
-}: {
-  params: { locale: string };
-  searchParams: { token?: string };
-}) {
+export default async function GiftRedeemPage(
+  props: {
+    params: Promise<{ locale: string }>;
+    searchParams: Promise<{ token?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   return (
     <div className="mx-auto max-w-md py-12">
       <h1 className="mb-4 text-2xl font-bold">Dárkový lístek 🎁</h1>

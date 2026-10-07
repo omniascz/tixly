@@ -1,0 +1,48 @@
+
+Running 6 tests using 1 worker
+
+  ok 1 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:171:5 › bod 1: stažení seznamu vstupenek termínu do zařízení a kdy byl stažen (3.4s)
+  x  2 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:187:5 › bod 2: offline — pravidla jako online (19.1s)
+  ok 3 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:227:5 › bod 3: po obnovení sítě se odbavení odešlou idempotentně a zapíšou do scan_logs (3.9s)
+  ok 4 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:258:5 › bod 4: dva skenery offline tutéž vstupenku → po synchronizaci duplicitní, počet v reportu (9.4s)
+[DIAG-POLL] 113:Sv
+  ok 5 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:277:5 › bod 5: zavření a znovuotevření prohlížeče offline — seznam i neodeslaná odbavení přežijí (38.1s)
+  ok 6 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:321:5 › bod 6: storno po stažení seznamu — online vždy odmítnuto, offline jen se seznamem staženým po stornu (5.4s)
+
+
+  1) [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:187:5 › bod 2: offline — pravidla jako online 
+
+    TimeoutError: locator.waitFor: Timeout 15000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('select').first().locator('option[value="00000000-0000-4000-a000-000000000503"]')[22m
+
+
+       95 |   if (await change.isVisible({ timeout: 3000 }).catch(() => false)) await change.click();
+       96 |   const sel = page.locator('select').first();
+    >  97 |   await sel.locator(`option[value="${eventId}"]`).waitFor({ state: 'attached' });
+          |                                                   ^
+       98 |   await sel.selectOption(eventId);
+       99 |   const done = page.getByRole('button', { name: /^Hotovo$/ });
+      100 |   if (await done.isVisible().catch(() => false)) await done.click();
+        at openGate (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:97:51)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:216:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-e4c6c-line-—-pravidla-jako-online-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r14-offline-sc-e4c6c-line-—-pravidla-jako-online-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r14-offline-sc-e4c6c-line-—-pravidla-jako-online-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-e4c6c-line-—-pravidla-jako-online-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r14-offline-sc-e4c6c-line-—-pravidla-jako-online-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:187:5 › bod 2: offline — pravidla jako online 
+  5 passed (1.8m)

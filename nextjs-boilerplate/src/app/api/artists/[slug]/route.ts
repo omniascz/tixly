@@ -5,10 +5,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { slug: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ slug: string }> }): Promise<Response> {
+  const params = await props.params;
   // Verejna routa: nikoho neautentizuje, takze z ceho brat GUC nema —
   // pod produkci roli tixly_app by RLS odfiltrovalo VSECHNO a routa by
   // vracela prazdno komukoli (FINDINGS 91). Bezi proto v servisnim

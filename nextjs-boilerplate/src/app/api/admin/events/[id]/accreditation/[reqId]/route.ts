@@ -20,8 +20,9 @@ const patchSchema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; reqId: string } },
+  props: { params: Promise<{ id: string; reqId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
   if (!/^[0-9a-f-]{36}$/i.test(params.id) || !/^[0-9a-f-]{36}$/i.test(params.reqId)) {
     return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });

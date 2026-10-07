@@ -4,7 +4,9 @@
  * Buyer self-service ticket swap (typ / akce / datum).
  * Eventbrite Ticket Changes parita.
  */
+import type { JSX } from 'react';
 import { ChangeTicketClient } from './ChangeTicketClient';
+
 
 interface Props {
   params: Promise<{ locale: string; ticketId: string }>;

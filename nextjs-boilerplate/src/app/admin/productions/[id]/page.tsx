@@ -4,7 +4,7 @@
  * Kolo 8 / krok 1 — karta inscenace a její termíny.
  * Karta se zadává jednou; nový termín = vybrat město a sál, datum a čas, ceník převzít z předchozího termínu.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, use } from 'react';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +25,8 @@ const api = (url: string, init?: RequestInit) =>
 
 const STATUS: Record<string, string> = { published: 'V prodeji', pending_review: 'Ke schválení', draft: 'Koncept', cancelled: 'Zrušeno' };
 
-export default function ProductionDetailPage({ params }: { params: { id: string } }) {
+export default function ProductionDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const [card, setCard] = useState<Card | null>(null);
   const [terms, setTerms] = useState<Term[]>([]);
   const [venues, setVenues] = useState<Venue[]>([]);

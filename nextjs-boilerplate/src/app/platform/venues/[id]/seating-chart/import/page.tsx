@@ -1,6 +1,6 @@
 'use client';
 
-import { ChangeEvent, FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -83,11 +83,12 @@ const SVG_TIPS = `<!-- Z Inkscape / Figma export -->
         data-num="1" />
 <!-- Bez metadata se sektory odhadnou podle barvy fill, řady auto-pojmenují A,B,C... -->`;
 
-export default function PlatformSeatingChartImportPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function PlatformSeatingChartImportPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = use(props.params);
   const router = useRouter();
   const venueId = params.id;
   const [format, setFormat] = useState<Format>('auto');

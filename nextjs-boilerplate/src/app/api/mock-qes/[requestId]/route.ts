@@ -27,10 +27,8 @@ export const dynamic = 'force-dynamic';
 
 const APP_URL = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { requestId: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ requestId: string }> }): Promise<Response> {
+  const params = await props.params;
   const blocked = mockQesBlocked();
   if (blocked) return blocked;
   const row = await runWithServiceContext(() =>
@@ -70,10 +68,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { requestId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ requestId: string }> }): Promise<Response> {
+  const params = await props.params;
   const blocked = mockQesBlocked();
   if (blocked) return blocked;
   const body = await req.json() as { action: 'sign' | 'reject'; otp?: string };

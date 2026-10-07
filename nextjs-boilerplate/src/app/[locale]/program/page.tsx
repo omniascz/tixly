@@ -7,10 +7,14 @@ import { loadProgram } from '@/lib/theatre/public-program';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ProgramPage({ params, searchParams }: {
-  params: { locale: string };
-  searchParams: { city?: string; month?: string };
-}) {
+export default async function ProgramPage(
+  props: {
+    params: Promise<{ locale: string }>;
+    searchParams: Promise<{ city?: string; month?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const locale = isValidLocale(params.locale) ? params.locale : DEFAULT_LOCALE;
   const month = searchParams.month && /^\d{4}-(0[1-9]|1[0-2])$/.test(searchParams.month) ? searchParams.month : null;
   const city = searchParams.city?.trim() || null;

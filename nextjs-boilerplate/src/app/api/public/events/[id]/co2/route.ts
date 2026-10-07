@@ -9,10 +9,8 @@ import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { computeCo2Label } from '@/lib/travel/co2';
 import { railConfig } from '@/lib/travel/rail';
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
     const r = await db().query<{ avg_trip_km: number | null; venue_city: string | null }>(
       `SELECT (to_jsonb(e.*) ->> 'avg_trip_km')::int AS avg_trip_km,

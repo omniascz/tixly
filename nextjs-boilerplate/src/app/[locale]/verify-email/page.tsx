@@ -7,7 +7,7 @@
  * a podle response zobrazí success / expired / invalid hlášku.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -16,7 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 type Status = 'loading' | 'verified' | 'invalid_or_expired' | 'invalid' | 'user_not_found' | 'network_error';
 
-export default function VerifyEmailPage({ params }: { params: { locale: string } }) {
+export default function VerifyEmailPage(props: { params: Promise<{ locale: string }> }) {
+  const params = use(props.params);
   const sp = useSearchParams();
   const token = sp.get('token');
   const [status, setStatus] = useState<Status>('loading');

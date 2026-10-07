@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type JSX } from 'react';
 import { useParams } from 'next/navigation';
 import { Users, AlertTriangle, CheckCircle2, RefreshCw, Clock } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';

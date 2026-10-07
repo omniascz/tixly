@@ -23,10 +23,8 @@ async function ownsEvent(eventId: string, promoterId: string): Promise<boolean> 
   return r.rows.length > 0;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
     if (!(await ownsEvent(params.id, promoter.promoterId))) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -51,10 +49,8 @@ const createSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const body: unknown = await req.json().catch(() => ({}));
     const parsed = createSchema.safeParse(body);
@@ -97,10 +93,8 @@ const patchSchema = z.object({
   isActive: z.boolean(),
 });
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const body: unknown = await req.json().catch(() => ({}));
     const parsed = patchSchema.safeParse(body);
@@ -131,10 +125,8 @@ export async function PATCH(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!(await ownsEvent(params.id, promoter.promoterId))) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });

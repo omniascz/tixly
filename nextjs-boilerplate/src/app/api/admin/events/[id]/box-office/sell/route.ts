@@ -13,10 +13,8 @@ import { runAsPromoter } from '@/lib/admin-auth';
 import { saleBlockedResponse } from '@/lib/sales/cutoff';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     let body: {
       sessionId?: string;

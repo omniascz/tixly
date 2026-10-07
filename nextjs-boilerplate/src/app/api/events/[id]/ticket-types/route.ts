@@ -27,10 +27,8 @@ export function OPTIONS(): Response {
   return new Response(null, { status: 204 });
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   // FIX K8a (kolo 3): neplatné ID je chyba vstupu → 400 (dřív 200 []); přesný tvar UUID —
   // volné [0-9a-f-]{36} pustilo např. 36 pomlček až do SQL (uuid cast → 500). Tělo dál nese
   // `ticketTypes: []`, které čtou volající (checkout, embed, mobil).

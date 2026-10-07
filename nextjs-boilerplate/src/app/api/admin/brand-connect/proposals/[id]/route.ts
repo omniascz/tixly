@@ -9,10 +9,8 @@ import { runAsActivePromoter } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (ctx) => {
     const b = await req.json() as { action: 'accept' | 'decline' };
     if (!['accept','decline'].includes(b.action)) {

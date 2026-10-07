@@ -13,10 +13,8 @@ import { runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
 import { trackAdClick } from '@/lib/ads/auction';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { campaignId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ campaignId: string }> }): Promise<Response> {
+  const params = await props.params;
   // Kolo 2 / 3B: veřejný klik na reklamu = systémový zápis (ad_auction_log/ad_clicks pod RLS)
   return runWithServiceContext(async () => {
   if (!/^[0-9a-f-]{36}$/i.test(params.campaignId)) {

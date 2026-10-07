@@ -23,8 +23,9 @@ import { runAsUser } from '@/lib/auth';
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; eventId: string } },
+  props: { params: Promise<{ id: string; eventId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   const client = await db().connect();
   try {

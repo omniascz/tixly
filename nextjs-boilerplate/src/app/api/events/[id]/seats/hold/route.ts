@@ -56,8 +56,9 @@ export function OPTIONS(): Response {
 }
 
 // Kolo 14: vyčerpaný pool DB při náporu → řízené 503 Retry-After (lib/db/overload)
-export async function POST(req: NextRequest, ctx: { params: { id: string } }): Promise<Response> {
-  return withDbOverload(() => postHold(req, ctx));
+export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await ctx.params; // Next 15: params je Promise
+  return withDbOverload(() => postHold(req, { params }));
 }
 
 async function postHold(
@@ -192,10 +193,8 @@ async function postHold(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const body = (await req.json().catch(() => ({}))) as { holdToken?: string };
   const holdToken = body.holdToken;
   if (!holdToken || !/^[0-9a-f-]{36}$/i.test(holdToken)) {
