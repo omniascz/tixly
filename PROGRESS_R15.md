@@ -60,3 +60,8 @@ Větev `fix/round15-next15-2026-10-07` z `f2af248a`. Výstupy `logs/r15/`. Skrip
   (`logs/r15/cpuprof`, `analyze-cpuprofile.mjs`): prvních ~30 s plné CPU v loadComponents všech rout — Next 15
   experimental.preloadEntriesOnStart (výchozí true) načte a vykoná moduly všech 1124 rout při startu, Next 14 líně.
   Oprava: preloadEntriesOnStart: false → první požadavek 0,25 s. (Vysvětluje i dřívější 41 s u /api/health a timeout 01.)
+- Po preloadEntriesOnStart: false a rebuildu: golden-path-r13-keep 10/10 (`3_keep.txt`).
+- Offline skener: bod 5 jednou spadl (strict mode — 2 pole skeneru). Měření počtu polí po znovuotevření offline
+  (`3_offline_poll*.txt`): Next 15 ve 2 ze 4 bězích stránku po načtení dokreslí na klientu (serverová kopie skrytá
+  ~650 ms, viditelné vždy jen jedno pole), Next 14 0 ze 3 běhů. Funkce beze změny. Spec čeká na jediné pole.
+  Přihlášení ve specu má stejný souboj s hydratací i na Next 14 (poll14a). Finální běh 6/6 (`3_offline.txt`).
