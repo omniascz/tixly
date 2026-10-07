@@ -54,3 +54,6 @@ Mailpit :58225; sada nad `r14a` z migrací (`logs/r14/serve_r14a.sh`).
   golden-path-r13-keep 10/10 (`9_keep.txt`), znovu čerstvé r14demo: spec offline skeneru 6/6 (`9_offline.txt`).
   Vizuálně: reporty termínu — řádek souhrnu „… · duplicitní offline vstupy 0", jinak beze změny (`tour/10a-reporty-termin.png`).
   Po každém bloku procesy ukončeny (PowerShell). Žádné ukončení kvůli paměti.
+- Push 168be0ca: 4× Internal Server Error z GitHubu, prošel na 5. pokus. PR #12 → CI vše pass (RLS verify napoprvé
+  selhal na obsazeném portu runneru, rerun pass), Vercel obě pass → sloučeno b023def1, lokální integrate fast-forward.
+- ROUND14_REPORT.md na integrate (jako kolo 10/11).
