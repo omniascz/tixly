@@ -1,0 +1,40 @@
+{
+  "samples": 216,
+  "maxActive": 10,
+  "waits": [
+    {
+      "k": "idle in transaction|Client|ClientRead",
+      "v": 860
+    },
+    {
+      "k": "active|-|-",
+      "v": 49
+    },
+    {
+      "k": "active|IO|WalSync",
+      "v": 12
+    },
+    {
+      "k": "active|LWLock|WALWrite",
+      "v": 2
+    },
+    {
+      "k": "idle in transaction|-|-",
+      "v": 1
+    },
+    {
+      "k": "active|IO|WalWrite",
+      "v": 1
+    },
+    {
+      "k": "active|Lock|transactionid",
+      "v": 1
+    }
+  ],
+  "lockWaitQueries": [
+    {
+      "k": "SELECT id, status, hold_until FROM catalog.event_seats WHERE id = ANY($1::uuid[]) AND even",
+      "v": 1
+    }
+  ]
+}
