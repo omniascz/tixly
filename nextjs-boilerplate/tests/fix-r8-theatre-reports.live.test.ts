@@ -161,7 +161,7 @@ run('Kolo 8 — divadelní reporty', () => {
       'Přízemí|Student|reservation|1|35000',
       'Přízemí|ZTP/P|online|1|25000',
     ].sort());
-    expect(r.totals).toEqual({ sold: 9, revenueMinor: 244000 });
+    expect(r.totals).toEqual({ sold: 9, revenueMinor: 244000, offlineDuplicates: 0 } /* kolo 14: + duplicitní offline vstupy */);
     expect(r.productionId).toBe(productionId);
     expect(r.occupancy).toEqual([expect.objectContaining({ sellable: 20, sold: 9, reserved: 1, blocked: 2, occupiedPct: 50, hall: 'Test Sál', city: 'Praha' })]);
     expect((r.blocks as Array<Record<string, unknown>>).map((b) => [b.block, b.total, b.released, b.issued, b.sold, b.remaining])).toEqual([
@@ -173,7 +173,7 @@ run('Kolo 8 — divadelní reporty', () => {
   it('inscenace i období sčítají oba termíny; cizí pořadatel nevidí nic', async () => {
     const prod = await json(await report(`scope=production&productionId=${productionId}`));
     expect(prod.events).toBe(2);
-    expect(prod.totals).toEqual({ sold: 10, revenueMinor: 294000 });
+    expect(prod.totals).toEqual({ sold: 10, revenueMinor: 294000, offlineDuplicates: 0 });
     const from = new Date(Date.now() + 9 * 86_400_000).toISOString().slice(0, 10);
     const to = new Date(Date.now() + 13 * 86_400_000).toISOString().slice(0, 10);
     const per = await json(await report(`scope=period&from=${from}&to=${to}`));
