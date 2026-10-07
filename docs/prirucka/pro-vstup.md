@@ -14,7 +14,8 @@ vstupence.
 
 1. Přihlaste se a v levém menu zvolte **Vstup**. Otevře se **Scanner**.
 2. **Brána:** v poli **Akce** vyberte dnešní představení a klikněte na **Hotovo**.
-3. Klikněte na **Stáhnout offline seznam**. Pak se ukáže „Offline seznam: … lístků · staženo …".
+3. Klikněte na **Stáhnout offline seznam** — **těsně před otevřením dveří** (nejpozději 6 hodin předem). Pak se ukáže
+   „Offline seznam: … lístků · staženo …". Seznam stáhněte znovu (**Aktualizovat**), když pokladna mezitím něco stornovala.
 4. U příchozího klikněte na ikonu **fotoaparátu** vedle pole „Ticket ID nebo QR payload" a namiřte na QR kód vstupenky,
    nebo kód opište do pole. Klikněte na **Validovat lístek**.
 5. Podívejte se na **Výsledek**:
@@ -37,6 +38,16 @@ vstupence.
 - Nahoře se místo „Online — server validuje každý sken" ukáže „**Offline — skeny jdou do lokální fronty**". Skenujte dál.
 - Se staženým offline seznamem skener pozná platnou vstupenku („Přijato offline (ověřeno proti staženému seznamu)"), cizí
   („OFFLINE: lístek NENÍ ve staženém seznamu platných — NEVPOUŠTĚT.") i druhý průchod na tomto zařízení.
+- Offline skener rozhoduje podle stejných pravidel jako online: použitou vstupenku odmítne („Lístek už byl použit"), stejně
+  tak zrušenou („Lístek zrušen") a tištěnou vstupenku s neplatným kódem („Neplatný kód vstupenky"); u slevové kategorie
+  ukáže „Ověřit průkaz"; kde akce vyžaduje mobilní (rotující) QR, papírovou kopii nepustí.
+- **Storno po stažení seznamu:** online skener stornovanou vstupenku odmítne vždy. Offline ji odmítne, jen když byl seznam
+  stažený **po** stornu — se starším seznamem ji pustí (zařízení o stornu neví). Proto seznam stahujte těsně před otevřením
+  dveří. Po návratu internetu se takový vstup v záznamech označí jako odmítnutý a vstupenka zůstane zrušená.
+- **Dvě zařízení offline:** když tutéž vstupenku pustí dvě zařízení bez internetu, po synchronizaci se druhý vstup zapíše
+  jako duplicitní; pořadatel vidí jejich počet v reportu termínu („duplicitní offline vstupy").
+- Stažený seznam i neodeslané skeny zůstanou v zařízení i po zavření prohlížeče; skener se po otevření načte i bez
+  internetu (pokud byl seznam stažen v tomto prohlížeči).
 - **Bez staženého seznamu** skener vstupenku ověřit neumí: ukáže **Chyba** „OFFLINE: lístek nelze ověřit … zkontroluj ho
   ručně." — zkontrolujte vstupenku očima. Totéž se ukáže, když internet vypadne během ověřování.
 - Skeny se uloží v zařízení („… čeká na sync"). Po návratu internetu se odešlou samy, nebo klikněte na **Synchronizovat**.

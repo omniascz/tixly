@@ -136,8 +136,11 @@ const st4 = (await q(`SELECT status FROM tickets.tickets WHERE id=$1`, [gt[2].id
 check('V9b', 'SKEN CIZI AKCE: vstupenka akce A u brany akce A2 (tyz poradatel) -> wrong_event, vstupenka zustava valid', r.json?.result === 'wrong_event' && st4 === 'valid', { ...ev(r), ticketStatus: st4 });
 
 const manA = await PA.get(`/api/admin/scanner/manifest?eventId=${S.eventA}`);
-const ids = JSON.stringify(manA.json);
-check('V10', 'offline manifest akce A: jen platne vstupenky (neobsahuje pouzitou gt[0] ani refundovanou)', manA.status === 200 && !ids.includes(gt[0].id) && !ids.includes(tkA[0].id), { status: manA.status, count: manA.json?.ticketIds?.length ?? manA.json?.count, keys: Object.keys(manA.json ?? {}) });
+// Kolo 14 (C-50): manifest nese i použité a zrušené vstupenky se stavem (offline je odmítne s důvodem, ne „nenalezena").
+// Záruka beze změny: seznam PLATNÝCH (ticketIds) je neobsahuje a žádná z nich není ve stavu 'v' (platná).
+const validIds = JSON.stringify(manA.json?.ticketIds ?? []);
+const stateOf = (id) => (manA.json?.tickets ?? []).find((t) => t.id === String(id).toLowerCase())?.s ?? null;
+check('V10', 'offline manifest akce A: pouzita gt[0] ani refundovana nejsou mezi platnymi (offline se nevpusti)', manA.status === 200 && !validIds.includes(gt[0].id) && !validIds.includes(tkA[0].id) && stateOf(gt[0].id) !== 'v' && stateOf(tkA[0].id) !== 'v', { status: manA.status, count: manA.json?.ticketIds?.length ?? manA.json?.count, used: stateOf(gt[0].id), refunded: stateOf(tkA[0].id) });
 r = await PB.get(`/api/admin/scanner/manifest?eventId=${S.eventA}`);
 check('V11', 'poradatel B nestahne manifest akce A', r.status === 404 || r.status === 403, ev(r));
 // kolo 3: sloupec je scan_result (dřív dotaz na neexistující `result` → kontrola nemohla nikdy projít)

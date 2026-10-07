@@ -205,11 +205,13 @@ test('bod 2: offline — pravidla jako online', async ({ browser }) => {
   // kategorie s průkazem
   const ztp = await scan(gatePage, S.t.ztp.id);
   expect(ztp).toMatch(/Vstup povolen/);
-  expect(ztp).toMatch(/Ověřit průkaz: ZTP\/P/);
+  expect(ztp).toMatch(/Ověřit průkaz: ZTP\/P/i); // CSS uppercase
   // tištěný TXP2: platný podpis vpuštěn, padělaný podpis odmítnut (online: invalid_token)
   expect(await scan(gatePage, txp2(S.t.stale6.id, S.rBrno, true))).toMatch(/Neplatný kód vstupenky/);
   expect(await scan(gatePage, txp2(S.t.txp.id, S.rBrno))).toMatch(/Vstup povolen/);
-  // rotující QR (Hamlet Brno, rotating_only): manifest stažen online předem
+  // nic z toho ještě není na serveru (fronta se odešle až po obnovení sítě)
+  expect((await q<{ status: string }>(`SELECT status FROM tickets.tickets WHERE id = $1`, [S.t.valid.id]))[0].status).toBe('valid');
+  // rotující QR (Hamlet Brno, rotating_only): seznam stažen online předem
   await gateCtx.setOffline(false);
   await openGate(gatePage, S.hBrno);
   await gateCtx.setOffline(true);
@@ -219,8 +221,6 @@ test('bod 2: offline — pravidla jako online', async ({ browser }) => {
   expect(bare).toMatch(/rotující QR/);
   expect(await scan(gatePage, `tixly:${S.t.rotWrong.id}:${totp(S.t.rotWrong.secret) === '000000' ? '111111' : '000000'}`)).toMatch(/TOTP kód neodpovídá/);
   expect(await scan(gatePage, `tixly:${S.t.rotOk.id}:${totp(S.t.rotOk.secret)}`)).toMatch(/Vstup povolen/);
-  // nic z toho ještě nesmí být na serveru
-  expect((await q<{ status: string }>(`SELECT status FROM tickets.tickets WHERE id = $1`, [S.t.valid.id]))[0].status).toBe('valid');
   await gateCtx.close(); // fronta zaniká s kontextem — synchronizaci testuje bod 3
 });
 
@@ -305,9 +305,9 @@ test('bod 5: zavření a znovuotevření prohlížeče offline — seznam i neod
   await expect(page.getByText(/Offline seznam: .* lístků · staženo/)).toBeVisible();
   expect(await scan(page, S.t.persist2.id)).toMatch(/Vstup povolen/);
   expect(await scan(page, S.t.persist1.id)).toMatch(/Lístek už byl použit/);
-  // síť zpět → odeslání
+  // síť zpět → odeslání (po znovuotevření hlásí prohlížeč „online" i bez sítě — návrat pozná sonda spojení do 30 s)
   await ctx.setOffline(false);
-  await expect(page.getByText(/čeká na sync/)).toHaveCount(0, { timeout: 30_000 });
+  await expect(page.getByText(/čeká na sync/)).toHaveCount(0, { timeout: 70_000 });
   for (const k of ['persist1', 'persist2']) expect((await q<{ status: string }>(`SELECT status FROM tickets.tickets WHERE id = $1`, [S.t[k].id]))[0].status, k).toBe('used');
   await ctx.close();
 });
