@@ -18,9 +18,9 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { NextRequest } from 'next/server';
-import { createLiveClone, makeSeed, hasNeonKey, type LiveClone, type Seed } from './helpers/live-fixture';
+import { createLiveClone, makeSeed, hasLiveDb, type LiveClone, type Seed } from './helpers/live-fixture';
 
-const d = hasNeonKey ? describe : describe.skip;
+const d = hasLiveDb ? describe : describe.skip;
 
 /** Presne ten radek, ktery R-57 odstranil. */
 const ODSTRANENY_RADEK = "SET LOCAL app.is_platform_admin = 'true'";

@@ -7,56 +7,33 @@
  * nevypovídá nic — jediný důkaz je skutečný běh proti skutečnému schématu.
  *
  * Test si zakládá vlastní ephemeral Neon větev z produkční (tedy proti
- * skutečnému prod schématu) a na konci ji maže. Bez `NEON_API_KEY` se celý
- * blok přeskočí, takže běžné `vitest run` v CI nespadne.
+ * skutečnému prod schématu) a na konci ji maže. Bez `NEON_API_KEY` (kolo 14 / krok 4)
+ * běží proti lokální DB postavené z migrací (FIX_E2E=1, CI job Live); bez obojího
+ * se blok přeskočí.
  *
  * Spuštění:
- *   NEON_API_KEY=... npx vitest run tests/guest-user.live.test.ts
+ *   NEON_API_KEY=... npx vitest run -c vitest.live.config.ts tests/guest-user.live.test.ts
+ *   FIX_E2E=1 FIX_DB_OWNER_URL=... FIX_DB_APP_URL=... npx vitest run -c vitest.live.config.ts tests/guest-user.live.test.ts
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Pool } from 'pg';
 import { createOrGetGuestUser, GUEST_PASSWORD_HASH } from '@/lib/identity/guest-user';
+import { createLiveClone, hasLiveDb, type LiveClone } from './helpers/live-fixture';
 
-const NEON_API = 'https://console.neon.tech/api/v2';
-const PROJECT = 'fragrant-wildflower-75132205';
-const PARENT_BRANCH = 'br-rough-paper-alom0zky';
-const DB_NAME = 'neondb';
-const ROLE = 'neondb_owner';
 
-const apiKey = process.env.NEON_API_KEY;
 
-async function neon(path: string, init: RequestInit = {}) {
-  const res = await fetch(NEON_API + path, {
-    ...init,
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-  });
-  const body = await res.text();
-  if (!res.ok) throw new Error(`Neon API ${res.status}: ${body}`);
-  return body ? JSON.parse(body) : null;
-}
 
-describe.skipIf(!apiKey)('createOrGetGuestUser (live, ephemeral Neon branch)', () => {
-  let branchId: string | null = null;
+describe.skipIf(!hasLiveDb)('createOrGetGuestUser (live, ephemeral Neon branch)', () => {
+  let clone: LiveClone | undefined;
   let pool: Pool;
   /** Unikátní suffix, aby se testy nemíchaly mezi sebou ani mezi běhy. */
   const run = `${Date.now()}`;
   const mail = (label: string) => `gu-${label}-${run}@tixly.test`;
 
   beforeAll(async () => {
-    const created = await neon(`/projects/${PROJECT}/branches`, {
-      method: 'POST',
-      body: JSON.stringify({
-        branch: { parent_id: PARENT_BRANCH, name: `guest-user-test-${run}` },
-        endpoints: [{ type: 'read_write' }],
-      }),
-    });
-    branchId = created.branch.id;
-    // Endpoint chvíli startuje; connection_uri je dostupné až potom.
-    await new Promise((r) => setTimeout(r, 4000));
-    const { uri } = await neon(
-      `/projects/${PROJECT}/connection_uri?branch_id=${branchId}&role_name=${ROLE}&database_name=${DB_NAME}`,
-    );
-    pool = new Pool({ connectionString: uri, max: 4 });
+    // Kolo 14 / krok 4: sdílená dráha — Neon klon, nebo bez NEON_API_KEY lokální DB z migrací (FIX_E2E=1)
+    clone = await createLiveClone('guest-user');
+    pool = clone.pool;
     // Sanity: opravdu jsme na schématu, které testujeme.
     const probe = await pool.query(
       `SELECT 1 FROM information_schema.columns
@@ -66,12 +43,7 @@ describe.skipIf(!apiKey)('createOrGetGuestUser (live, ephemeral Neon branch)', (
   }, 120_000);
 
   afterAll(async () => {
-    if (pool) await pool.end().catch(() => undefined);
-    if (branchId) {
-      await neon(`/projects/${PROJECT}/branches/${branchId}`, { method: 'DELETE' }).catch(
-        (e) => console.error('[cleanup] větev se nepodařilo smazat:', branchId, e),
-      );
-    }
+    await clone?.cleanup();
   }, 60_000);
 
   it('nový e-mail — založí uživatele a vrátí jeho id', async () => {

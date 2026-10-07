@@ -10,9 +10,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Pool } from 'pg';
 
-import { createLiveClone, makeSeed, hasNeonKey, type LiveClone, type Seed } from './helpers/live-fixture';
+import { createLiveClone, makeSeed, hasLiveDb, type LiveClone, type Seed } from './helpers/live-fixture';
 
-describe.skipIf(!hasNeonKey)('live-fixture seed factory', () => {
+describe.skipIf(!hasLiveDb)('live-fixture seed factory', () => {
   let clone: LiveClone;
   let pool: Pool;
   let seed: Seed;

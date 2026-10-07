@@ -5,9 +5,9 @@
  * nerozlisitelne od poctiveho smazani nuly radku.
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createLiveClone, hasNeonKey, type LiveClone } from './helpers/live-fixture';
+import { createLiveClone, hasLiveDb, type LiveClone } from './helpers/live-fixture';
 
-const d = hasNeonKey ? describe : describe.skip;
+const d = hasLiveDb ? describe : describe.skip;
 const TOKEN = 'test-internal-token';
 let clone: LiveClone;
 

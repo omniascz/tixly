@@ -11,9 +11,9 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { randomUUID } from 'crypto';
 import { NextRequest } from 'next/server';
-import { createLiveClone, hasNeonKey, type LiveClone } from './helpers/live-fixture';
+import { createLiveClone, hasLiveDb, type LiveClone } from './helpers/live-fixture';
 
-const d = hasNeonKey ? describe : describe.skip;
+const d = hasLiveDb ? describe : describe.skip;
 let clone: LiveClone;
 const SECRET = 'test-cron-secret';
 
@@ -38,15 +38,17 @@ d('kontrakt cronu (C2)', () => {
     // vynucuji triggerem — ten se obejit neda.
     await clone.pool.query(`CREATE OR REPLACE FUNCTION audit._boom() RETURNS trigger
       LANGUAGE plpgsql AS $fn$ BEGIN RAISE EXCEPTION 'vynucene selhani zapisu'; END $fn$`);
-    await clone.pool.query(`CREATE TRIGGER _boom BEFORE DELETE ON audit.consent_log
-      FOR EACH STATEMENT EXECUTE FUNCTION audit._boom()`).catch((e) => console.log('trig:', e.code));
+    // Kolo 14 / krok 4: trigger dřív mířil na neexistující audit.consent_log (42P01 → selhání se vůbec nevynutilo);
+    // route maže z compliance.cookie_consent_log. Trigger MUSÍ vzniknout, jinak test nic neměří.
+    await clone.pool.query(`CREATE TRIGGER _boom BEFORE DELETE ON compliance.cookie_consent_log
+      FOR EACH STATEMENT EXECUTE FUNCTION audit._boom()`);
     const out = await call('@/app/api/internal/cron/consent-log-purge/route',
       '/api/internal/cron/consent-log-purge');
     console.log('[consent-log-purge]', out.status, JSON.stringify(out.body).slice(0, 160));
     expect(out.body.ok).not.toBe(true);
     expect(out.body).toHaveProperty('failed');
     expect(out.body).toHaveProperty('errors');
-    await clone.pool.query('DROP TRIGGER IF EXISTS _boom ON audit.consent_log').catch(() => undefined);
+    await clone.pool.query('DROP TRIGGER IF EXISTS _boom ON compliance.cookie_consent_log').catch(() => undefined);
   }, 120_000);
 
   it('verify-event-completion: pri rozbitem uvodnim dotazu NEVRATI ok:true', async () => {

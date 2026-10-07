@@ -1,0 +1,398 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/booking-settlement.live.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[33m 4953[2mms[22m[39m
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/buyer-policies.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 6035[2mms[22m[39m
+[90mstdout[2m | tests/admin-guest.live.test.ts[2m > [22m[2madmin cesty — guest-create přes helper (live)[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/admin-guest.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 2686[2mms[22m[39m
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/wrapped-routes.live.test.ts [2m ([22m[2m11 tests[22m[2m)[22m[33m 2353[2mms[22m[39m
+[90mstdout[2m | tests/cron-contract.live.test.ts[2m > [22m[2mkontrakt cronu (C2)[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/cron-contract.live.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[33m 2261[2mms[22m[39m
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/party-split.live.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[33m 2254[2mms[22m[39m
+[90mstdout[2m | tests/guest-user.live.test.ts[2m > [22m[2mcreateOrGetGuestUser (live, ephemeral Neon branch)[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/guest-user.live.test.ts [2m ([22m[2m12 tests[22m[2m)[22m[33m 2081[2mms[22m[39m
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/public-routes.live.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[33m 2068[2mms[22m[39m
+[90mstdout[2m | tests/checkout-guest.live.test.ts[2m > [22m[2mcheckout — guest-create (live, celá cesta)[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/checkout-guest.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 2018[2mms[22m[39m
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/mig455.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 1967[2mms[22m[39m
+[90mstdout[2m | tests/auth-reset-password.live.test.ts[2m > [22m[2mauth/reset-password proti reálnému schématu (live)[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/auth-reset-password.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 1988[2mms[22m[39m
+[90mstdout[2m | tests/rls-pool-pooler.live.test.ts[2m > [22m[2mR-56 — dva pooly: connect() primy, query() poolovany[22m[39m
+[live-local-clone] live_r56_dva_pooly_muy1ufm1: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/rls-pool-pooler.live.test.ts[2m > [22m[2mR-56 — dva pooly: connect() primy, query() poolovany[2m > [22m[2mconnect() přímo na POOLERU (bez přímého URL) je těsný[22m[39m
+[R-56] connect na POOLERU {"n":60,"bad":0,"foreign":0,"empty":0}
+
+[90mstdout[2m | tests/rls-pool-pooler.live.test.ts[2m > [22m[2mR-56 — dva pooly: connect() primy, query() poolovany[2m > [22m[2mOPRAVA: DATABASE_URL = pooler -> connect() 0/60 i query() 0/60[22m[39m
+[R-56] connect() (odvozeny direct) {"n":60,"bad":0,"foreign":0,"empty":0}
+[R-56] query()   (pooler)          {"n":60,"bad":0,"foreign":0,"empty":0}
+
+ [32m✓[39m tests/rls-pool-pooler.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 23953[2mms[22m[39m
+[90mstdout[2m | tests/fan-bonus-r57.live.test.ts[2m > [22m[2mR-57 — spici SET LOCAL v buyer/fan-bonus[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/fan-bonus-r57.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 1910[2mms[22m[39m
+[90mstdout[2m | tests/payouts-select.live.test.ts[2m > [22m[2m§207 vyplaty — RED->GREEN na SELECTu + PEEL[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/payouts-select.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 1907[2mms[22m[39m
+[90mstdout[2m | tests/live-fixture.live.test.ts[2m > [22m[2mlive-fixture seed factory[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/live-fixture.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 1777[2mms[22m[39m
+[90mstdout[2m | tests/publish-events.live.test.ts[2m > [22m[2mv1/publish/events PUT pres skutecny handler[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/publish-events.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 2259[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/checkout-stress.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [33m1 skipped[39m[2m)[22m
+[90mstdout[2m | tests/red-green-488.live.test.ts[2m > [22m[2mRED->GREEN 488 royalty_* policies[22m[39m
+[live-local-clone] RED stav — vynechano: 488
+
+ [33m❯[39m tests/red-green-488.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 1818[2mms[22m[39m
+[90mstdout[2m | tests/red-green-470-471.live.test.ts[2m > [22m[2mRED->GREEN migraci 470 a 471 (RED = klon BEZ nich)[22m[39m
+[live-local-clone] RED stav — vynechano: 470, 471
+
+ [33m❯[39m tests/red-green-470-471.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 3229[2mms[22m[39m
+[90mstdout[2m | tests/consent-purge.live.test.ts[2m > [22m[2mconsent-log-purge[22m[39m
+[live-local-clone] stavím šablonu tixly_live_tpl_a3d31a93cf z migrací (59 souborů)…
+
+ [33m❯[39m tests/consent-purge.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 34138[2mms[22m[39m
+[90mstdout[2m | tests/payouts-processing.live.test.ts[2m > [22m[2m§208 — RED->GREEN migrace 468 na skutecne ceste[22m[39m
+[live-local-clone] RED stav — vynechano: 468
+
+ [33m❯[39m tests/payouts-processing.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 3031[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 19 [27m[22m⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/admin-guest.live.test.ts[2m > [22madmin cesty — guest-create přes helper (live)
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/admin-guest.live.test.ts:[2m68:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/auth-reset-password.live.test.ts[2m > [22mauth/reset-password proti reálnému schématu (live)
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/auth-reset-password.live.test.ts:[2m59:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/booking-settlement.live.test.ts[2m > [22mbooking/settlement + re-entry — zivy beh (472–478)
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/booking-settlement.live.test.ts:[2m48:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/buyer-policies.live.test.ts[2m > [22m93 buyer-only policies — jeden reprezentant na vzor
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/buyer-policies.live.test.ts:[2m158:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/checkout-guest.live.test.ts[2m > [22mcheckout — guest-create (live, celá cesta)
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/checkout-guest.live.test.ts:[2m68:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/consent-purge.live.test.ts[2m > [22mconsent-log-purge
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/consent-purge.live.test.ts:[2m25:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/cron-contract.live.test.ts[2m > [22mkontrakt cronu (C2)
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/cron-contract.live.test.ts:[2m30:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fan-bonus-r57.live.test.ts[2m > [22mR-57 — spici SET LOCAL v buyer/fan-bonus
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/fan-bonus-r57.live.test.ts:[2m35:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/guest-user.live.test.ts[2m > [22mcreateOrGetGuestUser (live, ephemeral Neon branch)
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/guest-user.live.test.ts:[2m33:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/live-fixture.live.test.ts[2m > [22mlive-fixture seed factory
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/live-fixture.live.test.ts:[2m21:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/mig455.live.test.ts[2m > [22mmigrace 455 — chovani policies
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/mig455.live.test.ts:[2m42:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/party-split.live.test.ts[2m > [22mparty-split přes skutečné handlery
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/party-split.live.test.ts:[2m29:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/payouts-processing.live.test.ts[2m > [22m§208 — RED->GREEN migrace 468 na skutecne ceste
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m106:5[22m[39m
+[90m [2m❯[22m tests/payouts-processing.live.test.ts:[2m49:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/payouts-select.live.test.ts[2m > [22m§207 vyplaty — RED->GREEN na SELECTu + PEEL
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/payouts-select.live.test.ts:[2m36:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/public-routes.live.test.ts[2m > [22mverejne routy pod tixly_app
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/public-routes.live.test.ts:[2m33:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/publish-events.live.test.ts[2m > [22mv1/publish/events PUT pres skutecny handler
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/publish-events.live.test.ts:[2m27:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/red-green-470-471.live.test.ts[2m > [22mRED->GREEN migraci 470 a 471 (RED = klon BEZ nich)
+[31m[1mError[22m: [live-local-clone] migrace 494_vat_rates.sql selhala: no schema has been selected to create in[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m106:5[22m[39m
+[90m [2m❯[22m tests/red-green-470-471.live.test.ts:[2m24:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/red-green-488.live.test.ts[2m > [22mRED->GREEN 488 royalty_* policies
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m106:5[22m[39m
+[90m [2m❯[22m tests/red-green-488.live.test.ts:[2m22:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/wrapped-routes.live.test.ts[2m > [22mobalene routy — pozitivni cesta
+[31m[1mError[22m: [live-local-clone] migrace 471_transit_passes_admin_guc_drift.sql selhala: function app_is_platform_admin() does not exist[39m
+[36m [2m❯[22m applySchema tests/helpers/live-local-clone.ts:[2m49:15[22m[39m
+    [90m 47| [39m        [35mawait[39m pool[33m.[39m[34mquery[39m([34mreadFileSync[39m([34mjoin[39m([33mMIG_DIR[39m[33m,[39m f)[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m 48| [39m      } [35mcatch[39m (err) {
+    [90m 49| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`[live-local-clone] migrace [39m[36m${[39mf[36m}[39m[32m selhala: [39m[36m${[39m(e…
+    [90m   | [39m              [31m^[39m
+    [90m 50| [39m      }
+    [90m 51| [39m    }
+[90m [2m❯[22m tests/helpers/live-local-clone.ts:[2m76:9[22m[39m
+[90m [2m❯[22m admin tests/helpers/live-local-clone.ts:[2m61:16[22m[39m
+[90m [2m❯[22m Module.createLocalLiveClone tests/helpers/live-local-clone.ts:[2m97:17[22m[39m
+[90m [2m❯[22m tests/wrapped-routes.live.test.ts:[2m34:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/19]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m19 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (21)[39m
+[2m      Tests [22m [1m[32m2 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (98)[39m
+[2m   Start at [22m 13:53:12
+[2m   Duration [22m 114.85s[2m (transform 567ms, setup 3ms, collect 2.19s, tests 104.69s, environment 6ms, prepare 3.70s)[22m
+

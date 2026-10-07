@@ -11,9 +11,9 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { randomUUID } from 'crypto';
 import { NextRequest } from 'next/server';
-import { createLiveClone, hasNeonKey, type LiveClone } from './helpers/live-fixture';
+import { createLiveClone, hasLiveDb, type LiveClone } from './helpers/live-fixture';
 
-const d = hasNeonKey ? describe : describe.skip;
+const d = hasLiveDb ? describe : describe.skip;
 let clone: LiveClone;
 
 const ids = {

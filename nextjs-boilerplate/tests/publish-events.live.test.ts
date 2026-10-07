@@ -9,9 +9,9 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { randomUUID, createHash } from 'crypto';
-import { createLiveClone, hasNeonKey, type LiveClone } from './helpers/live-fixture';
+import { createLiveClone, hasLiveDb, type LiveClone } from './helpers/live-fixture';
 
-const d = hasNeonKey ? describe : describe.skip;
+const d = hasLiveDb ? describe : describe.skip;
 
 let clone: LiveClone;
 // format vyzadovany TOKEN_REGEX v b2b-auth.ts:32

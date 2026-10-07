@@ -29,6 +29,7 @@ import { randomUUID } from 'crypto';
 import { readFile } from 'fs/promises';
 import { readdirSync } from 'fs';
 import { join } from 'path';
+import { createLocalLiveClone, hasLocalLiveDb } from './live-local-clone';
 
 const NEON_API = 'https://console.neon.tech/api/v2';
 const PROJECT = 'fragrant-wildflower-75132205';
@@ -58,6 +59,11 @@ function discoverPendingMigrations(): string[] {
 export const PENDING_MIGRATIONS: string[] = discoverPendingMigrations();
 
 export const hasNeonKey = Boolean(process.env.NEON_API_KEY);
+/**
+ * Kolo 14 / krok 4: live testy dřív běžely JEN proti Neon klonu (v CI i lokálně přeskočené). Bez NEON_API_KEY a s
+ * FIX_E2E=1 jdou proti lokální DB z migrací (tests/helpers/live-local-clone) — v CI live sadě i lokálně.
+ */
+export const hasLiveDb = hasNeonKey || hasLocalLiveDb;
 
 async function neon(path: string, init: RequestInit = {}) {
   const res = await fetch(NEON_API + path, {
@@ -87,6 +93,7 @@ export async function createLiveClone(
   label: string,
   opts: { migrations?: string[]; exclude?: string[] } = {},
 ): Promise<LiveClone> {
+  if (!hasNeonKey) return createLocalLiveClone(label, opts);
   const created = await neon(`/projects/${PROJECT}/branches`, {
     method: 'POST',
     body: JSON.stringify({

@@ -17,7 +17,7 @@
  * env az pri vytvoreni, takze staci prepsat env a zavolat end().
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createLiveClone, hasNeonKey, type LiveClone } from './helpers/live-fixture';
+import { createLiveClone, hasLiveDb, hasNeonKey, type LiveClone } from './helpers/live-fixture';
 import { db, runWithUserContext } from '@/lib/db/rls-pool';
 
 const CONCURRENCY = 10;
@@ -89,7 +89,10 @@ async function prepni(databaseUrl: string, direct?: string) {
   else delete process.env.DATABASE_URL_DIRECT;
 }
 
-describe.skipIf(!hasNeonKey)('R-56 — dva pooly: connect() primy, query() poolovany', () => {
+// Kolo 14 / krok 4: lokálně (bez Neonu) je poolovaný endpoint PgBouncer v transaction módu (FIX_PGBOUNCER_URL),
+// tedy stejný typ pooleru jako Neon `-pooler`.
+const PGB = process.env.FIX_PGBOUNCER_URL;
+describe.skipIf(!hasLiveDb || (!hasNeonKey && !PGB))('R-56 — dva pooly: connect() primy, query() poolovany', () => {
   let clone: LiveClone;
   let directUri: string;
   let pooledUri: string;
@@ -98,7 +101,9 @@ describe.skipIf(!hasNeonKey)('R-56 — dva pooly: connect() primy, query() poolo
     // Zadne migrace — meri se chovani spojeni, ne schema.
     clone = await createLiveClone('r56-dva-pooly', { migrations: [] });
     directUri = process.env.DATABASE_URL as string;   // fixture vynucuje pooled=false
-    pooledUri = directUri.replace(/@([^.@/]+)\./, '@$1-pooler.');
+    pooledUri = hasNeonKey
+      ? directUri.replace(/@([^.@/]+)\./, '@$1-pooler.')
+      : PGB!.replace(/\/[^/?]+(\?|$)/, `/${clone.branchId}$1`);
     expect(pooledUri).not.toBe(directUri);
   }, 180_000);
 

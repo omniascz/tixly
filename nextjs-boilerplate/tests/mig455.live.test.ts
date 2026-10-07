@@ -9,10 +9,10 @@
  * Kde je FK/CHECK retez moc dlouhy na automaticky seed, hlasi se NEVIM.
  */
 import { describe, it, beforeAll, afterAll } from 'vitest';
-import { createLiveClone, makeSeed, hasNeonKey, type LiveClone, type Seed } from './helpers/live-fixture';
+import { createLiveClone, makeSeed, hasLiveDb, type LiveClone, type Seed } from './helpers/live-fixture';
 import { randomUUID } from 'crypto';
 
-const d = hasNeonKey ? describe : describe.skip;
+const d = hasLiveDb ? describe : describe.skip;
 let clone: LiveClone;
 let seed: Seed;
 let chain: Awaited<ReturnType<Seed['fullChain']>>;

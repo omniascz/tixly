@@ -13,9 +13,9 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { randomUUID } from 'crypto';
-import { createLiveClone, hasNeonKey, type LiveClone } from './helpers/live-fixture';
+import { createLiveClone, hasLiveDb, type LiveClone } from './helpers/live-fixture';
 
-const d = hasNeonKey ? describe : describe.skip;
+const d = hasLiveDb ? describe : describe.skip;
 
 let clone: LiveClone;
 const ids = {
@@ -30,7 +30,7 @@ d('party-split přes skutečné handlery', () => {
     const q = (s: string, p: unknown[] = []) => clone.pool.query(s, p);
     await q(`INSERT INTO identity.users (id,email,name,gdpr_consent_at) VALUES ($1,$2,'U',now())`,
       [ids.user, `ps_${ids.user.slice(0, 8)}@t.cz`]);
-    await q(`INSERT INTO platform.promoters (id,name,email) VALUES ($1,'P',$2)`,
+    await q(`INSERT INTO platform.promoters (id,name,email,company_dic) VALUES ($1,'P',$2,'CZ12345678')`, // kolo 14: DIČ plátce (C-54)
       [ids.promoter, `p_${ids.promoter.slice(0, 8)}@t.cz`]);
     await q(`INSERT INTO catalog.venues (id,name,city,country,capacity) VALUES ($1,'V','Praha','CZ',100)`,
       [ids.venue]);
@@ -41,12 +41,12 @@ d('party-split přes skutečné handlery', () => {
       [ids.event, ids.promoter, ids.user, ids.venue, ids.production, 'ev-' + ids.event.slice(0, 8)]);
     // `ticket_types` NEMA sloupec `status` — ma `visibility`
     // ('public'|'hidden'|'access_code'). Viz blocker nize.
-    await q(`INSERT INTO catalog.ticket_types (id,event_id,name,kind,base_price,total_qty,remaining_qty,visibility)
-             VALUES ($1,$2,'TT','standing',50000,100,100,'public')`,
+    await q(`INSERT INTO catalog.ticket_types (id,event_id,name,kind,base_price,total_qty,remaining_qty,visibility,vat_rate_code)
+             VALUES ($1,$2,'TT','standing',50000,100,100,'public','CZ_REDUCED')`,
       [ids.ticketType, ids.event]);
     // druhy typ se zamerne MALO mizty — na nem se testuje kapacitni brana
-    await q(`INSERT INTO catalog.ticket_types (id,event_id,name,kind,base_price,total_qty,remaining_qty,visibility)
-             VALUES ($1,$2,'Scarce','standing',50000,100,5,'public')`,
+    await q(`INSERT INTO catalog.ticket_types (id,event_id,name,kind,base_price,total_qty,remaining_qty,visibility,vat_rate_code)
+             VALUES ($1,$2,'Scarce','standing',50000,100,5,'public','CZ_REDUCED')`,
       [ids.scarceType, ids.event]);
   }, 180_000);
 

@@ -11,11 +11,11 @@
  * dostavet nejde, hlasi se NEVIM — nikdy "rozbite".
  */
 import { describe, it, beforeAll, afterAll } from 'vitest';
-import { createLiveClone, makeSeed, hasNeonKey, type LiveClone, type Seed } from './helpers/live-fixture';
+import { createLiveClone, makeSeed, hasLiveDb, type LiveClone, type Seed } from './helpers/live-fixture';
 import { randomUUID } from 'crypto';
 import type { Pool } from 'pg';
 
-const d = hasNeonKey ? describe : describe.skip;
+const d = hasLiveDb ? describe : describe.skip;
 let clone: LiveClone;
 let seed: Seed;
 let chain: Awaited<ReturnType<Seed['fullChain']>>;

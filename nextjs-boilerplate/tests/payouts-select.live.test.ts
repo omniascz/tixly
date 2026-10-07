@@ -13,11 +13,11 @@
  * Ta vrstva se dosud NIKDY neprojevila — cesta spadla driv.
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createLiveClone, makeSeed, hasNeonKey, type LiveClone, type Seed } from './helpers/live-fixture';
+import { createLiveClone, makeSeed, hasLiveDb, type LiveClone, type Seed } from './helpers/live-fixture';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { ENABLED_PAYOUT_CHANNELS } from '@/lib/payouts/executor';
 
-const d = hasNeonKey ? describe : describe.skip;
+const d = hasLiveDb ? describe : describe.skip;
 
 const RED = `SELECT py.id AS payout_id, p.payout_currency, p.wise_recipient_id, p.paypal_payout_email
              FROM platform.payouts py JOIN platform.promoters p ON p.id = py.promoter_id`;
