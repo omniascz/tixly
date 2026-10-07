@@ -24,3 +24,12 @@ medium	GHSA-h64f-5h5j-jqjh	Next.js has a Denial of Service in the Image Optimiza
 medium	GHSA-wfc6-r584-vfw7	Next.js vulnerable to cache poisoning in React Server Component responses
 == next@15.5.27
 Get "https://api.github.com/advisories?ecosystem=npm&affects=next@15.5.27&per_page=100": dial tcp 140.82.121.5:443: connectex: Pokus o připojení selhal, protože připojená strana v časovém intervalu řádně neodpověděla, nebo vytvořené připojení selhalo, protože neodpověděl připojený hostitel.
+
+== Zabudovaná kopie React Server Components se sleduje pod balíčkem next — příklad next@15.5.6:
+high	GHSA-mwv6-3258-q52c	Next Vulnerable to Denial of Service with Server Components
+critical	GHSA-9qr9-h5gf-34mp	Next.js is vulnerable to RCE in React flight protocol
+
+== React (balíček z npm, používá ho Pages Router / testy):
+react@19.2.8: 0 advisories (GitHub Advisory DB)
+react-dom@19.2.8: 0 advisories (GitHub Advisory DB)
+Next 15.5.27 zabudovaný React pro App Router: 19.2.0-canary-0bdb9206-20250818 (dist/compiled/react)

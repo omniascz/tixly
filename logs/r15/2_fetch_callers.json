@@ -1,0 +1,594 @@
+{
+ "src/app/api/auth/oauth/callback/facebook/route.ts:67": [
+  [
+   "src/app/api/auth/oauth/callback/facebook/route.ts",
+   "GET",
+   "GET-only force-dynamic"
+  ]
+ ],
+ "src/app/api/auth/oauth/callback/facebook/route.ts:82": [
+  [
+   "src/app/api/auth/oauth/callback/facebook/route.ts",
+   "GET",
+   "GET-only force-dynamic"
+  ]
+ ],
+ "src/app/api/events/[id]/seats/preview.svg/route.ts:17": [
+  [
+   "src/app/api/events/[id]/seats/preview.svg/route.ts",
+   "GET,OPTIONS",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/app/api/mobile/order-confirm/route.ts:27": [
+  [
+   "src/app/api/mobile/order-confirm/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/app/api/payments/stripe/webhook/route.ts:102": [
+  [
+   "src/app/api/payments/stripe/webhook/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/app/api/payments/stripe/webhook/route.ts:118": [
+  [
+   "src/app/api/payments/stripe/webhook/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/bank/fio.ts:105": [
+  [
+   "src/app/api/internal/cron/bank-sync-fio/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/bank/fio.ts:129": [
+  [
+   "src/app/api/internal/cron/bank-sync-fio/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/bank/fio.ts:149": [
+  [
+   "src/app/api/internal/cron/bank-sync-fio/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/bank/psd2.ts:176": [
+  [
+   "src/app/api/admin/bank-credentials/psd2/authorize/route.ts",
+   "GET",
+   "GET-only"
+  ],
+  [
+   "src/app/api/admin/bank-credentials/psd2/callback/route.ts",
+   "GET",
+   "GET-only"
+  ]
+ ],
+ "src/lib/bank/psd2.ts:187": [
+  [
+   "src/app/api/admin/bank-credentials/psd2/authorize/route.ts",
+   "GET",
+   "GET-only"
+  ],
+  [
+   "src/app/api/admin/bank-credentials/psd2/callback/route.ts",
+   "GET",
+   "GET-only"
+  ]
+ ],
+ "src/lib/compliance/ares.ts:98": [
+  [
+   "src/app/api/admin/ares/[ico]/route.ts",
+   "GET",
+   "GET-only force-dynamic"
+  ],
+  [
+   "src/app/api/admin/kyc/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/auth/register-promoter/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/facebook/graph.ts:90": [
+  [
+   "src/app/api/admin/events/[id]/publish-facebook/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/admin/facebook/oauth/callback/route.ts",
+   "GET",
+   "GET-only force-dynamic"
+  ],
+  [
+   "src/app/api/admin/facebook/oauth/start/route.ts",
+   "GET",
+   "GET-only force-dynamic"
+  ],
+  [
+   "src/app/api/admin/facebook/pages/route.ts",
+   "GET",
+   "GET-only"
+  ]
+ ],
+ "src/lib/facebook/graph.ts:143": [
+  [
+   "src/app/api/admin/events/[id]/publish-facebook/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/admin/facebook/oauth/callback/route.ts",
+   "GET",
+   "GET-only force-dynamic"
+  ],
+  [
+   "src/app/api/admin/facebook/oauth/start/route.ts",
+   "GET",
+   "GET-only force-dynamic"
+  ],
+  [
+   "src/app/api/admin/facebook/pages/route.ts",
+   "GET",
+   "GET-only"
+  ]
+ ],
+ "src/lib/health-check/health.service.ts:112": [
+  [
+   "src/app/api/health/db/route.ts",
+   "GET",
+   "GET-only force-dynamic"
+  ],
+  [
+   "src/app/api/health/external/route.ts",
+   "GET",
+   "GET-only"
+  ],
+  [
+   "src/app/api/health/redis/route.ts",
+   "GET",
+   "GET-only force-dynamic"
+  ]
+ ],
+ "src/lib/health-check/health.service.ts:117": [
+  [
+   "src/app/api/health/db/route.ts",
+   "GET",
+   "GET-only force-dynamic"
+  ],
+  [
+   "src/app/api/health/external/route.ts",
+   "GET",
+   "GET-only"
+  ],
+  [
+   "src/app/api/health/redis/route.ts",
+   "GET",
+   "GET-only force-dynamic"
+  ]
+ ],
+ "src/lib/payment/comgate.ts:159": [
+  [
+   "src/app/api/admin/events/[id]/cancel-term/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/admin/events/[id]/postpone-term/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/admin/orders/[orderId]/refund/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/admin/orders/bulk-refund/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/buyer/group-invitations/[token]/claim/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/buyer/orders/[orderId]/refund/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/checkout/party-split/[token]/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/checkout/route.ts",
+   "OPTIONS,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/checkout/seats/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/health/providers/route.ts",
+   "GET",
+   "GET-only force-dynamic"
+  ],
+  [
+   "src/app/api/mobile/payment-intent/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/payments/comgate/webhook/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/payments/gopay/webhook/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/reschedule/[token]/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/season-passes/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/v1/wl/orders/route.ts",
+   "OPTIONS,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/payment/gopay-real.ts:207": [
+  [
+   "src/app/api/admin/events/[id]/cancel-term/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/admin/events/[id]/postpone-term/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/admin/orders/[orderId]/refund/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/admin/orders/bulk-refund/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/buyer/group-invitations/[token]/claim/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/buyer/orders/[orderId]/refund/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/checkout/party-split/[token]/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/checkout/route.ts",
+   "OPTIONS,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/checkout/seats/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/health/providers/route.ts",
+   "GET",
+   "GET-only force-dynamic"
+  ],
+  [
+   "src/app/api/mobile/payment-intent/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/payments/gopay/webhook/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/reschedule/[token]/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/season-passes/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/v1/wl/orders/route.ts",
+   "OPTIONS,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/payment/mollie.ts:107": [
+  [
+   "src/app/api/buyer/group-invitations/[token]/claim/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/checkout/party-split/[token]/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/checkout/route.ts",
+   "OPTIONS,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/checkout/seats/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/mobile/payment-intent/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/payments/mollie/webhook/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/season-passes/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/v1/wl/orders/route.ts",
+   "OPTIONS,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/payment/paypal.ts:237": [
+  [
+   "src/app/api/buyer/group-invitations/[token]/claim/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/checkout/party-split/[token]/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/checkout/route.ts",
+   "OPTIONS,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/checkout/seats/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/mobile/payment-intent/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/payments/paypal/capture/route.ts",
+   "GET",
+   "GET-only force-dynamic"
+  ],
+  [
+   "src/app/api/payments/paypal/webhook/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/season-passes/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/v1/wl/orders/route.ts",
+   "OPTIONS,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/payment/stripe.ts:64": [
+  [
+   "src/app/api/buyer/group-invitations/[token]/claim/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/checkout/party-split/[token]/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/checkout/route.ts",
+   "OPTIONS,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/checkout/seats/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/internal/cron/charge-installments/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/mobile/payment-intent/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/payments/stripe/webhook/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/season-passes/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/v1/wl/orders/route.ts",
+   "OPTIONS,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/payment/triplea.ts:228": [
+  [
+   "src/app/api/checkout/route.ts",
+   "OPTIONS,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/payments/triplea/webhook/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/payouts/paypal-payouts.ts:134": [],
+ "src/lib/payouts/wise.ts:48": [
+  [
+   "src/app/api/admin/payouts/execute/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/internal/cron/payouts-execute/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/payments/wise/webhook/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/qes/docusign-provider.ts:160": [
+  [
+   "src/app/api/admin/qes/sign-request/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/qes/webhook/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/qes/docusign-provider.ts:185": [
+  [
+   "src/app/api/admin/qes/sign-request/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/qes/webhook/route.ts",
+   "POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/sdk/tixly-sdk.ts:237": [],
+ "src/lib/spotify/oauth.ts:156": [
+  [
+   "src/app/api/buyer/spotify/callback/route.ts",
+   "GET",
+   "GET-only"
+  ],
+  [
+   "src/app/api/buyer/spotify/connect/route.ts",
+   "DELETE,GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/internal/cron/refresh-spotify/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/spotify/oauth.ts:175": [
+  [
+   "src/app/api/buyer/spotify/callback/route.ts",
+   "GET",
+   "GET-only"
+  ],
+  [
+   "src/app/api/buyer/spotify/connect/route.ts",
+   "DELETE,GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/internal/cron/refresh-spotify/route.ts",
+   "GET,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ]
+ ],
+ "src/lib/tax/vies.ts:73": [
+  [
+   "src/app/api/checkout/route.ts",
+   "OPTIONS,POST",
+   "N14 neukládá (modul s POST/DELETE/PATCH/OPTIONS)"
+  ],
+  [
+   "src/app/api/tax/vies-check/route.ts",
+   "GET",
+   "GET-only force-dynamic"
+  ]
+ ],
+ "src/lib/tickets/fan-ticket-renderer.ts:55": [
+  [
+   "src/app/api/buyer/orders/[orderId]/ticket-pdf/route.ts",
+   "GET",
+   "GET-only"
+  ]
+ ],
+ "src/lib/vouchers/voucher-pdf.ts:116": [
+  [
+   "src/app/api/vouchers/[code]/pdf/route.ts",
+   "GET",
+   "GET-only"
+  ]
+ ]
+}

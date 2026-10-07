@@ -1,0 +1,790 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mapplies 20% discount to 98000 haléřů → discountHalire = 19600
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mpercentage discount uses Math.floor (rounds down to whole haléře)
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mapplies fixed 10000 haléřů discount to 98000 → newTotal = 88000
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mfixed discount larger than order total is capped — no negative total
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mreturns applied=false when promo code does not exist
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mreturns applied=false with CODE_EXPIRED when valid_until is in the past
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mreturns applied=false with CODE_NOT_YET_ACTIVE when valid_from is in the future
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mreturns applied=false with CODE_USED_UP when uses_count >= max_uses
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mstill applies when uses_count is one below max_uses
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mreturns applied=false with PER_USER_LIMIT_EXCEEDED when user already used it
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mapplies when user usage count is one below per-user limit
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mreturns applied=false with EVENT_NOT_ELIGIBLE when code is scoped to different event
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mapplies when eventId is in applicable_event_ids
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mapplies when applicable_event_ids is null (all events)
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mreturns applied=false with TICKET_TYPE_NOT_ELIGIBLE when no matching type
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mreturns applied=false with MIN_ORDER_NOT_MET when order total is too low
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mapplies when order total exactly meets min_order_amount
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mreturns applied=false with CODE_INACTIVE when code is inactive
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mincrements uses_count and inserts a usage row on successful redemption
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mdoes NOT increment uses_count or insert usage when code is invalid
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22missues SELECT … FOR UPDATE to lock the promo code row
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mall result amounts are integers (no floats)
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mdiscountHalire is always >= 0 (no negative discounts)
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mnormalises code to uppercase before DB lookup
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mcalculates bogo discount: 4 tickets × 49000 → 2 free → discount = 98000
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts[2m > [22mapplyPromoCode[2m > [22mfree type makes all items free
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcheckDatabaseHealth[2m > [22mshould return error when db client is not initialized
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcheckDatabaseHealth[2m > [22mshould return ok when database query succeeds
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcheckDatabaseHealth[2m > [22mshould return error when database query fails
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mrenumberRows[2m > [22mconverts alpha to numeric
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mrenumberRows[2m > [22mnumeric with custom start
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mrenumberRows[2m > [22mnumeric-reverse
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mrenumberRows[2m > [22malpha-reverse
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mrenumberRows[2m > [22mcustom labels
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mrenumberRows[2m > [22mdoes not modify other sectors
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mrenameSector[2m > [22mrenames matching sector
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mrenameSector[2m > [22mdoes nothing if no match
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mspatialCluster[2m > [22mgroups close seats into one cluster
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mspatialCluster[2m > [22mseparates far-apart seats
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mspatialCluster[2m > [22mhandles 3-cluster layout (left/center/right balcony)
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mspatialCluster[2m > [22manisotropic Y connects vertically distant rows in same X-band
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mspatialCluster[2m > [22manisotropic X tolerates aisle inside a sector
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22msuggestSplit[2m > [22mreturns null for missing sector
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22msuggestSplit[2m > [22mcounts clusters at given threshold
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22msplitSectorBySpatial[2m > [22mreturns layout unchanged when only 1 cluster
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22msplitSectorBySpatial[2m > [22msplits 3-balcony layout into 3 sectors with custom names
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22msplitSectorBySpatial[2m > [22mpreserves color across split sectors
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mflattenSector[2m > [22mcollapses all rows into a single row sorted by Y
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mflattenSector[2m > [22mdefault rowLabel is empty string (hides label in UI)
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mflattenSector[2m > [22mrenumberSeats option assigns 1-N sequentially
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mflattenSector[2m > [22mpreserves original seat numbers when renumberSeats=false
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mflattenSector[2m > [22mhandles unsorted Y input correctly
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22mflattenSector[2m > [22mdoes nothing if sector not found
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22msetStage[2m > [22madds stage to layout
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22msetStage[2m > [22mremoves stage when null passed
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22msetStage[2m > [22mdoes not mutate input
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22manalyzeForSuggestions[2m > [22mdetects alpha rows and suggests numeric
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22manalyzeForSuggestions[2m > [22mdetects splittable sector
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22manalyzeForSuggestions[2m > [22mdetects column-sector (many rows × ≤2 seats per row)
+ [32m✓[39m src/lib/seating/transforms.test.ts[2m > [22manalyzeForSuggestions[2m > [22mdoes not suggest split for clean rectangular grid
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcheckDatabaseHealth[2m > [22mshould return slow when response time exceeds threshold[33m 1104[2mms[22m[39m
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcheckRedisHealth[2m > [22mshould return error when redis client is not initialized
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcheckRedisHealth[2m > [22mshould return ok when redis ping succeeds
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcheckRedisHealth[2m > [22mshould return error when redis ping fails
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcheckRedisHealth[2m > [22mshould return slow when response time exceeds threshold
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcheckExternalApi[2m > [22mshould return ok when API responds with 2xx status
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcheckExternalApi[2m > [22mshould return error when API returns 5xx status
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcheckExternalApi[2m > [22mshould return error when request times out
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcheckExternalApi[2m > [22mshould use custom timeout
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcheckExternalApi[2m > [22mshould handle request errors gracefully
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcheckExternalApis[2m > [22mshould check multiple APIs in parallel
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcheckExternalApis[2m > [22mshould use provided timeout
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcalculateOverallStatus[2m > [22mshould return healthy when all services are healthy
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcalculateOverallStatus[2m > [22mshould return degraded when any service is degraded
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcalculateOverallStatus[2m > [22mshould return unhealthy when any service is unhealthy
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mcalculateOverallStatus[2m > [22mshould return healthy when no services present
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mdetermineServiceStatus[2m > [22mshould return healthy when all checks pass
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mdetermineServiceStatus[2m > [22mshould return unhealthy when db check fails
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mdetermineServiceStatus[2m > [22mshould return unhealthy when redis check fails
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mdetermineServiceStatus[2m > [22mshould return degraded when checks are slow
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mdetermineServiceStatus[2m > [22mshould return degraded when external APIs have errors
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mdetermineServiceStatus[2m > [22mshould handle empty checks object
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mgetSystemHealth[2m > [22mshould return system health with no clients initialized
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mgetSystemHealth[2m > [22mshould include database service when db client provided
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mgetSystemHealth[2m > [22mshould include redis service when redis client provided
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mgetSystemHealth[2m > [22mshould include external apis service when urls provided
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mgetSystemHealth[2m > [22mshould run all checks in parallel
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mgetSystemHealth[2m > [22mshould calculate correct overall status
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mgetSystemHealth[2m > [22mshould include error messages in services
+ [32m✓[39m src/lib/health-check/health.service.test.ts[2m > [22mHealth Service[2m > [22mgetSystemHealth[2m > [22mshould include timestamp in ISO 8601 format
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mpřepínače — výchozí stav vypnuto[2m > [22mlaunchFeatureEnabled: bez proměnné false, jen "1" zapíná
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mcheckout s paymentPlanId → 422 FEATURE_DISABLED
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mcheckout s BNPL twisto → 422 FEATURE_DISABLED
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mcheckout s BNPL skippay → 422 FEATURE_DISABLED
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mPOST /api/buyer/orders/:id/payment-plan → 404
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mGET /api/events/:id/payment-plans → 404
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mGET i POST /api/admin/events/:id/payment-plans → 404
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mcron charge-installments (platný interní token) → 404
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22msplátky — vypnuto v checkoutu, API i cronu[2m > [22mmock-bnpl confirm → 404
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mcheckout s useSubscription → 422 FEATURE_DISABLED
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mGET i POST /api/buyer/subscriptions → 404
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mPOST /api/subscriptions/subscribe → 404
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mPOST /api/subscriptions/checkout (abonentka) → 404
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mPOST /api/subscriptions/holders/:id/confirm → 404
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mGET /api/subscriptions/plans a /api/subscriptions/packages/:slug → 404
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mpředplatné — aktivace i checkout vypnuté[2m > [22mcron renew-subscriptions (platný interní token) → 404
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s pluxee → 422 FEATURE_DISABLED
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s sodexo → 422 FEATURE_DISABLED
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s benefit_plus → 422 FEATURE_DISABLED
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s edenred → 422 FEATURE_DISABLED
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s gallery_beta → 422 FEATURE_DISABLED
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcheckout s multisport → 422 FEATURE_DISABLED
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mbenefitní karty — vypnuté[2m > [22mcallbacky benefit a pluxee → 404
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mcrony[2m > [22mpayouts-execute, charge-installments, renew-subscriptions nejsou naplánované ve vercel.json
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mcrony[2m > [22mdispatcher payouts-execute nezná (422)
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mcrony[2m > [22mlastminute je naplánovaný a GET bez tajemství → 401
+ [32m✓[39m tests/fix-r10-launch-flags.test.ts[2m > [22mcrony[2m > [22mlastminute GET se špatným tajemstvím → 401
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mpercentBaseMinor[2m > [22mgross bere cenu včetně DPH
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mpercentBaseMinor[2m > [22mnet_of_vat odečte DPH
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mzákladní typy smluv[2m > [22mprocento z tržby
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mzákladní typy smluv[2m > [22mprocento ze základu bez DPH je nižší než z ceny včetně
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mzákladní typy smluv[2m > [22mčástka na vstupenku
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mzákladní typy smluv[2m > [22mpevná částka nezávisí na prodeji
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mzákladní typy smluv[2m > [22mkombinace pevné částky a procenta se sčítá
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mgarance[2m > [22mgarance je spodní hranice, ne příplatek
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mgarance[2m > [22mkdyž je procento vyšší, garance se neuplatní
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mpodíl nad bodem zlomu[2m > [22mgarance plus 70 % z toho, co zbude
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mpodíl nad bodem zlomu[2m > [22mkdyž se bod zlomu nedosáhne, podíl je nula a řekne se to
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mpodíl nad bodem zlomu[2m > [22mnáklady zahrnují už přiznanou garanci — pořadatel neplatí dvakrát
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mbonusy[2m > [22mbonus podle počtu vstupenek se přizná při dosažení
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mbonusy[2m > [22mbonus podle vyprodanosti
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mbonusy[2m > [22mvíc splněných hladin se sčítá
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mstrop, podíl, záloha a daň[2m > [22mstrop platí na celý honorář včetně bonusů
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mstrop, podíl, záloha a daň[2m > [22mpodíl při více účinkujících se počítá až z výsledného honoráře
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mstrop, podíl, záloha a daň[2m > [22mzáloha se odečte z výplaty, ale nesnižuje honorář
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mstrop, podíl, záloha a daň[2m > [22mzáloha vyšší než honorář znamená, že umělec vrací
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mstrop, podíl, záloha a daň[2m > [22msrážková daň se počítá z honoráře, ne z částky po odečtu zálohy
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mstrop, podíl, záloha a daň[2m > [22mřádky výpočtu dávají dohromady výslednou částku
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mpreviewByOccupancy[2m > [22mukáže honorář při 30, 50, 70 a 100 procentech
+ [32m✓[39m src/lib/royalties/deal.test.ts[2m > [22mpreviewByOccupancy[2m > [22mhonorář neklesá s rostoucím prodejem
+ [32m✓[39m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m422 při chybějícím packageId
+ [32m✓[39m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m404 pokud package neexistuje
+ [32m✓[39m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m409 pokud package není on_sale
+ [32m✓[39m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m409 pokud SOLD_OUT (capacity exhausted)
+ [32m✓[39m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m200 happy path, vrátí holderId + gatewayUrl + price
+ [32m✓[39m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22mearly-bird cena aplikovaná pokud early_bird_until v budoucnosti
+ [32m✓[39m src/app/api/subscriptions/checkout/route.test.ts[2m > [22mPOST /api/subscriptions/checkout[2m > [22m409 SEAT_TAKEN při konfliktu uq constraint
+ [32m✓[39m src/lib/pricing/resolve-price.test.ts[2m > [22mresolveCurrentPrice[2m > [22mreturns base_price when no tier and no rules
+ [32m✓[39m src/lib/pricing/resolve-price.test.ts[2m > [22mresolveCurrentPrice[2m > [22muses pricing.price_tiers total when present (overrides everything)
+ [32m✓[39m src/lib/pricing/resolve-price.test.ts[2m > [22mresolveCurrentPrice[2m > [22mapplies active rule with lowest priority (sorted by query)
+ [32m✓[39m src/lib/pricing/resolve-price.test.ts[2m > [22mresolveCurrentPrice[2m > [22mskips rule whose threshold_date has not yet arrived
+ [32m✓[39m src/lib/pricing/resolve-price.test.ts[2m > [22mresolveCurrentPrice[2m > [22mskips rule whose threshold_qty is not yet reached
+ [32m✓[39m src/lib/pricing/resolve-price.test.ts[2m > [22mresolveCurrentPrice[2m > [22mactivates threshold_qty rule when remaining_qty drops below threshold
+ [32m✓[39m src/lib/pricing/resolve-price.test.ts[2m > [22mresolveCurrentPrice[2m > [22mthrows TICKET_TYPE_NOT_FOUND when ticket type does not exist
+ [32m✓[39m src/lib/pricing/resolve-price.test.ts[2m > [22mresolveCurrentPrice[2m > [22mthrows PriceMismatchError when expectedHalire does not match server
+ [32m✓[39m src/lib/pricing/resolve-price.test.ts[2m > [22mresolveCurrentPrice[2m > [22mfalls back to base when pricing.price_tiers table is missing (42P01)
+ [32m✓[39m src/lib/pricing/resolve-price.test.ts[2m > [22mresolveCurrentPrice[2m > [22mpasses when expectedHalire matches server
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts[2m > [22misSmsTicketSvg[2m > [22mdetects jvectormap-region marker
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts[2m > [22misSmsTicketSvg[2m > [22mdetects data-code="sNNN" pattern even without jvectormap class
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts[2m > [22misSmsTicketSvg[2m > [22mreturns false for ordinary SVG
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts[2m > [22mparseSmsTicketSvg[2m > [22mextracts seats grouped by color
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts[2m > [22mparseSmsTicketSvg[2m > [22mclusters seats by Y into numerically-labeled rows (1, 2, 3...)
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts[2m > [22mparseSmsTicketSvg[2m > [22mreads seat numbers from <text data-parent-code>
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts[2m > [22mparseSmsTicketSvg[2m > [22mextracts viewBox from background image dimensions
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts[2m > [22mparseSmsTicketSvg[2m > [22mreturns backgroundUrl for floor plan storage
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts[2m > [22mparseSmsTicketSvg[2m > [22mskips overlay paths (data-code ending in "o")
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts[2m > [22mparseSmsTicketSvg[2m > [22mthrows on SVG with no seat paths
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts[2m > [22mparseSmsTicketSvg[2m > [22mparses cubic-bezier circle paths (smsticket side balcony format)
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts[2m > [22mparseSmsTicketSvg[2m > [22mhandles mixed arc + cubic-bezier in same SVG
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts[2m > [22mparseSmsTicketSvg[2m > [22mwarns on missing seat numbers
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts[2m > [22mapplySectorRenames[2m > [22mrenames sectors matching keys
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts[2m > [22mapplySectorRenames[2m > [22mleaves unmapped sectors unchanged
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mresolveDirection[2m > [22mkdo je venku, jde dovnitř
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mresolveDirection[2m > [22mkdo je uvnitř, jde ven
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mresolveDirection[2m > [22mbrána s pevným směrem rozhoduje bez ohledu na stav
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mdecidePassage — běžný průchod[2m > [22mprvní pípnutí je vždycky vstup
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mdecidePassage — běžný průchod[2m > [22mdruhé pípnutí zevnitř je odchod
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mdecidePassage — běžný průchod[2m > [22mnávrat po odchodu je vstup a počítá se
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mdecidePassage — běžný průchod[2m > [22mvyčerpaný počet vstupů se odmítne se srozumitelnou hláškou
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mdecidePassage — dvojí načtení kódu[2m > [22mstejná vstupenka do prodlevy se neprotočí, jen zopakuje výsledek
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mdecidePassage — dvojí načtení kódu[2m > [22mpo uplynutí prodlevy už průchod projde
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mdecidePassage — dvojí načtení kódu[2m > [22mvypnutá prodleva nic neblokuje
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mdecidePassage — dvojí načtení kódu[2m > [22mdvojí načtení se řeší dřív než vyčerpaný limit
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mdecidePassage — brána s pevným směrem[2m > [22mna vstupní bráně se ten, kdo je uvnitř, odmítne
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mdecidePassage — brána s pevným směrem[2m > [22mna výstupní bráně se ten, kdo není uvnitř, odmítne
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mdecidePassage — brána s pevným směrem[2m > [22mvýstupní brána pustí ven toho, kdo je uvnitř
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mundoScan[2m > [22mvzetí vstupu zpět vrátí držitele ven a sníží počítadlo
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mundoScan[2m > [22mvzetí odchodu zpět vrátí držitele dovnitř a počítadlo nechá
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mundoScan[2m > [22mpočítadlo nikdy nespadne pod nulu
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mundoScan[2m > [22mvstup a jeho vzetí zpět vrátí přesně původní stav
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mpopisky a odezva[2m > [22mprvní vstup a návrat se v popisku liší
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mpopisky a odezva[2m > [22mvstup a odchod mají rozdílný tón — obsluha se nedívá do telefonu
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22mpopisky a odezva[2m > [22mzamítnutí má vlastní, výrazně jinou odezvu
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22msecondsSince[2m > [22mbez předchozího skenu vrací null
+ [32m✓[39m src/lib/scanner/passage.test.ts[2m > [22msecondsSince[2m > [22mpočítá v celých sekundách
+ [32m✓[39m tests/fix-r10-staging-email.test.ts[2m > [22mallowlist — tvar a párování[2m > [22madresa, plus-adresa, doména; velikost písmen; tvar „Jméno <a@b>"
+ [32m✓[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mhealth routy na nedostupnou síť → 503 do 5 s[2m > [22mGET /api/health/redis[33m 5010[2mms[22m[39m
+ [32m✓[39m tests/fix-r10-staging-email.test.ts[2m > [22mmailer na stagingu (SMTP → simulátor Resend)[2m > [22madresa mimo allowlist se NEODEŠLE a zaloguje; povolená odejde
+ [32m✓[39m tests/fix-r10-staging-email.test.ts[2m > [22mmailer na stagingu (SMTP → simulátor Resend)[2m > [22mvíce příjemců: zablokované se vyřadí, povolené dostanou e-mail
+ [32m✓[39m tests/fix-r10-staging-email.test.ts[2m > [22mmailer na stagingu (SMTP → simulátor Resend)[2m > [22mmimo staging se nefiltruje
+ [32m✓[39m tests/fix-r10-staging-email.test.ts[2m > [22mplatform-notify na stagingu (Resend HTTP API → simulátor)[2m > [22madmin mimo allowlist: neodešle se a zaloguje; v allowlistu: odejde
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22mnetPerTicketMinor[2m > [22modečte DPH a naši provizi z hrubé ceny
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22mnetPerTicketMinor[2m > [22mprovizi zaokrouhluje dolů jako výplaty (floor)
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22mnetPerTicketMinor[2m > [22mbez DPH a bez provize vrátí celou cenu
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22msummarizeCosts[2m > [22mplátce DPH počítá se základem, neplátce s částkou včetně
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22msummarizeCosts[2m > [22modděluje pevné náklady od nákladů na návštěvníka
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22mcomputeBreakEven[2m > [22mspočítá bod zlomu podle kontrolního příkladu
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22mcomputeBreakEven[2m > [22modečte už prodané vstupenky ze zbývajících
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22mcomputeBreakEven[2m > [22mnáklad na návštěvníka snižuje příspěvek, ne pevnou část
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22mcomputeBreakEven[2m > [22mváží průměr přes cenové hladiny podle zbývající kapacity
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22mcomputeBreakEven[2m > [22mpozná, že se akce nezaplatí ani při vyprodání
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22mcomputeBreakEven[2m > [22mzáporný příspěvek nevrací nekonečno, ale srozumitelné odmítnutí
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22mcomputeBreakEven[2m > [22mbez nákladů je bod zlomu nula
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22mcomputeBreakEven[2m > [22mpo pokrytí nákladů hlásí zisk z další vstupenky
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22mcomputeBreakEven[2m > [22mpokrytí v procentech odpovídá poměru příspěvku k nákladům
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22mcomputeBreakEven[2m > [22mneplátce DPH má vyšší náklady, a tím i vyšší bod zlomu
+ [32m✓[39m src/lib/budget/break-even.test.ts[2m > [22mprojectResult[2m > [22mvrací výsledek, ne tržbu — při nízkém prodeji zápornou
+ [32m✓[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mhealth routy na nedostupnou síť → 503 do 5 s[2m > [22mGET /api/health/ready (DB i Redis visí)[33m 4169[2mms[22m[39m
+ [32m✓[39m tests/guest-user-policy.test.ts[2m > [22mcreateOrGetGuestUser — politiky pro existující účet[2m > [22mdefault je touch — existující účet se nesahá (checkout, accreditation, press, guestlist, waitlist)
+ [32m✓[39m tests/guest-user-policy.test.ts[2m > [22mcreateOrGetGuestUser — politiky pro existující účet[2m > [22mtouch odpovídá původnímu SQL 5 lokací
+ [32m✓[39m tests/guest-user-policy.test.ts[2m > [22mcreateOrGetGuestUser — politiky pro existující účet[2m > [22moverwriteName přepíše jméno a NEnastaví updated_at (box-office/sell)
+ [32m✓[39m tests/guest-user-policy.test.ts[2m > [22mcreateOrGetGuestUser — politiky pro existující účet[2m > [22mfillName doplní jméno jen když existující je NULL (comps)
+ [32m✓[39m tests/guest-user-policy.test.ts[2m > [22mcreateOrGetGuestUser — politiky pro existující účet[2m > [22mžádná politika nesmí propašovat do SQL nic mimo tři známé klauzule
+ [32m✓[39m tests/guest-user-policy.test.ts[2m > [22mcreateOrGetGuestUser — invarianty společné všem politikám[2m > [22mdrží partial ON CONFLICT predikát (bez něj 42P10) a nikdy nepoužije DO NOTHING
+ [32m✓[39m tests/guest-user-policy.test.ts[2m > [22mcreateOrGetGuestUser — invarianty společné všem politikám[2m > [22mdodává gdpr_consent_at (NOT NULL bez defaultu → jinak 23502)
+ [32m✓[39m tests/guest-user-policy.test.ts[2m > [22mcreateOrGetGuestUser — invarianty společné všem politikám[2m > [22mnormalizuje e-mail na trim+lowercase a posílá sentinel !guest
+ [32m✓[39m tests/guest-user-policy.test.ts[2m > [22mcreateOrGetGuestUser — invarianty společné všem politikám[2m > [22mpři chybějícím jméně uloží e-mail jako placeholder (vzor původního waitlistu `entry.name ?? entry.email`)
+ [32m✓[39m tests/guest-user-policy.test.ts[2m > [22mcreateOrGetGuestUser — invarianty společné všem politikám[2m > [22mprázdný e-mail odmítne, než se sáhne na DB
+ [32m✓[39m tests/guest-user-policy.test.ts[2m > [22mcreateOrGetGuestUser — invarianty společné všem politikám[2m > [22mkdyž upsert nevrátí řádek, hodí výjimku místo undefined (pojistka proti DO NOTHING regresi)
+[90mstderr[2m | tests/fix-r11-network-timeouts.test.ts[2m > [22m[2mklienti s timeouty[2m > [22m[2mRedis (redis-queue.getClient) na nedostupný host → null do 5,5 s, žádné nekonečné opakování[22m[39m
+[redis-queue] ConnectionTimeoutError: Connection timeout
+    at Socket.<anonymous> [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4m@redis\client[24m\dist\lib\client\socket.js:177:124[90m)[39m
+[90m    at Object.onceWrapper (node:events:622:28)[39m
+[90m    at Socket.emit (node:events:508:28)[39m
+[90m    at Socket._onTimeout (node:net:604:8)[39m
+[90m    at listOnTimeout (node:internal/timers:605:17)[39m
+[90m    at processTimers (node:internal/timers:541:7)[39m
+[redis-queue] connect failed: Error: Redis connect: timeout 5000 ms
+    at Timeout.<anonymous> [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\net\with-timeout.ts:5:37[90m)[39m
+[90m    at listOnTimeout (node:internal/timers:605:17)[39m
+[90m    at processTimers (node:internal/timers:541:7)[39m
+
+ [32m✓[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mklienti s timeouty[2m > [22mRedis (redis-queue.getClient) na nedostupný host → null do 5,5 s, žádné nekonečné opakování[33m 5062[2mms[22m[39m
+ [32m✓[39m src/app/api/internal/royalties/accrue/route.test.ts[2m > [22mPOST /api/internal/royalties/accrue[2m > [22mREGRESE: projde s heslem z INTERNAL_SERVICE_TOKEN
+ [32m✓[39m src/app/api/internal/royalties/accrue/route.test.ts[2m > [22mPOST /api/internal/royalties/accrue[2m > [22mzapíše podíl do knihy podílů
+ [32m✓[39m src/app/api/internal/royalties/accrue/route.test.ts[2m > [22mPOST /api/internal/royalties/accrue[2m > [22mbez hesla v prostředí odmítne i správnou hlavičku
+ [32m✓[39m src/app/api/internal/royalties/accrue/route.test.ts[2m > [22mPOST /api/internal/royalties/accrue[2m > [22modmítne špatné heslo a řekne důvod
+ [32m✓[39m src/app/api/internal/royalties/accrue/route.test.ts[2m > [22mPOST /api/internal/royalties/accrue[2m > [22modmítne chybějící hlavičku
+ [32m✓[39m src/app/api/internal/royalties/accrue/route.test.ts[2m > [22mPOST /api/internal/royalties/accrue[2m > [22mnezaplacenou objednávku přeskočí
+ [32m✓[39m src/app/api/internal/royalties/accrue/route.test.ts[2m > [22mPOST /api/internal/royalties/accrue[2m > [22mbez smlouvy o podílu nic nezapíše
+ [32m✓[39m src/app/api/internal/royalties/accrue/route.test.ts[2m > [22mPOST /api/internal/royalties/accrue[2m > [22mneznámá objednávka vrátí 404
+ [32m✓[39m src/app/api/internal/royalties/accrue/route.test.ts[2m > [22mPOST /api/internal/royalties/accrue[2m > [22mchybějící orderId vrátí 400
+[90mstderr[2m | src/app/api/internal/royalties/accrue/route.test.ts[2m > [22m[2mPOST /api/internal/royalties/accrue[2m > [22m[2mbez hesla v prostředí odmítne i správnou hlavičku[22m[39m
+[royalties/accrue] odmítnuto: not_configured
+
+[90mstderr[2m | src/app/api/internal/royalties/accrue/route.test.ts[2m > [22m[2mPOST /api/internal/royalties/accrue[2m > [22m[2modmítne špatné heslo a řekne důvod[22m[39m
+[royalties/accrue] odmítnuto: mismatch
+
+[90mstderr[2m | src/app/api/internal/royalties/accrue/route.test.ts[2m > [22m[2mPOST /api/internal/royalties/accrue[2m > [22m[2modmítne chybějící hlavičku[22m[39m
+[royalties/accrue] odmítnuto: missing
+
+ [32m✓[39m src/lib/moderation/ai-gate.test.ts[2m > [22mMockModerationProvider[2m > [22mrejects investment-scam wording
+ [32m✓[39m src/lib/moderation/ai-gate.test.ts[2m > [22mMockModerationProvider[2m > [22mrejects crypto giveaway scam
+ [32m✓[39m src/lib/moderation/ai-gate.test.ts[2m > [22mMockModerationProvider[2m > [22mflags ALL CAPS spam
+ [32m✓[39m src/lib/moderation/ai-gate.test.ts[2m > [22mMockModerationProvider[2m > [22mallows benign event
+ [32m✓[39m src/lib/moderation/ai-gate.test.ts[2m > [22mrunAiGate[2m > [22mrejects high-confidence reject
+ [32m✓[39m src/lib/moderation/ai-gate.test.ts[2m > [22mrunAiGate[2m > [22mqueues low-confidence reject (sends to human)
+ [32m✓[39m src/lib/moderation/ai-gate.test.ts[2m > [22mrunAiGate[2m > [22mpublishes high-confidence allow for trusted promoter
+ [32m✓[39m src/lib/moderation/ai-gate.test.ts[2m > [22mrunAiGate[2m > [22mqueues high-confidence allow for untrusted promoter
+ [32m✓[39m src/lib/moderation/ai-gate.test.ts[2m > [22mrunAiGate[2m > [22mqueues flag regardless of trust
+ [32m✓[39m src/lib/moderation/ai-gate.test.ts[2m > [22mrunAiGate — vision (plakát)[2m > [22mrejects when poster image rejects even if text is clean
+ [32m✓[39m src/lib/moderation/ai-gate.test.ts[2m > [22mrunAiGate — vision (plakát)[2m > [22mqueues when poster image is flagged (clean text)
+ [32m✓[39m src/lib/moderation/ai-gate.test.ts[2m > [22mrunAiGate — vision (plakát)[2m > [22mpublishes when both text and image are clean for trusted promoter
+ [32m✓[39m src/lib/moderation/ai-gate.test.ts[2m > [22mrunAiGate — vision (plakát)[2m > [22mskips image gate when no coverImageUrl (image stays null)
+ [32m✓[39m src/lib/moderation/ai-gate.test.ts[2m > [22mrunAiGate — vision (plakát)[2m > [22mskips image gate when provider has no vision capability
+ [32m✓[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mklienti s timeouty[2m > [22mDB (rls-pool db().query) na nedostupný host → chyba do 8,5 s (ne nekonečně)[33m 8038[2mms[22m[39m
+ [32m✓[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mklienti s timeouty[2m > [22msdílené volby: pg i Redis mají timeout spojení i dotazu ≤ 5 s
+ [32m✓[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mkaždý DB / Redis klient v aplikaci jde přes sdílené volby s timeouty[2m > [22mnew Pool / new Client (pg) a createClient (redis) bez sdílených voleb[33m 1352[2mms[22m[39m
+ [32m✓[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mstatické předgenerování (výstup next build, kolo 10) — síťové routy dynamické[2m > [22mapi/health/ready/route.ts: export const dynamic = force-dynamic
+ [32m✓[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mstatické předgenerování (výstup next build, kolo 10) — síťové routy dynamické[2m > [22mapi/health/redis/route.ts: export const dynamic = force-dynamic
+ [32m✓[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mstatické předgenerování (výstup next build, kolo 10) — síťové routy dynamické[2m > [22mapi/subscriptions/plans/route.ts: export const dynamic = force-dynamic
+ [32m✓[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mstatické předgenerování (výstup next build, kolo 10) — síťové routy dynamické[2m > [22msitemap.ts: export const dynamic = force-dynamic
+ [32m✓[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mstatické předgenerování (výstup next build, kolo 10) — síťové routy dynamické[2m > [22msitemap.xml: revalidate 1 hodina
+ [32m✓[39m src/lib/seating/generator.test.ts[2m > [22mgenerateSection[2m > [22mřady a místa vzestupně, uličky, posun řad
+ [32m✓[39m src/lib/seating/generator.test.ts[2m > [22mgenerateSection[2m > [22mčíslování sestupně, řady písmeny sestupně od zadaného písmene
+ [32m✓[39m src/lib/seating/generator.test.ts[2m > [22mgenerateSection[2m > [22mliché/sudé strany: zleva liché sestupně ke středu, zprava sudé vzestupně (divadelní číslování)
+ [32m✓[39m src/lib/seating/generator.test.ts[2m > [22mgenerateSection[2m > [22mprvní řada a místo od zadaného čísla
+ [32m✓[39m src/lib/seating/generator.test.ts[2m > [22mrenumberSeats / copyRows / duplicity[2m > [22mpřečíslování výběru (v řadě podle pozice zleva), od čísla a s krokem
+ [32m✓[39m src/lib/seating/generator.test.ts[2m > [22mrenumberSeats / copyRows / duplicity[2m > [22mkopie řady: nová řada s dalším označením posunutá dolů
+ [32m✓[39m src/lib/seating/generator.test.ts[2m > [22mrenumberSeats / copyRows / duplicity[2m > [22mduplicitní označení (sekce + řada + místo) se najde a plánek nejde uložit
+ [32m✓[39m src/lib/seating/generator.test.ts[2m > [22mlayoutSchema — typy míst, cenové zóny, podklad[2m > [22mpřijme typy míst, poznámku, zóny s barvou a nastavení podkladu; zóna místa musí existovat
+ [32m✓[39m src/lib/seating/generator.test.ts[2m > [22mlayoutSchema — typy míst, cenové zóny, podklad[2m > [22m300 míst ve 3 sekcích generátorem
+ [32m✓[39m tests/fix-r11-network-timeouts.test.ts[2m > [22mwithCommandTimeouts — Proxy nesmí rozbít klienta s privátními poli (node-redis 4)[2m > [22mgettery i metody fungují, visící příkaz skončí chybou do limitu
+ [32m✓[39m src/__tests__/regression-bugs.test.ts[2m > [22mRegression: XSS via promoter-controlled event_title in email[2m > [22mescapes <script> in title
+ [32m✓[39m src/__tests__/regression-bugs.test.ts[2m > [22mRegression: XSS via promoter-controlled event_title in email[2m > [22mescapes attribute injection in event_title
+ [32m✓[39m src/__tests__/regression-bugs.test.ts[2m > [22mRegression: XSS via promoter-controlled event_title in email[2m > [22mhandles ampersand-first edge case (no double encode)
+ [32m✓[39m src/__tests__/regression-bugs.test.ts[2m > [22mRegression: TOTP authenticator import compatibility[2m > [22mverifyTotpCode replaces broken otplib v13 authenticator
+ [32m✓[39m src/__tests__/regression-bugs.test.ts[2m > [22mRegression: PostgreSQL COUNT(*) returns string (BIGINT)[2m > [22mNumber() correctly converts string COUNT result
+ [32m✓[39m src/__tests__/regression-bugs.test.ts[2m > [22mRegression: PostgreSQL COUNT(*) returns string (BIGINT)[2m > [22mhandles undefined gracefully
+ [32m✓[39m src/__tests__/regression-bugs.test.ts[2m > [22mRegression: orders.orders.promoter_id does NOT exist[2m > [22mschema documents — promoter scoping must use events JOIN
+ [32m✓[39m src/__tests__/regression-bugs.test.ts[2m > [22mRegression: mock-payment idempotency[2m > [22mcontract — second pay() call must NOT re-fire webhook
+ [32m✓[39m src/__tests__/regression-bugs.test.ts[2m > [22mRegression: SQL injection via segmentMinOrders in sms-campaigns[2m > [22minteger must be parametrized, not template-interpolated
+ [32m✓[39m src/__tests__/regression-bugs.test.ts[2m > [22mRegression: pricing.price_tiers exists check before query[2m > [22mmust check information_schema before SELECT to avoid 25P02 (transaction abort)
+ [32m✓[39m src/lib/seating/best-available.test.ts[2m > [22mpickBestAvailable[2m > [22mvybere místa vedle sebe v řadě nejblíž jevišti
+ [32m✓[39m src/lib/seating/best-available.test.ts[2m > [22mpickBestAvailable[2m > [22mpreferuje střed řady před krajem
+ [32m✓[39m src/lib/seating/best-available.test.ts[2m > [22mpickBestAvailable[2m > [22mpřeskočí řadu, kde souvislý blok nezbyl
+ [32m✓[39m src/lib/seating/best-available.test.ts[2m > [22mpickBestAvailable[2m > [22mnemíchá typy vstupenek uvnitř bloku
+ [32m✓[39m src/lib/seating/best-available.test.ts[2m > [22mpickBestAvailable[2m > [22mrespektuje filtr na typ vstupenky
+ [32m✓[39m src/lib/seating/best-available.test.ts[2m > [22mpickBestAvailable[2m > [22mbezbariérová místa nebere, pokud si o ně kupující neřekne
+ [32m✓[39m src/lib/seating/best-available.test.ts[2m > [22mpickBestAvailable[2m > [22mkdyž blok neexistuje, vrátí jednotlivá místa a označí to
+ [32m✓[39m src/lib/seating/best-available.test.ts[2m > [22mpickBestAvailable[2m > [22mvrátí méně míst, než bylo požadováno, a řekne kolik
+ [32m✓[39m src/lib/seating/best-available.test.ts[2m > [22mpickBestAvailable[2m > [22mvyprodaný sál vrátí prázdný výběr, ne výjimku
+ [32m✓[39m src/lib/seating/best-available.test.ts[2m > [22mpickBestAvailable[2m > [22mdržená a vyřazená místa se chovají jako obsazená
+ [32m✓[39m src/lib/seating/best-available.test.ts[2m > [22mpickBestAvailable[2m > [22mošetří nesmyslný počet míst
+ [32m✓[39m src/lib/payment/benefit-providers/pluxee.test.ts[2m > [22mcreatePluxeePayment[2m > [22mPOSTuje na vendor endpoint s correct headers + body
+ [32m✓[39m src/lib/payment/benefit-providers/pluxee.test.ts[2m > [22mcreatePluxeePayment[2m > [22mhodí pokud vendor vrátí non-2xx
+ [32m✓[39m src/lib/payment/benefit-providers/pluxee.test.ts[2m > [22mcreatePluxeePayment[2m > [22mhodí pokud response chybí redirectUrl
+ [32m✓[39m src/lib/payment/benefit-providers/pluxee.test.ts[2m > [22mcreatePluxeePayment[2m > [22mhodí pokud chybí PLUXEE_MERCHANT_ID
+ [32m✓[39m src/lib/payment/benefit-providers/pluxee.test.ts[2m > [22mverifyPluxeeCallback[2m > [22mreturns true pro valid signature
+ [32m✓[39m src/lib/payment/benefit-providers/pluxee.test.ts[2m > [22mverifyPluxeeCallback[2m > [22mreturns true s sha256= prefix
+ [32m✓[39m src/lib/payment/benefit-providers/pluxee.test.ts[2m > [22mverifyPluxeeCallback[2m > [22mreturns false pro invalid signature
+ [32m✓[39m src/lib/payment/benefit-providers/pluxee.test.ts[2m > [22mverifyPluxeeCallback[2m > [22mreturns false pokud chybí secret
+ [32m✓[39m src/lib/payment/benefit-providers/pluxee.test.ts[2m > [22mverifyPluxeeCallback[2m > [22mreturns false pokud chybí header
+ [32m✓[39m src/lib/budget/outlook.test.ts[2m > [22mcomputeOutlook[2m > [22mbez smluv vrací totéž co computeBreakEven
+ [32m✓[39m src/lib/budget/outlook.test.ts[2m > [22mcomputeOutlook[2m > [22mpevný honorář 50 000 Kč se chová jako pevný náklad
+ [32m✓[39m src/lib/budget/outlook.test.ts[2m > [22mcomputeOutlook[2m > [22mgarance z přijaté nabídky v rozpočtu se nezapočte dvakrát
+ [32m✓[39m src/lib/budget/outlook.test.ts[2m > [22mcomputeOutlook[2m > [22mpoložka navázaná na smlouvu, která už není aktivní, zůstává nákladem
+ [32m✓[39m src/lib/budget/outlook.test.ts[2m > [22mcomputeOutlook[2m > [22m50 % z hrubé tržby sníží příspěvek a bod zlomu se nevejde do kapacity
+ [32m✓[39m src/lib/budget/outlook.test.ts[2m > [22mcomputeOutlook[2m > [22mgarance nebo procento podle toho, co je vyšší
+ [32m✓[39m src/lib/budget/outlook.test.ts[2m > [22mcomputeOutlook[2m > [22mvýsledek teď odečte honorář ze skutečné tržby
+ [32m✓[39m src/lib/budget/outlook.test.ts[2m > [22mcomputeOutlook[2m > [22mhonorář vyšší než příspěvek — bod zlomu neexistuje ani mimo kapacitu
+ [32m✓[39m src/lib/accounting/isdoc.test.ts[2m > [22mISDOC 6.0.2 proti oficiálnímu XSD[2m > [22mschéma je to oficiální (otisk souboru)
+[90mstderr[2m | src/lib/payment/__tests__/provider.test.ts[2m > [22m[2mcreatePayment provider routing[2m > [22m[2mPAYMENT_PROVIDER=gopay bez credentials → mock fallback[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+ [32m✓[39m src/lib/payment/__tests__/provider.test.ts[2m > [22mcreatePayment provider routing[2m > [22mbez env → mock-gopay fallback
+ [32m✓[39m src/lib/payment/__tests__/provider.test.ts[2m > [22mcreatePayment provider routing[2m > [22mPAYMENT_PROVIDER=gopay bez credentials → mock fallback
+ [32m✓[39m src/lib/payment/__tests__/provider.test.ts[2m > [22mcreatePayment provider routing[2m > [22mbank_transfer → confirmation URL bez bráním na gate
+ [32m✓[39m src/lib/payment/__tests__/provider.test.ts[2m > [22mcreatePayment provider routing[2m > [22mwero → mock-wero
+ [32m✓[39m src/lib/payment/__tests__/provider.test.ts[2m > [22mcreatePayment provider routing[2m > [22mprzelewy24 → mock-przelewy24
+ [32m✓[39m src/lib/payment/__tests__/provider.test.ts[2m > [22mcreatePayment provider routing[2m > [22mGoPay s plnou konfigurací volá reálné API
+ [32m✓[39m src/lib/payment/__tests__/provider.test.ts[2m > [22mcreatePayment provider routing[2m > [22mComGate s plnou konfigurací volá reálné API
+ [32m✓[39m src/lib/payment/__tests__/provider.test.ts[2m > [22mcreatePayment provider routing[2m > [22mPAYMENT_PROVIDER_EUR přepíše pro EUR objednávku
+ [32m✓[39m src/lib/accounting/isdoc.test.ts[2m > [22mISDOC 6.0.2 proti oficiálnímu XSD[2m > [22mvalidátor skutečně hlídá: doklad bez povinného ID neprojde, starý tvar UUID neprojde[33m 633[2mms[22m[39m
+ [32m✓[39m src/lib/accounting/isdoc.test.ts[2m > [22mISDOC 6.0.2 proti oficiálnímu XSD[2m > [22mplátce DPH, dvě sazby — projde validací, rozpis po sazbách[33m 328[2mms[22m[39m
+ [32m✓[39m src/lib/accounting/isdoc.test.ts[2m > [22mISDOC 6.0.2 proti oficiálnímu XSD[2m > [22mneplátce — projde validací, VATApplicable=false a text o neplátci
+ [32m✓[39m src/lib/accounting/isdoc.test.ts[2m > [22mISDOC 6.0.2 proti oficiálnímu XSD[2m > [22mdobropis při refundu — projde validací, DocumentType 2, odkaz na původní doklad, záporné částky
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mdetectFormat[2m > [22muses extension when available
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mdetectFormat[2m > [22mfalls back to content sniffing
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mdetectFormat[2m > [22mreturns null for unrecognizable content
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mparseCsv[2m > [22mparses minimal valid CSV
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mparseCsv[2m > [22mgroups multiple sectors with distinct colors
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mparseCsv[2m > [22mrespects accessibility column
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mparseCsv[2m > [22mthrows on missing required columns
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mparseCsv[2m > [22mwarns on invalid rows but continues
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mparseJson[2m > [22mpasses through valid layout
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mparseJson[2m > [22massigns default color when missing
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mparseJson[2m > [22mthrows on malformed JSON
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mparseJson[2m > [22mthrows when no sectors with seats
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mparseSvg[2m > [22mparses circles with data-* metadata
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mparseSvg[2m > [22mgroups circles heuristically by fill color when no metadata
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mparseSvg[2m > [22mparses rects using their center
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mparseSvg[2m > [22muses width/height attrs when viewBox missing
+ [32m✓[39m src/lib/seating/import-parsers.test.ts[2m > [22mparseSvg[2m > [22mthrows when no shapes found
+ [32m✓[39m src/lib/typed-fetch.test.ts[2m > [22mtypedFetch[2m > [22mreturns generic-typed body on 200
+ [32m✓[39m src/lib/typed-fetch.test.ts[2m > [22mtypedFetch[2m > [22mvalidates with Zod schema
+ [32m✓[39m src/lib/typed-fetch.test.ts[2m > [22mtypedFetch[2m > [22mthrows TypedFetchError on schema mismatch
+ [32m✓[39m src/lib/typed-fetch.test.ts[2m > [22mtypedFetch[2m > [22mattaches Bearer token from localStorage by default
+ [32m✓[39m src/lib/typed-fetch.test.ts[2m > [22mtypedFetch[2m > [22mskips auth header when auth=false
+ [32m✓[39m src/lib/typed-fetch.test.ts[2m > [22mtypedFetch[2m > [22mserializes object body as JSON
+ [32m✓[39m src/lib/typed-fetch.test.ts[2m > [22mtypedFetch[2m > [22mthrows on 4xx with throwOnError
+ [32m✓[39m src/lib/typed-fetch.test.ts[2m > [22mtypedFetch[2m > [22mreturns parsed body on 4xx without throwOnError
+ [32m✓[39m src/lib/typed-fetch.test.ts[2m > [22mtypedGet / typedPost[2m > [22mtypedGet calls with method GET
+ [32m✓[39m src/lib/typed-fetch.test.ts[2m > [22mtypedGet / typedPost[2m > [22mtypedPost calls with method POST + JSON body
+ [32m✓[39m src/lib/db/rls-pool.test.ts[2m > [22mrunWithPromoterContext[2m > [22modmítne invalid UUID
+ [32m✓[39m src/lib/db/rls-pool.test.ts[2m > [22mrunWithPromoterContext[2m > [22muvnitř callback je ALS context dostupný
+ [32m✓[39m src/lib/db/rls-pool.test.ts[2m > [22mrunWithPromoterContext[2m > [22mmimo callback je context undefined
+ [32m✓[39m src/lib/db/rls-pool.test.ts[2m > [22mdb().query() v promoter context[2m > [22mBEGIN + SET LOCAL + query + COMMIT
+ [32m✓[39m src/lib/db/rls-pool.test.ts[2m > [22mdb().query() v promoter context[2m > [22mROLLBACK + release při chybě
+ [32m✓[39m src/lib/db/rls-pool.test.ts[2m > [22mdb().query() v platform admin context[2m > [22mSET LOCAL is_platform_admin = true
+ [32m✓[39m src/lib/db/rls-pool.test.ts[2m > [22mdb().query() BEZ context[2m > [22mdirect query bez session vars (žádný BEGIN)
+ [32m✓[39m src/lib/db/rls-pool.test.ts[2m > [22mnested contexts[2m > [22mvnořený context má vlastní store, vnější je pak zpět
+ [32m✓[39m src/lib/moderation/ai-gate-integration.test.ts[2m > [22mrunAiGate — boundary tests at confidence=0.8[2m > [22mreject at exactly 0.8 confidence is rejected
+ [32m✓[39m src/lib/moderation/ai-gate-integration.test.ts[2m > [22mrunAiGate — boundary tests at confidence=0.8[2m > [22mreject at 0.79 falls through to queue
+ [32m✓[39m src/lib/moderation/ai-gate-integration.test.ts[2m > [22mrunAiGate — boundary tests at confidence=0.8[2m > [22mallow at exactly 0.8 + trusted publishes
+ [32m✓[39m src/lib/moderation/ai-gate-integration.test.ts[2m > [22mrunAiGate — boundary tests at confidence=0.8[2m > [22mallow at 0.79 + trusted goes to queue
+ [32m✓[39m src/lib/moderation/ai-gate-integration.test.ts[2m > [22mrunAiGate — env override[2m > [22mMODERATION_AUTO_PUBLISH_DISABLED=1 forces queue even for trusted+allow
+ [32m✓[39m src/lib/moderation/ai-gate-integration.test.ts[2m > [22mrunAiGate — env override[2m > [22menv override does NOT block reject path
+ [32m✓[39m src/lib/moderation/ai-gate-integration.test.ts[2m > [22mMockModerationProvider — Czech-specific patterns[2m > [22mcatches Czech "investiční příležitost"
+ [32m✓[39m src/lib/moderation/ai-gate-integration.test.ts[2m > [22mMockModerationProvider — Czech-specific patterns[2m > [22mcatches English "100% guarantee"
+ [32m✓[39m src/lib/moderation/ai-gate-integration.test.ts[2m > [22mMockModerationProvider — Czech-specific patterns[2m > [22mflags "controversial" for review (English variant)
+ [32m✓[39m src/lib/moderation/ai-gate-integration.test.ts[2m > [22mMockModerationProvider — Czech-specific patterns[2m > [22mchecks ticketTypeNames not just title
+ [32m✓[39m src/lib/moderation/ai-gate-integration.test.ts[2m > [22mMockModerationProvider — Czech-specific patterns[2m > [22mbenign event passes with high confidence
+ [32m✓[39m src/lib/moderation/ai-gate-integration.test.ts[2m > [22mrunAiGate — categories propagation[2m > [22mpreserves categories from provider in result
+ [32m✓[39m src/lib/forgemsg/forgemsg.test.ts[2m > [22msplitName[2m > [22msplits first/last, handles single + empty
+ [32m✓[39m src/lib/forgemsg/forgemsg.test.ts[2m > [22memitForgeMsg[2m > [22minserts an outbox row with promoter + type + json payload
+ [32m✓[39m src/lib/forgemsg/forgemsg.test.ts[2m > [22memitForgeMsg[2m > [22mnull promoter when omitted
+ [32m✓[39m src/lib/forgemsg/forgemsg.test.ts[2m > [22mdispatchOutbox[2m > [22mmarks rows sent on a 2xx and batches by promoter
+ [32m✓[39m src/lib/forgemsg/forgemsg.test.ts[2m > [22mdispatchOutbox[2m > [22mkeeps rows pending (retry) on a non-2xx
+ [32m✓[39m src/lib/forgemsg/forgemsg.test.ts[2m > [22mdispatchOutbox[2m > [22mskips (leaves pending) when no credentials configured
+ [32m✓[39m src/lib/forgemsg/forgemsg.test.ts[2m > [22mdispatchOutbox[2m > [22mno pending rows → no-op
+ [32m✓[39m tests/audit-fixable-gate.test.ts[2m > [22maudit-fixable gate[2m > [22mopravitelné = high/critical, které po npm audit fix zmizí; moderate se ignoruje
+ [32m✓[39m tests/audit-fixable-gate.test.ts[2m > [22maudit-fixable gate[2m > [22m„fix: true", které npm audit fix neprovede (rodič drží starou hlavní verzi) → neopravitelné
+ [32m✓[39m tests/audit-fixable-gate.test.ts[2m > [22maudit-fixable gate[2m > [22mpo opravě nic nezbylo → žádná řádka není neopravitelná
+ [32m✓[39m tests/audit-fixable-gate.test.ts[2m > [22maudit-fixable gate[2m > [22mnpm balíček z lockfilu jen odstraní, ale závislý balíček zůstal → neopravitelné (rozbitý lockfile)
+ [32m✓[39m tests/audit-fixable-gate.test.ts[2m > [22maudit-fixable gate[2m > [22moprava, která přidá novou nebo závažnější high/critical (downgrade na critical) → neopravitelné
+ [32m✓[39m src/lib/compliance/ares.test.ts[2m > [22mcheckAres[2m > [22modmítne invalid format (non-digit)
+ [32m✓[39m src/lib/compliance/ares.test.ts[2m > [22mcheckAres[2m > [22modmítne invalid format (too long)
+ [32m✓[39m src/lib/compliance/ares.test.ts[2m > [22mcheckAres[2m > [22mpadding na 8 znaků
+ [32m✓[39m src/lib/compliance/ares.test.ts[2m > [22mcheckAres[2m > [22m404 z ARES → not found
+ [32m✓[39m src/lib/compliance/ares.test.ts[2m > [22mcheckAres[2m > [22maktivní firma → valid + active
+ [32m✓[39m src/lib/compliance/ares.test.ts[2m > [22mcheckAres[2m > [22mzaniklý subjekt → valid ale not active
+ [32m✓[39m src/lib/compliance/ares.test.ts[2m > [22mcheckAres[2m > [22mtimeout → graceful
+ [32m✓[39m src/lib/compliance/ares.test.ts[2m > [22mcomputeInitialRiskScore[2m > [22mvalid + active + DIČ + 3+ years → low score
+ [32m✓[39m src/lib/compliance/ares.test.ts[2m > [22mcomputeInitialRiskScore[2m > [22mnově založená firma (< 30 dní) → high score
+ [32m✓[39m src/lib/compliance/ares.test.ts[2m > [22mcomputeInitialRiskScore[2m > [22mzaniklý subjekt → max 100
+ [32m✓[39m src/lib/compliance/ares.test.ts[2m > [22mcomputeInitialRiskScore[2m > [22mIČO not found → +50 baseline
+ [32m✓[39m src/lib/payment/benefit-providers/benefit-plus.test.ts[2m > [22mcreateBenefitPlusPayment[2m > [22msignuje body fields alphabetically + posílá s signature field
+ [32m✓[39m src/lib/payment/benefit-providers/benefit-plus.test.ts[2m > [22mcreateBenefitPlusPayment[2m > [22mhodí když vendor 5xx
+ [32m✓[39m src/lib/payment/benefit-providers/benefit-plus.test.ts[2m > [22mverifyBenefitPlusCallback[2m > [22mreturns true když signature matchne re-signed fields
+ [32m✓[39m src/lib/payment/benefit-providers/benefit-plus.test.ts[2m > [22mverifyBenefitPlusCallback[2m > [22mreturns false pro tampered amount
+ [32m✓[39m src/lib/payment/benefit-providers/benefit-plus.test.ts[2m > [22mverifyBenefitPlusCallback[2m > [22mreturns false pokud chybí signature
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22missueOfferToken[2m > [22mvydá token i jeho otisk a platnost
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22missueOfferToken[2m > [22mdva tokeny nejsou nikdy stejné
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22missueOfferToken[2m > [22motisk odpovídá tokenu
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22mofferTokenMatches[2m > [22msprávný token se shoduje
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22mofferTokenMatches[2m > [22mcizí token se neshoduje
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22mofferTokenMatches[2m > [22mbez uloženého otisku se neshoduje nic
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22mcheckOfferAccess[2m > [22mplatný token otevře nabídku
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22mcheckOfferAccess[2m > [22mpropadlý odkaz neukáže nic
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22mcheckOfferAccess[2m > [22mšpatný token vypadá stejně jako neexistující nabídka
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22mcheckOfferAccess[2m > [22mpřijatá nabídka zůstává čitelná — agent má právo vidět, co podepsal
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22mcheckOfferAccess[2m > [22mstažená nabídka se neukazuje
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22mcanRespond[2m > [22mna odeslanou nabídku jde odpovědět
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22mcanRespond[2m > [22mna protinávrh taky — jednání pokračuje
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22mcanRespond[2m > [22mpo vypršení platnosti nabídky už ne
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22mcanRespond[2m > [22mna přijatou ani odmítnutou se neodpovídá
+ [32m✓[39m src/lib/booking/offer-token.test.ts[2m > [22mcanRespond[2m > [22mkoncept agent nevidí a neodpovídá na něj
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22misValidLocale[2m > [22mreturns true for cs
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22misValidLocale[2m > [22mreturns true for en
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22misValidLocale[2m > [22mreturns true for de
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22misValidLocale[2m > [22mreturns false for unsupported zz
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22misValidLocale[2m > [22mreturns false for empty string
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22misValidLocale[2m > [22mreturns false for CS (uppercase)
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mdetectLocale[2m > [22mreturns cookie locale when valid
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mdetectLocale[2m > [22mignores invalid cookie locale, falls through to Accept-Language
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mdetectLocale[2m > [22mparses Accept-Language with quality values
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mdetectLocale[2m > [22mpicks highest-q supported locale
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mdetectLocale[2m > [22mignores unsupported locales in Accept-Language
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mdetectLocale[2m > [22mreturns default locale when no match found
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mdetectLocale[2m > [22mreturns default locale when both inputs are null
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mdetectLocale[2m > [22mhandles Accept-Language with region subtag (en-GB → en)
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mdetectLocale[2m > [22mhandles cs-CZ subtag correctly
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mgetPathnameLocale[2m > [22mextracts cs from /cs/akce/festival
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mgetPathnameLocale[2m > [22mextracts en from /en/events/festival
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mgetPathnameLocale[2m > [22mreturns null when no locale prefix
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mgetPathnameLocale[2m > [22mreturns null for unsupported locale prefix
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mgetPathnameLocale[2m > [22mhandles root path /
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mgetPathnameLocale[2m > [22mhandles locale-only path /cs
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mgetPathnameLocale[2m > [22mhandles locale-only path /en/
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mpathnameWithoutLocale[2m > [22mstrips /cs prefix
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mpathnameWithoutLocale[2m > [22mstrips /en prefix
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mpathnameWithoutLocale[2m > [22mreturns unchanged path when no locale prefix
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mpathnameWithoutLocale[2m > [22mreturns / when path is just /cs
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mpathnameWithoutLocale[2m > [22mreturns / when path is /en/
+ [32m✓[39m src/lib/i18n.test.ts[2m > [22mpathnameWithoutLocale[2m > [22mpreserves query strings (path only)
+ [32m✓[39m src/lib/__tests__/admin-api.test.ts[2m > [22madminApi.events[2m > [22mGETs /api/admin/events and returns array
+ [32m✓[39m src/lib/__tests__/admin-api.test.ts[2m > [22madminApi.orders[2m > [22mbuilds query string from filters
+ [32m✓[39m src/lib/__tests__/admin-api.test.ts[2m > [22madminApi.orders[2m > [22momits empty filters
+ [32m✓[39m src/lib/__tests__/admin-api.test.ts[2m > [22madminApi.ordersExportUrl[2m > [22mreturns URL with filters appended
+ [32m✓[39m src/lib/__tests__/admin-api.test.ts[2m > [22madminApi.ordersExportUrl[2m > [22mreturns base URL when no filters
+ [32m✓[39m src/lib/__tests__/admin-api.test.ts[2m > [22madminApi.customers[2m > [22mmapuje server response na AdminCustomer[]
+ [32m✓[39m src/lib/__tests__/admin-api.test.ts[2m > [22madminApi.customers[2m > [22mvrátí prázdné pole když server nevrátí žádné zákazníky
+ [32m✓[39m src/lib/sms/bulkgate-mock.test.ts[2m > [22msendSms — phone normalization[2m > [22mprefixes Czech 9-digit number with +420
+ [32m✓[39m src/lib/sms/bulkgate-mock.test.ts[2m > [22msendSms — phone normalization[2m > [22mkeeps international + format
+ [32m✓[39m src/lib/sms/bulkgate-mock.test.ts[2m > [22msendSms — phone normalization[2m > [22mrejects bogus phone
+ [32m✓[39m src/lib/sms/bulkgate-mock.test.ts[2m > [22msendSms — text length[2m > [22mrejects > 480 characters
+ [32m✓[39m src/lib/sms/bulkgate-mock.test.ts[2m > [22msendSms — text length[2m > [22mcounts segments by 160 chars
+ [32m✓[39m src/lib/sms/bulkgate-mock.test.ts[2m > [22msendSms — provider selection[2m > [22mreturns mock provider when BULKGATE_TOKEN unset
+ [32m✓[39m src/lib/sms/bulkgate-mock.test.ts[2m > [22msendSms — audit log[2m > [22mlogs to audit.audit_log
+ [32m✓[39m src/lib/seating/diff.test.ts[2m > [22mdiffLayouts[2m > [22mreports identical when layouts match
+ [32m✓[39m src/lib/seating/diff.test.ts[2m > [22mdiffLayouts[2m > [22mdetects added seats
+ [32m✓[39m src/lib/seating/diff.test.ts[2m > [22mdiffLayouts[2m > [22mdetects removed seats
+ [32m✓[39m src/lib/seating/diff.test.ts[2m > [22mdiffLayouts[2m > [22mdetects moved seats
+ [32m✓[39m src/lib/seating/diff.test.ts[2m > [22mdiffLayouts[2m > [22mdetects accessibility flag changes independently of position
+ [32m✓[39m src/lib/seating/diff.test.ts[2m > [22mdiffLayouts[2m > [22mdetects sector add/remove
+ [32m✓[39m src/lib/seating/diff.test.ts[2m > [22mdiffLayouts[2m > [22mdetects sector rename heuristically when seat counts match
+ [32m✓[39m src/lib/seating/diff.test.ts[2m > [22mdiffLayouts[2m > [22mreports viewBox change
+ [32m✓[39m src/lib/seating/diff.test.ts[2m > [22mdiffLayouts[2m > [22mcaps sample at 200 entries
+ [32m✓[39m src/lib/env/staging-guard.test.ts[2m > [22mstaging guard (kolo 9 / krok 4)[2m > [22mmimo staging nic nekontroluje
+ [32m✓[39m src/lib/env/staging-guard.test.ts[2m > [22mstaging guard (kolo 9 / krok 4)[2m > [22mizolovaný staging projde
+ [32m✓[39m src/lib/env/staging-guard.test.ts[2m > [22mstaging guard (kolo 9 / krok 4)[2m > [22mprodukční DB (vestavěný endpoint i projekt, i v *_SUPER) odmítne
+ [32m✓[39m src/lib/env/staging-guard.test.ts[2m > [22mstaging guard (kolo 9 / krok 4)[2m > [22mostré brány a produkční doména odmítne
+ [32m✓[39m src/lib/env/staging-guard.test.ts[2m > [22mstaging guard (kolo 9 / krok 4)[2m > [22mkolo 10: prázdný allowlist e-mailů → staging odmítne start
+ [32m✓[39m src/lib/env/staging-guard.test.ts[2m > [22mstaging guard (kolo 9 / krok 4)[2m > [22mkolo 10: neplatná položka allowlistu → odmítne (překlep by tiše zablokoval všechno)
+ [32m✓[39m src/lib/env/staging-guard.test.ts[2m > [22mstaging guard (kolo 9 / krok 4)[2m > [22mkolo 10: mimo staging se allowlist nevyžaduje
+ [32m✓[39m src/lib/tickets/print-token.test.ts[2m > [22mprint-token[2m > [22mround-trips a ticket UUID
+ [32m✓[39m src/lib/tickets/print-token.test.ts[2m > [22mprint-token[2m > [22mlooksLikePrintToken detekuje schéma
+ [32m✓[39m src/lib/tickets/print-token.test.ts[2m > [22mprint-token[2m > [22modmítne podpis po manipulaci s jedním znakem
+ [32m✓[39m src/lib/tickets/print-token.test.ts[2m > [22mprint-token[2m > [22modmítne nesmysl / cizí schéma
+ [32m✓[39m src/lib/tickets/print-token.test.ts[2m > [22mprint-token[2m > [22msignPrintToken vyžaduje UUID
+ [32m✓[39m src/lib/tickets/print-token.test.ts[2m > [22mTXP2 — tiskový token vázaný na vstupenku i akci (kolo 4)[2m > [22mpodepsaný token projde ověřením pro svou akci
+ [32m✓[39m src/lib/tickets/print-token.test.ts[2m > [22mTXP2 — tiskový token vázaný na vstupenku i akci (kolo 4)[2m > [22mpro jinou akci neprojde (vazba na akci)
+ [32m✓[39m src/lib/tickets/print-token.test.ts[2m > [22mTXP2 — tiskový token vázaný na vstupenku i akci (kolo 4)[2m > [22mzměněný podpis i zkrácený token neprojdou
+ [32m✓[39m src/lib/tickets/print-token.test.ts[2m > [22mTXP2 — tiskový token vázaný na vstupenku i akci (kolo 4)[2m > [22mTXP1 se ověřuje jako dřív (akce se ignoruje) a klient pozná oba prefixy
+ [32m✓[39m src/lib/tax/vat.test.ts[2m > [22mDPH z ceny včetně daně[2m > [22m12 %: hranice 0,5 haléře se zaokrouhlí nahoru (od nuly)
+ [32m✓[39m src/lib/tax/vat.test.ts[2m > [22mDPH z ceny včetně daně[2m > [22m21 %: okolí 0,5 haléře
+ [32m✓[39m src/lib/tax/vat.test.ts[2m > [22mDPH z ceny včetně daně[2m > [22mdobropis (záporné částky) je symetrický
+ [32m✓[39m src/lib/tax/vat.test.ts[2m > [22mDPH z ceny včetně daně[2m > [22mreálná vstupenka 500 Kč při 12 %: daň 53,57 Kč, základ 446,43 Kč
+ [32m✓[39m src/lib/tax/vat.test.ts[2m > [22mDPH z ceny včetně daně[2m > [22mzáklad + daň = cena vždy (i velké částky bez chyb plovoucí čárky)
+ [32m✓[39m src/lib/tax/vat.test.ts[2m > [22mDPH z ceny včetně daně[2m > [22m0 % sazba: daň 0
+ [32m✓[39m src/lib/tax/vat.test.ts[2m > [22mDPH z ceny včetně daně[2m > [22mrozpis po sazbách sčítá řádky téže sazby PŘED zaokrouhlením
+ [32m✓[39m src/lib/tax/vat.test.ts[2m > [22mDPH z ceny včetně daně[2m > [22mDIČ CZ
+ [32m✓[39m src/lib/internal-auth.test.ts[2m > [22mgetInternalToken[2m > [22mbere INTERNAL_SERVICE_TOKEN — jméno, které používá nasazení
+ [32m✓[39m src/lib/internal-auth.test.ts[2m > [22mgetInternalToken[2m > [22mINTERNAL_API_TOKEN má přednost, když jsou obě
+ [32m✓[39m src/lib/internal-auth.test.ts[2m > [22mgetInternalToken[2m > [22mprázdná hodnota se bere jako nenastavená
+ [32m✓[39m src/lib/internal-auth.test.ts[2m > [22mverifyInternalToken[2m > [22mbez nastaveného hesla odmítne i správně vypadající požadavek
+ [32m✓[39m src/lib/internal-auth.test.ts[2m > [22mverifyInternalToken[2m > [22mprázdné heslo v prostředí neotevírá dveře prázdné hlavičce
+ [32m✓[39m src/lib/internal-auth.test.ts[2m > [22mverifyInternalToken[2m > [22mchybějící hlavička je odmítnuta
+ [32m✓[39m src/lib/internal-auth.test.ts[2m > [22mverifyInternalToken[2m > [22mšpatné heslo je odmítnuto
+ [32m✓[39m src/lib/internal-auth.test.ts[2m > [22mverifyInternalToken[2m > [22mREGRESE: volající pošle INTERNAL_SERVICE_TOKEN a projde
+ [32m✓[39m src/lib/internal-auth.test.ts[2m > [22minternalAuthHeaders[2m > [22mbez hesla neposílá hlavičku vůbec
+ [32m✓[39m src/lib/internal-auth.test.ts[2m > [22minternalAuthHeaders[2m > [22ms heslem pošle hlavičku, kterou příjemce očekává
+ [32m✓[39m src/lib/internal-auth.test.ts[2m > [22msafeTokenEqual[2m > [22mrůzná délka neshoduje a nespadne
+ [32m✓[39m src/lib/internal-auth.test.ts[2m > [22msafeTokenEqual[2m > [22mshodné hodnoty se shodují
+ [32m✓[39m src/__tests__/api/health.test.ts[2m > [22mHealth API Routes[2m > [22mResponse Format Compliance[2m > [22mshould comply with monitoring tool standards
+ [32m✓[39m src/lib/booking/date-holds.test.ts[2m > [22mnextOptionRank[2m > [22mprvní zájemce dostane první opci
+ [32m✓[39m src/lib/booking/date-holds.test.ts[2m > [22mnextOptionRank[2m > [22mdalší zájemci se řadí za sebe
+ [32m✓[39m src/lib/booking/date-holds.test.ts[2m > [22mnextOptionRank[2m > [22muvolněné pořadí se zaplní
+ [32m✓[39m src/lib/booking/date-holds.test.ts[2m > [22mnextOptionRank[2m > [22mzrušené a propadlé opce místo neblokují
+ [32m✓[39m src/lib/booking/date-holds.test.ts[2m > [22mreorderAfterRelease[2m > [22mpo propadnutí první se druhá stane první
+ [32m✓[39m src/lib/booking/date-holds.test.ts[2m > [22mreorderAfterRelease[2m > [22mnepřeskakuje — třetí se nestane první před druhou
+ [32m✓[39m src/lib/booking/date-holds.test.ts[2m > [22mreorderAfterRelease[2m > [22mkdyž se nic nemění, nevrací nic
+ [32m✓[39m src/lib/booking/date-holds.test.ts[2m > [22mreorderAfterRelease[2m > [22mprázdný seznam nespadne
+ [32m✓[39m src/lib/booking/date-holds.test.ts[2m > [22mcanConfirm[2m > [22mprvní opce smí potvrdit
+ [32m✓[39m src/lib/booking/date-holds.test.ts[2m > [22mcanConfirm[2m > [22mdruhá opce potvrdit nesmí a dozví se proč
+ [32m✓[39m src/lib/booking/date-holds.test.ts[2m > [22mcanConfirm[2m > [22muž potvrzený termín nejde potvrdit znovu
+ [32m✓[39m src/lib/booking/date-holds.test.ts[2m > [22mcanConfirm[2m > [22mneaktivní opce potvrdit nejde
+ [32m✓[39m src/lib/booking/date-holds.test.ts[2m > [22misExpired[2m > [22mopce bez lhůty nepropadá
+ [32m✓[39m src/lib/booking/date-holds.test.ts[2m > [22misExpired[2m > [22mlhůta v minulosti znamená propadnutí
+ [32m✓[39m src/lib/booking/date-holds.test.ts[2m > [22misExpired[2m > [22mlhůta v budoucnu drží
+ [32m✓[39m src/lib/transit/partners/dpp.test.ts[2m > [22mcreateDppPass[2m > [22mPOSTuje na /v1/passes s Bearer auth + Idempotency-Key
+ [32m✓[39m src/lib/transit/partners/dpp.test.ts[2m > [22mcreateDppPass[2m > [22mhodí pokud vendor non-2xx
+ [32m✓[39m src/lib/transit/partners/dpp.test.ts[2m > [22mcreateDppPass[2m > [22mhodí pokud response missing qrPayload
+ [32m✓[39m src/lib/transit/partners/dpp.test.ts[2m > [22mcreateDppPass[2m > [22mhodí pokud chybí DPP_API_KEY
+ [32m✓[39m src/lib/rate-limit/per-tenant.test.ts[2m > [22mcheckRateLimit (in-memory fallback)[2m > [22mallows requests under the limit[33m 955[2mms[22m[39m
+ [32m✓[39m src/lib/rate-limit/per-tenant.test.ts[2m > [22mcheckRateLimit (in-memory fallback)[2m > [22mblocks request that would exceed the limit
+ [32m✓[39m src/lib/rate-limit/per-tenant.test.ts[2m > [22mcheckRateLimit (in-memory fallback)[2m > [22mdecrements remaining count
+ [32m✓[39m src/lib/rate-limit/per-tenant.test.ts[2m > [22mcheckRateLimit (in-memory fallback)[2m > [22misolates limits per tenant key
+ [32m✓[39m src/lib/rate-limit/per-tenant.test.ts[2m > [22mcheckRateLimit (in-memory fallback)[2m > [22mresets after window expires
+ [32m✓[39m src/lib/rate-limit/per-tenant.test.ts[2m > [22mrateLimitResponse[2m > [22mreturns null when result is ok
+ [32m✓[39m src/lib/rate-limit/per-tenant.test.ts[2m > [22mrateLimitResponse[2m > [22mreturns 429 with Retry-After header when limited
+ [32m✓[39m src/lib/seating/perf.test.ts[2m > [22mclassifyChartSize[2m > [22mclassifies small charts as ok
+ [32m✓[39m src/lib/seating/perf.test.ts[2m > [22mclassifyChartSize[2m > [22mclassifies medium charts
+ [32m✓[39m src/lib/seating/perf.test.ts[2m > [22mclassifyChartSize[2m > [22mclassifies arena-size charts as warning
+ [32m✓[39m src/lib/seating/perf.test.ts[2m > [22mclassifyChartSize[2m > [22mclassifies stadium-size charts as critical
+ [32m✓[39m src/lib/seating/perf.test.ts[2m > [22mclassifyChartSize[2m > [22malways returns recommendations for non-ok levels
+ [32m✓[39m src/lib/seating/perf.test.ts[2m > [22mdiffLayouts performance (Camp Nou class)[2m > [22mdiffs identical 100k-seat layouts in < 2000 ms[33m 772[2mms[22m[39m
+ [32m✓[39m src/lib/seating/perf.test.ts[2m > [22mdiffLayouts performance (Camp Nou class)[2m > [22mdiffs layouts with 1000 changes in 100k-seat dataset[33m 738[2mms[22m[39m
+ [32m✓[39m src/lib/db/with-context.test.ts[2m > [22mwithPromoterDb[2m > [22modmítne invalid UUID
+ [32m✓[39m src/lib/db/with-context.test.ts[2m > [22mwithPromoterDb[2m > [22mBEGIN + SET LOCAL + callback + COMMIT
+ [32m✓[39m src/lib/db/with-context.test.ts[2m > [22mwithPromoterDb[2m > [22mROLLBACK + release při chybě v callback
+ [32m✓[39m src/lib/db/with-context.test.ts[2m > [22mwithAnonDb[2m > [22mžádné session vars (jen acquire + release)
+ [32m✓[39m src/lib/db/with-context.test.ts[2m > [22mwithAnonDb[2m > [22mrelease i při chybě
+ [32m✓[39m src/lib/royalties/settlement-doc.test.ts[2m > [22mhashSettlement[2m > [22mstejná čísla dají stejný otisk
+ [32m✓[39m src/lib/royalties/settlement-doc.test.ts[2m > [22mhashSettlement[2m > [22mzměna částky změní otisk
+ [32m✓[39m src/lib/royalties/settlement-doc.test.ts[2m > [22mhashSettlement[2m > [22mzměna popisku řádku otisk NEzmění — podpis přežije úpravu šablony
+ [32m✓[39m src/lib/royalties/settlement-doc.test.ts[2m > [22mhashSettlement[2m > [22mzměna částky v řádku otisk změní
+ [32m✓[39m src/lib/royalties/settlement-doc.test.ts[2m > [22mrenderSettlementText[2m > [22mobsahuje jméno umělce i akci
+ [32m✓[39m src/lib/royalties/settlement-doc.test.ts[2m > [22mrenderSettlementText[2m > [22mukazuje prodej, tržbu i DPH
+ [32m✓[39m src/lib/royalties/settlement-doc.test.ts[2m > [22mrenderSettlementText[2m > [22mvypíše rozpad honoráře a konečnou částku
+ [32m✓[39m src/lib/royalties/settlement-doc.test.ts[2m > [22mrenderSettlementText[2m > [22mu záporné částky vysvětlí, že umělec vrací
+ [32m✓[39m src/lib/payment/__tests__/vs-generator.test.ts[2m > [22meventShortId[2m > [22mvrací 6-digit deterministicky pro stejné UUID
+ [32m✓[39m src/lib/payment/__tests__/vs-generator.test.ts[2m > [22meventShortId[2m > [22mpadduje vodicími nulami pro malé hex
+ [32m✓[39m src/lib/payment/__tests__/vs-generator.test.ts[2m > [22meventShortId[2m > [22mrůzné UUID → různé short ID
+ [32m✓[39m src/lib/payment/__tests__/vs-generator.test.ts[2m > [22mgenerateVariableSymbol[2m > [22mvrátí 10-digit VS pro standardní akci (< 9999 lístků)
+ [32m✓[39m src/lib/payment/__tests__/vs-generator.test.ts[2m > [22mgenerateVariableSymbol[2m > [22mprvní lístek v akci dostane sequence 0001
+ [32m✓[39m src/lib/payment/__tests__/vs-generator.test.ts[2m > [22mgenerateVariableSymbol[2m > [22mfestival fallback při >9999 lístcích
+ [32m✓[39m src/lib/payment/__tests__/vs-generator.test.ts[2m > [22mgenerateVariableSymbol[2m > [22mthrows na overflow > 999 999
+ [32m✓[39m src/lib/payment/__tests__/vs-generator.test.ts[2m > [22mparseVariableSymbol[2m > [22mparsuje standard formát
+ [32m✓[39m src/lib/payment/__tests__/vs-generator.test.ts[2m > [22mparseVariableSymbol[2m > [22modmítá ne-10-digit input
+ [32m✓[39m tests/route-guard-inventory.test.ts[2m > [22minventura ochrany admin/platform rout[2m > [22mkaždá routa má sdílený wrapper nebo vyjmenovanou starší kontrolu
+ [32m✓[39m tests/route-guard-inventory.test.ts[2m > [22minventura ochrany admin/platform rout[2m > [22mnové routy kola 8 (inscenace, termíny) používají wrapper pořadatele
+ [32m✓[39m src/lib/payment/benefit-providers/edenred.test.ts[2m > [22mcreateEdenredPayment[2m > [22mPOSTuje na initialize endpoint s ApiKey auth
+ [32m✓[39m src/lib/payment/benefit-providers/edenred.test.ts[2m > [22mcreateEdenredPayment[2m > [22mhodí při missing creds
+ [32m✓[39m src/lib/payment/benefit-providers/edenred.test.ts[2m > [22mverifyEdenredCallback[2m > [22mvalid HMAC → true
+ [32m✓[39m src/lib/payment/benefit-providers/edenred.test.ts[2m > [22mverifyEdenredCallback[2m > [22mtampered body → false
+ [32m✓[39m src/lib/seats/seat-lock.test.ts[2m > [22macquireSeatLocks[2m > [22mreturns immediately when seatIds is empty
+ [32m✓[39m src/lib/seats/seat-lock.test.ts[2m > [22macquireSeatLocks[2m > [22mthrows when seat is in active hold
+ [32m✓[39m src/lib/seats/seat-lock.test.ts[2m > [22macquireSeatLocks[2m > [22mthrows SEAT_UNAVAILABLE when not all seats can be locked
+ [32m✓[39m src/lib/seats/seat-lock.test.ts[2m > [22macquireSeatLocks[2m > [22msucceeds when all seats are locked
+ [32m✓[39m src/lib/seats/seat-lock.test.ts[2m > [22mreleaseSeatLocks / finalizeSeatLocks / reapExpiredSeatLocks[2m > [22mrelease runs the right SQL
+ [32m✓[39m src/lib/seats/seat-lock.test.ts[2m > [22mreleaseSeatLocks / finalizeSeatLocks / reapExpiredSeatLocks[2m > [22mfinalize transitions locked → sold
+ [32m✓[39m src/lib/seats/seat-lock.test.ts[2m > [22mreleaseSeatLocks / finalizeSeatLocks / reapExpiredSeatLocks[2m > [22mreap cleans expired locks
+ [32m✓[39m src/lib/payment/__tests__/gopay-real.test.ts[2m > [22mgetGopayConfig[2m > [22misConfigured=false bez env (mock režim)
+ [32m✓[39m src/lib/payment/__tests__/gopay-real.test.ts[2m > [22mgetGopayConfig[2m > [22misConfigured=true s plnou konfigurací
+ [32m✓[39m src/lib/payment/__tests__/gopay-real.test.ts[2m > [22mgetGopayConfig[2m > [22misConfigured=false pokud chybí client_id
+ [32m✓[39m src/lib/payment/__tests__/gopay-real.test.ts[2m > [22mgetGopayConfig[2m > [22msandbox URL pokud GOPAY_SANDBOX=true a žádný explicit URL
+ [32m✓[39m src/lib/payment/__tests__/gopay-real.test.ts[2m > [22mgetGopayConfig[2m > [22mproduction URL default
+ [32m✓[39m src/lib/payment/__tests__/gopay-real.test.ts[2m > [22mgetGopayConfig[2m > [22mexplicit GOPAY_API_BASE_URL vyhrává
+ [32m✓[39m src/lib/payment/__tests__/gopay-real.test.ts[2m > [22mgetGopayConfig[2m > [22modmítne neplatný GOID
+ [32m✓[39m src/lib/payment/__tests__/gopay-real.test.ts[2m > [22mgetGopayConfig[2m > [22mcache funguje (druhé volání nenahodí znovu)
+[90mstderr[2m | src/lib/payment/__tests__/gopay-real.test.ts[2m > [22m[2mgetGopayConfig[2m > [22m[2misConfigured=false bez env (mock režim)[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | src/lib/payment/__tests__/gopay-real.test.ts[2m > [22m[2mgetGopayConfig[2m > [22m[2misConfigured=false pokud chybí client_id[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | src/lib/payment/__tests__/gopay-real.test.ts[2m > [22m[2mgetGopayConfig[2m > [22m[2msandbox URL pokud GOPAY_SANDBOX=true a žádný explicit URL[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | src/lib/payment/__tests__/gopay-real.test.ts[2m > [22m[2mgetGopayConfig[2m > [22m[2mproduction URL default[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | src/lib/payment/__tests__/gopay-real.test.ts[2m > [22m[2mgetGopayConfig[2m > [22m[2mexplicit GOPAY_API_BASE_URL vyhrává[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | src/lib/payment/__tests__/gopay-real.test.ts[2m > [22m[2mgetGopayConfig[2m > [22m[2modmítne neplatný GOID[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+ [32m✓[39m src/lib/totp/verify.test.ts[2m > [22mgenerateTotpCode[2m > [22mmatches RFC 6238 vector at T=59 (code: 287082)
+ [32m✓[39m src/lib/totp/verify.test.ts[2m > [22mgenerateTotpCode[2m > [22mmatches RFC 6238 vector at T=1111111109 (code: 081804)
+ [32m✓[39m src/lib/totp/verify.test.ts[2m > [22mgenerateTotpCode[2m > [22mmatches RFC 6238 vector at T=1234567890 (code: 005924)
+ [32m✓[39m src/lib/totp/verify.test.ts[2m > [22mgenerateTotpCode[2m > [22mproduces 6-digit zero-padded output
+ [32m✓[39m src/lib/totp/verify.test.ts[2m > [22mverifyTotpCode[2m > [22maccepts current code
+ [32m✓[39m src/lib/totp/verify.test.ts[2m > [22mverifyTotpCode[2m > [22maccepts previous step within window
+ [32m✓[39m src/lib/totp/verify.test.ts[2m > [22mverifyTotpCode[2m > [22maccepts next step within window (clock drift)
+ [32m✓[39m src/lib/totp/verify.test.ts[2m > [22mverifyTotpCode[2m > [22mrejects code outside window
+ [32m✓[39m src/lib/totp/verify.test.ts[2m > [22mverifyTotpCode[2m > [22mrejects malformed code
+ [32m✓[39m src/lib/totp/verify.test.ts[2m > [22mverifyTotpCode[2m > [22mrejects wrong secret
+ [32m✓[39m src/lib/totp/verify.test.ts[2m > [22mverifyTotpCode[2m > [22mwindow=0 rejects neighbouring steps
+ [32m✓[39m src/lib/forgemsg/provision.test.ts[2m > [22mprovisionPromoter[2m > [22mskips when credentials already exist
+ [32m✓[39m src/lib/forgemsg/provision.test.ts[2m > [22mprovisionPromoter[2m > [22mprovisions, maps SR→SK, and upserts the returned key
+ [32m✓[39m src/lib/forgemsg/provision.test.ts[2m > [22mprovisionPromoter[2m > [22mfails gracefully on a non-2xx from ForgeMsg
+ [32m✓[39m src/lib/forgemsg/provision.test.ts[2m > [22mprovisionPromoter[2m > [22mfails when env not configured
+ [32m✓[39m tests/r14-sentry-scrub.test.ts[2m > [22mscrubText[2m > [22mObjednávka pro jana.novakova@example.cz selhala
+ [32m✓[39m tests/r14-sentry-scrub.test.ts[2m > [22mscrubText[2m > [22mvolat +420 777 123 456 nebo 777123456
+ [32m✓[39m tests/r14-sentry-scrub.test.ts[2m > [22mscrubText[2m > [22mtel. 00420 602 111 222
+ [32m✓[39m tests/r14-sentry-scrub.test.ts[2m > [22mscrubText[2m > [22mnechá UUID, částky a čísla objednávek
+ [32m✓[39m tests/r14-sentry-scrub.test.ts[2m > [22mscrubSentryEvent[2m > [22mmaskuje osobní údaje všude a z user nechá jen id
+ [32m✓[39m src/lib/payouts/__tests__/holdback.test.ts[2m > [22mgetEffectiveHoldback[2m > [22mtier 1 default = 5 % / 90 dní
+ [32m✓[39m src/lib/payouts/__tests__/holdback.test.ts[2m > [22mgetEffectiveHoldback[2m > [22mtier 2 default = 3 % / 60 dní
+ [32m✓[39m src/lib/payouts/__tests__/holdback.test.ts[2m > [22mgetEffectiveHoldback[2m > [22mtier 3+ default = 0 %
+ [32m✓[39m src/lib/payouts/__tests__/holdback.test.ts[2m > [22mgetEffectiveHoldback[2m > [22moverride pct vyhrává nad tier default
+ [32m✓[39m src/lib/payouts/__tests__/holdback.test.ts[2m > [22mgetEffectiveHoldback[2m > [22moverride days vyhrává nad tier default
+ [32m✓[39m src/lib/payouts/__tests__/holdback.test.ts[2m > [22mgetEffectiveHoldback[2m > [22mnevalidní tier padá na T1 defaults
+ [32m✓[39m src/lib/payouts/__tests__/holdback.test.ts[2m > [22mcomputeHoldbackAmount[2m > [22m5 % z 100 000 halířů = 5 000
+ [32m✓[39m src/lib/payouts/__tests__/holdback.test.ts[2m > [22mcomputeHoldbackAmount[2m > [22m0 % vrátí 0
+ [32m✓[39m src/lib/payouts/__tests__/holdback.test.ts[2m > [22mcomputeHoldbackAmount[2m > [22mzero gross vrátí 0
+ [32m✓[39m src/lib/payouts/__tests__/holdback.test.ts[2m > [22mcomputeHoldbackAmount[2m > [22mfloor — žádné zaokrouhlení nahoru
+ [32m✓[39m src/lib/payouts/__tests__/holdback.test.ts[2m > [22mcomputeReleaseDate[2m > [22mrelease_date = payout + retention_days
+ [32m✓[39m src/lib/payouts/__tests__/holdback.test.ts[2m > [22mcomputeReleaseDate[2m > [22m0 dní = stejný den
+ [32m✓[39m src/lib/push/notify-followers.test.ts[2m > [22mnotifyFollowers[2m > [22mvrátí 0 followers pokud nikdo nesleduje
+ [32m✓[39m src/lib/push/notify-followers.test.ts[2m > [22mnotifyFollowers[2m > [22mpošle push každému followerovi
+ [32m✓[39m src/lib/push/notify-followers.test.ts[2m > [22mnotifyFollowers[2m > [22magreguje sent/failed/mock napříč followery
+[90mstdout[2m | src/lib/tracing/span.test.ts[2m > [22m[2mtraceSpan[2m > [22m[2mreturns function result[22m[39m
+[trace] ✓ test.foo 1ms trace=4ae87285cba9c0822bc4c7ffa697d03f span=a218a107b545ac85 
+
+[90mstdout[2m | src/lib/tracing/span.test.ts[2m > [22m[2mtraceSpan[2m > [22m[2mpropagates async result[22m[39m
+[trace] ✓ test.async 9ms trace=71bba0d87d1e3bcfa25bbc4c2fda2fb1 span=4e84ab3379ab21fd 
+
+[90mstdout[2m | src/lib/tracing/span.test.ts[2m > [22m[2mtraceSpan[2m > [22m[2mpropagates errors[22m[39m
+[trace] ✗ test.err 0ms trace=be20eace0f46e690685c48e9f506ab38 span=84c5873c88045855  err=boom
+
+[90mstdout[2m | src/lib/tracing/span.test.ts[2m > [22m[2mtraceSpan[2m > [22m[2mnested spans share traceId, child has different spanId[22m[39m
+[trace] ✓ child 1ms trace=94c9de9db5acb72b3f82ab5fa268a3a9 span=9f0db43b82037f20 parent=8f05d47e396efd53 
+[trace] ✓ parent 1ms trace=94c9de9db5acb72b3f82ab5fa268a3a9 span=8f05d47e396efd53 
+
+[90mstdout[2m | src/lib/tracing/span.test.ts[2m > [22m[2mtraceSpan[2m > [22m[2mcurrentSpan returns span inside trace[22m[39m
+[trace] ✓ outer 0ms trace=0913943308b8f46179f6e97584d54e56 span=3e645da2ed97579f 
+
+ [32m✓[39m src/lib/tracing/span.test.ts[2m > [22mtraceSpan[2m > [22mreturns function result
+ [32m✓[39m src/lib/tracing/span.test.ts[2m > [22mtraceSpan[2m > [22mpropagates async result
+ [32m✓[39m src/lib/tracing/span.test.ts[2m > [22mtraceSpan[2m > [22mpropagates errors
+ [32m✓[39m src/lib/tracing/span.test.ts[2m > [22mtraceSpan[2m > [22mnested spans share traceId, child has different spanId
+ [32m✓[39m src/lib/tracing/span.test.ts[2m > [22mtraceSpan[2m > [22mcurrentSpan returns null outside trace
+ [32m✓[39m src/lib/tracing/span.test.ts[2m > [22mtraceSpan[2m > [22mcurrentSpan returns span inside trace
+ [32m✓[39m src/lib/tracing/span.test.ts[2m > [22mtraceSpan[2m > [22msetAttr accumulates attributes (logged on completion)
+ [32m✓[39m tests/fix-r10-build-static-db-routes.test.ts[2m > [22mbuild bez DB — statické GET handlery nečtou databázi[2m > [22mkaždý GET() bez request, který čte DB, je force-dynamic nebo má revalidate[33m 882[2mms[22m[39m
+ [32m✓[39m src/lib/age/calculate.test.ts[2m > [22mcalculateAgeYears[2m > [22mreturns 18 on 18th birthday
+ [32m✓[39m src/lib/age/calculate.test.ts[2m > [22mcalculateAgeYears[2m > [22mreturns 17 the day before 18th birthday
+ [32m✓[39m src/lib/age/calculate.test.ts[2m > [22mcalculateAgeYears[2m > [22mreturns 18 the day after 18th birthday
+ [32m✓[39m src/lib/age/calculate.test.ts[2m > [22mcalculateAgeYears[2m > [22mhandles different month before birthday
+ [32m✓[39m src/lib/age/calculate.test.ts[2m > [22mcalculateAgeYears[2m > [22mhandles different month after birthday
+ [32m✓[39m src/lib/age/calculate.test.ts[2m > [22mcalculateAgeYears[2m > [22mreturns NaN for malformed string
+ [32m✓[39m src/lib/age/calculate.test.ts[2m > [22mcalculateAgeYears[2m > [22mreturns NaN for partially valid string
+ [32m✓[39m src/lib/age/calculate.test.ts[2m > [22mcalculateAgeYears[2m > [22mreturns 0 for birthDate today
+ [32m✓[39m src/lib/age/calculate.test.ts[2m > [22mcalculateAgeYears[2m > [22mreturns negative for future birthDate
+ [32m✓[39m src/lib/age/calculate.test.ts[2m > [22mcalculateAgeYears[2m > [22mhandles leap year birthday (29.2.) on non-leap year
+ [32m✓[39m src/lib/age/calculate.test.ts[2m > [22mcalculateAgeYears[2m > [22mhandles exactly 100 years
+ [32m✓[39m src/lib/sales/cutoff.test.ts[2m > [22muzávěrka prodeje (kolo 7, C-29)[2m > [22monline: bez sales_end_at končí začátkem akce, uzávěrka sama už je po prodeji
+ [32m✓[39m src/lib/sales/cutoff.test.ts[2m > [22muzávěrka prodeje (kolo 7, C-29)[2m > [22monline: sales_end_at má přednost před začátkem akce
+ [32m✓[39m src/lib/sales/cutoff.test.ts[2m > [22muzávěrka prodeje (kolo 7, C-29)[2m > [22mpokladna: do konce akce, bez konce do začátku + 12 h
+ [32m✓[39m src/lib/sales/cutoff.test.ts[2m > [22muzávěrka prodeje (kolo 7, C-29)[2m > [22mvalidace: po konci akce chyba, rovno konci OK, prázdné OK
+ [32m✓[39m src/lib/payment/benefit-providers/gallery-beta.test.ts[2m > [22mcreateGalleryBetaPayment[2m > [22mPOSTuje s Bearer auth a webhookUrl
+ [32m✓[39m src/lib/payment/benefit-providers/gallery-beta.test.ts[2m > [22mverifyGalleryBetaCallback[2m > [22mvalid HMAC → true
+ [32m✓[39m src/lib/transit/partners/idos-brno.test.ts[2m > [22mcreateIdosBrnoPass[2m > [22mPOSTuje na /v1/tickets/issue s X-API-Key
+ [32m✓[39m src/lib/transit/partners/idos-brno.test.ts[2m > [22mcreateIdosBrnoPass[2m > [22mhodí pri missing creds
+ [32m✓[39m src/lib/fees/service-fee.test.ts[2m > [22mresolveServiceFee[2m > [22mper_ticket: fee × počet vstupenek
+ [32m✓[39m src/lib/fees/service-fee.test.ts[2m > [22mresolveServiceFee[2m > [22mper_order: fee jednou bez ohledu na počet
+ [32m✓[39m src/lib/fees/service-fee.test.ts[2m > [22mresolveServiceFee[2m > [22mžádný fee_schedule → 0 (default stav, žádná přirážka)
+ [32m✓[39m src/lib/fees/service-fee.test.ts[2m > [22mresolveServiceFee[2m > [22mfee 0 → 0 i pro per_ticket
+ [32m✓[39m src/lib/fees/service-fee.test.ts[2m > [22mresolveServiceFee[2m > [22mquantity < 1 se ošetří jako 1
+ [32m✓[39m src/app/api/admin/orders/bulk-refund/contract.test.ts[2m > [22mbulk-refund outcome shape[2m > [22mrefunded result contains amount
+ [32m✓[39m src/app/api/admin/orders/bulk-refund/contract.test.ts[2m > [22mbulk-refund outcome shape[2m > [22mwrong_promoter does NOT leak amount (privacy)
+ [32m✓[39m src/app/api/admin/orders/bulk-refund/contract.test.ts[2m > [22mbulk-refund outcome shape[2m > [22msummary reduce skips errors and not_found
+ [32m✓[39m src/lib/payment/__tests__/comgate.test.ts[2m > [22mgetComGateConfig[2m > [22misConfigured=false bez env
+ [32m✓[39m src/lib/payment/__tests__/comgate.test.ts[2m > [22mgetComGateConfig[2m > [22misConfigured=true s merchant + secret
+ [32m✓[39m src/lib/payment/__tests__/comgate.test.ts[2m > [22mgetComGateConfig[2m > [22misConfigured=false pokud chybí secret
+ [32m✓[39m src/lib/payment/__tests__/comgate.test.ts[2m > [22mgetComGateConfig[2m > [22mtest mode přes COMGATE_TEST=true
+ [32m✓[39m src/lib/payment/__tests__/comgate.test.ts[2m > [22mgetComGateConfig[2m > [22mdefault API URL
+ [32m✓[39m src/lib/payment/__tests__/comgate.test.ts[2m > [22mgetComGateConfig[2m > [22mcache funguje
+[90mstderr[2m | src/lib/payment/__tests__/comgate.test.ts[2m > [22m[2mgetComGateConfig[2m > [22m[2misConfigured=false bez env[22m[39m
+[payment] ComGate není nakonfigurovaný — checkout poběží v mock režimu. Nastavte COMGATE_MERCHANT, COMGATE_SECRET.
+
+[90mstderr[2m | src/lib/payment/__tests__/comgate.test.ts[2m > [22m[2mgetComGateConfig[2m > [22m[2misConfigured=false pokud chybí secret[22m[39m
+[payment] ComGate není nakonfigurovaný — checkout poběží v mock režimu. Nastavte COMGATE_MERCHANT, COMGATE_SECRET.
+
+[90mstderr[2m | src/lib/payment/__tests__/comgate.test.ts[2m > [22m[2mgetComGateConfig[2m > [22m[2mdefault API URL[22m[39m
+[payment] ComGate není nakonfigurovaný — checkout poběží v mock režimu. Nastavte COMGATE_MERCHANT, COMGATE_SECRET.
+
+ [32m✓[39m src/lib/seating/seat-range.test.ts[2m > [22mseatNumCompare[2m > [22mřadí číselná místa číselně, ne abecedně
+ [32m✓[39m src/lib/seating/seat-range.test.ts[2m > [22mseatNumCompare[2m > [22mnečíselná místa řadí abecedně
+ [32m✓[39m src/lib/seating/seat-range.test.ts[2m > [22minSeatRange[2m > [22mbere oba kraje včetně
+ [32m✓[39m src/lib/seating/seat-range.test.ts[2m > [22minSeatRange[2m > [22mvyloučí místa mimo rozsah
+ [32m✓[39m src/lib/seating/seat-range.test.ts[2m > [22minSeatRange[2m > [22mrozsah 2–10 vezme všech devět míst, ne dvě
+ [32m✓[39m src/lib/seating/seat-range.test.ts[2m > [22minSeatRange[2m > [22mnezadaná hranice neomezuje
+ [32m✓[39m src/lib/seating/seat-range.test.ts[2m > [22minSeatRange[2m > [22mprázdný řetězec se chová jako nezadaná hranice
+ [32m✓[39m src/lib/seating/seat-range.test.ts[2m > [22minSeatRange[2m > [22mzvládne řadu s písmennými místy
+ [32m✓[39m src/lib/ai/__tests__/semantic-search.test.ts[2m > [22mparseIntent[2m > [22mdetekuje genre + city + date_range
+ [32m✓[39m src/lib/ai/__tests__/semantic-search.test.ts[2m > [22mparseIntent[2m > [22mdetekuje audience family
+ [32m✓[39m src/lib/ai/__tests__/semantic-search.test.ts[2m > [22mparseIntent[2m > [22mdetekuje max price
+ [32m✓[39m src/lib/ai/__tests__/semantic-search.test.ts[2m > [22mparseIntent[2m > [22mextrahuje keywords bez stopwords
+ [32m✓[39m src/lib/ai/__tests__/semantic-search.test.ts[2m > [22mparseIntent[2m > [22mpodporuje EN vstup
+ [32m✓[39m src/lib/ai/__tests__/semantic-search.test.ts[2m > [22mparseIntent[2m > [22mtypo tolerance: keywords obsahují i překlepy (zpracovává SQL trigram match)
+ [32m✓[39m src/lib/ai/__tests__/semantic-search.test.ts[2m > [22mparseIntent[2m > [22melektronická hudba intent
+ [32m✓[39m src/lib/reports/xlsx.test.ts[2m > [22mXLSX / CSV export (kolo 8 / krok 8)[2m > [22mcrc32 odpovídá referenční hodnotě
+ [32m✓[39m src/lib/reports/xlsx.test.ts[2m > [22mXLSX / CSV export (kolo 8 / krok 8)[2m > [22mXLSX je platný ZIP s listy, čísla jako čísla, text s diakritikou
+ [32m✓[39m src/lib/reports/xlsx.test.ts[2m > [22mXLSX / CSV export (kolo 8 / krok 8)[2m > [22mCSV: BOM, středník, uvozovky
+ [32m✓[39m src/lib/scanner/qr-policy.test.ts[2m > [22mqrPolicyDecision (kolo 5 — sdílené validate + passage)[2m > [22mrotating_24h: víc než 24 h před akcí TOTP nepotřebuje, do 24 h ano
+ [32m✓[39m src/lib/scanner/qr-policy.test.ts[2m > [22mqrPolicyDecision (kolo 5 — sdílené validate + passage)[2m > [22mchybějící politika = rotating_24h (výchozí z kola 2)
+ [32m✓[39m src/lib/scanner/qr-policy.test.ts[2m > [22mqrPolicyDecision (kolo 5 — sdílené validate + passage)[2m > [22mTXP2 nahradí TOTP u static_allowed a rotating_24h, u rotating_only / photo_required ne
+ [32m✓[39m src/lib/scanner/qr-policy.test.ts[2m > [22mqrPolicyDecision (kolo 5 — sdílené validate + passage)[2m > [22mstatic_allowed nikdy nevyžaduje TOTP
+ [32m✓[39m src/components/admin/__tests__/Pagination.test.tsx[2m > [22mPagination[2m > [22mrenders nothing when totalPages <= 1
+ [32m✓[39m src/components/admin/__tests__/Pagination.test.tsx[2m > [22mPagination[2m > [22mshows current page indicator
+ [32m✓[39m src/components/admin/__tests__/Pagination.test.tsx[2m > [22mPagination[2m > [22mdisables Previous on first page[33m 459[2mms[22m[39m
+ [32m✓[39m src/components/admin/__tests__/Pagination.test.tsx[2m > [22mPagination[2m > [22mdisables Next on last page
+ [32m✓[39m src/components/admin/__tests__/Pagination.test.tsx[2m > [22mPagination[2m > [22mcalls onChange with next page
+ [32m✓[39m src/components/admin/__tests__/Pagination.test.tsx[2m > [22mPagination[2m > [22mcalls onChange with previous page
+ [32m✓[39m src/lib/theatre/reservations.test.ts[2m > [22mlhůta rezervace (kolo 8 / krok 5)[2m > [22mN dní od vytvoření, když je začátek daleko
+ [32m✓[39m src/lib/theatre/reservations.test.ts[2m > [22mlhůta rezervace (kolo 8 / krok 5)[2m > [22mnejpozději M hodin před začátkem
+ [32m✓[39m src/lib/theatre/reservations.test.ts[2m > [22mlhůta rezervace (kolo 8 / krok 5)[2m > [22mméně než M hodin před začátkem už nelze
+ [32m✓[39m src/lib/theatre/reservations.test.ts[2m > [22mlhůta rezervace (kolo 8 / krok 5)[2m > [22massertReservable: vypnuté / uzavřené rezervace hlásí kód
+ [32m✓[39m src/lib/theatre/reservations.test.ts[2m > [22mlhůta rezervace (kolo 8 / krok 5)[2m > [22mkód rezervace: 8 znaků bez zaměnitelných (0/O, 1/I)
+ [32m✓[39m src/components/admin/__tests__/DataTable.test.tsx[2m > [22mDataTable[2m > [22mrenders headers and rows
+ [32m✓[39m src/components/admin/__tests__/DataTable.test.tsx[2m > [22mDataTable[2m > [22mshows empty message when no rows
+ [32m✓[39m src/components/admin/__tests__/DataTable.test.tsx[2m > [22mDataTable[2m > [22mrenders skeleton rows when loading
+ [32m✓[39m src/components/admin/__tests__/SalesSparkline.test.tsx[2m > [22mSalesSparkline[2m > [22mrenders fallback when no data
+ [32m✓[39m src/components/admin/__tests__/SalesSparkline.test.tsx[2m > [22mSalesSparkline[2m > [22mrenders SVG with polyline for non-empty data
+ [32m✓[39m src/components/admin/__tests__/SalesSparkline.test.tsx[2m > [22mSalesSparkline[2m > [22mrenders area polygon under the line
+ [32m✓[39m src/components/admin/__tests__/SalesSparkline.test.tsx[2m > [22mSalesSparkline[2m > [22muses ARIA role and label for screen readers
+ [32m✓[39m src/lib/html-escape/escape.test.ts[2m > [22mescapeHtml[2m > [22mescapes basic XSS payload
+ [32m✓[39m src/lib/html-escape/escape.test.ts[2m > [22mescapeHtml[2m > [22mescapes ampersands
+ [32m✓[39m src/lib/html-escape/escape.test.ts[2m > [22mescapeHtml[2m > [22mescapes both quote types (attribute injection)
+ [32m✓[39m src/lib/html-escape/escape.test.ts[2m > [22mescapeHtml[2m > [22mescapes attribute injection vector
+ [32m✓[39m src/lib/html-escape/escape.test.ts[2m > [22mescapeHtml[2m > [22mreturns empty string for null/undefined
+ [32m✓[39m src/lib/html-escape/escape.test.ts[2m > [22mescapeHtml[2m > [22mpreserves benign UTF-8 (Czech)
+ [32m✓[39m src/lib/html-escape/escape.test.ts[2m > [22mescapeHtml[2m > [22mescapes ampersand FIRST (no double-encoding bug)
+ [32m✓[39m src/lib/html-escape/escape.test.ts[2m > [22mescapeHtml[2m > [22mcoerces numbers to string
+ [32m✓[39m src/components/admin/__tests__/StatCard.test.tsx[2m > [22mStatCard[2m > [22mrenders title and value
+ [32m✓[39m src/components/admin/__tests__/StatCard.test.tsx[2m > [22mStatCard[2m > [22mrenders positive trend with up arrow tone
+ [32m✓[39m src/components/admin/__tests__/StatCard.test.tsx[2m > [22mStatCard[2m > [22mrenders negative trend with down arrow tone
+ [32m✓[39m src/components/admin/__tests__/StatCard.test.tsx[2m > [22mStatCard[2m > [22mshows hint when provided
+ [32m✓[39m src/components/admin/__tests__/EmptyState.test.tsx[2m > [22mEmptyState[2m > [22mrenders title
+ [32m✓[39m src/components/admin/__tests__/EmptyState.test.tsx[2m > [22mEmptyState[2m > [22mrenders description and action when provided
+ [32m✓[39m src/components/admin/__tests__/StatusBadge.test.tsx[2m > [22mStatusBadge[2m > [22mrenders paid with Czech label and tone class
+ [32m✓[39m src/components/admin/__tests__/StatusBadge.test.tsx[2m > [22mStatusBadge[2m > [22mrenders pending with Czech label and tone class
+ [32m✓[39m src/components/admin/__tests__/StatusBadge.test.tsx[2m > [22mStatusBadge[2m > [22mrenders cancelled with Czech label and tone class
+ [32m✓[39m src/components/admin/__tests__/StatusBadge.test.tsx[2m > [22mStatusBadge[2m > [22mrenders refunded with Czech label and tone class
+ [32m✓[39m src/components/admin/__tests__/StatusBadge.test.tsx[2m > [22mStatusBadge[2m > [22mrenders expired with Czech label and tone class
+
+[2m Test Files [22m [1m[32m77 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (78)[39m
+[2m      Tests [22m [1m[32m712 passed[39m[22m[2m | [22m[33m13 skipped[39m[90m (725)[39m
+[2m   Start at [22m 20:47:46
+[2m   Duration [22m 162.58s[2m (transform 3.30s, setup 63.44s, collect 7.15s, tests 36.24s, environment 149.15s, prepare 30.79s)[22m
+
