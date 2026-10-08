@@ -46,3 +46,15 @@ r16load). Procesy jen vlastní; ukončovat přes PowerShell podle příkazové �
   GHSA-86w9-cpqp-85rv (high, oprava neexistuje) se týká OVĚŘOVÁNÍ podpisu RSA PKCS#1 v1.5 (`3_forge_GHSA-86w9-cpqp-85rv.txt`);
   aplikace verify nevolá → beze změny.
 - @sentry/nextjs: neupgradováno; co by 11 obnášelo `logs/r16/sentry/3_sentry_v11_upgrade.md`.
+
+## Krok 4 — kolísavý test fix-r11 GET /api/health/redis
+- Měření (`4_timing.txt`, 33 plných běhů: běžně, s plným vytížením CPU, s nedostatkem RAM (606 MB volno), 6 vláken + CPU +
+  RAM): import routy 0,37–0,96 s, GET 4,01–4,04 s — selhání se dnes nevyvolalo (0/33).
+- Rozbor: GET je omezen časovačem 4 s (withTimeout); node-redis disconnect() při připojování vrací hned (socket je až po
+  'connect'; socket.js). V neúspěšných bězích kola 15 vitest ukončil test vlastním časovačem po 20 s → časovače vlákna
+  běžely → GET, pokud začal, skončil by do 4–5 s. Jediný krok v 20s okně, který časovač neomezuje, je první
+  `await import()` modulu routy (transformace přes RPC v hlavním procesu vitestu + vyhodnocení redis/pg), sdílený se
+  souběžnými soubory; v kole 15 trvala fáze environment 158–189 s (dnes 28 s). Příčina odvozena vyloučením, ne přímo
+  zachycena.
+- Oprava v testu: moduly obou health rout se načtou v beforeAll (limit 120 s); limit testu 20 s i odpovědi 5,5 s beze
+  změny. Ověření: 10 po sobě jdoucích plných běhů unit sady 10/10 (`4_unit_10runs.txt`).
