@@ -101,3 +101,5 @@ logs/r2/fake-gopay.*
 
 # Kolo 9: výstup scripts/staging/create.sh (tajné údaje stagingu)
 staging.env
+# Klíče vlastníka pro staging (Neon, GoPay/ComGate sandbox, Resend) — viz NEXT_STEPS.md
+staging.keys.env
