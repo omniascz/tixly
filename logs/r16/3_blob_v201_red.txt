@@ -1,0 +1,77 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/fix-r16-blob-upload.live.test.ts[2m > [22m[2mVercel Blob — nahrávání se po upgradu chová stejně[22m[39m
+[live-local-clone] live_blob_upload_muz9w8d6: handlery běží jako tixly_app (RLS platí)
+
+ [33m❯[39m tests/fix-r16-blob-upload.live.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[33m 5402[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r16-blob-upload.live.test.ts[2m > [22mVercel Blob — nahrávání se po upgradu chová stejně[2m > [22mtitulní obrázek akce: nahrání projde, uložený název má náhodnou příponu (jako v 0.27)[39m
+[31m     → náhodná přípona: expected 'events/5091b110-96cc-4fa4-8cf6-f24af4…' to match /-R4nd0mSuff1x\.png$/[39m
+[31m   [33m❯[31m tests/fix-r16-blob-upload.live.test.ts[2m > [22mVercel Blob — nahrávání se po upgradu chová stejně[2m > [22mfotka výhledu z místa: nahrání projde, náhodná přípona[39m
+[31m     → expected 'seat-view/b36f1eeb-d468-4774-a318-3b4…' to match /^seat-view\/.*-R…/.*-R4nd0mSuff1x\.png$[39m
+[31m   [33m❯[31m tests/fix-r16-blob-upload.live.test.ts[2m > [22mVercel Blob — nahrávání se po upgradu chová stejně[2m > [22martwork fanouškovské vstupenky: pevný název, opakované nahrání přepíše (jako v 0.27)[39m
+[31m     → Vercel Blob: Unknown error, please visit https://vercel.com/help.[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r16-blob-upload.live.test.ts[2m > [22mVercel Blob — nahrávání se po upgradu chová stejně[2m > [22mtitulní obrázek akce: nahrání projde, uložený název má náhodnou příponu (jako v 0.27)
+[31m[1mAssertionError[22m: náhodná přípona: expected 'events/5091b110-96cc-4fa4-8cf6-f24af4…' to match /-R4nd0mSuff1x\.png$/[39m
+
+[32m- Expected:[39m 
+/-R4nd0mSuff1x\.png$/
+
+[31m+ Received:[39m 
+"events/5091b110-96cc-4fa4-8cf6-f24af462d73a/cover-1791448021616-mby1q5w5.png"
+
+[36m [2m❯[22m tests/fix-r16-blob-upload.live.test.ts:[2m80:41[22m[39m
+    [90m 78| [39m    [35mconst[39m r [33m=[39m reqs[33m.[39m[34mat[39m([33m-[39m[34m1[39m)[33m![39m[33m;[39m
+    [90m 79| [39m    [34mexpect[39m(r[33m.[39mpathname)[33m.[39m[34mtoMatch[39m([36m/^events\//[39m)[33m;[39m
+    [90m 80| [39m    [34mexpect[39m(r[33m.[39mstored[33m,[39m [32m'náhodná přípona'[39m)[33m.[39m[34mtoMatch[39m([36m/-R4nd0mSuff1x\.png$/[39m)[33m;[39m
+    [90m   | [39m                                        [31m^[39m
+    [90m 81| [39m  })[33m;[39m
+    [90m 82| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r16-blob-upload.live.test.ts[2m > [22mVercel Blob — nahrávání se po upgradu chová stejně[2m > [22mfotka výhledu z místa: nahrání projde, náhodná přípona
+[31m[1mAssertionError[22m: expected 'seat-view/b36f1eeb-d468-4774-a318-3b4…' to match /^seat-view\/.*-R…/.*-R4nd0mSuff1x\.png$[39m
+
+[32m- Expected:[39m 
+/^seat-view\/.*-R4nd0mSuff1x\.png$/
+
+[31m+ Received:[39m 
+"seat-view/b36f1eeb-d468-4774-a318-3b4f1c25ef7c/1791448021738-y2qbpl4z.png"
+
+[36m [2m❯[22m tests/fix-r16-blob-upload.live.test.ts:[2m87:33[22m[39m
+    [90m 85| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [33mPOST[39m([35mawait[39m [34mupload[39m([32m`/api/platform/venues/[39m[36m${[39mchain[33m.[39m…
+    [90m 86| [39m    [34mexpect[39m(res[33m.[39mstatus[33m,[39m [35mawait[39m res[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m 87| [39m    [34mexpect[39m(reqs[33m.[39m[34mat[39m([33m-[39m[34m1[39m)[33m![39m[33m.[39mstored)[33m.[39m[34mtoMatch[39m([36m/^seat-view\/.*-R4nd0mSuff1x\.[39m…
+    [90m   | [39m                                [31m^[39m
+    [90m 88| [39m  })[33m;[39m
+    [90m 89| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r16-blob-upload.live.test.ts[2m > [22mVercel Blob — nahrávání se po upgradu chová stejně[2m > [22martwork fanouškovské vstupenky: pevný název, opakované nahrání přepíše (jako v 0.27)
+[31m[1mError[22m: Vercel Blob: Unknown error, please visit https://vercel.com/help.[39m
+[90m [2m❯[22m getBlobError node_modules/@vercel/blob/src/api.ts:[2m241:15[22m[39m
+[90m [2m❯[22m node_modules/@vercel/blob/src/api.ts:[2m357:31[22m[39m
+[90m [2m❯[22m requestApi node_modules/@vercel/blob/src/api.ts:[2m282:23[22m[39m
+[90m [2m❯[22m Module.put node_modules/@vercel/blob/src/put.ts:[2m63:22[22m[39m
+[36m [2m❯[22m src/app/api/admin/events/[id]/fan-ticket/artwork/route.ts:[2m47:18[22m[39m
+    [90m 45| [39m    [35mconst[39m filename [33m=[39m [32m`fan-ticket/[39m[36m${[39mparams[33m.[39mid[36m}[39m[32m/artwork.[39m[36m${[39mext[36m}[39m[32m`[39m[33m;[39m
+    [90m 46| [39m
+    [90m 47| [39m    [35mconst[39m blob [33m=[39m [35mawait[39m [34mput[39m(filename[33m,[39m file[33m,[39m {
+    [90m   | [39m                 [31m^[39m
+    [90m 48| [39m      access[33m:[39m [32m'public'[39m[33m,[39m
+    [90m 49| [39m      contentType[33m:[39m file[33m.[39mtype[33m,[39m
+[90m [2m❯[22m tests/fix-r16-blob-upload.live.test.ts:[2m95:20[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[90m (3)[39m
+[2m   Start at [22m 10:26:56
+[2m   Duration [22m 5.97s[2m (transform 167ms, setup 0ms, collect 122ms, tests 5.40s, environment 0ms, prepare 70ms)[22m
+
