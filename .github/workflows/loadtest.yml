@@ -71,12 +71,21 @@ jobs:
           path: tool
           persist-credentials: false
 
+      # actions/checkout s `ref` bere jen větev, tag nebo celý hash — zkrácený hash (např. e14cbad2) neumí. Proto celá
+      # historie a ref se přeloží až v gitu (commit, zkrácený commit, tag, větev).
       - name: Testovaná verze (${{ inputs.ref }})
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.ref }}
           path: app
+          fetch-depth: 0
           persist-credentials: false
+      - name: Přepnout na ${{ inputs.ref }}
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          sha=$(git -C app rev-parse --verify -q "$REF^{commit}" || git -C app rev-parse --verify -q "origin/$REF^{commit}")             || { echo "::error::ref $REF nenalezen"; exit 1; }
+          git -C app checkout -q --detach "$sha"
+          git -C app log --oneline -1
 
       - uses: actions/setup-node@v4
         with:
@@ -184,6 +193,7 @@ jobs:
         env:
           REF: ${{ inputs.ref }}
         run: |
+          mkdir -p "$OUT"
           node tool/e2e/load/r17-summarize.mjs "$OUT" > "$OUT/results.json"
           {
             echo "## Zátěžový test — $REF"
