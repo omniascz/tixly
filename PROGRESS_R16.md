@@ -39,3 +39,8 @@ r16load). Procesy jen vlastní; ukončovat přes PowerShell podle příkazové �
   server API v11 má výchozí addRandomSuffix=false a zakázané přepsání (0.27 = API v9: obojí zapnuté) → explicitně
   addRandomSuffix: true (titulní obrázek, výhledy) a allowOverwrite: true (všechny tři; artwork má pevný název).
   Test fix-r16-blob-upload: 0.27.3 3/3, 2.0.1 bez úprav RED 3/3, s úpravou GREEN 3/3.
+- node-forge 1.4.0: jediné použití `lib/wallet/apple-pass.ts` (pkcs7.createSignedData + sign, pki.certificateFromPem,
+  pki.privateKeyFromPem, util.createBuffer, asn1.toDer) = jen PODEPISOVÁNÍ pkpass. Jediný advisory pro 1.4.0
+  GHSA-86w9-cpqp-85rv (high, oprava neexistuje) se týká OVĚŘOVÁNÍ podpisu RSA PKCS#1 v1.5 (`3_forge_GHSA-86w9-cpqp-85rv.txt`);
+  aplikace verify nevolá → beze změny.
+- @sentry/nextjs: neupgradováno; co by 11 obnášelo `logs/r16/sentry/3_sentry_v11_upgrade.md`.
