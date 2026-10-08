@@ -20,8 +20,10 @@ r16load). Procesy jen vlastní; ukončovat přes PowerShell podle příkazové �
   rezervace/zrusit (jen tlačítko) ponechána; (3) middleware: výjimka /b2b/ z jazykového prefixu.
 - GREEN 12/12 (`1_prehydration_green.txt`); tsc 0, lint bez nárůstu, unit 712; tabulka rout beze změny (1124/1119/5).
 
-## Krok 2 — zátěž (čeká na volný stroj)
-- `logs/r16/load_check.ps1` + `load_wait.sh` (6× po 10 min), log `2_load_checks.txt`.
+## Krok 2 — zátěž: VYNECHÁNA (stroj nebyl volný)
+- `logs/r16/load_check.ps1` + `load_wait.sh` (6× po 10 min), log `2_load_checks.txt`: 09:57–10:51 ani jednou volný —
+  volná paměť 580–3358 MB (< 4 GB), CPU procesů mimo session 2,1–20,2 % (python ×3–5, Docker, Chrome). Kontrolní
+  smyčku systém v 10:4x ukončil kvůli nedostatku paměti; 6. kontrola ručně v 10:51 (10 min po 5.). Test vynechán.
 
 ## Krok 3 — runtime závislosti
 - nodemailer 8.0.11 → **10.0.16** (GitHub Advisory DB: 8.0.11 4× high, 9.1.1 3× high, 10.0.16 žádné; nejnižší major bez high
