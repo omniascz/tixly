@@ -66,3 +66,7 @@ r16load). Procesy jen vlastní; ukončovat přes PowerShell podle příkazové �
 - build OK, tabulka rout beze změny (1124/1119/5); build bez sítě (čistý klon 3c08b80f) OK, 0 spojení.
 - audity 01 26, 02 36, 03 23, 04 14, 05 8, 06 21, 07 6, 07b zápisy 0 řádků (= kolo 13–15), 08 2, 09 12, 10 7, 11 8, 12 5 — 0 FAIL.
 - turné 10/10, golden-path-r13-keep 10/10, formuláře před hydratací 12/12, offline skener 6/6.
+
+## Závěr
+- PR #14 → CI vše pass, Vercel nextjs-boilerplate i tixly pass → sloučeno 10396c66, lokální integrate fast-forward.
+- ROUND16_REPORT.md na integrate.
