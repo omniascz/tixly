@@ -1,0 +1,8 @@
+Install · typecheck · lint · unit	Typecheck	﻿2026-10-04T02:17:50.6254811Z ##[group]Run npx tsc --noEmit -p .
+Install · typecheck · lint · unit	Typecheck	2026-10-04T02:17:50.6255309Z ^[[36;1mnpx tsc --noEmit -p .^[[0m
+Install · typecheck · lint · unit	Typecheck	2026-10-04T02:17:50.6350061Z shell: /usr/bin/bash -e {0}
+Install · typecheck · lint · unit	Typecheck	2026-10-04T02:17:50.6350476Z env:
+Install · typecheck · lint · unit	Typecheck	2026-10-04T02:17:50.6350786Z   NODE_VERSION: 24
+Install · typecheck · lint · unit	Typecheck	2026-10-04T02:17:50.6351126Z ##[endgroup]
+Install · typecheck · lint · unit	Typecheck	2026-10-04T02:18:27.0757362Z ##[error]tests/fix-r7-comgate-api.live.test.ts(115,35): error TS7006: Parameter 'c' implicitly has an 'any' type.
+Install · typecheck · lint · unit	Typecheck	2026-10-04T02:18:27.2126915Z ##[error]Process completed with exit code 2.

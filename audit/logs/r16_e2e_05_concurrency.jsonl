@@ -1,0 +1,8 @@
+{"id":"C1a","title":"100 soubeznych nakupu na 10 mist: uspelo prave 10, zadny preprodej","result":"PASS","evidence":{"ms":724,"responses":{"200:OK":10,"409:Insufficient inventory":2,"409:Insufficient inventory (remaining: 0)":88},"remaining_qty":0,"dbOrders":[{"status":"pending","n":10,"qty":10}]}}
+{"id":"C1b","title":"remaining_qty nikdy zaporne; neuspesne pozadavky dostaly cistou odpoved (409), ne 500","result":"PASS","evidence":{"http5xx":0,"sample5xx":[]}}
+{"id":"C2a","title":"50 soubeznych volani (30 webhooku + 20 order-completed) na 10 objednavek: prave 10 vstupenek, 1 na objednavku","result":"PASS","evidence":{"hookStatuses":{"200":50},"paidOrders":10,"ticketsTotal":10,"maxPerOrder":1}}
+{"id":"C2b","title":"jedna platba = jeden zaznam payment_paid (3 webhooky na platbu)","result":"PASS","evidence":{"payment_paid_per_order":{"1":10}}}
+{"id":"C2c","title":"potvrzovaci e-maily: 1 na objednavku (ocekavano 10), ne duplicitni","result":"PASS","evidence":{"mailsToRaceBuyers":10,"expected":10}}
+{"id":"C3","title":"zavod: 40 soubeznych pouziti promo kodu s max_uses=5 -> sleva aplikovana max 5x","result":"PASS","evidence":{"create":201,"applied":5,"db":{"uses_count":5,"max_uses":5},"responses":{"200:OK":5,"422:PROMO_CODE_USED_UP":35}}}
+{"id":"C4","title":"zavod: 15 soubeznych nakupu tehoz uzivatele pri limitu 2 ks/osobu -> max 2 ks","result":"PASS","evidence":{"boughtQty":2,"responses":{"422:PURCHASE_LIMIT_EXCEEDED":13,"200:OK":2}}}
+{"id":"C5","title":"rate limiting nakupu: 60 checkoutu z JEDNE IP behem vterin -> cast odmitnuta 429","result":"PASS","evidence":{"responses":{"200:OK":10,"429:RATE_LIMIT_EXCEEDED":50},"heldByOneIp":10,"remaining":{"total_qty":500,"remaining_qty":485}}}

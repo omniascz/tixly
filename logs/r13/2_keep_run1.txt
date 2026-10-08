@@ -1,0 +1,97 @@
+
+Running 10 tests using 1 worker
+
+[1A[2K[1/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:82:7 › vlastník › bod 4: termín v sále bez míst v cenových zónách se nezaloží (ani nezveřejní)
+[1A[2K[2/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:96:7 › vlastník › bod 5: blokace bez volných míst se nezaloží prázdná
+[1A[2K[3/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:113:7 › vlastník › bod 6: „Zpět" z editoru plánku vede na existující stránku
+[1A[2K  1) [golden-path] › tests\golden-path-r13-keep.spec.ts:113:7 › vlastník › bod 6: „Zpět" z editoru plánku vede na existující stránku 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('link', { name: 'Editor plánku' }).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByRole('link', { name: 'Editor plánku' }).first()[22m
+
+
+      118 |     await page.waitForURL(/\/admin\/venues$/);
+      119 |     await expect(page.getByText('404')).toHaveCount(0);
+    > 120 |     await expect(page.getByRole('link', { name: 'Editor plánku' }).first()).toBeVisible(); // knihovna míst s editorem sálu
+          |                                                                             ^
+      121 |   });
+      122 |
+      123 |   test('bod 7: zrušený termín v seznamu akcí „Zrušeno", ne „Prodej"', async () => {
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r13-keep.spec.ts:120:77
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[4/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:123:7 › vlastník › bod 7: zrušený termín v seznamu akcí „Zrušeno", ne „Prodej"
+[1A[2K[5/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:136:7 › vlastník › bod 8: nepovedené stažení reportu ohlásí chybu
+[1A[2K  2) [golden-path] › tests\golden-path-r13-keep.spec.ts:136:7 › vlastník › bod 8: nepovedené stažení reportu ohlásí chybu 
+
+    Error: locator.waitFor: Error: strict mode violation: getByRole('button', { name: 'CSV' }) resolved to 2 elements:
+        1) <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">CSV</button> aka getByRole('button', { name: 'CSV', exact: true })
+        2) <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">Uvaděči CSV</button> aka getByRole('button', { name: 'Uvaděči CSV' })
+
+    Call log:
+    [2m  - waiting for getByRole('button', { name: 'CSV' }) to be visible[22m
+
+
+      136 |   test('bod 8: nepovedené stažení reportu ohlásí chybu', async () => {
+      137 |     await page.goto(`/admin/events/${T.rBrno}/reporty`);
+    > 138 |     await page.getByRole('button', { name: 'CSV' }).waitFor();
+          |                                                     ^
+      139 |     await page.route('**/api/admin/theatre-reports?*format=csv*', (r) => r.fulfill({ status: 500, body: '{}' }));
+      140 |     await page.getByRole('button', { name: 'CSV' }).click();
+      141 |     await expect(page.getByRole('alert').filter({ hasText: 'Soubor se nepodařilo stáhnout (HTTP 500).' })).toBeVisible();
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r13-keep.spec.ts:138:53
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-f83eb-tažení-reportu-ohlásí-chybu-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r13-keep-vlast-f83eb-tažení-reportu-ohlásí-chybu-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-f83eb-tažení-reportu-ohlásí-chybu-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-f83eb-tažení-reportu-ohlásí-chybu-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-f83eb-tažení-reportu-ohlásí-chybu-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r13-keep-vlast-f83eb-tažení-reportu-ohlásí-chybu-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[6/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:148:7 › vlastník › bod 10: přesun a zrušení termínu jen po potvrzení v okně
+[1A[2K[7/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:170:7 › vlastník › bod 10: storno firemní objednávky jen po potvrzení v okně (beze změny od d0bbcb00)
+[1A[2K[8/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:191:7 › pokladní a vstup › bod 3: role Pokladna má na serveru omezený přístup (ne správce); vlastník beze změny
+[1A[2K[9/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:208:7 › pokladní a vstup › body 2 a 9: pokladna — termíny odlišené městem, tisk = PDF vstupenek s QR, bez TOTP
+[1A[2K[10/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:238:7 › pokladní a vstup › bod 1: skener při výpadku sítě nehlásí „Vstup povolen" bez ověření
+[1A[2K  2 failed
+    [golden-path] › tests\golden-path-r13-keep.spec.ts:113:7 › vlastník › bod 6: „Zpět" z editoru plánku vede na existující stránku 
+    [golden-path] › tests\golden-path-r13-keep.spec.ts:136:7 › vlastník › bod 8: nepovedené stažení reportu ohlásí chybu 
+  8 passed (42.4s)

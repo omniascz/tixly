@@ -1,0 +1,86 @@
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3200
+
+ ✓ Starting...
+ ✓ Ready in 1480ms
+ ⨯ Error: Sentry kontrola: kupec jana.novakova@example.cz, tel. +420 777 123 456
+    at x (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\ops\sentry-check\route.js:1:3530)
+    at C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\76486.js:20:61161
+    at t.handleCallbackErrors (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\76486.js:20:31721)
+    at C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\76486.js:20:61134
+    at C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\67149.js:25:40511
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at t.with (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\67149.js:1:19874)
+    at t.with (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\67149.js:25:42727)
+    at c.with (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\67149.js:1:1521)
+    at Object.withScope (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\67149.js:25:40504) {
+  buyer: {
+    buyerName: 'Jana Nováková',
+    buyerEmail: 'jana.novakova@example.cz'
+  }
+}
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: cron_overdue:expire-pending-orders
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: cron_overdue:forgemsg-dispatch
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: cron_overdue:recompute-dynamic-pricing
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: cron_overdue:release-expired-seat-holds
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: cron_overdue:send-reminders
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: paid_without_tickets
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: refund_failed
+ ⨯ error: relation "public.forgemsg_credentials" does not exist
+    at C:\Users\omnia\Documents\tixly\nextjs-boilerplate\node_modules\pg\lib\client.js:631:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async C.query (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\47913.js:1:4606)
+    at async a (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\internal\cron\forgemsg-provision\route.js:5:225)
+    at async C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\internal\cron\forgemsg-provision\route.js:1:2588
+    at async C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\76486.js:20:61126
+    at async C:\Users\omnia\Documents\tixly\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38411
+    at async e_.execute (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:27880)
+    at async e_.handle (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:39943)
+    at async doRender (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\node_modules\next\dist\server\base-server.js:1366:42) {
+  length: 126,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '63',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1428',
+  routine: 'parserOpenTable'
+}
+ ⨯ error: relation "public.forgemsg_credentials" does not exist
+    at C:\Users\omnia\Documents\tixly\nextjs-boilerplate\node_modules\pg\lib\client.js:631:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async C.query (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\47913.js:1:4606)
+    at async a (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\internal\cron\forgemsg-provision\route.js:5:225)
+    at async C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\internal\cron\forgemsg-provision\route.js:1:2588
+    at async C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\76486.js:20:61126
+    at async C:\Users\omnia\Documents\tixly\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38411
+    at async e_.execute (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:27880)
+    at async e_.handle (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:39943)
+    at async doRender (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\node_modules\next\dist\server\base-server.js:1366:42) {
+  length: 126,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '63',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1428',
+  routine: 'parserOpenTable'
+}
