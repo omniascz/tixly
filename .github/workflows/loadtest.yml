@@ -11,6 +11,11 @@ name: Zátěžový test
 # Žádné secrets repozitáře, žádné spojení na produkci, nic se nenasazuje.
 
 on:
+  # Ruční spuštění z výchozí větve (master) jde až po sloučení. Do té doby GitHub workflow_dispatch nezná (HTTP 404
+  # „workflow not found on the default branch") — push se změnou tohoto souboru workflow jen ZAREGISTRUJE (job se
+  # přeskočí, viz `if` níže), pak ho jde spustit ručně z kterékoli větve přes ID: `gh workflow run <id> --ref <větev>`.
+  push:
+    paths: ['.github/workflows/loadtest.yml']
   workflow_dispatch:
     inputs:
       ref:
@@ -37,6 +42,7 @@ env:
 jobs:
   load:
     name: Zátěž ${{ inputs.ref }}
+    if: github.event_name == 'workflow_dispatch'   # zátěž jen ručně
     runs-on: ubuntu-latest
     timeout-minutes: 90
     services:
