@@ -8,8 +8,9 @@
  * mohou akci prodávat (volitelně s vlastní alokací a komisí).
  */
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import { Globe, Store, CheckCircle, Info } from 'lucide-react';
+import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -45,12 +46,11 @@ function authFetch(url: string, opts?: RequestInit): Promise<Response> {
   });
 }
 
-export default function DistributionPage(
-  props: {
+export default function DistributionPage(_props: {
     params: Promise<{ id: string }>;
   }
 ) {
-  const params = use(props.params);
+  const params = useParams<{ id: string }>();
   const { id: eventId } = useRouteParams(params);
   const [data, setData] = useState<Data | null>(null);
   const [saving, setSaving] = useState(false);

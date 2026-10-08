@@ -1,0 +1,9 @@
+{
+ "capturedAt": "2026-10-08T08:05:36.422Z",
+ "data": {
+  "from": "vstupenky@tixly.fix",
+  "to": "promoter-1791446732968-fzk5s@tixly.test",
+  "subject": "Faktura 2026-0002 po splatnosti — Firma XY s.r.o.",
+  "html": "<!DOCTYPE html><html><body style=\"font-family:system-ui;max-width:600px;padding:24px\">\n            <p>Firemní objednávka <strong>Firma XY s.r.o.</strong> na <strong>Test Akce</strong>\n            (faktura 2026-0002, 1 200 CZK)\n            nebyla zaplacena do 2026-10-07.</p>\n            <p>Místa zůstávají držená. Až rozhodnete, uvolněte je v administraci (Firemní objednávky → Zrušit / uvolnit místa).</p>\n          </body></html>"
+ }
+}

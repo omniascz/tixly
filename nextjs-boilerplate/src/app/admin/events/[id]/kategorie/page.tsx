@@ -5,7 +5,8 @@
  * výchozí šablona jedním krokem, nová / upravená kategorie (průkaz při vstupu, limit kusů na termín),
  * výjimka ceny pro konkrétní zónu. Ceny se při nákupu vždy počítají na serveru.
  */
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -21,8 +22,8 @@ const KINDS: Array<[string, string]> = [['full', 'Plné'], ['senior', 'Senior'],
 const kc = (minor: number) => `${(minor / 100).toLocaleString('cs-CZ')} Kč`;
 const empty = { code: '', name: '', kind: 'custom', priceMode: 'percent' as 'percent' | 'fixed', price: '100', requiresProof: false, proofLabel: '', limit: '' };
 
-export default function CategoriesPage(props: { params: Promise<{ id: string }> }) {
-  const params = use(props.params);
+export default function CategoriesPage(_props: { params: Promise<{ id: string }> }) {
+  const params = useParams<{ id: string }>();
   const [cats, setCats] = useState<Category[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [prices, setPrices] = useState<Price[]>([]);

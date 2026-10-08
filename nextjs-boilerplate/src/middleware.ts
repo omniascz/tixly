@@ -292,6 +292,9 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     pathname.startsWith('/embed/') ||
     pathname.startsWith('/m/') ||
     pathname.startsWith('/reseller/') ||
+    // Kolo 16: firemní (B2B) portál — /b2b/login a /b2b/dashboard žijí mimo [locale]; s prefixem /cs/b2b/… = 404,
+    // takže se firemní nákupčí nemohli přihlásit (pozvánkovým kódem).
+    pathname.startsWith('/b2b/') ||
     // Nabídka umělci — agent ji otevírá odkazem, bez účtu a bez volby jazyka.
     pathname.startsWith('/nabidka/') ||
     // Kiosk — samoobslužný terminál (bez locale prefix, bez auth)

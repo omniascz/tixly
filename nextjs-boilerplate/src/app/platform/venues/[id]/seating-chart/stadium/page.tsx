@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState, use } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -37,8 +38,8 @@ const DEFAULT_STANDS: StandForm[] = [
   { side: 'W', name: 'Západ', enabled: true, rows: 24, seatsPerRow: 120, tiers: 1, color: '#d97706' },
 ];
 
-export default function StadiumBuilderPage(props: { params: Promise<{ id: string }> }) {
-  const params = use(props.params);
+export default function StadiumBuilderPage(_props: { params: Promise<{ id: string }> }) {
+  const params = useParams<{ id: string }>();
   const venueId = params.id;
   const [chartName, setChartName] = useState('Stadion');
   const [pitchLabel, setPitchLabel] = useState('HŘIŠTĚ');

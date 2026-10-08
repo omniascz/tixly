@@ -1,0 +1,457 @@
+
+Running 12 tests using 1 worker
+
+  x   1 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:102:5 › přihlášení — administrace (vlastník) (12.5s)
+  x   2 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:106:5 › přihlášení — pokladna (role Pokladna) (12.4s)
+  x   3 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:110:5 › přihlášení — skener (role personál) (12.7s)
+  x   4 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:114:5 › přihlášení — kupec (15.2s)
+  x   5 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:119:5 › přihlášení — prodejce (1.0m)
+  x   6 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:138:5 › přihlášení — B2B (pozvánkový kód) (1.0m)
+  x   7 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:157:5 › registrace kupce (1.0m)
+  x   8 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:176:5 › registrace pořadatele (1.0m)
+  x   9 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:191:5 › zapomenuté heslo a nové heslo (odkaz z e-mailu) (1.0m)
+  x  10 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:233:5 › checkout — jméno napsané před hydratací se odešle (1.0m)
+  x  11 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:269:7 › pokladna a skener (přihlášený vlastník) › vyhledávání rezervací na pokladně (2.7s)
+  x  12 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:282:7 › pokladna a skener (přihlášený vlastník) › pole skeneru (12.6s)
+
+
+  1) [golden-path] › tests\golden-path-r16-prehydration.spec.ts:102:5 › přihlášení — administrace (vlastník) 
+
+    Error: e-mail napsaný před hydratací zůstal i po vyplnění hesla
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveValue[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  locator('input[type="email"]').first()
+    Expected: [32m"demo@tixly-staging.test"[39m
+    Received: [31m""[39m
+    Timeout:  10000ms
+
+    Call log:
+    [2m  - e-mail napsaný před hydratací zůstal i po vyplnění hesla with timeout 10000ms[22m
+    [2m  - waiting for locator('input[type="email"]').first()[22m
+    [2m    13 × locator resolved to <input value="" required="" type="email" id="login-email" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"/>[22m
+    [2m       - unexpected value ""[22m
+
+
+      66 |   await waitHydrated(emailField);
+      67 |   await page.getByLabel('Heslo').fill(pass);
+    > 68 |   await expect(emailField, 'e-mail napsaný před hydratací zůstal i po vyplnění hesla').toHaveValue(email);
+         |                                                                                        ^
+      69 |   const [req, res] = await Promise.all([
+      70 |     page.waitForRequest((r) => r.url().endsWith('/api/auth/login') && r.method() === 'POST', { timeout: 60_000 }),
+      71 |     page.waitForResponse((r) => r.url().endsWith('/api/auth/login'), { timeout: 60_000 }),
+        at loginFlow (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:68:88)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:104:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-b67d6-ní-—-administrace-vlastník--golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r16-prehydrati-b67d6-ní-—-administrace-vlastník--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r16-prehydrati-b67d6-ní-—-administrace-vlastník--golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-b67d6-ní-—-administrace-vlastník--golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r16-prehydrati-b67d6-ní-—-administrace-vlastník--golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [golden-path] › tests\golden-path-r16-prehydration.spec.ts:106:5 › přihlášení — pokladna (role Pokladna) 
+
+    Error: e-mail napsaný před hydratací zůstal i po vyplnění hesla
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveValue[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  locator('input[type="email"]').first()
+    Expected: [32m"r16-pokladna-muz68b6x@test.cz"[39m
+    Received: [31m""[39m
+    Timeout:  10000ms
+
+    Call log:
+    [2m  - e-mail napsaný před hydratací zůstal i po vyplnění hesla with timeout 10000ms[22m
+    [2m  - waiting for locator('input[type="email"]').first()[22m
+    [2m    13 × locator resolved to <input value="" required="" type="email" id="login-email" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"/>[22m
+    [2m       - unexpected value ""[22m
+
+
+      66 |   await waitHydrated(emailField);
+      67 |   await page.getByLabel('Heslo').fill(pass);
+    > 68 |   await expect(emailField, 'e-mail napsaný před hydratací zůstal i po vyplnění hesla').toHaveValue(email);
+         |                                                                                        ^
+      69 |   const [req, res] = await Promise.all([
+      70 |     page.waitForRequest((r) => r.url().endsWith('/api/auth/login') && r.method() === 'POST', { timeout: 60_000 }),
+      71 |     page.waitForResponse((r) => r.url().endsWith('/api/auth/login'), { timeout: 60_000 }),
+        at loginFlow (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:68:88)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:108:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-64985-í-—-pokladna-role-Pokladna--golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r16-prehydrati-64985-í-—-pokladna-role-Pokladna--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r16-prehydrati-64985-í-—-pokladna-role-Pokladna--golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-64985-í-—-pokladna-role-Pokladna--golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r16-prehydrati-64985-í-—-pokladna-role-Pokladna--golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [golden-path] › tests\golden-path-r16-prehydration.spec.ts:110:5 › přihlášení — skener (role personál) 
+
+    Error: e-mail napsaný před hydratací zůstal i po vyplnění hesla
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveValue[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  locator('input[type="email"]').first()
+    Expected: [32m"r16-sken-muz68q8m@test.cz"[39m
+    Received: [31m""[39m
+    Timeout:  10000ms
+
+    Call log:
+    [2m  - e-mail napsaný před hydratací zůstal i po vyplnění hesla with timeout 10000ms[22m
+    [2m  - waiting for locator('input[type="email"]').first()[22m
+    [2m    13 × locator resolved to <input value="" required="" type="email" id="login-email" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"/>[22m
+    [2m       - unexpected value ""[22m
+
+
+      66 |   await waitHydrated(emailField);
+      67 |   await page.getByLabel('Heslo').fill(pass);
+    > 68 |   await expect(emailField, 'e-mail napsaný před hydratací zůstal i po vyplnění hesla').toHaveValue(email);
+         |                                                                                        ^
+      69 |   const [req, res] = await Promise.all([
+      70 |     page.waitForRequest((r) => r.url().endsWith('/api/auth/login') && r.method() === 'POST', { timeout: 60_000 }),
+      71 |     page.waitForResponse((r) => r.url().endsWith('/api/auth/login'), { timeout: 60_000 }),
+        at loginFlow (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:68:88)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:112:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-dbd96-ení-—-skener-role-personál--golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r16-prehydrati-dbd96-ení-—-skener-role-personál--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r16-prehydrati-dbd96-ení-—-skener-role-personál--golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-dbd96-ení-—-skener-role-personál--golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r16-prehydrati-dbd96-ení-—-skener-role-personál--golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [golden-path] › tests\golden-path-r16-prehydration.spec.ts:114:5 › přihlášení — kupec ─────────
+
+    Error: e-mail napsaný před hydratací zůstal i po vyplnění hesla
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveValue[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  locator('input[type="email"]').first()
+    Expected: [32m"r16-kupec-muz6aewa@test.cz"[39m
+    Received: [31m""[39m
+    Timeout:  10000ms
+
+    Call log:
+    [2m  - e-mail napsaný před hydratací zůstal i po vyplnění hesla with timeout 10000ms[22m
+    [2m  - waiting for locator('input[type="email"]').first()[22m
+    [2m    14 × locator resolved to <input value="" required="" type="email" id="login-email" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"/>[22m
+    [2m       - unexpected value ""[22m
+
+
+      66 |   await waitHydrated(emailField);
+      67 |   await page.getByLabel('Heslo').fill(pass);
+    > 68 |   await expect(emailField, 'e-mail napsaný před hydratací zůstal i po vyplnění hesla').toHaveValue(email);
+         |                                                                                        ^
+      69 |   const [req, res] = await Promise.all([
+      70 |     page.waitForRequest((r) => r.url().endsWith('/api/auth/login') && r.method() === 'POST', { timeout: 60_000 }),
+      71 |     page.waitForResponse((r) => r.url().endsWith('/api/auth/login'), { timeout: 60_000 }),
+        at loginFlow (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:68:88)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:116:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydration-přihlášení-—-kupec-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r16-prehydration-přihlášení-—-kupec-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r16-prehydration-přihlášení-—-kupec-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydration-přihlášení-—-kupec-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r16-prehydration-přihlášení-—-kupec-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [golden-path] › tests\golden-path-r16-prehydration.spec.ts:119:5 › přihlášení — prodejce ──────
+
+    TimeoutError: page.waitForRequest: Timeout 60000ms exceeded while waiting for event "request"
+
+      126 |   await page.locator('#password').fill(PASS);
+      127 |   const [req, res] = await Promise.all([
+    > 128 |     page.waitForRequest((r) => r.url().endsWith('/api/reseller/auth') && r.method() === 'POST', { timeout: 60_000 }),
+          |          ^
+      129 |     page.waitForResponse((r) => r.url().endsWith('/api/reseller/auth'), { timeout: 60_000 }),
+      130 |     page.locator('button[type="submit"]').click(),
+      131 |   ]);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:128:10
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydration-přihlášení-—-prodejce-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r16-prehydration-přihlášení-—-prodejce-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r16-prehydration-přihlášení-—-prodejce-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydration-přihlášení-—-prodejce-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r16-prehydration-přihlášení-—-prodejce-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [golden-path] › tests\golden-path-r16-prehydration.spec.ts:138:5 › přihlášení — B2B (pozvánkový kód) 
+
+    TimeoutError: locator.waitFor: Timeout 60000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#b2b-invite-token')[22m
+
+
+      48 | /** Vyplní pole hned po načtení HTML; vrátí, zda to bylo před hydratací (jinak test neměří, co má). */
+      49 | async function typeBeforeHydration(page: Page, field: Locator, value: string): Promise<void> {
+    > 50 |   await field.waitFor({ state: 'attached', timeout: 60_000 });
+         |               ^
+      51 |   const before = !(await hydrated(field));
+      52 |   await field.pressSequentially(value, { delay: 0 });
+      53 |   expect(before, 'pole se mělo vyplnit před hydratací (pomalá síť nestačila)').toBe(true);
+        at typeBeforeHydration (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:50:15)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:145:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-2cd28-ášení-—-B2B-pozvánkový-kód--golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r16-prehydrati-2cd28-ášení-—-B2B-pozvánkový-kód--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r16-prehydrati-2cd28-ášení-—-B2B-pozvánkový-kód--golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-2cd28-ášení-—-B2B-pozvánkový-kód--golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r16-prehydrati-2cd28-ášení-—-B2B-pozvánkový-kód--golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [golden-path] › tests\golden-path-r16-prehydration.spec.ts:157:5 › registrace kupce ───────────
+
+    TimeoutError: page.waitForRequest: Timeout 60000ms exceeded while waiting for event "request"
+
+      165 |   for (const cb of await page.locator('input[type="checkbox"]').all()) if (!(await cb.isChecked())) await cb.check();
+      166 |   const [req, res] = await Promise.all([
+    > 167 |     page.waitForRequest((r) => r.url().endsWith('/api/auth/register') && r.method() === 'POST', { timeout: 60_000 }),
+          |          ^
+      168 |     page.waitForResponse((r) => r.url().endsWith('/api/auth/register'), { timeout: 60_000 }),
+      169 |     page.locator('button[type="submit"]').click(),
+      170 |   ]);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:167:10
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydration-registrace-kupce-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r16-prehydration-registrace-kupce-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r16-prehydration-registrace-kupce-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydration-registrace-kupce-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r16-prehydration-registrace-kupce-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [golden-path] › tests\golden-path-r16-prehydration.spec.ts:176:5 › registrace pořadatele ──────
+
+    TimeoutError: page.waitForRequest: Timeout 60000ms exceeded while waiting for event "request"
+
+      182 |   await page.locator('#promoter-password').fill(PASS);
+      183 |   await page.locator('#promoter-password-confirm').fill(PASS);
+    > 184 |   const req = page.waitForRequest((r) => r.url().endsWith('/api/auth/register-promoter') && r.method() === 'POST', { timeout: 60_000 });
+          |                    ^
+      185 |   for (const cb of await page.locator('input[type="checkbox"]').all()) if (!(await cb.isChecked())) await cb.check();
+      186 |   await page.locator('button[type="submit"]').first().click();
+      187 |   expect(bodyOf(await req).email).toBe(U.regPromoter);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:184:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydration-registrace-pořadatele-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r16-prehydration-registrace-pořadatele-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r16-prehydration-registrace-pořadatele-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydration-registrace-pořadatele-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r16-prehydration-registrace-pořadatele-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [golden-path] › tests\golden-path-r16-prehydration.spec.ts:191:5 › zapomenuté heslo a nové heslo (odkaz z e-mailu) 
+
+    TimeoutError: page.waitForRequest: Timeout 60000ms exceeded while waiting for event "request"
+
+      197 |   await waitHydrated(fp);
+      198 |   const [req, res] = await Promise.all([
+    > 199 |     page.waitForRequest((r) => r.url().endsWith('/api/auth/forgot-password') && r.method() === 'POST', { timeout: 60_000 }),
+          |          ^
+      200 |     page.waitForResponse((r) => r.url().endsWith('/api/auth/forgot-password'), { timeout: 60_000 }),
+      201 |     page.locator('button[type="submit"]').click(),
+      202 |   ]);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:199:10
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-b1bb3-nové-heslo-odkaz-z-e-mailu--golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r16-prehydrati-b1bb3-nové-heslo-odkaz-z-e-mailu--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r16-prehydrati-b1bb3-nové-heslo-odkaz-z-e-mailu--golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-b1bb3-nové-heslo-odkaz-z-e-mailu--golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r16-prehydrati-b1bb3-nové-heslo-odkaz-z-e-mailu--golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) [golden-path] › tests\golden-path-r16-prehydration.spec.ts:233:5 › checkout — jméno napsané před hydratací se odešle 
+
+    TimeoutError: page.waitForRequest: Timeout 60000ms exceeded while waiting for event "request"
+
+      240 |   await waitHydrated(name);
+      241 |   await page.locator('#checkout-email').fill(`r16-checkout-${RUN}@test.cz`);
+    > 242 |   const req = page.waitForRequest((r) => r.url().endsWith('/api/checkout') && r.method() === 'POST', { timeout: 60_000 });
+          |                    ^
+      243 |   await page.getByRole('button', { name: /Pokračovat na platbu/ }).click();
+      244 |   expect(bodyOf(await req)).toMatchObject({ buyerName: 'Rychlá Kupující', buyerEmail: `r16-checkout-${RUN}@test.cz` });
+      245 |   await ctx.close();
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:242:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-c753f-né-před-hydratací-se-odešle-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r16-prehydrati-c753f-né-před-hydratací-se-odešle-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r16-prehydrati-c753f-né-před-hydratací-se-odešle-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-c753f-né-před-hydratací-se-odešle-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r16-prehydrati-c753f-né-před-hydratací-se-odešle-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  11) [golden-path] › tests\golden-path-r16-prehydration.spec.ts:269:7 › pokladna a skener (přihlášený vlastník) › vyhledávání rezervací na pokladně 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m"NOVAK"[39m
+    Received: [31m""[39m
+
+      276 |     const req = page.waitForRequest((r) => r.url().includes('/api/admin/seat-reservations?') && r.url().includes('q='), { timeout: 60_000 });
+      277 |     await search.press('Enter');
+    > 278 |     expect(new URL((await req).url()).searchParams.get('q')).toBe('NOVAK');
+          |                                                              ^
+      279 |     await ctx.close();
+      280 |   });
+      281 |
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:278:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-4a0df-ávání-rezervací-na-pokladně-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r16-prehydrati-4a0df-ávání-rezervací-na-pokladně-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r16-prehydrati-4a0df-ávání-rezervací-na-pokladně-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-4a0df-ávání-rezervací-na-pokladně-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r16-prehydrati-4a0df-ávání-rezervací-na-pokladně-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12) [golden-path] › tests\golden-path-r16-prehydration.spec.ts:282:7 › pokladna a skener (přihlášený vlastník) › pole skeneru 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveValue[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByTestId('scanner-ticket-input')
+    Expected: [32m"8a4f7b2e-0000-4000-a000-000000000001"[39m
+    Received: [31m""[39m
+    Timeout:  10000ms
+
+    Call log:
+    [2m  - Expect "toHaveValue" with timeout 10000ms[22m
+    [2m  - waiting for getByTestId('scanner-ticket-input')[22m
+    [2m    14 × locator resolved to <input value="" type="text" required="" autofocus="" data-testid="scanner-ticket-input" pattern="([0-9a-fA-F-]{36}|TXP[12]\..+)" placeholder="8a4f7b2e-… / tixly:…:123456 / TXP2.…" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-n…/>[22m
+    [2m       - unexpected value ""[22m
+
+
+      288 |     await typeBeforeHydration(page, input, id);
+      289 |     await waitHydrated(input);
+    > 290 |     await expect(input).toHaveValue(id);
+          |                         ^
+      291 |     await page.getByPlaceholder('123456').fill('111111'); // jiné pole po hydrataci → nové vykreslení
+      292 |     await expect(input, 'kód napsaný před hydratací zůstal').toHaveValue(id);
+      293 |     await ctx.close();
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r16-prehydration.spec.ts:290:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-59e91-ášený-vlastník-pole-skeneru-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r16-prehydrati-59e91-ášený-vlastník-pole-skeneru-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r16-prehydrati-59e91-ášený-vlastník-pole-skeneru-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r16-prehydrati-59e91-ášený-vlastník-pole-skeneru-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r16-prehydrati-59e91-ášený-vlastník-pole-skeneru-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12 failed
+    [golden-path] › tests\golden-path-r16-prehydration.spec.ts:102:5 › přihlášení — administrace (vlastník) 
+    [golden-path] › tests\golden-path-r16-prehydration.spec.ts:106:5 › přihlášení — pokladna (role Pokladna) 
+    [golden-path] › tests\golden-path-r16-prehydration.spec.ts:110:5 › přihlášení — skener (role personál) 
+    [golden-path] › tests\golden-path-r16-prehydration.spec.ts:114:5 › přihlášení — kupec ──────────
+    [golden-path] › tests\golden-path-r16-prehydration.spec.ts:119:5 › přihlášení — prodejce ───────
+    [golden-path] › tests\golden-path-r16-prehydration.spec.ts:138:5 › přihlášení — B2B (pozvánkový kód) 
+    [golden-path] › tests\golden-path-r16-prehydration.spec.ts:157:5 › registrace kupce ────────────
+    [golden-path] › tests\golden-path-r16-prehydration.spec.ts:176:5 › registrace pořadatele ───────
+    [golden-path] › tests\golden-path-r16-prehydration.spec.ts:191:5 › zapomenuté heslo a nové heslo (odkaz z e-mailu) 
+    [golden-path] › tests\golden-path-r16-prehydration.spec.ts:233:5 › checkout — jméno napsané před hydratací se odešle 
+    [golden-path] › tests\golden-path-r16-prehydration.spec.ts:269:7 › pokladna a skener (přihlášený vlastník) › vyhledávání rezervací na pokladně 
+    [golden-path] › tests\golden-path-r16-prehydration.spec.ts:282:7 › pokladna a skener (přihlášený vlastník) › pole skeneru 

@@ -1,0 +1,9 @@
+{
+ "capturedAt": "2026-10-08T08:05:29.956Z",
+ "data": {
+  "from": "vstupenky@tixly.fix",
+  "to": "near-e6d159@tixly.test",
+  "subject": "Rezervace THJ9VELP — vyzvedněte a zaplaťte do 9. října 2026 v 14:05",
+  "html": "<!DOCTYPE html><html><body style=\"font-family:system-ui;max-width:600px;padding:24px\"><p>Dobrý den Jana Rezervující,</p><p>rezervovali jsme pro vás tato místa:</p><p><strong>Test Akce</strong><br>9. 10. 2026 16:05:29, Test Sál</p><ul><li>Přízemí, řada 1, místo 3 — Plné — 400 CZK</li></ul>\n      <p>Kód rezervace: <strong style=\"font-size:20px;letter-spacing:2px\">THJ9VELP</strong><br>Cena celkem: <strong>400 CZK</strong><br>\n      Vyzvedněte a zaplaťte na pokladně (hotově nebo kartou) nejpozději <strong>9. října 2026 v 14:05</strong>. Potom se místa automaticky uvolní.</p><p>Rezervaci můžete zrušit zde: <a href=\"http://localhost:3100/cs/rezervace/zrusit?code=THJ9VELP&token=KnPURZQUz0tRGQm5V-l_3YAEMv-CMrPg\">zrušit rezervaci</a></p></body></html>"
+ }
+}

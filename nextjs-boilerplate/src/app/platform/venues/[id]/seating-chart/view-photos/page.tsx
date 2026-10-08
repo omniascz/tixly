@@ -7,12 +7,13 @@
  * Fotky jsou venue-level — sdílí se přes všechny eventy v daném sálu.
  */
 
-import { ChangeEvent, useEffect, useRef, useState, use } from 'react';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useParams } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 interface Photo {
   id: string;
@@ -41,8 +42,8 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function SeatViewPhotosPage(props: { params: Promise<{ id: string }> }) {
-  const params = use(props.params);
+export default function SeatViewPhotosPage(_props: { params: Promise<{ id: string }> }) {
+  const params = useParams<{ id: string }>();
   const venueId = params.id;
 
   const [sectors, setSectors] = useState<string[]>([]);

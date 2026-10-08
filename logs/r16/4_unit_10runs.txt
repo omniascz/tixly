@@ -1,0 +1,10 @@
+běh 1: exit 0 | Tests 712 passed | 13 skipped (725) | Duration  40.07s
+běh 2: exit 0 | Tests 712 passed | 13 skipped (725) | Duration  39.90s
+běh 3: exit 0 | Tests 712 passed | 13 skipped (725) | Duration  40.23s
+běh 4: exit 0 | Tests 712 passed | 13 skipped (725) | Duration  41.49s
+běh 5: exit 0 | Tests 712 passed | 13 skipped (725) | Duration  39.96s
+běh 6: exit 0 | Tests 712 passed | 13 skipped (725) | Duration  40.15s
+běh 7: exit 0 | Tests 712 passed | 13 skipped (725) | Duration  39.62s
+běh 8: exit 0 | Tests 712 passed | 13 skipped (725) | Duration  42.10s
+běh 9: exit 0 | Tests 712 passed | 13 skipped (725) | Duration  40.22s
+běh 10: exit 0 | Tests 712 passed | 13 skipped (725) | Duration  41.62s

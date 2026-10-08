@@ -59,19 +59,22 @@ export function stagingEmailFilterActive(env: Record<string, string | undefined>
   return (env.TIXLY_ENV ?? '').toLowerCase() === 'staging';
 }
 
-// Tvar adresy v nodemaileru (Address má name i address povinné).
-type AddressLike = string | { name: string; address: string };
-export type RecipientField = AddressLike | AddressLike[] | undefined | null;
+// Tvar adresy v nodemaileru. Vstup: od nodemaileru 10 jsou v typech name i address nepovinné; flatten() propustí jen
+// objekty s address (řetězec), výstup ho má proto povinný.
+type AddressLike = string | { name?: string; address: string };
+type AddressInput = string | { name?: string; address?: string } | AddressInput[];
+export type RecipientField = AddressInput | undefined | null;
 
 function flatten(field: RecipientField): AddressLike[] {
   if (!field) return [];
   const items = Array.isArray(field) ? field : [field];
   const out: AddressLike[] = [];
   for (const it of items) {
+    if (Array.isArray(it)) { out.push(...flatten(it)); continue; } // vnořená pole (typ nodemaileru 10)
     if (typeof it === 'string') {
       // „a@b.cz, Jméno <c@d.cz>" — čárka uvnitř jména v uvozovkách se tu nevyskytuje (adresy skládá kód)
       for (const s of it.split(',')) if (s.trim()) out.push(s.trim());
-    } else if (it && typeof it.address === 'string') out.push(it);
+    } else if (it && typeof it.address === 'string') out.push({ ...it, address: it.address });
   }
   return out;
 }

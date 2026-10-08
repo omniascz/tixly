@@ -1,0 +1,60 @@
+2026-10-08T08:52:07.397Z start
+2026-10-08T08:52:07.975Z import 578 ms
+2026-10-08T08:52:11.995Z GET 4019 ms (celkem 4598)
+--- run 1 exit 0
+2026-10-08T08:53:26.241Z start
+2026-10-08T08:53:26.636Z import 395 ms
+2026-10-08T08:53:30.661Z GET 4024 ms (celkem 4420)
+--- run 2 exit 0
+2026-10-08T08:54:53.402Z start
+2026-10-08T08:54:53.821Z import 419 ms
+2026-10-08T08:54:57.836Z GET 4014 ms (celkem 4434)
+--- run 3 exit 0
+2026-10-08T08:56:37.397Z start
+2026-10-08T08:56:37.865Z import 468 ms
+2026-10-08T08:56:41.893Z GET 4028 ms (celkem 4496)
+--- run 4 exit 0 Duration  74.80s
+2026-10-08T08:57:53.535Z start
+2026-10-08T08:57:53.954Z import 419 ms
+2026-10-08T08:57:57.970Z GET 4016 ms (celkem 4435)
+--- run 5 exit 0 Duration  76.72s
+2026-10-08T08:59:12.200Z start
+2026-10-08T08:59:12.663Z import 463 ms
+2026-10-08T08:59:16.687Z GET 4024 ms (celkem 4487)
+--- run 6 exit 0 Duration  79.89s
+2026-10-08T09:00:35.297Z start
+2026-10-08T09:00:35.750Z import 453 ms
+2026-10-08T09:00:39.773Z GET 4022 ms (celkem 4476)
+--- run 7 exit 0 Duration  77.15s
+2026-10-08T09:01:52.929Z start
+2026-10-08T09:01:53.301Z import 372 ms
+2026-10-08T09:01:57.320Z GET 4018 ms (celkem 4392)
+--- run 8 exit 0 Duration  71.19s
+2026-10-08T09:03:05.588Z start
+2026-10-08T09:03:06.001Z import 413 ms
+2026-10-08T09:03:10.022Z GET 4020 ms (celkem 4434)
+--- run 9 exit 0 Duration  79.87s
+2026-10-08T09:04:28.482Z start
+2026-10-08T09:04:29.026Z import 544 ms
+2026-10-08T09:04:33.047Z GET 4019 ms (celkem 4565)
+--- run 10 exit 0 Duration  92.66s
+2026-10-08T09:07:29.492Z start
+2026-10-08T09:07:30.448Z import 956 ms
+2026-10-08T09:07:34.486Z GET 4038 ms (celkem 4994)
+--- stress run 1 exit 0 Duration  133.37s
+2026-10-08T09:09:52.223Z start
+2026-10-08T09:09:53.097Z import 874 ms
+2026-10-08T09:09:57.116Z GET 4018 ms (celkem 4893)
+--- stress run 2 exit 0 Duration  129.00s
+2026-10-08T09:13:03.859Z start
+2026-10-08T09:13:04.386Z import 527 ms
+2026-10-08T09:13:08.406Z GET 4019 ms (celkem 4547)
+--- mem run 1 exit 0 Duration  76.09s
+2026-10-08T09:23:14.694Z start
+2026-10-08T09:23:15.109Z import 415 ms
+2026-10-08T09:23:19.119Z GET 4010 ms (celkem 4425)
+--- heavy run 1 (6 vláken + CPU + RAM) exit 0 Duration  26.74s (transform 1.71s, setup 18.87s
+2026-10-08T09:24:08.654Z start
+2026-10-08T09:24:09.047Z import 393 ms
+2026-10-08T09:24:13.071Z GET 4024 ms (celkem 4417)
+--- heavy run 2 (6 vláken + CPU + RAM) exit 0 Duration  27.54s (transform 1.83s, setup 24.64s

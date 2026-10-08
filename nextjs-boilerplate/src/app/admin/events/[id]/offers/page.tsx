@@ -5,7 +5,8 @@
  * Přijetím nabídky vznikne smlouva o honoráři i položka v rozpočtu — sama.
  */
 
-import { useCallback, useEffect, useState, use } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -73,8 +74,8 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function OffersPage(props: { params: Promise<{ id: string }> }) {
-  const params = use(props.params);
+export default function OffersPage(_props: { params: Promise<{ id: string }> }) {
+  const params = useParams<{ id: string }>();
   const { id: eventId } = useRouteParams(params);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [busy, setBusy] = useState(false);

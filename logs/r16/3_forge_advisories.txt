@@ -1,0 +1,1 @@
+high	GHSA-86w9-cpqp-85rv	<= 1.4.0	patched=	node-forge RSA PKCS#1 v1.5 signature verification accepts extra nested DigestAlgorithm elements

@@ -1,0 +1,9 @@
+{
+ "capturedAt": "2026-10-08T08:05:39.117Z",
+ "data": {
+  "from": "\"Tixly provoz\" <vstupenky@tixly.fix>",
+  "to": "ops-muz94tli@tixly.fix",
+  "subject": "[Tixly provoz] Cron expire-pending-orders neproběhl",
+  "text": "Cron „expire-pending-orders\" neproběhl úspěšně déle než dvojnásobek svého intervalu (5 min).\nPoslední úspěšný běh: 8. 10. 2026 9:54:38\nPoslední stav: —\n\nZkontrolujte Vercel → Cron Jobs a logy funkce /api/cron/dispatch?job=expire-pending-orders.\n\n—\nStejné upozornění se znovu pošle nejdřív za 30 minut (klíč cron_overdue:expire-pending-orders)."
+ }
+}

@@ -11,7 +11,7 @@
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const BLACKHOLE_REDIS = 'redis://10.255.255.1:6379';
 const BLACKHOLE_PG = 'postgresql://u:p@10.255.255.1:5432/x';
@@ -30,6 +30,16 @@ async function timed<T>(fn: () => Promise<T>): Promise<{ ms: number; value: T }>
 }
 
 describe('health routy na nedostupnou síť → 503 do 5 s', () => {
+  // Kolo 16 / krok 4: první import modulu routy (transformace ve vitestu přes hlavní proces + vyhodnocení modulů
+  // redis/pg) nemá s měřenou odpovědí nic společného, ale padal do 20s limitu testu — při souběhu s jinými soubory
+  // a vytíženém stroji test přerušovaně vypršel, přestože GET je časovačem omezen na 4 s. Moduly se proto načtou
+  // předem s vlastním limitem; limit testu (20 s) i odpovědi (5,5 s) zůstávají. Routy čtou REDIS_URL/DATABASE_URL až
+  // při volání, předběžné načtení nic nepřipojuje.
+  beforeAll(async () => {
+    await import('@/app/api/health/redis/route');
+    await import('@/app/api/health/ready/route');
+  }, 120_000);
+
   it('GET /api/health/redis', async () => {
     process.env.REDIS_URL = BLACKHOLE_REDIS;
     const { GET } = await import('@/app/api/health/redis/route');

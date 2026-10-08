@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -62,12 +62,11 @@ type Operation =
   | { op: 'flatten'; sectorName: string; rowLabel?: string; renumberSeats: boolean }
   | { op: 'set-stage'; stage: Stage | null };
 
-export default function SectorToolsPage(
-  props: {
+export default function SectorToolsPage(_props: {
     params: Promise<{ id: string }>;
   }
 ) {
-  const params = use(props.params);
+  const params = useParams<{ id: string }>();
   const venueId = params.id;
   const router = useRouter();
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);

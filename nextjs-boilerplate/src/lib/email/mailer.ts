@@ -104,7 +104,7 @@ export async function sendMail(opts: SendMailOptions): Promise<SentMessageInfo> 
       );
     }
     if (f.allowedCount === 0) {
-      const skipped = { messageId: '', accepted: [] as string[], rejected: f.blocked, pending: [] as string[], response: 'skipped: staging allowlist', envelope: { from: false, to: [] as string[] }, skippedByStagingAllowlist: true };
+      const skipped = { messageId: '', accepted: [] as string[], rejected: f.blocked, pending: [] as string[], response: 'skipped: staging allowlist', envelope: { from: false as const, to: [] as string[] }, skippedByStagingAllowlist: true };
       return skipped;
     }
     opts = { ...opts, to: f.to, cc: f.cc, bcc: f.bcc };
