@@ -34,3 +34,6 @@ Větev `fix/round17-loadtest-2026-10-08` z `e14cbad2`. Výstupy `logs/r17/`.
   Bez baseline_ref brána `--check` (jen konzistence). Ověřeno lokálně: shoda → 0, obrácené pořadí → 1 (3 kroky), rozbitá konzistence → 1.
 - Naživo: brána prošla ve 3 párových bězích (exit 0); na skutečném artefaktu 37770629805 s prohozenými verzemi selže
   (plan +36,3 %, +50 ms → exit 1) — `logs/r17/3_gate_evidence.txt`.
+
+## Závěr
+- PR #15 → integrate **e19c91e0** (CI + oba Vercel pass); ROUND17_REPORT.md.
