@@ -1,0 +1,194 @@
+name: Zátěžový test
+
+# Kolo 17: zátěžový test kola 14 (nápor při spuštění prodeje: 300 kupců / 60 s, sál 500 míst) na runneru GitHub Actions
+# místo lokálního stroje. Spouští se jen ručně (workflow_dispatch, z kterékoli větve), parametr `ref` = commit nebo větev
+# testované aplikace. Nástroje testu (e2e/load, simulátor GoPay) se berou z větve, ze které workflow běží — pro všechny
+# verze stejné.
+#
+# Prostředí jako lokálně v kole 14: Postgres postavený z migrací testované verze + demo data agentury
+# (scripts/staging/create.sh --local), PgBouncer (transaction, pool 10), Redis, Mailpit (simulátor e-mailu), simulátor
+# GoPay, produkční build (next build + next start). Tajné klíče aplikace se generují náhodně pro tento běh.
+# Žádné secrets repozitáře, žádné spojení na produkci, nic se nenasazuje.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Testovaná verze aplikace (commit nebo větev)
+        required: true
+        type: string
+      runs:
+        description: Počet měřených zátěžových běhů
+        required: false
+        default: '3'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: loadtest-${{ github.run_id }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '24'
+  K6_VERSION: v2.3.0
+
+jobs:
+  load:
+    name: Zátěž ${{ inputs.ref }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_USER: neondb_owner
+          POSTGRES_PASSWORD: fixowner   # heslo izolované testovací DB, ne produkční
+          POSTGRES_DB: neondb
+        ports: ['55632:5432']
+        options: >-
+          --health-cmd "pg_isready -U neondb_owner" --health-interval 5s --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ['56679:6379']
+      mailpit:
+        image: axllent/mailpit:latest
+        ports: ['51225:1025', '58225:8025']
+    env:
+      OUT: ${{ github.workspace }}/out
+      TOOL: ${{ github.workspace }}/tool
+    steps:
+      - name: Nástroje testu (větev workflow)
+        uses: actions/checkout@v4
+        with:
+          path: tool
+          persist-credentials: false
+
+      - name: Testovaná verze (${{ inputs.ref }})
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          path: app
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Parametry runneru
+        run: |
+          mkdir -p "$OUT"
+          lscpu | tee "$OUT/runner_lscpu.txt"
+          free -m | tee "$OUT/runner_free.txt"
+          cat /etc/os-release > "$OUT/runner_os.txt"
+          node -e '
+            const os = require("os"), fs = require("fs");
+            const rel = Object.fromEntries(fs.readFileSync("/etc/os-release", "utf8").split("\n").filter(Boolean).map((l) => l.split("=")).map(([k, v]) => [k, (v || "").replace(/"/g, "")]));
+            const r = { cpuModel: os.cpus()[0].model, cpus: os.cpus().length, memTotalGb: +(os.totalmem() / 2 ** 30).toFixed(1),
+              memFreeGb: +(os.freemem() / 2 ** 30).toFixed(1), os: rel.PRETTY_NAME, kernel: os.release(), node: process.version,
+              runnerName: process.env.RUNNER_NAME, imageOs: process.env.ImageOS, imageVersion: process.env.ImageVersion };
+            fs.writeFileSync(process.env.OUT + "/runner.json", JSON.stringify(r, null, 2)); console.log(r);'
+
+      - name: psql 17, k6 ${{ env.K6_VERSION }}
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSo /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-client-17
+          psql --version
+          cd "$RUNNER_TEMP"
+          curl -fsSLO "https://github.com/grafana/k6/releases/download/$K6_VERSION/k6-$K6_VERSION-linux-amd64.tar.gz"
+          curl -fsSLO "https://github.com/grafana/k6/releases/download/$K6_VERSION/k6-$K6_VERSION-checksums.txt"
+          grep "k6-$K6_VERSION-linux-amd64.tar.gz" "k6-$K6_VERSION-checksums.txt" | sha256sum -c -
+          tar xzf "k6-$K6_VERSION-linux-amd64.tar.gz"
+          echo "K6=$RUNNER_TEMP/k6-$K6_VERSION-linux-amd64/k6" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/k6-$K6_VERSION-linux-amd64/k6" version
+
+      - name: PgBouncer (transaction, pool 10)
+        run: |
+          mkdir -p "$RUNNER_TEMP/pgb"
+          cat > "$RUNNER_TEMP/pgb/pgbouncer.ini" <<'INI'
+          [databases]
+          * = host=postgres port=5432
+          [pgbouncer]
+          listen_addr = 0.0.0.0
+          listen_port = 6432
+          auth_type = plain
+          auth_file = /etc/pgbouncer/userlist.txt
+          pool_mode = transaction
+          max_client_conn = 1000
+          default_pool_size = 10
+          ignore_startup_parameters = extra_float_digits,options,statement_timeout
+          INI
+          printf '"tixly_app" "fixapp"\n"neondb_owner" "fixowner"\n' > "$RUNNER_TEMP/pgb/userlist.txt"
+          docker run -d --name pgbouncer --network "${{ job.services.postgres.network }}" -p 56633:6432 \
+            -v "$RUNNER_TEMP/pgb/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro" \
+            -v "$RUNNER_TEMP/pgb/userlist.txt:/etc/pgbouncer/userlist.txt:ro" \
+            edoburu/pgbouncer:latest
+          for _ in $(seq 1 30); do pg_isready -h localhost -p 56633 && exit 0; sleep 1; done
+          docker logs pgbouncer; exit 1
+
+      - name: Testovací prostředí aplikace (náhodné klíče jen pro tento běh)
+        run: |
+          rnd() { openssl rand -hex "$1"; }
+          umask 077
+          {
+            echo "PORT=3200"
+            echo "JWT_SECRET=lt-$(rnd 24)"
+            echo "ENCRYPTION_KEY=$(rnd 32)"
+            echo "INTERNAL_SERVICE_TOKEN=lt-$(rnd 16)"
+            echo "CRON_SECRET=lt-$(rnd 16)"
+            echo "PAYMENT_PROVIDER=gopay"
+            echo "GOPAY_GOID=8123456789"
+            echo "GOPAY_CLIENT_ID=lt-client"
+            echo "GOPAY_CLIENT_SECRET=lt-secret"
+            echo "GOPAY_API_BASE_URL=http://localhost:3998/api"
+            echo "APP_URL=http://localhost:3200"
+            echo "NEXT_PUBLIC_APP_URL=http://localhost:3200"
+            echo "SMTP_HOST=localhost"
+            echo "SMTP_PORT=51225"
+            echo "EMAIL_FROM=vstupenky@tixly.loadtest"
+            echo "REDIS_URL=redis://localhost:56679"
+            echo "KV_URL=redis://localhost:56679"
+            echo "KV_REST_API_URL=http://localhost:9"
+            echo "ARES_BASE_URL=http://localhost:3997"
+            echo "MODERATION_PROVIDER=mock"
+            echo "NEXT_TELEMETRY_DISABLED=1"
+          } > "$RUNNER_TEMP/app.env"
+          echo "APP_ENV=$RUNNER_TEMP/app.env" >> "$GITHUB_ENV"
+          echo "REDIS_CID=${{ job.services.redis.id }}" >> "$GITHUB_ENV"
+          sed -E 's/=.*/=…/' "$RUNNER_TEMP/app.env"
+
+      - name: Závislosti nástrojů testu + simulátor GoPay (:3998)
+        run: |
+          (cd tool/e2e && npm ci --no-audit --no-fund --ignore-scripts)
+          nohup node tool/nextjs-boilerplate/tests/helpers/fake-gopay.mjs > "$OUT/fake-gopay.log" 2>&1 &
+          for _ in $(seq 1 30); do curl -s -o /dev/null http://localhost:3998/ && exit 0; sleep 1; done
+          cat "$OUT/fake-gopay.log"; exit 1
+
+      - name: Zátěž — ${{ inputs.ref }} (zahřátí + ${{ inputs.runs }} běhy)
+        env:
+          RUNS: ${{ inputs.runs }}
+        run: bash tool/.github/scripts/loadtest-version.sh app cand "$RUNS" "$OUT"
+
+      - name: Souhrn
+        if: always()
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          node tool/e2e/load/r17-summarize.mjs "$OUT" > "$OUT/results.json"
+          {
+            echo "## Zátěžový test — $REF"
+            echo
+            node tool/e2e/load/r17-summarize.mjs --md "$OUT/results.json"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Výsledky jako artefakt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: loadtest-${{ github.run_id }}
+          path: out/
+          retention-days: 30
