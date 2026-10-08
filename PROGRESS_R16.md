@@ -58,3 +58,11 @@ r16load). Procesy jen vlastní; ukončovat přes PowerShell podle příkazové �
   zachycena.
 - Oprava v testu: moduly obou health rout se načtou v beforeAll (limit 120 s); limit testu 20 s i odpovědi 5,5 s beze
   změny. Ověření: 10 po sobě jdoucích plných běhů unit sady 10/10 (`4_unit_10runs.txt`).
+
+## Závěrečná sada
+- tsc 0, lint bez nové chyby (967 < 1008), unit 712 (10/10 plných běhů v kroku 4).
+- live (r16a, po 20, 1 worker): n00 83, n01 49, n02 73, n03 40 (+ fix-r16-blob-upload), g00 163 + opt-in, g01 77,
+  webhook-pool 2 → 107 souborů + 1 opt-in, 487 testů.
+- build OK, tabulka rout beze změny (1124/1119/5); build bez sítě (čistý klon 3c08b80f) OK, 0 spojení.
+- audity 01 26, 02 36, 03 23, 04 14, 05 8, 06 21, 07 6, 07b zápisy 0 řádků (= kolo 13–15), 08 2, 09 12, 10 7, 11 8, 12 5 — 0 FAIL.
+- turné 10/10, golden-path-r13-keep 10/10, formuláře před hydratací 12/12, offline skener 6/6.
