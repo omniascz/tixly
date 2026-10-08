@@ -7,8 +7,9 @@
  * Kliknutí na sedadlo otevře panel pro Hold / Release přímo z mapy.
  */
 
-import { useCallback, useEffect, useRef, useState, use } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 
 interface SeatData {
@@ -65,8 +66,8 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function AdminSeatsPage(props: { params: Promise<{ id: string }> }) {
-  const params = use(props.params);
+export default function AdminSeatsPage(_props: { params: Promise<{ id: string }> }) {
+  const params = useParams<{ id: string }>();
   const { id: eventId } = params;
   const [data, setData] = useState<LiveResponse | null>(null);
   const [error, setError] = useState<string | null>(null);

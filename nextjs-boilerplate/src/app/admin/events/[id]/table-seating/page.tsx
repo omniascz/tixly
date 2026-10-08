@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,12 +31,11 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function TableSeatingPage(
-  props: {
+export default function TableSeatingPage(_props: {
     params: Promise<{ id: string }>;
   }
 ) {
-  const params = use(props.params);
+  const params = useParams<{ id: string }>();
   const { id: eventId } = useRouteParams(params);
 
   const [summary, setSummary] = useState<TableSummary | null>(null);

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -79,8 +80,8 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function RozpocetPage(props: { params: Promise<{ id: string }> }) {
-  const params = use(props.params);
+export default function RozpocetPage(_props: { params: Promise<{ id: string }> }) {
+  const params = useParams<{ id: string }>();
   const { id: eventId } = useRouteParams(params);
 
   const [costs, setCosts] = useState<CostRow[]>([]);

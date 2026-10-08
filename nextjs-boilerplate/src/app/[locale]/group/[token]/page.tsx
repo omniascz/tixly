@@ -9,8 +9,9 @@
  */
 'use client';
 
+import { useEffect, useState, type JSX } from 'react';
 import Link from 'next/link';
-import { useEffect, useState, use, type JSX } from 'react';
+import { useParams } from 'next/navigation';
 
 type Seat = { id: string; label: string; claimed: boolean };
 type Preview = {
@@ -30,12 +31,11 @@ type Preview = {
   expiresAt: string;
 };
 
-export default function GroupClaimPage(
-  props: {
+export default function GroupClaimPage(_props: {
     params: Promise<{ token: string; locale: string }>;
   }
 ): JSX.Element {
-  const params = use(props.params);
+  const params = useParams<{ token: string; locale: string }>();
   const [data, setData] = useState<Preview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [claiming, setClaiming] = useState<string | null>(null);

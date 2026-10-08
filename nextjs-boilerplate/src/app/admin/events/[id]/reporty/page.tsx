@@ -4,7 +4,8 @@
  * Kolo 8 / krok 8 — reporty termínu (+ celé inscenace a období): prodáno a tržby podle zóny, kategorie a kanálu,
  * obsazenost, blokace, rezervace; export CSV / XLSX; seznam pro uvaděče (PDF k tisku, CSV).
  */
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -30,8 +31,8 @@ async function download(url: string, name: string): Promise<string | null> {
   return null;
 }
 
-export default function TermReportsPage(props: { params: Promise<{ id: string }> }) {
-  const params = use(props.params);
+export default function TermReportsPage(_props: { params: Promise<{ id: string }> }) {
+  const params = useParams<{ id: string }>();
   const [query, setQuery] = useState(`scope=term&eventId=${params.id}`);
   const [rep, setRep] = useState<Report | null>(null);
   const [productionId, setProductionId] = useState<string | null>(null);

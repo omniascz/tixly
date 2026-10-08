@@ -6,9 +6,10 @@
  * Uložit aktuální event jako šablonu + přehled uložených šablon promotéra.
  */
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import React from 'react';
 import { BookmarkPlus, Layers, CheckCircle } from 'lucide-react';
+import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -50,12 +51,11 @@ const TYPE_LABELS: Record<string, string> = {
   pricing_tiers: 'Cenové hladiny',
 };
 
-export default function TemplatesPage(
-  props: {
+export default function TemplatesPage(_props: {
     params: Promise<{ id: string }>;
   }
 ) {
-  const params = use(props.params);
+  const params = useParams<{ id: string }>();
   const { id: eventId } = useRouteParams(params);
   const [templates, setTemplates] = useState<SavedTemplate[]>([]);
   const [loading, setLoading] = useState(true);

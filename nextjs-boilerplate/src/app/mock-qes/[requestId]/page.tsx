@@ -6,7 +6,8 @@
  * V produkci je nahrazena reálným QTSP portálem.
  */
 
-import { useEffect, useRef, useState, use } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'next/navigation';
 
 type Phase =
   | 'loading'
@@ -35,8 +36,8 @@ const DOC_TYPE_LABEL: Record<string, string> = {
   custom: 'Dokument k podpisu',
 };
 
-export default function MockQESPage(props: { params: Promise<{ requestId: string }> }) {
-  const params = use(props.params);
+export default function MockQESPage(_props: { params: Promise<{ requestId: string }> }) {
+  const params = useParams<{ requestId: string }>();
   const { requestId } = params;
   const [phase, setPhase] = useState<Phase>('loading');
   const [data, setData] = useState<RequestData | null>(null);

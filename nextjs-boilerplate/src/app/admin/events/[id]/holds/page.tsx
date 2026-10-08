@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState, use } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -70,12 +71,11 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function HoldsAdminPage(
-  props: {
+export default function HoldsAdminPage(_props: {
     params: Promise<{ id: string }>;
   }
 ) {
-  const params = use(props.params);
+  const params = useParams<{ id: string }>();
   const { id: eventId } = useRouteParams(params);
   const [holds, setHolds] = useState<HoldRow[]>([]);
   const [sectors, setSectors] = useState<MapSector[]>([]);

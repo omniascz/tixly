@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState } from 'react';
+import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,12 +42,11 @@ const KIND_LABELS: Record<Variant['kind'], string> = {
   long: 'Dlouhý (~1500 zn.)',
 };
 
-export default function AiDescriptionPage(
-  props: {
+export default function AiDescriptionPage(_props: {
     params: Promise<{ id: string }>;
   }
 ) {
-  const params = use(props.params);
+  const params = useParams<{ id: string }>();
   const { id: eventId } = useRouteParams(params);
   const [keywordsRaw, setKeywordsRaw] = useState('');
   const [tone, setTone] = useState<'casual' | 'professional' | 'energetic'>('professional');
