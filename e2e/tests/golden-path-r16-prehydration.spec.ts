@@ -226,8 +226,12 @@ test('zapomenuté heslo a nové heslo (odkaz z e-mailu)', async ({ browser }) =>
     p2.locator('button[type="submit"]').click(),
   ]);
   expect(JSON.stringify(bodyOf(req2))).toContain(`${PASS}N`);
-  expect(res2.status(), await res2.text()).toBe(200);
+  // tělo úspěšné odpovědi nečíst — stránka po resetu přesměruje a v pomalé síti by čtení viselo
+  expect(res2.status()).toBe(200);
   await ctx2.close();
+  // nové heslo opravdu platí
+  const login = await fetch(`${BASE}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json', origin: BASE, 'x-real-ip': ipFor() }, body: JSON.stringify({ email: U.buyer, password: `${PASS}N` }) });
+  expect(login.status, 'přihlášení novým heslem').toBe(200);
 });
 
 test('checkout — jméno napsané před hydratací se odešle', async ({ browser }) => {
@@ -288,7 +292,7 @@ test.describe('pokladna a skener (přihlášený vlastník)', () => {
     await typeBeforeHydration(page, input, id);
     await waitHydrated(input);
     await expect(input).toHaveValue(id);
-    await page.getByPlaceholder('123456').fill('111111'); // jiné pole po hydrataci → nové vykreslení
+    await page.getByPlaceholder('123456', { exact: true }).fill('111111'); // jiné pole po hydrataci → nové vykreslení
     await expect(input, 'kód napsaný před hydratací zůstal').toHaveValue(id);
     await ctx.close();
   });
