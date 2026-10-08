@@ -36,7 +36,9 @@ export DATABASE_URL_OPS=$OWNER_URL
 
 # ── 3) produkční build ──────────────────────────────────────────────────────────────────
 T0=$(date +%s)
-(cd "$APP/nextjs-boilerplate" && npm run build > "$OUT/build_$LABEL.txt" 2>&1) || { log "build selhal"; tail -60 "$OUT/build_$LABEL.txt"; exit 1; }
+# heap 4 GB jen pro build: výchozí limit (~2 GB na runneru 7,8 GB) next build Next 15 občas vyčerpá (běh 37769296735,
+# „JavaScript heap out of memory"); server se spouští bez toho, měření to neovlivní
+(cd "$APP/nextjs-boilerplate" && NODE_OPTIONS=--max-old-space-size=4096 npm run build > "$OUT/build_$LABEL.txt" 2>&1) || { log "build selhal"; tail -60 "$OUT/build_$LABEL.txt"; exit 1; }
 log "build $(( $(date +%s) - T0 )) s"
 NEXT_VER=$(node -p "require('$APP/nextjs-boilerplate/node_modules/next/package.json').version")
 
