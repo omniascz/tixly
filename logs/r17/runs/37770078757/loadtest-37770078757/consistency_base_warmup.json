@@ -1,0 +1,48 @@
+{
+  "eventId": "a22c1909-21e8-474b-9b34-a927c6814f8a",
+  "before": {
+    "soldSeats": 10,
+    "heldSeats": 0,
+    "availableSeats": 490,
+    "paidOrders": 5,
+    "pendingOrders": 0,
+    "paidItems": 10,
+    "tickets": 10,
+    "ticketsOnPaid": 10,
+    "soldSeatsOfPaid": 10,
+    "seatInTwoPaidItems": 0,
+    "seatInTwoTickets": 0,
+    "remainingQty": 490,
+    "capacity": 500
+  },
+  "cron": {
+    "release-expired-seat-holds": 200,
+    "expire-pending-orders": 200
+  },
+  "after": {
+    "soldSeats": 10,
+    "heldSeats": 0,
+    "availableSeats": 490,
+    "paidOrders": 5,
+    "pendingOrders": 0,
+    "paidItems": 10,
+    "tickets": 10,
+    "ticketsOnPaid": 10,
+    "soldSeatsOfPaid": 10,
+    "seatInTwoPaidItems": 0,
+    "seatInTwoTickets": 0,
+    "remainingQty": 490,
+    "capacity": 500
+  },
+  "checks": {
+    "noOversell_seatOnce": true,
+    "soldSeats_eq_paidItems": true,
+    "paidItems_eq_tickets": true,
+    "soldSeats_eq_tickets": true,
+    "noOrphanHolds": true,
+    "noPendingAfterExpiry": true,
+    "seatsAccountedFor": true,
+    "remainingQty_eq_available": true
+  },
+  "ok": true
+}

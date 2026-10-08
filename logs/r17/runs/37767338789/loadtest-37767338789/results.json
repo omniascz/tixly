@@ -1,0 +1,395 @@
+{
+  "runner": {
+    "cpuModel": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "cpus": 2,
+    "memTotalGb": 7.8,
+    "memFreeGb": 6.5,
+    "os": "Ubuntu 24.04.5 LTS",
+    "kernel": "6.17.0-1022-azure",
+    "node": "v24.21.0",
+    "runnerName": "GitHub Actions 1000007240",
+    "imageOs": "ubuntu24",
+    "imageVersion": "20261004.327.1"
+  },
+  "versions": [
+    {
+      "label": "cand",
+      "sha": "f2af248a6fe50bf1e14f19c65ee02ac23a862588",
+      "next": "14.2.35",
+      "node": "v24.21.0",
+      "runs": 3,
+      "db": "lt_cand"
+    }
+  ],
+  "runs": [
+    {
+      "label": "cand",
+      "run": 1,
+      "sha": "f2af248a6fe50bf1e14f19c65ee02ac23a862588",
+      "next": "14.2.35",
+      "steps": {
+        "page": {
+          "p50": 106.477586,
+          "p95": 305.779076,
+          "p99": 383.06310011,
+          "count": 300,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        },
+        "plan": {
+          "p50": 40.7096365,
+          "p95": 147.61121150000005,
+          "p99": 204.89209828999998,
+          "count": 300,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        },
+        "hold": {
+          "p50": 487.9227965,
+          "p95": 1192.861511,
+          "p99": 1330.2225227500003,
+          "count": 246,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        },
+        "checkout": {
+          "p50": 579.434646,
+          "p95": 1294.0372029999999,
+          "p99": 1514.598654599999,
+          "count": 209,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        },
+        "pay": {
+          "p50": 0.45225,
+          "p95": 1.8326588,
+          "p99": 2.8361435999999967,
+          "count": 209,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        },
+        "webhook": {
+          "p50": 5019.01255,
+          "p95": 7852.544314999999,
+          "p99": 8020.846026519999,
+          "count": 209,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        }
+      },
+      "boughtSeats": 500,
+      "holdConflict": 37,
+      "soldOut": 80,
+      "harnessRetryPay": 0,
+      "consistency": {
+        "ok": true,
+        "checks": {
+          "noOversell_seatOnce": true,
+          "soldSeats_eq_paidItems": true,
+          "paidItems_eq_tickets": true,
+          "soldSeats_eq_tickets": true,
+          "noOrphanHolds": true,
+          "noPendingAfterExpiry": true,
+          "seatsAccountedFor": true,
+          "remainingQty_eq_available": true
+        },
+        "after": {
+          "soldSeats": 500,
+          "heldSeats": 0,
+          "availableSeats": 0,
+          "paidOrders": 209,
+          "pendingOrders": 0,
+          "paidItems": 500,
+          "tickets": 500,
+          "ticketsOnPaid": 500,
+          "soldSeatsOfPaid": 500,
+          "seatInTwoPaidItems": 0,
+          "seatInTwoTickets": 0,
+          "remainingQty": 0,
+          "capacity": 500
+        }
+      }
+    },
+    {
+      "label": "cand",
+      "run": 2,
+      "sha": "f2af248a6fe50bf1e14f19c65ee02ac23a862588",
+      "next": "14.2.35",
+      "steps": {
+        "page": {
+          "p50": 73.5193515,
+          "p95": 252.94461055000005,
+          "p99": 353.76822119999946,
+          "count": 300,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        },
+        "plan": {
+          "p50": 26.760496500000002,
+          "p95": 109.52925795000002,
+          "p99": 174.933842749999,
+          "count": 300,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        },
+        "hold": {
+          "p50": 60.767624,
+          "p95": 229.35545259999995,
+          "p99": 301.0008068399996,
+          "count": 215,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        },
+        "checkout": {
+          "p50": 174.591877,
+          "p95": 433.987614,
+          "p99": 738.261343,
+          "count": 201,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        },
+        "pay": {
+          "p50": 0.38163,
+          "p95": 1.462351,
+          "p99": 2.938347,
+          "count": 201,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        },
+        "webhook": {
+          "p50": 1182.095853,
+          "p95": 2214.294193,
+          "p99": 2281.773172,
+          "count": 201,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        }
+      },
+      "boughtSeats": 500,
+      "holdConflict": 14,
+      "soldOut": 99,
+      "harnessRetryPay": 0,
+      "consistency": {
+        "ok": true,
+        "checks": {
+          "noOversell_seatOnce": true,
+          "soldSeats_eq_paidItems": true,
+          "paidItems_eq_tickets": true,
+          "soldSeats_eq_tickets": true,
+          "noOrphanHolds": true,
+          "noPendingAfterExpiry": true,
+          "seatsAccountedFor": true,
+          "remainingQty_eq_available": true
+        },
+        "after": {
+          "soldSeats": 500,
+          "heldSeats": 0,
+          "availableSeats": 0,
+          "paidOrders": 201,
+          "pendingOrders": 0,
+          "paidItems": 500,
+          "tickets": 500,
+          "ticketsOnPaid": 500,
+          "soldSeatsOfPaid": 500,
+          "seatInTwoPaidItems": 0,
+          "seatInTwoTickets": 0,
+          "remainingQty": 0,
+          "capacity": 500
+        }
+      }
+    },
+    {
+      "label": "cand",
+      "run": 3,
+      "sha": "f2af248a6fe50bf1e14f19c65ee02ac23a862588",
+      "next": "14.2.35",
+      "steps": {
+        "page": {
+          "p50": 93.2842015,
+          "p95": 294.75958955,
+          "p99": 334.4095502299999,
+          "count": 300,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        },
+        "plan": {
+          "p50": 33.947953,
+          "p95": 138.80338560000007,
+          "p99": 219.43492493999983,
+          "count": 300,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        },
+        "hold": {
+          "p50": 173.001333,
+          "p95": 487.07837614999994,
+          "p99": 552.2634309399999,
+          "count": 232,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        },
+        "checkout": {
+          "p50": 334.823783,
+          "p95": 649.227972,
+          "p99": 787.818359,
+          "count": 201,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        },
+        "pay": {
+          "p50": 0.340034,
+          "p95": 1.682273,
+          "p99": 2.125966,
+          "count": 201,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        },
+        "webhook": {
+          "p50": 2360.041814,
+          "p95": 3664.013358,
+          "p99": 3829.139105,
+          "count": 201,
+          "errors": 0,
+          "errorRate": 0,
+          "s5xx": 0,
+          "network": 0,
+          "byStatus": {},
+          "s503retried": 0,
+          "s503final": 0
+        }
+      },
+      "boughtSeats": 500,
+      "holdConflict": 31,
+      "soldOut": 91,
+      "harnessRetryPay": 0,
+      "consistency": {
+        "ok": true,
+        "checks": {
+          "noOversell_seatOnce": true,
+          "soldSeats_eq_paidItems": true,
+          "paidItems_eq_tickets": true,
+          "soldSeats_eq_tickets": true,
+          "noOrphanHolds": true,
+          "noPendingAfterExpiry": true,
+          "seatsAccountedFor": true,
+          "remainingQty_eq_available": true
+        },
+        "after": {
+          "soldSeats": 500,
+          "heldSeats": 0,
+          "availableSeats": 0,
+          "paidOrders": 201,
+          "pendingOrders": 0,
+          "paidItems": 500,
+          "tickets": 500,
+          "ticketsOnPaid": 500,
+          "soldSeatsOfPaid": 500,
+          "seatInTwoPaidItems": 0,
+          "seatInTwoTickets": 0,
+          "remainingQty": 0,
+          "capacity": 500
+        }
+      }
+    }
+  ],
+  "medians": {
+    "cand": {
+      "sha": "f2af248a6fe50bf1e14f19c65ee02ac23a862588",
+      "next": "14.2.35",
+      "runs": 3,
+      "p95": {
+        "page": 294.75958955,
+        "plan": 138.80338560000007,
+        "hold": 487.07837614999994,
+        "checkout": 649.227972,
+        "pay": 1.682273,
+        "webhook": 3664.013358
+      }
+    }
+  }
+}

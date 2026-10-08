@@ -1,0 +1,7 @@
+   ▲ Next.js 15.5.27
+   - Local:        http://localhost:3200
+   - Network:      http://10.1.0.197:3200
+
+ ✓ Starting...
+ ✓ Ready in 719ms
+[mailer] provider=mailhog-dev host=localhost:51225 authed=false
