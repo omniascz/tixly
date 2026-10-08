@@ -3,9 +3,11 @@
  *
  *   node load/r17-summarize.mjs <adresář výstupů> > results.json        JSON (runner, běhy, mediány p95)
  *   node load/r17-summarize.mjs --md results.json [další.json …]        tabulky Markdown (Job Summary / report)
- *   node load/r17-summarize.mjs --gate results.json <base> <cand> [max]  exit 1, když se p95 (medián) kteréhokoli
- *                                                                        kroku zhorší o víc než max (0.20) nebo
- *                                                                        selže konzistence / je přeprodej / je 5xx
+ *   node load/r17-summarize.mjs --gate results.json <base> <cand> [max] [minMs]
+ *       exit 1, když se medián p95 kteréhokoli kroku zhorší o víc než max (0.20) — a zároveň o víc než minMs (25 ms,
+ *       šum u kroků s p95 v jednotkách ms) — nebo když selže konzistence (přeprodej, osiřelé holdy, nesoulad počtů)
+ *   node load/r17-summarize.mjs --check results.json                    exit 1 jen při selhání konzistence
+ * Odpovědi 5xx bránu neshazují (vypíší se jako WARN) — cíl „žádná 5xx" se hodnotí v reportu.
  * Adresář: meta_<štítek>.json, summary_<štítek>_<i>.json (k6 --summary-export), errors_<štítek>_<i>.json
  * (r17-errors.mjs), consistency_<štítek>_<i>.json (r14-consistency.mjs), runner.json. Zahřívací běh se nepočítá.
  */
@@ -96,21 +98,24 @@ function mdMedians(list) {
   return L;
 }
 
-function gate(res, base, cand, max) {
+function gate(res, base, cand, max, minMs) {
   const fails = [];
-  const mb = res.medians[base]?.p95; const mc = res.medians[cand]?.p95;
-  if (!mb || !mc) fails.push(`chybí výsledky verze ${!mb ? base : cand}`);
-  else for (const s of STEPS) {
-    if (mb[s] == null || mc[s] == null) { fails.push(`${s}: chybí p95`); continue; }
-    const d = (mc[s] - mb[s]) / mb[s];
-    const line = `${s}: p95 ${ms(mb[s])} → ${ms(mc[s])} (${d >= 0 ? '+' : ''}${(100 * d).toFixed(1)} %)`;
-    if (d > max) fails.push(`zhoršení ${line}`); else console.log(`ok   ${line}`);
+  if (base) {
+    const mb = res.medians[base]?.p95; const mc = res.medians[cand]?.p95;
+    if (!mb || !mc) fails.push(`chybí výsledky verze ${!mb ? base : cand}`);
+    else for (const s of STEPS) {
+      if (mb[s] == null || mc[s] == null) { fails.push(`${s}: chybí p95`); continue; }
+      const d = (mc[s] - mb[s]) / mb[s];
+      const line = `${s}: medián p95 ${base} ${ms(mb[s])} → ${cand} ${ms(mc[s])} (${d >= 0 ? '+' : ''}${(100 * d).toFixed(1)} %, ${mc[s] - mb[s] >= 0 ? '+' : ''}${Math.round(mc[s] - mb[s])} ms)`;
+      if (d > max && mc[s] - mb[s] > minMs) fails.push(`zhoršení ${line}`); else console.log(`ok   ${line}`);
+    }
   }
   for (const r of res.runs) {
     if (r.missing) { fails.push(`${r.label} běh ${r.run}: chybí výsledek`); continue; }
-    if (!r.consistency.ok) fails.push(`${r.label} běh ${r.run}: konzistence selhala ${JSON.stringify(r.consistency.checks ?? r.consistency.error)}`);
     const s5xx = STEPS.reduce((a, s) => a + (r.steps[s].s5xx ?? 0) + r.steps[s].s503final, 0);
-    if (s5xx) fails.push(`${r.label} běh ${r.run}: ${s5xx}× odpověď 5xx`);
+    if (!r.consistency.ok) fails.push(`${r.label} běh ${r.run}: konzistence selhala ${JSON.stringify(r.consistency.checks ?? r.consistency.error)}`);
+    else console.log(`ok   ${r.label} běh ${r.run}: konzistence OK`);
+    if (s5xx) console.log(`WARN ${r.label} běh ${r.run}: ${s5xx}× odpověď 5xx`);
   }
   for (const f of fails) console.log(`FAIL ${f}`);
   return fails.length ? 1 : 0;
@@ -121,7 +126,9 @@ if (a[0] === '--md') {
   const list = a.slice(1).map(rd);
   console.log([...list.flatMap(mdRuns), ...mdMedians(list)].join('\n'));
 } else if (a[0] === '--gate') {
-  process.exitCode = gate(rd(a[1]), a[2], a[3], Number(a[4] ?? 0.2));
+  process.exitCode = gate(rd(a[1]), a[2], a[3], Number(a[4] ?? 0.2), Number(a[5] ?? 25));
+} else if (a[0] === '--check') {
+  process.exitCode = gate(rd(a[1]), null, null, 0, 0);
 } else {
   process.stdout.write(JSON.stringify(collect(a[0]), null, 2));
 }

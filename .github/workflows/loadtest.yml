@@ -22,6 +22,11 @@ on:
         description: Testovaná verze aplikace (commit nebo větev)
         required: true
         type: string
+      baseline_ref:
+        description: Volitelně srovnávací verze (commit nebo větev) — obě verze za sebou na stejném runneru, job selže při zhoršení p95 o víc než 20 % nebo selhání konzistence
+        required: false
+        default: ''
+        type: string
       runs:
         description: Počet měřených zátěžových běhů
         required: false
@@ -41,10 +46,10 @@ env:
 
 jobs:
   load:
-    name: Zátěž ${{ inputs.ref }}
+    name: Zátěž ${{ inputs.ref }}${{ inputs.baseline_ref != '' && format(' vs {0}', inputs.baseline_ref) || '' }}
     if: github.event_name == 'workflow_dispatch'   # zátěž jen ručně
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 150
     services:
       postgres:
         image: postgis/postgis:17-3.5
@@ -79,11 +84,18 @@ jobs:
           path: app
           fetch-depth: 0
           persist-credentials: false
-      - name: Přepnout na ${{ inputs.ref }}
+      - name: Přepnout na ${{ inputs.ref }}${{ inputs.baseline_ref != '' && format(' a {0}', inputs.baseline_ref) || '' }}
         env:
           REF: ${{ inputs.ref }}
+          BASE_REF: ${{ inputs.baseline_ref }}
         run: |
-          sha=$(git -C app rev-parse --verify -q "$REF^{commit}" || git -C app rev-parse --verify -q "origin/$REF^{commit}")             || { echo "::error::ref $REF nenalezen"; exit 1; }
+          resolve() { git -C app rev-parse --verify -q "$1^{commit}" || git -C app rev-parse --verify -q "origin/$1^{commit}"             || { echo "::error::ref $1 nenalezen"; return 1; }; }
+          sha=$(resolve "$REF")
+          if [ -n "$BASE_REF" ]; then
+            base=$(resolve "$BASE_REF")
+            git -C app worktree add -q --detach "$GITHUB_WORKSPACE/base" "$base"   # srovnávací verze vedle testované
+            git -C base log --oneline -1
+          fi
           git -C app checkout -q --detach "$sha"
           git -C app log --oneline -1
 
@@ -183,6 +195,13 @@ jobs:
           for _ in $(seq 1 30); do curl -s -o /dev/null http://localhost:3998/ && exit 0; sleep 1; done
           cat "$OUT/fake-gopay.log"; exit 1
 
+      # Srovnávací verze první, testovaná po ní — stejný runner, stejné služby, každá verze vlastní DB a build.
+      - name: Zátěž — ${{ inputs.baseline_ref }} (srovnávací verze, zahřátí + ${{ inputs.runs }} běhy)
+        if: inputs.baseline_ref != ''
+        env:
+          RUNS: ${{ inputs.runs }}
+        run: bash tool/.github/scripts/loadtest-version.sh base base "$RUNS" "$OUT"
+
       - name: Zátěž — ${{ inputs.ref }} (zahřátí + ${{ inputs.runs }} běhy)
         env:
           RUNS: ${{ inputs.runs }}
@@ -192,14 +211,30 @@ jobs:
         if: always()
         env:
           REF: ${{ inputs.ref }}
+          BASE_REF: ${{ inputs.baseline_ref }}
         run: |
           mkdir -p "$OUT"
           node tool/e2e/load/r17-summarize.mjs "$OUT" > "$OUT/results.json"
           {
-            echo "## Zátěžový test — $REF"
+            echo "## Zátěžový test — $REF${BASE_REF:+ (srovnávací verze base = $BASE_REF, testovaná cand = $REF)}"
             echo
             node tool/e2e/load/r17-summarize.mjs --md "$OUT/results.json"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # Bez baseline_ref: selže jen na konzistenci. S baseline_ref: navíc na zhoršení mediánu p95 kteréhokoli kroku
+      # o víc než 20 % (base → cand); rozdíl pod 25 ms se nepočítá (šum měření u kroků s p95 v jednotkách ms).
+      - name: Brána — konzistence${{ inputs.baseline_ref != '' && ' a zhoršení p95 o víc než 20 %' || '' }}
+        env:
+          BASE_REF: ${{ inputs.baseline_ref }}
+        run: |
+          if [ -n "$BASE_REF" ]; then
+            node tool/e2e/load/r17-summarize.mjs --gate "$OUT/results.json" base cand 0.20 25 | tee "$OUT/gate.txt"
+          else
+            node tool/e2e/load/r17-summarize.mjs --check "$OUT/results.json" | tee "$OUT/gate.txt"
+          fi
+          rc=${PIPESTATUS[0]}
+          { echo; echo '### Brána'; echo '```'; cat "$OUT/gate.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit "$rc"
 
       - name: Výsledky jako artefakt
         if: always()
