@@ -13,7 +13,7 @@ interface BlobLib {
   put: (
     pathname: string,
     body: ArrayBuffer | Blob,
-    opts: { access: 'public'; contentType?: string; token?: string },
+    opts: { access: 'public'; contentType?: string; token?: string; addRandomSuffix?: boolean; allowOverwrite?: boolean },
   ) => Promise<{ url: string; pathname: string; contentType: string; size: number }>;
 }
 
@@ -81,6 +81,10 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     const result = await blob.put(pathname, file, {
       access: 'public',
       contentType: file.type,
+      // Kolo 16: @vercel/blob 2.x (API v11) má výchozí addRandomSuffix=false a zakázané přepsání; 0.27 (API v9) mělo
+      // příponu i přepsání zapnuté → explicitně původní chování.
+      addRandomSuffix: true,
+      allowOverwrite: true,
       token: process.env.BLOB_READ_WRITE_TOKEN,
     });
     return NextResponse.json({ url: result.url, size: result.size });

@@ -33,3 +33,9 @@ r16load). Procesy jen vlastní; ukončovat přes PowerShell podle příkazové �
   přehráno přes nodemailer 8.0.11 i 10.0.16 do Mailpitu → **31/31 totožných** (surový MIME bez Message-ID/Date/Received
   a s normalizovanými hranicemi + SHA-256 dekódovaných částí; `logs/r16/mail/3_replay_compare.md`). Aplikace s v10:
   4 živé testy 35/35 (obsah e-mailů a příloh v Mailpitu, ISDOC XML), unit 712.
+- @vercel/blob: za běhu používán (titulní obrázek akce, artwork fanouškovské vstupenky, fotky výhledu — UI je volá,
+  s BLOB_READ_WRITE_TOKEN). 0.27.3 → **2.0.1** = nejnižší verze bez high (0.x/1.x/2.0.0 nesou undici ^5 — high
+  GHSA-vxpw-j846-p89q aj.; 2.0.1+ undici ^6.23 → 6.29.0, bez high; samotný @vercel/blob 0 advisories). Breaking 1.0:
+  server API v11 má výchozí addRandomSuffix=false a zakázané přepsání (0.27 = API v9: obojí zapnuté) → explicitně
+  addRandomSuffix: true (titulní obrázek, výhledy) a allowOverwrite: true (všechny tři; artwork má pevný název).
+  Test fix-r16-blob-upload: 0.27.3 3/3, 2.0.1 bez úprav RED 3/3, s úpravou GREEN 3/3.

@@ -48,6 +48,8 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       access: 'public',
       contentType: file.type,
       addRandomSuffix: false,
+      // Kolo 16: pevný název → opakované nahrání přepisuje; @vercel/blob 2.x (API v11) přepsání bez allowOverwrite odmítá.
+      allowOverwrite: true,
     });
 
     // Auto-save URL to event
