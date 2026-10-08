@@ -1,0 +1,35 @@
+
+> ticketing-platform@1.0.0 prebuild
+> node scripts/copy-pdf-worker.mjs
+
+[copy-pdf-worker] OK: 1.31 MB → public/pdf.worker.min.mjs
+
+> ticketing-platform@1.0.0 build
+> next build
+
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+   ▲ Next.js 15.5.27
+   - Experiments (use with caution):
+     · staleTimes
+     ⨯ preloadEntriesOnStart
+
+   Creating an optimized production build ...
+
+<--- Last few GCs --->
+
+[5120:0x15572000]    69531 ms: Scavenge (interleaved) 1834.9 (1969.2) -> 1825.6 (2002.0) MB, pooled: 0 MB, 10.74 / 0.00 ms  (average mu = 0.362, current mu = 0.370) allocation failure; 
+[5120:0x15572000]    70479 ms: Mark-Compact (reduce) 1839.0 (2004.6) -> 1815.5 (1936.6) MB, pooled: 0 MB, 180.78 / 0.00 ms  (+ 717.4 ms in 127 steps since start of marking, biggest step 12.3 ms, walltime since start of marking 943 ms) (average mu = 0.335,
+FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 0x931db0  [node]
+ 2: 0x75968e node::OOMErrorHandler(char const*, v8::OOMDetails const&) [node]
+ 3: 0xc70d60  [node]
+ 4: 0xc70e4f  [node]
+ 5: 0xf14725  [node]
+ 6: 0xf14752  [node]
+ 7: 0xf14a4a  [node]
+ 8: 0xf2574a  [node]
+ 9: 0xf29af0  [node]
+10: 0x19c77d1  [node]
+Aborted (core dumped)
