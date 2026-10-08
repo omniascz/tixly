@@ -1,0 +1,9 @@
+{
+ "capturedAt": "2026-10-08T08:05:31.286Z",
+ "data": {
+  "from": "vstupenky@tixly.fix",
+  "to": "rem-e697dd@tixly.test",
+  "subject": "Připomínka: rezervace R74TYUQC vyprší 9. října 2026 v 6:05",
+  "html": "<!DOCTYPE html><html><body style=\"font-family:system-ui;max-width:600px;padding:24px\"><p>Dobrý den Jana Rezervující,</p><p>vaše rezervace <strong>R74TYUQC</strong> vyprší <strong>9. října 2026 v 6:05</strong>. Vyzvedněte ji prosím na pokladně.</p><p><strong>Test Akce</strong><br>7. 11. 2026 9:05:29, Test Sál</p><ul><li>Přízemí, řada 1, místo 9 — Plné — 400 CZK</li></ul><p>Cena celkem: 400 CZK</p></body></html>"
+ }
+}

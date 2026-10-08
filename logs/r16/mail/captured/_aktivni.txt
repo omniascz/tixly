@@ -1,0 +1,10 @@
+27840 nodemailer 8.0.11
+9624 nodemailer 8.0.11
+22008 nodemailer 8.0.11
+21536 nodemailer 8.0.11
+17536 nodemailer 8.0.11
+36896 nodemailer 8.0.11
+17536 nodemailer 8.0.11
+17536 nodemailer 8.0.11
+17536 nodemailer 8.0.11
+17536 nodemailer 8.0.11

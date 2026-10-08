@@ -1,0 +1,9 @@
+{
+ "capturedAt": "2026-10-08T08:05:39.233Z",
+ "data": {
+  "from": "\"Tixly provoz\" <vstupenky@tixly.fix>",
+  "to": "ops-muz94tli@tixly.fix",
+  "subject": "[Tixly provoz] Zaplacené objednávky bez vstupenek (2)",
+  "text": "Tyto objednávky jsou zaplacené u brány déle než 10 minut, ale nemají vystavené vstupenky:\n\n• 10b141b5-202a-4623-9c78-6a8a6249bde7 — Test Akce — gopay, zaplaceno 7. 10. 2026 12:00:00\n  http://localhost:3100/admin/orders/10b141b5-202a-4623-9c78-6a8a6249bde7\n• 89cf085f-17e0-48d9-b7d4-10fe3a7f8890 — Test Akce — gopay, zaplaceno 8. 10. 2026 9:52:07\n  http://localhost:3100/admin/orders/89cf085f-17e0-48d9-b7d4-10fe3a7f8890\n\nVstupenky vystaví znovu odeslání potvrzení (detail objednávky → Poslat znovu) nebo opakovaný webhook brány.\n\n—\nStejné upozornění se znovu pošle nejdřív za 30 minut (klíč paid_without_tickets)."
+ }
+}

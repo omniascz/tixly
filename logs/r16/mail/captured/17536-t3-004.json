@@ -1,0 +1,9 @@
+{
+ "capturedAt": "2026-10-08T08:05:39.302Z",
+ "data": {
+  "from": "\"Tixly provoz\" <vstupenky@tixly.fix>",
+  "to": "ops-muz94tli@tixly.fix",
+  "subject": "[Tixly provoz] Refund ve stavu refund_failed (1)",
+  "text": "Vrácení peněz se nepodařilo dokončit u těchto objednávek (stav refund_failed):\n\n• 286dadae-ee14-4d4b-b973-cea4a239c7ba — Test Akce\n  http://localhost:3100/admin/orders/286dadae-ee14-4d4b-b973-cea4a239c7ba\n\nDořešte ručně (brána / převod) a stav objednávky upravte.\n\n—\nStejné upozornění se znovu pošle nejdřív za 30 minut (klíč refund_failed)."
+ }
+}

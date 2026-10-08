@@ -19,3 +19,17 @@ r16load). Procesy jen vlastní; ukončovat přes PowerShell podle příkazové �
   stránce bez use() ne) → `useParams<T>()` (synchronní jako Next 14; skript `logs/r16/use_params_transform.py`);
   rezervace/zrusit (jen tlačítko) ponechána; (3) middleware: výjimka /b2b/ z jazykového prefixu.
 - GREEN 12/12 (`1_prehydration_green.txt`); tsc 0, lint bez nárůstu, unit 712; tabulka rout beze změny (1124/1119/5).
+
+## Krok 2 — zátěž (čeká na volný stroj)
+- `logs/r16/load_check.ps1` + `load_wait.sh` (6× po 10 min), log `2_load_checks.txt`.
+
+## Krok 3 — runtime závislosti
+- nodemailer 8.0.11 → **10.0.16** (GitHub Advisory DB: 8.0.11 4× high, 9.1.1 3× high, 10.0.16 žádné; nejnižší major bez high
+  = 10; `3_nodemailer_advisories.txt`). Breaking: 9.0 TLS ověřování při stahování příloh z URL — aplikace přílohy z URL
+  nepoužívá (jen buffery); 10.0 Node ≥ 20, TS/ESM+CJS — beze změny kódu, jen typy (staging-allowlist: vstupní tvar adres
+  z nodemaileru 10, rekurzivní flatten; mailer: envelope.from false as const).
+- Ověření obsahu: 31 skutečných SendMailOptions zachycených z kódu aplikace (preload `logs/r16/mail/mail-capture.cjs`
+  nad 4 živými testy: vstupenky s PDF/pkpass ×5, rezervace ×12, faktura PDF+ISDOC ×3, upozornění ×10, denní souhrn ×1)
+  přehráno přes nodemailer 8.0.11 i 10.0.16 do Mailpitu → **31/31 totožných** (surový MIME bez Message-ID/Date/Received
+  a s normalizovanými hranicemi + SHA-256 dekódovaných částí; `logs/r16/mail/3_replay_compare.md`). Aplikace s v10:
+  4 živé testy 35/35 (obsah e-mailů a příloh v Mailpitu, ISDOC XML), unit 712.

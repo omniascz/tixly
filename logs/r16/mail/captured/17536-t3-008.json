@@ -1,0 +1,9 @@
+{
+ "capturedAt": "2026-10-08T08:05:49.062Z",
+ "data": {
+  "from": "\"Tixly provoz\" <vstupenky@tixly.fix>",
+  "to": "ops-muz94tli@tixly.fix",
+  "subject": "[Tixly provoz] Selhal e-mail se vstupenkami",
+  "text": "Objednávka d7a4da4e-a099-43fe-917f-08941d3662b5 (Test Akce) — e-mail se vstupenkami se nepodařilo odeslat: SMTP 421 simulace výpadku\n\nVstupenky jsou vystavené; pošlete je znovu z detailu objednávky (Poslat znovu).\n\n—\nStejné upozornění se znovu pošle nejdřív za 30 minut (klíč ticket_email_failed)."
+ }
+}

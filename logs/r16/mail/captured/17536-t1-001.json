@@ -1,0 +1,9 @@
+{
+ "capturedAt": "2026-10-08T08:05:29.691Z",
+ "data": {
+  "from": "vstupenky@tixly.fix",
+  "to": "rez-138864@tixly.test",
+  "subject": "Rezervace SGJDZ2PH — vyzvedněte a zaplaťte do 13. října 2026 v 10:05",
+  "html": "<!DOCTYPE html><html><body style=\"font-family:system-ui;max-width:600px;padding:24px\"><p>Dobrý den Jana Rezervující,</p><p>rezervovali jsme pro vás tato místa:</p><p><strong>Test Akce</strong><br>7. 11. 2026 9:05:28, Test Sál</p><ul><li>Přízemí, řada 1, místo 1 — Plné — 400 CZK</li><li>Přízemí, řada 1, místo 2 — Senior — 320 CZK</li></ul>\n      <p>Kód rezervace: <strong style=\"font-size:20px;letter-spacing:2px\">SGJDZ2PH</strong><br>Cena celkem: <strong>720 CZK</strong><br>\n      Vyzvedněte a zaplaťte na pokladně (hotově nebo kartou) nejpozději <strong>13. října 2026 v 10:05</strong>. Potom se místa automaticky uvolní.</p><p>Rezervaci můžete zrušit zde: <a href=\"http://localhost:3100/cs/rezervace/zrusit?code=SGJDZ2PH&token=EaYwTIhiSyQs0nChXTIcUdTtG94HiMI7\">zrušit rezervaci</a></p></body></html>"
+ }
+}

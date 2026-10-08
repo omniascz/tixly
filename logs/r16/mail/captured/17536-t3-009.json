@@ -1,0 +1,9 @@
+{
+ "capturedAt": "2026-10-08T08:05:49.619Z",
+ "data": {
+  "from": "\"Tixly provoz\" <vstupenky@tixly.fix>",
+  "to": "ops-muz94tli@tixly.fix",
+  "subject": "[Tixly provoz] Selhala záloha databáze",
+  "text": "Týdenní záloha databáze (GitHub Actions, db-backup) selhala.\nBěh: https://github.com/x/y/actions/runs/1\n\nSpusťte zálohu ručně (Actions → db-backup → Run workflow) a zkontrolujte tajemství DATABASE_URL / AWS_* / BACKUP_ENCRYPTION_KEY.\n\n—\nStejné upozornění se znovu pošle nejdřív za 30 minut (klíč backup_failed)."
+ }
+}
