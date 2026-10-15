@@ -1,0 +1,87 @@
+
+Running 1 test using 1 worker
+
+[r21] (a) token 9342… (64 znaků); POST /api/auth/reset-password → 200; Referer http://localhost:3200/cs/reset-password?token=9342…
+[r21] (b) token 7d04… (36 znaků); GET seat-prices → 200; Referer http://localhost:3200/cs/events/00000000-0000-4000-a000-000000000503/seats/kategorie?token=7d04…&seats=77ae28bd-1038-4368-a1bb-d0cdc758cc67
+[r21] (c) token r21c…; POST /api/ops/sentry-check?token=… → 500
+[r21] obálek: 140; spanů: 512; událostí (event): 1
+[r21] spany s cestou /cs/reset-password: 32; se /seats/kategorie: 38; událost (c): ano
+[r21] (a) token 9342…: surových obálek s tokenem 11; výskyty podle pole {"span.attributes.next.span_name":1,"span.attributes.http.target":2,"span.attributes.http.request.header.referer":26}
+[r21] (b) token 7d04…: surových obálek s tokenem 14; výskyty podle pole {"span.attributes.next.span_name":1,"span.attributes.http.target":2,"span.attributes.http.request.header.referer":26}
+[r21] (c) token r21c…: surových obálek s tokenem 3; výskyty podle pole {"span.attributes.next.span_name":1,"span.attributes.http.target":2,"span.attributes.http.request.header.referer":2,"event.request.headers.referer":1}
+  x  1 [golden-path] › tests\golden-path-r21-sentry-url-tokens.spec.ts:92:5 › Sentry: tokeny z URL (referer, dotaz) neodejdou — (a) obnova hesla, (b) výběr míst, (c) serverová chyba (41.7s)
+
+
+  1) [golden-path] › tests\golden-path-r21-sentry-url-tokens.spec.ts:92:5 › Sentry: tokeny z URL (referer, dotaz) neodejdou — (a) obnova hesla, (b) výběr míst, (c) serverová chyba › obálky: žádný token z (a)–(c); obálky z (a)–(c) dorazily 
+
+    Error: (a) token v surových obálkách
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m11[39m
+
+      193 |       }
+      194 |       note(`(${k}) token ${mask(tok)}: surových obálek s tokenem ${hits}; výskyty podle pole ${JSON.stringify(where)}`);
+    > 195 |       expect.soft(hits, `(${k}) token v surových obálkách`).toBe(0);
+          |                                                             ^
+      196 |     }
+      197 |   });
+      198 | });
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r21-sentry-url-tokens.spec.ts:195:61
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r21-sentry-url-tokens.spec.ts:162:3
+
+    Error: (b) token v surových obálkách
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m14[39m
+
+      193 |       }
+      194 |       note(`(${k}) token ${mask(tok)}: surových obálek s tokenem ${hits}; výskyty podle pole ${JSON.stringify(where)}`);
+    > 195 |       expect.soft(hits, `(${k}) token v surových obálkách`).toBe(0);
+          |                                                             ^
+      196 |     }
+      197 |   });
+      198 | });
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r21-sentry-url-tokens.spec.ts:195:61
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r21-sentry-url-tokens.spec.ts:162:3
+
+    Error: (c) token v surových obálkách
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m3[39m
+
+      193 |       }
+      194 |       note(`(${k}) token ${mask(tok)}: surových obálek s tokenem ${hits}; výskyty podle pole ${JSON.stringify(where)}`);
+    > 195 |       expect.soft(hits, `(${k}) token v surových obálkách`).toBe(0);
+          |                                                             ^
+      196 |     }
+      197 |   });
+      198 | });
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r21-sentry-url-tokens.spec.ts:195:61
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r21-sentry-url-tokens.spec.ts:162:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r21-sentry-url-8b148-ýběr-míst-c-serverová-chyba-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r21-sentry-url-8b148-ýběr-míst-c-serverová-chyba-golden-path\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r21-sentry-url-8b148-ýběr-míst-c-serverová-chyba-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r21-sentry-url-8b148-ýběr-míst-c-serverová-chyba-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r21-sentry-url-8b148-ýběr-míst-c-serverová-chyba-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r21-sentry-url-tokens.spec.ts:92:5 › Sentry: tokeny z URL (referer, dotaz) neodejdou — (a) obnova hesla, (b) výběr míst, (c) serverová chyba 

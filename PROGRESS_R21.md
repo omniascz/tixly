@@ -12,4 +12,6 @@ R21_SIM_OUT / R19_SIM_OUT a proměnné z fix.app.env.
 
 ## Krok 1 — soupis tajemství v URL ⏳
 ## Krok 2 — maskování tokenů v URL (RED → GREEN) ⏳
+- Spec `e2e/tests/golden-path-r21-sentry-url-tokens.spec.ts` (a) reset hesla z Mailpitu, (b) kategorie?token=, (c) sentry-check 500 s ?token= a Referer.
+- RED (`2_red.txt`): (a) 11 obálek, (b) 14, (c) 3 — referer (span 26/26/2, událost 1), http.target 2, next.span_name 1; url.full/url.query už [Filtered] (SDK).
 ## Závěr ⏳
