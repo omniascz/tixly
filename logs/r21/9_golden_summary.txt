@@ -1,0 +1,9 @@
+# Kolo 21 — golden-path-r13-keep + r16-prehydration + r20-order-confirmation (build logs/r21/2_green_build.txt = kód b7af4622, čerstvá r21demo, tixly_app)
+  25 passed (1.2m)
+
+## token= v surových obálkách (kritérium kroku 2.4)
+po (logs/r21/9_golden_envelopes.jsonl.raw.jsonl):
+      7 token=[skryt
+před (logs/r20/9_golden_envelopes.jsonl.raw.jsonl, r13-keep + r16):
+      2 token=<hodnota>
+→ po opravě 0 výskytů token= s jinou hodnotou než [skryto].

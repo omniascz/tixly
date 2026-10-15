@@ -105,3 +105,14 @@ fbf71b5e8dda271900fed1210969621f56e65c97:scripts/staging/vercel-preview.env.exam
 3016048610b92c4bc99e0ab6c157cc880dca30b4:logs/r20/9_golden_envelopes.jsonl:generic-api-key:134
 3016048610b92c4bc99e0ab6c157cc880dca30b4:logs/r20/9_golden_envelopes.jsonl:generic-api-key:136
 3016048610b92c4bc99e0ab6c157cc880dca30b4:logs/r20/fixture_offline.json:generic-api-key:1
+# Kolo 21 (2026-10-15): triáž logs/r21/9_gitleaks_triage.md — testovací data (konstanta unit testu, live, audit 03).
+972844aba87e9893ce97413efc2a17a225f11df3:audit/logs/r21_e2e_03_refund_scan.jsonl:generic-api-key:4
+972844aba87e9893ce97413efc2a17a225f11df3:logs/r21/live/g01.txt:generic-api-key:165
+972844aba87e9893ce97413efc2a17a225f11df3:logs/r21/live/n03.txt:generic-api-key:38
+972844aba87e9893ce97413efc2a17a225f11df3:logs/r21/live/n03.txt:generic-api-key:102
+972844aba87e9893ce97413efc2a17a225f11df3:logs/r21/live/n03.txt:generic-api-key:108
+b7af46220fc92885039ee66eb7924e04c5fb8890:logs/r21/2_unit_red.txt:generic-api-key:46
+b7af46220fc92885039ee66eb7924e04c5fb8890:logs/r21/2_unit_red.txt:generic-api-key:58
+b7af46220fc92885039ee66eb7924e04c5fb8890:logs/r21/2_unit_red.txt:generic-api-key:97
+b7af46220fc92885039ee66eb7924e04c5fb8890:logs/r21/2_unit_red.txt:generic-api-key:237
+b7af46220fc92885039ee66eb7924e04c5fb8890:logs/r21/2_unit_red.txt:generic-api-key:59

@@ -1,0 +1,19 @@
+# Kolo 21 / krok 2.4 — golden-path-r19-sentry11 proti simulátoru (body (a)–(f) jako v Kole 19 a 20)
+Build 2_sentry11_build.txt (kód 700c8af8 = oprava b7af4622; klientské DSN ve tvaru SaaS jen jako řetězec, tunel /api/monitoring → simulátor přes _SENTRY_TUNNEL_DESTINATION_OVERRIDE, release = SHA HEAD), net-guard buildu: pokusů mimo localhost celkem (BLOCKED + connect): 0
+Server: next start :3200 nad čerstvou r21demo, SENTRY_DSN 127.0.0.1:3995; net log serveru 2_sentry11_net.log: 0 řádků (0 spojení mimo localhost)
+
+[r19] (f) GET /api/admin/events → 401
+[r19] (f) GET /api/orders/00000000-0000-4000-a000-000000000001 → 401
+[r19] (f) GET /api/platform/promoters → 401
+[r19] (a) POST /api/ops/sentry-check → 500
+[r19] (a) událost: Sentry kontrola: kupec [email], tel. [telefon]; release=700c8af84411272e281ff4788796a4591b9e4ca1
+[r19] (b) GET /api/cron/dispatch?job=charge-installments → 502
+[r19] (b) událost: Cron charge-installments selhal: HTTP 404 tags={"cron":"charge-installments","runbook":"https://github.com/omnia/tixly/blob/main/docs/RUNBOOK-DISASTER-RECOVERY.md"}
+[r19] (c) událost: R19 chyba v prohlížeči: kupec [email], tel. [telefon]
+[r19] (c) požadavky na tunel: ["POST /api/monitoring?o=1&p=1 → 200","POST /api/monitoring?o=1&p=1 → 200"]; přímo na simulátor: []; zablokováno mimo localhost: []
+[r19] obálek: 55; položek event/transaction/span: 44 ({"span":41,"event":3})
+[r19] spanů / transakcí v obálkách: 204 (z toho přes tunel z prohlížeče: 38)
+[r19] (d)+(e) nálezy: žádné
+  1 passed (16.9s)
+
+Unit: viz 2_unit_green.txt (r21 16 + r14 5 + r19 7 = 28 passed).
