@@ -1,0 +1,65 @@
+
+Running 1 test using 1 worker
+
+[r19] (f) GET /api/admin/events → 401
+[r19] (f) GET /api/orders/00000000-0000-4000-a000-000000000001 → 401
+[r19] (f) GET /api/platform/promoters → 401
+[r19] (a) POST /api/ops/sentry-check → 500
+[r19] (a) událost: Sentry kontrola: kupec [email], tel. [telefon]; release=6a563c80244e6d0a3b55943dc61a8a1319d5a261
+[r19] (b) GET /api/cron/dispatch?job=charge-installments → 502
+[r19] (b) událost: Cron charge-installments selhal: HTTP 404 tags={"cron":"charge-installments","runbook":"https://github.com/omnia/tixly/blob/main/docs/RUNBOOK-DISASTER-RECOVERY.md"}
+[r19] (c) událost: R19 chyba v prohlížeči: kupec [email], tel. [telefon], Jana Nováková
+[r19] (c) požadavky na tunel: ["POST /api/monitoring?o=1&p=1 → 200"]; přímo na simulátor: []; zablokováno mimo localhost: []
+[r19] obálek: 30; položek event/transaction/span: 9 ({"span":6,"event":3})
+[r19] (d)+(e) nálezy: e-mail: 1 obálek; telefon: 1 obálek; jméno: 2 obálek; IP adresa: 2 obálek; user.ip_address: 1 obálek; request.cookies ["accessToken","r19_buyer"]; request.data (tělo) v event; atribut spanu http.request.header.cookie; (e) atribut spanu user.ip_address
+  x  1 [golden-path] › tests\golden-path-r19-sentry11.spec.ts:82:5 › Sentry 11: (a)–(f) proti simulátoru (24.1s)
+
+
+  1) [golden-path] › tests\golden-path-r19-sentry11.spec.ts:82:5 › Sentry 11: (a)–(f) proti simulátoru › (d)+(e) obálky bez osobních údajů; z user nanejvýš id 
+
+    Error: (d)+(e) osobní údaje v obálkách
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    [32m- Expected  -  1[39m
+    [31m+ Received  + 11[39m
+
+    [32m- Array [][39m
+    [31m+ Array [[39m
+    [31m+   "e-mail: 1 obálek",[39m
+    [31m+   "telefon: 1 obálek",[39m
+    [31m+   "jméno: 2 obálek",[39m
+    [31m+   "IP adresa: 2 obálek",[39m
+    [31m+   "user.ip_address: 1 obálek",[39m
+    [31m+   "request.cookies [\"accessToken\",\"r19_buyer\"]",[39m
+    [31m+   "request.data (tělo) v event",[39m
+    [31m+   "atribut spanu http.request.header.cookie",[39m
+    [31m+   "(e) atribut spanu user.ip_address",[39m
+    [31m+ ][39m
+
+      188 |     }
+      189 |     note(`(d)+(e) nálezy: ${found.length ? [...new Set(found)].join('; ') : 'žádné'}`);
+    > 190 |     expect.soft([...new Set(found)], '(d)+(e) osobní údaje v obálkách').toEqual([]);
+          |                                                                         ^
+      191 |   });
+      192 | });
+      193 |
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r19-sentry11.spec.ts:190:73
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r19-sentry11.spec.ts:146:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r19-sentry11-Sentry-11-a-–-f-proti-simulátoru-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r19-sentry11-Sentry-11-a-–-f-proti-simulátoru-golden-path\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r19-sentry11-Sentry-11-a-–-f-proti-simulátoru-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r19-sentry11-Sentry-11-a-–-f-proti-simulátoru-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r19-sentry11.spec.ts:82:5 › Sentry 11: (a)–(f) proti simulátoru 

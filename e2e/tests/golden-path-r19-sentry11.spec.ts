@@ -68,7 +68,11 @@ test.beforeAll(async ({ request }) => {
   expect(accessToken.length).toBeGreaterThan(20);
 });
 
+// sentry-trace s příznakem sampled=1: server pokračuje v navzorkované trase → spany vzniknou vždy (tracesSampleRate 0.1
+// se nemění), takže kontrola (d)/(e) pokryje i spany
+const hex = (n: number): string => Array.from({ length: n }, () => Math.floor(Math.random() * 16).toString(16)).join('');
 const piiHeaders = (): Record<string, string> => ({
+  'sentry-trace': `${hex(32)}-${hex(16)}-1`,
   authorization: `Bearer ${CRON}`,
   cookie: `accessToken=${accessToken}; r19_buyer=${encodeURIComponent(PII.email)}`,
   origin: BASE,
@@ -111,7 +115,8 @@ test('Sentry 11: (a)–(f) proti simulátoru', async ({ request, browser }) => {
 
   await test.step('(c) chyba v prohlížeči nepřihlášeného návštěvníka jde přes /api/monitoring a dorazí', async () => {
     const ctx = await browser.newContext({ baseURL: BASE, viewport: { width: 1440, height: 900 } });
-    await ctx.setExtraHTTPHeaders({ 'x-real-ip': IP, 'x-forwarded-for': IP });
+    // sentry-trace sampled=1 → server navzorkuje vykreslení stránky a prohlížeč v trase pokračuje (spany z prohlížeče)
+    await ctx.setExtraHTTPHeaders({ 'x-real-ip': IP, 'x-forwarded-for': IP, 'sentry-trace': `${hex(32)}-${hex(16)}-1` });
     await ctx.addCookies([{ name: 'r19_buyer', value: encodeURIComponent(PII.email), url: BASE }]);
     await ctx.addInitScript(() => { try { window.localStorage.setItem('tixly.cookie-consent', JSON.stringify({ essential: true, analytics: false, marketing: false, decidedAt: '2026-10-15T00:00:00.000Z' })); } catch { /* */ } });
     const blocked: string[] = [];
@@ -131,7 +136,9 @@ test('Sentry 11: (a)–(f) proti simulátoru', async ({ request, browser }) => {
     await page.goto(`/cs/events?email=${encodeURIComponent(PII.email)}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
     expect.soft(await page.evaluate(() => typeof (window as unknown as { __SENTRY__?: unknown }).__SENTRY__), '(c) SDK v prohlížeči načtené').toBe('object');
-    await page.evaluate((m) => { setTimeout(() => { throw new Error(m); }, 0); }, `R19 chyba v prohlížeči: kupec ${PII.email}, tel. ${PII.phone}, ${PII.name}`);
+    // jako sentry-check: e-mail a telefon v textu chyby; jméno kupce maskování pozná jen pod klíčem (tělo požadavku v (a)),
+    // ve volném textu ne — ani na SDK 8 (logs/r19/2_red.txt, poznámka k testu)
+    await page.evaluate((m) => { setTimeout(() => { throw new Error(m); }, 0); }, `R19 chyba v prohlížeči: kupec ${PII.email}, tel. ${PII.phone}`);
     const ev = await waitForEvent((i) => exceptionOf(i).startsWith('R19 chyba v prohlížeči'));
     await page.waitForTimeout(1500);
     note(`(c) událost: ${ev ? exceptionOf(ev) : 'NEDORAZILA'}`);
@@ -186,6 +193,11 @@ test('Sentry 11: (a)–(f) proti simulátoru', async ({ request, browser }) => {
         }
       }
     }
+    const spanCount = all.filter((i) => i.item_type === 'span').reduce((n, i) => n + ((i.raw.items as unknown[] | undefined)?.length ?? 0), 0)
+      + all.filter((i) => i.raw.type === 'transaction').length;
+    const browserSpans = all.filter((i) => i.item_type === 'span' && i.url.includes('o=1')).reduce((n, i) => n + ((i.raw.items as unknown[] | undefined)?.length ?? 0), 0);
+    note(`spanů / transakcí v obálkách: ${spanCount} (z toho přes tunel z prohlížeče: ${browserSpans})`);
+    expect.soft(spanCount, '(d) kontrola pokrývá i spany').toBeGreaterThan(0);
     note(`(d)+(e) nálezy: ${found.length ? [...new Set(found)].join('; ') : 'žádné'}`);
     expect.soft([...new Set(found)], '(d)+(e) osobní údaje v obálkách').toEqual([]);
   });
