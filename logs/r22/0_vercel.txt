@@ -1,0 +1,32 @@
+# Kolo 22 — 0.4 Vercel na 6799fb5b (jen čtení)
+
+## gh api repos/omniascz/tixly/commits/6799fb5b/statuses
+(konec statusů)
+
+## check-runs na 6799fb5b (opakováno po výpadku spojení)
+github-actions Schema drift (SQL vs schéma z migrací): completed/success
+github-actions RLS verify (produkce vs snapshot): completed/skipped
+github-actions RLS verify (DB z migrací vs snapshot): completed/success
+github-actions Dependency audit (nextjs-boilerplate): completed/success
+github-actions Dependency audit (mobile): completed/success
+github-actions Dependency audit (mobile-promoter): completed/success
+github-actions Secret scan (Gitleaks): completed/success
+github-actions Dependency audit (e2e): completed/success
+github-actions Build bez sítě (pojistka prerenderu): completed/success
+github-actions Live sada (Postgres z migrací, tixly_app): completed/success
+github-actions Install · typecheck · lint · unit: completed/success
+→ žádný check-run aplikace vercel, jen github-actions.
+
+## deployments (GitHub Deployments API) pro sha 6799fb5b
+(konec deployments)
+
+## srovnání: statusy na 2203c81c
+2026-10-15T13:56:05Z Vercel – nextjs-boilerplate: success — Deployment has completed
+2026-10-15T13:53:12Z Vercel – tixly: success — Deployment has completed
+2026-10-15T13:52:53Z Vercel – nextjs-boilerplate: pending — Vercel is deploying your app
+2026-10-15T13:52:53Z Vercel – tixly: pending — Vercel is deploying your app
+
+## Závěr 0.4
+Pro 6799fb5b neexistuje žádný commit status Vercel – nextjs-boilerplate ani Vercel – tixly a žádný GitHub deployment
+(oba projekty vlastník pozastavil — Pause Project; ve Vercelu nic nespuštěno ani neobnoveno; vercel ls nespuštěn, GitHub API stačí).
+Čistě dokumentační commit → kolo pokračuje; rozhodující je Vercel na PR kola 22.

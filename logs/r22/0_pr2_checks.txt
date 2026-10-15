@@ -1,0 +1,15 @@
+PR #2 po rerunu (gh pr checks 2, 2026-10-15):
+Dependency audit (e2e)	pass	16s	https://github.com/omniascz/tixly/actions/runs/38746784127/job/116609965022	
+Dependency audit (mobile)	pass	46s	https://github.com/omniascz/tixly/actions/runs/38746784127/job/116609965544	
+Dependency audit (mobile-promoter)	pass	52s	https://github.com/omniascz/tixly/actions/runs/38746784127/job/116609965518	
+Dependency audit (nextjs-boilerplate)	pass	1m31s	https://github.com/omniascz/tixly/actions/runs/38746784127/job/116609965590	
+Install · typecheck · lint · unit	pass	2m40s	https://github.com/omniascz/tixly/actions/runs/38746784038/job/116609951217	
+RLS verify (DB z migrací vs snapshot)	pass	1m5s	https://github.com/omniascz/tixly/actions/runs/38746784318/job/116609970434	
+Schema drift (SQL vs schéma z migrací)	pass	1m8s	https://github.com/omniascz/tixly/actions/runs/38746784037/job/116609982986	
+Secret scan (Gitleaks)	pass	12s	https://github.com/omniascz/tixly/actions/runs/38746784127/job/116609965512	
+RLS verify (produkce vs snapshot)	skipping	0	https://github.com/omniascz/tixly/actions/runs/38746784318/job/116609973451	
+Build bez sítě (pojistka prerenderu)	pass	2m54s	https://github.com/omniascz/tixly/actions/runs/38746784038/job/116609951888	
+Live sada (Postgres z migrací, tixly_app)	pass	3m8s	https://github.com/omniascz/tixly/actions/runs/38746784038/job/116609951544	
+
+gh pr view 2: {"state":"OPEN","mergeable":"MERGEABLE","mergeStateStatus":"CLEAN","headRefOid":"6799fb5b…"}
+Vercel checky na 6799fb5b chybí (viz 0_vercel.txt) — PR je přesto CLEAN.
