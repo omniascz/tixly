@@ -7,6 +7,15 @@ Větev `fix/round20-order-confirmation-2026-10-15` z `origin/integrate/2026-10-0
   Cizí commity 0, necommitnuté změny 0, PR #2 CLEAN + vše zelené, `staging.keys.env` neexistuje.
 - `0_verify_r19.txt`: @sentry/nextjs 11.7.0, r14 5/5 + r19 7/7.
 
-## Krok 1 — pád stránky potvrzení (RED → GREEN) ⏳
+## Krok 1 — pád stránky potvrzení (RED → GREEN) ✅ (turné ověřeno v závěrečné sadě)
+- Spec `e2e/tests/golden-path-r20-order-confirmation.spec.ts` (next start :3200 nad r20demo z migrací, tixly_app + RLS,
+  nákup přes simulátor GoPay; nic nemockováno). Skripty `logs/r20/golden.sh <štítek> <spec…>` (reset r20demo, GoPay :3998,
+  Sentry :3995, server; R20_NO_RESET=1 / R20_DB=…), `serve_r20.sh`, `stop_mine.sh`, `rich_from_dev.sh`.
+- RED (`1_red.txt`, commit 0b8e8a3b): (a) 500, (b) 2× TypeError, (c) 0 odkazů; (d) a (null) zelené i na starém kódu.
+- Oprava page.tsx: typ `Date | string | null`, `eventStartIso` = `new Date(..).toISOString()`, `gcalStart` = YYYYMMDDTHHMMSSZ;
+  formatDate dostává ISO téhož okamžiku (výstup stejný). paid_at/expires_at beze změny (žádná metoda řetězce; expires_at přes new Date).
+- GREEN (`1_green.txt`): 3/3, dates=20261119T190000Z/… = date_start z DB, 0 TypeError. tsc 0 (`1_tsc.txt`); lint souboru 3 chyby import/order = stejné jako před změnou.
+- Grep 1.4 (`1_grep_dates.md`): 18 výskytů, 0 kandidátů (všechny `::text` nebo JSON).
+- golden-path-buyer / benefit: červené z důvodů mimo kolo (zastaralé texty UI, CSRF bez Origin, kód chyby) — viz `1_green.txt`; DB r20rich.
 ## Krok 2 — telemetrie build pluginu Sentry ⏳
 ## Závěr ⏳

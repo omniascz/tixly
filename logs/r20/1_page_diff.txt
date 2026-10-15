@@ -1,0 +1,24 @@
+diff --git a/nextjs-boilerplate/src/app/[locale]/order-confirmation/[orderId]/page.tsx b/nextjs-boilerplate/src/app/[locale]/order-confirmation/[orderId]/page.tsx
+index 95767f60..c6697882 100644
+--- a/nextjs-boilerplate/src/app/[locale]/order-confirmation/[orderId]/page.tsx
++++ b/nextjs-boilerplate/src/app/[locale]/order-confirmation/[orderId]/page.tsx
+@@ -36 +36,2 @@ interface OrderRow {
+-  event_date_start: string | null;
++  // Kolo 20: pg vrací timestamptz (e.date_start) jako Date, ne řetězec
++  event_date_start: Date | string | null;
+@@ -143,0 +145,3 @@ export default async function OrderConfirmationPage(
++  // Kolo 20: začátek akce jako ISO v UTC (Date i řetězec); Google Kalendář chce YYYYMMDDTHHMMSSZ v UTC
++  const eventStartIso = order.event_date_start ? new Date(order.event_date_start).toISOString() : null;
++  const gcalStart = eventStartIso ? eventStartIso.replace(/\.\d{3}Z$/, 'Z').replace(/[-:]/g, '') : null;
+@@ -187 +191 @@ export default async function OrderConfirmationPage(
+-              {order.event_date_start && (
++              {eventStartIso && (
+@@ -189 +193 @@ export default async function OrderConfirmationPage(
+-                  {formatDate(order.event_date_start, locale)}
++                  {formatDate(eventStartIso, locale)}
+@@ -359 +363 @@ export default async function OrderConfirmationPage(
+-          {isPaid && order.event_date_start && order.event_title ? (
++          {isPaid && gcalStart && order.event_title ? (
+@@ -369 +373 @@ export default async function OrderConfirmationPage(
+-                href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(order.event_title)}&dates=${order.event_date_start.replace(/[-:]/g, '').replace('T', 'T').slice(0, 15) + 'Z'}/${order.event_date_start.replace(/[-:]/g, '').replace('T', 'T').slice(0, 15) + 'Z'}&location=${encodeURIComponent(order.venue_name ?? '')}`}
++                href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(order.event_title)}&dates=${gcalStart}/${gcalStart}&location=${encodeURIComponent(order.venue_name ?? '')}`}

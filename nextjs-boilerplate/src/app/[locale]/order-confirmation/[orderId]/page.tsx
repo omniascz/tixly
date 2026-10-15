@@ -33,7 +33,8 @@ interface OrderRow {
   promoter_bank_account: string | null;
   promoter_meta_pixel_id: string | null;
   event_title: string | null;
-  event_date_start: string | null;
+  // Kolo 20: pg vrací timestamptz (e.date_start) jako Date, ne řetězec
+  event_date_start: Date | string | null;
   venue_name: string | null;
   // Livestream
   event_type: string | null;
@@ -141,6 +142,9 @@ export default async function OrderConfirmationPage(
   const t = getDict(locale).orderConfirmation;
 
   const totalItems = items.reduce((s, it) => s + it.quantity, 0);
+  // Kolo 20: začátek akce jako ISO v UTC (Date i řetězec); Google Kalendář chce YYYYMMDDTHHMMSSZ v UTC
+  const eventStartIso = order.event_date_start ? new Date(order.event_date_start).toISOString() : null;
+  const gcalStart = eventStartIso ? eventStartIso.replace(/\.\d{3}Z$/, 'Z').replace(/[-:]/g, '') : null;
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -184,9 +188,9 @@ export default async function OrderConfirmationPage(
           {order.event_title && (
             <div>
               <h2 className="text-lg font-semibold">{order.event_title}</h2>
-              {order.event_date_start && (
+              {eventStartIso && (
                 <p className="text-xs text-muted-foreground">
-                  {formatDate(order.event_date_start, locale)}
+                  {formatDate(eventStartIso, locale)}
                 </p>
               )}
               {order.venue_name && (
@@ -356,7 +360,7 @@ export default async function OrderConfirmationPage(
           ) : null}
 
           {/* Calendar add — zobrazí se jen pro paid objednávky s datem události */}
-          {isPaid && order.event_date_start && order.event_title ? (
+          {isPaid && gcalStart && order.event_title ? (
             <div className="flex flex-wrap gap-2">
               <a
                 href={`/api/buyer/orders/${order.id}/calendar.ics`}
@@ -366,7 +370,7 @@ export default async function OrderConfirmationPage(
                 📅 Stáhnout do kalendáře (.ics)
               </a>
               <a
-                href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(order.event_title)}&dates=${order.event_date_start.replace(/[-:]/g, '').replace('T', 'T').slice(0, 15) + 'Z'}/${order.event_date_start.replace(/[-:]/g, '').replace('T', 'T').slice(0, 15) + 'Z'}&location=${encodeURIComponent(order.venue_name ?? '')}`}
+                href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(order.event_title)}&dates=${gcalStart}/${gcalStart}&location=${encodeURIComponent(order.venue_name ?? '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted"
