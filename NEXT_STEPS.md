@@ -15,6 +15,10 @@
   čeká beze změny na pokračování. **Kolo 19** (Sentry 11) sloučeno PR #16 do integrate (`f14ee9d6`).
   **Kolo 20** (pád order-confirmation, Sentry `telemetry: false`) sloučeno PR #17 (`c8ab017d`).
   **Kolo 21** (tokeny z URL — referer, dotaz — do Sentry neodejdou) sloučeno PR #18 (`2203c81c`).
+  **Kolo 22** (QR 2FA a dárku generované lokálně, nic na api.qrserver.com; CI po zveřejnění repa obnoveno) — PR #19
+  **NESLOUČEN**: CI i ruční Security + RLS Gate zelené, ale Vercel – nextjs-boilerplate i Vercel – tixly „Deployment was
+  blocked" (projekty pozastavené vlastníkem). Po obnovení projektů: znovu spustit nasazení PR #19 a sloučit
+  `gh pr merge 19 --merge` ([ROUND22_REPORT.md](ROUND22_REPORT.md)).
 
 ### Sloučená kola 1–17, 19, 20 a 21
 

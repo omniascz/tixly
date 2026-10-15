@@ -36,3 +36,5 @@ Pomocné skripty `logs/r22/*.sh` = kopie kola 21 (cesty logs/r22, DB r22demo / r
 - Golden r13-keep 10 + r16 12 + r20 3 + r21 1 = 26 passed (`9_golden_summary.txt`; token= v obálkách 0 s hodnotou, 23× [skryto]);
   offline skener 6/6 (`9_offline.txt`). golden-path-buyer / benefit nespuštěny (zadání).
 - Gitleaks lokálně: 5 fingerprintů testovacích dat (`9_gitleaks_triage.md`) → .gitleaksignore; po doplnění „no leaks found".
+- PR #19: CI zelené, ruční Security 38808029421 + RLS Gate 38808034534 success; Vercel ×2 „Deployment was blocked"
+  (`9_pr19.txt`) → **NESLOUČENO**, čeká na vlastníka (Resume projektů ve Vercelu). ROUND22_REPORT.md, NEXT_STEPS.md na větvi PR.
