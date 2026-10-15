@@ -107,3 +107,10 @@ Lokální služby fix-pg/fix-redis/fix-mail touto session nastartovány (byly za
   v server logu turné kol 14, 15 i 16; SDK ji jen hlásí. Neopraveno (mimo rozsah kola).
 - golden-path-r13-keep 10/10, golden-path-r16-prehydration 12/12 (`3_golden.txt`, stejný kód), offline skener 6/6 (`9_offline.txt`).
 - Síť (`net_summary.txt`): kromě zablokované telemetrie pluginu Sentry žádné spojení mimo localhost.
+
+## Sloučení ✅
+- Ruční Security na 608d5fae selhal (Gitleaks skenuje celou historii, nálezy kol 9–16 + 4 z logs/r19/live) → triáž 53 dalších
+  fingerprintů (`9_gitleaks_triage.md` oddíl 2), commit b969736b. Na b969736b vše zelené: CI ×3, Schema drift, RLS Gate,
+  Security (Gitleaks + audit ×4), Vercel – nextjs-boilerplate, Vercel – tixly.
+- PR #16 sloučen `--merge` → f14ee9d6; tixly/ fast-forward na integrate. ROUND19_REPORT.md, NEXT_STEPS.md (GO-LIVE-INVENTORY
+  beze změny — žádná nová proměnná).

@@ -1,4 +1,4 @@
-# Tixly — kde jsme a co dál (stav k 2026-10-08 večer)
+# Tixly — kde jsme a co dál (stav k 2026-10-08 večer; doplněno kolo 19, 2026-10-15)
 
 ## 1. Aktuální stav
 
@@ -11,8 +11,10 @@
   Vercel – tixly; „RLS verify (produkce vs snapshot)" se na PR záměrně přeskakuje. Master se nepushuje, nic se nenasazuje.
 - Lokální služby: Postgres/Redis/Mailpit (`fix-pg`, `fix-redis`, `fix-mail`) běží; PgBouncer `fix-pgb` zastaven
   (zapnout: `docker start fix-pgb`).
+- **Kolo 18** (staging) skončilo v kroku 0.6 — chybí `staging.keys.env`; větev `fix/round18-staging-2026-10-14` (`716fe3c9`)
+  čeká beze změny na pokračování. **Kolo 19** (Sentry 11) sloučeno PR #16 do integrate (`f14ee9d6`).
 
-### Sloučená kola 1–17
+### Sloučená kola 1–17 a 19
 
 | kolo | obsah | sloučení | report |
 |---|---|---|---|
@@ -33,6 +35,7 @@
 | 15 | Next.js 14 → 15.5.27 | PR #13 `e6f45c68` | [ROUND15_REPORT.md](ROUND15_REPORT.md) |
 | 16 | přihlášení před hydratací, závislosti, kolísavý test | PR #14 `10396c66` | [ROUND16_REPORT.md](ROUND16_REPORT.md) |
 | 17 | zátěžový test na GitHub Actions (`loadtest.yml`) | PR #15 `e19c91e0` | [ROUND17_REPORT.md](ROUND17_REPORT.md) |
+| 19 | @sentry/nextjs 8.55.2 → 11.7.0, restriktivní sběr osobních údajů, tunel z prohlížeče | PR #16 `f14ee9d6` | [ROUND19_REPORT.md](ROUND19_REPORT.md) |
 
 ## 2. Co čeká na vlastníka
 
@@ -123,8 +126,14 @@ tam nepatří.
 
 ## 5. Známé otevřené body
 
-- **@sentry/nextjs 8.55 → 11** — neupgradováno; co obnáší a jak ověřit: `logs/r16/sentry/3_sentry_v11_upgrade.md`
-  (import z `@sentry/nextjs/config`, `tunnelRoute` mezi veřejné cesty v middleware, `dataCollection` restriktivně, …).
+- **Sentry 11.7.0 (kolo 19)** — ověřeno jen proti lokálnímu simulátoru, ne proti skutečnému sentry.io. Nová proměnná
+  není; release = `APP_VERSION` ?? `NEXT_PUBLIC_APP_VERSION` ?? `VERCEL_GIT_COMMIT_SHA`. Po nasazení s DSN ověřit
+  `POST /api/ops/sentry-check` (Bearer `CRON_SECRET`) a jednu chybu z prohlížeče přes `/api/monitoring`.
+  Build plugin Sentry posílá při každém buildu s `SENTRY_DSN` telemetrii (verze pluginu/bundleru) na sentry.io — jako
+  dřív v SDK 8; vypnout lze volbou `telemetry: false` ve `withSentryConfig` (rozhodnutí vlastníka, kolo 19 neměnilo).
+  SDK doporučuje hook `onRequestError` (chyby vnořených RSC) a `instrumentation-client.ts` — nepřidáno (nové chování).
+- **Stará vada odhalená Sentry v kole 19:** „d.event_date_start.replace is not a function" na
+  `/[locale]/order-confirmation/[orderId]` (page.tsx:369), objevuje se i v logech turné kol 14–16; neopraveno.
 - **Vypnuté cesty bez napojení na platbu** — přepínače `NEXT_PUBLIC_FEATURE_INSTALLMENTS` (splátky, BNPL),
   `NEXT_PUBLIC_FEATURE_SUBSCRIPTIONS` (předplatné, permanentky), `NEXT_PUBLIC_FEATURE_BENEFIT_CARDS` (benefitní karty);
   výchozí vypnuto, na stagingu nenastavovat (kolo 10).
