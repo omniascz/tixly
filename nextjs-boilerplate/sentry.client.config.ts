@@ -1,6 +1,4 @@
-// @ts-nocheck
-// ^ Sentry config — TS check vynechán, dokud @sentry/nextjs není nainstalovaný
-//   přes `npm install`. Soubor je no-op bez SENTRY_DSN env.
+// Soubor je no-op bez NEXT_PUBLIC_SENTRY_DSN env.
 /**
  * Sentry client-side instrumentation.
  *
@@ -14,7 +12,7 @@
  */
 
 import * as Sentry from '@sentry/nextjs';
-import { scrubSentryEvent } from './src/lib/observability/scrub-pii';
+import { SENTRY_DATA_COLLECTION, scrubSentryEvent, scrubSentrySpan } from './src/lib/observability/scrub-pii';
 
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
 if (dsn) {
@@ -29,7 +27,8 @@ if (dsn) {
     replaysOnErrorSampleRate: 1.0,
 
     // Anti-PII: nesbírej IP, user-agent ano (pro debug)
-    sendDefaultPii: false,
+    // Kolo 19: Sentry 11 — sendDefaultPii nahrazeno dataCollection (výchozí hodnoty v 11 sbírají víc)
+    dataCollection: SENTRY_DATA_COLLECTION,
 
     // Filtrovat noise (chrome extension errors, network blip)
     ignoreErrors: [
@@ -57,5 +56,7 @@ if (dsn) {
       // Kolo 14 / krok 3: osobní údaje kupců (e-maily, jména, telefony) se do Sentry neposílají
       return scrubSentryEvent(event);
     },
+    // Kolo 19: spany (span streaming v 11) beforeSend neprocházejí
+    beforeSendSpan: (span) => scrubSentrySpan(span),
   });
 }

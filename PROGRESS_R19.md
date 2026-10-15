@@ -24,7 +24,7 @@ Lokální služby fix-pg/fix-redis/fix-mail touto session nastartovány (byly za
 - d) `0_screenshots/` 28 PNG (build 0, čerstvá r19demo).
 - Simulátor `e2e/load/r14-fake-sentry.mjs` rozšířen: položky „span" (SDK 11) a celé obálky do `<výstup>.raw.jsonl`.
 
-## Krok 1 — upgrade balíčku a konfigurace buildu (rozpracováno)
+## Krok 1 — upgrade balíčku a konfigurace buildu ✅ (6a563c80)
 - `npm install @sentry/nextjs@^11` → **11.7.0** (lockfile; `1_npm_install.txt`, `1_npm_ls.txt`: next 15.5.27 deduped, bez
   --force/--legacy-peer-deps, peer next ^14 || ^15 || ^16). Jiné balíčky jen tranzitivně (`1_lock_diff.txt`): rollup
   4.60.1 → 4.64.6 (sdílený s vite), dotenv/path-scurry jen přes @sentry/bundler-plugins.
@@ -42,3 +42,38 @@ Lokální služby fix-pg/fix-redis/fix-mail touto session nastartovány (byly za
   (RED musí běžet na neupravených configech). `sendDefaultPii` v SDK 11 neexistuje (v build/ 0 výskytů) → dnes ignorováno.
 - Pozn.: Next při buildu/startu načítá `nextjs-boilerplate/.env.local` (gitignored) — žádné SENTRY_* (žádný upload),
   síťové proměnné přepisuje serve_r19.sh na localhost (stejně jako kola 14–17).
+- Build bez sítě v čistém klonu 6a563c80 (`1_build_no_network.console.txt`): OK, 0 síťových spojení.
+- Varování SDK se `silent: false` (jen RED build, `2_red_build.txt` ř. 9–15, necommitováno): (1) chybí hook `onRequestError`
+  v instrumentation („outdated configuration" — doporučení zachytávat chyby vnořených RSC; přidání = nové chování, nepřidáno);
+  (2) chybí global-error.js (stejné jako na baseline); (3) „DEPRECATION WARNING" k NÁZVU souboru `sentry.client.config.ts`
+  → `instrumentation-client.ts` (týká se Turbopacku; build je webpack) — ponecháno, přesun = změna načítání SDK v prohlížeči
+  (+ onRouterTransitionStart); (4) bez auth tokenu se nenahrávají source mapy / nezakládá release; (5) „Sending telemetry
+  data … to Sentry" — telemetrie webpack pluginu (viz níže). Žádné varování o odstraněné volbě (SDK hlásí jen unstable_*).
+- **Telemetrie pluginu:** @sentry/bundler-plugins posílá ve výchozím stavu telemetrii na o1.ingest.sentry.io (i bez auth
+  tokenu; core/sentry/telemetry.js). Buildy 0 a 1 (DSN nastaven) proběhly BEZ pojistky → pokus o odeslání telemetrie pluginu
+  (verze pluginu/bundleru, ne data aplikace) na sentry.io pravděpodobně proběhl, nelze zpětně ověřit. Od RED buildu
+  `logs/r19/net-guard.cjs` (NODE_OPTIONS) blokuje *.sentry.io na úrovni connect/DNS: build RED i GREEN 3× BLOCKED, nic jiného
+  mimo localhost (`2_net_summary.txt`). Totéž dělá každý build s SENTRY_DSN na Vercelu (stejně jako s SDK 8).
+
+## Krok 2 — osobní údaje a tunel ✅
+- Prostředí: klient DSN `http://…@o1.ingest.sentry.io/1` jen jako řetězec (SDK tuneluje jen DSN ve tvaru SaaS,
+  client/tunnelRoute.js; s DSN 127.0.0.1 by prohlížeč posílal přímo a CSP connect-src to blokuje), build s
+  `_SENTRY_TUNNEL_DESTINATION_OVERRIDE=http://127.0.0.1:3995/api/1/envelope/?hsts=0` (config/withSentryConfig/tunnel.js) →
+  routes-manifest přepisuje /api/monitoring jen na simulátor; prohlížeč smí jen na localhost (ostatní abort + host-resolver-rules
+  *.sentry.io ~NOTFOUND). Server SENTRY_DSN 127.0.0.1:3995. Release: VERCEL_GIT_COMMIT_SHA při buildu (test release.name).
+- RED (`2_red.txt`, commit 4627f02a — omylem se zprávou kroku 1, viz další commit): (a) (b) (c) (f) NEJSOU RED — tunel
+  funguje bez úpravy middleware (/api/monitoring = passThrough, POST → 200) → middleware NEUPRAVEN. (d) RED: telefon v
+  URL-kódovaném dotazu, jméno v těle, IP v x-real-ip/x-forwarded-for, span s hlavičkou cookie (e-mail); (e) RED: span
+  user.ip_address. Jméno ve volném textu zprávy z prohlížeče = vada návrhu testu (nelze maskovat ani na SDK 8) → test upraven.
+  Unit `tests/r19-sentry-scrub.test.ts` RED 6/7 (`2_unit_red.txt`).
+- Úpravy: `scrub-pii.ts` — SENTRY_DATA_COLLECTION (MIGRATION.md „keep the v10 default" + deny authorization, cookie,
+  x-internal-token, x-user-id, set-cookie), scrubSentrySpan (maže hlavičky identity/tajemství/IP, client.address, user.* kromě
+  id; maskuje text), PHONE_RE i pro %2B/%20/+; scrubSentryEvent<T extends object>. Configy: `dataCollection`, `beforeSendSpan`,
+  `sendDefaultPii` pryč (v 11 neexistuje), `@ts-nocheck` pryč (tsc 0, `2_tsc.txt`). Sampling, ignoreErrors, environment,
+  runbook tagy, mazání hlaviček v beforeSend beze změny. Middleware beze změny.
+- GREEN (`2_green.txt`): spec 1 passed — (a) 500 + událost, release 6a563c80… (release.name z VERCEL_GIT_COMMIT_SHA);
+  (b) 502 + událost; (c) přes tunel 200, dorazí; (d)+(e) 0 nálezů v 64 obálkách / 205 spanech (38 z prohlížeče přes tunel);
+  (f) 401×3. Grep jana@x.cz / 777 123 456 / Nováková / 10.255.255.1 / ip_address / {{auto}} = 0 (baseline 2/2/1/7/0/0).
+  Typy: události shodné s r14 a baseline (Sentry kontrola, Cron charge-installments); transakce → streamované spany (SDK 11).
+  Unit r14 5/5 + r19 7/7 (`2_unit_green.txt`), live `fix-r14-ops-monitoring` 18/18 (`2_live_ops_monitoring.txt`, DB r19a z
+  migrací `9_build_db_r19a.txt`), lint změněných souborů 0.

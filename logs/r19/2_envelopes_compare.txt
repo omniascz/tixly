@@ -1,0 +1,26 @@
+== 0
+{"transaction":4,"event: Sentry kontrola":1,"event: Cron charge-installments selhal":1}
+grep jana@x.cz: 2
+grep 777 123 456: 2
+grep Nováková: 1
+grep 10.255.255.1: 7
+grep ip_address: 0
+grep {{auto}}: 0
+== 2_red
+{"span":7,"event: Sentry kontrola":1,"event: Cron charge-installments selhal":1,"event: R19 chyba v prohlížeči":1}
+grep jana@x.cz: 1
+grep 777 123 456: 2
+grep Nováková: 2
+grep 10.255.255.1: 4
+grep ip_address: 1
+grep {{auto}}: 0
+== 2_green
+{"span":205,"event: Sentry kontrola":1,"event: Cron charge-installments selhal":1,"event: R19 chyba v prohlížeči":1}
+grep jana@x.cz: 0
+grep 777 123 456: 0
+grep Nováková: 0
+grep 10.255.255.1: 0
+grep ip_address: 0
+grep {{auto}}: 0
+== r14 (logs/r14/3_sentry_envelopes.jsonl)
+{"event: Sentry kontrola":1,"transaction":1,"event: Cron charge-installments selhal":2,"event: relation \"public.forgemsg_credentials\" d":2,"event: Cron forgemsg-provision selhal":2}
