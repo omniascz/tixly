@@ -1,0 +1,8 @@
+# Kolo 21 / krok 0.5 — nezávislé ověření Kola 20 na HEAD 9b2e17e7536815f97797f4aff9976488dcfe353e (= origin/integrate 9b2e17e7, jen nový spec r21 necommitnutý, mimo sadu)
+## next.config.mjs — telemetry: false uvnitř withSentryConfig
+223:    exported = withSentryConfig(nextConfig, {
+236:      telemetry: false,
+
+## build: logs/r21/0_build.txt (1151 řádků), net log: prázdný/neexistuje = 0 spojení mimo localhost
+## golden-path-r20-order-confirmation (logs/r21/golden.sh 0_r20, čerstvá r21demo z migrací, tixly_app)
+  3 passed (11.2s)
