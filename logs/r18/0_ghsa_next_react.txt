@@ -1,0 +1,15 @@
+== next@15.5.27 (affects)
+== next published since 2026-09-01
+GHSA-3w37-wq28-93x7 medium 2026-10-07 Next.js: Pending `use cache` fill can leak Draft Mode content into regular responses and persisted pages | >= 16.3.0, < 16.3.8 -> 16.3.8
+GHSA-4jqv-mc3x-m676 medium 2026-10-07 Next.js has cache poisoning of SSG and ISR pages in self-hosted applications | >= 15.0.0, < 15.5.27 -> 15.5.27; >= 16.0.0, < 16.3.8 -> 16.3.8
+GHSA-39w2-rjm5-chcv low 2026-10-07 Next.js has information disclosure in development server's Model Context Protocol endpoint | >= 16.0.0, < 16.3.8 -> 16.3.8
+GHSA-f87g-xv8r-7p7x medium 2026-10-07 Next.js has information disclosure in App Router metadata image routes via dynamicParams bypass | >= 16.0.0, < 16.3.8 -> 16.3.8
+GHSA-mcj8-r9mp-w47p medium 2026-10-07 Next.js has cache poisoning in SSG/ISR rendering that leads to cross-user content substitution and persistent denial of service | >= 16.0.0, < 16.3.8 -> 16.3.8; >= 15.0.0, < 15.5.27 -> 15.5.27
+GHSA-cjq9-62q9-8jv4 high 2026-10-07 Next.js has Server-Side Request Forgery in Image Optimization | >= 16.0.0, < 16.3.8 -> 16.3.8
+GHSA-vcvr-r3jv-pc5j critical 2026-09-30 Next.js: Remote Code Execution in next/og ImageResponse | >= 16.2.0, < 16.3.6 -> 16.3.6
+GHSA-2xp9-vwfh-vxw4 critical 2026-09-08 Next.js: Unauthenticated Remote Code Execution in Image Optimization API when AVIF files are used | >= 10.0.0, < 15.5.24 -> 15.5.24; >= 16.0.0, < 16.3.3 -> 16.3.3
+GHSA-p293-qw3h-jr36 critical 2026-09-08 Next.js: Unauthenticated Remote Code Execution on windows-hosted servers | >= 13.4.0, < 15.5.24 -> 15.5.24; >= 16.0.0, < 16.3.3 -> 16.3.3
+== react@19.2.8 (affects)
+== react published since 2026-09-01
+== react-dom@19.2.8 (affects)
+== react-dom published since 2026-09-01
