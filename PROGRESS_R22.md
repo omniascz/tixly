@@ -11,3 +11,9 @@ Pomocné skripty `logs/r22/*.sh` = kopie kola 21 (cesty logs/r22, DB r22demo / r
 - `0_verify_r21.txt`: unit r21+r14+r19 28 passed; golden-path-r21-sentry-url-tokens 1 passed.
 
 ## Krok 1 — QR lokálně (RED → GREEN) ⏳
+- 1.1 spec `e2e/tests/golden-path-r22-qr-local.spec.ts`: (a) 2FA přes /admin/settings → Zabezpečení (skutečné setup/verify),
+  (b) dárek: místo z GET /api/events/504/seats + hold API, /cs/checkout s „Kupuji jako dárek" → simulátor GoPay → /cs/gift/<token>.
+  Požadavky mimo localhost se zaznamenají a zahodí. Shoda QR = dekódované pixely RGBA (PNG z canvasu ≠ bajty pngjs).
+  Zkušební běh `1_try1.txt` (ladění toku, stejný spec).
+- 1.2 RED ✅ `1_red.txt`: (a1) 1 požadavek na api.qrserver.com s otpauth+secretBase32, (b1) 1 s qrPayload+secret vstupenky;
+  (a2)(b2) src = URL qrserveru, natural 0×0; (a3) verify 200. Snímky `shots/1_red_*.png` (QR a ruční kód zamaskovány).
