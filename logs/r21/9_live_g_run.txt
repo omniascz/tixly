@@ -1,0 +1,5 @@
+FAILED_FILES=0
+g00 exit 0
+g01 exit 0
+LIVE_DONE
+ALLDONE
