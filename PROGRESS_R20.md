@@ -17,5 +17,14 @@ Větev `fix/round20-order-confirmation-2026-10-15` z `origin/integrate/2026-10-0
 - GREEN (`1_green.txt`): 3/3, dates=20261119T190000Z/… = date_start z DB, 0 TypeError. tsc 0 (`1_tsc.txt`); lint souboru 3 chyby import/order = stejné jako před změnou.
 - Grep 1.4 (`1_grep_dates.md`): 18 výskytů, 0 kandidátů (všechny `::text` nebo JSON).
 - golden-path-buyer / benefit: červené z důvodů mimo kolo (zastaralé texty UI, CSRF bez Origin, kód chyby) — viz `1_green.txt`; DB r20rich.
-## Krok 2 — telemetrie build pluginu Sentry ⏳
+## Krok 2 — telemetrie build pluginu Sentry ✅
+- `logs/r20/2_telemetry.sh <štítek>`: npm run build, oba DSN na 127.0.0.1:3995, bez auth tokenu, net-guard (NODE_OPTIONS).
+- RED (`2_red.txt`, 524ed2ad): 5× BLOCKED connect o1.ingest.sentry.io:443 (telemetry.js DSN pluginu); build s opravou kroku 1: 3×.
+- Oprava d206dd6c: `telemetry: false` + komentář Kolo 20 (jediná změna konfigurace Sentry).
+- GREEN (`2_green.txt`): 0 spojení mimo localhost; routy identické s logs/r19 (1124 / 1119 ƒ / 5 ○).
+- r19-sentry-scrub + golden-path-r19-sentry11: v závěru (sentry spec potřebuje build s klientským DSN ve tvaru SaaS + tunel jako K19).
+
 ## Závěr ⏳
+- Hotovo (30160486): turné 10/10 (2. běh; 0× event_date_start.replace), golden r13-keep + r16 22/22, offline 6/6, audity 0 FAIL,
+  migrace od nuly FAILED_FILES=0 (r20a). Pak tsc 0 (`9_tsc.txt`), lint 967/1008 (`9_lint.txt`), unit 719 passed / 13 skipped (`9_unit.txt`).
+- Běží: live (`run_live.sh`). Zbývá: build bez sítě v čistém klonu, sentry build + spec r19-sentry11 + unit r19, PR, CI, merge, report.

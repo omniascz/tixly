@@ -1,0 +1,660 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [32m✓[39m tests/fix-r8-seat-reservations.live.test.ts [2m ([22m[2m9 tests[22m[2m)[22m[33m 3448[2mms[22m[39m
+ [33m❯[39m tests/fix-r8-term-cancel-postpone.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[33m 1580[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22mKolo 8 — zrušení a přesun termínu[2m > [22mzrušení: online vráceno přes bránu + dobropis, rozpracované nákupy a rezervace zrušené, vstupenky neplatné, e-maily, ruční seznam[39m
+[31m     → fetch failed[39m
+[31m   [33m❯[31m tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22mKolo 8 — zrušení a přesun termínu[2m > [22msouběh: zrušení ve stejné chvíli, kdy dorazí platba → vráceno, žádná platná vstupenka[39m
+[31m     → fetch failed[39m
+[31m   [33m❯[31m tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22mKolo 8 — zrušení a přesun termínu[2m > [22mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410[39m
+[31m     → fetch failed[39m
+ [33m❯[39m tests/fix-r8-theatre-reports.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 1068[2mms[22m[39m
+[90mstderr[2m | tests/fix-r8-price-categories.live.test.ts[2m > [22m[2mKolo 8 — slevové kategorie[2m > [22m[2mobjednávka za 0 Kč (kategorie zdarma) se dokončí bez brány a vystaví vstupenku[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [33m❯[39m tests/fix-r8-price-categories.live.test.ts [2m ([22m[2m6 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 1809[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r8-price-categories.live.test.ts[2m > [22mKolo 8 — slevové kategorie[2m > [22mlimit kategorie na termín[39m
+[31m     → fetch failed[39m
+[31m   [33m❯[31m tests/fix-r8-price-categories.live.test.ts[2m > [22mKolo 8 — slevové kategorie[2m > [22mnákup míst s kategoriemi: cena na serveru, promo −10 % jen na plné, vstupenky, e-mail, PDF a skener[39m
+[31m     → fetch failed[39m
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[22m[39m
+[live-local-clone] live_party_split_mv9e9dj4: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[2m > [22m[2mPOST /api/checkout/party-split založí session a vrátí share_token[22m[39m
+[party-split create] [33m201[39m {"sessionId":"cc8b2146-b28e-4919-a7a2-d37e06fd695e","shareToken":"zVuvyAMAAhJUOR4dYBXI428G","shareUrl":"http://localhost:3100/party/zVuvyAMAAhJUOR4dYBXI428G","perPersonAmount":50000,"currency":"CZK","
+
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[2m > [22m[2mkapacitni kontrola cte remaining_qty (ne neexistujici sloupec)[22m[39m
+[party-split capacity] [33m409[39m {"error":"INSUFFICIENT_CAPACITY","available":5}
+
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[2m > [22m[2m[token] POST prijme slot a dekrementuje remaining_qty PRESNE o 1[22m[39m
+[party-split pay] [33m500[39m {"error":"INTERNAL","message":"fetch failed"}
+[remaining_qty] [33m100[39m -> [33m100[39m
+
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[2m > [22m[2mopakovane prijeti: druhy platce dostane JINY slot, dekrement presne 1x[22m[39m
+[opakovane] [33m500[39m slot [90mundefined[39m | [33m500[39m slot [90mundefined[39m | remaining [33m100[39m -> [33m100[39m -> [33m100[39m
+
+ [33m❯[39m tests/party-split.live.test.ts [2m ([22m[2m7 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 874[2mms[22m[39m
+[31m   [33m❯[31m tests/party-split.live.test.ts[2m > [22mparty-split přes skutečné handlery[2m > [22m[token] POST prijme slot a dekrementuje remaining_qty PRESNE o 1[39m
+[31m     → expected 500 to be less than 500[39m
+[31m   [33m❯[31m tests/party-split.live.test.ts[2m > [22mparty-split přes skutečné handlery[2m > [22mopakovane prijeti: druhy platce dostane JINY slot, dekrement presne 1x[39m
+[31m     → expected +0 to be 1 // Object.is equality[39m
+[90mstderr[2m | tests/fix-r7-tax-documents.live.test.ts[2m > [22m[2mKolo 7 — daňové doklady, řady, dobropisy[2m > [22m[2mrefund zaplacené objednávky s dokladem → dobropis se zápornými částkami po sazbách a odkazem[22m[39m
+[checkout-demo] [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [33m❯[39m tests/fix-r7-tax-documents.live.test.ts [2m ([22m[2m7 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 7146[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r7-tax-documents.live.test.ts[2m > [22mKolo 7 — daňové doklady, řady, dobropisy[2m > [22mrefund zaplacené objednávky s dokladem → dobropis se zápornými částkami po sazbách a odkazem[39m
+[31m     → fetch failed[39m
+[90mstderr[2m | tests/fix-r8-halls-seating.live.test.ts[2m > [22m[2mKolo 8 — sály, plánek a termín ze sálu[2m > [22m[2múprava plánku sálu: neprodaný termín jde převzít znovu; nákup konkrétního místa; prodaný termín se už nemění[22m[39m
+[checkout-demo] [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [33m❯[39m tests/fix-r8-halls-seating.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 1040[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r8-halls-seating.live.test.ts[2m > [22mKolo 8 — sály, plánek a termín ze sálu[2m > [22múprava plánku sálu: neprodaný termín jde převzít znovu; nákup konkrétního místa; prodaný termín se už nemění[39m
+[31m     → {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+[90mstderr[2m | tests/fix-r7-sales-cutoff.live.test.ts[2m > [22m[2mKolo 7 — uzávěrka prodeje za běhu[2m > [22m[2mpřed uzávěrkou: checkout projde[22m[39m
+[checkout-demo] [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r7-sales-cutoff.live.test.ts[2m > [22m[2mKolo 7 — uzávěrka prodeje za běhu[2m > [22m[2mobjednávku založenou před uzávěrkou lze po uzávěrce doplatit (webhook PAID → paid)[22m[39m
+[checkout-demo] [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [33m❯[39m tests/fix-r7-sales-cutoff.live.test.ts [2m ([22m[2m7 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 916[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r7-sales-cutoff.live.test.ts[2m > [22mKolo 7 — uzávěrka prodeje za běhu[2m > [22mpřed uzávěrkou: checkout projde[39m
+[31m     → {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r7-sales-cutoff.live.test.ts[2m > [22mKolo 7 — uzávěrka prodeje za běhu[2m > [22mobjednávku založenou před uzávěrkou lze po uzávěrce doplatit (webhook PAID → paid)[39m
+[31m     → {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+[90mstderr[2m | tests/fix-r7-comgate-api.live.test.ts[2m > [22m[2mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22m[2mplatba → zaplacení → webhook (JSON, v2.0) → vstupenka; refund → refunded u brány i v DB[22m[39m
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r7-comgate-api.live.test.ts[2m > [22m[2mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22m[2mwebhook ve formátu formuláře (v1.0) se přijme taky; špatné tajemství 401[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r7-comgate-api.live.test.ts[2m > [22m[2mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22m[2mrefund při chybě brány → refund_failed, vstupenka platná; timeout brány → refund_failed do pár sekund[22m[39m
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r7-comgate-api.live.test.ts[2m > [22m[2mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22m[2mrefund při chybě brány → refund_failed, vstupenka platná; timeout brány → refund_failed do pár sekund[22m[39m
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r7-comgate-api.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 3018[2mms[22m[39m
+[90mstderr[2m | tests/fix-r7-vat-readiness.live.test.ts[2m > [22m[2mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22m[2mplátce, placený typ bez sazby → checkout 422 VAT_NOT_CONFIGURED; po doplnění sazby 200[22m[39m
+[checkout-demo] [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r7-vat-readiness.live.test.ts[2m > [22m[2mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22m[2mneplátce bez sazby prodává; vstupenka zdarma plátce sazbu nepotřebuje[22m[39m
+[checkout-demo] [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [33m❯[39m tests/fix-r7-vat-readiness.live.test.ts [2m ([22m[2m7 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 4375[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r7-vat-readiness.live.test.ts[2m > [22mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22mplátce, placený typ bez sazby → checkout 422 VAT_NOT_CONFIGURED; po doplnění sazby 200[39m
+[31m     → expected 500 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r7-vat-readiness.live.test.ts[2m > [22mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22mneplátce bez sazby prodává; vstupenka zdarma plátce sazbu nepotřebuje[39m
+[31m     → expected 500 to be 200 // Object.is equality[39m
+[90mstderr[2m | tests/fix-r7-gateway-policy.live.test.ts[2m > [22m[2mKolo 7 — brány bez refundu jen pro existující akce[2m > [22m[2mnová akce: mollie / paypal / przelewy24 / crypto → 422 PAYMENT_METHOD_NOT_ALLOWED, žádná objednávka; gopay projde[22m[39m
+[checkout-demo] [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r7-gateway-policy.live.test.ts[2m > [22m[2mKolo 7 — brány bez refundu jen pro existující akce[2m > [22m[2mnová akce v EUR: automatické směrování na Stripe → 422; s PAYMENT_PROVIDER_EUR=gopay projde[22m[39m
+[checkout-demo] [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r7-gateway-policy.live.test.ts[2m > [22m[2mKolo 7 — brány bez refundu jen pro existující akce[2m > [22m[2mexistující akce (příznak z migrace) → brána se nezablokuje politikou[22m[39m
+[payment] Triple-A není nakonfigurovaný — krypto platba poběží v mock režimu. Nastavte TRIPLEA_CLIENT_ID, TRIPLEA_CLIENT_SECRET, TRIPLEA_API_ID, TRIPLEA_NOTIFY_SECRET.
+
+ [33m❯[39m tests/fix-r7-gateway-policy.live.test.ts [2m ([22m[2m5 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 990[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r7-gateway-policy.live.test.ts[2m > [22mKolo 7 — brány bez refundu jen pro existující akce[2m > [22mnová akce: mollie / paypal / przelewy24 / crypto → 422 PAYMENT_METHOD_NOT_ALLOWED, žádná objednávka; gopay projde[39m
+[31m     → {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r7-gateway-policy.live.test.ts[2m > [22mKolo 7 — brány bez refundu jen pro existující akce[2m > [22mnová akce v EUR: automatické směrování na Stripe → 422; s PAYMENT_PROVIDER_EUR=gopay projde[39m
+[31m     → {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+[90mstderr[2m | tests/fix-r8-zero-commission.live.test.ts[2m > [22m[2mKolo 8 — provize platformy 0[2m > [22m[2mkupec u pořadatele s poplatkem 0 neplatí servisní poplatek[22m[39m
+[checkout-demo] [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [33m❯[39m tests/fix-r8-zero-commission.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 684[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r8-zero-commission.live.test.ts[2m > [22mKolo 8 — provize platformy 0[2m > [22mkupec u pořadatele s poplatkem 0 neplatí servisní poplatek[39m
+[31m     → {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+[90mstderr[2m | tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22m[2mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22m[2m2 objednávky: brána zavolána 1× u každé, obě refunded, lístky zneplatněny[22m[39m
+[checkout-demo] [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22m[2mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22m[2mchyba brány u jedné: ta zůstane refund_failed s platnými lístky a výsledek hlásí chybu[22m[39m
+[checkout-demo] [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [33m❯[39m tests/fix-r6-bulk-refund-gateway.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 586[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22m2 objednávky: brána zavolána 1× u každé, obě refunded, lístky zneplatněny[39m
+[31m     → checkout 500 {"error":"Internal server error"}[39m
+[31m   [33m❯[31m tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22mchyba brány u jedné: ta zůstane refund_failed s platnými lístky a výsledek hlásí chybu[39m
+[31m     → checkout 500 {"error":"Internal server error"}[39m
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[expire-date-holds] odmítnuto: missing
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[royalties/accrue] odmítnuto: missing
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[paypal webhook] PAYPAL_WEBHOOK_ID / API credentials missing — rejecting
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:paypal
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:przelewy24
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:stripe
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[payment] Triple-A není nakonfigurovaný — krypto platba poběží v mock režimu. Nastavte TRIPLEA_CLIENT_ID, TRIPLEA_CLIENT_SECRET, TRIPLEA_API_ID, TRIPLEA_NOTIFY_SECRET.
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:triplea
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[wise webhook] WISE_WEBHOOK_PUBLIC_KEY / API credentials missing — rejecting
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:wise
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+<empty line>
+[90mstdout[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[routes-anon] tested=814 ok=813 harness=1 bad=0 -> C:\Users\omnia\Documents\tixly\logs\r4\2_routes_anon_result.json
+
+ [32m✓[39m tests/fix-r4-routes-anon.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 18786[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-b2b-credit-auth.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 636[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-identity-all-api.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 172[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-theatre-reports.live.test.ts[2m > [22mKolo 8 — divadelní reporty
+[31m[1mTypeError[22m: fetch failed[39m
+{
+  stack: 'AggregateError: \n' +
+    '    at internalConnectMultiple (node:net:1142:49)\n' +
+    '    at afterConnectMultiple (node:net:1723:7)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:3998\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED ::1:3998',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 3998,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:3998\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:3998',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 3998,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'Caused by: AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'internalConnectMultiple',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node:net',
+      line: 1142,
+      column: 49
+    },
+    {
+      method: 'afterConnectMultiple',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node:net',
+      line: 1723,
+      column: 7
+    }
+  ]
+}
+[90m [2m❯[22m internalConnectMultiple node:net:[2m1142:49[22m[39m
+[90m [2m❯[22m afterConnectMultiple node:net:[2m1723:7[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ errors: [ { stack: 'Error: connect ECONNREFUSED ::1:3998\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED ::1:3998', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '::1', port: 3998, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, { stack: 'Error: connect ECONNREFUSED 127.0.0.1:3998\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED 127.0.0.1:3998', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '127.0.0.1', port: 3998, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' } ], code: 'ECONNREFUSED' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/19]⎯[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 18 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22m2 objednávky: brána zavolána 1× u každé, obě refunded, lístky zneplatněny
+[31m[1mError[22m: checkout 500 {"error":"Internal server error"}[39m
+[36m [2m❯[22m paidOrder tests/fix-r6-bulk-refund-gateway.live.test.ts:[2m48:34[22m[39m
+    [90m 46| [39m    }[33m,[39m { [32m'x-forwarded-for'[39m[33m:[39m [32m`198.51.100.[39m[36m${[39m[33mMath[39m[33m.[39m[34mfloor[39m([33mMath[39m[33m.[39m[34mrandom[39m() [33m*[39m [34m2[39m…
+    [90m 47| [39m    [35mconst[39m cj [33m=[39m [35mawait[39m co[33m.[39m[34mjson[39m()[33m;[39m
+    [90m 48| [39m    [35mif[39m (co[33m.[39mstatus [33m!==[39m [34m200[39m) [35mthrow[39m [35mnew[39m [33mError[39m([32m`checkout [39m[36m${[39mco[33m.[39mstatus[36m}[39m[32m [39m[36m${[39m[33mJS[39m…
+    [90m   | [39m                                 [31m^[39m
+    [90m 49| [39m    [35mawait[39m [34mctl[39m(cj[33m.[39mpaymentId[33m,[39m { state[33m:[39m [32m'PAID'[39m })[33m;[39m
+    [90m 50| [39m    [35mconst[39m wh [33m=[39m [35mawait[39m [34mwebhookGET[39m([34mreqJSON[39m([32m'GET'[39m[33m,[39m [32m`/api/payments/gopay/we[39m…
+[90m [2m❯[22m tests/fix-r6-bulk-refund-gateway.live.test.ts:[2m71:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22mchyba brány u jedné: ta zůstane refund_failed s platnými lístky a výsledek hlásí chybu
+[31m[1mError[22m: checkout 500 {"error":"Internal server error"}[39m
+[36m [2m❯[22m paidOrder tests/fix-r6-bulk-refund-gateway.live.test.ts:[2m48:34[22m[39m
+    [90m 46| [39m    }[33m,[39m { [32m'x-forwarded-for'[39m[33m:[39m [32m`198.51.100.[39m[36m${[39m[33mMath[39m[33m.[39m[34mfloor[39m([33mMath[39m[33m.[39m[34mrandom[39m() [33m*[39m [34m2[39m…
+    [90m 47| [39m    [35mconst[39m cj [33m=[39m [35mawait[39m co[33m.[39m[34mjson[39m()[33m;[39m
+    [90m 48| [39m    [35mif[39m (co[33m.[39mstatus [33m!==[39m [34m200[39m) [35mthrow[39m [35mnew[39m [33mError[39m([32m`checkout [39m[36m${[39mco[33m.[39mstatus[36m}[39m[32m [39m[36m${[39m[33mJS[39m…
+    [90m   | [39m                                 [31m^[39m
+    [90m 49| [39m    [35mawait[39m [34mctl[39m(cj[33m.[39mpaymentId[33m,[39m { state[33m:[39m [32m'PAID'[39m })[33m;[39m
+    [90m 50| [39m    [35mconst[39m wh [33m=[39m [35mawait[39m [34mwebhookGET[39m([34mreqJSON[39m([32m'GET'[39m[33m,[39m [32m`/api/payments/gopay/we[39m…
+[90m [2m❯[22m tests/fix-r6-bulk-refund-gateway.live.test.ts:[2m86:16[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-gateway-policy.live.test.ts[2m > [22mKolo 7 — brány bez refundu jen pro existující akce[2m > [22mnová akce: mollie / paypal / przelewy24 / crypto → 422 PAYMENT_METHOD_NOT_ALLOWED, žádná objednávka; gopay projde
+[31m[1mAssertionError[22m: {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r7-gateway-policy.live.test.ts:[2m58:32[22m[39m
+    [90m 56| [39m    }
+    [90m 57| [39m    [35mconst[39m ok [33m=[39m [35mawait[39m [34mcheckout[39m(c[33m,[39m [32m'gopay'[39m)[33m;[39m
+    [90m 58| [39m    [34mexpect[39m(ok[33m.[39mstatus[33m,[39m ok[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                               [31m^[39m
+    [90m 59| [39m  })[33m;[39m
+    [90m 60| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-gateway-policy.live.test.ts[2m > [22mKolo 7 — brány bez refundu jen pro existující akce[2m > [22mnová akce v EUR: automatické směrování na Stripe → 422; s PAYMENT_PROVIDER_EUR=gopay projde
+[31m[1mAssertionError[22m: {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r7-gateway-policy.live.test.ts:[2m72:32[22m[39m
+    [90m 70| [39m    process[33m.[39menv[33m.[39m[33mPAYMENT_PROVIDER_EUR[39m [33m=[39m [32m'gopay'[39m[33m;[39m
+    [90m 71| [39m    [35mconst[39m ok [33m=[39m [35mawait[39m [34mcheckout[39m(c[33m,[39m [32m'gopay'[39m)[33m;[39m
+    [90m 72| [39m    [34mexpect[39m(ok[33m.[39mstatus[33m,[39m ok[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                               [31m^[39m
+    [90m 73| [39m    [35mdelete[39m process[33m.[39menv[33m.[39m[33mPAYMENT_PROVIDER_EUR[39m[33m;[39m
+    [90m 74| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-sales-cutoff.live.test.ts[2m > [22mKolo 7 — uzávěrka prodeje za běhu[2m > [22mpřed uzávěrkou: checkout projde
+[31m[1mAssertionError[22m: {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r7-sales-cutoff.live.test.ts:[2m109:30[22m[39m
+    [90m107| [39m    [35mawait[39m [34msetTimes[39m([32m'7 days'[39m[33m,[39m [32m'7 days 3 hours'[39m)[33m;[39m
+    [90m108| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mcheckout[39m()[33m;[39m
+    [90m109| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m110| [39m  })[33m;[39m
+    [90m111| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-sales-cutoff.live.test.ts[2m > [22mKolo 7 — uzávěrka prodeje za běhu[2m > [22mobjednávku založenou před uzávěrkou lze po uzávěrce doplatit (webhook PAID → paid)
+[31m[1mAssertionError[22m: {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r7-sales-cutoff.live.test.ts:[2m164:32[22m[39m
+    [90m162| [39m    [35mawait[39m [34msetTimes[39m([32m'3 days'[39m[33m,[39m [32m'3 days 3 hours'[39m)[33m;[39m
+    [90m163| [39m    [35mconst[39m co [33m=[39m [35mawait[39m [34mcheckout[39m()[33m;[39m
+    [90m164| [39m    [34mexpect[39m(co[33m.[39mstatus[33m,[39m co[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                               [31m^[39m
+    [90m165| [39m    [35mconst[39m { orderId[33m,[39m paymentId } [33m=[39m [33mJSON[39m[33m.[39m[34mparse[39m(co[33m.[39mbody) [35mas[39m { orderId[33m:[39m s…
+    [90m166| [39m    [35mawait[39m [34msetTimes[39m([32m'-30 minutes'[39m[33m,[39m [32m'3 hours'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-tax-documents.live.test.ts[2m > [22mKolo 7 — daňové doklady, řady, dobropisy[2m > [22mrefund zaplacené objednávky s dokladem → dobropis se zápornými částkami po sazbách a odkazem
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-price-categories.live.test.ts[2m > [22mKolo 8 — slevové kategorie[2m > [22mlimit kategorie na termín
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-price-categories.live.test.ts[2m > [22mKolo 8 — slevové kategorie[2m > [22mnákup míst s kategoriemi: cena na serveru, promo −10 % jen na plné, vstupenky, e-mail, PDF a skener
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22mKolo 8 — zrušení a přesun termínu[2m > [22mzrušení: online vráceno přes bránu + dobropis, rozpracované nákupy a rezervace zrušené, vstupenky neplatné, e-maily, ruční seznam
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22mKolo 8 — zrušení a přesun termínu[2m > [22msouběh: zrušení ve stejné chvíli, kdy dorazí platba → vráceno, žádná platná vstupenka
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22mKolo 8 — zrušení a přesun termínu[2m > [22mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410
+[31m[1mTypeError[22m: fetch failed[39m
+{
+  stack: 'AggregateError: \n' +
+    '    at internalConnectMultiple (node:net:1142:49)\n' +
+    '    at afterConnectMultiple (node:net:1723:7)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:3998\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED ::1:3998',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 3998,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:3998\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:3998',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 3998,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'Caused by: AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'internalConnectMultiple',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node:net',
+      line: 1142,
+      column: 49
+    },
+    {
+      method: 'afterConnectMultiple',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node:net',
+      line: 1723,
+      column: 7
+    }
+  ]
+}
+[90m [2m❯[22m internalConnectMultiple node:net:[2m1142:49[22m[39m
+[90m [2m❯[22m afterConnectMultiple node:net:[2m1723:7[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ errors: [ { stack: 'Error: connect ECONNREFUSED ::1:3998\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED ::1:3998', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '::1', port: 3998, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, { stack: 'Error: connect ECONNREFUSED 127.0.0.1:3998\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED 127.0.0.1:3998', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '127.0.0.1', port: 3998, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' } ], code: 'ECONNREFUSED' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-vat-readiness.live.test.ts[2m > [22mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22mplátce, placený typ bez sazby → checkout 422 VAT_NOT_CONFIGURED; po doplnění sazby 200
+[31m[1mAssertionError[22m: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r7-vat-readiness.live.test.ts:[2m82:40[22m[39m
+    [90m 80| [39m    [34mexpect[39m(r[33m.[39mbody)[33m.[39m[34mtoMatch[39m([36m/VAT_NOT_CONFIGURED/[39m)[33m;[39m
+    [90m 81| [39m    [35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`UPDATE catalog.ticket_types SET vat_rate_c[39m…
+    [90m 82| [39m    [34mexpect[39m(([35mawait[39m [34mcheckout[39m(c))[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                       [31m^[39m
+    [90m 83| [39m  })[33m;[39m
+    [90m 84| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-vat-readiness.live.test.ts[2m > [22mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22mneplátce bez sazby prodává; vstupenka zdarma plátce sazbu nepotřebuje
+[31m[1mAssertionError[22m: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r7-vat-readiness.live.test.ts:[2m94:41[22m[39m
+    [90m 92| [39m  [34mit[39m([32m'neplátce bez sazby prodává; vstupenka zdarma plátce sazbu nepotř[39m…
+    [90m 93| [39m    [35mconst[39m np [33m=[39m [35mawait[39m clone[33m.[39mseed[33m.[39m[34mchain[39m({ vatPayer[33m:[39m [35mfalse[39m[33m,[39m dic[33m:[39m [35mnull[39m[33m,[39m va…
+    [90m 94| [39m    [34mexpect[39m(([35mawait[39m [34mcheckout[39m(np))[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                        [31m^[39m
+    [90m 95| [39m    [35mconst[39m free [33m=[39m [35mawait[39m clone[33m.[39mseed[33m.[39m[34mchain[39m({ vatRateCode[33m:[39m [35mnull[39m[33m,[39m basePrice…
+    [90m 96| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mcheckout[39m(free)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-halls-seating.live.test.ts[2m > [22mKolo 8 — sály, plánek a termín ze sálu[2m > [22múprava plánku sálu: neprodaný termín jde převzít znovu; nákup konkrétního místa; prodaný termín se už nemění
+[31m[1mAssertionError[22m: {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r8-halls-seating.live.test.ts:[2m170:43[22m[39m
+    [90m168| [39m    }) [35mas[39m unknown [35mas[39m [33mNextRequest[39m)[33m;[39m
+    [90m169| [39m    [35mconst[39m cj [33m=[39m [35mawait[39m co[33m.[39m[34mjson[39m()[33m;[39m
+    [90m170| [39m    [34mexpect[39m(co[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(cj))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                          [31m^[39m
+    [90m171| [39m    [35mconst[39m sold [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT status, order_id FROM[39m…
+    [90m172| [39m    [34mexpect[39m(sold)[33m.[39m[34mtoEqual[39m({ status[33m:[39m [32m'sold'[39m[33m,[39m order_id[33m:[39m cj[33m.[39morderId })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-zero-commission.live.test.ts[2m > [22mKolo 8 — provize platformy 0[2m > [22mkupec u pořadatele s poplatkem 0 neplatí servisní poplatek
+[31m[1mAssertionError[22m: {"error":"Internal server error"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r8-zero-commission.live.test.ts:[2m86:41[22m[39m
+    [90m 84| [39m    }) [35mas[39m unknown [35mas[39m [33mNextRequest[39m)[33m;[39m
+    [90m 85| [39m    [35mconst[39m j [33m=[39m [35mawait[39m r[33m.[39m[34mjson[39m()[33m;[39m
+    [90m 86| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(j))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                        [31m^[39m
+    [90m 87| [39m    [35mconst[39m o [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT total_amount, COALESCE(s[39m…
+    [90m 88| [39m    [34mexpect[39m(o)[33m.[39m[34mtoEqual[39m({ total_amount[33m:[39m [34m40000[39m[33m,[39m fee[33m:[39m [34m0[39m })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/party-split.live.test.ts[2m > [22mparty-split přes skutečné handlery[2m > [22m[token] POST prijme slot a dekrementuje remaining_qty PRESNE o 1
+[31m[1mAssertionError[22m: expected 500 to be less than 500[39m
+[36m [2m❯[22m tests/party-split.live.test.ts:[2m143:25[22m[39m
+    [90m141| [39m    console[33m.[39m[34mlog[39m([32m'[remaining_qty]'[39m[33m,[39m before[33m,[39m [32m'->'[39m[33m,[39m after)[33m;[39m
+    [90m142| [39m
+    [90m143| [39m    [34mexpect[39m(pres[33m.[39mstatus)[33m.[39m[34mtoBeLessThan[39m([34m500[39m)[33m;[39m
+    [90m   | [39m                        [31m^[39m
+    [90m144| [39m    [34mexpect[39m([33mNumber[39m(before) [33m-[39m [33mNumber[39m(after))[33m.[39m[34mtoBe[39m([34m1[39m)[33m;[39m   [90m// presne o 1, n[39m…
+    [90m145| [39m  }[33m,[39m [34m180_000[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/19]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/party-split.live.test.ts[2m > [22mparty-split přes skutečné handlery[2m > [22mopakovane prijeti: druhy platce dostane JINY slot, dekrement presne 1x
+[31m[1mAssertionError[22m: expected +0 to be 1 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/party-split.live.test.ts:[2m196:26[22m[39m
+    [90m194| [39m                [32m'| remaining'[39m[33m,[39m before[33m,[39m [32m'->'[39m[33m,[39m mid[33m,[39m [32m'->'[39m[33m,[39m after)[33m;[39m
+    [90m195| [39m
+    [90m196| [39m    [34mexpect[39m(before [33m-[39m mid)[33m.[39m[34mtoBe[39m([34m1[39m)[33m;[39m      [90m// prvni prijeti: presne 1[39m
+    [90m   | [39m                         [31m^[39m
+    [90m197| [39m    [34mexpect[39m(mid [33m-[39m after)[33m.[39m[34mtoBe[39m([34m1[39m)[33m;[39m       [90m// druhe prijeti: dalsi slot, z[39m…
+    [90m198| [39m    [34mexpect[39m(b2[33m.[39mslotIndex)[33m.[39mnot[33m.[39m[34mtoBe[39m(b1[33m.[39mslotIndex)[33m;[39m  [90m// NE tyz slot dvakr[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/19]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m11 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (16)[39m
+[2m      Tests [22m [1m[31m18 failed[39m[22m[2m | [22m[1m[32m55 passed[39m[22m[90m (77)[39m
+[2m   Start at [22m 12:26:40
+[2m   Duration [22m 52.46s[2m (transform 5.54s, setup 0ms, collect 1.53s, tests 47.13s, environment 2ms, prepare 1.41s)[22m
+
