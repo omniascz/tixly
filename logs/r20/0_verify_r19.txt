@@ -1,0 +1,20 @@
+# Kolo 20 — krok 0.5: ověření Kola 19 na HEAD da9a8aebcbee2f0f5caa3e1343a3641073abf2da (2026-10-15T10:54:26+02:00)
+$ npm ls @sentry/nextjs
+ticketing-platform@1.0.0 C:\Users\omnia\Documents\tixly\nextjs-boilerplate
+`-- @sentry/nextjs@11.7.0
+
+
+$ npx vitest run tests/r14-sentry-scrub.test.ts tests/r19-sentry-scrub.test.ts --maxWorkers=2 --minWorkers=1
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v1.6.1 C:/Users/omnia/Documents/tixly/nextjs-boilerplate
+
+ ✓ tests/r14-sentry-scrub.test.ts  (5 tests) 9ms
+ ✓ tests/r19-sentry-scrub.test.ts  (7 tests) 19ms
+
+ Test Files  2 passed (2)
+      Tests  12 passed (12)
+   Start at  10:54:48
+   Duration  98.82s (transform 231ms, setup 42.01s, collect 149ms, tests 28ms, environment 87.96s, prepare 8.47s)
+
+exit 0
