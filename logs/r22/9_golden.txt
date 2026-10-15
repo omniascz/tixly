@@ -1,0 +1,44 @@
+
+Running 26 tests using 1 worker
+
+  ok  1 [golden-path] › tests\golden-path-r13-keep.spec.ts:82:7 › vlastník › bod 4: termín v sále bez míst v cenových zónách se nezaloží (ani nezveřejní) (985ms)
+  ok  2 [golden-path] › tests\golden-path-r13-keep.spec.ts:96:7 › vlastník › bod 5: blokace bez volných míst se nezaloží prázdná (1.6s)
+  ok  3 [golden-path] › tests\golden-path-r13-keep.spec.ts:113:7 › vlastník › bod 6: „Zpět" z editoru plánku vede na existující stránku (753ms)
+  ok  4 [golden-path] › tests\golden-path-r13-keep.spec.ts:123:7 › vlastník › bod 7: zrušený termín v seznamu akcí „Zrušeno", ne „Prodej" (1.3s)
+  ok  5 [golden-path] › tests\golden-path-r13-keep.spec.ts:136:7 › vlastník › bod 8: nepovedené stažení reportu ohlásí chybu (2.1s)
+  ok  6 [golden-path] › tests\golden-path-r13-keep.spec.ts:148:7 › vlastník › bod 10: přesun a zrušení termínu jen po potvrzení v okně (3.0s)
+  ok  7 [golden-path] › tests\golden-path-r13-keep.spec.ts:170:7 › vlastník › bod 10: storno firemní objednávky jen po potvrzení v okně (beze změny od d0bbcb00) (3.8s)
+  ok  8 [golden-path] › tests\golden-path-r13-keep.spec.ts:191:7 › pokladní a vstup › bod 3: role Pokladna má na serveru omezený přístup (ne správce); vlastník beze změny (8.8s)
+  ok  9 [golden-path] › tests\golden-path-r13-keep.spec.ts:208:7 › pokladní a vstup › body 2 a 9: pokladna — termíny odlišené městem, tisk = PDF vstupenek s QR, bez TOTP (2.3s)
+  ok 10 [golden-path] › tests\golden-path-r13-keep.spec.ts:238:7 › pokladní a vstup › bod 1: skener při výpadku sítě nehlásí „Vstup povolen" bez ověření (2.1s)
+  ok 11 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:102:5 › přihlášení — administrace (vlastník) (4.5s)
+  ok 12 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:106:5 › přihlášení — pokladna (role Pokladna) (4.5s)
+  ok 13 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:110:5 › přihlášení — skener (role personál) (4.6s)
+  ok 14 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:114:5 › přihlášení — kupec (4.6s)
+  ok 15 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:119:5 › přihlášení — prodejce (3.7s)
+  ok 16 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:138:5 › přihlášení — B2B (pozvánkový kód) (3.4s)
+  ok 17 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:157:5 › registrace kupce (3.6s)
+  ok 18 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:176:5 › registrace pořadatele (3.1s)
+  ok 19 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:191:5 › zapomenuté heslo a nové heslo (odkaz z e-mailu) (8.0s)
+  ok 20 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:237:5 › checkout — jméno napsané před hydratací se odešle (3.4s)
+  ok 21 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:273:7 › pokladna a skener (přihlášený vlastník) › vyhledávání rezervací na pokladně (3.1s)
+  ok 22 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:286:7 › pokladna a skener (přihlášený vlastník) › pole skeneru (3.2s)
+[r20] (a) GET /cs/order-confirmation/c2da1ef1-094e-4e3d-af56-59bd27a1bded → 200
+[r20] (c) odkazů calendar.google.com: 1; dates=20261119T190000Z/20261119T190000Z očekáváno 20261119T190000Z/20261119T190000Z
+[r20] (b) řádků TypeError v logu serveru: 0
+  ok 23 [golden-path] › tests\golden-path-r20-order-confirmation.spec.ts:104:5 › (a)(b)(c) zaplacená objednávka s termínem: stránka 200, číslo objednávky, odkaz do kalendáře v UTC (4.2s)
+[r20] (d) objednávka ve stavu pending: GET → 200
+  ok 24 [golden-path] › tests\golden-path-r20-order-confirmation.spec.ts:144:5 › (d) nezaplacená objednávka: stránka 200, odkaz do kalendáře se nevykreslí (2.1s)
+[r20] (null) GET /cs/order-confirmation/79fb5bdc-eb06-4532-a1bb-84f7a786fab6 → 200
+  ok 25 [golden-path] › tests\golden-path-r20-order-confirmation.spec.ts:160:5 › (null) zaplacená objednávka bez termínu (event_date_start NULL): stránka 200, odkaz se nevykreslí (673ms)
+[r21] (a) token 2c73… (64 znaků); POST /api/auth/reset-password → 200; Referer http://localhost:3200/cs/reset-password?token=2c73…
+[r21] (b) token 23cf… (36 znaků); GET seat-prices → 200; Referer http://localhost:3200/cs/events/00000000-0000-4000-a000-000000000503/seats/kategorie?token=23cf…&seats=11d26cd2-17a0-4d40-9a91-e31e656d3b50
+[r21] (c) token r21c…; POST /api/ops/sentry-check?token=… → 500
+[r21] obálek: 1039; spanů: 968; událostí (event): 1
+[r21] spany s cestou /cs/reset-password: 32; se /seats/kategorie: 38; událost (c): ano
+[r21] (a) token 2c73…: surových obálek s tokenem 0; výskyty podle pole {}
+[r21] (b) token 23cf…: surových obálek s tokenem 0; výskyty podle pole {}
+[r21] (c) token r21c…: surových obálek s tokenem 0; výskyty podle pole {}
+  ok 26 [golden-path] › tests\golden-path-r21-sentry-url-tokens.spec.ts:92:5 › Sentry: tokeny z URL (referer, dotaz) neodejdou — (a) obnova hesla, (b) výběr míst, (c) serverová chyba (42.9s)
+
+  26 passed (2.4m)

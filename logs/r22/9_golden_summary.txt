@@ -1,0 +1,12 @@
+# Kolo 22 — golden-path r13-keep + r16-prehydration + r20-order-confirmation + r21-sentry-url-tokens (jeden blok, čerstvá r22demo, kód 5696a8f5)
+     10 ok golden-path-r13-keep
+     12 ok golden-path-r16-prehydration
+      3 ok golden-path-r20-order-confirmation
+      1 ok golden-path-r21-sentry-url-tokens
+  26 passed (2.4m)
+
+token= v obálkách simulátoru Sentry z běhu (9_golden_envelopes.jsonl.raw.jsonl):
+  s hodnotou: 0; [skryto]: 23
+
+offline skener (9_offline.txt):   6 passed (1.4m)
+turné (9_tour.txt):   10 passed (2.0m) — 3. pokus; 1. pokus 9_tour_try1.txt (souběh v testu 3), 2. pokus 9_tour_try2_docker_down.txt (Docker/WSL vypnut zvenčí)

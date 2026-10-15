@@ -1,0 +1,42 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [32m✓[39m tests/fix-r8-corporate-orders.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 6877[2mms[22m[39m
+ [32m✓[39m tests/fix-r8-productions-terms.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 946[2mms[22m[39m
+ [32m✓[39m tests/fix-r8-seat-blocks.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 1489[2mms[22m[39m
+[90mstdout[2m | tests/guest-user.live.test.ts[2m > [22m[2mcreateOrGetGuestUser (live, ephemeral Neon branch)[22m[39m
+[live-local-clone] live_guest_user_mv9z6unm: handlery běží jako tixly_app (RLS platí)
+
+ [32m✓[39m tests/guest-user.live.test.ts [2m ([22m[2m12 tests[22m[2m)[22m[33m 804[2mms[22m[39m
+[90mstdout[2m | tests/fix-r4-true-policies.live.test.ts[2m > [22m[2mKrok 3b (kolo 4) — politiky s podmínkou true[2m > [22m[2mzápis s true: kupec nezapíše/nezmění cizí řádek[22m[39m
+[3b zápis] {"alertInsertForeignUser":"42501","alertUpdateForeign":0,"postalInsertForeign":"42501","seatUpgradeInsertForeign":"42501","seatUpgradeUpdateForeign":0,"transferUpdateForeign":0,"travelInsertForeign":"42501"}
+
+[90mstdout[2m | tests/fix-r4-true-policies.live.test.ts[2m > [22m[2mKrok 3b (kolo 4) — politiky s podmínkou true[2m > [22m[2mčtení: nabídky nepublikované akce a neaktivní pořadatel nejsou veřejně vidět; publikované/aktivní ano[22m[39m
+[3b čtení] {"superfanDraft":0,"superfanPub":1,"promoterPending":0,"promoterActive":1,"superfanDraftOwner":1,"promoterPendingSelf":1,"promoterPendingMember":1}
+
+ [32m✓[39m tests/fix-r4-true-policies.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 705[2mms[22m[39m
+ [32m✓[39m tests/fix-r7-payouts-manual.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 850[2mms[22m[39m
+ [32m✓[39m tests/fix-r7-commission-invoices.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 1675[2mms[22m[39m
+ [32m✓[39m tests/fix-r7-ares.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 5001[2mms[22m[39m
+ [32m✓[39m tests/fix-r7-cron-expire-date-holds.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 600[2mms[22m[39m
+ [32m✓[39m tests/fix-r6-demo-paths-value.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 395[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-transfer-claim.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 617[2mms[22m[39m
+ [32m✓[39m tests/fix-r5-passage-qr-policy.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 986[2mms[22m[39m
+ [32m✓[39m tests/fix-v1-reset.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 3611[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-seat-upgrade-notify.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 825[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-upgrade-options.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 493[2mms[22m[39m
+ [32m✓[39m tests/fix-r9-expire-capacity-overflow.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[90m 299[2mms[22m[39m
+[90mstdout[2m | tests/fix-r4-school-group-scan.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — scanner/school-group vyžaduje obsluhu pořadatele[2m > [22m[2mvlastní pořadatel: admitted[22m[39m
+[scanner/school-group] ADMITTED booking 061ebcbf-18d5-4279-97cd-e1cdd832256b school=ZŠ Testovací students=25 event=3819c429-8dd5-49f7-aaba-ad8e166ec6e9
+
+ [32m✓[39m tests/fix-r4-school-group-scan.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 459[2mms[22m[39m
+ [32m✓[39m tests/fix-r9-scanner-wrong-term.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 483[2mms[22m[39m
+ [32m✓[39m tests/fix-r5-send-tickets-active.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 3484[2mms[22m[39m
+ [32m✓[39m tests/fix-regression-scan.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 443[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m20 passed[39m[22m[90m (20)[39m
+[2m      Tests [22m [1m[32m73 passed[39m[22m[90m (73)[39m
+[2m   Start at [22m 22:12:32
+[2m   Duration [22m 41.40s[2m (transform 1.75s, setup 1ms, collect 2.99s, tests 31.04s, environment 5ms, prepare 3.40s)[22m
+
