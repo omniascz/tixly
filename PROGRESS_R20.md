@@ -24,9 +24,9 @@ Větev `fix/round20-order-confirmation-2026-10-15` z `origin/integrate/2026-10-0
 - GREEN (`2_green.txt`): 0 spojení mimo localhost; routy identické s logs/r19 (1124 / 1119 ƒ / 5 ○).
 - r19-sentry-scrub + golden-path-r19-sentry11: v závěru (sentry spec potřebuje build s klientským DSN ve tvaru SaaS + tunel jako K19).
 
-## Závěr — lokální sada ✅, PR ⏳
+## Závěr ✅
 - Turné 10/10 (`9_tour.txt`, 0× event_date_start.replace; 1. běh ECONNRESET), golden r13-keep + r16 22/22 (`9_golden.txt`),
   offline 6/6 (`9_offline.txt`), audity 01–12 vč. 07b/08 0 FAIL (`9_audits_summary.txt`), migrace od nuly FAILED_FILES=0 (r20a ×4).
 - tsc 0, lint 967/1008, unit 719 + 13 skip, live 487/108 souborů (`live/`), build bez sítě v čistém klonu 30160486 OK.
 - golden-path-r19-sentry11 1 passed (`2_sentry11.txt`), build s tunelem 0 spojení ven.
-- Další: PR → CI + ruční Security a RLS Gate → merge → ROUND20_REPORT.md, NEXT_STEPS.md, K20.md.
+- PR #17: CI + ruční Security (2. běh po triáži Gitleaks `9_gitleaks_triage.md`) a RLS Gate zelené na 8795cb43, Vercel ×2 pass; sloučeno `--merge` → c8ab017d; PR #2 CLEAN, vše zelené. ROUND20_REPORT.md, NEXT_STEPS.md.
