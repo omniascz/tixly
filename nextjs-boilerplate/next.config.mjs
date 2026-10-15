@@ -216,18 +216,21 @@ const nextConfig = {
 let exported = nextConfig;
 try {
   // Dynamic require pro vyhnutí TS dep bez instalovaného balíčku
+  // Kolo 19: Sentry 11 — withSentryConfig je jen v '@sentry/nextjs/config' (MIGRATION.md 10→11)
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { withSentryConfig } = await import('@sentry/nextjs').catch(() => ({ withSentryConfig: null }));
+  const { withSentryConfig } = await import('@sentry/nextjs/config').catch(() => ({ withSentryConfig: null }));
   if (withSentryConfig && process.env.SENTRY_DSN) {
     exported = withSentryConfig(nextConfig, {
       silent: true,
       org: process.env.SENTRY_ORG,
       project: process.env.SENTRY_PROJECT,
       authToken: process.env.SENTRY_AUTH_TOKEN,
-      hideSourceMaps: true,
+      // Kolo 19: od Sentry 9 se release neodvozuje z Build ID → název z existujících proměnných (jako Sentry.init)
+      release: { name: process.env.APP_VERSION ?? process.env.NEXT_PUBLIC_APP_VERSION ?? process.env.VERCEL_GIT_COMMIT_SHA },
       // Kolo 14: vygenerované source mapy po nahrání smazat — jinak zůstanou veřejně v /_next/static (varování Sentry SDK)
       sourcemaps: { deleteSourcemapsAfterUpload: true },
-      disableLogger: true,
+      // Kolo 19: dřívější disableLogger (v 11 odstraněno)
+      webpack: { treeshake: { removeDebugLogging: true } },
       tunnelRoute: '/api/monitoring',
     });
   }

@@ -1,0 +1,58 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/auth-reset-password.live.test.ts[2m > [22m[2mauth/reset-password proti reálnému schématu (live)[22m[39m
+[live-local-clone] live_reset_pw_mv96jsgb: handlery běží jako tixly_app (RLS platí)
+
+ [33m❯[39m tests/auth-reset-password.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 1247[2mms[22m[39m
+[31m   [33m❯[31m tests/auth-reset-password.live.test.ts[2m > [22mauth/reset-password proti reálnému schématu (live)[2m > [22maudit řádek se zapíše s actor_type=user a actor_id = vlastní id[39m
+[31m     → expected 429 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/auth-reset-password.live.test.ts[2m > [22mauth/reset-password proti reálnému schématu (live)[2m > [22mneplatný token nic nezmění (fix neotevřel cestu bez tokenu)[39m
+[31m     → expected 429 to be 401 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/auth-reset-password.live.test.ts[2m > [22mauth/reset-password proti reálnému schématu (live)[2m > [22maudit řádek se zapíše s actor_type=user a actor_id = vlastní id
+[31m[1mAssertionError[22m: expected 429 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 429[39m
+
+[36m [2m❯[22m tests/auth-reset-password.live.test.ts:[2m118:24[22m[39m
+    [90m116| [39m
+    [90m117| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [33mPOST[39m([34mreq[39m({ token[33m:[39m s[33m.[39mtoken[33m,[39m newPassword[33m:[39m [32m'JinéHes[39m…
+    [90m118| [39m    [34mexpect[39m(res[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m119| [39m
+    [90m120| [39m    [35mconst[39m au [33m=[39m [35mawait[39m pool[33m.[39mquery[33m<[39m{
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/auth-reset-password.live.test.ts[2m > [22mauth/reset-password proti reálnému schématu (live)[2m > [22mneplatný token nic nezmění (fix neotevřel cestu bez tokenu)
+[31m[1mAssertionError[22m: expected 429 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 429[39m
+
+[36m [2m❯[22m tests/auth-reset-password.live.test.ts:[2m146:24[22m[39m
+    [90m144| [39m
+    [90m145| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [33mPOST[39m([34mreq[39m({ token[33m:[39m [34mrandomUUID[39m()[33m,[39m newPassword[33m:[39m [32m'Ne[39m…
+    [90m146| [39m    [34mexpect[39m(res[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m147| [39m
+    [90m148| [39m    [34mexpect[39m([35mawait[39m [34msecretOf[39m(s[33m.[39muserId))[33m.[39m[34mtoBe[39m(before)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (4)[39m
+[2m   Start at [22m 08:50:58
+[2m   Duration [22m 1.68s[2m (transform 107ms, setup 0ms, collect 83ms, tests 1.25s, environment 0ms, prepare 85ms)[22m
+

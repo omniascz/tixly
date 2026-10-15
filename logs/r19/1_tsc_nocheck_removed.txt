@@ -1,0 +1,17 @@
+sentry.client.config.ts(49,5): error TS2322: Type '(event: ErrorEvent, hint: EventHint) => Record<string, unknown> | null' is not assignable to type '(event: ErrorEvent, hint: EventHint) => ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+  Type 'Record<string, unknown> | null' is not assignable to type 'ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+    Type 'Record<string, unknown>' is not assignable to type 'ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+      Property 'type' is missing in type 'Record<string, unknown>' but required in type 'ErrorEvent'.
+sentry.client.config.ts(57,31): error TS2345: Argument of type 'ErrorEvent' is not assignable to parameter of type 'Record<string, unknown>'.
+  Index signature for type 'string' is missing in type 'ErrorEvent'.
+sentry.edge.config.ts(20,5): error TS2322: Type '(event: ErrorEvent) => Record<string, unknown>' is not assignable to type '(event: ErrorEvent, hint: EventHint) => ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+  Type 'Record<string, unknown>' is not assignable to type 'ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+    Property 'type' is missing in type 'Record<string, unknown>' but required in type 'ErrorEvent'.
+sentry.edge.config.ts(20,45): error TS2345: Argument of type 'ErrorEvent' is not assignable to parameter of type 'Record<string, unknown>'.
+  Index signature for type 'string' is missing in type 'ErrorEvent'.
+sentry.server.config.ts(33,5): error TS2322: Type '(event: ErrorEvent) => Record<string, unknown>' is not assignable to type '(event: ErrorEvent, hint: EventHint) => ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+  Type 'Record<string, unknown>' is not assignable to type 'ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+    Property 'type' is missing in type 'Record<string, unknown>' but required in type 'ErrorEvent'.
+sentry.server.config.ts(62,31): error TS2345: Argument of type 'ErrorEvent' is not assignable to parameter of type 'Record<string, unknown>'.
+  Index signature for type 'string' is missing in type 'ErrorEvent'.
+exit=2

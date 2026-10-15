@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [32m✓[39m tests/r14-sentry-scrub.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 11[2mms[22m[39m
+ [32m✓[39m tests/r19-sentry-scrub.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 18[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+[2m   Start at [22m 08:11:03
+[2m   Duration [22m 72.20s[2m (transform 230ms, setup 23.90s, collect 190ms, tests 29ms, environment 66.32s, prepare 8.56s)[22m
+
+exit=0

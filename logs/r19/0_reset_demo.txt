@@ -1,0 +1,65 @@
+NOTICE:  database "r19demo" does not exist, skipping
+[staging] migrace od nuly do databáze r19demo
+Unable to find image 'postgres:17' locally
+17: Pulling from library/postgres
+c5602f014e9e: Pulling fs layer
+52fc2be321a4: Pulling fs layer
+99ce35cabaf9: Pulling fs layer
+b86134c2eeb6: Pulling fs layer
+d43ee31e40df: Pulling fs layer
+57644501a07f: Pulling fs layer
+fcdd3a481359: Pulling fs layer
+affbe3357b39: Pulling fs layer
+c9432d362cca: Pulling fs layer
+dc30f2779c66: Pulling fs layer
+e30751283c57: Pulling fs layer
+8aebe6431dc8: Pulling fs layer
+ecc510c1e359: Pulling fs layer
+3be737420556: Pulling fs layer
+a7cb71218182: Download complete
+d43ee31e40df: Download complete
+99ce35cabaf9: Download complete
+8aebe6431dc8: Download complete
+3de48e9ae1ea: Download complete
+c5602f014e9e: Download complete
+3be737420556: Download complete
+b86134c2eeb6: Download complete
+57644501a07f: Download complete
+dc30f2779c66: Download complete
+52fc2be321a4: Download complete
+affbe3357b39: Download complete
+e30751283c57: Download complete
+fcdd3a481359: Download complete
+ecc510c1e359: Download complete
+fcdd3a481359: Pull complete
+ecc510c1e359: Pull complete
+b86134c2eeb6: Pull complete
+57644501a07f: Pull complete
+affbe3357b39: Pull complete
+3be737420556: Pull complete
+c5602f014e9e: Pull complete
+e30751283c57: Pull complete
+c9432d362cca: Download complete
+c9432d362cca: Pull complete
+d43ee31e40df: Pull complete
+dc30f2779c66: Pull complete
+8aebe6431dc8: Pull complete
+52fc2be321a4: Pull complete
+99ce35cabaf9: Pull complete
+Digest: sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3
+Status: Downloaded newer image for postgres:17
+NOTICE:  database "r19demo" does not exist, skipping
+OK   507_offline_scan_sync.sql
+OK   508_ops_monitoring.sql
+FAILED_FILES=0
+[staging] nahrávám demo data agentury
+ mista | inscenace | terminy | sedadla | kategorie | blokovana_mista 
+-------+-----------+---------+---------+-----------+-----------------
+     2 |         2 |       4 |     400 |        20 |              24
+(1 row)
+
+[staging] ověřuji role a RLS
+tixly_app NOBYPASSRLS
+policies=874
+tixly_app vidí publikovaných termínů: 4
+[staging] hotovo — proměnné zapsané do logs/r19/staging.env (práva 600); demo pořadatel demo@tixly-staging.test
