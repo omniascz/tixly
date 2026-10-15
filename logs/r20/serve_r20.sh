@@ -10,7 +10,10 @@ export DATABASE_URL_SUPER=postgresql://neondb_owner:fixowner@localhost:55632/${R
 export DATABASE_URL_OPS=$DATABASE_URL_SUPER
 export KV_URL=redis://localhost:56679 KV_REST_API_URL=http://localhost:9 ARES_BASE_URL=http://localhost:3997
 export SENTRY_DSN=http://r20publickey@127.0.0.1:3995/1
-export NEXT_PUBLIC_SENTRY_DSN=$SENTRY_DSN
+export NEXT_PUBLIC_SENTRY_DSN=${R20_CLIENT_DSN:-$SENTRY_DSN}
+# test tunelu jako v kole 19: klientské DSN ve tvaru SaaS (jen řetězec), tunel /api/monitoring přepsán na simulátor
+[ -n "${R20_TUNNEL_DEST:-}" ] && export _SENTRY_TUNNEL_DESTINATION_OVERRIDE=$R20_TUNNEL_DEST
+[ -n "${R20_RELEASE_SHA:-}" ] && export VERCEL_GIT_COMMIT_SHA=$R20_RELEASE_SHA
 unset SENTRY_AUTH_TOKEN
 export NODE_OPTIONS="${NODE_OPTIONS:-} --require $(cygpath -m /c/Users/omnia/Documents/tixly/logs/r20/net-guard.cjs)"
 export R20_NET_LOG=${R20_NET_LOG:-$(cygpath -m /c/Users/omnia/Documents/tixly/logs/r20/net.log)}

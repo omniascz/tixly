@@ -15,12 +15,15 @@ export DATABASE_URL_DIRECT=$DATABASE_URL DATABASE_URL_SUPER=postgresql://neondb_
 export DATABASE_URL_OPS=$DATABASE_URL_SUPER
 export KV_URL=redis://localhost:56679 KV_REST_API_URL=http://localhost:9 ARES_BASE_URL=http://localhost:3997
 export SENTRY_DSN=http://r20publickey@127.0.0.1:3995/1
-export NEXT_PUBLIC_SENTRY_DSN=$SENTRY_DSN
+export NEXT_PUBLIC_SENTRY_DSN=${R20_CLIENT_DSN:-$SENTRY_DSN}
+# test tunelu jako v kole 19: klientské DSN ve tvaru SaaS (jen řetězec), tunel /api/monitoring přepsán na simulátor
+[ -n "${R20_TUNNEL_DEST:-}" ] && export _SENTRY_TUNNEL_DESTINATION_OVERRIDE=$R20_TUNNEL_DEST
+[ -n "${R20_RELEASE_SHA:-}" ] && export VERCEL_GIT_COMMIT_SHA=$R20_RELEASE_SHA
 unset SENTRY_AUTH_TOKEN SENTRY_ORG SENTRY_PROJECT
 export NODE_OPTIONS="${NODE_OPTIONS:-} --require $(cygpath -m $R/net-guard.cjs)"
 export R20_NET_LOG=$(cygpath -m "$NET")
 echo "# 2_telemetry.sh $L — HEAD $(git rev-parse HEAD) — $(date -Iseconds)" > $R/2_${L}_build.txt
-echo "# SENTRY_DSN=http://r20p…@127.0.0.1:3995/1 NEXT_PUBLIC_SENTRY_DSN=(totéž) SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN:-<nenastaven>}" >> $R/2_${L}_build.txt
+echo "# SENTRY_DSN=http://r20p…@127.0.0.1:3995/1 NEXT_PUBLIC_SENTRY_DSN=${R20_CLIENT_DSN:+klient ve tvaru SaaS (řetězec) + tunel na simulátor} SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN:-<nenastaven>}" >> $R/2_${L}_build.txt
 npm run build >> $R/2_${L}_build.txt 2>&1; rc=$?
 touch "$NET"
 {
