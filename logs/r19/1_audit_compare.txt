@@ -1,0 +1,20 @@
+nové advisories: []
+zmizelé advisories: [
+  'moderate https://github.com/advisories/GHSA-8988-4f7v-96qf @opentelemetry/core',
+  'moderate https://github.com/advisories/GHSA-qqmp-wf37-98f9 @opentelemetry/instrumentation-knex',
+  'moderate https://github.com/advisories/GHSA-qqmp-wf37-98f9 @opentelemetry/instrumentation-mongoose',
+  'moderate https://github.com/advisories/GHSA-qqmp-wf37-98f9 @opentelemetry/instrumentation-mysql',
+  'moderate https://github.com/advisories/GHSA-qqmp-wf37-98f9 @opentelemetry/instrumentation-mysql2',
+  'moderate https://github.com/advisories/GHSA-qqmp-wf37-98f9 @opentelemetry/instrumentation-pg',
+  'moderate https://github.com/advisories/GHSA-qqmp-wf37-98f9 @opentelemetry/instrumentation-tedious',
+  'high https://github.com/advisories/GHSA-mw96-cpmx-2vgc rollup',
+  'moderate https://github.com/advisories/GHSA-w5hq-g745-h8pq uuid'
+]
+high/critical balíčky jen v před: [
+  '@sentry/bundler-plugin-core',
+  '@sentry/nextjs',
+  '@sentry/webpack-plugin',
+  'rollup',
+  'unplugin'
+]
+high/critical balíčky jen v po: []
