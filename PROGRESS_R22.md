@@ -35,3 +35,4 @@ Pomocné skripty `logs/r22/*.sh` = kopie kola 21 (cesty logs/r22, DB r22demo / r
   nastartovány (`docker start`), fm-* (jiný projekt) nedotčeny.
 - Golden r13-keep 10 + r16 12 + r20 3 + r21 1 = 26 passed (`9_golden_summary.txt`; token= v obálkách 0 s hodnotou, 23× [skryto]);
   offline skener 6/6 (`9_offline.txt`). golden-path-buyer / benefit nespuštěny (zadání).
+- Gitleaks lokálně: 5 fingerprintů testovacích dat (`9_gitleaks_triage.md`) → .gitleaksignore; po doplnění „no leaks found".
