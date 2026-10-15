@@ -77,3 +77,16 @@ Lokální služby fix-pg/fix-redis/fix-mail touto session nastartovány (byly za
   Typy: události shodné s r14 a baseline (Sentry kontrola, Cron charge-installments); transakce → streamované spany (SDK 11).
   Unit r14 5/5 + r19 7/7 (`2_unit_green.txt`), live `fix-r14-ops-monitoring` 18/18 (`2_live_ops_monitoring.txt`, DB r19a z
   migrací `9_build_db_r19a.txt`), lint změněných souborů 0.
+
+## Krok 3 — beze změny chování a vzhledu ✅
+- Build `3_build.txt` (HEAD 1b091be8, stejné prostředí jako baseline: oba DSN na simulátor 127.0.0.1:3995): tabulka rout
+  **identická** s 0_build (1124 rout, 1119 ƒ / 5 ○; `3_routes_diff.txt` prázdný). First Load JS sdílený **168 → 166 kB**
+  (−1,2 %), Middleware 95 → 86,9 kB, největší stránka /admin/orders 216 → 216 kB. Klientské .js.map 0.
+- Pixelové porovnání (přesné, `logs/r19/compare.mjs` = r15-compare + max. rozdíl kanálu): běh 1 `3_compare.txt` 23/28,
+  běh 2 `3b_compare.txt` **26/28** (≥ 25/28 kola 15). Stejný build mezi běhy 1 a 2 (`3_compare_self.txt`) 25/28 se stejnými
+  místy → nedeterministický šum vykreslení. Odchylky (běh 2): 04-termin a 11-pokladna 1440 — 19 px, max. 6/255, hrany kruhového
+  avataru „D" v hlavičce administrace (1360–1391, 23–31). Běh 1 navíc 07-firemni (28 px: avatar + 8 px zaobleného rohu
+  1392–1399 × 755–762), 08-promo-kody (19 px avatar), 13-saly (23 px avatar + roh). Mobilní a veřejné obrazovky 28/28 beze změny.
+- golden-path-r16-prehydration 12/12, golden-path-r13-keep 10/10 (`3_golden.txt`, čerstvá r19demo, SDK 11 v prohlížeči).
+- Síť: všechny buildy/servery od RED přes net-guard — jediné nelokální pokusy 3× telemetrie pluginu na sentry.io na build,
+  zablokované (`net_summary.txt`).
