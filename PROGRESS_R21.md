@@ -17,4 +17,5 @@ R21_SIM_OUT / R19_SIM_OUT a proměnné z fix.app.env.
 - Oprava scrub-pii.ts: URL_SECRET_PARAMS (27), scrubText maskuje hodnotu → [skryto], referer → bez dotazu a fragmentu (událost i span), deny += seznam.
 - Unit `tests/r21-sentry-url-tokens.test.ts`: RED na starém scrub-pii 15/16 selhalo (`2_unit_red.txt`), GREEN r21+r14+r19 28/28 (`2_unit_green.txt`); tsc 0, eslint obou souborů 0.
 - RED (`2_red.txt`): (a) 11 obálek, (b) 14, (c) 3 — referer (span 26/26/2, událost 1), http.target 2, next.span_name 1; url.full/url.query už [Filtered] (SDK).
+- GREEN (`2_green.txt`): spec beze změny 1 passed; tokeny (a)(b)(c) 0 obálek; spany s cestou reset-password 30, kategorie 38, událost (c) ano; token= jen [skryto] (23×).
 ## Závěr ⏳

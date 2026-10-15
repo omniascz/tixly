@@ -5,19 +5,19 @@
  [33m❯[39m tests/r21-sentry-url-tokens.test.ts [2m ([22m[2m16 tests[22m [2m|[22m [31m15 failed[39m[2m)[22m[90m 14[2mms[22m[39m
 [31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubSentrySpan — referer a URL s tokenem[2m > [22mreferer s dotazem: zůstane schéma, hostitel a cesta; dotaz a fragment pryč[39m
 [31m     → expected '{"name":"GET /cs/reset-password?token…' not to contain 'f3a9c1d2e4b5a6978877665544332211'[39m
-[31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?token=f3a9c1d2e4b5a6978877665544332211[39m
-[31m     → expected '/x?token=f3a9c1d2e4b5a697887766554433…' to be '/x?token=[skryto]' // Object.is equality[39m
-[31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?a=1&SIG=f3a9c1d2e4b5a6978877665544332211&b=2[39m
-[31m     → expected '/x?a=1&SIG=f3a9c1d2e4b5a6978877665544…' to be '/x?a=1&SIG=[skryto]&b=2' // Object.is equality[39m
-[31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?access_token=f3a9c1d2e4b5a6978877665544332211&refresh_token=f3a9c1d2e4b5a6978877665544332211[39m
-[31m     → expected '/x?access_token=f3a9c1d2e4b5a69788776…' to be '/x?access_token=[skryto]&refresh_toke…' // Object.is equality[39m
-[31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?sessionId=f3a9c1d2e4b5a6978877665544332211&session_id=f3a9c1d2e4b5a6978877665544332211&otp=123456&hash=f3a9c1d2e4b5a6978877665544332211[39m
-[31m     → expected '/x?sessionId=f3a9c1d2e4b5a69788776655…' to be '/x?sessionId=[skryto]&session_id=[skr…' // Object.is equality[39m
-[31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?key=f3a9c1d2e4b5a6978877665544332211&secret=f3a9c1d2e4b5a6978877665544332211&signature=f3a9c1d2e4b5a6978877665544332211&password=heslo123[39m
-[31m     → expected '/x?key=f3a9c1d2e4b5a69788776655443322…' to be '/x?key=[skryto]&secret=[skryto]&signa…' // Object.is equality[39m
-[31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?token=f3a9c1d2e4b5a6978877665544332211%2B%2F%3D[39m
-[31m     → expected '/x?token=f3a9c1d2e4b5a697887766554433…' to be '/x?token=[skryto]' // Object.is equality[39m
-[31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/login?returnTo=%2Fcs%2Freset-password%3Ftoken%3Df3a9c1d2e4b5a6978877665544332211%26lang%3Dcs[39m
+[31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?token=f3a9…[r21-maskováno][39m
+[31m     → expected '/x?token=f3a9…[r21-maskováno]…' to be '/x?token=[skryto]' // Object.is equality[39m
+[31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?a=1&SIG=f3a9…[r21-maskováno]&b=2[39m
+[31m     → expected '/x?a=1&SIG=f3a9…[r21-maskováno]…' to be '/x?a=1&SIG=[skryto]&b=2' // Object.is equality[39m
+[31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?access_token=f3a9…[r21-maskováno]&refresh_token=f3a9…[r21-maskováno][39m
+[31m     → expected '/x?access_token=f3a9…[r21-maskováno]…' to be '/x?access_token=[skryto]&refresh_toke…' // Object.is equality[39m
+[31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?sessionId=f3a9…[r21-maskováno]&session_id=f3a9…[r21-maskováno]&otp=123456&hash=f3a9…[r21-maskováno][39m
+[31m     → expected '/x?sessionId=f3a9…[r21-maskováno]…' to be '/x?sessionId=[skryto]&session_id=[skr…' // Object.is equality[39m
+[31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?key=f3a9…[r21-maskováno]&secret=f3a9…[r21-maskováno]&signature=f3a9…[r21-maskováno]&password=heslo123[39m
+[31m     → expected '/x?key=f3a9…[r21-maskováno]…' to be '/x?key=[skryto]&secret=[skryto]&signa…' // Object.is equality[39m
+[31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?token=f3a9…[r21-maskováno]%2B%2F%3D[39m
+[31m     → expected '/x?token=f3a9…[r21-maskováno]…' to be '/x?token=[skryto]' // Object.is equality[39m
+[31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/login?returnTo=%2Fcs%2Freset-password%3Ftoken%3Df3a9…[r21-maskováno]%26lang%3Dcs[39m
 [31m     → expected '/login?returnTo=%2Fcs%2Freset-passwor…' to be '/login?returnTo=%2Fcs%2Freset-passwor…' // Object.is equality[39m
 [31m   [33m❯[31m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/cb#access_token=f3a9c1d2e4b5a6978877665544332211&lang=xyz[39m
 [31m     → expected '/cb#access_token=f3a9c1d2e4b5a6978877…' to be '/cb#access_token=[skryto]&lang=xyz' // Object.is equality[39m
@@ -43,7 +43,7 @@
 [31m+ Received[39m
 
 [32m- f3a9c1d2e4b5a6978877665544332211[39m
-[31m+ {"name":"GET /cs/reset-password?token=f3a9c1d2e4b5a6978877665544332211","attributes":{"http.request.header.referer":["http://localhost:3200/cs/reset-password?token=f3a9c1d2e4b5a6978877665544332211&lang=cs#formular"],"http.target":"/cs/events/e1/seats/kategorie?token=f3a9c1d2e4b5a6978877665544332211&seats=s1,s2","next.span_name":"GET /cs/reset-password?token=f3a9c1d2e4b5a6978877665544332211","url.full":"http://localhost:3200/api/x?Token=f3a9c1d2e4b5a6978877665544332211&page=2","url.query":"?code=f3a9c1d2e4b5a6978877665544332211&page=2","http.route":"/api/x"}}[39m
+[31m+ {"name":"GET /cs/reset-password?token=f3a9…[r21-maskováno]","attributes":{"http.request.header.referer":["http://localhost:3200/cs/reset-password?token=f3a9…[r21-maskováno]&lang=cs#formular"],"http.target":"/cs/events/e1/seats/kategorie?token=f3a9…[r21-maskováno]&seats=s1,s2","next.span_name":"GET /cs/reset-password?token=f3a9…[r21-maskováno]","url.full":"http://localhost:3200/api/x?Token=f3a9…[r21-maskováno]&page=2","url.query":"?code=f3a9…[r21-maskováno]&page=2","http.route":"/api/x"}}[39m
 
 [36m [2m❯[22m tests/r21-sentry-url-tokens.test.ts:[2m25:38[22m[39m
     [90m 23| [39m      }[33m,[39m
@@ -55,15 +55,15 @@
 
 [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/15]⎯[22m[39m
 
-[31m[1m[7m FAIL [27m[22m[39m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?token=f3a9c1d2e4b5a6978877665544332211
-[31m[1m[7m FAIL [27m[22m[39m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?token=f3a9c1d2e4b5a6978877665544332211%2B%2F%3D
-[31m[1mAssertionError[22m: expected '/x?token=f3a9c1d2e4b5a697887766554433…' to be '/x?token=[skryto]' // Object.is equality[39m
+[31m[1m[7m FAIL [27m[22m[39m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?token=f3a9…[r21-maskováno]
+[31m[1m[7m FAIL [27m[22m[39m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?token=f3a9…[r21-maskováno]%2B%2F%3D
+[31m[1mAssertionError[22m: expected '/x?token=f3a9…[r21-maskováno]…' to be '/x?token=[skryto]' // Object.is equality[39m
 
 [32m- Expected[39m
 [31m+ Received[39m
 
 [32m- /x?token=[skryto][39m
-[31m+ /x?token=f3a9c1d2e4b5a6978877665544332211[39m
+[31m+ /x?token=f3a9…[r21-maskováno][39m
 
 [36m [2m❯[22m tests/r21-sentry-url-tokens.test.ts:[2m50:55[22m[39m
     [90m 48| [39m    [90m// query_string bez otazníku[39m
@@ -75,14 +75,14 @@
 
 [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/15]⎯[22m[39m
 
-[31m[1m[7m FAIL [27m[22m[39m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?a=1&SIG=f3a9c1d2e4b5a6978877665544332211&b=2
-[31m[1mAssertionError[22m: expected '/x?a=1&SIG=f3a9c1d2e4b5a6978877665544…' to be '/x?a=1&SIG=[skryto]&b=2' // Object.is equality[39m
+[31m[1m[7m FAIL [27m[22m[39m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?a=1&SIG=f3a9…[r21-maskováno]&b=2
+[31m[1mAssertionError[22m: expected '/x?a=1&SIG=f3a9…[r21-maskováno]…' to be '/x?a=1&SIG=[skryto]&b=2' // Object.is equality[39m
 
 [32m- Expected[39m
 [31m+ Received[39m
 
 [32m- /x?a=1&SIG=[skryto]&b=2[39m
-[31m+ /x?a=1&SIG=f3a9c1d2e4b5a6978877665544332211&b=2[39m
+[31m+ /x?a=1&SIG=f3a9…[r21-maskováno]&b=2[39m
 
 [36m [2m❯[22m tests/r21-sentry-url-tokens.test.ts:[2m50:55[22m[39m
     [90m 48| [39m    [90m// query_string bez otazníku[39m
@@ -94,14 +94,14 @@
 
 [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/15]⎯[22m[39m
 
-[31m[1m[7m FAIL [27m[22m[39m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?access_token=f3a9c1d2e4b5a6978877665544332211&refresh_token=f3a9c1d2e4b5a6978877665544332211
-[31m[1mAssertionError[22m: expected '/x?access_token=f3a9c1d2e4b5a69788776…' to be '/x?access_token=[skryto]&refresh_toke…' // Object.is equality[39m
+[31m[1m[7m FAIL [27m[22m[39m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?access_token=f3a9…[r21-maskováno]&refresh_token=f3a9…[r21-maskováno]
+[31m[1mAssertionError[22m: expected '/x?access_token=f3a9…[r21-maskováno]…' to be '/x?access_token=[skryto]&refresh_toke…' // Object.is equality[39m
 
 [32m- Expected[39m
 [31m+ Received[39m
 
 [32m- /x?access_token=[skryto]&refresh_token=[skryto][39m
-[31m+ /x?access_token=f3a9c1d2e4b5a6978877665544332211&refresh_token=f3a9c1d2e4b5a6978877665544332211[39m
+[31m+ /x?access_token=f3a9…[r21-maskováno]&refresh_token=f3a9…[r21-maskováno][39m
 
 [36m [2m❯[22m tests/r21-sentry-url-tokens.test.ts:[2m50:55[22m[39m
     [90m 48| [39m    [90m// query_string bez otazníku[39m
@@ -113,14 +113,14 @@
 
 [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/15]⎯[22m[39m
 
-[31m[1m[7m FAIL [27m[22m[39m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?sessionId=f3a9c1d2e4b5a6978877665544332211&session_id=f3a9c1d2e4b5a6978877665544332211&otp=123456&hash=f3a9c1d2e4b5a6978877665544332211
-[31m[1mAssertionError[22m: expected '/x?sessionId=f3a9c1d2e4b5a69788776655…' to be '/x?sessionId=[skryto]&session_id=[skr…' // Object.is equality[39m
+[31m[1m[7m FAIL [27m[22m[39m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?sessionId=f3a9…[r21-maskováno]&session_id=f3a9…[r21-maskováno]&otp=123456&hash=f3a9…[r21-maskováno]
+[31m[1mAssertionError[22m: expected '/x?sessionId=f3a9…[r21-maskováno]…' to be '/x?sessionId=[skryto]&session_id=[skr…' // Object.is equality[39m
 
 [32m- Expected[39m
 [31m+ Received[39m
 
 [32m- /x?sessionId=[skryto]&session_id=[skryto]&otp=[skryto]&hash=[skryto][39m
-[31m+ /x?sessionId=f3a9c1d2e4b5a6978877665544332211&session_id=f3a9c1d2e4b5a6978877665544332211&otp=123456&hash=f3a9c1d2e4b5a6978877665544332211[39m
+[31m+ /x?sessionId=f3a9…[r21-maskováno]&session_id=f3a9…[r21-maskováno]&otp=123456&hash=f3a9…[r21-maskováno][39m
 
 [36m [2m❯[22m tests/r21-sentry-url-tokens.test.ts:[2m50:55[22m[39m
     [90m 48| [39m    [90m// query_string bez otazníku[39m
@@ -132,14 +132,14 @@
 
 [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/15]⎯[22m[39m
 
-[31m[1m[7m FAIL [27m[22m[39m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?key=f3a9c1d2e4b5a6978877665544332211&secret=f3a9c1d2e4b5a6978877665544332211&signature=f3a9c1d2e4b5a6978877665544332211&password=heslo123
-[31m[1mAssertionError[22m: expected '/x?key=f3a9c1d2e4b5a69788776655443322…' to be '/x?key=[skryto]&secret=[skryto]&signa…' // Object.is equality[39m
+[31m[1m[7m FAIL [27m[22m[39m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/x?key=f3a9…[r21-maskováno]&secret=f3a9…[r21-maskováno]&signature=f3a9…[r21-maskováno]&password=heslo123
+[31m[1mAssertionError[22m: expected '/x?key=f3a9…[r21-maskováno]…' to be '/x?key=[skryto]&secret=[skryto]&signa…' // Object.is equality[39m
 
 [32m- Expected[39m
 [31m+ Received[39m
 
 [32m- /x?key=[skryto]&secret=[skryto]&signature=[skryto]&password=[skryto][39m
-[31m+ /x?key=f3a9c1d2e4b5a6978877665544332211&secret=f3a9c1d2e4b5a6978877665544332211&signature=f3a9c1d2e4b5a6978877665544332211&password=heslo123[39m
+[31m+ /x?key=f3a9…[r21-maskováno]&secret=f3a9…[r21-maskováno]&signature=f3a9…[r21-maskováno]&password=heslo123[39m
 
 [36m [2m❯[22m tests/r21-sentry-url-tokens.test.ts:[2m50:55[22m[39m
     [90m 48| [39m    [90m// query_string bez otazníku[39m
@@ -151,14 +151,14 @@
 
 [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/15]⎯[22m[39m
 
-[31m[1m[7m FAIL [27m[22m[39m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/login?returnTo=%2Fcs%2Freset-password%3Ftoken%3Df3a9c1d2e4b5a6978877665544332211%26lang%3Dcs
+[31m[1m[7m FAIL [27m[22m[39m tests/r21-sentry-url-tokens.test.ts[2m > [22mscrubText — parametry dotazu[2m > [22m/login?returnTo=%2Fcs%2Freset-password%3Ftoken%3Df3a9…[r21-maskováno]%26lang%3Dcs
 [31m[1mAssertionError[22m: expected '/login?returnTo=%2Fcs%2Freset-passwor…' to be '/login?returnTo=%2Fcs%2Freset-passwor…' // Object.is equality[39m
 
 [32m- Expected[39m
 [31m+ Received[39m
 
 [32m- /login?returnTo=%2Fcs%2Freset-password%3Ftoken%3D[skryto]%26lang%3Dcs[39m
-[31m+ /login?returnTo=%2Fcs%2Freset-password%3Ftoken%3Df3a9c1d2e4b5a6978877665544332211%26lang%3Dcs[39m
+[31m+ /login?returnTo=%2Fcs%2Freset-password%3Ftoken%3Df3a9…[r21-maskováno]%26lang%3Dcs[39m
 
 [36m [2m❯[22m tests/r21-sentry-url-tokens.test.ts:[2m50:55[22m[39m
     [90m 48| [39m    [90m// query_string bez otazníku[39m
@@ -234,7 +234,7 @@
 [31m+ Received[39m
 
 [32m- f3a9c1d2e4b5a6978877665544332211[39m
-[31m+ {"request":{"url":"http://localhost:3200/api/ops/sentry-check?token=f3a9c1d2e4b5a6978877665544332211&lang=cs","query_string":"token=f3a9c1d2e4b5a6978877665544332211&lang=cs","headers":{"Referer":"http://localhost:3200/cs/reset-password?token=f3a9c1d2e4b5a6978877665544332211#r21","referer":"http://localhost:3200/cs/x?code=f3a9c1d2e4b5a6978877665544332211","User-Agent":"Mozilla/5.0"}},"breadcrumbs":[{"category":"fetch","data":{"url":"/api/public/events/e1/seat-prices?token=f3a9c1d2e4b5a6978877665544332211","method":"GET"}}],"tags":{"runbook":"https://example.invalid/runbook"}}[39m
+[31m+ {"request":{"url":"http://localhost:3200/api/ops/sentry-check?token=f3a9…[r21-maskováno]&lang=cs","query_string":"token=f3a9c1d2e4b5a6978877665544332211&lang=cs","headers":{"Referer":"http://localhost:3200/cs/reset-password?token=f3a9…[r21-maskováno]#r21","referer":"http://localhost:3200/cs/x?code=f3a9…[r21-maskováno]","User-Agent":"Mozilla/5.0"}},"breadcrumbs":[{"category":"fetch","data":{"url":"/api/public/events/e1/seat-prices?token=f3a9…[r21-maskováno]","method":"GET"}}],"tags":{"runbook":"https://example.invalid/runbook"}}[39m
 
 [36m [2m❯[22m tests/r21-sentry-url-tokens.test.ts:[2m76:36[22m[39m
     [90m 74| [39m      tags[33m:[39m { runbook[33m:[39m [32m'https://example.invalid/runbook'[39m }[33m,[39m
@@ -281,7 +281,7 @@
 [31m+ Received[39m
 
 [32m- kupec [email], tel. [telefon], /x?token=[skryto][39m
-[31m+ kupec [email], tel. [telefon], /x?token=f3a9c1d2e4b5a6978877665544332211[39m
+[31m+ kupec [email], tel. [telefon], /x?token=f3a9…[r21-maskováno][39m
 
 [36m [2m❯[22m tests/r21-sentry-url-tokens.test.ts:[2m93:24[22m[39m
     [90m 91| [39m  [34mit[39m([32m'stávající maskování zůstává (e-mail, telefon, citlivé klíče)'[39m[33m,[39m (…
