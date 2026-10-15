@@ -10,7 +10,8 @@ R21_SIM_OUT / R19_SIM_OUT a proměnné z fix.app.env.
 - `0_verify_r20.txt`: `telemetry: false` v withSentryConfig (next.config.mjs:236); golden-path-r20-order-confirmation **3 passed** (r21demo z migrací, tixly_app); build 0 spojení mimo localhost.
 - `next-env.d.ts` build přepisuje (generovaný) — necommituje se.
 
-## Krok 1 — soupis tajemství v URL ⏳
+## Krok 1 — soupis tajemství v URL ✅
+- `1_url_secrets.md`: A (dotaz) 61 řádků (53 vlastních URL + 8 odchozích), B (segment cesty) 33 (31 + 2 odchozí); seznam 27 názvů (E); `data` vyřazen.
 ## Krok 2 — maskování tokenů v URL (RED → GREEN) ⏳
 - Spec `e2e/tests/golden-path-r21-sentry-url-tokens.spec.ts` (a) reset hesla z Mailpitu, (b) kategorie?token=, (c) sentry-check 500 s ?token= a Referer.
 - RED (`2_red.txt`): (a) 11 obálek, (b) 14, (c) 3 — referer (span 26/26/2, událost 1), http.target 2, next.span_name 1; url.full/url.query už [Filtered] (SDK).
