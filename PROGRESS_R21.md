@@ -20,4 +20,12 @@ R21_SIM_OUT / R19_SIM_OUT a proměnné z fix.app.env.
 - GREEN (`2_green.txt`): spec beze změny 1 passed; tokeny (a)(b)(c) 0 obálek; spany s cestou reset-password 30, kategorie 38, událost (c) ano; token= jen [skryto] (23×).
 - golden-path-r19-sentry11 1 passed, (d)+(e) žádné nálezy, tunel 38 spanů z prohlížeče (`2_sentry11.txt`); r13-keep+r16+r20 25 passed, token= jen [skryto] 7× (před: 2 s hodnotou) (`9_golden_summary.txt`).
 
-## Závěr ⏳
+## Závěr ⏳ (lokální sada ✅, PR čeká)
+- Migrace od nuly FAILED_FILES=0 (r21a ×4: `9_build_db_r21a*.txt`), tsc 0 (`9_tsc.txt`), lint 967 / baseline 1008 (`9_lint.txt`),
+  unit 735 passed + 13 skip / 80 souborů (`9_unit.txt`; R20 719 + 16 nových r21).
+- Live po částech 487 passed + 1 skip / 108 souborů (`live/*.txt`: n00 83, n01 49, n02 73, n03 40, g00 163+1 skip, g01 77, webhook_pool 2).
+- Build (`9_build.txt`) a build bez sítě v čistém klonu 2ca1fee9 OK (`9_build_no_network.console.txt`).
+- Audity 01–12 vč. 07b a 08 0 FAIL (`9_audits_summary.txt`), turné 10/10 (`9_tour.txt`, snímky `tour/`), offline skener 6/6 (`9_offline.txt`),
+  golden r13-keep + r16 + r20 25 passed (`9_golden_summary.txt`). Obálky turné: token= jen [skryto] (7×).
+- golden-path-buyer / benefit nespuštěny (zadání).
+- Gitleaks lokálně: 10 fingerprintů testovacích dat (`9_gitleaks_triage.md`) → .gitleaksignore; po doplnění „no leaks found".
