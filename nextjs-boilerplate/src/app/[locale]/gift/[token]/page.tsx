@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -31,13 +32,25 @@ interface ClaimResult {
 
 function QRDisplay({ payload }: { payload: string }) {
   const [qrSrc, setQrSrc] = useState<string | null>(null);
+  const [qrFailed, setQrFailed] = useState(false);
 
+  // qrPayload je platná vstupenka — QR generujeme lokálně v prohlížeči, nikdy ne přes externí službu.
   useEffect(() => {
+    let cancelled = false;
     const size = 220;
-    const encoded = encodeURIComponent(payload);
-    setQrSrc(`https://api.qrserver.com/v1/create-qr-code/?data=${encoded}&size=${size}x${size}&margin=4`);
+    QRCode.toDataURL(payload, { width: size, margin: 4 })
+      .then((url) => {
+        if (!cancelled) setQrSrc(url);
+      })
+      .catch(() => {
+        if (!cancelled) setQrFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [payload]);
 
+  if (qrFailed) return null;
   if (!qrSrc) return <div className="h-[220px] w-[220px] animate-pulse rounded-lg bg-muted" />;
   return (
     <img

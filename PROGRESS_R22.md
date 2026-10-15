@@ -17,3 +17,8 @@ Pomocné skripty `logs/r22/*.sh` = kopie kola 21 (cesty logs/r22, DB r22demo / r
   Zkušební běh `1_try1.txt` (ladění toku, stejný spec).
 - 1.2 RED ✅ `1_red.txt`: (a1) 1 požadavek na api.qrserver.com s otpauth+secretBase32, (b1) 1 s qrPayload+secret vstupenky;
   (a2)(b2) src = URL qrserveru, natural 0×0; (a3) verify 200. Snímky `shots/1_red_*.png` (QR a ruční kód zamaskovány).
+- 1.3 oprava ✅ (`1_fix_diff.txt`): TwoFactorSettings.tsx a gift/[token]/page.tsx — `QRCode.toDataURL(…, { width: 180 | 220, margin: 4 })`
+  v prohlížeči do src stávajícího `<img>`; chyba generování → QR se nezobrazí (2FA: ruční kód zůstává). Komentář + JSDoc bod 3 opraveny.
+  tsc 0 (`1_tsc.txt`); eslint obou souborů = stejné nálezy jako před změnou (`1_lint_files.txt` vs `1_lint_orig.txt`).
+- 1.4 GREEN ✅ `1_green.txt`: spec beze změny 2 passed; 0 požadavků mimo localhost; pixely QR shodné; grep qrserver jen kiosk-display;
+  snímky RED × GREEN: umístění a velikost QR shodné (dárek 0 px rozdíl, 2FA 5 px mimo QR — okraj pole pro kód).
