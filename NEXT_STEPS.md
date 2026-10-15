@@ -1,4 +1,4 @@
-# Tixly — kde jsme a co dál (stav k 2026-10-08 večer; doplněno kola 19 a 20, 2026-10-15)
+# Tixly — kde jsme a co dál (stav k 2026-10-08 večer; doplněno kola 19, 20 a 21, 2026-10-15)
 
 ## 1. Aktuální stav
 
@@ -14,8 +14,9 @@
 - **Kolo 18** (staging) skončilo v kroku 0.6 — chybí `staging.keys.env`; větev `fix/round18-staging-2026-10-14` (`716fe3c9`)
   čeká beze změny na pokračování. **Kolo 19** (Sentry 11) sloučeno PR #16 do integrate (`f14ee9d6`).
   **Kolo 20** (pád order-confirmation, Sentry `telemetry: false`) sloučeno PR #17 (`c8ab017d`).
+  **Kolo 21** (tokeny z URL — referer, dotaz — do Sentry neodejdou) sloučeno PR #18 (`2203c81c`).
 
-### Sloučená kola 1–17, 19 a 20
+### Sloučená kola 1–17, 19, 20 a 21
 
 | kolo | obsah | sloučení | report |
 |---|---|---|---|
@@ -38,6 +39,7 @@
 | 17 | zátěžový test na GitHub Actions (`loadtest.yml`) | PR #15 `e19c91e0` | [ROUND17_REPORT.md](ROUND17_REPORT.md) |
 | 19 | @sentry/nextjs 8.55.2 → 11.7.0, restriktivní sběr osobních údajů, tunel z prohlížeče | PR #16 `f14ee9d6` | [ROUND19_REPORT.md](ROUND19_REPORT.md) |
 | 20 | pád stránky potvrzení zaplacené objednávky (datum z pg), `telemetry: false` build pluginu Sentry | PR #17 `c8ab017d` | [ROUND20_REPORT.md](ROUND20_REPORT.md) |
+| 21 | tokeny z URL (hlavička referer, parametry dotazu) se nedostanou do Sentry (`scrub-pii.ts`) | PR #18 `2203c81c` | [ROUND21_REPORT.md](ROUND21_REPORT.md) |
 
 ## 2. Co čeká na vlastníka
 
@@ -138,9 +140,20 @@ tam nepatří.
   (zaplacená objednávka vracela 500). Grep stejného vzoru v src/app a src/lib: 18 výskytů, 0 kandidátů
   (`logs/r20/1_grep_dates.md`). Kandidáti na další kolo: (1) `<timestamptz>::text` + `slice(0, 10)` dává datum v časové
   zóně relace DB (lokálně UTC), ne Europe/Prague — date-holds, offers, theatre-reports, songkick (posun o den u akcí po 23:00 SEČ);
-  (2) span Sentry nese hlavičku `referer` s dotazem (např. reset token), `scrub-pii.ts` ji nemaže;
+  (2) ~~span Sentry nese hlavičku `referer` s dotazem~~ — **opraveno v kole 21**;
   (3) specy `golden-path-buyer` a `golden-path-benefit` jsou zastaralé (text „Cenové kategorie" v UI není, login bez Origin →
   CSRF 403, kód chyby `NOT_FOUND`) v kolech 10–19 se nespouštěly, v kole 20 neprošly; potřebují aktualizaci nebo vyřazení.
+- **Kolo 21 — tokeny v URL do Sentry:** referer bez dotazu a fragmentu, hodnoty 27 názvů parametrů → `[skryto]`
+  (soupis `logs/r21/1_url_secrets.md`). Kandidáti na další kolo (tajemství v **segmentu cesty**, neopraveno):
+  `/{locale}/t/{token}`, `/api/public/tickets/{token}/totp`, `/charity/claim/{token}`, `/foyer/pickup/{token}`,
+  `/gift/{token}` a `/api/gift/{token}`, `/group/{token}` a `/api/group-invitations/{token}`, `/lottery/result/{token}`,
+  `/reschedule/{token}`, `/review/{token}`, `/season-pass/{passToken}`, `/tickets/transfer/{token}`, `/transfer/accept/{token}`,
+  `/nabidka/{token}` a `/api/offers/{token}`, `/party/{token}` a `/api/checkout/party-split/{token}`, `/api/queue/{id}/status/{token}`,
+  `/api/vouchers/{code}/pdf`, `/api/buyer/gift-cards/{code}`, `/api/buyer/announcements/{token}/respond`,
+  `/cs/order-confirmation/{orderId}`; odchozí Fio `…/rest/…/{token}` a Przelewy24 `…/trnRequest/{token}` (úplný seznam v soupisu).
+  Mimo Sentry: TOTP secret v URL obrázku api.qrserver.com (2FA, dárek). Postřehy soupisu k ověření v dalším kole (neověřeno
+  testem): share-card přijme libovolný `?token=`, `/api/buyer/announcements/{token}/respond` bez přihlášení, `lotteryEntryId`
+  v checkoutu bez vazby na kupce, admin/live předává JWT v `?token=`.
 - **Vypnuté cesty bez napojení na platbu** — přepínače `NEXT_PUBLIC_FEATURE_INSTALLMENTS` (splátky, BNPL),
   `NEXT_PUBLIC_FEATURE_SUBSCRIPTIONS` (předplatné, permanentky), `NEXT_PUBLIC_FEATURE_BENEFIT_CARDS` (benefitní karty);
   výchozí vypnuto, na stagingu nenastavovat (kolo 10).
