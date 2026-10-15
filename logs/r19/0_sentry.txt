@@ -1,0 +1,98 @@
+
+Running 1 test using 1 worker
+
+[r19] (f) GET /api/admin/events → 401
+[r19] (f) GET /api/orders/00000000-0000-4000-a000-000000000001 → 401
+[r19] (f) GET /api/platform/promoters → 401
+[r19] (a) POST /api/ops/sentry-check → 500
+[r19] (a) událost: Sentry kontrola: kupec [email], tel. [telefon]; release=cRCs8EhRdb6dwHWtYeUjs
+[r19] (b) GET /api/cron/dispatch?job=charge-installments → 502
+[r19] (b) událost: Cron charge-installments selhal: HTTP 404 tags={"cron":"charge-installments","runbook":"https://github.com/omnia/tixly/blob/main/docs/RUNBOOK-DISASTER-RECOVERY.md"}
+[r19] (c) událost: NEDORAZILA
+[r19] (c) požadavky na tunel: []; přímo na simulátor: []; zablokováno mimo localhost: []
+[r19] obálek: 6; položek event/transaction/span: 6 ({"transaction":4,"event":2})
+[r19] (d)+(e) nálezy: e-mail: 1 obálek; telefon: 1 obálek; jméno: 1 obálek; IP adresa: 4 obálek; access token: 2 obálek; request.cookies ["accessToken","r19_buyer"]; request.data (tělo) v event; hlavička cookie v event; request.cookies ["r19_buyer"]
+  x  1 [golden-path] › tests\golden-path-r19-sentry11.spec.ts:82:5 › Sentry 11: (a)–(f) proti simulátoru (45.6s)
+
+
+  1) [golden-path] › tests\golden-path-r19-sentry11.spec.ts:82:5 › Sentry 11: (a)–(f) proti simulátoru 
+
+    Error: (c) událost z prohlížeče
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mundefined[39m
+
+      139 |     await ctx.close();
+      140 |     expect(blocked.filter((h) => h.includes('sentry.io')), '(c) žádný pokus o sentry.io').toEqual([]);
+    > 141 |     expect.soft(ev, '(c) událost z prohlížeče').toBeTruthy();
+          |                                                 ^
+      142 |     expect.soft(tunnel.some((t) => t.startsWith('POST /api/monitoring') && t.endsWith('→ 200')), '(c) odesláno přes tunel /api/monitoring (200)').toBe(true);
+      143 |     expect.soft(direct, '(c) prohlížeč neposílá přímo na DSN').toEqual([]);
+      144 |   });
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r19-sentry11.spec.ts:141:49
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r19-sentry11.spec.ts:112:3
+
+    Error: (c) odesláno přes tunel /api/monitoring (200)
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      140 |     expect(blocked.filter((h) => h.includes('sentry.io')), '(c) žádný pokus o sentry.io').toEqual([]);
+      141 |     expect.soft(ev, '(c) událost z prohlížeče').toBeTruthy();
+    > 142 |     expect.soft(tunnel.some((t) => t.startsWith('POST /api/monitoring') && t.endsWith('→ 200')), '(c) odesláno přes tunel /api/monitoring (200)').toBe(true);
+          |                                                                                                                                                   ^
+      143 |     expect.soft(direct, '(c) prohlížeč neposílá přímo na DSN').toEqual([]);
+      144 |   });
+      145 |
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r19-sentry11.spec.ts:142:147
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r19-sentry11.spec.ts:112:3
+
+    Error: (d)+(e) osobní údaje v obálkách
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    [32m- Expected  -  1[39m
+    [31m+ Received  + 11[39m
+
+    [32m- Array [][39m
+    [31m+ Array [[39m
+    [31m+   "e-mail: 1 obálek",[39m
+    [31m+   "telefon: 1 obálek",[39m
+    [31m+   "jméno: 1 obálek",[39m
+    [31m+   "IP adresa: 4 obálek",[39m
+    [31m+   "access token: 2 obálek",[39m
+    [31m+   "request.cookies [\"accessToken\",\"r19_buyer\"]",[39m
+    [31m+   "request.data (tělo) v event",[39m
+    [31m+   "hlavička cookie v event",[39m
+    [31m+   "request.cookies [\"r19_buyer\"]",[39m
+    [31m+ ][39m
+
+      188 |     }
+      189 |     note(`(d)+(e) nálezy: ${found.length ? [...new Set(found)].join('; ') : 'žádné'}`);
+    > 190 |     expect.soft([...new Set(found)], '(d)+(e) osobní údaje v obálkách').toEqual([]);
+          |                                                                         ^
+      191 |   });
+      192 | });
+      193 |
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r19-sentry11.spec.ts:190:73
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r19-sentry11.spec.ts:146:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r19-sentry11-Sentry-11-a-–-f-proti-simulátoru-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r19-sentry11-Sentry-11-a-–-f-proti-simulátoru-golden-path\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r19-sentry11-Sentry-11-a-–-f-proti-simulátoru-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r19-sentry11-Sentry-11-a-–-f-proti-simulátoru-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r19-sentry11.spec.ts:82:5 › Sentry 11: (a)–(f) proti simulátoru 
