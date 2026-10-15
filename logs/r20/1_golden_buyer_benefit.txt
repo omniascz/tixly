@@ -1,0 +1,143 @@
+
+Running 7 tests using 1 worker
+
+  x  1 [golden-path] › tests\golden-path-benefit.spec.ts:123:5 › Benefit Pay (Pluxee): checkout → mock portal → "Zaplatit" → ticket (2.0s)
+  x  2 [golden-path] › tests\golden-path-benefit.spec.ts:215:5 › Benefit Pay: idempotent callback — duplicate ignoruje (762ms)
+  x  3 [golden-path] › tests\golden-path-benefit.spec.ts:258:5 › Benefit Pay: callback s neplatným externalId → 404 (122ms)
+  x  4 [golden-path] › tests\golden-path-buyer.spec.ts:102:5 › Romeo a Julie: 2 sedadla z PŘÍZEMÍ → confirmation (12.1s)
+  -  5 [golden-path] › tests\golden-path-buyer.spec.ts:113:5 › Hamlet (stejný sál): 2 sedadla z PŘÍZEMÍ → confirmation
+  -  6 [golden-path] › tests\golden-path-buyer.spec.ts:121:5 › Promotér theatre@hranice.cz se přihlásí a vidí svoje akce v /admin
+  -  7 [golden-path] › tests\golden-path-buyer.spec.ts:158:5 › Sold sedadla v Romeo a Julie jsou disabled (nelze koupit)
+
+
+  1) [golden-path] › tests\golden-path-benefit.spec.ts:123:5 › Benefit Pay (Pluxee): checkout → mock portal → "Zaplatit" → ticket 
+
+    Error: Login failed for anna.nova@example.cz (403): {"error":"CSRF_ORIGIN_MISMATCH","message":"Požadavek nepochází z tohoto webu."}
+
+      50 |   });
+      51 |   if (res.status() !== 200) {
+    > 52 |     throw new Error(`Login failed for ${email} (${res.status()}): ${await res.text()}`);
+         |           ^
+      53 |   }
+      54 |   return ((await res.json()) as { accessToken: string }).accessToken;
+      55 | }
+        at apiLogin (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-benefit.spec.ts:52:11)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-benefit.spec.ts:129:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-benefit-Benefi-bcf51--portal-→-Zaplatit-→-ticket-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\golden-path-benefit-Benefi-bcf51--portal-→-Zaplatit-→-ticket-golden-path\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-benefit-Benefi-bcf51--portal-→-Zaplatit-→-ticket-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-benefit-Benefi-bcf51--portal-→-Zaplatit-→-ticket-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-benefit-Benefi-bcf51--portal-→-Zaplatit-→-ticket-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [golden-path] › tests\golden-path-benefit.spec.ts:215:5 › Benefit Pay: idempotent callback — duplicate ignoruje 
+
+    Error: No usable event found
+
+      85 |     if (usable) return { eventId: ev.id, ticketTypeId: usable.id };
+      86 |   }
+    > 87 |   throw new Error('No usable event found');
+         |         ^
+      88 | }
+      89 |
+      90 | async function waitForTicketIssued(
+        at findUsableEvent (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-benefit.spec.ts:87:9)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-benefit.spec.ts:218:37
+
+    Error Context: test-results\golden-path-benefit-Benefi-e8655-llback-—-duplicate-ignoruje-golden-path\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-benefit-Benefi-e8655-llback-—-duplicate-ignoruje-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-benefit-Benefi-e8655-llback-—-duplicate-ignoruje-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [golden-path] › tests\golden-path-benefit.spec.ts:258:5 › Benefit Pay: callback s neplatným externalId → 404 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m"[7mPAYMENT_[27mNOT_FOUND"[39m
+    Received: [31m"NOT_FOUND"[39m
+
+      268 |   expect(res.status()).toBe(404);
+      269 |   const body = (await res.json()) as { error: string };
+    > 270 |   expect(body.error).toBe('PAYMENT_NOT_FOUND');
+          |                      ^
+      271 | });
+      272 |
+      273 |
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-benefit.spec.ts:270:22
+
+    Error Context: test-results\golden-path-benefit-Benefi-0bd91--neplatným-externalId-→-404-golden-path\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-benefit-Benefi-0bd91--neplatným-externalId-→-404-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-benefit-Benefi-0bd91--neplatným-externalId-→-404-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [golden-path] › tests\golden-path-buyer.spec.ts:102:5 › Romeo a Julie: 2 sedadla z PŘÍZEMÍ → confirmation › Seat picker — SVG mapa 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Cenové kategorie/i)
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Cenové kategorie/i)[22m
+
+
+      60 |     await page.waitForSelector('svg[aria-label="Plán sálu"]', { timeout: 30_000 });
+      61 |     await page.waitForSelector('circle[role="button"]', { timeout: 10_000 });
+    > 62 |     await expect(page.getByText(/Cenové kategorie/i)).toBeVisible();
+         |                                                       ^
+      63 |   });
+      64 |
+      65 |   await test.step('Vyberu 2 dostupná sedadla v PŘÍZEMÍ', async () => {
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-buyer.spec.ts:62:55
+        at purchaseTwoSeatsFromPrizemi (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-buyer.spec.ts:58:3)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-buyer.spec.ts:110:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-buyer-Romeo-a--f8217-la-z-PŘÍZEMÍ-→-confirmation-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\golden-path-buyer-Romeo-a--f8217-la-z-PŘÍZEMÍ-→-confirmation-golden-path\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-buyer-Romeo-a--f8217-la-z-PŘÍZEMÍ-→-confirmation-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-buyer-Romeo-a--f8217-la-z-PŘÍZEMÍ-→-confirmation-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-buyer-Romeo-a--f8217-la-z-PŘÍZEMÍ-→-confirmation-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4 failed
+    [golden-path] › tests\golden-path-benefit.spec.ts:123:5 › Benefit Pay (Pluxee): checkout → mock portal → "Zaplatit" → ticket 
+    [golden-path] › tests\golden-path-benefit.spec.ts:215:5 › Benefit Pay: idempotent callback — duplicate ignoruje 
+    [golden-path] › tests\golden-path-benefit.spec.ts:258:5 › Benefit Pay: callback s neplatným externalId → 404 
+    [golden-path] › tests\golden-path-buyer.spec.ts:102:5 › Romeo a Julie: 2 sedadla z PŘÍZEMÍ → confirmation 
+  3 did not run

@@ -1,0 +1,39 @@
+# Kolo 20 / krok 2.2 — RED: build na nezměněném next.config.mjs (HEAD cfada2f5 = kód da9a8aeb)
+# logs/r20/2_telemetry.sh red → 2_red_build.txt (exit 0), 2_red_net.log, 2_red_net_summary.txt
+
+# Kolo 20 — souhrn odchozích spojení buildu (red), exit buildu 0
+řádků v net logu: 5
+pokusů mimo localhost celkem (BLOCKED + connect): 5
+z toho zablokovaných *.sentry.io: 5
+cílové hostitele:
+      5   o1.ingest.sentry.io
+
+## 2_red_net.log (pid = proces next build)
+2026-10-15T09:04:31.584Z pid=18540 BLOCKED connect o1.ingest.sentry.io:443
+2026-10-15T09:04:31.587Z pid=18540 BLOCKED connect o1.ingest.sentry.io:443
+2026-10-15T09:04:31.592Z pid=18540 BLOCKED connect o1.ingest.sentry.io:443
+2026-10-15T09:06:58.798Z pid=18540 BLOCKED connect o1.ingest.sentry.io:443
+2026-10-15T09:07:11.939Z pid=18540 BLOCKED connect o1.ingest.sentry.io:443
+
+## Druhý build s opravou kroku 1, next.config stále beze změny (2_step1_net_summary.txt)
+# Kolo 20 — souhrn odchozích spojení buildu (step1), exit buildu 0
+řádků v net logu: 3
+pokusů mimo localhost celkem (BLOCKED + connect): 3
+z toho zablokovaných *.sentry.io: 3
+cílové hostitele:
+      3   o1.ingest.sentry.io
+
+## Zdroj pokusů
+- Cíl o1.ingest.sentry.io:443 = DSN telemetrie build pluginu:
+  node_modules/@sentry/bundler-plugins/build/cjs/core/sentry/telemetry.js:16
+  `dsn: "https://4c2b…@o1.ingest.sentry.io/6690737"` (klíč zkrácen).
+- Výchozí hodnota: node_modules/@sentry/bundler-plugins/build/cjs/core/options-mapping.js:17
+  `telemetry: userOptions.telemetry ?? true,`; hláška build-plugin-manager.js:228
+  „Sending telemetry data on issues and performance to Sentry. To disable telemetry, set `options.telemetry` to `false`."
+- Dokumentace volby (typ, který přebírá withSentryConfig přes BuildTimeOptionsBase z @sentry/core —
+  @sentry/nextjs/build/types/config/types.d.ts:1 `import type { BuildTimeOptionsBase, … } from '@sentry/core'`):
+  node_modules/@sentry/core/build/types/build-time-plugins/buildTimeOptionsBase.d.ts:58–68
+  „If this flag is `true`, internal plugin errors and performance data will be sent to Sentry. … @default true
+   telemetry?: boolean;"
+- Pojistka net-guard.cjs zablokovala connect před odesláním (ENOTFOUND) — na sentry.io nic neodešlo.
+- Prostředí: SENTRY_DSN a NEXT_PUBLIC_SENTRY_DSN = http://r20p…@127.0.0.1:3995/1, SENTRY_AUTH_TOKEN nenastaven.

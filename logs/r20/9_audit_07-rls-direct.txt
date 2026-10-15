@@ -1,0 +1,21 @@
+# E2E 07_rls_direct  base=http://localhost:3200  2026-10-15T10:09:42.396Z
+PASS L0  pripojeni jako tixly_app: NOBYPASSRLS, ne superuser
+       {"current_user":"tixly_app","bypass":false,"super":false}
+PASS L1  BEZ kontextu: tixly_app nevidi zadne objednavky/vstupenky/uzivatele/hashe hesel/platby
+       {"groundTruthAsOwner":{"orders":48,"tickets":33,"users":85,"orders_a":48},"seenAsTixlyApp":{"orders":0,"tickets":0,"users":0,"user_secrets":0,"payment_events":0,"promo_codes":0}}
+PASS L2  poradatel B (RLS kontext) NEPRECTE objednavky, vstupenky, polozky, promo kody ani zakazniky poradatele A
+       {"ordersOfA":0,"ticketsOfA":0,"orderItemsOfA":0,"promoOfA":0,"usersVisible":1,"buyerOfA":0,"ownOrders":0}
+PASS L3  poradatel B (RLS kontext) NEZAPISE do akci, typu vstupenek, objednavek, vstupenek, promo kodu ani profilu poradatele A
+       {"updEventA":0,"updTicketTypeA":0,"insTicketTypeA":"ERR 42501 new row violates row-level security policy for table \"ticket_types\"","updOrdersA":0,"updTicketsA":0,"delPromoA":0,"updPromoterA":0}
+PASS L4  cizi kupec (RLS kontext) NEVIDI objednavky/vstupenky/TOTP tajemstvi jinych a NEPREVEDE si cizi vstupenku
+       {"ordersOfBuyer":0,"ticketsOfBuyer":0,"totpSecrets":0,"otherUsers":0,"stealTicket":0,"refundRequests":0}
+PASS L5  pozitivni kontrola: poradatel A pod RLS vidi SVE objednavky (policy nejsou jen mrtve zamky)
+       {"seen":48,"groundTruth":48}
+INFO L6  VLASTNOST NAVRHU: kdokoli s pripojenim tixly_app si `set_config(app.role,service)` zapne plny pristup (RLS chrani pred chybou v kodu, ne pred SQL injection)
+       {"afterSelfSetServiceRole":{"orders":48,"users":85,"user_secrets":85},"groundTruth":{"orders":48,"tickets":33,"users":85,"orders_a":48}}
+INFO L7  tabulky BEZ RLS citelne roli tixly_app (bez ohledu na tenant)
+       {"total":20,"sensitiveByName":["benefit_payments.providers"]}
+INFO L8  FORCE ROW LEVEL SECURITY: pocet tabulek (0 = vlastnik tabulek RLS vzdy miji -> app pod neondb_owner = RLS neucinne)
+       {"forcedTables":0,"roles":[{"rolname":"neondb_owner","rolbypassrls":true,"rolsuper":true},{"rolname":"tixly_app","rolbypassrls":false,"rolsuper":false}]}
+
+# SUMMARY {"PASS":6,"FAIL":0,"INFO":3}

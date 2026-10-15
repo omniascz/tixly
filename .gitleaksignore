@@ -95,3 +95,13 @@ eca1afc321320c5845a52e6341b47048977824b4:logs/r14/4_neon_converted_run3.txt:gene
 eca1afc321320c5845a52e6341b47048977824b4:logs/r14/4_neon_converted_run3.txt:generic-api-key:491
 eca1afc321320c5845a52e6341b47048977824b4:logs/r14/4_neon_converted_run3.txt:generic-api-key:497
 fbf71b5e8dda271900fed1210969621f56e65c97:scripts/staging/vercel-preview.env.example:generic-api-key:33
+# Kolo 20 (2026-10-15): triáž logs/r20/9_gitleaks_triage.md — testovací data lokálních DB (live, audit 03, fixture offline, obálky simulátoru Sentry).
+02d0d70dcef43b09a176481e7203f5b3d996591d:logs/r20/live/g01.txt:generic-api-key:165
+02d0d70dcef43b09a176481e7203f5b3d996591d:logs/r20/live/g01_bez_gopay.txt:generic-api-key:41
+02d0d70dcef43b09a176481e7203f5b3d996591d:logs/r20/live/n03.txt:generic-api-key:106
+02d0d70dcef43b09a176481e7203f5b3d996591d:logs/r20/live/n03.txt:generic-api-key:112
+02d0d70dcef43b09a176481e7203f5b3d996591d:logs/r20/live/n03.txt:generic-api-key:38
+3016048610b92c4bc99e0ab6c157cc880dca30b4:audit/logs/r20_e2e_03_refund_scan.jsonl:generic-api-key:4
+3016048610b92c4bc99e0ab6c157cc880dca30b4:logs/r20/9_golden_envelopes.jsonl:generic-api-key:134
+3016048610b92c4bc99e0ab6c157cc880dca30b4:logs/r20/9_golden_envelopes.jsonl:generic-api-key:136
+3016048610b92c4bc99e0ab6c157cc880dca30b4:logs/r20/fixture_offline.json:generic-api-key:1

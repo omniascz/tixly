@@ -1,0 +1,13 @@
+diff --git a/nextjs-boilerplate/next.config.mjs b/nextjs-boilerplate/next.config.mjs
+index e2da0f92..b98c03a9 100644
+--- a/nextjs-boilerplate/next.config.mjs
++++ b/nextjs-boilerplate/next.config.mjs
+@@ -232,6 +232,8 @@ try {
+       // Kolo 19: dřívější disableLogger (v 11 odstraněno)
+       webpack: { treeshake: { removeDebugLogging: true } },
+       tunnelRoute: '/api/monitoring',
++      // Kolo 20: build plugin neposílá vlastní telemetrii na sentry.io (výchozí true)
++      telemetry: false,
+     });
+   }
+ } catch {

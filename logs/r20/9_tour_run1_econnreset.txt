@@ -1,0 +1,65 @@
+
+Running 10 tests using 1 worker
+
+  ok  1 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:227:5 › 1 — inscenace a dva sály ve dvou městech v editoru (generátor / obkreslení podkladu) (9.9s)
+  ok  2 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:351:5 › 2 — dva termíny inscenace + třetí termín jiné inscenace (3.0s)
+  ok  3 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:403:5 › 3 — blokace Firma XY (20), Tisk (4), Technika (2) (1.8s)
+  x   4 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:432:5 › 4 — kategorie plné, senior, student, ZTP/P + doprovod; promo −10 % jen na plné (4.4s)
+  -   5 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:474:5 › 5 — online nákup s výběrem místa a kategorie přes simulátor GoPay (390 px), e-mail, PDF
+  -   6 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:530:5 › 6 — rezervace → vyzvednutí a platba na pokladně; druhá rezervace → propadnutí → místa zpět
+  -   7 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:582:5 › 7 — Firma XY 15 míst na fakturu → zaplaceno → vstupenky; 5 míst uvolnit; Tisk 4× volná na jméno
+  -   8 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:634:5 › 8 — vstupní kontrola: běžná, ZTP/P (ověřit průkaz), jiný termín (odmítnuto), již použitá
+  -   9 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:663:5 › 9 — zrušení termínu → refundy, dobropisy, e-maily
+  -  10 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:685:5 › 10 — reporty a seznam pro uvaděče sedí s daty
+
+
+  1) [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:432:5 › 4 — kategorie plné, senior, student, ZTP/P + doprovod; promo −10 % jen na plné 
+
+    Error: apiRequestContext.fetch: read ECONNRESET
+    Call log:
+    [2m  - → POST http://localhost:3200/api/admin/promo-codes[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - x-real-ip: 10.96.30.33[22m
+    [2m    - authorization: Bearer eyJh…[JWT redigováno][22m
+    [2m    - content-type: application/json[22m
+    [2m    - origin: http://localhost:3200[22m
+    [2m    - content-length: 99[22m
+    [2m    - cookie: accessToken=eyJh…[JWT redigováno]; refreshToken=eyJh…[JWT redigováno][22m
+
+
+      76 | const q = async <T = Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T[]> => (await db.query(sql, params)).rows as T[];
+      77 | async function call<T = Record<string, unknown>>(method: string, path: string, body?: unknown, token = S.promoterToken): Promise<{ status: number; json: T }> {
+    > 78 |   const r = await api.fetch(path, { method, headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json', origin: BASE }, data: body === undefined ? undefined : JSON.stringify(body) });
+         |                       ^
+      79 |   let json = {} as T;
+      80 |   try { json = (await r.json()) as T; } catch { /* */ }
+      81 |   return { status: r.status(), json };
+        at call (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r8-theatre-tour.spec.ts:78:23)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r8-theatre-tour.spec.ts:458:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-f4eb3-rovod-promo-−10-jen-na-plné-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-f4eb3-rovod-promo-−10-jen-na-plné-golden-path\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r8-theatre-tou-f4eb3-rovod-promo-−10-jen-na-plné-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r8-theatre-tou-f4eb3-rovod-promo-−10-jen-na-plné-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-f4eb3-rovod-promo-−10-jen-na-plné-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r8-theatre-tou-f4eb3-rovod-promo-−10-jen-na-plné-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:432:5 › 4 — kategorie plné, senior, student, ZTP/P + doprovod; promo −10 % jen na plné 
+  6 did not run
+  3 passed (25.9s)

@@ -1,0 +1,11 @@
+
+Running 6 tests using 1 worker
+
+  ok 1 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:171:5 › bod 1: stažení seznamu vstupenek termínu do zařízení a kdy byl stažen (2.1s)
+  ok 2 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:187:5 › bod 2: offline — pravidla jako online (3.7s)
+  ok 3 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:227:5 › bod 3: po obnovení sítě se odbavení odešlou idempotentně a zapíšou do scan_logs (2.7s)
+  ok 4 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:258:5 › bod 4: dva skenery offline tutéž vstupenku → po synchronizaci duplicitní, počet v reportu (5.6s)
+  ok 5 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:277:5 › bod 5: zavření a znovuotevření prohlížeče offline — seznam i neodeslaná odbavení přežijí (37.2s)
+  ok 6 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:318:5 › bod 6: storno po stažení seznamu — online vždy odmítnuto, offline jen se seznamem staženým po stornu (2.5s)
+
+  6 passed (59.3s)

@@ -232,6 +232,8 @@ try {
       // Kolo 19: dřívější disableLogger (v 11 odstraněno)
       webpack: { treeshake: { removeDebugLogging: true } },
       tunnelRoute: '/api/monitoring',
+      // Kolo 20: build plugin neposílá vlastní telemetrii na sentry.io (výchozí true)
+      telemetry: false,
     });
   }
 } catch {

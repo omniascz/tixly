@@ -1,0 +1,13 @@
+
+Running 3 tests using 1 worker
+
+[r20] (a) GET /cs/order-confirmation/6eb6e15a-7bb5-493c-9c2f-d42f6a0dd0a3 → 200
+[r20] (c) odkazů calendar.google.com: 1; dates=20261119T190000Z/20261119T190000Z očekáváno 20261119T190000Z/20261119T190000Z
+[r20] (b) řádků TypeError v logu serveru: 0
+  ok 1 [golden-path] › tests\golden-path-r20-order-confirmation.spec.ts:104:5 › (a)(b)(c) zaplacená objednávka s termínem: stránka 200, číslo objednávky, odkaz do kalendáře v UTC (6.4s)
+[r20] (d) objednávka ve stavu pending: GET → 200
+  ok 2 [golden-path] › tests\golden-path-r20-order-confirmation.spec.ts:144:5 › (d) nezaplacená objednávka: stránka 200, odkaz do kalendáře se nevykreslí (1.5s)
+[r20] (null) GET /cs/order-confirmation/fb6b5292-e41b-4d2e-b2b5-7a58907022b7 → 200
+  ok 3 [golden-path] › tests\golden-path-r20-order-confirmation.spec.ts:160:5 › (null) zaplacená objednávka bez termínu (event_date_start NULL): stránka 200, odkaz se nevykreslí (492ms)
+
+  3 passed (11.9s)
