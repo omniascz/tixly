@@ -1,0 +1,43 @@
+
+Running 6 tests using 1 worker
+
+  x  1 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:171:5 › bod 1: stažení seznamu vstupenek termínu do zařízení a kdy byl stažen (0ms)
+  -  2 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:187:5 › bod 2: offline — pravidla jako online
+  -  3 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:227:5 › bod 3: po obnovení sítě se odbavení odešlou idempotentně a zapíšou do scan_logs
+  -  4 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:258:5 › bod 4: dva skenery offline tutéž vstupenku → po synchronizaci duplicitní, počet v reportu
+  -  5 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:277:5 › bod 5: zavření a znovuotevření prohlížeče offline — seznam i neodeslaná odbavení přežijí
+  -  6 [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:318:5 › bod 6: storno po stažení seznamu — online vždy odmítnuto, offline jen se seznamem staženým po stornu
+
+
+  1) [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:171:5 › bod 1: stažení seznamu vstupenek termínu do zařízení a kdy byl stažen 
+
+    Error: ENOENT: no such file or directory, open 'C:\Users\omnia\Documents\tixly\e2e\logs\r20\fixture_offline.json'
+
+      165 |   await db.query(`UPDATE tickets.tickets SET status = 'used', used_at = now() WHERE id = $1`, [S.t.usedOnline.id]); // „použitá dříve online"
+      166 |   await ctx.close();
+    > 167 |   if (FIXTURE) writeFileSync(FIXTURE, JSON.stringify({ gate: S.gate, t: Object.fromEntries(Object.entries(S.t).map(([k, v]) => [k, { ...v, secret: v.secret.toString('hex') }])) }));
+          |                             ^
+      168 | });
+      169 | test.afterAll(async () => { await db?.end(); });
+      170 |
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:167:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-c2080-o-zařízení-a-kdy-byl-stažen-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r14-offline-sc-c2080-o-zařízení-a-kdy-byl-stažen-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r14-offline-sc-c2080-o-zařízení-a-kdy-byl-stažen-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-c2080-o-zařízení-a-kdy-byl-stažen-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r14-offline-sc-c2080-o-zařízení-a-kdy-byl-stažen-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:171:5 › bod 1: stažení seznamu vstupenek termínu do zařízení a kdy byl stažen 
+  5 did not run
