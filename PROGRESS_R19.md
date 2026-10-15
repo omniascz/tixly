@@ -90,3 +90,20 @@ Lokální služby fix-pg/fix-redis/fix-mail touto session nastartovány (byly za
 - golden-path-r16-prehydration 12/12, golden-path-r13-keep 10/10 (`3_golden.txt`, čerstvá r19demo, SDK 11 v prohlížeči).
 - Síť: všechny buildy/servery od RED přes net-guard — jediné nelokální pokusy 3× telemetrie pluginu na sentry.io na build,
   zablokované (`net_summary.txt`).
+
+## Závěrečná sada (HEAD c7df116c = kód 1b091be8) ✅
+- Migrace od nuly: r19a z 61 souborů, FAILED_FILES=0 (`9_build_db_r19a*.txt`, 4× čerstvě: live, audity, turné).
+- tsc 0 (`9_tsc.txt`); lint 967 chyb, baseline 1008, žádná nová (`9_lint.txt`); unit 78 souborů / 719 passed, 13 skipped
+  (`9_unit.txt`; kolo 16: 712 + 7 nových r19).
+- Live (r19a, tixly_app, 1 worker, rozdělení kola 16, `live/`): n00 83 (1. běh 82 + 1× „Connection terminated due to
+  connection timeout" v auth-reset-password; samostatně 2× 4/4, 3. opakování 429 = rate-limit z mých opakování; po vyčištění
+  rl:* celý n00 83/83 `live/n00_run2.txt`), n01 49, n02 73, n03 40, g00 163 + 1 opt-in, g01 77, webhook-pool 2 (se simulátorem
+  GoPay; bez něj ECONNREFUSED :3998 — `live/webhook_pool_bez_gopay.txt`) → 108 souborů, 487 testů.
+- Build OK, routy identické (`3_build.txt`); build bez sítě v čistém klonu c7df116c OK, 0 spojení (`9_build_no_network.console.txt`).
+- Audity (`9_audits_summary.txt`): 01 26, 02 36, 03 23, 04 14, 05 8, 06 21, 07 6, 07b zápisy 0/0/0/0 (= kolo 16), 08 2,
+  09 12, 10 7, 11 8, 12 5 — 0 FAIL. Sentry během auditů: 2 713 spanů, 0 e-mailů @audit.test, 0 hlaviček identity, 0 JWT.
+- Turné 10/10 (`9_tour.txt`, screenshoty `logs/r19/tour`, logs/r8/tour vráceno). Sentry zachytil 2× „d.event_date_start.replace
+  is not a function" (Server Component /[locale]/order-confirmation/[orderId], page.tsx:369) — STARÁ vada, stejná chyba je
+  v server logu turné kol 14, 15 i 16; SDK ji jen hlásí. Neopraveno (mimo rozsah kola).
+- golden-path-r13-keep 10/10, golden-path-r16-prehydration 12/12 (`3_golden.txt`, stejný kód), offline skener 6/6 (`9_offline.txt`).
+- Síť (`net_summary.txt`): kromě zablokované telemetrie pluginu Sentry žádné spojení mimo localhost.

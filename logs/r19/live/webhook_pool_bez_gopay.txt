@@ -1,0 +1,81 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r3-webhook-pool.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[90m 283[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-webhook-pool.live.test.ts[2m > [22mZávěr (kolo 3) — webhook neblokuje pool během práce po commitu[2m > [22m6 objednávek × 3 souběžné PAID webhooky (pool 2) → 6× paid, 1 vstupenka na objednávku, žádné 5xx[39m
+[31m     → fetch failed[39m
+[31m   [33m❯[31m tests/fix-r3-webhook-pool.live.test.ts[2m > [22mZávěr (kolo 3) — webhook neblokuje pool během práce po commitu[2m > [22m6 objednávek × 3 souběžné REFUNDED webhooky (pool 2) → 6× refunded, žádné 5xx[39m
+[31m     → fetch failed[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-webhook-pool.live.test.ts[2m > [22mZávěr (kolo 3) — webhook neblokuje pool během práce po commitu[2m > [22m6 objednávek × 3 souběžné PAID webhooky (pool 2) → 6× paid, 1 vstupenka na objednávku, žádné 5xx
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-webhook-pool.live.test.ts[2m > [22mZávěr (kolo 3) — webhook neblokuje pool během práce po commitu[2m > [22m6 objednávek × 3 souběžné REFUNDED webhooky (pool 2) → 6× refunded, žádné 5xx
+[31m[1mTypeError[22m: fetch failed[39m
+{
+  stack: 'AggregateError: \n' +
+    '    at internalConnectMultiple (node:net:1142:49)\n' +
+    '    at afterConnectMultiple (node:net:1723:7)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:3998\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED ::1:3998',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 3998,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:3998\n' +
+        '    at createConnectionError (node:net:1686:14)\n' +
+        '    at afterConnectMultiple (node:net:1716:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:3998',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 3998,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'Caused by: AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'internalConnectMultiple',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node:net',
+      line: 1142,
+      column: 49
+    },
+    {
+      method: 'afterConnectMultiple',
+      file: 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/node:net',
+      line: 1723,
+      column: 7
+    }
+  ]
+}
+[90m [2m❯[22m internalConnectMultiple node:net:[2m1142:49[22m[39m
+[90m [2m❯[22m afterConnectMultiple node:net:[2m1723:7[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ errors: [ { stack: 'Error: connect ECONNREFUSED ::1:3998\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED ::1:3998', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '::1', port: 3998, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, { stack: 'Error: connect ECONNREFUSED 127.0.0.1:3998\n    at createConnectionError (node:net:1686:14)\n    at afterConnectMultiple (node:net:1716:16)', message: 'connect ECONNREFUSED 127.0.0.1:3998', errno: -4078, code: 'ECONNREFUSED', syscall: 'connect', address: '127.0.0.1', port: 3998, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' } ], code: 'ECONNREFUSED' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 08:56:56
+[2m   Duration [22m 960ms[2m (transform 126ms, setup 0ms, collect 185ms, tests 283ms, environment 0ms, prepare 86ms)[22m
+
