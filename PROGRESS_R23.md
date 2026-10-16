@@ -24,5 +24,7 @@ Pomocné skripty `logs/r23/*.sh` = kopie kola 22 (cesty logs/r23, DB r23demo / r
 - 1.2 RED ✅ (86f1287b, `1_red.txt`): P — wero input 1, 500, objednávek 0→1, {59,held}→{58,sold}; D 1 passed; live 6 failed.
 - 1.3 oprava (`1_fix_diff.txt`): checkout/route.ts early-guard 503 před BEGIN; ticket-types weroAvailable; page.tsx stav weroAvailable. tsc 0, lint 29 = 29.
 - 1.4 GREEN ✅ (`1_green.txt`): P 1 passed (503, 0→0, {59,held}={59,held}), D 1 passed, live 6 passed; snímky D 0 px, P −4 px výšky řady (`1_shots_compare.txt`).
-## Krok 2 — soupis rout s Wero ⏳ (`2_wero_routes.md` rozpracován)
+## Krok 2 — soupis rout s Wero ✅
+- `2_wero_routes.md`: 4 routy + hlavní checkout; záznam před createPayment s wero v produkci jen `POST /api/season-passes` (COMMIT :185 → createPayment :188), bez UI;
+  party-split/[token] a v1/wl/orders createPayment uvnitř transakce před INSERTem (ROLLBACK); modular-pass createPayment nevolá vůbec (vždy /mock-gopay). Kód nezměněn.
 ## Závěr ⏳
