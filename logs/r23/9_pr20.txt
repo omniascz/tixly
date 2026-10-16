@@ -1,0 +1,45 @@
+# Kolo 23 — PR #20 (fix/round23-wero-2026-10-16 → integrate/2026-10-04), head 42f56dfaaa538966d945fe11e5692aeb3057d0d1
+{"headRefOid":"42f56dfaaa538966d945fe11e5692aeb3057d0d1","mergeStateStatus":"UNSTABLE","mergeable":"MERGEABLE","state":"OPEN"}
+
+$ gh pr checks 20
+Vercel – nextjs-boilerplate	fail	0	https://vercel.com/omniascz-8054s-projects/nextjs-boilerplate/FsEVsR5timsYLrLxo8YS1oNygTrU	Deployment was blocked
+Vercel – tixly	fail	0	https://vercel.com/omniascz-8054s-projects/tixly/Eznv9DB3cz5RCP9rHxe1UrMgvCu5	Deployment was blocked
+Build bez sítě (pojistka prerenderu)	pass	2m59s	https://github.com/omniascz/tixly/actions/runs/38879833647/job/116903624039	
+Install · typecheck · lint · unit	pass	2m33s	https://github.com/omniascz/tixly/actions/runs/38879833647/job/116903624362	
+Live sada (Postgres z migrací, tixly_app)	pass	3m0s	https://github.com/omniascz/tixly/actions/runs/38879833647/job/116903624209	
+Schema drift (SQL vs schéma z migrací)	pass	1m7s	https://github.com/omniascz/tixly/actions/runs/38879922087/job/116903912314	
+Vercel Preview Comments	pass	0	https://vercel.com/github	
+
+Ruční běhy (workflow_dispatch na větvi, head 42f56dfaaa538966d945fe11e5692aeb3057d0d1):
+{"c":"success","id":38880275851,"jobs":[{"c":"success","e":"2026-10-16T09:25:13Z","n":"Secret scan (Gitleaks)","s":"2026-10-16T09:24:51Z","steps":5},{"c":"success","e":"2026-10-16T09:25:39Z","n":"Dependency audit (mobile)","s":"2026-10-16T09:24:51Z","steps":8},{"c":"success","e":"2026-10-16T09:25:04Z","n":"Dependency audit (e2e)","s":"2026-10-16T09:24:51Z","steps":8},{"c":"success","e":"2026-10-16T09:26:25Z","n":"Dependency audit (nextjs-boilerplate)","s":"2026-10-16T09:24:51Z","steps":8},{"c":"success","e":"2026-10-16T09:25:36Z","n":"Dependency audit (mobile-promoter)","s":"2026-10-16T09:24:51Z","steps":8}],"sha":"42f56dfaaa538966d945fe11e5692aeb3057d0d1","wf":"Security"}
+{"c":"success","id":38880109450,"jobs":[{"c":"success","e":"2026-10-16T09:24:30Z","n":"RLS verify (DB z migrací vs snapshot)","s":"2026-10-16T09:23:24Z","steps":11},{"c":"skipped","e":"2026-10-16T09:23:22Z","n":"RLS verify (produkce vs snapshot)","s":"2026-10-16T09:23:22Z","steps":0}],"sha":"42f56dfaaa538966d945fe11e5692aeb3057d0d1","wf":"RLS Gate"}
+
+$ gh api repos/omniascz/tixly/commits/42f56dfaaa538966d945fe11e5692aeb3057d0d1/statuses
+{"context":"Vercel – nextjs-boilerplate","created_at":"2026-10-16T09:20:58Z","description":"Deployment was blocked","state":"failure"}
+{"context":"Vercel – tixly","created_at":"2026-10-16T09:20:58Z","description":"Deployment was blocked","state":"failure"}
+
+Pozn.: CI push na RED commitu 86f1287b (run 38867960828) failure = jen Live sada, Test Files 1 failed (tests/r23-wero-ticket-types.live.test.ts, to have property weroAvailable) — očekávaný RED.
+CI na 33f548b2 a 315a2930 cancelled (concurrency: přebito dalším pushem), ostatní push běhy success.
+
+# Po sloučení PR #20
+gh pr merge 20 --merge → f2ba850c13d21ba1cf0a264199b4f34049e9b80d (mergedAt 2026-10-16T09:27:10Z); tixly/ integrate ff na f2ba850c
+Běhy na f2ba850c (pull_request PR #2): CI 38880564041 success, RLS Gate 38880563988 success, Schema Drift Guard 38880563976 success, Security 38880563909 success
+
+$ gh pr checks 2
+Vercel – nextjs-boilerplate	fail	0	https://vercel.com/omniascz-8054s-projects/nextjs-boilerplate/GsgyEwu7PSK4zSD8n4EoJEACu4r8	Deployment was blocked
+Vercel – tixly	fail	0	https://vercel.com/omniascz-8054s-projects/tixly/TyZosuF3vwTRDQHZo3NeZxzuJa7W	Deployment was blocked
+Build bez sítě (pojistka prerenderu)	pass	2m51s	https://github.com/omniascz/tixly/actions/runs/38880564041/job/116906008820	
+Dependency audit (e2e)	pass	13s	https://github.com/omniascz/tixly/actions/runs/38880563909/job/116906008707	
+Dependency audit (mobile)	pass	48s	https://github.com/omniascz/tixly/actions/runs/38880563909/job/116906008691	
+Dependency audit (mobile-promoter)	pass	41s	https://github.com/omniascz/tixly/actions/runs/38880563909/job/116906008671	
+Dependency audit (nextjs-boilerplate)	pass	1m23s	https://github.com/omniascz/tixly/actions/runs/38880563909/job/116906008850	
+Install · typecheck · lint · unit	pass	2m49s	https://github.com/omniascz/tixly/actions/runs/38880564041/job/116906009146	
+RLS verify (DB z migrací vs snapshot)	pass	1m11s	https://github.com/omniascz/tixly/actions/runs/38880563988/job/116906008321	
+Secret scan (Gitleaks)	pass	13s	https://github.com/omniascz/tixly/actions/runs/38880563909/job/116906008394	
+Vercel Preview Comments	pass	0	https://vercel.com/github	
+RLS verify (produkce vs snapshot)	skipping	0	https://github.com/omniascz/tixly/actions/runs/38880563988/job/116906010684	
+Live sada (Postgres z migrací, tixly_app)	pass	3m45s	https://github.com/omniascz/tixly/actions/runs/38880564041/job/116906009180	
+Schema drift (SQL vs schéma z migrací)	pass	1m4s	https://github.com/omniascz/tixly/actions/runs/38880563976/job/116906008074	
+
+{"baseRefName":"master","headRefOid":"f2ba850c13d21ba1cf0a264199b4f34049e9b80d","mergeStateStatus":"UNSTABLE","mergeable":"MERGEABLE","state":"OPEN"}
+Kritérium PR #2: joby GitHubu pass, RLS verify (produkce) skipping, Vercel jen „Deployment was blocked“ → SPLNĚNO

@@ -40,4 +40,6 @@ Pomocné skripty `logs/r23/*.sh` = kopie kola 22 (cesty logs/r23, DB r23demo / r
   r16 pojistka hydratace.
 - Offline skener 6/6 (`9_offline.txt`). golden-path-buyer / benefit nespuštěny (zadání).
 - Gitleaks lokálně: 5 fingerprintů testovacích dat v 0888caa3 (`9_gitleaks_triage.md`) → .gitleaksignore; po doplnění „no leaks found".
-- PR → integrate ⏳
+- PR #20 (`9_pr20.txt`): CI 38879833647 + Schema drift 38879922087 pass, ruční Security 38880275851 + RLS Gate 38880109450 success,
+  Vercel ×2 „Deployment was blocked" → sloučeno **f2ba850c**; běhy na f2ba850c (PR #2) vše success; PR #2 joby pass, RLS produkce skipping.
+- ROUND23_REPORT.md, NEXT_STEPS.md (výsledek kola) commitnuty na integrate ✅

@@ -15,12 +15,13 @@
   čeká beze změny na pokračování. **Kolo 19** (Sentry 11) sloučeno PR #16 do integrate (`f14ee9d6`).
   **Kolo 20** (pád order-confirmation, Sentry `telemetry: false`) sloučeno PR #17 (`c8ab017d`).
   **Kolo 21** (tokeny z URL — referer, dotaz — do Sentry neodejdou) sloučeno PR #18 (`2203c81c`).
-  **Kolo 22** (QR 2FA a dárku generované lokálně, nic na api.qrserver.com; CI po zveřejnění repa obnoveno) — PR #19
-  **NESLOUČEN**: CI i ruční Security + RLS Gate zelené, ale Vercel – nextjs-boilerplate i Vercel – tixly „Deployment was
-  blocked" (projekty pozastavené vlastníkem). Po obnovení projektů: znovu spustit nasazení PR #19 a sloučit
-  `gh pr merge 19 --merge` ([ROUND22_REPORT.md](ROUND22_REPORT.md)).
+  **Kolo 22** (QR 2FA a dárku generované lokálně, nic na api.qrserver.com) sloučeno v kole 23 podle varianty A PR #19 (`514b1215`).
+  **Kolo 23** (Wero se nabízí a přijímá jen tam, kde je mock brána povolená; v produkci 503 před založením objednávky)
+  sloučeno PR #20 (`f2ba850c`) ([ROUND23_REPORT.md](ROUND23_REPORT.md)). Varianta A (rozhodnutí vlastníka 16. 10. 2026): do sloučení
+  PR #2 se Vercel na PR do integrate nevyžaduje — oba projekty jsou pozastavené a hlásí „Deployment was blocked"; Vercel se
+  ověří až na PR #2 před spuštěním.
 
-### Sloučená kola 1–17, 19, 20 a 21
+### Sloučená kola 1–17 a 19–23
 
 | kolo | obsah | sloučení | report |
 |---|---|---|---|
@@ -44,6 +45,8 @@
 | 19 | @sentry/nextjs 8.55.2 → 11.7.0, restriktivní sběr osobních údajů, tunel z prohlížeče | PR #16 `f14ee9d6` | [ROUND19_REPORT.md](ROUND19_REPORT.md) |
 | 20 | pád stránky potvrzení zaplacené objednávky (datum z pg), `telemetry: false` build pluginu Sentry | PR #17 `c8ab017d` | [ROUND20_REPORT.md](ROUND20_REPORT.md) |
 | 21 | tokeny z URL (hlavička referer, parametry dotazu) se nedostanou do Sentry (`scrub-pii.ts`) | PR #18 `2203c81c` | [ROUND21_REPORT.md](ROUND21_REPORT.md) |
+| 22 | QR 2FA a vstupenky z dárku generované lokálně (nic na api.qrserver.com) | PR #19 `514b1215` (v kole 23) | [ROUND22_REPORT.md](ROUND22_REPORT.md) |
+| 23 | Wero jen tam, kde je mock brána povolená (early-guard 503, `weroAvailable`) | PR #20 `f2ba850c` | [ROUND23_REPORT.md](ROUND23_REPORT.md) |
 
 ## 2. Co čeká na vlastníka
 
