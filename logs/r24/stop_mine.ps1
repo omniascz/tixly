@@ -1,0 +1,17 @@
+# Kolo 24 (kopie K23) — ukončí jen procesy této session: next start -p 3200 z tixly\nextjs-boilerplate (+ jeho rodiče npx) a simulátor Sentry :3995.
+$all = Get-CimInstance Win32_Process
+$byId = @{}; $all | ForEach-Object { $byId[[int]$_.ProcessId] = $_ }
+$kill = @()
+foreach ($p in $all) {
+  $c = [string]$p.CommandLine
+  if ($c.Contains('tixly\nextjs-boilerplate\node_modules\.bin') -and $c.Contains('start -p 3200')) {
+    $kill += $p
+    $q = $byId[[int]$p.ParentProcessId]
+    while ($q -and ([string]$q.CommandLine).Contains('next start -p 3200')) { $kill += $q; $q = $byId[[int]$q.ParentProcessId] }
+  }
+  if ($c.Contains('r14-fake-sentry.mjs 3995')) { $kill += $p }
+}
+$kill | ForEach-Object { "stop $($_.ProcessId) $($_.Name)"; Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+# Kolo 24 (kopie K23): + simulátor GoPay (tests/helpers/fake-gopay.mjs) — jen ten, jehož rodič je skript této session z logs/r24 (golden.sh, with_gopay.sh, tour.sh …)
+$all2 = Get-CimInstance Win32_Process; $byId2 = @{}; $all2 | ForEach-Object { $byId2[[int]$_.ProcessId] = $_ }
+$all2 | Where-Object { ([string]$_.CommandLine).Contains('tests/helpers/fake-gopay.mjs') } | ForEach-Object { $par = $byId2[[int]$_.ParentProcessId]; if ($par -and ([string]$par.CommandLine).Contains('logs/r24')) { "stop $($_.ProcessId) $($_.Name)"; Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } }

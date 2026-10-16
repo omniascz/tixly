@@ -1,0 +1,13 @@
+
+Running 1 test using 1 worker
+
+[r23] (c): místo Hlediště ř. 4 č. 8 podrženo
+[r23] (c) input[value="wero"] viditelný; prvků s textem „Wero": 1
+[r23] (c) po výběru Wero nápověda „Wero — okamžitá platba z účtu" viditelná
+[r23] (c) POST /api/checkout (wero, stránka; paymentMethod v těle: wero) → 200, provider=mock-wero, gatewayUrl=/mock-wero/mock-pay-…
+[r23] (c) stránka přešla na /mock-wero/mock-pay-…
+[r23] (c) objednávek kupce (wero) v DB: 1
+[r23] zahozených požadavků mimo localhost: 0 []
+  ok 1 [golden-path] › tests\golden-path-r23-wero.spec.ts:220:5 › (D) řízené demo ALLOW_MOCK_PAYMENTS=1: Wero se nabízí a vede na mock-wero (4.2s)
+
+  1 passed (35.6s)

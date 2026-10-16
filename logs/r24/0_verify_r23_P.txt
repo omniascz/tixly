@@ -1,0 +1,17 @@
+
+Running 1 test using 1 worker
+
+[r23] (a): místo Hlediště ř. 3 č. 15 podrženo
+[r23] (a1) Karta viditelná: true, Převodem viditelná: true
+[r23] (a2) input[value="wero"]: 0, prvků s textem „Wero": 0
+[r23] pojistka: POST /api/checkout (gopay, stránka) → 200, gatewayUrl http://localhost:3998/gw/3150356133
+[r23] pojistka: objednávek kontrolního kupce v DB: 1
+[r23] tělo stránky (klíče): buyerEmail, buyerName, eventId, paymentMethod, quantity, seatHoldToken, seatIds, ticketTypeId
+[r23] (b): místo Hlediště ř. 2 č. 12 podrženo
+[r23] (b1) POST /api/checkout (wero) → 503, error=PAYMENT_METHOD_UNAVAILABLE, message=Platba Wero není momentálně dostupná. Zvolte prosím jinou metodu., provider=wero, orderId=ne
+[r23] (b2) objednávek kupce (wero) před: 0, po: 0
+[r23] (b3) dostupnost před: {"remainingQty":59,"seatStatus":"held"}, po: {"remainingQty":59,"seatStatus":"held"}
+[r23] zahozených požadavků mimo localhost: 0 []
+  ok 1 [golden-path] › tests\golden-path-r23-wero.spec.ts:164:5 › (P) produkčně bez ALLOW_MOCK_PAYMENTS: Wero se nenabízí a API ho odmítne před založením objednávky (9.3s)
+
+  1 passed (13.9s)

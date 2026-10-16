@@ -1,0 +1,37 @@
+Vercel – nextjs-boilerplate	fail	0	https://vercel.com/omniascz-8054s-projects/nextjs-boilerplate/CXtqoaKi5zsWJGyakTeTsrZcsRHL	Deployment was blocked
+Vercel – tixly	fail	0	https://vercel.com/omniascz-8054s-projects/tixly/3NEmhqrzZ39BJGsBmaQ5WnBtybYE	Deployment was blocked
+Build bez sítě (pojistka prerenderu)	pass	3m1s	https://github.com/omniascz/tixly/actions/runs/38881430350/job/116908835547	
+Dependency audit (e2e)	pass	14s	https://github.com/omniascz/tixly/actions/runs/38881430336/job/116908836332	
+Dependency audit (mobile)	pass	48s	https://github.com/omniascz/tixly/actions/runs/38881430336/job/116908836172	
+Dependency audit (mobile-promoter)	pass	48s	https://github.com/omniascz/tixly/actions/runs/38881430336/job/116908836360	
+Dependency audit (nextjs-boilerplate)	pass	1m36s	https://github.com/omniascz/tixly/actions/runs/38881430336/job/116908836288	
+Install · typecheck · lint · unit	pass	2m48s	https://github.com/omniascz/tixly/actions/runs/38881430350/job/116908836092	
+Live sada (Postgres z migrací, tixly_app)	pass	3m16s	https://github.com/omniascz/tixly/actions/runs/38881430350/job/116908835902	
+Secret scan (Gitleaks)	pass	9s	https://github.com/omniascz/tixly/actions/runs/38881430336/job/116908836006	
+RLS verify (produkce vs snapshot)	skipping	0	https://github.com/omniascz/tixly/actions/runs/38881430355/job/116908837687	
+RLS verify (DB z migrací vs snapshot)	pass	1m16s	https://github.com/omniascz/tixly/actions/runs/38881430355/job/116908835492	
+Schema drift (SQL vs schéma z migrací)	pass	1m15s	https://github.com/omniascz/tixly/actions/runs/38881430361/job/116908835362	
+Vercel Preview Comments	pass	0	https://vercel.com/github	
+rc=1
+--- commit statuses 80eea362
+Vercel – nextjs-boilerplate | failure | Deployment was blocked
+Vercel – tixly | failure | Deployment was blocked
+--- check-runs 80eea362
+116908837687 | RLS verify (produkce vs snapshot) | completed | skipped
+116908836360 | Dependency audit (mobile-promoter) | completed | success
+116908836332 | Dependency audit (e2e) | completed | success
+116908836288 | Dependency audit (nextjs-boilerplate) | completed | success
+116908836172 | Dependency audit (mobile) | completed | success
+116908836092 | Install · typecheck · lint · unit | completed | success
+116908836006 | Secret scan (Gitleaks) | completed | success
+116908835902 | Live sada (Postgres z migrací, tixly_app) | completed | success
+116908835547 | Build bez sítě (pojistka prerenderu) | completed | success
+116908835492 | RLS verify (DB z migrací vs snapshot) | completed | success
+116908835362 | Schema drift (SQL vs schéma z migrací) | completed | success
+116908828760 | Vercel Preview Comments | completed | success
+--- runs
+38881430350 CI pull_request completed success
+38881430361 Schema Drift Guard pull_request completed success
+38881430355 RLS Gate pull_request completed success
+38881430336 Security pull_request completed success
+{"headRefOid":"80eea36245861ca745a5c34ae9548851d8c51750","mergeStateStatus":"UNSTABLE","mergeable":"MERGEABLE","state":"OPEN"}

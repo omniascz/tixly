@@ -1,0 +1,37 @@
+# Kolo 24 / krok 0.5 — nezávislé ověření Kola 23 na 80eea362 (HEAD integrate, kód = 80eea362)
+Build: logs/r24/0_build.txt (next build 80eea36245861ca745a5c34ae9548851d8c51750, rc=0, real 13m1s). Bloky: logs/r24/golden.sh (čerstvá r24demo z migrací + seed-demo, tixly_app, simulátory GoPay :3998 a Sentry :3995, next start :3200), postupně.
+
+## Konfigurace P — bez ALLOW_MOCK_PAYMENTS (server: [serve_r24] ALLOW_MOCK_PAYMENTS=<nenastaveno>)
+Log: logs/r24/0_verify_r23_P.txt
+[r23] (a): místo Hlediště ř. 3 č. 15 podrženo
+[r23] (a1) Karta viditelná: true, Převodem viditelná: true
+[r23] (a2) input[value="wero"]: 0, prvků s textem „Wero": 0
+[r23] pojistka: POST /api/checkout (gopay, stránka) → 200, gatewayUrl http://localhost:3998/gw/3150356133
+[r23] pojistka: objednávek kontrolního kupce v DB: 1
+[r23] tělo stránky (klíče): buyerEmail, buyerName, eventId, paymentMethod, quantity, seatHoldToken, seatIds, ticketTypeId
+[r23] (b): místo Hlediště ř. 2 č. 12 podrženo
+[r23] (b1) POST /api/checkout (wero) → 503, error=PAYMENT_METHOD_UNAVAILABLE, message=Platba Wero není momentálně dostupná. Zvolte prosím jinou metodu., provider=wero, orderId=ne
+[r23] (b2) objednávek kupce (wero) před: 0, po: 0
+[r23] (b3) dostupnost před: {"remainingQty":59,"seatStatus":"held"}, po: {"remainingQty":59,"seatStatus":"held"}
+[r23] zahozených požadavků mimo localhost: 0 []
+  1 passed (13.9s)
+
+## Konfigurace D — ALLOW_MOCK_PAYMENTS=1 (server: [serve_r24] ALLOW_MOCK_PAYMENTS=1)
+Log: logs/r24/0_verify_r23_D.txt
+[r23] (c): místo Hlediště ř. 4 č. 8 podrženo
+[r23] (c) input[value="wero"] viditelný; prvků s textem „Wero": 1
+[r23] (c) po výběru Wero nápověda „Wero — okamžitá platba z účtu" viditelná
+[r23] (c) POST /api/checkout (wero, stránka; paymentMethod v těle: wero) → 200, provider=mock-wero, gatewayUrl=/mock-wero/mock-pay-…
+[r23] (c) stránka přešla na /mock-wero/mock-pay-…
+[r23] (c) objednávek kupce (wero) v DB: 1
+[r23] zahozených požadavků mimo localhost: 0 []
+  1 passed (35.6s)
+
+## Live test tests/r23-wero-ticket-types.live.test.ts (DB r24a od nuly z migrací: FAILED_FILES=0; tixly_app)
+Log: logs/r24/0_verify_r23_live.txt
+stdout | tests/r23-wero-ticket-types.live.test.ts > ticket-types — weroAvailable (live, tixly_app)
+[live-local-clone] live_r23_wero_ticket_types_mvavjj6u: handlery běží jako tixly_app (RLS platí)
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+
+Výsledek: P 1 passed, D 1 passed, live 6 passed — Kolo 23 ověřeno.

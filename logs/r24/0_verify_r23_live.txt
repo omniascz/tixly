@@ -1,0 +1,14 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/r23-wero-ticket-types.live.test.ts[2m > [22m[2mticket-types — weroAvailable (live, tixly_app)[22m[39m
+[live-local-clone] live_r23_wero_ticket_types_mvavjj6u: handlery běží jako tixly_app (RLS platí)
+
+ [32m✓[39m tests/r23-wero-ticket-types.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 10255[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m   Start at [22m 13:17:55
+[2m   Duration [22m 38.52s[2m (transform 502ms, setup 0ms, collect 2.22s, tests 10.26s, environment 0ms, prepare 4.13s)[22m
+
