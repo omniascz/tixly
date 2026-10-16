@@ -1,0 +1,63 @@
+# Kolo 23 / krok 1.2 — RED na nezměněném kódu (514b1215 = b0c59af1 v nextjs-boilerplate/src)
+Build: logs/r23/0_build.txt (next build 514b1215, NODE_ENV=production při next start). Blok: logs/r23/golden.sh — čerstvá r23demo (migrace od nuly + seed-demo.sql, aplikace pod tixly_app), simulátor GoPay :3998, simulátor Sentry :3995, next start :3200.
+Spec: e2e/tests/golden-path-r23-wero.spec.ts (beze změny mezi RED a GREEN).
+
+## Konfigurace P — bez ALLOW_MOCK_PAYMENTS (server: [serve_r23] ALLOW_MOCK_PAYMENTS=<nenastaveno>)
+Log: logs/r23/1_red_P.txt (server 1_red_P_server.txt)
+[r23] (a): místo Hlediště ř. 1 č. 12 podrženo
+[r23] (a1) Karta viditelná: true, Převodem viditelná: true
+[r23] (a2) input[value="wero"]: 1, prvků s textem „Wero": 1
+[r23] snímek sekce „Platební metoda" red_P_default.png
+[r23] pojistka: POST /api/checkout (gopay, stránka) → 200, gatewayUrl http://localhost:3998/gw/3135805553
+[r23] pojistka: objednávek kontrolního kupce v DB: 1
+[r23] tělo stránky (klíče): buyerEmail, buyerName, eventId, paymentMethod, quantity, seatHoldToken, seatIds, ticketTypeId
+[r23] (b): místo Hlediště ř. 3 č. 6 podrženo
+[r23] (b1) POST /api/checkout (wero) → 500, error=Internal server error, message=—, provider=—, orderId=ne
+[r23] (b2) objednávek kupce (wero) před: 0, po: 1
+[r23] (b3) dostupnost před: {"remainingQty":59,"seatStatus":"held"}, po: {"remainingQty":58,"seatStatus":"sold"}
+[r23] zahozených požadavků mimo localhost: 0 []
+
+Výsledek: 1 failed
+Selhané body (expect.soft):
+  Error: (a2) žádný input[value="wero"]
+  Error: (a2) žádný text „Wero"
+  Error: (b1) stavový kód
+  Error: (b1) error
+  Error: (b2) objednávek před/po
+  Error: (b3) dostupnost po = před
+Server (příčina 500): [checkout-demo] Error: No real payment provider configured in production (refusing mock fallback). Set PAYMENT_PROVIDER + provider credentials.
+
+| bod | RED skutečná hodnota | očekávání po opravě |
+|---|---|---|
+| a1 | Karta viditelná true, Převodem viditelná true | true / true (prošlo) |
+| a2 | input[value="wero"] = 1, prvků s textem „Wero“ = 1 | 0 / 0 → SELHALO |
+| b1 | POST /api/checkout wero → 500, error "Internal server error" | 503 PAYMENT_METHOD_UNAVAILABLE → SELHALO |
+| b2 | objednávek kupce před 0, po 1 | 0 / 0 → SELHALO |
+| b3 | před {remainingQty 59, seat held}, po {remainingQty 58, seat sold} | před = po → SELHALO |
+| pojistka | gopay přes stránku → 200, gatewayUrl http://localhost:3998/gw/…, 1 objednávka v DB | (prošlo) |
+
+## Konfigurace D — ALLOW_MOCK_PAYMENTS=1 (server: [serve_r23] ALLOW_MOCK_PAYMENTS=1)
+Log: logs/r23/1_red_D.txt
+[r23] (c): místo Hlediště ř. 1 č. 6 podrženo
+[r23] (c) input[value="wero"] viditelný; prvků s textem „Wero": 1
+[r23] snímek sekce „Platební metoda" red_D_default.png
+[r23] (c) po výběru Wero nápověda „Wero — okamžitá platba z účtu" viditelná
+[r23] snímek sekce „Platební metoda" red_D_wero_selected.png
+[r23] (c) POST /api/checkout (wero, stránka; paymentMethod v těle: wero) → 200, provider=mock-wero, gatewayUrl=/mock-wero/mock-pay-…
+[r23] (c) stránka přešla na /mock-wero/mock-pay-…
+[r23] (c) objednávek kupce (wero) v DB: 1
+[r23] zahozených požadavků mimo localhost: 0 []
+Výsledek: 1 passed (13.6s) — (c) projde na starém kódu (regrese demo OK)
+
+## Live test ticket-types (krok 1.5) — tests/r23-wero-ticket-types.live.test.ts
+DB r23a od nuly z migrací (1_build_db_r23a.txt: FAILED_FILES=0), handler pod tixly_app (RLS), log 1_unit_red.txt:
+[live-local-clone] live_r23_wero_ticket_types_mvanh4no: handlery běží jako tixly_app (RLS platí)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  tests/r23-wero-ticket-types.live.test.ts > ticket-types — weroAvailable (live, tixly_app) > NODE_ENV=production, ALLOW_MOCK_PAYMENTS=undefined → weroAvailable=false
+ FAIL  tests/r23-wero-ticket-types.live.test.ts > ticket-types — weroAvailable (live, tixly_app) > NODE_ENV=production, ALLOW_MOCK_PAYMENTS=0 → weroAvailable=false
+ FAIL  tests/r23-wero-ticket-types.live.test.ts > ticket-types — weroAvailable (live, tixly_app) > NODE_ENV=production, ALLOW_MOCK_PAYMENTS=true → weroAvailable=false
+ FAIL  tests/r23-wero-ticket-types.live.test.ts > ticket-types — weroAvailable (live, tixly_app) > NODE_ENV=production, ALLOW_MOCK_PAYMENTS=1 → weroAvailable=true
+ FAIL  tests/r23-wero-ticket-types.live.test.ts > ticket-types — weroAvailable (live, tixly_app) > NODE_ENV=development, ALLOW_MOCK_PAYMENTS=undefined → weroAvailable=true
+ FAIL  tests/r23-wero-ticket-types.live.test.ts > ticket-types — weroAvailable (live, tixly_app) > NODE_ENV=test, ALLOW_MOCK_PAYMENTS=undefined → weroAvailable=true
+      Tests  6 failed (6)
+Každý případ: status 200 a 1 typ vstupenky prošly, selhalo `toHaveProperty('weroAvailable')` (pole chybí).

@@ -1,0 +1,45 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/r23-wero-ticket-types.live.test.ts[2m > [22m[2mticket-types — weroAvailable (live, tixly_app)[22m[39m
+[live-local-clone] live_r23_wero_ticket_types_mvanh4no: handlery běží jako tixly_app (RLS platí)
+
+ [33m❯[39m tests/r23-wero-ticket-types.live.test.ts [2m ([22m[2m6 tests[22m [2m|[22m [31m6 failed[39m[2m)[22m[33m 9038[2mms[22m[39m
+[31m   [33m❯[31m tests/r23-wero-ticket-types.live.test.ts[2m > [22mticket-types — weroAvailable (live, tixly_app)[2m > [22mNODE_ENV=production, ALLOW_MOCK_PAYMENTS=undefined → weroAvailable=false[39m
+[31m     → expected { ticketTypes: [ { …(9) } ], …(4) } to have property "weroAvailable"[39m
+[31m   [33m❯[31m tests/r23-wero-ticket-types.live.test.ts[2m > [22mticket-types — weroAvailable (live, tixly_app)[2m > [22mNODE_ENV=production, ALLOW_MOCK_PAYMENTS=0 → weroAvailable=false[39m
+[31m     → expected { ticketTypes: [ { …(9) } ], …(4) } to have property "weroAvailable"[39m
+[31m   [33m❯[31m tests/r23-wero-ticket-types.live.test.ts[2m > [22mticket-types — weroAvailable (live, tixly_app)[2m > [22mNODE_ENV=production, ALLOW_MOCK_PAYMENTS=true → weroAvailable=false[39m
+[31m     → expected { ticketTypes: [ { …(9) } ], …(4) } to have property "weroAvailable"[39m
+[31m   [33m❯[31m tests/r23-wero-ticket-types.live.test.ts[2m > [22mticket-types — weroAvailable (live, tixly_app)[2m > [22mNODE_ENV=production, ALLOW_MOCK_PAYMENTS=1 → weroAvailable=true[39m
+[31m     → expected { ticketTypes: [ { …(9) } ], …(4) } to have property "weroAvailable"[39m
+[31m   [33m❯[31m tests/r23-wero-ticket-types.live.test.ts[2m > [22mticket-types — weroAvailable (live, tixly_app)[2m > [22mNODE_ENV=development, ALLOW_MOCK_PAYMENTS=undefined → weroAvailable=true[39m
+[31m     → expected { ticketTypes: [ { …(9) } ], …(4) } to have property "weroAvailable"[39m
+[31m   [33m❯[31m tests/r23-wero-ticket-types.live.test.ts[2m > [22mticket-types — weroAvailable (live, tixly_app)[2m > [22mNODE_ENV=test, ALLOW_MOCK_PAYMENTS=undefined → weroAvailable=true[39m
+[31m     → expected { ticketTypes: [ { …(9) } ], …(4) } to have property "weroAvailable"[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 6 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r23-wero-ticket-types.live.test.ts[2m > [22mticket-types — weroAvailable (live, tixly_app)[2m > [22mNODE_ENV=production, ALLOW_MOCK_PAYMENTS=undefined → weroAvailable=false
+[31m[1m[7m FAIL [27m[22m[39m tests/r23-wero-ticket-types.live.test.ts[2m > [22mticket-types — weroAvailable (live, tixly_app)[2m > [22mNODE_ENV=production, ALLOW_MOCK_PAYMENTS=0 → weroAvailable=false
+[31m[1m[7m FAIL [27m[22m[39m tests/r23-wero-ticket-types.live.test.ts[2m > [22mticket-types — weroAvailable (live, tixly_app)[2m > [22mNODE_ENV=production, ALLOW_MOCK_PAYMENTS=true → weroAvailable=false
+[31m[1m[7m FAIL [27m[22m[39m tests/r23-wero-ticket-types.live.test.ts[2m > [22mticket-types — weroAvailable (live, tixly_app)[2m > [22mNODE_ENV=production, ALLOW_MOCK_PAYMENTS=1 → weroAvailable=true
+[31m[1m[7m FAIL [27m[22m[39m tests/r23-wero-ticket-types.live.test.ts[2m > [22mticket-types — weroAvailable (live, tixly_app)[2m > [22mNODE_ENV=development, ALLOW_MOCK_PAYMENTS=undefined → weroAvailable=true
+[31m[1m[7m FAIL [27m[22m[39m tests/r23-wero-ticket-types.live.test.ts[2m > [22mticket-types — weroAvailable (live, tixly_app)[2m > [22mNODE_ENV=test, ALLOW_MOCK_PAYMENTS=undefined → weroAvailable=true
+[31m[1mAssertionError[22m: expected { ticketTypes: [ { …(9) } ], …(4) } to have property "weroAvailable"[39m
+[36m [2m❯[22m tests/r23-wero-ticket-types.live.test.ts:[2m59:18[22m[39m
+    [90m 57| [39m    [90m// pojistka proti průchodu naprázdno: odpověď je skutečný seznam t[39m…
+    [90m 58| [39m    [34mexpect[39m((json[33m.[39mticketTypes [35mas[39m unknown[])[33m.[39mlength)[33m.[39m[34mtoBe[39m([34m1[39m)[33m;[39m
+    [90m 59| [39m    [34mexpect[39m(json)[33m.[39m[34mtoHaveProperty[39m([32m'weroAvailable'[39m)[33m;[39m
+    [90m   | [39m                 [31m^[39m
+    [90m 60| [39m    [34mexpect[39m(json[33m.[39mweroAvailable)[33m.[39m[34mtoBe[39m(expected)[33m;[39m
+    [90m 61| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m6 failed[39m[22m[90m (6)[39m
+[2m   Start at [22m 09:32:28
+[2m   Duration [22m 15.34s[2m (transform 444ms, setup 0ms, collect 338ms, tests 9.04s, environment 0ms, prepare 3.93s)[22m
+

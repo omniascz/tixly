@@ -1,0 +1,14 @@
+[serve_r23] ALLOW_MOCK_PAYMENTS=<nenastaveno>
+   ▲ Next.js 15.5.27
+   - Local:        http://localhost:3200
+   - Network:      http://192.168.0.240:3200
+
+ ✓ Starting...
+ ✓ Ready in 2.3s
+[checkout-demo] Error: No real payment provider configured in production (refusing mock fallback). Set PAYMENT_PROVIDER + provider credentials.
+    at g (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\6504.js:1:4100)
+    at m (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\6504.js:1:11384)
+    at <unknown> (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\checkout\route.js:282:1664)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\11990.js:22:73628)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\checkout\route.js:8:3429)
+    at async g (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\checkout\route.js:8:4432)
