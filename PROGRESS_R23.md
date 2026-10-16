@@ -27,4 +27,16 @@ Pomocné skripty `logs/r23/*.sh` = kopie kola 22 (cesty logs/r23, DB r23demo / r
 ## Krok 2 — soupis rout s Wero ✅
 - `2_wero_routes.md`: 4 routy + hlavní checkout; záznam před createPayment s wero v produkci jen `POST /api/season-passes` (COMMIT :185 → createPayment :188), bez UI;
   party-split/[token] a v1/wl/orders createPayment uvnitř transakce před INSERTem (ROLLBACK); modular-pass createPayment nevolá vůbec (vždy /mock-gopay). Kód nezměněn.
-## Závěr ⏳
+## Závěr — kompletní lokální sada ✅ (kód 100913b8; src = 315a2930)
+- Migrace od nuly FAILED_FILES=0 (r23a: 1_build_db_r23a, 9_build_db_r23a_live, _live_g, _tour_try1, _tour_try2, _tour; r23demo v každém golden bloku).
+- tsc 0 (`9_tsc.txt`), lint 967 / baseline 1008 (`9_lint.txt`), unit 735 passed + 13 skip / 80 souborů (`9_unit.txt`).
+- Live 493 passed + 1 skip (`9_live_summary.txt`: n00 83, n01 49, n02 73, n03 46, webhook_pool 2, g00 163+1 skip, g01 77).
+- Build `1_green_build.txt` (kód src = HEAD), build bez sítě v čistém klonu 100913b8 OK (`9_build_no_network.console.txt`);
+  klon %TEMP%\r23-clean po buildu smazán.
+- Audity 01–12 vč. 07b a 08: 0 FAIL (`9_audits_summary.txt`).
+- Turné 10/10 na 3. pokus (`9_tour.txt`, `tour/`); pokusy 1 a 2 selhaly v testu 3 na známém souběhu blokací (:422:42, block-create disabled).
+- Golden (`9_golden_summary.txt`): blok A r13-keep 10 + r16 12 + r20 3 + r21 1 = 26 passed (token= s hodnotou 0); blok B r22 2 + r23 (P) 1;
+  blok C r23 (D) 1. 1. pokus (všech 5 v jednom bloku) 26 passed + 2 failed: r22 (b) 404 po zrušení termínu 504 specem r13-keep,
+  r16 pojistka hydratace.
+- Offline skener 6/6 (`9_offline.txt`). golden-path-buyer / benefit nespuštěny (zadání).
+- Gitleaks lokálně ⏳

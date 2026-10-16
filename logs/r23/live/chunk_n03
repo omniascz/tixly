@@ -9,3 +9,4 @@ tests/red-green-488.live.test.ts
 tests/rls-pool-pooler.live.test.ts
 tests/wrapped-routes.live.test.ts
 tests/fix-r16-blob-upload.live.test.ts
+tests/r23-wero-ticket-types.live.test.ts
