@@ -1,0 +1,6 @@
+FAILED_FILES=0
+tour exit 0
+  10 passed (2.0m)
+?? logs/r8/tour/06a-mobil-rezervace-GFZEMN6K.png
+?? logs/r8/tour/06a-mobil-rezervace-TRTH7VTS.png
+exit=0

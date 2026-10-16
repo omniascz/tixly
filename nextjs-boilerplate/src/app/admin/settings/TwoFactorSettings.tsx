@@ -6,13 +6,15 @@
  * Flow:
  *   1. Stav: GET /api/admin/2fa/setup → { enabled, enrolledAt }
  *   2. Pokud disabled: tlačítko „Zapnout 2FA" → POST setup → vrátí otpauth URL + base32
- *   3. UI ukáže QR (otpauth qrcode přes externí službu nebo manual code) + input pro 6 cifer
+ *   3. UI ukáže QR (otpauth URL vygenerovaný lokálně v prohlížeči knihovnou qrcode, nikam se neposílá)
+ *      nebo manual code + input pro 6 cifer
  *   4. POST /api/admin/2fa/verify { code } → response s 10× backup codes (zobrazí 1×)
  *   5. Pokud enabled: ukázat „2FA aktivní od X" + button „Vypnout 2FA"
  */
 
 import { FormEvent, useEffect, useState } from 'react';
 import { Shield, ShieldCheck, ShieldOff, Copy, Check, AlertTriangle } from 'lucide-react';
+import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -124,10 +126,24 @@ export function TwoFactorSettings() {
     }
   }
 
-  // Záložní QR generator přes externí službu (zatím — produkčně vlastní)
-  const qrUrl = setupData
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(setupData.otpauth)}`
-    : null;
+  // QR z otpauth URL (obsahuje TOTP secret) generujeme lokálně v prohlížeči — nikdy ne přes externí službu.
+  // Když generování selže, QR se nezobrazí a zůstane ruční kód.
+  const [qrSrc, setQrSrc] = useState<string | null>(null);
+  useEffect(() => {
+    if (!setupData) return;
+    let cancelled = false;
+    QRCode.toDataURL(setupData.otpauth, { width: 180, margin: 4 })
+      .then((url) => {
+        if (!cancelled) setQrSrc(url);
+      })
+      .catch(() => {
+        if (!cancelled) setQrSrc(null);
+      });
+    return () => {
+      cancelled = true;
+      setQrSrc(null);
+    };
+  }, [setupData]);
 
   return (
     <Card>
@@ -215,9 +231,9 @@ export function TwoFactorSettings() {
                 {setupData.secretBase32}
               </code>
             </p>
-            {qrUrl ? (
+            {qrSrc ? (
               <div className="flex justify-center rounded-md border bg-white p-3">
-                <img src={qrUrl} alt="QR kód 2FA" className="h-44 w-44" />
+                <img src={qrSrc} alt="QR kód 2FA" className="h-44 w-44" />
               </div>
             ) : null}
             <div>

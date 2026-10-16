@@ -1,0 +1,39 @@
+# Kolo 22 — PR #19 (fix/round22-qr-local-2026-10-15 → integrate/2026-10-04), head 81c10d35
+
+## gh pr checks 19
+- Vercel – nextjs-boilerplate | fail | 0 | Deployment was blocked
+- Vercel – tixly | fail | 0 | Deployment was blocked
+- Build bez sítě (pojistka prerenderu) | pass | 3m6s | 
+- Install · typecheck · lint · unit | pass | 2m6s | 
+- Live sada (Postgres z migrací, tixly_app) | pass | 3m28s | 
+- Schema drift (SQL vs schéma z migrací) | pass | 1m14s | 
+- Vercel Preview Comments | pass | 0 | 
+
+## Ruční běhy (gh workflow run, ref = větev)
+- Security 38808029421 head 81c10d35: success (Gitleaks + Dependency audit ×4)
+- RLS Gate 38808034534 head 81c10d35: success (DB z migrací), produkce skipped (záměrně)
+
+## Vercel (commit statusy 81c10d35, jen čtení; get_deployment přes Vercel MCP)
+2026-10-15T21:11:48Z Vercel – tixly: failure — Deployment was blocked — https://vercel.com/omniascz-8054s-projects/tixly/EDCypFDSddWZHGVFGm92PEvS7FTU
+2026-10-15T21:11:48Z Vercel – nextjs-boilerplate: failure — Deployment was blocked — https://vercel.com/omniascz-8054s-projects/nextjs-boilerplate/GX4M8qzDnLvWBxfSuaxnXhKxk392
+- dpl_EDCypFDSddWZHGVFGm92PEvS7FTU (tixly) state BLOCKED, readyState BLOCKED, target null, bez buildu
+- dpl_GX4M8qzDnLvWBxfSuaxnXhKxk392 (nextjs-boilerplate) state BLOCKED, readyState BLOCKED, target null, bez buildu
+Přesná hláška GitHub/Vercel: "Deployment was blocked". API nasazení důvod neuvádí; oba projekty jsou vlastníkem pozastavené (Pause Project).
+
+## Rozhodnutí
+PR #19 NESLOUČEN (zadání: Vercel na PR nevytvořil nasazení kvůli pozastavenému projektu/omezení účtu → patří vlastníkovi).
+gh pr view 19: {"headRefOid":"81c10d358ee4c4713956ae4aa616ed8689f1d695","mergeStateStatus":"UNSTABLE","mergeable":"MERGEABLE","state":"OPEN"}
+
+## PR #2 (integrate → master)
+gh pr view 2: {"headRefOid":"6799fb5be2416438648b2ce9d82ef16585f5f628","mergeStateStatus":"CLEAN","mergeable":"MERGEABLE","state":"OPEN"}
+- Dependency audit (e2e) | pass
+- Dependency audit (mobile) | pass
+- Dependency audit (mobile-promoter) | pass
+- Dependency audit (nextjs-boilerplate) | pass
+- Install · typecheck · lint · unit | pass
+- RLS verify (DB z migrací vs snapshot) | pass
+- Schema drift (SQL vs schéma z migrací) | pass
+- Secret scan (Gitleaks) | pass
+- RLS verify (produkce vs snapshot) | skipping
+- Build bez sítě (pojistka prerenderu) | pass
+- Live sada (Postgres z migrací, tixly_app) | pass

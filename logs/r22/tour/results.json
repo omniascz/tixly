@@ -1,0 +1,52 @@
+[
+  {
+    "step": "1",
+    "ok": true,
+    "note": "Velký sál 140 míst (2 vozíčkáři + 2 doprovod), Komorní scéna 24 míst obkresleno"
+  },
+  {
+    "step": "2",
+    "ok": true,
+    "note": "Racek Brno (140 míst), Racek Ostrava (24), Hamlet Brno (140); schváleno a publikováno"
+  },
+  {
+    "step": "3",
+    "ok": true,
+    "note": "Firma XY 20 (celý balkon), Tisk 4, Technika 2"
+  },
+  {
+    "step": "4",
+    "ok": true,
+    "note": "5 kategorií na termínech Racek; promo PLNE10MVA0XGSD −10 % jen na plné"
+  },
+  {
+    "step": "5",
+    "ok": true,
+    "note": "mobil 390 px: 3 místa (Plné −10 %, ZTP/P, doprovod) = 630 Kč přes simulátor GoPay; e-mail + PDF uloženy"
+  },
+  {
+    "step": "6",
+    "ok": true,
+    "note": "rezervace TRTH7VTS zaplacena na pokladně hotově (2 vstupenky + doklad); GFZEMN6K propadla, místo zpět v prodeji"
+  },
+  {
+    "step": "7",
+    "ok": true,
+    "note": "Firma XY: faktura (PDF+ISDOC) → zaplaceno → 15 vstupenek (1 společné + 15 PDF); 5 uvolněno; Tisk 4 volné na jména"
+  },
+  {
+    "step": "8",
+    "ok": true,
+    "note": "běžná vpuštěna, ZTP/P s výzvou „Ověřit průkaz: ZTP/P\", jiný termín odmítnut, druhý sken = již použitá (0 záznamů skenu)"
+  },
+  {
+    "step": "9",
+    "ok": true,
+    "note": "Racek Ostrava zrušen: online platba vrácena přes bránu (simulátor), vstupenka neplatná, e-mail kupci; dobropis vzniká k existujícímu dokladu"
+  },
+  {
+    "step": "10",
+    "ok": true,
+    "note": "report: online 3, rezervace 2, firemní 15, volné 4; obsazenost a tržba = DB (6030 Kč); seznam uvaděčů 24 řádků = DB"
+  }
+]

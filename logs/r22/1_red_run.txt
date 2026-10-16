@@ -1,0 +1,232 @@
+
+Running 2 tests using 1 worker
+
+[r22] (a) otpauth otpa… (délka 133), secretBase32 PA3P… (délka 32)
+[r22] (a2) img alt="QR kód 2FA": class="h-44 w-44", complete=true, natural 0×0, box {"x":672,"y":370,"width":176,"height":176}
+[r22] snímek red_a2_2fa.png (ruční kód a QR zamaskovány #ff00ff)
+[r22] (a1) zahozeno: api.qrserver.com/v1/create-qr-code/ — nese: otpauth, secretBase32
+[r22] (a1) zahozených požadavků mimo localhost: 1; podle hostitele: {"api.qrserver.com":1}; s tajemstvím: 1; na api.qrserver.com: 1
+[r22] (a2) src není data:image/png;base64 (začátek: https://api.qrserver.com/v1/create-qr-co…)
+[r22] (a3) POST /api/admin/2fa/verify → 200
+[r22] (a) úklid: POST /api/admin/2fa/disable → 200
+  x  1 [golden-path] › tests\golden-path-r22-qr-local.spec.ts:117:5 › (a) 2FA: QR otpauth lokálně, nic nejde na api.qrserver.com, aktivace 2FA projde (24.6s)
+[r22] (b) místo Hlediště ř. 3 č. 1 podrženo
+[r22] (b) dárková objednávka založena, token dárku 2661…
+[r22] (b) qrPayload otpa… (délka 74), secret vstupenky 4SKN…
+[r22] (b2) img alt="Vstupenka QR": class="rounded-lg border shadow-sm", width=220 height=220, complete=true, natural 0×0, box {"x":530,"y":387,"width":220,"height":220}
+[r22] snímek red_b2_gift.png (ruční kód a QR zamaskovány #ff00ff)
+[r22] (b1) zahozeno: api.qrserver.com/v1/create-qr-code/ — nese: qrPayload, secret vstupenky
+[r22] (b1) zahozených požadavků mimo localhost: 1; podle hostitele: {"api.qrserver.com":1}; s tajemstvím: 1; na api.qrserver.com: 1
+[r22] (b2) src není data:image/png;base64 (začátek: https://api.qrserver.com/v1/create-qr-co…)
+  x  2 [golden-path] › tests\golden-path-r22-qr-local.spec.ts:185:5 › (b) dárek: QR vstupenky lokálně, nic nejde na api.qrserver.com (49.1s)
+
+
+  1) [golden-path] › tests\golden-path-r22-qr-local.spec.ts:117:5 › (a) 2FA: QR otpauth lokálně, nic nejde na api.qrserver.com, aktivace 2FA projde 
+
+    Error: (a1) požadavky mimo localhost s otpauth/secretBase32
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m1[39m
+
+      152 |   // (a1)
+      153 |   const a1 = summarize('(a1)', out, { otpauth: otpauth!, secretBase32: secretBase32! });
+    > 154 |   expect.soft(a1.withSecret, '(a1) požadavky mimo localhost s otpauth/secretBase32').toBe(0);
+          |                                                                                      ^
+      155 |   expect.soft(a1.qrserver, '(a1) požadavky na api.qrserver.com').toBe(0);
+      156 |
+      157 |   // (a2)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r22-qr-local.spec.ts:154:86
+
+    Error: (a1) požadavky na api.qrserver.com
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m1[39m
+
+      153 |   const a1 = summarize('(a1)', out, { otpauth: otpauth!, secretBase32: secretBase32! });
+      154 |   expect.soft(a1.withSecret, '(a1) požadavky mimo localhost s otpauth/secretBase32').toBe(0);
+    > 155 |   expect.soft(a1.qrserver, '(a1) požadavky na api.qrserver.com').toBe(0);
+          |                                                                  ^
+      156 |
+      157 |   // (a2)
+      158 |   expect.soft(st.cls, '(a2) třídy beze změny').toBe('h-44 w-44');
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r22-qr-local.spec.ts:155:66
+
+    Error: (a2) src = data:image/png;base64
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      157 |   // (a2)
+      158 |   expect.soft(st.cls, '(a2) třídy beze změny').toBe('h-44 w-44');
+    > 159 |   expect.soft(st.src.startsWith('data:image/png;base64,'), '(a2) src = data:image/png;base64').toBe(true);
+          |                                                                                                ^
+      160 |   const c = await compareQr('(a2)', st.src, otpauth!, 180);
+      161 |   expect.soft(c.pixelsEqual, '(a2) obrázek = QRCode.toDataURL(otpauth, { width: 180, margin: 4 })').toBe(true);
+      162 |   expect.soft([st.nw, st.nh], '(a2) vykreslený obrázek 180×180').toEqual([180, 180]);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r22-qr-local.spec.ts:159:96
+
+    Error: (a2) obrázek = QRCode.toDataURL(otpauth, { width: 180, margin: 4 })
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      159 |   expect.soft(st.src.startsWith('data:image/png;base64,'), '(a2) src = data:image/png;base64').toBe(true);
+      160 |   const c = await compareQr('(a2)', st.src, otpauth!, 180);
+    > 161 |   expect.soft(c.pixelsEqual, '(a2) obrázek = QRCode.toDataURL(otpauth, { width: 180, margin: 4 })').toBe(true);
+          |                                                                                                     ^
+      162 |   expect.soft([st.nw, st.nh], '(a2) vykreslený obrázek 180×180').toEqual([180, 180]);
+      163 |
+      164 |   // (a3) kód z secretBase32 → skutečné POST /api/admin/2fa/verify
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r22-qr-local.spec.ts:161:101
+
+    Error: (a2) vykreslený obrázek 180×180
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    [32m- Expected  - 2[39m
+    [31m+ Received  + 2[39m
+
+    [2m  Array [[22m
+    [32m-   180,[39m
+    [32m-   180,[39m
+    [31m+   0,[39m
+    [31m+   0,[39m
+    [2m  ][22m
+
+      160 |   const c = await compareQr('(a2)', st.src, otpauth!, 180);
+      161 |   expect.soft(c.pixelsEqual, '(a2) obrázek = QRCode.toDataURL(otpauth, { width: 180, margin: 4 })').toBe(true);
+    > 162 |   expect.soft([st.nw, st.nh], '(a2) vykreslený obrázek 180×180').toEqual([180, 180]);
+          |                                                                  ^
+      163 |
+      164 |   // (a3) kód z secretBase32 → skutečné POST /api/admin/2fa/verify
+      165 |   await page.locator('#totp-code').fill(generateSync({ secret: secretBase32! }));
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r22-qr-local.spec.ts:162:66
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r22-qr-local---d4af6-ver-com-aktivace-2FA-projde-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r22-qr-local---d4af6-ver-com-aktivace-2FA-projde-golden-path\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r22-qr-local---d4af6-ver-com-aktivace-2FA-projde-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r22-qr-local---d4af6-ver-com-aktivace-2FA-projde-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [golden-path] › tests\golden-path-r22-qr-local.spec.ts:185:5 › (b) dárek: QR vstupenky lokálně, nic nejde na api.qrserver.com 
+
+    Error: (b1) požadavky mimo localhost s qrPayload/tokenem dárku
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m1[39m
+
+      247 |   // (b1)
+      248 |   const b1 = summarize('(b1)', out, { qrPayload: qrPayload!, 'secret vstupenky': ticketSecret, 'token dárku': token });
+    > 249 |   expect.soft(b1.withSecret, '(b1) požadavky mimo localhost s qrPayload/tokenem dárku').toBe(0);
+          |                                                                                         ^
+      250 |   expect.soft(b1.qrserver, '(b1) požadavky na api.qrserver.com').toBe(0);
+      251 |
+      252 |   // (b2)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r22-qr-local.spec.ts:249:89
+
+    Error: (b1) požadavky na api.qrserver.com
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m1[39m
+
+      248 |   const b1 = summarize('(b1)', out, { qrPayload: qrPayload!, 'secret vstupenky': ticketSecret, 'token dárku': token });
+      249 |   expect.soft(b1.withSecret, '(b1) požadavky mimo localhost s qrPayload/tokenem dárku').toBe(0);
+    > 250 |   expect.soft(b1.qrserver, '(b1) požadavky na api.qrserver.com').toBe(0);
+          |                                                                  ^
+      251 |
+      252 |   // (b2)
+      253 |   expect.soft([st.wAttr, st.hAttr], '(b2) width/height 220').toEqual(['220', '220']);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r22-qr-local.spec.ts:250:66
+
+    Error: (b2) src = data:image/png;base64
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      253 |   expect.soft([st.wAttr, st.hAttr], '(b2) width/height 220').toEqual(['220', '220']);
+      254 |   expect.soft(st.cls, '(b2) třídy beze změny').toBe('rounded-lg border shadow-sm');
+    > 255 |   expect.soft(st.src.startsWith('data:image/png;base64,'), '(b2) src = data:image/png;base64').toBe(true);
+          |                                                                                                ^
+      256 |   const c = await compareQr('(b2)', st.src, qrPayload!, 220);
+      257 |   expect.soft(c.pixelsEqual, '(b2) obrázek = QRCode.toDataURL(qrPayload, { width: 220, margin: 4 })').toBe(true);
+      258 |   expect.soft([st.nw, st.nh], '(b2) vykreslený obrázek 220×220').toEqual([220, 220]);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r22-qr-local.spec.ts:255:96
+
+    Error: (b2) obrázek = QRCode.toDataURL(qrPayload, { width: 220, margin: 4 })
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      255 |   expect.soft(st.src.startsWith('data:image/png;base64,'), '(b2) src = data:image/png;base64').toBe(true);
+      256 |   const c = await compareQr('(b2)', st.src, qrPayload!, 220);
+    > 257 |   expect.soft(c.pixelsEqual, '(b2) obrázek = QRCode.toDataURL(qrPayload, { width: 220, margin: 4 })').toBe(true);
+          |                                                                                                       ^
+      258 |   expect.soft([st.nw, st.nh], '(b2) vykreslený obrázek 220×220').toEqual([220, 220]);
+      259 |   await ctx.close();
+      260 | });
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r22-qr-local.spec.ts:257:103
+
+    Error: (b2) vykreslený obrázek 220×220
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    [32m- Expected  - 2[39m
+    [31m+ Received  + 2[39m
+
+    [2m  Array [[22m
+    [32m-   220,[39m
+    [32m-   220,[39m
+    [31m+   0,[39m
+    [31m+   0,[39m
+    [2m  ][22m
+
+      256 |   const c = await compareQr('(b2)', st.src, qrPayload!, 220);
+      257 |   expect.soft(c.pixelsEqual, '(b2) obrázek = QRCode.toDataURL(qrPayload, { width: 220, margin: 4 })').toBe(true);
+    > 258 |   expect.soft([st.nw, st.nh], '(b2) vykreslený obrázek 220×220').toEqual([220, 220]);
+          |                                                                  ^
+      259 |   await ctx.close();
+      260 | });
+      261 |
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r22-qr-local.spec.ts:258:66
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r22-qr-local---f3d13-c-nejde-na-api-qrserver-com-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r22-qr-local---f3d13-c-nejde-na-api-qrserver-com-golden-path\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r22-qr-local---f3d13-c-nejde-na-api-qrserver-com-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r22-qr-local---f3d13-c-nejde-na-api-qrserver-com-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [golden-path] › tests\golden-path-r22-qr-local.spec.ts:117:5 › (a) 2FA: QR otpauth lokálně, nic nejde na api.qrserver.com, aktivace 2FA projde 
+    [golden-path] › tests\golden-path-r22-qr-local.spec.ts:185:5 › (b) dárek: QR vstupenky lokálně, nic nejde na api.qrserver.com 

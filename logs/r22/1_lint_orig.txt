@@ -1,0 +1,11 @@
+## původní soubory (HEAD) přes --stdin
+### src/app/[locale]/gift/[token]/page.tsx
+   7:1  error    `@/components/ui/badge` import should occur before import of `@/components/ui/button`                                                                                                                                                                                                    import/order
+  43:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+✖ 2 problems (1 error, 1 warning)
+### src/app/admin/settings/TwoFactorSettings.tsx
+   69:15  warning  Unsafe assignment of an `any` value                                                                                                                                                                                                                                                      @typescript-eslint/no-unsafe-assignment
+   70:18  warning  Unsafe argument of type `any` assigned to a parameter of type `SetStateAction<string | null>`                                                                                                                                                                                            @typescript-eslint/no-unsafe-argument
+   70:20  warning  Unsafe member access .message on an `any` value                                                                                                                                                                                                                                          @typescript-eslint/no-unsafe-member-access
+  220:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+✖ 4 problems (0 errors, 4 warnings)

@@ -1,0 +1,14 @@
+
+Running 1 test using 1 worker
+
+[r21] (a) token 44a5… (64 znaků); POST /api/auth/reset-password → 200; Referer http://localhost:3200/cs/reset-password?token=44a5…
+[r21] (b) token afd2… (36 znaků); GET seat-prices → 200; Referer http://localhost:3200/cs/events/00000000-0000-4000-a000-000000000503/seats/kategorie?token=afd2…&seats=d06becf8-ecbe-40aa-95c4-6f7c26b58d34
+[r21] (c) token r21c…; POST /api/ops/sentry-check?token=… → 500
+[r21] obálek: 149; spanů: 477; událostí (event): 1
+[r21] spany s cestou /cs/reset-password: 30; se /seats/kategorie: 38; událost (c): ano
+[r21] (a) token 44a5…: surových obálek s tokenem 0; výskyty podle pole {}
+[r21] (b) token afd2…: surových obálek s tokenem 0; výskyty podle pole {}
+[r21] (c) token r21c…: surových obálek s tokenem 0; výskyty podle pole {}
+  ok 1 [golden-path] › tests\golden-path-r21-sentry-url-tokens.spec.ts:92:5 › Sentry: tokeny z URL (referer, dotaz) neodejdou — (a) obnova hesla, (b) výběr míst, (c) serverová chyba (14.6s)
+
+  1 passed (20.3s)

@@ -1,0 +1,21 @@
+# Kolo 22 — 0.3 rerun 4 workflow na 6799fb5b (gh run rerun <id> --failed, 2026-10-15)
+Původní běhy (attempt 1, 13:54 UTC) failure s anotací o platbách účtu; po přepnutí repa na PUBLIC rerun.
+
+## CI run 38746784038 attempt 2 head 6799fb5b: completed/success
+- job 116609951217 Install · typecheck · lint · unit: success, kroků 10, 2026-10-15T18:54:18Z → 2026-10-15T18:56:58Z (2 min 40 s)
+- job 116609951544 Live sada (Postgres z migrací, tixly_app): success, kroků 14, 2026-10-15T18:54:18Z → 2026-10-15T18:57:26Z (3 min 8 s)
+- job 116609951888 Build bez sítě (pojistka prerenderu): success, kroků 9, 2026-10-15T18:54:18Z → 2026-10-15T18:57:12Z (2 min 54 s)
+
+## Security run 38746784127 attempt 2 head 6799fb5b: completed/success
+- job 116609965022 Dependency audit (e2e): success, kroků 8, 2026-10-15T18:54:20Z → 2026-10-15T18:54:36Z (0 min 16 s)
+- job 116609965512 Secret scan (Gitleaks): success, kroků 5, 2026-10-15T18:54:19Z → 2026-10-15T18:54:31Z (0 min 12 s)
+- job 116609965518 Dependency audit (mobile-promoter): success, kroků 8, 2026-10-15T18:54:19Z → 2026-10-15T18:55:11Z (0 min 52 s)
+- job 116609965544 Dependency audit (mobile): success, kroků 8, 2026-10-15T18:54:20Z → 2026-10-15T18:55:06Z (0 min 46 s)
+- job 116609965590 Dependency audit (nextjs-boilerplate): success, kroků 8, 2026-10-15T18:54:20Z → 2026-10-15T18:55:51Z (1 min 31 s)
+
+## RLS Gate run 38746784318 attempt 2 head 6799fb5b: completed/success
+- job 116609970434 RLS verify (DB z migrací vs snapshot): success, kroků 11, 2026-10-15T18:54:20Z → 2026-10-15T18:55:25Z (1 min 5 s)
+- job 116609973451 RLS verify (produkce vs snapshot): skipped, kroků 0, 2026-10-15T18:54:18Z → 2026-10-15T13:54:58Z (přeskočeno, čas z attempt 1)
+
+## Schema Drift Guard run 38746784037 attempt 2 head 6799fb5b: completed/success
+- job 116609982986 Schema drift (SQL vs schéma z migrací): success, kroků 11, 2026-10-15T18:54:21Z → 2026-10-15T18:55:29Z (1 min 8 s)

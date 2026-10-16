@@ -1,0 +1,39 @@
+# Kolo 22 — 1.4 GREEN: golden-path-r22-qr-local po opravě (spec beze změny od RED 23b932fd: git diff prázdný)
+Build 1_green_build.txt (net log buildu: 0 spojení mimo localhost). Plný výstup: 1_green_run.txt. Diff opravy: 1_fix_diff.txt.
+
+[r22] (a) otpauth otpa… (délka 133), secretBase32 MCZL… (délka 32)
+[r22] (a2) img alt="QR kód 2FA": class="h-44 w-44", complete=true, natural 180×180, box {"x":672,"y":370,"width":176,"height":176}
+[r22] snímek green_a2_2fa.png (ruční kód a QR zamaskovány #ff00ff)
+[r22] (a1) zahozených požadavků mimo localhost: 0; podle hostitele: {}; s tajemstvím: 0; na api.qrserver.com: 0
+[r22] (a2) src data:image/png 180×180; očekáváno toDataURL(text, { width: 180, margin: 4 }) 180×180; pixely RGBA shodné: true; řetězec shodný: false
+[r22] (a3) POST /api/admin/2fa/verify → 200
+[r22] (a) úklid: POST /api/admin/2fa/disable → 200
+[r22] (b) místo Hlediště ř. 4 č. 9 podrženo
+[r22] (b) dárková objednávka založena, token dárku 278f…
+[r22] (b) qrPayload otpa… (délka 74), secret vstupenky 6X5K…
+[r22] (b2) img alt="Vstupenka QR": class="rounded-lg border shadow-sm", width=220 height=220, complete=true, natural 220×220, box {"x":530,"y":387,"width":220,"height":220}
+[r22] snímek green_b2_gift.png (ruční kód a QR zamaskovány #ff00ff)
+[r22] (b1) zahozených požadavků mimo localhost: 0; podle hostitele: {}; s tajemstvím: 0; na api.qrserver.com: 0
+[r22] (b2) src data:image/png 220×220; očekáváno toDataURL(text, { width: 220, margin: 4 }) 220×220; pixely RGBA shodné: true; řetězec shodný: false
+  2 passed (41.6s)
+
+## Souhrn GREEN
+| bod | výsledek |
+|---|---|
+| (a1) | PASS — 0 požadavků mimo localhost (0 s tajemstvím, 0 na api.qrserver.com) |
+| (a2) | PASS — src data:image/png 180×180, pixely = QRCode.toDataURL(otpauth, { width: 180, margin: 4 }); třídy h-44 w-44 |
+| (a3) | PASS — verify 200, záložní kódy zobrazeny |
+| (b1) | PASS — 0 požadavků mimo localhost (0 s qrPayload/tokenem, 0 na api.qrserver.com) |
+| (b2) | PASS — src data:image/png 220×220 (width/height 220), pixely = QRCode.toDataURL(qrPayload, { width: 220, margin: 4 }) |
+
+Shoda řetězce data URL: false (prohlížeč kóduje PNG canvasem, Node pngjs) — shoda obrázku ověřena dekódovanými pixely RGBA.
+
+## grep api.qrserver.com v nextjs-boilerplate/src po opravě
+nextjs-boilerplate/src/app/admin/events/[id]/kiosk-display/page.tsx:21:  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(kioskUrl)}`;
+
+## Porovnání snímků RED × GREEN (shots/, QR a ruční kód zamaskovány; logs/r22/shotdiff.cjs)
+- a2_2fa: 1280×900; odlišných pixelů: 5 v oblasti x 289–290, y 593–596
+- b2_gift: 1280×900; odlišných pixelů: 0
+  (2FA: 5 px na levém okraji pole pro kód, mimo oblast QR x 672–848 / y 370–546; dárek beze změny)
+- umístění/velikost QR (boundingBox): 2FA RED {x 672, y 370, 176×176} = GREEN {x 672, y 370, 176×176};
+  dárek RED {x 530, y 387, 220×220} = GREEN {x 530, y 387, 220×220}. RED: obrázek se nenačetl (natural 0×0), GREEN: 180×180 / 220×220.

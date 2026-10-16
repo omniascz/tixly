@@ -1,0 +1,14 @@
+# Kolo 22 — 0.7 ověření Kola 21 na HEAD integrate 6799fb5b
+
+## unit (vitest, maxWorkers=2)
+ ✓ tests/r19-sentry-scrub.test.ts  (7 tests) 15ms
+ ✓ tests/r21-sentry-url-tokens.test.ts  (16 tests) 20ms
+ ✓ tests/r14-sentry-scrub.test.ts  (5 tests) 9ms
+ Test Files  3 passed (3)
+      Tests  28 passed (28)
+
+## e2e (0_verify_r21_e2e.txt) golden-path-r21-sentry-url-tokens (next start :3200, r22demo z migrací, tixly_app)
+  1 passed (20.3s)
+
+net log buildu (spojení mimo localhost):
+(prázdné = žádné)

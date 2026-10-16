@@ -1,0 +1,71 @@
+
+Running 10 tests using 1 worker
+
+  ok  1 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:227:5 › 1 — inscenace a dva sály ve dvou městech v editoru (generátor / obkreslení podkladu) (21.0s)
+  ok  2 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:351:5 › 2 — dva termíny inscenace + třetí termín jiné inscenace (6.0s)
+  x   3 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:403:5 › 3 — blokace Firma XY (20), Tisk (4), Technika (2) (2.1m)
+  -   4 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:432:5 › 4 — kategorie plné, senior, student, ZTP/P + doprovod; promo −10 % jen na plné
+  -   5 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:474:5 › 5 — online nákup s výběrem místa a kategorie přes simulátor GoPay (390 px), e-mail, PDF
+  -   6 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:530:5 › 6 — rezervace → vyzvednutí a platba na pokladně; druhá rezervace → propadnutí → místa zpět
+  -   7 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:582:5 › 7 — Firma XY 15 míst na fakturu → zaplaceno → vstupenky; 5 míst uvolnit; Tisk 4× volná na jméno
+  -   8 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:634:5 › 8 — vstupní kontrola: běžná, ZTP/P (ověřit průkaz), jiný termín (odmítnuto), již použitá
+  -   9 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:663:5 › 9 — zrušení termínu → refundy, dobropisy, e-maily
+  -  10 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:685:5 › 10 — reporty a seznam pro uvaděče sedí s daty
+
+
+  1) [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:403:5 › 3 — blokace Firma XY (20), Tisk (4), Technika (2) 
+
+    [31mTest timeout of 120000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 120000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('block-create')[22m
+    [2m    - locator resolved to <button disabled data-testid="block-create" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:opacity-90 h-10 px-4 py-2">Zablokovat</button>[22m
+    [2m  - attempting click action[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not enabled[22m
+    [2m    - retrying click action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not enabled[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 100ms[22m
+    [2m    236 × waiting for element to be visible, enabled and stable[22m
+    [2m        - element is not enabled[22m
+    [2m      - retrying click action[22m
+    [2m        - waiting 500ms[22m
+
+
+      420 |   await page.getByTestId('block-name').fill('Technika');
+      421 |   await pickSeats('8', ['7', '8']);
+    > 422 |   await page.getByTestId('block-create').click();
+          |                                          ^
+      423 |   await expect(page.getByTestId('blocks-msg')).toContainText('2 míst');
+      424 |   await shot(page, '03-blokace');
+      425 |   const blocks = await q<{ name: string; n: number; id: string }>(
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r8-theatre-tour.spec.ts:422:42
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-fbfb4-ma-XY-20-Tisk-4-Technika-2--golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-fbfb4-ma-XY-20-Tisk-4-Technika-2--golden-path\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r8-theatre-tou-fbfb4-ma-XY-20-Tisk-4-Technika-2--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r8-theatre-tou-fbfb4-ma-XY-20-Tisk-4-Technika-2--golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-fbfb4-ma-XY-20-Tisk-4-Technika-2--golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r8-theatre-tou-fbfb4-ma-XY-20-Tisk-4-Technika-2--golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:403:5 › 3 — blokace Firma XY (20), Tisk (4), Technika (2) 
+  7 did not run
+  2 passed (2.8m)
