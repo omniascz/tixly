@@ -122,3 +122,9 @@ b7af46220fc92885039ee66eb7924e04c5fb8890:logs/r21/2_unit_red.txt:generic-api-key
 63efb0e6302719591db717553edf36b43b1160c0:logs/r22/live/n03.txt:generic-api-key:38
 63efb0e6302719591db717553edf36b43b1160c0:logs/r22/live/n03.txt:generic-api-key:106
 63efb0e6302719591db717553edf36b43b1160c0:logs/r22/live/n03.txt:generic-api-key:112
+# Kolo 23 (2026-10-16): triáž logs/r23/9_gitleaks_triage.md — testovací data (live, audit 03).
+0888caa3b85b34593890e179144b52f18d8cc4c9:audit/logs/r23_e2e_03_refund_scan.jsonl:generic-api-key:4
+0888caa3b85b34593890e179144b52f18d8cc4c9:logs/r23/live/g01.txt:generic-api-key:165
+0888caa3b85b34593890e179144b52f18d8cc4c9:logs/r23/live/n03.txt:generic-api-key:38
+0888caa3b85b34593890e179144b52f18d8cc4c9:logs/r23/live/n03.txt:generic-api-key:100
+0888caa3b85b34593890e179144b52f18d8cc4c9:logs/r23/live/n03.txt:generic-api-key:106

@@ -39,4 +39,5 @@ Pomocné skripty `logs/r23/*.sh` = kopie kola 22 (cesty logs/r23, DB r23demo / r
   blok C r23 (D) 1. 1. pokus (všech 5 v jednom bloku) 26 passed + 2 failed: r22 (b) 404 po zrušení termínu 504 specem r13-keep,
   r16 pojistka hydratace.
 - Offline skener 6/6 (`9_offline.txt`). golden-path-buyer / benefit nespuštěny (zadání).
-- Gitleaks lokálně ⏳
+- Gitleaks lokálně: 5 fingerprintů testovacích dat v 0888caa3 (`9_gitleaks_triage.md`) → .gitleaksignore; po doplnění „no leaks found".
+- PR → integrate ⏳
