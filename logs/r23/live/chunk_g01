@@ -1,0 +1,16 @@
+tests/fix-r4-b2b-credit-auth.live.test.ts
+tests/fix-r4-identity-all-api.live.test.ts
+tests/fix-r4-routes-anon.live.test.ts
+tests/fix-r6-bulk-refund-gateway.live.test.ts
+tests/fix-r7-comgate-api.live.test.ts
+tests/fix-r7-gateway-policy.live.test.ts
+tests/fix-r7-sales-cutoff.live.test.ts
+tests/fix-r7-tax-documents.live.test.ts
+tests/fix-r7-vat-readiness.live.test.ts
+tests/fix-r8-halls-seating.live.test.ts
+tests/fix-r8-price-categories.live.test.ts
+tests/fix-r8-seat-reservations.live.test.ts
+tests/fix-r8-term-cancel-postpone.live.test.ts
+tests/fix-r8-theatre-reports.live.test.ts
+tests/fix-r8-zero-commission.live.test.ts
+tests/party-split.live.test.ts
