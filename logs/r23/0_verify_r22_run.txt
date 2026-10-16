@@ -1,0 +1,19 @@
+
+Running 2 tests using 1 worker
+
+[r22] (a) otpauth otpa… (délka 133), secretBase32 CULZ… (délka 32)
+[r22] (a2) img alt="QR kód 2FA": class="h-44 w-44", complete=true, natural 180×180, box {"x":672,"y":370,"width":176,"height":176}
+[r22] (a1) zahozených požadavků mimo localhost: 0; podle hostitele: {}; s tajemstvím: 0; na api.qrserver.com: 0
+[r22] (a2) src data:image/png 180×180; očekáváno toDataURL(text, { width: 180, margin: 4 }) 180×180; pixely RGBA shodné: true; řetězec shodný: false
+[r22] (a3) POST /api/admin/2fa/verify → 200
+[r22] (a) úklid: POST /api/admin/2fa/disable → 200
+  ok 1 [golden-path] › tests\golden-path-r22-qr-local.spec.ts:117:5 › (a) 2FA: QR otpauth lokálně, nic nejde na api.qrserver.com, aktivace 2FA projde (10.0s)
+[r22] (b) místo Hlediště ř. 3 č. 1 podrženo
+[r22] (b) dárková objednávka založena, token dárku 297c…
+[r22] (b) qrPayload otpa… (délka 74), secret vstupenky 3OSN…
+[r22] (b2) img alt="Vstupenka QR": class="rounded-lg border shadow-sm", width=220 height=220, complete=true, natural 220×220, box {"x":530,"y":387,"width":220,"height":220}
+[r22] (b1) zahozených požadavků mimo localhost: 0; podle hostitele: {}; s tajemstvím: 0; na api.qrserver.com: 0
+[r22] (b2) src data:image/png 220×220; očekáváno toDataURL(text, { width: 220, margin: 4 }) 220×220; pixely RGBA shodné: true; řetězec shodný: false
+  ok 2 [golden-path] › tests\golden-path-r22-qr-local.spec.ts:185:5 › (b) dárek: QR vstupenky lokálně, nic nejde na api.qrserver.com (10.7s)
+
+  2 passed (31.3s)

@@ -82,6 +82,8 @@ function CheckoutForm() {
   >('gopay');
   // Kolo 7: krypto (Triple-A) neumí refund přes API → nabízí se jen u akcí z doby před mig. 499.
   const [legacyGateways, setLegacyGateways] = useState(false);
+  // Kolo 23: Wero má jen mock bránu → nabízí se jen tam, kde je mock povolený (weroAvailable z ticket-types).
+  const [weroAvailable, setWeroAvailable] = useState(false);
   const [b2bAccountCode, setB2bAccountCode] = useState('');
   const [b2bVerify, setB2bVerify] = useState<{ companyName: string; balanceHalire: number } | null>(null);
   const [b2bVerifyError, setB2bVerifyError] = useState<string | null>(null);
@@ -309,6 +311,7 @@ function CheckoutForm() {
           metaPixelId?: string | null;
           currency?: string;
           legacyPaymentGateways?: boolean;
+          weroAvailable?: boolean;
         } | null) => {
           const tt = d?.ticketTypes?.find((t) => t.id === ticketTypeId);
           if (tt) {
@@ -319,6 +322,7 @@ function CheckoutForm() {
           if (d?.metaPixelId) setMetaPixelId(d.metaPixelId);
           if (d?.currency) setCurrency(d.currency);
           setLegacyGateways(d?.legacyPaymentGateways === true);
+          setWeroAvailable(d?.weroAvailable === true);
         },
       )
       .catch(() => {});
@@ -1151,6 +1155,7 @@ function CheckoutForm() {
                   />
                   <span className="text-sm font-medium">🏦 Převodem</span>
                 </label>
+                {weroAvailable ? (
                 <label
                   className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'wero' ? 'border-[#6D28D9] bg-violet-50' : ''}`}
                 >
@@ -1166,10 +1171,11 @@ function CheckoutForm() {
                     Wero <span className="text-xs text-muted-foreground">— A2A Instant</span>
                   </span>
                 </label>
+                ) : null}
               </div>
 
-              {/* Wero phone hint — zobrazí se jen při výběru Wero */}
-              {paymentMethod === 'wero' && (
+              {/* Wero phone hint — zobrazí se jen při výběru Wero (a jen když je Wero dostupné) */}
+              {weroAvailable && paymentMethod === 'wero' && (
                 <div className="mt-2 rounded-lg border border-violet-200 bg-violet-50 p-3 text-xs text-violet-800">
                   <p className="font-semibold">⚡ Wero — okamžitá platba z účtu</p>
                   <p className="mt-1 text-violet-600">

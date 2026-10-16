@@ -1,0 +1,301 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[22m[39m
+[live-local-clone] live_booking_mvaopxur: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mmigrace 472–478 jsou na klonu[22m[39m
+[schema] {"a":"catalog.event_costs","b":"lineups.artist_settlements","c":"catalog.venue_date_holds","d":"lineups.artist_offers","cols":5}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mA: smlouva → accrue → vyplatni davka (cesta penez umelci)[22m[39m
+[A] create agreement [33m201[39m {"id":"d35fdfc2-ec96-420c-aa13-a40ce6dd48ed","event_id":"d8316956-4af1-4c75-b140-0bc3a7ef6a0a","promoter_id":"e73dd629-d79e-444f-9908-fa9880a545d9","artist_id":null,"artist_name":"Live Kapela","artist
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mA: smlouva → accrue → vyplatni davka (cesta penez umelci)[22m[39m
+[A] accrue [33m200[39m {"accrued":1,"results":[{"agreementId":"d35fdfc2-ec96-420c-aa13-a40ce6dd48ed","royaltyHalire":2000}]}
+[A] ledger [{"royalty_amount_halire":2000,"ticket_revenue_halire":10000}]
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mA: smlouva → accrue → vyplatni davka (cesta penez umelci)[22m[39m
+[A] payouts calculate [33m200[39m {"created":1,"payouts":[{"id":"60373458-326d-47fd-b000-e4c198a7a781","artist_name":"Live Kapela","net_payout_halire":2000,"currency":"CZK"}]}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mA: smlouva → accrue → vyplatni davka (cesta penez umelci)[22m[39m
+[A] artist_payouts [{"id":"60373458-326d-47fd-b000-e4c198a7a781","agreement_id":"d35fdfc2-ec96-420c-aa13-a40ce6dd48ed","promoter_id":"e73dd629-d79e-444f-9908-fa9880a545d9","artist_name":"Live Kapela","artist_email":"kapela@example.cz","bank_iban":null,"bank_bic":null,"period_from":"2026-10-15T08:07:26.414Z","period_to":"2026-10-17T08:07:26.414Z","gross_royalties_halire":2000,"adjustments_halire":0,"net_payout_halire":2000,"currency":"CZK","status":"pending","paid_at":null,"payout_method":null,"external_ref":null,"notes":null,"created_by_user_id":"ee303a47-0890-4ae5-82b4-c1f08cbfa71c","created_at":"2026-10-16T08:07:26.424Z","updated_at":"2026-10-16T08:07:26.424Z"}]
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mA: smlouva → accrue → vyplatni davka (cesta penez umelci)[22m[39m
+[A] preview [33m200[39m {"currency":"CZK","capacity":100,"averagePriceMinor":10000,"ticketVatRatePct":12,"rows":[{"occupancyPct":30,"ticketsSold":30,"payableMinor":59500,"feeMinor":60000},{"occupancyPct":50,"ticketsSold":50,"payableMinor":99500,"feeMinor":100000},{"occupancyPct":70,"ticketsSold":70,"payableMinor":139500,"f
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mB: rozpocet + bod zlomu[22m[39m
+[B] add costs [33m201[39m [33m201[39m {"ok":true,"id":"4df85726-0be2-4d80-bca8-a71f6fbf11c7"}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mB: rozpocet + bod zlomu[22m[39m
+[B] list [33m200[39m {"costs":[{"id":"4df85726-0be2-4d80-bca8-a71f6fbf11c7","category":"venue","description":"Pronajem","amountMinor":1000000,"vatRatePct":21,"isPerAttendee":false,"supplier":null,"dueDate":null,"paid":false,"fromAgreement":false,"notes":null},{"id":"2fa35438-92e1-4e74-a562-e875069eeb29","category":"prod
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mB: rozpocet + bod zlomu[22m[39m
+[B] break-even [33m200[39m {"currency":"CZK","ticketVatRatePct":12,"platformFeeBps":500,"vatPayer":true,"breakEven":{"costs":{"fixedMinor":1000000,"perAttendeeMinor":1000,"fixedVatMinor":210000},"contributionPerTicketMinor":7429,"ticketsNeeded":185,"ticketsRemaining":184,"ticketsSold":1,"ticketsAvailable":100,"coveragePct":1,"reachable":false,"currentResultMinor":-994571,"soldOutResultMinor":-457100,"summary":"K pokrytí nák
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD: vyuctovani — vytvorit, uzavrit, snimek se nemeni[22m[39m
+[D] create [33m201[39m {"ok":true,"id":"2842a5ad-2f15-482f-a91e-59970cdd9445","status":"draft","payableMinor":1500,"lines":[{"key":"percent","label":"20 % z tržby","amountMinor":2000},{"key":"deposit","label":"Odečtena záloha","amountMinor":-500}]}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD: vyuctovani — vytvorit, uzavrit, snimek se nemeni[22m[39m
+[D] close [33m200[39m {"ok":true,"status":"closed","documentHash":"50d24ec096f75ddf702b7f7bea9101943f16b703437316a8d0e30dcd30c38e3a","payoutId":"1424e313-1c93-473f-99a7-44e0322c482b","message":"Vyúčtování uzavřeno a výplata založena."}
+[D] db {"status":"closed","payable_minor":1500,"tickets_sold":1}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD: vyuctovani — vytvorit, uzavrit, snimek se nemeni[22m[39m
+[D] close podruhe [33m409[39m
+[D] vyplaty smlouvy po uzavreni [{"status":"cancelled","net_payout_halire":2000},{"status":"pending","net_payout_halire":1500}]
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD: vyuctovani — vytvorit, uzavrit, snimek se nemeni[22m[39m
+[D] calculate po uzavreni [33m200[39m {"created":0,"payouts":[]}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD: vyuctovani — vytvorit, uzavrit, snimek se nemeni[22m[39m
+[D] get [33m200[39m {"settlement":{"id":"2842a5ad-2f15-482f-a91e-59970cdd9445","status":"closed","artistName":"Live Kapela","artistEmail":"kapela@example.cz","currency":"CZK","capacity":100,"ticketsSold":1,"grossRevenueM
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD2: schvalena prubezna vyplata se odecte; zmena mezi konceptem a uzavrenim -> 409[22m[39m
+[D2] calculate [33m200[39m {"created":1,"payouts":[{"id":"ecc559ec-e331-4c45-9174-260a31917fd0","artist_name":"Predkapela","net_payout_halire":1000,"currency":"CZK"}]}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD2: schvalena prubezna vyplata se odecte; zmena mezi konceptem a uzavrenim -> 409[22m[39m
+[D2] koncept (vyplata jeste pending) [33m201[39m {"ok":true,"id":"3b1d5c9c-e5ca-4ce6-93e5-1791404882dc","status":"draft","payableMinor":1000,"lines":[{"key":"percent","label":"10 % z tržby","amountMinor":1000}]}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD2: schvalena prubezna vyplata se odecte; zmena mezi konceptem a uzavrenim -> 409[22m[39m
+[D2] uzavreni zastaraleho konceptu [33m409[39m {"error":"STALE_DRAFT","message":"Od sestavení vyúčtování se změnily výplaty umělci. Sestav vyúčtování znovu, ať sedí „j
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD2: schvalena prubezna vyplata se odecte; zmena mezi konceptem a uzavrenim -> 409[22m[39m
+[D2] novy koncept [33m201[39m {"ok":true,"id":"3b1d5c9c-e5ca-4ce6-93e5-1791404882dc","status":"draft","payableMinor":0,"lines":[{"key":"percent","label":"10 % z tržby","amountMinor":1000},{"key":"already_paid","label":"Již vyplaceno z průběžného podílu","amountMinor":-1000}]}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD2: schvalena prubezna vyplata se odecte; zmena mezi konceptem a uzavrenim -> 409[22m[39m
+[D2] uzavreni [33m200[39m {"ok":true,"status":"closed","documentHash":"007305192dd94944fff023dc6a4cc243730eb5328451d0937db85b660bbde735","payoutId":null,"message":"Vyúčtování uzavřeno. V
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mD2: schvalena prubezna vyplata se odecte; zmena mezi konceptem a uzavrenim -> 409[22m[39m
+[D2] vyplaty [{"status":"approved","net_payout_halire":1000}]
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mE: opce na termin — poradi, potvrzeni zalozi akci[22m[39m
+[E] holds [33m201[39m [33m201[39m {"ok":true,"id":"f1abd89b-2dd4-4c52-950c-c06f69d92717","optionRank":1,"message":"Termín držíš jako první v pořadí."} {"ok":true,"id":"c371947e-1ac7-45b3-8298-b3c07ef14d52","optionRank":2,"message":"Termín držíš jako 2. v pořadí — potvrdit může až první."}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mE: opce na termin — poradi, potvrzeni zalozi akci[22m[39m
+[E] db [{"title":"Opce 1","option_rank":1,"status":"held"},{"title":"Opce 2","option_rank":2,"status":"held"}]
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mE: opce na termin — poradi, potvrzeni zalozi akci[22m[39m
+[E] list [33m200[39m {"holds":[{"id":"f1abd89b-2dd4-4c52-950c-c06f69d92717","venueId":"85c26527-0650-47c2-bc23-2420e5b3216e","venueName":"Test Sál","date":"2027-01-14","optionRank":1,"title":"Opce 1","artistName":"Kapela 
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mE: opce na termin — poradi, potvrzeni zalozi akci[22m[39m
+[E] confirm [33m200[39m {"ok":true,"eventId":"f8245aed-ca63-44f5-b24b-b555a33cc9bd","droppedOptions":1,"message":"Termín potvrzen a založen koncept akce. Zrušeno 1 dalších opcí na ten den."}
+[E] po potvrzeni {"status":"confirmed","event_id":"f8245aed-ca63-44f5-b24b-b555a33cc9bd","ev_status":"draft"}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mE: opce na termin — poradi, potvrzeni zalozi akci[22m[39m
+[E] cron expire [33m200[39m {"expiredCount":0,"promotedToPrimary":[],"ts":"2026-10-16T08:07:27.153Z"}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mE2: opce na sal BEZ poradatele (sdileny sal) — co se stane pod RLS[22m[39m
+[E2] sdileny sal -> [33m201[39m {"ok":true,"id":"7461f9c5-f607-43fe-b961-bd8cd8c23df8","optionRank":1,"message":"Termín držíš jako první v pořadí."}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mF: nabidka → odkaz → prijeti agentem → smlouva + nakladova polozka[22m[39m
+[F] create [33m201[39m {"ok":true,"id":"5c614c42-b54e-4a6b-af40-18ad2bc5b2c0","status":"draft"}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mF: nabidka → odkaz → prijeti agentem → smlouva + nakladova polozka[22m[39m
+[F] send [33m200[39m {"ok":true,"status":"sent","link":"http://localhost:3100/nabidka/7gWR2KeQrRWdrCbu-XhRfiT2m0GBIdiA3uoXeuFaTX8","expiresAt":"2026-10-23T08:07:27.345Z","recipient":"agent@example.cz","message":"Odkaz vyd
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mF: nabidka → odkaz → prijeti agentem → smlouva + nakladova polozka[22m[39m
+[F] agent view [33m200[39m {"offer":{"artistName":"Nabidnuta Kapela","agentName":null,"promoterName":"Test Promoter","eventTitle":"Test Akce","performanceDate":"2026-11-15","venueName":"Test Sál","setLengthMinutes":null,"curren
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mF: nabidka → odkaz → prijeti agentem → smlouva + nakladova polozka[22m[39m
+[F] accept [33m200[39m {"ok":true,"status":"accepted","documentHash":"6b2842ccd986962454999a54e4d38569548c4893733ce34eb3733d087bcb9199","message":"Nabídka přijata a podepsána. Pořadateli se podmínky propsaly do smlouvy."}
+[F] db {"status":"accepted","agreement_id":"446f7350-f666-43a5-a75a-d1531ce8fec8","cost_id":"06735493-7c04-42da-8713-9c98c2a3a130","percent_rate":"15.0000","min_guarantee_halire":2000000,"amount_minor":2000000,"category":"artist"}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mF: nabidka → odkaz → prijeti agentem → smlouva + nakladova polozka[22m[39m
+[F] vyuctovani z nabidky [33m201[39m fixed_costs_minor = [33m1000000[39m
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mF: nabidka → odkaz → prijeti agentem → smlouva + nakladova polozka[22m[39m
+[F] accept podruhe [33m409[39m
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mG: re-entry — automaticky smer, undo[22m[39m
+[G] 1. pruchod [33m200[39m {"result":"admitted","direction":"entry","label":"VSTUP","feedback":{"tone":"in","vibrate":[100]},"scanEventId":"26b18e30-6951-4e76-86b1-472910592e4c","scanCount":1,"remainingEntries":2,"occupancy":1,"ticket":{"ticketId":"79b6b81c-4ef9-4f70-adec-b483
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mG: re-entry — automaticky smer, undo[22m[39m
+[G] 2. pruchod [33m200[39m {"result":"released","direction":"exit","label":"ODCHOD","feedback":{"tone":"out","vibrate":[60,50,60]},"scanEventId":"3f03fe28-3a3a-4305-9806-4d8dff4a5a9a","scanCount":1,"remainingEntries":2,"occupancy":0,"ticket":{"ticketId":"79b6b81c-4ef9-4f70-ade
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mG: re-entry — automaticky smer, undo[22m[39m
+[G] po 2 pruchodech {"currently_inside":false,"scan_count":1}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mG: re-entry — automaticky smer, undo[22m[39m
+[G] undo [33m200[39m {"ok":true,"undoneDirection":"exit","currentlyInside":true,"scanCount":1,"occupancy":1,"message":"Odchod vzat zpět — držitel je veden jako uvnitř."}
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mG: re-entry — automaticky smer, undo[22m[39m
+[G] po undo {"currently_inside":true} undone scanu: [33m1[39m
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mG: re-entry — automaticky smer, undo[22m[39m
+[G] occupancy [33m200[39m {"eventTitle":"Test Akce","reentryAllowed":true,"inside":1,"admittedEver":1,"sold":1,"outsideWithReentry":0,"capacity":500,"occupancyPct":0,"gates":[{"gate":"bez brány","entries":1,"exits":0}],"lastSc
+
+[90mstdout[2m | tests/booking-settlement.live.test.ts[2m > [22m[2mbooking/settlement + re-entry — zivy beh (472–478)[2m > [22m[2mdashboard overview[22m[39m
+[stats] [33m200[39m {"currency":"CZK","hasOtherCurrencies":false,"feePercent":5,"showsMoney":true,"today":{"grossHalire":10000,"ordersCount":1,"tickets":1},"week":{"currentGrossHalire":10000,"previousGrossHalire":0,"changePercent":null},"totals":{"ordersCount":1,"customersCount":1,"grossHalire":10000,"refundsHalire":0,
+
+ [32m✓[39m tests/booking-settlement.live.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[33m 6863[2mms[22m[39m
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[22m[39m
+[live-local-clone] live_buyerpol_mvaoq420: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   1. auth.passkey_challenges.p_rls_passkey_challenges           sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   2. compliance.dsa_reports.dsa_reports_own                     sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   3. identity.user_secrets.p_user_secrets_scope                 sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   4. identity.oauth_accounts.p_oauth_accounts_owner_read        sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   5. orders.postal_deliveries.postal_deliveries_buyer           sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   6. marketing.loyalty_transactions.loyalty_tx_owner            sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   7. marketing.user_spotify_connections.p_spotify_conn_own      sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   8. orders.identity_verifications.identity_verif_own_select    sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+   9. catalog.scanner_devices.platform_admin_devices             buyer=0 admin=1  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  10. identity.eudi_verifications.p_eudi_verifications_scope     sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  11. identity.magic_link_tokens.magic_link_tokens_owner         sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  12. identity.oauth_accounts.oauth_accounts_own                 sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  13. lineups.artist_follows.artist_follows_own                  sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  14. marketing.ticket_alerts.ticket_alerts_select               sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  15. orders.party_split_slots.party_split_slots_write           sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  16. orders.ticket_transfers.p_ticket_transfers_service         sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  17. orders.ticket_transfers.ticket_transfers_sender            sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  18. orders.transit_passes.transit_passes_buyer_owns            sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  19. resale.resale_listings.resale_listings_buyer_view          sve=1 cizi=0  OK
+
+[90mstdout[2m | tests/buyer-policies.live.test.ts[2m > [22m[2m93 buyer-only policies — jeden reprezentant na vzor[2m > [22m[2mbuyer vidi sve, nevidi cizi[22m[39m
+  R-53 transit_passes: admin PRED mig471=0  PO=1   | buyer sve=1 cizi=0
+  DIAG {"a":false,"u":"ae704738-5aa4-4e2a-b701-06ea3bc922e5","g":null} cizich orders videt: [33m0[39m {"r":true,"f":false} {"cu":"tixly_app"}
+  POL transit_passes_buyer_owns (app_is_platform_admin() OR (order_id IN ( SELECT o.id
+   FROM orders.orders o
+  WHERE (o.user_id = app_current_user_id(
+
+  SOUHRN vzorcu: OK=19  UNIK=0  ROZBITE=0  NEVIM=0  z 19
+
+ [32m✓[39m tests/buyer-policies.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 2365[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-3b-tables-rls.live.test.ts [2m ([22m[2m15 tests[22m[2m)[22m[33m 1752[2mms[22m[39m
+[90mstdout[2m | tests/admin-guest.live.test.ts[2m > [22m[2madmin cesty — guest-create přes helper (live)[22m[39m
+[live-local-clone] live_admin_guest_mvaoq82a: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/admin-guest.live.test.ts[2m > [22m[2madmin cesty — guest-create přes helper (live)[2m > [22m[2mpress — schválení akreditace vydá vstupenku existujícímu guestovi[22m[39m
+Press ticket issued: Jan Novinář - Deník
+
+ [32m✓[39m tests/admin-guest.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 4809[2mms[22m[39m
+ [32m✓[39m tests/fix-k1-payment-bypass.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 660[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-v8-rls-write.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 412[2mms[22m[39m
+[90mstdout[2m | tests/auth-reset-password.live.test.ts[2m > [22m[2mauth/reset-password proti reálnému schématu (live)[22m[39m
+[live-local-clone] live_reset_pw_mvaoqdqd: handlery běží jako tixly_app (RLS platí)
+
+ [32m✓[39m tests/auth-reset-password.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 2694[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-k3a-cron-auth.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 807[2mms[22m[39m
+[90mstdout[2m | tests/fix-r2-r56-pool.live.test.ts[2m > [22m[2mKrok 4 — R-56: kontext jen v transakci, na pooleru bez DATABASE_URL_DIRECT[2m > [22m[2mquery: 200 souběžných requestů (100 uživatelů / 10 tenantů) → 0 vidí cizí data[22m[39m
+[R56] {"kind":"query","N_REQ":200,"bad":0,"errors":0,"samples":[]}
+
+[90mstdout[2m | tests/fix-r2-r56-pool.live.test.ts[2m > [22m[2mKrok 4 — R-56: kontext jen v transakci, na pooleru bez DATABASE_URL_DIRECT[2m > [22m[2mconnect-tx: 200 souběžných requestů (100 uživatelů / 10 tenantů) → 0 vidí cizí data[22m[39m
+[R56] {"kind":"connect-tx","N_REQ":200,"bad":0,"errors":0,"samples":[]}
+
+[90mstdout[2m | tests/fix-r2-r56-pool.live.test.ts[2m > [22m[2mKrok 4 — R-56: kontext jen v transakci, na pooleru bez DATABASE_URL_DIRECT[2m > [22m[2mconnect-autocommit: 200 souběžných requestů (100 uživatelů / 10 tenantů) → 0 vidí cizí data[22m[39m
+[R56] {"kind":"connect-autocommit","N_REQ":200,"bad":0,"errors":0,"samples":[]}
+
+ [32m✓[39m tests/fix-r2-r56-pool.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 4534[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-qr-default.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 2243[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-k4d-token-type.live.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[33m 390[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-admin-import.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 472[2mms[22m[39m
+[90mstdout[2m | tests/fan-bonus-r57.live.test.ts[2m > [22m[2mR-57 — spici SET LOCAL v buyer/fan-bonus[22m[39m
+[live-local-clone] live_fan_bonus_r57_mvaoqoxg: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/fan-bonus-r57.live.test.ts[2m > [22m[2mR-57 — spici SET LOCAL v buyer/fan-bonus[2m > [22m[2mRED->GREEN: odstraneny radek by UVNITR transakce udelal z kupujiciho admina[22m[39m
+[R-57] RED (s radkem, v transakci) = "true"
+[R-57] GREEN (bez radku)           = ""
+
+[90mstdout[2m | tests/fan-bonus-r57.live.test.ts[2m > [22m[2mR-57 — spici SET LOCAL v buyer/fan-bonus[2m > [22m[2mNEREGRESE: kupujici vidi svuj bonus a NEVIDI cizi[22m[39m
+[fan-bonus] vlastnik [33m200[39m {"totalAvailable":5000,"history":[{"orderId":"748decca-4e4d-438c-acb1-4a38adafbe20","eventId":"59b80415-d552-4090-b42a-911d5d691cd1","earnedHalire":5000,"bonusPct":2.5,"voucherCode":"R57-VLASTNI","bal
+
+[90mstdout[2m | tests/fan-bonus-r57.live.test.ts[2m > [22m[2mR-57 — spici SET LOCAL v buyer/fan-bonus[2m > [22m[2mNEREGRESE: kupujici vidi svuj bonus a NEVIDI cizi[22m[39m
+[fan-bonus] CIZI     [33m200[39m {"totalAvailable":7000,"history":[{"orderId":"79d6c75e-61d6-4844-b5f3-1af420720d97","eventId":"59b80415-d552-4090-b42a-911d5d691cd1","earnedHalire":7000,"bonusPct":2.5,"voucherCode":"R57-CIZI","balanc
+
+ [32m✓[39m tests/fan-bonus-r57.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 1118[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-v4-scan-logs.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 1025[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-s8-subscription-checkout.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 443[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-onboarding.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[90m 294[2mms[22m[39m
+[90mstdout[2m | tests/consent-purge.live.test.ts[2m > [22m[2mconsent-log-purge[22m[39m
+[live-local-clone] live_consent_purge_mvaoqtad: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/consent-purge.live.test.ts[2m > [22m[2mconsent-log-purge[2m > [22m[2msmaze stare zaznamy a vrati skutecny pocet[22m[39m
+[purge] [33m200[39m {"ok":true,"processed":3,"failed":0,"errors":[],"purged":3}
+
+[90mstdout[2m | tests/consent-purge.live.test.ts[2m > [22m[2mconsent-log-purge[2m > [22m[2mJINA chyba nez 42P01 se NEPOLYKA — vraci 500 a ok:false[22m[39m
+[purge 42703] [33m500[39m {"ok":false,"processed":0,"failed":1,"errors":["purge: 42703"],"purged":0,"error":"PURGE_FAILED","code":"42703"}
+
+[90mstderr[2m | tests/consent-purge.live.test.ts[2m > [22m[2mconsent-log-purge[2m > [22m[2mJINA chyba nez 42P01 se NEPOLYKA — vraci 500 a ok:false[22m[39m
+[consent-log-purge] SELHALO: error: column "decided_at" does not exist
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at RlsAwarePool.query [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:298:22[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\cron\consent-log-purge\route.ts:31:15
+    at call [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\consent-purge.live.test.ts:16:15[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\consent-purge.live.test.ts:55:17
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m {
+  length: [33m188[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42703'[39m,
+  detail: [90mundefined[39m,
+  hint: [32m'Perhaps you meant to reference the column "cookie_consent_log.decided_at_x".'[39m,
+  position: [32m'82'[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'parse_relation.c'[39m,
+  line: [32m'3723'[39m,
+  routine: [32m'errorMissingColumn'[39m
+}
+
+[90mstdout[2m | tests/consent-purge.live.test.ts[2m > [22m[2mconsent-log-purge[2m > [22m[2m42P01 se preskoci (tabulka fakt chybi)[22m[39m
+[purge 42P01] [33m200[39m {"ok":true,"processed":0,"failed":0,"errors":[],"purged":0,"skipped":"table_missing"}
+
+[90mstderr[2m | tests/consent-purge.live.test.ts[2m > [22m[2mconsent-log-purge[2m > [22m[2m42P01 se preskoci (tabulka fakt chybi)[22m[39m
+[consent-log-purge] tabulka neexistuje, preskakuji: 42P01
+
+ [32m✓[39m tests/consent-purge.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 727[2mms[22m[39m
+ [32m✓[39m tests/fix-r10-lastminute-cron.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 755[2mms[22m[39m
+ [32m✓[39m tests/fix-r14-pdf-font-cache.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 720[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-p1-cart-validate.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 2607[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m20 passed[39m[22m[90m (20)[39m
+[2m      Tests [22m [1m[32m83 passed[39m[22m[90m (83)[39m
+[2m   Start at [22m 10:07:24
+[2m   Duration [22m 47.68s[2m (transform 1.75s, setup 3ms, collect 3.38s, tests 35.69s, environment 7ms, prepare 4.10s)[22m
+

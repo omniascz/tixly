@@ -1,0 +1,17 @@
+# Krok 0.4 — ruční Security a RLS Gate na fix/round22-qr-local-2026-10-15 (head 03ddf755)
+Security: run 38864262906 (workflow_dispatch) / RLS Gate: run 38864266050 (workflow_dispatch)
+{"c":"success","id":38864262906,"jobs":[{"c":"success","e":"2026-10-16T06:58:33Z","n":"Secret scan (Gitleaks)","s":"2026-10-16T06:58:16Z","steps":5},{"c":"success","e":"2026-10-16T06:58:57Z","n":"Dependency audit (mobile-promoter)","s":"2026-10-16T06:58:16Z","steps":8},{"c":"success","e":"2026-10-16T06:58:29Z","n":"Dependency audit (e2e)","s":"2026-10-16T06:58:16Z","steps":8},{"c":"success","e":"2026-10-16T06:59:47Z","n":"Dependency audit (nextjs-boilerplate)","s":"2026-10-16T06:58:16Z","steps":8},{"c":"success","e":"2026-10-16T06:59:03Z","n":"Dependency audit (mobile)","s":"2026-10-16T06:58:16Z","steps":8}],"sha":"03ddf755137550f29055b8c4b9cd94efff4d605a","wf":"Security"}
+{"c":"success","id":38864266050,"jobs":[{"c":"success","e":"2026-10-16T06:59:25Z","n":"RLS verify (DB z migrací vs snapshot)","s":"2026-10-16T06:58:18Z","steps":11},{"c":"skipped","e":"2026-10-16T06:58:16Z","n":"RLS verify (produkce vs snapshot)","s":"2026-10-16T06:58:16Z","steps":0}],"sha":"03ddf755137550f29055b8c4b9cd94efff4d605a","wf":"RLS Gate"}
+
+$ gh pr checks 19
+Vercel – nextjs-boilerplate	fail	0	https://vercel.com/omniascz-8054s-projects/nextjs-boilerplate/AuVTHwjMAkaH8hGdVJXZD738HNEP	Deployment was blocked
+Vercel – tixly	fail	0	https://vercel.com/omniascz-8054s-projects/tixly/D2u7sJevxHXhwmKgVDHQFSzt3bBr	Deployment was blocked
+Build bez sítě (pojistka prerenderu)	pass	3m0s	https://github.com/omniascz/tixly/actions/runs/38808832709/job/116676580581	
+Install · typecheck · lint · unit	pass	2m41s	https://github.com/omniascz/tixly/actions/runs/38808832709/job/116676580296	
+Live sada (Postgres z migrací, tixly_app)	pass	3m7s	https://github.com/omniascz/tixly/actions/runs/38808832709/job/116676580005	
+Schema drift (SQL vs schéma z migrací)	pass	1m26s	https://github.com/omniascz/tixly/actions/runs/38808840007/job/116676603028	
+Vercel Preview Comments	pass	0	https://vercel.com/github	
+
+$ gh api repos/omniascz/tixly/commits/03ddf755137550f29055b8c4b9cd94efff4d605a/statuses
+{"context":"Vercel – tixly","created_at":"2026-10-15T21:18:18Z","description":"Deployment was blocked","state":"failure"}
+{"context":"Vercel – nextjs-boilerplate","created_at":"2026-10-15T21:18:18Z","description":"Deployment was blocked","state":"failure"}

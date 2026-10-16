@@ -1,0 +1,35 @@
+# Kolo 23 — golden-path (kód 100913b8 = oprava Wero; každý blok čerstvá r23demo z migrací + seed, tixly_app; logs/r23/golden.sh)
+
+## Blok A: r13-keep + r16-prehydration + r20-order-confirmation + r21-sentry-url-tokens (9_golden.txt)
+     10 golden-path-r13-keep ok
+     12 golden-path-r16-prehydration ok
+      3 golden-path-r20-order-confirmation ok
+      1 golden-path-r21-sentry-url-tokens ok
+  26 passed (2.5m)
+token= v obálkách simulátoru Sentry (9_golden_envelopes.jsonl.raw.jsonl): s hodnotou: 0; [skryto]: 30
+
+## Blok B: r22-qr-local + r23-wero (P) — server bez ALLOW_MOCK_PAYMENTS (9_golden_r22_r23P.txt)
+  ok 1 [golden-path] › tests\golden-path-r22-qr-local.spec.ts:117:5 › (a) 2FA: QR otpauth lokálně, nic nejde na api.qrserver.com, aktivace 2FA projde
+  ok 2 [golden-path] › tests\golden-path-r22-qr-local.spec.ts:185:5 › (b) dárek: QR vstupenky lokálně, nic nejde na api.qrserver.com
+  ok 3 [golden-path] › tests\golden-path-r23-wero.spec.ts:164:5 › (P) produkčně bez ALLOW_MOCK_PAYMENTS: Wero se nenabízí a API ho odmítne před založením obje
+  3 passed (23.0s)
+
+## Blok C: r23-wero (D) — ALLOW_MOCK_PAYMENTS=1 (9_golden_r23D.txt)
+  ok 1 [golden-path] › tests\golden-path-r23-wero.spec.ts:220:5 › (D) řízené demo ALLOW_MOCK_PAYMENTS=1: Wero se nabízí a vede na mock-wero
+  1 passed (8.4s)
+
+## 1. pokus (9_golden_try1*.txt) — všech 5 specs v jednom bloku: 26 passed, 2 failed
+  x  18 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:176:5 › registrace pořadatele
+  x  28 [golden-path] › tests\golden-path-r22-qr-local.spec.ts:185:5 › (b) dárek: QR vstupenky lokálně, nic nejde na api.qrserver.com
+- r22 (b) GET /api/events/…504/seats → 404: r13-keep (golden-path-r13-keep.spec.ts:124) ve stejné DB ruší termín Hamlet Ostrava (T.hOstrava = 504, seed: sál 202 Ostrava),
+  na kterém r22 (b) nakupuje → kolize pořadí specs ve sdílené DB, ne regrese (r22 samostatně: 0_verify_r22.txt 2 passed, blok B 2 passed). K22 pouštěl r22 také samostatně.
+- r16 „registrace pořadatele“: pojistka testu „pole se mělo vyplnit před hydratací (pomalá síť nestačila)“ (spec :53) — stránka se hydratovala dřív,
+  než test začal psát (časování stroje), test neměřil to, co má. Blok A znovu → 26 passed. Spec ani stránka nezměněny.
+
+## Offline skener (9_offline.txt)
+  6 passed (1.3m)
+
+## Turné (9_tour.txt)
+  10 passed (2.4m) — 3. pokus
+1. pokus 9_tour_try1.txt, 2. pokus 9_tour_try2.txt: oba 2 passed + 1 failed v testu 3 (blokace) na golden-path-r8-theatre-tour.spec.ts:422:42 — tlačítko block-create disabled
+(známý souběh: blokace/page.tsx nuluje název až po await load()); stejné místo jako K22 9_tour_try1.txt. Test ani stránka nezměněny.

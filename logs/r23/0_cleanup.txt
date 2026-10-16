@@ -1,0 +1,9 @@
+# Krok 0.7 — smazání %TEMP%\r22-clean (C:\Users\omnia\AppData\Local\Temp\r22-clean)
+- `git worktree list` (tixly) ji neuvádí (worktree: tixly, .claude/worktrees/agent-ac2e…, agent-af55…, tixly-audit, tixly-fix).
+- Jde o samostatný klon: vlastní .git adresář (bez souboru commondir), HEAD 5696a8f54136c5b1b1206db97755715a3e0993eb (klon K22 pro build bez sítě).
+- Procesy s r22-clean v příkazové řádce / cestě (Get-CimInstance Win32_Process): 0.
+- Velikost před smazáním: 2757 MB. Remove-Item -Recurse → smazáno; Test-Path po: False. Nic jiného v %TEMP% nemazáno.
+
+# Krok 0.8 — staging.keys.env
+- C:\Users\omnia\Documents\tixly\staging.keys.env: NEEXISTUJE.
+- `git check-ignore -v staging.keys.env` → `.gitignore:105:staging.keys.env` (ignorován). Staging v tomto kole nedělán.

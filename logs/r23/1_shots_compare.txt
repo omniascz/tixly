@@ -1,0 +1,19 @@
+# Snímky sekce „Platební metoda“ (fieldset s legendou), RED = 514b1215, GREEN = oprava kroku 1
+- P_default: node shotdiff.cjs shots/1_red_P_default.png shots/1_green_P_default.png → rozměry se liší: 398×136 vs 398×132
+- D_default: node shotdiff.cjs shots/1_red_D_default.png shots/1_green_D_default.png → 398×136; odlišných pixelů: 0
+- D_wero_selected: node shotdiff.cjs shots/1_red_D_wero_selected.png shots/1_green_D_wero_selected.png → 398×238; odlišných pixelů: 0
+
+## Rozbor P (node shotcmp_p.cjs shots/1_red_P_default.png shots/1_green_P_default.png)
+RED 398×136, GREEN 398×132, rozdíl výšky 4 px
+celá šířka: řádků shodných bez posunu 37/132; odlišné řádky y 20–131 (95)
+Karta + Převodem (x 0–264): řádků shodných bez posunu 54/132; odlišné řádky y 32–131 (78)
+sloupec Wero (x 265–397): řádků shodných bez posunu 54/132; odlišné řádky y 20–131 (78)
+spodek GREEN y 78–131 = RED y 82–135 (posun 4 px): 54 řádků pixelově shodných
+Karta + Převodem (x 0–264), GREEN řádky → posun vůči RED: y 0–31: +0 px; y 32–65: +2 px; y 66–66: +1 px; y 67–71: +0 px; y 72–78: +4 px; y 79–79: +3 px; y 80–80: +2 px; y 81–81: +1 px; y 82–93: +0 px; y 94–100: +4 px; y 101–101: +3 px; y 102–102: +2 px; y 103–103: +1 px; y 104–106: +0 px; y 107–120: +4 px; y 121–121: +3 px; y 122–122: +2 px; y 123–123: +1 px; y 124–125: +0 px; y 126–131: +4 px
+
+Výklad P: chybí dlaždice Wero (sloupec x ≥ 265 v 1. řadě). Dlaždice Wero měla dvouřádkový popisek („Wero —“ / „A2A Instant“) a byla v 1. řadě gridu
+nejvyšší → bez ní je celá 1. řada (Karta, Převodem) o 4 px nižší (grid roztahuje dlaždice na výšku řady), obsah dlaždic (flex items-center) je proto o 2 px výš,
+spodní hrana o 4 px výš a blok „Firemní kredit“ pod tím je posunutý o 4 px nahoru a jinak pixelově shodný (54 řádků). Řádky y 0–31 (legenda + horní okraj dlaždic) shodné.
+Markup Karta / Převodem / Firemní kredit beze změny (diff page.tsx mění jen podmínku kolem labelu a nápovědy Wero).
+
+D (Wero povolené): výchozí stav i stav po výběru Wero (s nápovědou) pixelově shodné — 0 odlišných pixelů, stejné rozměry.

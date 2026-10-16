@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
+import { mockPaymentsAllowed } from '@/lib/payment/mock-guard';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -101,5 +102,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
     currency: flags.currency ?? 'CZK',
     // Kolo 7: brány bez refundu (Triple-A, P24, Mollie, PayPal, Stripe) jen u akcí z doby před mig. 499.
     legacyPaymentGateways: flags.legacy_payment_gateways === true,
+    // Kolo 23: Wero má jen mock bránu — nabízí se jen tam, kde je mock povolený (mock-guard).
+    weroAvailable: mockPaymentsAllowed(),
   });
 }

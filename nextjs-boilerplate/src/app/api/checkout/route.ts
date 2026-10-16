@@ -302,6 +302,23 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
   }
 
+  // Early-guard: Wero má jen mock bránu (provider.ts → assertMockPaymentsAllowed), v produkci bez
+  // ALLOW_MOCK_PAYMENTS=1 by createPayment hodil až po COMMITu objednávky (500 + objednávka drží místa).
+  // Fail-closed PŘED založením objednávky, stejně jako krypto výše.
+  if (input.paymentMethod === 'wero') {
+    const { mockPaymentsAllowed } = await import('@/lib/payment/mock-guard');
+    if (!mockPaymentsAllowed()) {
+      return NextResponse.json(
+        {
+          error: 'PAYMENT_METHOD_UNAVAILABLE',
+          message: 'Platba Wero není momentálně dostupná. Zvolte prosím jinou metodu.',
+          provider: 'wero',
+        },
+        { status: 503 },
+      );
+    }
+  }
+
   // Early-guard: digitální program-booklet je SMAZANÝ (F1, FINDINGS §136) — nebyl to
   // drift k opravě, ale NENAROZENÁ funkce: writer i reader existovaly, schéma pod nimi
   // nikdy nevzniklo. Guard ZŮSTÁVÁ jako pojistka proti přímému API POST.

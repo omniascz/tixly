@@ -1,0 +1,10 @@
+# Kolo 23 — live sada po částech (logs/r23/run_live.sh + run_live_g.sh; čerstvá r23a z migrací, tixly_app, 1 worker; kód 100913b8)
+n00: Tests 83 passed (83)
+n01: Tests 49 passed (49)
+n02: Tests 73 passed (73)
+n03: Tests 46 passed (46)
+webhook_pool: Tests 2 passed (2)
+g00: Tests 163 passed | 1 skipped (164)
+g01: Tests 77 passed (77)
+Součet: 493 passed + 1 skip (K22 487 + 1 skip; +6 = nový tests/r23-wero-ticket-types.live.test.ts v části n03)
+DB: 9_build_db_r23a_live.txt FAILED_FILES=0, 9_build_db_r23a_live_g.txt FAILED_FILES=0

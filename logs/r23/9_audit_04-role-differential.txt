@@ -1,0 +1,31 @@
+# E2E 04_differential_app  base=http://localhost:3200  2026-10-16T08:15:22.432Z
+PASS X1  [app] checkout + platba + vystaveni
+       {"tickets":1}
+PASS X2  [app] vlastnik stahne PDF vstupenek
+       {"status":200,"ct":"application/pdf","bytes":22332,"head":"%PDF-1.3\n%����\n7 0 obj\n<<\n/Type /Page\n/Parent 1 0 R\n/MediaBo"}
+PASS X3  [app] buyer storno zaplacene objednavky: odpoved 200 <=> DB cancelled + vstupenky neplatne + refund_request
+       {"status":200,"body":"{\"ok\":true,\"orderId\":\"841932d7-28bc-433f-8175-ee4a1260f953\",\"refundAmount\":50000,\"refundPct\":100,\"beforeDeadline\":true,\"message\":\"Objednávka zrušena. Refund 500 Kč (100%) bude zpracován do 7 dní.\"}","orderStatusInDb":"cancelled","tickets":["revoked"],"refund_requests":[{"status":"pending","refunded_halire":50000,"has_user":true}]}
+PASS X4  [app] cron expire-pending-orders
+       {"status":200,"body":"{\"ok\":true,\"expiredCount\":0,\"seatsReleased\":0}"}
+PASS X5  [app] cron release-expired-seat-holds
+       {"status":200,"body":"{\"releasedCount\":0,\"promoterHoldsReleased\":0,\"ts\":\"2026-10-16T08:15:25.053Z\"}"}
+PASS X6  [app] kupec vidi seznam svych vstupenek/objednavek (GET /api/buyer/my-tickets)
+       {"status":200,"count":1,"body":"{\"tickets\":[{\"id\":\"f89068bf-3865-482b-a4aa-4921d9bedf09\",\"status\":\"revoked\",\"used_at\":null,\"revoked_at\":null,\"original_price\":50000,\"order_id\":\"841932d7-28bc-43"}
+PASS X7  [app] doklad/faktura k objednavce (kupec)
+       {"status":200,"ct":"application/pdf","head":"%PDF-1.3\n%����\n7 0 obj\n<<\n/Type /Page\n/Parent 1 0 R\n/MediaBox [0 0 595.28 841.89]\n/Contents 5 0 R\n/Resources 6 0 R\n/User"}
+PASS X8  [app] poradatel: seznam objednavek
+       {"status":200,"body":"{\"items\":[{\"orderId\":\"bb1c0d56-032c-485c-b1cd-d4f382d55c50\",\"orderNumber\":\"BB1C0D56\",\"createdAt\":\"2026-10-16T08:15:24.350Z\",\"buyerName\":\"Kupec X-app-mvap05z8\",\""}
+PASS X9  [app] poradatel: export objednavek
+       {"status":200,"ct":"text/csv; charset=utf-8","head":"Číslo,Datum,Jméno,Email,Telefon,Akce,Vstupenky,Částka,Stav\nORD-2026-0001,16. 10. 2026,Kupec X-app-mvap05z8,buyer-x-app-mvap05z8-mvaoywyf@audit.test,,Audit Konce"}
+PASS X10  [app] poradatel: sales report akce
+       {"status":200,"body":"{\"event\":{\"id\":\"79b21c5d-8d5b-4aae-9c41-966da9f6e42d\",\"title\":\"Audit Koncert A mvaoywyf\",\"currency\":\"CZK\"},\"byTicketType\":[{\"ticketTypeId\":\"9ca9dd4d-83d7-40f6-a46d-732e503edd31\",\"name\":\"Zdarma\",\"soldQty\":1,\"grossHalire\":0,\"totalQty\":10,\"remainingQty\":9,\"occupancyPct\":10},{\"ticketTypeId\":\"5765f0cd-d6"}
+PASS X11  [app] poradatel: faktury
+       {"status":200,"body":"{\"invoices\":[{\"id\":\"5c0029a5-6acd-4b6d-85f6-57331d998446\",\"invoice_number\":\"2026-0001\",\"issue_date\":\"2026-10-15T22:00:00.000Z\",\"due_date\":\"2026-10-15T22:00:00.000Z\",\"subtotal_minor\":\"44643\",\"vat_amoun"}
+PASS X12  [app] poradatel: vyplaty
+       {"status":200,"body":"{\"source\":\"computed\",\"payoutIban\":null,\"feePercent\":5,\"holdback\":{\"pctBps\":500,\"retentionDays\":90,\"tier\":1},\"payouts\":[{\"id\":\"estimate-CZK-2026-10-12\",\"periodStart\":\"2026-10-12T00:00:00.000Z\",\"periodE"}
+PASS X13  [app] poradatel: export skenu
+       {"status":200,"head":"scanned_at,event_title,event_starts_at,ticket_code,ticket_type,scan_result,device_id,override_by_name,override_reason,promoter_name\r\n2026-10-16 08:15:21.229674+"}
+PASS X14  [app] zapomenute heslo
+       {"status":200,"body":"{\"ok\":true}"}
+
+# SUMMARY {"PASS":14,"FAIL":0,"INFO":0}
