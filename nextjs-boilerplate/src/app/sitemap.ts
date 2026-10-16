@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { Pool } from 'pg';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { LOCALES_ACTIVE } from '@/lib/i18n';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
@@ -9,10 +10,12 @@ const LOCALES = LOCALES_ACTIVE;
 
 let pool: Pool | null = null;
 function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  if (!pool) pool = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   return pool;
 }
 
+// Kolo 11: bez dynamického vykreslení Next sitemapu předgeneroval při buildu (DB tam není → statická sitemap bez dat).
+export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // re-generate hourly
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

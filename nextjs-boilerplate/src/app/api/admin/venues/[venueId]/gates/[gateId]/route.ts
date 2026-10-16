@@ -27,10 +27,11 @@ async function ownerCheck(venueId: string, gateId: string, promoterId: string) {
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { venueId: string; gateId: string } },
+  props: { params: Promise<{ venueId: string; gateId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
-    if (!await ownerCheck(params.venueId, params.gateId, promoter.promoterId)) {
+    if (!(await ownerCheck(params.venueId, params.gateId, promoter.promoterId))) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
@@ -61,10 +62,11 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { venueId: string; gateId: string } },
+  props: { params: Promise<{ venueId: string; gateId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
-    if (!await ownerCheck(params.venueId, params.gateId, promoter.promoterId)) {
+    if (!(await ownerCheck(params.venueId, params.gateId, promoter.promoterId))) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
     await db().query(`DELETE FROM catalog.venue_gates WHERE id = $1`, [params.gateId]);

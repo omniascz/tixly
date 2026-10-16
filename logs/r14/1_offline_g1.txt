@@ -1,0 +1,90 @@
+
+Running 6 tests using 1 worker
+
+[1A[2K[1/6] [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:171:5 › bod 1: stažení seznamu vstupenek termínu do zařízení a kdy byl stažen
+[1A[2K[2/6] [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:187:5 › bod 2: offline — pravidla jako online
+[1A[2K  1) [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:187:5 › bod 2: offline — pravidla jako online 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected pattern: [32m/Ověřit průkaz: ZTP\/P/[39m
+    Received string:  [31m"Výsledek Vstup povolen ⚠ OVĚŘIT PRŮKAZ: ZTP/P Racek Zóna A · ZTP/P Přízemí, řada 8, místo 10"[39m
+
+      206 |   const ztp = await scan(gatePage, S.t.ztp.id);
+      207 |   expect(ztp).toMatch(/Vstup povolen/);
+    > 208 |   expect(ztp).toMatch(/Ověřit průkaz: ZTP\/P/);
+          |               ^
+      209 |   // tištěný TXP2: platný podpis vpuštěn, padělaný podpis odmítnut (online: invalid_token)
+      210 |   expect(await scan(gatePage, txp2(S.t.stale6.id, S.rBrno, true))).toMatch(/Neplatný kód vstupenky/);
+      211 |   expect(await scan(gatePage, txp2(S.t.txp.id, S.rBrno))).toMatch(/Vstup povolen/);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:208:15
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-e4c6c-line-—-pravidla-jako-online-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r14-offline-sc-e4c6c-line-—-pravidla-jako-online-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r14-offline-sc-e4c6c-line-—-pravidla-jako-online-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-e4c6c-line-—-pravidla-jako-online-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r14-offline-sc-e4c6c-line-—-pravidla-jako-online-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[3/6] [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:227:5 › bod 3: po obnovení sítě se odbavení odešlou idempotentně a zapíšou do scan_logs
+[1A[2K[4/6] [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:258:5 › bod 4: dva skenery offline tutéž vstupenku → po synchronizaci duplicitní, počet v reportu
+[1A[2K[5/6] [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:277:5 › bod 5: zavření a znovuotevření prohlížeče offline — seznam i neodeslaná odbavení přežijí
+[1A[2K  2) [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:277:5 › bod 5: zavření a znovuotevření prohlížeče offline — seznam i neodeslaná odbavení přežijí 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Offline — skeny jdou do lokální fronty/)
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Offline — skeny jdou do lokální fronty/)[22m
+
+
+      301 |   await page.goto('/admin/scanner');
+      302 |   await expect(page.getByPlaceholder(PLACEHOLDER)).toBeVisible();
+    > 303 |   await expect(page.getByText(/Offline — skeny jdou do lokální fronty/)).toBeVisible();
+          |                                                                          ^
+      304 |   await expect(page.getByText(/1 čeká na sync/)).toBeVisible();
+      305 |   await expect(page.getByText(/Offline seznam: .* lístků · staženo/)).toBeVisible();
+      306 |   expect(await scan(page, S.t.persist2.id)).toMatch(/Vstup povolen/);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r14-offline-scanner.spec.ts:303:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-2eee8-neodeslaná-odbavení-přežijí-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-2eee8-neodeslaná-odbavení-přežijí-golden-path\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r14-offline-sc-2eee8-neodeslaná-odbavení-přežijí-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r14-offline-sc-2eee8-neodeslaná-odbavení-přežijí-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r14-offline-sc-2eee8-neodeslaná-odbavení-přežijí-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r14-offline-sc-2eee8-neodeslaná-odbavení-přežijí-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[6/6] [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:315:5 › bod 6: storno po stažení seznamu — online vždy odmítnuto, offline jen se seznamem staženým po stornu
+[1A[2K  2 failed
+    [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:187:5 › bod 2: offline — pravidla jako online 
+    [golden-path] › tests\golden-path-r14-offline-scanner.spec.ts:277:5 › bod 5: zavření a znovuotevření prohlížeče offline — seznam i neodeslaná odbavení přežijí 
+  4 passed (45.3s)

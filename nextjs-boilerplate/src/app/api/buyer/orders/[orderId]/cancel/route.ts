@@ -15,7 +15,7 @@
  *   7. Zneplatni tickety (status = 'revoked')
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 import { z } from 'zod';
 
@@ -24,10 +24,8 @@ const schema = z.object({
   reason: z.string().max(500).optional(),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { orderId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ orderId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
@@ -60,7 +58,7 @@ export async function POST(
          FROM orders.orders o
          JOIN catalog.events e ON e.id = o.event_id
         WHERE o.id = $1
-          FOR UPDATE`,
+          FOR UPDATE OF o`,
       [params.orderId],
     );
 
@@ -98,8 +96,9 @@ export async function POST(
       ? Math.round((order.total_amount * refundPct) / 100)
       : 0;
 
-    // Update order
-    await client.query(
+    // Update order — status a revoke lístků jsou chráněné sloupce (guard 486): systémový
+    // efekt storna, objednávka je výše ověřena jako kupcova pod jeho RLS kontextem.
+    await asSystemInTx(client, () => client.query(
       `UPDATE orders.orders
           SET status = 'cancelled',
               cancelled_by_buyer_at = now(),
@@ -112,18 +111,19 @@ export async function POST(
         refundAmount > 0 ? 'pending' : 'no_refund',
         params.orderId,
       ],
-    );
+    ));
 
     // Revoke tickety
-    await client.query(
+    await asSystemInTx(client, () => client.query(
       `UPDATE tickets.tickets
           SET status = 'revoked', updated_at = now()
         WHERE order_id = $1 AND status = 'valid'`,
       [params.orderId],
-    );
+    ));
 
-    // Free up ticket_type stock
-    await client.query(
+    // Free up ticket_type stock — systémový efekt (kapacitu kupec měnit nesmí, kolo 2 / V8);
+    // objednávka je výše ověřena jako kupcova pod jeho RLS kontextem.
+    await asSystemInTx(client, () => client.query(
       `UPDATE catalog.ticket_types tt
           SET remaining_qty = remaining_qty + (
             SELECT COUNT(*) FROM tickets.tickets
@@ -132,7 +132,7 @@ export async function POST(
         WHERE EXISTS (SELECT 1 FROM tickets.tickets
                        WHERE order_id = $1 AND ticket_type_id = tt.id)`,
       [params.orderId],
-    );
+    ));
 
     // Refund request pokud nějaký.
     // POZOR: žádný .catch() tady — refund_request NENÍ best-effort. Když selže,

@@ -1,0 +1,14 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/fix-r3-escalations.live.test.ts[2m > [22m[2mKrok 3 (kolo 3) — routy po odstranění eskalací[2m > [22m[2m3 — anonym a servisní routy bez admin eskalace[2m > [22m[2mOTP: request + verify (anonymní, servisní kontext)[22m[39m
+[OTP MOCK] SMS → +420027454474: Tixly kód: 442818 (platí 10 min)
+
+ [32m✓[39m tests/fix-r3-escalations.live.test.ts [2m ([22m[2m17 tests[22m[2m)[22m[33m 2137[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m17 passed[39m[22m[90m (17)[39m
+[2m   Start at [22m 13:37:32
+[2m   Duration [22m 2.65s[2m (transform 393ms, setup 0ms, collect 130ms, tests 2.14s, environment 0ms, prepare 246ms)[22m
+

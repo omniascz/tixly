@@ -1,0 +1,9 @@
+{
+ "capturedAt": "2026-10-08T08:05:47.430Z",
+ "data": {
+  "from": "\"Tixly provoz\" <vstupenky@tixly.fix>",
+  "to": "ops-muz94tli@tixly.fix",
+  "subject": "[Tixly provoz] Selhal webhook brány gopay",
+  "text": "Webhook platební brány gopay selhal: HTTP 502 {\"error\":\"GOPAY_LOOKUP_FAILED\"}\nPožadavek: GET /api/payments/gopay/webhook?id=999999999001\n\nPlatba mohla proběhnout, ale objednávka se nemusela označit jako zaplacená a vstupenky se nevystavily. Brána webhook obvykle opakuje; zkontrolujte objednávku podle ID platby a logy funkce.\n\n—\nStejné upozornění se znovu pošle nejdřív za 30 minut (klíč gateway_webhook_failed:gopay)."
+ }
+}

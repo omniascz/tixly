@@ -43,24 +43,21 @@ async function getKioskData(slug: string) {
     if (!promoter) return null;
 
     const evRes = await db().query<EventRow>(
-      `SELECT e.id, e.title, e.slug, e.starts_at, e.ends_at,
+      // Kolo 9: dotaz četl neexistující sloupce (starts_at, ends_at, total_capacity, ticket_types.is_active) → stránka 500.
+      `SELECT e.id, e.title, e.slug, e.date_start AS starts_at, e.date_end AS ends_at,
               v.name AS venue_name, v.city AS venue_city,
               e.cover_image_url,
               MIN(tt.base_price) AS min_price,
               e.currency,
-              e.total_capacity - COALESCE(
-                (SELECT COUNT(*) FROM orders.order_items oi
-                   JOIN orders.orders o ON o.id = oi.order_id
-                  WHERE o.event_id = e.id AND o.status = 'paid'), 0
-              ) AS remaining_capacity
+              COALESCE(SUM(tt.remaining_qty), 0)::int AS remaining_capacity
          FROM catalog.events e
          LEFT JOIN catalog.venues v ON v.id = e.venue_id
-         LEFT JOIN catalog.ticket_types tt ON tt.event_id = e.id AND tt.is_active = true
+         LEFT JOIN catalog.ticket_types tt ON tt.event_id = e.id AND tt.visibility = 'public'
         WHERE e.promoter_id = $1
           AND e.status = 'published'
-          AND e.starts_at > NOW()
+          AND e.date_start > NOW()
         GROUP BY e.id, v.name, v.city
-        ORDER BY e.starts_at ASC
+        ORDER BY e.date_start ASC
         LIMIT 20`,
       [promoter.id],
     );
@@ -80,7 +77,8 @@ function formatDate(iso: string) {
     .format(new Date(iso));
 }
 
-export default async function KioskHomePage({ params }: { params: { slug: string } }) {
+export default async function KioskHomePage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const data = await getKioskData(params.slug);
   if (!data) notFound();
   const { promoter, events } = data;
@@ -93,7 +91,7 @@ export default async function KioskHomePage({ params }: { params: { slug: string
           <Image src={promoter.logo_url} alt={promoter.name} width={48} height={48} className="rounded-lg object-contain" />
         )}
         <div>
-          <h1 className="text-2xl font-bold">{promoter.name}</h1>
+          <h1 className="text-2xl font-bold text-white">{promoter.name}</h1>
           <p className="text-sm text-gray-400">Samoobslužná pokladna · Tixly Kiosk</p>
         </div>
         <div className="ml-auto flex items-center gap-2 text-sm text-gray-500">
@@ -129,7 +127,7 @@ export default async function KioskHomePage({ params }: { params: { slug: string
                 )}
 
                 <div className="p-5 space-y-3">
-                  <h2 className="text-lg font-semibold leading-tight line-clamp-2 group-hover:text-brand-300 transition-colors">
+                  <h2 className="text-lg font-semibold leading-tight text-white line-clamp-2 group-hover:text-brand-300 transition-colors">
                     {ev.title}
                   </h2>
                   <div className="space-y-1.5 text-sm text-gray-400">

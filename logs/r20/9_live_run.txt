@@ -1,0 +1,9 @@
+FAILED_FILES=0
+n00 exit 0
+n01 exit 0
+n02 exit 0
+n03 exit 0
+g00 exit 1
+g01 exit 1
+webhook_pool exit 0
+LIVE_DONE

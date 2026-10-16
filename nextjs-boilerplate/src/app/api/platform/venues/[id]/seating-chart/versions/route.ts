@@ -25,10 +25,8 @@ interface VersionRow {
   source: string | null;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (_admin) => {
   const r = await db().query<VersionRow>(
     `SELECT c.id, c.name, c.total_seats, c.active, c.created_at,

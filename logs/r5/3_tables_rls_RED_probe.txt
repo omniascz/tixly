@@ -1,0 +1,34 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r2-3b-tables-rls.live.test.ts [2m ([22m[2m15 tests[22m [2m|[22m [31m1 failed[39m [2m|[22m [33m8 skipped[39m[2m)[22m[33m 1068[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mtenant (kód vlastníka): catalog.event_costs — pořadatel A, kupec ani veřejnost nečte/nemění; pořadatel B ano[39m
+[31m     → catalog.event_costs SELECT {"promoter":"94ca7805-feb7-4dae-94db-78ca1af907b8"}: expected 1 to satisfy [Function denied][39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mtenant (kód vlastníka): catalog.event_costs — pořadatel A, kupec ani veřejnost nečte/nemění; pořadatel B ano
+[31m[1mAssertionError[22m: catalog.event_costs SELECT {"promoter":"94ca7805-feb7-4dae-94db-78ca1af907b8"}: expected 1 to satisfy [Function denied][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/fix-r2-3b-tables-rls.live.test.ts:[2m183:115[22m[39m
+    [90m181| [39m      [35mconst[39m id [33m=[39m ([35mawait[39m owner[33m.[39mquery[33m<[39m{ id[33m:[39m string }[33m>[39m(sql[33m,[39m params))[33m.[39mrows…
+    [90m182| [39m      [35mfor[39m ([35mconst[39m c [35mof[39m [{ promoter[33m:[39m a[33m.[39mpromoterId }[33m,[39m { user[33m:[39m b[33m.[39muserId }[33m,[39m…
+    [90m183| [39m        [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`SELECT 1 FROM [39m[36m${[39mspec[33m.[39mt[36m}[39m[32m WHERE id=$1`[39m[33m,[39m [id]…
+    [90m   | [39m                                                                                                                  [31m^[39m
+    [90m184| [39m        [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`UPDATE [39m[36m${[39mspec[33m.[39mt[36m}[39m[32m SET [39m[36m${[39mspec[33m.[39mupd[36m}[39m[32m WHERE id=[39m…
+    [90m185| [39m        [34mexpect[39m([35mawait[39m [35mas[39m(c[33m,[39m [32m`DELETE FROM [39m[36m${[39mspec[33m.[39mt[36m}[39m[32m WHERE id=$1`[39m[33m,[39m [id])[33m,[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[2m | [22m[33m8 skipped[39m[90m (15)[39m
+[2m   Start at [22m 23:35:01
+[2m   Duration [22m 1.52s[2m (transform 110ms, setup 0ms, collect 132ms, tests 1.07s, environment 0ms, prepare 137ms)[22m
+

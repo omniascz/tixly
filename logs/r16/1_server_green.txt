@@ -1,0 +1,127 @@
+   ▲ Next.js 15.5.27
+   - Local:        http://localhost:3200
+   - Network:      http://192.168.0.240:3200
+
+ ✓ Starting...
+ ✓ Ready in 1380ms
+[mailer] provider=mailhog-dev host=localhost:51225 authed=false
+[error: terminating connection due to administrator command] {
+  length: 116,
+  severity: 'FATAL',
+  code: '57P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'postgres.c',
+  line: '3315',
+  routine: 'ProcessInterrupts',
+  client: [Client]
+}
+ ⨯ uncaughtException:  [error: terminating connection due to administrator command] {
+  length: 116,
+  severity: 'FATAL',
+  code: '57P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'postgres.c',
+  line: '3315',
+  routine: 'ProcessInterrupts',
+  client: [Client]
+}
+[error: terminating connection due to administrator command] {
+  length: 116,
+  severity: 'FATAL',
+  code: '57P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'postgres.c',
+  line: '3315',
+  routine: 'ProcessInterrupts',
+  client: [Client]
+}
+ ⨯ uncaughtException:  [error: terminating connection due to administrator command] {
+  length: 116,
+  severity: 'FATAL',
+  code: '57P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'postgres.c',
+  line: '3315',
+  routine: 'ProcessInterrupts',
+  client: [Client]
+}
+[error: terminating connection due to administrator command] {
+  length: 116,
+  severity: 'FATAL',
+  code: '57P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'postgres.c',
+  line: '3315',
+  routine: 'ProcessInterrupts',
+  client: [Client]
+}
+ ⨯ uncaughtException:  [error: terminating connection due to administrator command] {
+  length: 116,
+  severity: 'FATAL',
+  code: '57P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'postgres.c',
+  line: '3315',
+  routine: 'ProcessInterrupts',
+  client: [Client]
+}

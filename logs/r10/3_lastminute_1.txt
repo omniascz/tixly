@@ -1,0 +1,33 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r10-lastminute-cron.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 447[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r10-lastminute-cron.live.test.ts[2m > [22mKolo 10 — cron lastminute přes GET[2m > [22ms tajemstvím 200 a sleva se uplatní právě jednou[39m
+[31m     → column lr.promoter_id does not exist[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r10-lastminute-cron.live.test.ts[2m > [22mKolo 10 — cron lastminute přes GET[2m > [22ms tajemstvím 200 a sleva se uplatní právě jednou
+[31m[1merror[22m: column lr.promoter_id does not exist[39m
+[90m [2m❯[22m node_modules/pg/lib/client.js:[2m631:17[22m[39m
+[36m [2m❯[22m RlsAwarePool.query src/lib/db/rls-pool.ts:[2m297:22[22m[39m
+    [90m295| [39m        [35mawait[39m client[33m.[39m[34mquery[39m([32m`SET LOCAL app.role = '[39m[36m${[39mctx[33m.[39mrole[36m}[39m[32m'`[39m)[33m;[39m
+    [90m296| [39m      }
+    [90m297| [39m      [35mconst[39m result [33m=[39m [35mawait[39m client[33m.[39mquery[33m<[39m[33mR[39m[33m>[39m(text [35mas[39m string[33m,[39m params)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m298| [39m      [35mawait[39m client[33m.[39m[34mquery[39m([32m'COMMIT'[39m)[33m;[39m
+    [90m299| [39m      [35mreturn[39m result[33m;[39m
+[90m [2m❯[22m runCheck src/app/api/admin/lastminute/check/route.ts:[2m37:17[22m[39m
+[90m [2m❯[22m src/app/api/admin/lastminute/check/route.ts:[2m126:62[22m[39m
+[90m [2m❯[22m tests/fix-r10-lastminute-cron.live.test.ts:[2m48:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 172, severity: 'ERROR', code: '42703', detail: undefined, hint: 'Perhaps you meant to reference the column "e.promoter_id".', position: '63', internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'parse_relation.c', line: '3723', routine: 'errorMissingColumn' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m   Start at [22m 19:32:46
+[2m   Duration [22m 823ms[2m (transform 90ms, setup 0ms, collect 85ms, tests 447ms, environment 0ms, prepare 190ms)[22m
+

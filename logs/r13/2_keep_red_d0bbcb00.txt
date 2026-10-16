@@ -1,0 +1,169 @@
+
+Running 10 tests using 1 worker
+
+[1A[2K[1/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:82:7 › vlastník › bod 4: termín v sále bez míst v cenových zónách se nezaloží (ani nezveřejní)
+[1A[2K  1) [golden-path] › tests\golden-path-r13-keep.spec.ts:82:7 › vlastník › bod 4: termín v sále bez míst v cenových zónách se nezaloží (ani nezveřejní) 
+
+    TimeoutError: page.waitForURL: Timeout 20000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+
+      46 |   await page.getByLabel('Heslo').fill(pass);
+      47 |   await Promise.all([page.waitForResponse((r) => r.url().endsWith('/api/auth/login')), page.getByRole('button', { name: /^Přihlásit$/ }).click()]);
+    > 48 |   await page.waitForURL(/\/admin(?!\/?login)/, { timeout: 20_000 });
+         |              ^
+      49 |   sessions.set(email, await page.context().storageState());
+      50 | }
+      51 | async function api(page: Page, method: string, path: string, body?: unknown): Promise<{ status: number; json: Record<string, unknown> }> {
+        at login (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r13-keep.spec.ts:48:14)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r13-keep.spec.ts:79:93
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-75d50-se-nezaloží-ani-nezveřejní--golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r13-keep-vlast-75d50-se-nezaloží-ani-nezveřejní--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-75d50-se-nezaloží-ani-nezveřejní--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-75d50-se-nezaloží-ani-nezveřejní--golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-75d50-se-nezaloží-ani-nezveřejní--golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r13-keep-vlast-75d50-se-nezaloží-ani-nezveřejní--golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[2/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:96:7 › vlastník › bod 5: blokace bez volných míst se nezaloží prázdná
+[1A[2K[3/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:113:7 › vlastník › bod 6: „Zpět" z editoru plánku vede na existující stránku
+[1A[2K[4/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:123:7 › vlastník › bod 7: zrušený termín v seznamu akcí „Zrušeno", ne „Prodej"
+[1A[2K[5/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:136:7 › vlastník › bod 8: nepovedené stažení reportu ohlásí chybu
+[1A[2K[6/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:148:7 › vlastník › bod 10: přesun a zrušení termínu jen po potvrzení v okně
+[1A[2K[7/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:170:7 › vlastník › bod 10: storno firemní objednávky jen po potvrzení v okně (beze změny od d0bbcb00)
+[1A[2K[8/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:191:7 › pokladní a vstup › bod 3: role Pokladna má na serveru omezený přístup (ne správce); vlastník beze změny
+[1A[2K  2) [golden-path] › tests\golden-path-r13-keep.spec.ts:191:7 › pokladní a vstup › bod 3: role Pokladna má na serveru omezený přístup (ne správce); vlastník beze změny 
+
+    Error: pokladna-k-mux3s563@agentura.test
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m403[39m
+    Received: [31m200[39m
+
+      199 |       await login(page, email, PASS);
+      200 |       await page.goto('/admin');
+    > 201 |       expect((await api(page, 'GET', '/api/admin/chargebacks')).status, email).toBe(403);
+          |                                                                                ^
+      202 |       // pokladní funkce dál fungují
+      203 |       expect((await api(page, 'GET', '/api/admin/pos/events')).status, email).toBe(200);
+      204 |       await ctx.close();
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r13-keep.spec.ts:201:80
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-pokla-3f343-správce-vlastník-beze-změny-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-pokla-3f343-správce-vlastník-beze-změny-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r13-keep-pokla-3f343-správce-vlastník-beze-změny-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-pokla-3f343-správce-vlastník-beze-změny-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-pokla-3f343-správce-vlastník-beze-změny-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r13-keep-pokla-3f343-správce-vlastník-beze-změny-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[9/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:208:7 › pokladní a vstup › body 2 a 9: pokladna — termíny odlišené městem, tisk = PDF vstupenek s QR, bez TOTP
+[1A[2K  3) [golden-path] › tests\golden-path-r13-keep.spec.ts:208:7 › pokladní a vstup › body 2 a 9: pokladna — termíny odlišené městem, tisk = PDF vstupenek s QR, bez TOTP 
+
+    Error: Racek (27. 10. 2026) | Racek (3. 11. 2026)
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      216 |     const racek = opts.filter((o) => o.startsWith('Racek'));
+      217 |     expect(racek.length).toBeGreaterThan(1);
+    > 218 |     expect(racek.every((o) => /^Racek — (Brno|Ostrava) \(\d{1,2}\. \d{1,2}\. \d{4}\)$/.test(o)), racek.join(' | ')).toBe(true);
+          |                                                                                                                     ^
+      219 |     await page.locator('#pos-event').selectOption(T.rBrno);
+      220 |     const ttSel = page.locator('#pos-tt');
+      221 |     await ttSel.selectOption((await ttSel.locator('option').filter({ hasText: /Zóna A/ }).first().getAttribute('value'))!);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r13-keep.spec.ts:218:117
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-pokla-f0d50-PDF-vstupenek-s-QR-bez-TOTP-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r13-keep-pokla-f0d50-PDF-vstupenek-s-QR-bez-TOTP-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-pokla-f0d50-PDF-vstupenek-s-QR-bez-TOTP-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-pokla-f0d50-PDF-vstupenek-s-QR-bez-TOTP-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r13-keep-pokla-f0d50-PDF-vstupenek-s-QR-bez-TOTP-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[10/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:238:7 › pokladní a vstup › bod 1: skener při výpadku sítě nehlásí „Vstup povolen" bez ověření
+[1A[2K  4) [golden-path] › tests\golden-path-r13-keep.spec.ts:238:7 › pokladní a vstup › bod 1: skener při výpadku sítě nehlásí „Vstup povolen" bez ověření 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('OFFLINE: lístek nelze ověřit (není stažený seznam) — zkontroluj ho ručně.')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText('OFFLINE: lístek nelze ověřit (není stažený seznam) — zkontroluj ho ručně.')[22m
+
+
+      252 |     await input.fill('11111111-2222-4333-8444-555555555555');
+      253 |     await page.getByRole('button', { name: 'Validovat lístek' }).click();
+    > 254 |     await expect(page.getByText('OFFLINE: lístek nelze ověřit (není stažený seznam) — zkontroluj ho ručně.')).toBeVisible();
+          |                                                                                                               ^
+      255 |     await expect(page.getByText('Vstup povolen')).toHaveCount(0);
+      256 |     await page.unroute('**/api/admin/scanner/validate');
+      257 |     // b) zařízení je offline (navigator.onLine = false), seznam není stažený
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r13-keep.spec.ts:254:111
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-pokla-d5fff--„Vstup-povolen-bez-ověření-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r13-keep-pokla-d5fff--„Vstup-povolen-bez-ověření-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-pokla-d5fff--„Vstup-povolen-bez-ověření-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-pokla-d5fff--„Vstup-povolen-bez-ověření-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r13-keep-pokla-d5fff--„Vstup-povolen-bez-ověření-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  4 failed
+    [golden-path] › tests\golden-path-r13-keep.spec.ts:82:7 › vlastník › bod 4: termín v sále bez míst v cenových zónách se nezaloží (ani nezveřejní) 
+    [golden-path] › tests\golden-path-r13-keep.spec.ts:191:7 › pokladní a vstup › bod 3: role Pokladna má na serveru omezený přístup (ne správce); vlastník beze změny 
+    [golden-path] › tests\golden-path-r13-keep.spec.ts:208:7 › pokladní a vstup › body 2 a 9: pokladna — termíny odlišené městem, tisk = PDF vstupenek s QR, bez TOTP 
+    [golden-path] › tests\golden-path-r13-keep.spec.ts:238:7 › pokladní a vstup › bod 1: skener při výpadku sítě nehlásí „Vstup povolen" bez ověření 
+  6 did not run

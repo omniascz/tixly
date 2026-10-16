@@ -1,0 +1,143 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal[2m > [22m[2mchybějící PAYPAL_WEBHOOK_ID → 4xx, nic se nezmění[22m[39m
+[paypal webhook] PAYPAL_WEBHOOK_ID / API credentials missing — rejecting
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal[2m > [22m[2mbez podpisu / se špatným podpisem → 4xx[22m[39m
+[paypal webhook] invalid signature
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal[2m > [22m[2mbez podpisu / se špatným podpisem → 4xx[22m[39m
+[paypal webhook] invalid signature
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mWise (výplaty)[2m > [22m[2mchybějící klíč / bez podpisu / špatný podpis / HMAC místo RSA → 4xx, výplata beze změny[22m[39m
+[wise webhook] WISE_WEBHOOK_PUBLIC_KEY / API credentials missing — rejecting
+
+[90mstdout[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mWise (výplaty)[2m > [22m[2mlegitimní: platný RSA podpis + API outgoing_payment_sent → paid[22m[39m
+[wise webhook] paid transferId=15370563 rowsUpdated=1
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mGoPay[2m > [22m[2mnenakonfigurovaná brána (i mimo produkci: DEV_STUB) → 4xx, nic se nezmění[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mGoPay[2m > [22m[2mnenakonfigurovaná brána (i mimo produkci: DEV_STUB) → 4xx, nic se nezmění[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mGoPay[2m > [22m[2mAPI brány hlásí PAID s nulovou částkou → nezaplaceno[22m[39m
+[gopay webhook] amount/currency mismatch order=e0b70554-8139-4c24-8933-a19a6267ae58 expected=50000CZK paid=0CZK
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mComGate[2m > [22m[2mchybějící tajemství / špatné tajemství → 4xx, nic se nezmění[22m[39m
+[payment] ComGate není nakonfigurovaný — checkout poběží v mock režimu. Nastavte COMGATE_MERCHANT, COMGATE_SECRET.
+[comgate webhook] not configured — rejecting
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mStripe[2m > [22m[2mplatný podpis, ale API session nezaplacená / nižší částka → nezaplaceno[22m[39m
+[stripe webhook] session cs_d890c779 NOT confirmed by API for order fe580a9b-e3f6-4fc9-a43a-1d3fb7c81c5c
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mStripe[2m > [22m[2mplatný podpis, ale API session nezaplacená / nižší částka → nezaplaceno[22m[39m
+[stripe webhook] session cs_d890c779 NOT confirmed by API for order fe580a9b-e3f6-4fc9-a43a-1d3fb7c81c5c
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mTriple-A[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[payment] Triple-A není nakonfigurovaný — krypto platba poběží v mock režimu. Nastavte TRIPLEA_CLIENT_ID, TRIPLEA_CLIENT_SECRET, TRIPLEA_API_ID, TRIPLEA_NOTIFY_SECRET.
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mTriple-A[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[triplea webhook] podpis neplatný: NO_SIGNATURE
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mTriple-A[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[triplea webhook] podpis neplatný: SIGNATURE_MISMATCH
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mMollie[2m > [22m[2mchybějící API klíč / platba u brány neexistuje → 4xx[22m[39m
+[mollie webhook] getMolliePayment failed: Error: Mollie GET tr_6d7f6f0f → HTTP 404
+    at Module.getMolliePayment [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\payment\mollie.ts:112:25[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\payments\mollie\webhook\route.ts:53:17
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r2-webhooks.live.test.ts:344:29
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3) {
+  httpStatus: [33m404[39m
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPrzelewy24[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[p24 webhook] invalid signature for sessionId 9c8ccbff-1c40-4ee7-9a24-66c860ea64fd
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal capture: PayPal objednávka jiné Tixly objednávky nezaplatí tuto[22m[39m
+[paypal capture] token does not belong to order f8d38510-8137-4316-a03a-aee4a4dad97b
+
+ [32m✓[39m tests/fix-r2-webhooks.live.test.ts [2m ([22m[2m29 tests[22m[2m)[22m[33m 6501[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-v2-tixly-app.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 7563[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-identity-headers.live.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[33m 823[2mms[22m[39m
+ [32m✓[39m tests/fix-k2-refund.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 26624[2mms[22m[39m
+ [32m✓[39m tests/fix-k1-payment-bypass.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 909[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-v8-rls-write.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 1312[2mms[22m[39m
+ [32m✓[39m tests/fix-k3-capacity.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 6592[2mms[22m[39m
+ [32m✓[39m tests/fix-v1-reset.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 11412[2mms[22m[39m
+[90mstderr[2m | tests/fix-regression-scan.live.test.ts[2m > [22m[2mregrese: sken u brány (izolovaná DB)[2m > [22m[2mplatná vstupenka → admitted; druhý sken → already_used[22m[39m
+[scanner/validate] logScan failed: error: null value in column "scanned_by_device_id" of relation "scan_logs" violates not-null constraint
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at RlsAwarePool.query [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:271:22[90m)[39m {
+  length: [33m201[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'23502'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [32m'tickets'[39m,
+  table: [32m'scan_logs'[39m,
+  column: [32m'scanned_by_device_id'[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'execMain.c'[39m,
+  line: [32m'1982'[39m,
+  routine: [32m'ExecConstraints'[39m
+}
+
+[90mstderr[2m | tests/fix-regression-scan.live.test.ts[2m > [22m[2mregrese: sken u brány (izolovaná DB)[22m[39m
+[scanner/validate] logScan failed: error: null value in column "scanned_by_device_id" of relation "scan_logs" violates not-null constraint
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at RlsAwarePool.query [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:271:22[90m)[39m {
+  length: [33m201[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'23502'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [32m'tickets'[39m,
+  table: [32m'scan_logs'[39m,
+  column: [32m'scanned_by_device_id'[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'execMain.c'[39m,
+  line: [32m'1982'[39m,
+  routine: [32m'ExecConstraints'[39m
+}
+
+ [32m✓[39m tests/fix-regression-scan.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 754[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m      Tests [22m [1m[32m67 passed[39m[22m[90m (67)[39m
+[2m   Start at [22m 10:15:46
+[2m   Duration [22m 89.99s[2m (transform 1.72s, setup 4ms, collect 3.11s, tests 62.49s, environment 11ms, prepare 20.80s)[22m
+

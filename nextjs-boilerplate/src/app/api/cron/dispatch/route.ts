@@ -15,6 +15,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { recordCronRun } from '@/lib/ops/heartbeat';
+import { isCronAuthorized } from '@/lib/security/cron-auth';
 
 // ── VYPNUTO (F6/F7) ─────────────────────────────────────────────────────────
 // 'seat-upgrade-notify'  — ZUSTAVA VYPNUTY. Premisa "chybi seat_assignments"
@@ -71,24 +73,31 @@ const ALLOWED_JOBS = new Set([
   // Seat upgrade notifications — unique differentiator vs Eventim/TM
   // AXS Invite — release expired adjacent-seat holds
   'release-group-invite-holds',
+  // Kolo 7: opce na termíny sálu s prošlou lhůtou → expired, další v pořadí se posune (hodinově)
+  'expire-date-holds',
+  // Kolo 8: rezervace s platbou na pokladně — připomínka 24 h předem, propadlé uvolní místa (každých 15 min)
+  'seat-reservations',
+  // Kolo 8: firemní objednávky po splatnosti → upozornění pořadateli (denně)
+  'corporate-orders-overdue',
+  // Kolo 14 / krok 3 — hlídání provozu
+  'ops-watchdog',              // heartbeat cronů, zaplaceno bez vstupenek, refund_failed (každých 15 min)
+  'ops-daily-summary',         // denní souhrn v 7:00 Europe/Prague
 ]);
+
+/** Kolo 14: selhání cronu do Sentry (bez DSN no-op). */
+async function reportCronFailure(job: string, detail: string): Promise<void> {
+  try {
+    const Sentry = await import('@sentry/nextjs');
+    Sentry.captureException(new Error(`Cron ${job} selhal: ${detail}`), { tags: { cron: job } });
+  } catch { /* Sentry není dostupný */ }
+}
 
 export async function GET(req: NextRequest): Promise<Response> {
   // 1) Verify Vercel cron auth
-  const authHeader = req.headers.get('authorization') ?? '';
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const expected = `Bearer ${cronSecret}`;
-    if (authHeader !== expected) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-  } else if (!req.headers.get('x-vercel-cron')) {
-    // Žádný CRON_SECRET v env + není to Vercel cron → odmítni
-    // (dev test může volat ručně přes ?job=X bez Vercel headers; pak musí mít token)
-    return NextResponse.json(
-      { error: 'CRON_SECRET not configured and not a Vercel cron call' },
-      { status: 403 },
-    );
+  // Kolo 2: bez CRON_SECRET fail-closed (x-vercel-cron pošle kdokoli). Kolo 3: sdílený
+  // helper lib/security/cron-auth.ts (porovnání v konstantním čase).
+  if (!isCronAuthorized(req)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const job = req.nextUrl.searchParams.get('job');
@@ -106,18 +115,28 @@ export async function GET(req: NextRequest): Promise<Response> {
       headers: {
         'Content-Type': 'application/json',
         'x-internal-token': internalToken,
+        // Kolo 3 (K3a): cron routy autorizované CRON_SECRET (recompute-dynamic-pricing,
+        // refresh-spotify) ho dostanou dál; ostatní berou x-internal-token.
+        authorization: `Bearer ${process.env.CRON_SECRET ?? ''}`,
       },
       body: '{}',
     });
     const data: unknown = await res.json().catch(() => ({}));
+    // Kolo 14: heartbeat — last_success_at jen po skutečném úspěchu jobu; selhání jobu = 502 (Vercel ho uvidí
+    // jako neúspěšný běh; dřív 200 s chybou schovanou v těle) + Sentry.
+    await recordCronRun(job, res.ok, res.status, res.ok ? null : JSON.stringify(data).slice(0, 500));
+    if (!res.ok) await reportCronFailure(job, `HTTP ${res.status}`);
     return NextResponse.json({
       job,
       status: res.status,
       result: data,
-    });
+    }, { status: res.ok ? 200 : 502 });
   } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await recordCronRun(job, false, 500, message);
+    await reportCronFailure(job, message);
     return NextResponse.json(
-      { job, error: 'DISPATCH_FAILED', message: e instanceof Error ? e.message : String(e) },
+      { job, error: 'DISPATCH_FAILED', message },
       { status: 500 },
     );
   }

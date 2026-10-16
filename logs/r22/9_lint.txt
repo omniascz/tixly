@@ -1,0 +1,4 @@
+ESLint: 967 chyb celkem (baseline 1008)
+o 41 méně než baseline — lze utáhnout: node scripts/lint-baseline.mjs --update
+žádná nová chyba nad baseline
+exit=0

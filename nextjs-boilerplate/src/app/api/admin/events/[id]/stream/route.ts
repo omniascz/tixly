@@ -19,10 +19,8 @@ const bodySchema = z.object({
   stream_replay_days:     z.number().int().min(0).max(365).optional(),
 });
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const r = await db().query<{
       streaming_url:        string | null;
@@ -47,10 +45,8 @@ export async function GET(
   });
 }
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const body   = await req.json().catch(() => null);
     const parsed = bodySchema.safeParse(body);

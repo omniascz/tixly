@@ -1,0 +1,254 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[22m[39m
+[live-local-clone] live_wrapped_routes_muzcmsv8: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[22m[39m
+[seed] order= cacbbec2-766b-47a2-a0b1-91240a864105 user= ed3f0820-2f6e-4999-96ce-601965c1d848 listku= [33m1[39m
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/orders/[id]/upgrade-options — vlastnik vs cizi[22m[39m
+[upgrade-options] vlastnik [33m200[39m {"tickets":[{"ticketId":"2f508ea4-55c6-472b-98e3-6c92c6fb3c72","ticketTypeId":"251e431b-0c27-4dfa-882e-f7360714853f","ticketTypeNa
+[upgrade-options] CIZI     [33m404[39m {"error":"NOT_FOUND"}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/tickets — vlastnik vidi svuj listek[22m[39m
+[tickets] prvni listek id = 2f508ea4-55c6-472b-98e3-6c92c6fb3c72
+[tickets] vydano v DB = [33m1[39m
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mplatform/artists — platform admin kontext[22m[39m
+[platform/artists] [33m403[39m {"error":"FORBIDDEN"}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mplatform/artists — s platform-admin tokenem (drive 403)[22m[39m
+[platform/artists] [33m200[39m {"artists":[]}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mplatform/postal — GET seznam s admin tokenem[22m[39m
+[platform/postal] [33m200[39m {"deliveries":[]}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/tickets/[ticketId]/transfer — GET vlastnik vs CIZI (izolace)[22m[39m
+[my/tickets/transfer] vlastnik 200 {"ticket":{"id":"2f508ea4-55c6-472b-98e3-6c92c6fb3c72","status":"valid
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/tickets/[ticketId]/transfer — GET vlastnik vs CIZI (izolace)[22m[39m
+[my/tickets/transfer] CIZI     404 {"error":"NOT_FOUND"}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mcron/release-group-invite-holds — servisni kontext[22m[39m
+[cron/release-group-invite-holds] [33m200[39m {"ok":true,"releasedHoldSeats":0,"releasedUnpaidClaims":0}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/tickets/transfer POST -> tickets/transfer/[token] GET+POST[22m[39m
+[my/tickets/transfer POST] [33m201[39m {"token":"IytGPOpM-XuSSZDtrHEugj05gXhapvpo","toEmail":"cizi-1791452616001-4ql3m@tixly.test","fromEmail":"buyer
+[transfer] token v DB = ANO
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/tickets/transfer POST -> tickets/transfer/[token] GET+POST[22m[39m
+[transfer/token GET verejny] [33m200[39m {"transfer":{"to_email":"cizi-1791452616001-4ql3m@tixly.test","expires_at":"2026-10-11T09:43:36.524Z
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/tickets/transfer POST -> tickets/transfer/[token] GET+POST[22m[39m
+[transfer/token POST prijemce] [33m200[39m {"claimed":true,"ticketId":"2f508ea4-55c6-472b-98e3-6c92c6fb3c72"}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mplatform/postal/[id] PATCH s admin tokenem[22m[39m
+[platform/postal/[id] PATCH] [33m200[39m {"updated":true}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mR-40 bisect: ktery JOIN zahazuje radek prevodu[22m[39m
+   [bisect] 1 jen ticket_transfers rowCount=1
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mR-40 bisect: ktery JOIN zahazuje radek prevodu[22m[39m
+   [bisect] 2 + tickets            rowCount=1
+   [bisect] 3 + orders             rowCount=1
+   [bisect] 4 + events             rowCount=1
+   [bisect] 5 + venues             rowCount=1
+   [bisect] 6 + ticket_types       rowCount=1
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mR-40 bisect: ktery JOIN zahazuje radek prevodu[22m[39m
+   [bisect/app] 1 jen ticket_transfers rowCount=1
+   [bisect/app] 2 + tickets            rowCount=1
+   [bisect/app] 3 + orders             rowCount=1
+   [bisect/app] 4 + events             rowCount=1
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mR-40 bisect: ktery JOIN zahazuje radek prevodu[22m[39m
+   [bisect/app] 5 + venues             rowCount=1
+   [bisect/app] 6 + ticket_types       rowCount=1
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/orders/[id]/upgrade — vlastnik vs CIZI (posledni z 8)[22m[39m
+[my/orders/upgrade] vlastnik 404 {"error":"TICKET_NOT_FOUND"}
+
+[90mstdout[2m | tests/wrapped-routes.live.test.ts[2m > [22m[2mobalene routy — pozitivni cesta[2m > [22m[2mmy/orders/[id]/upgrade — vlastnik vs CIZI (posledni z 8)[22m[39m
+[my/orders/upgrade] CIZI     404 {"error":"TICKET_NOT_FOUND"}
+
+ [32m✓[39m tests/wrapped-routes.live.test.ts [2m ([22m[2m11 tests[22m[2m)[22m[33m 1492[2mms[22m[39m
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[22m[39m
+[live-local-clone] live_public_routes_muzcmubs: handlery běží jako tixly_app (RLS platí)
+
+(node:26760) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2mdiscover vraci publikovanou akci (drive prazdno pod tixly_app)[22m[39m
+[discover] [33m200[39m akci: [33m1[39m
+
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2martists/[slug] vraci umelce (drive 404 z prazdneho vysledku)[22m[39m
+[artists] [33m200[39m
+
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2mRED: puvodni dotaz BEZ JOINu na events vydal balicek draft akce[22m[39m
+[R-13 RED] draft bez JOINu: [33m1[39m radku
+
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2mGREEN: routa NEvyda balicky draft akce[22m[39m
+[R-13 GREEN draft] { status: [33m200[39m, count: [33m0[39m }
+
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2mGREEN: routa porad vydava balicky publikovane akce[22m[39m
+[R-13 GREEN pub] { status: [33m200[39m, count: [33m1[39m }
+
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2malert: anonymni prihlaseni k hlidacimu psu (servisni kontext)[22m[39m
+[alert anonym] {
+  status: [33m200[39m,
+  body: [32m'{"token":"FGghEKW61yASYF5J0X6FRg","eventTitle":"PUB-2136ca0c"}'[39m
+}
+
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2malert: prihlaseny uzivatel (uzivatelsky kontext)[22m[39m
+[alert user] {
+  status: [33m200[39m,
+  body: [32m'{"token":"RRpnrdzyoFZAtBbE_5ldGw","eventTitle":"PUB-2136ca0c"}'[39m
+}
+
+[90mstdout[2m | tests/public-routes.live.test.ts[2m > [22m[2mverejne routy pod tixly_app[2m > [22m[2malert: servisni kontext NEzustava po requestu (anonym pak nevidi cizi)[22m[39m
+[alert leak-check] v tabulce: [33m3[39m | anonym vidi: [33m0[39m
+
+ [32m✓[39m tests/public-routes.live.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[33m 1002[2mms[22m[39m
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[22m[39m
+[live-local-clone] live_mig455_muzcmvgx: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[22m[39m
+wero seed: 23502 null value in column "amount_halire" of relation "wero_payments" viola
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  catalog.event_distribution_partners    NEVIM (FK retez: neresitelny uuid sloupec)
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  catalog.event_sponsors                 [promoter] vlastni=1 cizi=0  OK
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  catalog.event_travel_links             [promoter] vlastni=1 cizi=0  OK
+  catalog.event_travel_packages          NEVIM (FK retez: neresitelny uuid sloupec)
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  catalog.venue_gates                    [promoter] vlastni=1 cizi=0  OK
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  identity.magic_link_tokens             [user] vlastni=1 cizi=0  OK
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  lineups.performance_cast               [promoter] vlastni=1 cizi=0  OK
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  marketing.ticket_alerts                [user] vlastni=1 cizi=0  OK
+  orders.box_office_sales                NEVIM (FK retez: neresitelny uuid sloupec)
+  orders.box_office_sessions             NEVIM (FK retez: neresitelny uuid sloupec)
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  orders.postal_deliveries               [user] vlastni=1 cizi=0  OK
+  orders.seat_upgrades                   NEVIM (FK retez: neresitelny uuid sloupec)
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  orders.ticket_transfers                [user] vlastni=1 cizi=0  OK
+  orders.travel_bookings                 NEVIM (FK retez: neresitelny uuid sloupec)
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  payments.wero_payments                 [promoter] vlastni=1 cizi=0  OK
+
+[90mstdout[2m | tests/mig455.live.test.ts[2m > [22m[2mmigrace 455 — chovani policies[2m > [22m[2mvlastni vs cizi kontext na kazde tabulce z 455[22m[39m
+  payments.wero_webhooks                 [promoter] vlastni=0 cizi=0  vlastni NEVIDI
+
+  SOUHRN: OK=9  UNIK=0  NEVIM=6  z 16 tabulek
+
+ [32m✓[39m tests/mig455.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 1314[2mms[22m[39m
+[90mstdout[2m | tests/fix-r16-blob-upload.live.test.ts[2m > [22m[2mVercel Blob — nahrávání se po upgradu chová stejně[22m[39m
+[live-local-clone] live_blob_upload_muzcmwv7: handlery běží jako tixly_app (RLS platí)
+
+ [32m✓[39m tests/fix-r16-blob-upload.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 5036[2mms[22m[39m
+[90mstdout[2m | tests/rls-pool-pooler.live.test.ts[2m > [22m[2mR-56 — dva pooly: connect() primy, query() poolovany[22m[39m
+[live-local-clone] live_r56_dva_pooly_muzcn17l: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/rls-pool-pooler.live.test.ts[2m > [22m[2mR-56 — dva pooly: connect() primy, query() poolovany[2m > [22m[2mconnect() přímo na POOLERU (bez přímého URL) je těsný[22m[39m
+[R-56] connect na POOLERU {"n":60,"bad":0,"foreign":0,"empty":0}
+
+[90mstdout[2m | tests/rls-pool-pooler.live.test.ts[2m > [22m[2mR-56 — dva pooly: connect() primy, query() poolovany[2m > [22m[2mOPRAVA: DATABASE_URL = pooler -> connect() 0/60 i query() 0/60[22m[39m
+[R-56] connect() (odvozeny direct) {"n":60,"bad":0,"foreign":0,"empty":0}
+[R-56] query()   (pooler)          {"n":60,"bad":0,"foreign":0,"empty":0}
+
+ [32m✓[39m tests/rls-pool-pooler.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 2670[2mms[22m[39m
+[90mstdout[2m | tests/payouts-select.live.test.ts[2m > [22m[2m§207 vyplaty — RED->GREEN na SELECTu + PEEL[22m[39m
+[live-local-clone] live_payouts_select_muzcn3md: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/payouts-select.live.test.ts[2m > [22m[2m§207 vyplaty — RED->GREEN na SELECTu + PEEL[2m > [22m[2mRED: puvodni dotaz pada na 42703[22m[39m
+[§207] RED  = 42703
+
+[90mstdout[2m | tests/payouts-select.live.test.ts[2m > [22m[2m§207 vyplaty — RED->GREEN na SELECTu + PEEL[2m > [22m[2mGREEN: opraveny dotaz vrati radek[22m[39m
+[§207] GREEN radku = [33m1[39m {"payout_id":"3a2c8b72-46ab-45f7-b52d-6e504fd2fe76","promoter_id":"40e59d45-cd9d-4a60-98df-004d4d6ab0c4","net_payout":500000,"currency":"CZK","retry_count":0,"p
+
+[90mstdout[2m | tests/payouts-select.live.test.ts[2m > [22m[2m§207 vyplaty — RED->GREEN na SELECTu + PEEL[2m > [22m[2mPEEL: projde servisni UPDATE na platform.payouts? (R-30)[22m[39m
+[§207] PEEL UPDATE rowCount = [33m1[39m <- projde
+
+ [32m✓[39m tests/payouts-select.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 766[2mms[22m[39m
+[90mstdout[2m | tests/live-fixture.live.test.ts[2m > [22m[2mlive-fixture seed factory[22m[39m
+[live-local-clone] live_seed_smoke_muzcn4lg: handlery běží jako tixly_app (RLS platí)
+
+ [32m✓[39m tests/live-fixture.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 944[2mms[22m[39m
+[90mstdout[2m | tests/publish-events.live.test.ts[2m > [22m[2mv1/publish/events PUT pres skutecny handler[22m[39m
+[live-local-clone] live_publish_events_muzcn5op: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/publish-events.live.test.ts[2m > [22m[2mv1/publish/events PUT pres skutecny handler[2m > [22m[2mPUT projde a zapise base_price + remaining_qty (drive 42703)[22m[39m
+[publish PUT] [33m200[39m {"ok":true,"eventId":"4fe17077-d3c7-4e9e-84d9-c41f6e078f54"}
+
+[90mstdout[2m | tests/publish-events.live.test.ts[2m > [22m[2mv1/publish/events PUT pres skutecny handler[2m > [22m[2mPUT projde a zapise base_price + remaining_qty (drive 42703)[22m[39m
+[ticket_type] { base_price: [33m33000[39m, remaining_qty: [33m42[39m }
+
+ [32m✓[39m tests/publish-events.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 906[2mms[22m[39m
+[90mstdout[2m | tests/red-green-488.live.test.ts[2m > [22m[2mRED->GREEN 488 royalty_* policies[22m[39m
+[live-local-clone] RED stav — vynechano: 488
+
+[90mstdout[2m | tests/red-green-488.live.test.ts[2m > [22m[2mRED->GREEN 488 royalty_* policies[22m[39m
+[live-local-clone] live_rg488_muzcn6su: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/red-green-488.live.test.ts[2m > [22m[2mRED->GREEN 488 royalty_* policies[2m > [22m[2mRED 42501 → GREEN 201, cizi poradatel nevidi[22m[39m
+[488] RED  = 42501
+
+[90mstdout[2m | tests/red-green-488.live.test.ts[2m > [22m[2mRED->GREEN 488 royalty_* policies[2m > [22m[2mRED 42501 → GREEN 201, cizi poradatel nevidi[22m[39m
+[488] GREEN = [33m201[39m {"id":"a935be37-ac08-4cf5-9828-864dc73041b9","event_id":"4eba1191-2d47-4b5b-9bc5-e8f4d92fac9a","promoter_id":"7bf58280-e
+
+[90mstdout[2m | tests/red-green-488.live.test.ts[2m > [22m[2mRED->GREEN 488 royalty_* policies[2m > [22m[2mRED 42501 → GREEN 201, cizi poradatel nevidi[22m[39m
+[488] cizi poradatel GET cizi akce = [33m403[39m
+
+[90mstdout[2m | tests/red-green-488.live.test.ts[2m > [22m[2mRED->GREEN 488 royalty_* policies[2m > [22m[2mRED 42501 → GREEN 201, cizi poradatel nevidi[22m[39m
+[488] cizi poradatel vidi radku = [33m0[39m
+
+ [32m✓[39m tests/red-green-488.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 3948[2mms[22m[39m
+[90mstdout[2m | tests/red-green-470-471.live.test.ts[2m > [22m[2mRED->GREEN migraci 470 a 471 (RED = klon BEZ nich)[22m[39m
+[live-local-clone] RED stav — vynechano: 470, 471
+
+[90mstdout[2m | tests/red-green-470-471.live.test.ts[2m > [22m[2mRED->GREEN migraci 470 a 471 (RED = klon BEZ nich)[22m[39m
+[live-local-clone] live_redgreen_muzcna93: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/red-green-470-471.live.test.ts[2m > [22m[2mRED->GREEN migraci 470 a 471 (RED = klon BEZ nich)[2m > [22m[2m470 ticket_transfers + 471 transit_passes[22m[39m
+  --- 470 orders.ticket_transfers ---
+  servisni kontext vidi transfer             RED=0  GREEN=1  OPRAVENO
+  platform admin vidi transfer               RED=1  GREEN=1  uz drive OK (RED nebyl RED)
+  --- 471 orders.transit_passes ---
+  platform admin vidi transit pass           RED=0  GREEN=1  OPRAVENO
+  vlastnik ho vidi porad                     RED=1  GREEN=1  uz drive OK (RED nebyl RED)
+
+ [32m✓[39m tests/red-green-470-471.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 4174[2mms[22m[39m
+[90mstdout[2m | tests/payouts-processing.live.test.ts[2m > [22m[2m§208 — RED->GREEN migrace 468 na skutecne ceste[22m[39m
+[live-local-clone] live_payouts_red_muzcndx4: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/payouts-processing.live.test.ts[2m > [22m[2m§208 — RED->GREEN migrace 468 na skutecne ceste[2m > [22m[2mRED (bez 468): zapis processing pada na 23514[22m[39m
+[§208] RED (bez 468)  = 23514
+
+[90mstdout[2m | tests/payouts-processing.live.test.ts[2m > [22m[2m§208 — RED->GREEN migrace 468 na skutecne ceste[2m > [22m[2mGREEN (s 468): zapis processing projde[22m[39m
+[live-local-clone] live_payouts_green_muzcnfrf: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/payouts-processing.live.test.ts[2m > [22m[2m§208 — RED->GREEN migrace 468 na skutecne ceste[2m > [22m[2mGREEN (s 468): zapis processing projde[22m[39m
+[§208] GREEN (s 468) = PROSLO
+
+ [32m✓[39m tests/payouts-processing.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 7866[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m11 passed[39m[22m[90m (11)[39m
+[2m      Tests [22m [1m[32m40 passed[39m[22m[90m (40)[39m
+[2m   Start at [22m 11:43:34
+[2m   Duration [22m 35.86s[2m (transform 568ms, setup 2ms, collect 1.36s, tests 30.12s, environment 3ms, prepare 1.90s)[22m
+

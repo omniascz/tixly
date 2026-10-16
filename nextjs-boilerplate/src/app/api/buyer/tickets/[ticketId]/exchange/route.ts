@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 import { z } from 'zod';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 interface TicketInfo {
   id: string;
@@ -22,10 +23,8 @@ interface AvailableEvent {
   available_seats_count: number;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
     if (!/^[0-9a-f-]{36}$/i.test(params.ticketId)) {
       return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
@@ -94,10 +93,8 @@ const postSchema = z.object({
   targetSeatId: z.string().uuid().optional(),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
     if (!/^[0-9a-f-]{36}$/i.test(params.ticketId)) {
       return NextResponse.json({ error: 'BAD_ID' }, { status: 422 });
@@ -108,6 +105,9 @@ export async function POST(
     if (!parsed.success) {
       return NextResponse.json({ error: 'INVALID_BODY', issues: parsed.error.issues }, { status: 422 });
     }
+    // Kolo 7 (C-29): výměna na jinou akci je nový nákup — cílová akce musí mít otevřený online prodej.
+    const salesClosed = await saleBlockedResponse(db(), parsed.data.targetEventId, 'online');
+    if (salesClosed) return salesClosed;
 
     const client = await db().connect();
     try {
@@ -194,7 +194,9 @@ export async function POST(
         return NextResponse.json({ error: 'TARGET_EVENT_PAST' }, { status: 409 });
       }
 
-      const targetTtRes = await client.query<{
+      // Kolo 2 / V8: kapacita a sedadla cílové akce = systémový efekt výměny (kupec je
+      // měnit ani zamykat nesmí); vstupenka je výše ověřena jako kupcova (FOR UPDATE OF t).
+      const targetTtRes = await asSystemInTx(client, () => client.query<{
         id: string;
         remaining_qty: number;
       }>(
@@ -206,7 +208,7 @@ export async function POST(
           LIMIT 1
             FOR UPDATE`,
         [parsed.data.targetEventId],
-      );
+      ));
 
       if (targetTtRes.rows.length === 0) {
         await client.query('ROLLBACK');
@@ -218,7 +220,7 @@ export async function POST(
       let newSeatInfo: string | null = null;
 
       if (parsed.data.targetSeatId) {
-        const seatRes = await client.query<{
+        const seatRes = await asSystemInTx(client, () => client.query<{
           id: string;
           status: string;
           row_label: string | null;
@@ -229,7 +231,7 @@ export async function POST(
             WHERE id = $1 AND event_id = $2
               FOR UPDATE`,
           [parsed.data.targetSeatId, parsed.data.targetEventId],
-        );
+        ));
         if (seatRes.rows.length === 0 || seatRes.rows[0].status !== 'available') {
           await client.query('ROLLBACK');
           return NextResponse.json({ error: 'SEAT_NOT_AVAILABLE' }, { status: 409 });
@@ -238,7 +240,7 @@ export async function POST(
         const s = seatRes.rows[0];
         newSeatInfo = s.row_label && s.seat_num ? `${s.row_label}${s.seat_num}` : null;
       } else {
-        const autoSeatRes = await client.query<{
+        const autoSeatRes = await asSystemInTx(client, () => client.query<{
           id: string;
           row_label: string | null;
           seat_num: string | null;
@@ -250,7 +252,7 @@ export async function POST(
             LIMIT 1
               FOR UPDATE`,
           [parsed.data.targetEventId],
-        );
+        ));
         if (autoSeatRes.rows.length > 0) {
           newSeatId = autoSeatRes.rows[0].id;
           const s = autoSeatRes.rows[0];
@@ -259,56 +261,99 @@ export async function POST(
       }
 
       if (ticket.event_seat_id) {
-        await client.query(
+        await asSystemInTx(client, () => client.query(
           `UPDATE catalog.event_seats
               SET status = 'available', order_id = NULL, ticket_id = NULL,
                   hold_user_id = NULL, hold_until = NULL, updated_at = NOW()
             WHERE id = $1`,
           [ticket.event_seat_id],
-        );
+        ));
       }
 
       if (newSeatId) {
-        await client.query(
+        await asSystemInTx(client, () => client.query(
           `UPDATE catalog.event_seats
               SET status = 'sold', ticket_id = $1, updated_at = NOW()
             WHERE id = $2`,
           [ticket.id, newSeatId],
-        );
+        ));
       }
 
-      await client.query(
+      // Kolo 3 (guard 486): sedadlo lístku a akce objednávky jsou chráněné sloupce —
+      // systémový efekt výměny; vstupenka ověřena výše jako kupcova (FOR UPDATE OF t).
+      await asSystemInTx(client, () => client.query(
         `UPDATE tickets.tickets
             SET event_seat_id = $1, updated_at = NOW()
           WHERE id = $2`,
         [newSeatId, ticket.id],
-      );
+      ));
 
-      await client.query(
-        `UPDATE orders.orders
-            SET event_id = $1, updated_at = NOW()
-          WHERE id = $2`,
-        [parsed.data.targetEventId, ticket.order_id],
+      // Kolo 4: dřív `UPDATE orders SET event_id` pro CELOU objednávku — akce vstupenky se
+      // odvozuje z objednávky, takže na nový termín se „přestěhovaly" i ostatní vstupenky
+      // objednávky; vyměněná navíc zůstala typem původní akce.
+      //  - jediná vstupenka v objednávce → přepne se objednávka i typ lístku/položky;
+      //  - víc vstupenek → vyměněná se přesune do nové objednávky výměny (cílový termín,
+      //    cena 0 — zaplacené peníze zůstávají u původní objednávky), ostatní zůstanou.
+      const siblings = await client.query<{ n: number }>(
+        `SELECT COUNT(*)::int AS n FROM tickets.tickets WHERE order_id = $1 AND id <> $2`,
+        [ticket.order_id, ticket.id],
       );
+      if ((siblings.rows[0]?.n ?? 0) === 0) {
+        await asSystemInTx(client, async () => {
+          await client.query(
+            `UPDATE orders.orders SET event_id = $1, updated_at = NOW() WHERE id = $2`,
+            [parsed.data.targetEventId, ticket.order_id],
+          );
+          await client.query(
+            `UPDATE orders.order_items SET ticket_type_id = $1 WHERE order_id = $2`,
+            [targetTt.id, ticket.order_id],
+          );
+          await client.query(
+            `UPDATE tickets.tickets SET ticket_type_id = $1, updated_at = NOW() WHERE id = $2`,
+            [targetTt.id, ticket.id],
+          );
+        });
+      } else {
+        await asSystemInTx(client, async () => {
+          const created = await client.query<{ id: string }>(
+            `INSERT INTO orders.orders
+               (user_id, event_id, status, total_amount, currency, payment_provider, paid_at, expires_at)
+             SELECT $1, $2, 'paid', 0, o.currency, 'free', NOW(), NOW()
+               FROM orders.orders o WHERE o.id = $3
+             RETURNING id`,
+            [userId, parsed.data.targetEventId, ticket.order_id],
+          );
+          const newOrderId = created.rows[0].id;
+          await client.query(
+            `INSERT INTO orders.order_items (order_id, ticket_type_id, quantity, unit_price, total_price)
+             VALUES ($1, $2, 1, 0, 0)`,
+            [newOrderId, targetTt.id],
+          );
+          await client.query(
+            `UPDATE tickets.tickets SET order_id = $1, ticket_type_id = $2, updated_at = NOW() WHERE id = $3`,
+            [newOrderId, targetTt.id, ticket.id],
+          );
+        });
+      }
 
-      await client.query(
+      await asSystemInTx(client, () => client.query(
         `UPDATE catalog.ticket_types
             SET remaining_qty = remaining_qty - 1
           WHERE id = $1`,
         [targetTt.id],
-      );
+      ));
 
-      const sourceTtRes = await client.query<{ id: string }>(
+      const sourceTtRes = await asSystemInTx(client, () => client.query<{ id: string }>(
         `SELECT id FROM catalog.ticket_types WHERE event_id = $1 AND id = $2`,
         [ticket.event_id, ticket.ticket_type_id],
-      );
+      ));
       if (sourceTtRes.rows.length > 0) {
-        await client.query(
+        await asSystemInTx(client, () => client.query(
           `UPDATE catalog.ticket_types
               SET remaining_qty = remaining_qty + 1
             WHERE id = $1`,
           [ticket.ticket_type_id],
-        );
+        ));
       }
 
       await client.query('COMMIT');

@@ -10,11 +10,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 import { runAsPromoter } from '@/lib/admin-auth';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
+import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     let body: {
       sessionId?: string;
@@ -33,6 +33,9 @@ export async function POST(
     if (!sessionId || !ticketTypeId) {
       return NextResponse.json({ error: 'MISSING_FIELDS' }, { status: 422 });
     }
+    // Kolo 7 (C-29): pokladna na místě prodává do konce akce (date_end, jinak začátek + 12 h).
+    const salesClosed = await saleBlockedResponse(db(), params.id, 'box_office');
+    if (salesClosed) return salesClosed;
 
     const client = await db().connect();
     try {
@@ -97,8 +100,8 @@ export async function POST(
       const orderRes = await client.query<{ id: string }>(
         `INSERT INTO orders.orders
            (user_id, event_id, status, total_amount, currency, payment_provider,
-            is_box_office, box_office_session_id, idempotency_key)
-         VALUES ($1,$2,'paid',$3,$4,'box_office',true,$5,gen_random_uuid())
+            is_box_office, box_office_session_id, idempotency_key, paid_at, expires_at)
+         VALUES ($1,$2,'paid',$3,$4,'box_office',true,$5,gen_random_uuid(), now(), now())
          RETURNING id`,
         [userId, params.id, total, tt.currency, sessionId],
       );
@@ -148,10 +151,14 @@ export async function POST(
         );
       }
 
+      // Kolo 8 / krok 5: vstupenky (hlavička routy je slibovala, ale nevznikaly) — sdílený issuer jako POS
+      const issued = await issueTicketsForOrder(orderId, client);
+
       await client.query('COMMIT');
 
       return NextResponse.json({
         orderId,
+        tickets: issued.map((t) => ({ ticketId: t.ticketId })),
         receiptNumber: receiptNum,
         totalHalire: total,
         changeHalire: change,

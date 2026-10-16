@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash, randomBytes } from 'crypto';
 import bcrypt from 'bcryptjs';
-import { db } from '@/lib/db/rls-pool';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { z } from 'zod';
 
 const bodySchema = z.object({
@@ -11,6 +11,8 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // Kolo 2 / 3B: výdej tokenu partnerovi (ověření client_secret uvnitř); distribution_* pod RLS jen svc/admin
+  return runWithServiceContext(async () => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
@@ -53,5 +55,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     access_token: rawToken,
     token_type: 'Bearer',
     expires_in: 3600,
+  });
   });
 }

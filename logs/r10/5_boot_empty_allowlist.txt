@@ -1,0 +1,6 @@
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3200
+
+ ✓ Starting...
+[staging-guard] Testovací prostředí odmítá start (produkce nebo chybějící pojistka):
+ - STAGING_EMAIL_ALLOWLIST je prázdný — staging posílá e-maily přes Resend, bez allowlistu by šly komukoli

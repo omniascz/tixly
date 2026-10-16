@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { RefundForm, type RefundSubmit } from '@/components/admin/RefundForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,21 +22,6 @@ interface Props {
   currency: Currency;
   tickets: TicketRow[];
 }
-
-type RefundReason =
-  | 'event_cancelled'
-  | 'customer_request'
-  | 'duplicate_order'
-  | 'fraud'
-  | 'chargeback';
-
-const REFUND_REASON_LABELS: Record<RefundReason, string> = {
-  event_cancelled: 'Akce byla zrušena',
-  customer_request: 'Žádost zákazníka',
-  duplicate_order: 'Duplicitní objednávka',
-  fraud: 'Podezření z podvodu',
-  chargeback: 'Chargeback',
-};
 
 function authFetch(url: string, init?: RequestInit): Promise<Response> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
@@ -75,12 +61,55 @@ export function SupportActions({
   const [newName, setNewName] = useState('');
   const [cancelTicketId, setCancelTicketId] = useState('');
   const [note, setNote] = useState('');
-  const [refundReason, setRefundReason] = useState<RefundReason>('customer_request');
-  const [refundConfirm, setRefundConfirm] = useState(false);
+  const [altEmail, setAltEmail] = useState('');
 
   const validTickets = tickets.filter((t) => t.status === 'valid');
   const canRefund = orderStatus === 'paid';
   const alreadyRefunded = orderStatus === 'refunded';
+
+  /** Co se stalo — hláška „Hotovo." uživateli neřekla, jestli e-mail odešel. */
+  const DONE_MESSAGES: Record<string, string> = {
+    resend_email: 'Potvrzení objednávky odesláno znovu.',
+    send_message: 'Zpráva kupujícímu odeslána.',
+    transfer: 'Vstupenka převedena na nový e-mail.',
+    name_change: 'Jméno na vstupence změněno.',
+    cancel_ticket: 'Vstupenka zneplatněna. Peníze se nevracely.',
+  };
+
+  /**
+   * Odeslání vstupenek jde vlastní cestou, ne přes znovuspuštění dokončení
+   * objednávky. To by kromě e-mailu znovu poslalo i SMS a znovu spustilo
+   * měřicí kódy — pro pouhé přeposlání vstupenky nežádoucí.
+   */
+  async function sendTickets() {
+    setBusy(true);
+    setError(null);
+    setFeedback(null);
+    try {
+      const res = await authFetch(`/api/admin/orders/${orderId}/send-tickets`, {
+        method: 'POST',
+        body: JSON.stringify({
+          toOverride: altEmail.trim() || undefined,
+          note: note.trim() || undefined,
+        }),
+      });
+      const j = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        message?: string;
+        error?: string;
+      };
+      if (!res.ok || !j.ok) {
+        setError(j.message ?? j.error ?? `Nepodařilo se odeslat (HTTP ${res.status}).`);
+        return;
+      }
+      setFeedback(j.message ?? 'Vstupenky odeslány.');
+      setNote('');
+      setAltEmail('');
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function fire(payload: Record<string, unknown>) {
     setBusy(true);
@@ -93,10 +122,11 @@ export function SupportActions({
       });
       const j = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
       if (!res.ok || !j.ok) {
-        setError(j.error ?? `HTTP ${res.status}`);
+        setError(j.error ?? `Nepodařilo se to provést (HTTP ${res.status}).`);
         return;
       }
-      setFeedback('Hotovo.');
+      const action = typeof payload.action === 'string' ? payload.action : '';
+      setFeedback(DONE_MESSAGES[action] ?? 'Provedeno.');
       setNote('');
       router.refresh();
     } finally {
@@ -104,14 +134,14 @@ export function SupportActions({
     }
   }
 
-  async function fireRefund() {
+  async function fireRefund({ reason, note: refundNote }: RefundSubmit) {
     setBusy(true);
     setError(null);
     setFeedback(null);
     try {
       const res = await authFetch(`/api/admin/orders/${orderId}/refund`, {
         method: 'POST',
-        body: JSON.stringify({ reason: refundReason, note: note || undefined }),
+        body: JSON.stringify({ reason, note: refundNote }),
       });
       const j = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
@@ -132,7 +162,6 @@ export function SupportActions({
         );
       }
       setNote('');
-      setRefundConfirm(false);
       router.refresh();
     } finally {
       setBusy(false);
@@ -164,7 +193,7 @@ export function SupportActions({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Customer support</CardTitle>
+        <CardTitle>Podpora zákazníka</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="mb-4 flex items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2">
@@ -173,20 +202,20 @@ export function SupportActions({
             <span className="text-muted-foreground">— formát 152×51 mm pro termotiskárnu (Zebra/TSC)</span>
           </div>
           <Button variant="outline" size="sm" onClick={printLabels} disabled={busy}>
-            {busy ? 'Generuji…' : '🖨 Tisk vstupenek'}
+            {busy ? 'Generuji…' : 'Tisk vstupenek'}
           </Button>
         </div>
 
         <div className="mb-4 flex flex-wrap gap-2">
-          <TabButton active={tab === 'resend'} onClick={() => setTab('resend')} label="Resend e-mail" />
+          <TabButton active={tab === 'resend'} onClick={() => setTab('resend')} label="Poslat znovu" />
           <TabButton active={tab === 'message'} onClick={() => setTab('message')} label="Napsat zprávu" />
-          <TabButton active={tab === 'transfer'} onClick={() => setTab('transfer')} label="Transfer" />
+          <TabButton active={tab === 'transfer'} onClick={() => setTab('transfer')} label="Převod na jiného" />
           <TabButton active={tab === 'name'} onClick={() => setTab('name')} label="Změna jména" />
           <TabButton active={tab === 'cancel'} onClick={() => setTab('cancel')} label="Zrušit lístek" />
           <TabButton
             active={tab === 'refund'}
             onClick={() => setTab('refund')}
-            label="Refund"
+            label="Vrátit peníze"
             tone="destructive"
           />
         </div>
@@ -195,15 +224,21 @@ export function SupportActions({
           {tab === 'resend' ? (
             <>
               <p className="text-sm text-muted-foreground">
-                Pošle confirmation email znovu na <strong>{buyerEmail}</strong>.
+                Pošle vstupenky s QR kódem na <strong>{buyerEmail}</strong>, nebo na jinou adresu.
+                Funguje i u objednávek na fakturu a bankovní převod, které e-mail nikdy nedostaly.
               </p>
               <Input
-                placeholder="Poznámka (volitelné, do audit logu)"
+                placeholder="Poslat na jinou adresu (volitelné)"
+                value={altEmail}
+                onChange={(e) => setAltEmail(e.target.value)}
+              />
+              <Input
+                placeholder="Poznámka do e-mailu (volitelné)"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
               />
-              <Button onClick={() => fire({ action: 'resend_email' })} disabled={busy}>
-                {busy ? 'Posílám…' : 'Poslat znovu'}
+              <Button onClick={() => void sendTickets()} disabled={busy}>
+                {busy ? 'Posílám…' : 'Poslat vstupenky'}
               </Button>
             </>
           ) : null}
@@ -381,68 +416,16 @@ export function SupportActions({
                   <code>{orderStatus}</code>).
                 </p>
               ) : (
-                <>
-                  <p className="text-sm text-muted-foreground">
-                    Vrátí kupci <strong>{formatMoney(totalAmount, currency)}</strong>,
-                    znehodnotí všechny lístky, vrátí kapacitu do prodeje a odešle e-mail
-                    s potvrzením. Akci nelze vrátit zpět.
-                  </p>
-                  <div>
-                    <label
-                      htmlFor="refund-reason"
-                      className="mb-1 block text-xs font-medium"
-                    >
-                      Důvod
-                    </label>
-                    <select
-                      id="refund-reason"
-                      className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-                      value={refundReason}
-                      onChange={(e) => setRefundReason(e.target.value as RefundReason)}
-                    >
-                      {(Object.keys(REFUND_REASON_LABELS) as RefundReason[]).map((r) => (
-                        <option key={r} value={r}>
-                          {REFUND_REASON_LABELS[r]}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="refund-note"
-                      className="mb-1 block text-xs font-medium"
-                    >
-                      Poznámka pro audit log (volitelné)
-                    </label>
-                    <Input
-                      id="refund-note"
-                      placeholder="Např. zákazník volal, akce byla zrušena z důvodu nemoci"
-                      value={note}
-                      onChange={(e) => setNote(e.target.value)}
-                      maxLength={500}
-                    />
-                  </div>
-                  <label className="flex items-start gap-2 text-xs">
-                    <input
-                      type="checkbox"
-                      checked={refundConfirm}
-                      onChange={(e) => setRefundConfirm(e.target.checked)}
-                      className="mt-0.5"
-                    />
-                    <span>
-                      Potvrzuji, že chci vrátit{' '}
-                      <strong>{formatMoney(totalAmount, currency)}</strong> a znehodnotit
-                      všechny vstupenky této objednávky.
-                    </span>
-                  </label>
-                  <Button
-                    variant="destructive"
-                    onClick={fireRefund}
-                    disabled={busy || !refundConfirm}
-                  >
-                    {busy ? 'Refunduji…' : 'Provést refund'}
-                  </Button>
-                </>
+                // Tentýž formulář používá i seznam objednávek — viz
+                // components/admin/RefundForm.tsx. Dřív tu byly dvě různé
+                // implementace a ta v seznamu důvod vůbec nenabízela.
+                <RefundForm
+                  consequence={`Vrátí kupujícímu ${formatMoney(totalAmount, currency)} na původní platební metodu, zneplatní všechny vstupenky této objednávky, vrátí kapacitu do prodeje a odešle potvrzení e-mailem. Akci nelze vzít zpět.`}
+                  confirmLabel={`Potvrzuji vrácení ${formatMoney(totalAmount, currency)} a zneplatnění všech vstupenek této objednávky.`}
+                  submitLabel="Vrátit peníze"
+                  busy={busy}
+                  onSubmit={fireRefund}
+                />
               )}
             </>
           ) : null}

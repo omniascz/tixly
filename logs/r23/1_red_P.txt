@@ -1,0 +1,145 @@
+
+Running 1 test using 1 worker
+
+[r23] (a): místo Hlediště ř. 1 č. 12 podrženo
+[r23] (a1) Karta viditelná: true, Převodem viditelná: true
+[r23] (a2) input[value="wero"]: 1, prvků s textem „Wero": 1
+[r23] snímek sekce „Platební metoda" red_P_default.png
+[r23] pojistka: POST /api/checkout (gopay, stránka) → 200, gatewayUrl http://localhost:3998/gw/3135805553
+[r23] pojistka: objednávek kontrolního kupce v DB: 1
+[r23] tělo stránky (klíče): buyerEmail, buyerName, eventId, paymentMethod, quantity, seatHoldToken, seatIds, ticketTypeId
+[r23] (b): místo Hlediště ř. 3 č. 6 podrženo
+[r23] (b1) POST /api/checkout (wero) → 500, error=Internal server error, message=—, provider=—, orderId=ne
+[r23] (b2) objednávek kupce (wero) před: 0, po: 1
+[r23] (b3) dostupnost před: {"remainingQty":59,"seatStatus":"held"}, po: {"remainingQty":58,"seatStatus":"sold"}
+[r23] zahozených požadavků mimo localhost: 0 []
+  x  1 [golden-path] › tests\golden-path-r23-wero.spec.ts:164:5 › (P) produkčně bez ALLOW_MOCK_PAYMENTS: Wero se nenabízí a API ho odmítne před založením objednávky (8.6s)
+
+
+  1) [golden-path] › tests\golden-path-r23-wero.spec.ts:164:5 › (P) produkčně bez ALLOW_MOCK_PAYMENTS: Wero se nenabízí a API ho odmítne před založením objednávky 
+
+    Error: (a2) žádný input[value="wero"]
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m1[39m
+
+      180 |   expect.soft(gopayVisible, '(a1) Karta').toBe(true);
+      181 |   expect.soft(bankVisible, '(a1) Převodem').toBe(true);
+    > 182 |   expect.soft(weroInputs, '(a2) žádný input[value="wero"]').toBe(0);
+          |                                                             ^
+      183 |   expect.soft(weroText, '(a2) žádný text „Wero"').toBe(0);
+      184 |
+      185 |   // pojistka: kontrolní objednávka stránkou s gopay → 200 s gatewayUrl (zachycené tělo = tělo stránky)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r23-wero.spec.ts:182:61
+
+    Error: (a2) žádný text „Wero"
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m1[39m
+
+      181 |   expect.soft(bankVisible, '(a1) Převodem').toBe(true);
+      182 |   expect.soft(weroInputs, '(a2) žádný input[value="wero"]').toBe(0);
+    > 183 |   expect.soft(weroText, '(a2) žádný text „Wero"').toBe(0);
+          |                                                   ^
+      184 |
+      185 |   // pojistka: kontrolní objednávka stránkou s gopay → 200 s gatewayUrl (zachycené tělo = tělo stránky)
+      186 |   const ctrl = await submitGopay(page, ctrlEmail);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r23-wero.spec.ts:183:51
+
+    Error: (b1) stavový kód
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m503[39m
+    Received: [31m500[39m
+
+      209 |   note(`(b2) objednávek kupce (wero) před: ${before}, po: ${after}`);
+      210 |   note(`(b3) dostupnost před: ${JSON.stringify(avBefore)}, po: ${JSON.stringify(avAfter)}`);
+    > 211 |   expect.soft(res.status, '(b1) stavový kód').toBe(503);
+          |                                               ^
+      212 |   expect.soft(res.json.error, '(b1) error').toBe('PAYMENT_METHOD_UNAVAILABLE');
+      213 |   expect.soft([before, after], '(b2) objednávek před/po').toEqual([0, 0]);
+      214 |   expect.soft(avAfter, '(b3) dostupnost po = před').toEqual(avBefore);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r23-wero.spec.ts:211:47
+
+    Error: (b1) error
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m"PAYMENT_METHOD_UNAVAILABLE"[39m
+    Received: [31m"Internal server error"[39m
+
+      210 |   note(`(b3) dostupnost před: ${JSON.stringify(avBefore)}, po: ${JSON.stringify(avAfter)}`);
+      211 |   expect.soft(res.status, '(b1) stavový kód').toBe(503);
+    > 212 |   expect.soft(res.json.error, '(b1) error').toBe('PAYMENT_METHOD_UNAVAILABLE');
+          |                                             ^
+      213 |   expect.soft([before, after], '(b2) objednávek před/po').toEqual([0, 0]);
+      214 |   expect.soft(avAfter, '(b3) dostupnost po = před').toEqual(avBefore);
+      215 |
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r23-wero.spec.ts:212:45
+
+    Error: (b2) objednávek před/po
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    [32m- Expected  - 1[39m
+    [31m+ Received  + 1[39m
+
+    [2m  Array [[22m
+    [2m    0,[22m
+    [32m-   0,[39m
+    [31m+   1,[39m
+    [2m  ][22m
+
+      211 |   expect.soft(res.status, '(b1) stavový kód').toBe(503);
+      212 |   expect.soft(res.json.error, '(b1) error').toBe('PAYMENT_METHOD_UNAVAILABLE');
+    > 213 |   expect.soft([before, after], '(b2) objednávek před/po').toEqual([0, 0]);
+          |                                                           ^
+      214 |   expect.soft(avAfter, '(b3) dostupnost po = před').toEqual(avBefore);
+      215 |
+      216 |   note(`zahozených požadavků mimo localhost: ${out.length} ${JSON.stringify(out.map((o) => o.host))}`);
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r23-wero.spec.ts:213:59
+
+    Error: (b3) dostupnost po = před
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    [32m- Expected  - 2[39m
+    [31m+ Received  + 2[39m
+
+    [2m  Object {[22m
+    [32m-   "remainingQty": 59,[39m
+    [32m-   "seatStatus": "held",[39m
+    [31m+   "remainingQty": 58,[39m
+    [31m+   "seatStatus": "sold",[39m
+    [2m  }[22m
+
+      212 |   expect.soft(res.json.error, '(b1) error').toBe('PAYMENT_METHOD_UNAVAILABLE');
+      213 |   expect.soft([before, after], '(b2) objednávek před/po').toEqual([0, 0]);
+    > 214 |   expect.soft(avAfter, '(b3) dostupnost po = před').toEqual(avBefore);
+          |                                                     ^
+      215 |
+      216 |   note(`zahozených požadavků mimo localhost: ${out.length} ${JSON.stringify(out.map((o) => o.host))}`);
+      217 |   await ctx.close();
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r23-wero.spec.ts:214:53
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r23-wero--P-pr-54619-e-před-založením-objednávky-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r23-wero--P-pr-54619-e-před-založením-objednávky-golden-path\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r23-wero--P-pr-54619-e-před-založením-objednávky-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r23-wero--P-pr-54619-e-před-založením-objednávky-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r23-wero.spec.ts:164:5 › (P) produkčně bez ALLOW_MOCK_PAYMENTS: Wero se nenabízí a API ho odmítne před založením objednávky 

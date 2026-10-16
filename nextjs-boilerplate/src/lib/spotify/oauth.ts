@@ -24,6 +24,10 @@ export interface PkcePair {
   state: string;
 }
 
+// Kolo 3: základ API konfigurovatelný (jako Stripe/PayPal) — testy míří na simulátor.
+const accountsBase = (): string => process.env.SPOTIFY_ACCOUNTS_BASE_URL ?? 'https://accounts.spotify.com';
+const apiBase = (): string => process.env.SPOTIFY_API_BASE_URL ?? 'https://api.spotify.com';
+
 export function generatePkce(): PkcePair {
   const verifier = base64UrlEncode(randomBytes(48));
   const challenge = base64UrlEncode(createHash('sha256').update(verifier).digest());
@@ -70,7 +74,7 @@ export function buildAuthorizeUrl(
     code_challenge_method: 'S256',
     code_challenge: pkce.challenge,
   });
-  return `https://accounts.spotify.com/authorize?${params.toString()}`;
+  return `${accountsBase()}/authorize?${params.toString()}`;
 }
 
 export interface TokenResponse {
@@ -93,7 +97,7 @@ export async function exchangeCodeForTokens(
     client_id: cfg.clientId,
     code_verifier: verifier,
   });
-  const r = await fetch('https://accounts.spotify.com/api/token', {
+  const r = await fetch(`${accountsBase()}/api/token`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -117,7 +121,7 @@ export async function refreshAccessToken(
     refresh_token: refreshToken,
     client_id: cfg.clientId,
   });
-  const r = await fetch('https://accounts.spotify.com/api/token', {
+  const r = await fetch(`${accountsBase()}/api/token`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -150,7 +154,7 @@ export async function fetchTopArtists(
   limit = 20,
 ): Promise<SpotifyTopArtist[]> {
   const r = await fetch(
-    `https://api.spotify.com/v1/me/top/artists?limit=${limit}&time_range=medium_term`,
+    `${apiBase()}/v1/me/top/artists?limit=${limit}&time_range=medium_term`,
     {
       headers: { Authorization: `Bearer ${accessToken}` },
     },
@@ -168,7 +172,7 @@ export async function fetchTopArtists(
 export async function fetchMe(
   accessToken: string,
 ): Promise<{ id: string; display_name: string | null }> {
-  const r = await fetch('https://api.spotify.com/v1/me', {
+  const r = await fetch(`${apiBase()}/v1/me`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (!r.ok) {

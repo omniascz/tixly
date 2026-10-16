@@ -1,0 +1,46 @@
+time="2026-10-07T10:14:43Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:3200/cs/events/26715d8e-90a5-43cf-8a21-b06f63da7b81\": dial: i/o timeout"
+time="2026-10-07T10:14:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:3200/cs/events/26715d8e-90a5-43cf-8a21-b06f63da7b81\": dial: i/o timeout"
+time="2026-10-07T10:14:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:3200/cs/events/26715d8e-90a5-43cf-8a21-b06f63da7b81\": dial: i/o timeout"
+time="2026-10-07T10:14:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:3200/cs/events/26715d8e-90a5-43cf-8a21-b06f63da7b81\": dial: i/o timeout"
+time="2026-10-07T10:14:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:3200/cs/events/26715d8e-90a5-43cf-8a21-b06f63da7b81\": dial: i/o timeout"
+time="2026-10-07T10:14:51Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:3200/cs/events/26715d8e-90a5-43cf-8a21-b06f63da7b81\": dial: i/o timeout"
+
+
+  █ TOTAL RESULTS 
+
+    CUSTOM
+    bought_seats...................: 500    5.656558/s
+    err_page.......................: 6      0.067879/s
+    hold_conflict..................: 6      0.067879/s
+    ok_checkout....................: 203    2.296563/s
+    ok_hold........................: 209    2.364441/s
+    ok_page........................: 294    3.326056/s
+    ok_pay.........................: 203    2.296563/s
+    ok_plan........................: 300    3.393935/s
+    ok_webhook.....................: 203    2.296563/s
+    sold_out.......................: 96     1.086059/s
+    t_checkout.....................: p(50)=85.9ms   p(95)=308.15ms p(99)=556.72ms max=1.03s    count=203 
+    t_hold.........................: p(50)=24.24ms  p(95)=85.87ms  p(99)=131.8ms  max=532.74ms count=209 
+    t_page.........................: p(50)=58.99ms  p(95)=164.39ms p(99)=415.93ms max=697.51ms count=300 
+    t_pay..........................: p(50)=1.06ms   p(95)=2.73ms   p(99)=4.66ms   max=16.66ms  count=203 
+    t_plan.........................: p(50)=23.41ms  p(95)=73.46ms  p(99)=102.92ms max=220.12ms count=300 
+    t_webhook......................: p(50)=435.74ms p(95)=1.74s    p(99)=2.13s    max=2.29s    count=203 
+
+    HTTP
+    http_req_duration..............: p(50)=37.91ms  p(95)=498.11ms p(99)=1.15s    max=2.29s    count=1724
+      { expected_response:true }...: p(50)=38.45ms  p(95)=498.26ms p(99)=1.16s    max=2.29s    count=1712
+    http_req_failed................: 0.69%  12 out of 1724
+    http_reqs......................: 1724   19.503812/s
+
+    EXECUTION
+    iteration_duration.............: p(50)=31.74s   p(95)=57.02s   p(99)=1m22s    max=1m28s    count=300 
+    iterations.....................: 300    3.393935/s
+    vus............................: 1      min=1          max=300
+    vus_max........................: 300    min=300        max=300
+
+    NETWORK
+    data_received..................: 81 MB  915 kB/s
+    data_sent......................: 503 kB 5.7 kB/s
+
+
+

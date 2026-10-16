@@ -1,6 +1,4 @@
-// @ts-nocheck
-// ^ Sentry config — TS check vynechán, dokud @sentry/nextjs není nainstalovaný
-//   přes `npm install`. Soubor je no-op bez SENTRY_DSN env.
+// Soubor je no-op bez SENTRY_DSN env.
 /**
  * Sentry server-side instrumentation (Node.js runtime).
  *
@@ -11,6 +9,7 @@
  */
 
 import * as Sentry from '@sentry/nextjs';
+import { SENTRY_DATA_COLLECTION, scrubSentryEvent, scrubSentrySpan } from './src/lib/observability/scrub-pii';
 
 const dsn = process.env.SENTRY_DSN;
 if (dsn) {
@@ -20,7 +19,8 @@ if (dsn) {
     release: process.env.APP_VERSION,
 
     tracesSampleRate: 0.1,
-    sendDefaultPii: false,
+    // Kolo 19: Sentry 11 — sendDefaultPii nahrazeno dataCollection (výchozí hodnoty v 11 sbírají víc)
+    dataCollection: SENTRY_DATA_COLLECTION,
 
     ignoreErrors: [
       // PostgreSQL connection blip (Neon scale-to-zero wake)
@@ -33,7 +33,7 @@ if (dsn) {
     beforeSend(event) {
       // Strip authorization header z requestů
       if (event.request?.headers) {
-        const headers = event.request.headers as Record<string, string>;
+        const headers = event.request.headers;
         delete headers.authorization;
         delete headers.cookie;
         delete headers['x-internal-token'];
@@ -58,7 +58,10 @@ if (dsn) {
         event.tags.runbook = runbookBase;
       }
 
-      return event;
+      // Kolo 14 / krok 3: osobní údaje kupců (e-maily, jména, telefony) se do Sentry neposílají
+      return scrubSentryEvent(event);
     },
+    // Kolo 19: spany (span streaming v 11) beforeSend neprocházejí
+    beforeSendSpan: (span) => scrubSentrySpan(span),
   });
 }

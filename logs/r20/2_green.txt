@@ -1,0 +1,29 @@
+# Kolo 20 / krok 2.4 — GREEN: stejný build (2_telemetry.sh green) s telemetry: false
+
+# Kolo 20 — souhrn odchozích spojení buildu (green), exit buildu 0
+řádků v net logu: 0
+pokusů mimo localhost celkem (BLOCKED + connect): 0
+z toho zablokovaných *.sentry.io: 0
+cílové hostitele:
+
+2_green_net.log: 0 bajtů (prázdný)
+
+## Tabulka rout
+rout: 1124 {"ƒ":1119,"○":5}
+First Load JS shared by all: 166 kB; Middleware: 86.9 kB
+diff --strip-trailing-cr logs/r19/3_routes.norm.txt logs/r20/2_green_routes.norm.txt: prázdný — identické
+
+## Změna next.config.mjs
+diff --git a/nextjs-boilerplate/next.config.mjs b/nextjs-boilerplate/next.config.mjs
+index e2da0f92..b98c03a9 100644
+--- a/nextjs-boilerplate/next.config.mjs
++++ b/nextjs-boilerplate/next.config.mjs
+@@ -232,6 +232,8 @@ try {
+       // Kolo 19: dřívější disableLogger (v 11 odstraněno)
+       webpack: { treeshake: { removeDebugLogging: true } },
+       tunnelRoute: '/api/monitoring',
++      // Kolo 20: build plugin neposílá vlastní telemetrii na sentry.io (výchozí true)
++      telemetry: false,
+     });
+   }
+ } catch {

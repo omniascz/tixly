@@ -1,0 +1,17 @@
+
+Running 12 tests using 1 worker
+
+  ok  1 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:102:5 › přihlášení — administrace (vlastník) (3.8s)
+  ok  2 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:106:5 › přihlášení — pokladna (role Pokladna) (3.9s)
+  ok  3 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:110:5 › přihlášení — skener (role personál) (3.7s)
+  ok  4 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:114:5 › přihlášení — kupec (4.1s)
+  ok  5 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:119:5 › přihlášení — prodejce (3.2s)
+  ok  6 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:138:5 › přihlášení — B2B (pozvánkový kód) (2.8s)
+  ok  7 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:157:5 › registrace kupce (2.9s)
+  ok  8 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:176:5 › registrace pořadatele (2.7s)
+  ok  9 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:191:5 › zapomenuté heslo a nové heslo (odkaz z e-mailu) (6.3s)
+  ok 10 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:237:5 › checkout — jméno napsané před hydratací se odešle (2.9s)
+  ok 11 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:273:7 › pokladna a skener (přihlášený vlastník) › vyhledávání rezervací na pokladně (2.7s)
+  ok 12 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:286:7 › pokladna a skener (přihlášený vlastník) › pole skeneru (2.6s)
+
+  12 passed (47.3s)

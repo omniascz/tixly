@@ -57,7 +57,9 @@ export const createPluxeePayment: BenefitProviderHandler = async (
   const baseUrl = process.env.PLUXEE_API_BASE_URL ?? DEFAULT_BASE_URL;
 
   // Callback URL — vendor zavolá při payment success/failure
-  const callbackUrl = `${input.appUrl}/api/payments/benefit/callback?provider=pluxee&external_id=${externalId}`;
+  // Kolo 2: na per-provider routu s ověřením HMAC podpisu — generická /benefit/callback
+  // je v produkci zakázaná (nemá ověření), takže by legitimní callback nikdy neprošel.
+  const callbackUrl = `${input.appUrl}/api/payments/benefit/pluxee/callback?external_id=${externalId}`;
 
   const res = await fetch(`${baseUrl}/v1/transactional/create`, {
     method: 'POST',

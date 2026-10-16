@@ -12,6 +12,7 @@ interface EventOption {
   id: string;
   title: string;
   dateStart: string;
+  venueCity?: string | null;
   ticketTypes: { id: string; name: string; basePrice: number; remainingQty: number; isSeated: boolean }[];
 }
 
@@ -41,6 +42,8 @@ export default function PosPage() {
   const [ticketTypeId, setTicketTypeId] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
+  // Kolo 8 / krok 3: prodej z pojmenované blokace (místa vybraná z jedné blokace)
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [buyerName, setBuyerName] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card_terminal'>('cash');
   const [error, setError] = useState<string | null>(null);
@@ -90,6 +93,7 @@ export default function PosPage() {
           buyerName: buyerName.trim() || undefined,
           paymentMethod,
           ...(isSeated && selectedSeatIds.length > 0 ? { seatIds: selectedSeatIds } : {}),
+          ...(isSeated && selectedBlockId ? { blockId: selectedBlockId } : {}),
         }),
       });
       const data = await res.json();
@@ -102,6 +106,7 @@ export default function PosPage() {
       setBuyerName('');
       setQuantity(1);
       setSelectedSeatIds([]);
+      setSelectedBlockId(null);
       // ticketTypeId / eventId zůstává — typicky 1 představení po sobě
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Síťová chyba');
@@ -111,8 +116,9 @@ export default function PosPage() {
   }
 
   // Po vystavení lístků otevřeme print preview
+  // Kolo 12/13: PDF vstupenek s QR kódem (dřív window.print() souhrnu s TOTP tajemstvím, bez QR)
   function handlePrint() {
-    if (typeof window !== 'undefined') window.print();
+    if (typeof window !== 'undefined' && sale) window.open(`/api/admin/orders/${sale.orderId}/print-labels`, '_blank', 'noopener');
   }
 
   return (
@@ -148,7 +154,7 @@ export default function PosPage() {
                   <option value="">— vyber představení —</option>
                   {events.map((ev) => (
                     <option key={ev.id} value={ev.id}>
-                      {ev.title} ({new Date(ev.dateStart).toLocaleDateString('cs-CZ')})
+                      {ev.title}{ev.venueCity ? ` — ${ev.venueCity}` : ''} ({new Date(ev.dateStart).toLocaleDateString('cs-CZ')})
                     </option>
                   ))}
                 </select>
@@ -165,6 +171,7 @@ export default function PosPage() {
                     onChange={(e) => {
                       setTicketTypeId(e.target.value);
                       setSelectedSeatIds([]);
+                      setSelectedBlockId(null);
                     }}
                     required
                     className="w-full rounded-md border bg-background px-3 py-2 text-sm"
@@ -186,7 +193,7 @@ export default function PosPage() {
                     eventId={eventId}
                     ticketTypeId={ticketTypeId}
                     selected={selectedSeatIds}
-                    onChange={setSelectedSeatIds}
+                    onChange={(ids, blockId) => { setSelectedSeatIds(ids); setSelectedBlockId(blockId); }}
                     max={20}
                   />
                 </div>
@@ -363,7 +370,6 @@ export default function PosPage() {
             <div key={t.ticketId} className="mb-4 break-inside-avoid">
               <p className="font-medium">Lístek #{i + 1}</p>
               <p className="text-xs">ID: {t.ticketId}</p>
-              <p className="text-xs">TOTP secret: {t.totpSecretBase32}</p>
             </div>
           ))}
         </div>

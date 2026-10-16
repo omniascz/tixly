@@ -9,8 +9,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { runAsUser } from '@/lib/auth';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { z } from 'zod';
+import { enforceOrderCreationLimits } from '@/lib/orders/order-creation-limits';
+import { gatewayNotAllowedResponse } from '@/lib/payment/gateway-policy';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +29,9 @@ async function stripePost<T>(
   idempotencyKey: string,
 ): Promise<T> {
   const secret = process.env.STRIPE_SECRET_KEY!;
-  const res = await fetch(`https://api.stripe.com/v1${path}`, {
+  // Kolo 3: základ API konfigurovatelný jako ve stripe/webhook (testy míří na simulátor).
+  const base = process.env.STRIPE_API_BASE_URL ?? 'https://api.stripe.com';
+  const res = await fetch(`${base}/v1${path}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${secret}`,
@@ -43,24 +48,38 @@ async function stripePost<T>(
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    return NextResponse.json({ error: 'STRIPE_NOT_CONFIGURED' }, { status: 503 });
-  }
-
+  // Kolo 4: přihlášení před kontrolou konfigurace (anonym dřív dostal 503).
   return runAsUser(req, async (userId) => {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json({ error: 'STRIPE_NOT_CONFIGURED' }, { status: 503 });
+    }
     const body: unknown = await req.json().catch(() => ({}));
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: 'Validation failed', issues: parsed.error.issues }, { status: 422 });
     }
     const { eventId, ticketTypeId, qty } = parsed.data;
+    // Kolo 7 (C-29): po uzávěrce online prodeje nový nákup nejde (před založením objednávky i Stripe).
+    const salesClosed = await saleBlockedResponse(db(), eventId, 'online');
+    if (salesClosed) return salesClosed;
+    // Kolo 7: Stripe neumí refund přes API → jen akce existující před mig. 499. 503 → aplikace
+    // přepne na webový checkout (GoPay / ComGate).
+    const gatewayBlocked = await gatewayNotAllowedResponse(db(), eventId, 'stripe', 503);
+    if (gatewayBlocked) return gatewayBlocked;
+
+    // Kolo 3: stejné limity vytváření objednávek jako web checkout (K3), sdílený mechanismus
+    // i sdílený IP klíč — route zadrží inventář a založí pending objednávku stejně jako checkout.
+    const limited = await enforceOrderCreationLimits(req, { userId });
+    if (limited) return limited;
 
     const client = await db().connect();
     try {
       await client.query('BEGIN');
 
-      // Uzamkneme ticket_type a zkontrolujeme dostupnost
-      const ttRes = await client.query<{
+      // Uzamkneme ticket_type a zkontrolujeme dostupnost.
+      // Kolo 2 / V8: zámek/snížení kapacity a vznik objednávky jsou systémové operace
+      // (jako checkout v servisním kontextu) — kupec je pod RLS sám provést nesmí.
+      const ttRes = await asSystemInTx(client, () => client.query<{
         id: string; base_price: number; currency: string; remaining_qty: number;
       }>(
         `SELECT tt.id, tt.base_price, e.currency, tt.remaining_qty
@@ -69,7 +88,7 @@ export async function POST(req: NextRequest): Promise<Response> {
          WHERE tt.id = $1 AND tt.event_id = $2 AND e.status = 'published'
          FOR UPDATE OF tt`,
         [ticketTypeId, eventId],
-      );
+      ));
       if (!ttRes.rows[0]) {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
@@ -83,26 +102,26 @@ export async function POST(req: NextRequest): Promise<Response> {
       const totalAmount = tt.base_price * qty;
 
       // Snížení inventáře
-      await client.query(
+      await asSystemInTx(client, () => client.query(
         `UPDATE catalog.ticket_types SET remaining_qty = remaining_qty - $1 WHERE id = $2`,
         [qty, ticketTypeId],
-      );
+      ));
 
       // Vytvoření pending objednávky (expires za 30 min — cron vrátí inventář)
-      const orderRes = await client.query<{ id: string }>(
+      const orderRes = await asSystemInTx(client, () => client.query<{ id: string }>(
         `INSERT INTO orders.orders
            (user_id, event_id, status, total_amount, currency, payment_provider, expires_at)
          VALUES ($1, $2, 'pending', $3, $4, 'stripe', NOW() + INTERVAL '30 minutes')
          RETURNING id`,
         [userId, eventId, totalAmount, tt.currency],
-      );
+      ));
       const orderId = orderRes.rows[0].id;
 
-      await client.query(
+      await asSystemInTx(client, () => client.query(
         `INSERT INTO orders.order_items (order_id, ticket_type_id, quantity, unit_price, total_price)
          VALUES ($1, $2, $3, $4, $5)`,
         [orderId, ticketTypeId, qty, tt.base_price, totalAmount],
-      );
+      ));
 
       // Stripe PaymentIntent — bez redirect-based metod (nativní sheet)
       const pi = await stripePost<{ id: string; client_secret: string }>(
@@ -119,10 +138,12 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
 
       // Uložit PI id do gopay_payment_id (sdílené pole pro payment reference)
-      await client.query(
+      // Kolo 3 (guard 486): platební identifikátor = chráněný sloupec; zapisuje ho systém
+      // (PI právě založený naším serverem pro tuto objednávku), ne kupec.
+      await asSystemInTx(client, () => client.query(
         `UPDATE orders.orders SET gopay_payment_id = $1 WHERE id = $2`,
         [pi.id, orderId],
-      );
+      ));
 
       await client.query('COMMIT');
 

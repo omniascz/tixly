@@ -7,8 +7,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { z } from 'zod';
 
+// Kolo 2: dřív četlo `x-is-platform-admin`, které middleware NIKDY nenastavuje
+// (z příchozího požadavku ho naopak zahazuje) → routa vracela 403 i platform adminovi.
+// `x-is-admin` nastavuje middleware výhradně z ověřeného JWT (roles.isPlatformAdmin).
 function isPlatformAdmin(req: NextRequest): boolean {
-  return req.headers.get('x-is-platform-admin') === 'true';
+  return req.headers.get('x-is-admin') === 'true';
 }
 
 const createSchema = z.object({

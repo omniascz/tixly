@@ -13,10 +13,8 @@ export const dynamic = 'force-dynamic';
 
 const SIZE = 1080;
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const userId = req.headers.get('x-user-id');
   const token  = req.nextUrl.searchParams.get('token');
   if (!userId && !token) return new Response('Unauthorized', { status: 401 });

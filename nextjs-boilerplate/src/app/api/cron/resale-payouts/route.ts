@@ -9,6 +9,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { isCronAuthorized } from '@/lib/security/cron-auth';
 
 
 export const dynamic = 'force-dynamic';
@@ -17,9 +18,8 @@ export const maxDuration = 300;
 export async function GET(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
 
-  const isVercelCron = req.headers.get('x-vercel-cron') !== null;
-  const secret = req.headers.get('x-cron-secret');
-  if (!isVercelCron && secret !== process.env.CRON_SECRET) {
+  // Kolo 2: `x-vercel-cron` pošle kdokoli → dřív stačilo k běhu cronu bez tajemství.
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
   }
 

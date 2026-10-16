@@ -1,0 +1,374 @@
+diff --git a/nextjs-boilerplate/src/app/admin/events/[id]/reporty/page.tsx b/nextjs-boilerplate/src/app/admin/events/[id]/reporty/page.tsx
+index 79c9a80e..ea281984 100644
+--- a/nextjs-boilerplate/src/app/admin/events/[id]/reporty/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/events/[id]/reporty/page.tsx
+@@ -19,14 +19,15 @@ const api = (url: string) => fetch(url, { credentials: 'include', headers: token
+ const kc = (m: number) => `${(m / 100).toLocaleString('cs-CZ')} Kč`;
+ const CH: Record<string, string> = { online: 'online', box_office: 'pokladna', reservation: 'rezervace', corporate: 'firemní', comps: 'volné' };
+ 
+-async function download(url: string, name: string): Promise<void> {
+-  const r = await api(url);
+-  if (!r.ok) return;
++async function download(url: string, name: string): Promise<string | null> {
++  const r = await api(url).catch(() => null);
++  if (!r || !r.ok) return `Soubor se nepodařilo stáhnout${r ? ` (HTTP ${r.status})` : ''}.`;
+   const a = document.createElement('a');
+   a.href = URL.createObjectURL(await r.blob());
+   a.download = name;
+   a.click();
+   URL.revokeObjectURL(a.href);
++  return null;
+ }
+ 
+ export default function TermReportsPage({ params }: { params: { id: string } }) {
+@@ -57,10 +58,10 @@ export default function TermReportsPage({ params }: { params: { id: string } })
+         <label className="text-sm">Do <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></label>
+         <Button variant={query.startsWith('scope=period') ? 'default' : 'outline'} onClick={() => setQuery(`scope=period&from=${from}&to=${to}`)}>Období</Button>
+         <span className="flex-1" />
+-        <Button variant="outline" onClick={() => void download(`/api/admin/theatre-reports?${query}&format=csv`, 'report.csv')}>CSV</Button>
+-        <Button variant="outline" onClick={() => void download(`/api/admin/theatre-reports?${query}&format=xlsx`, 'report.xlsx')}>XLSX</Button>
+-        <Button onClick={() => void download(`/api/admin/events/${params.id}/usher-list?format=pdf`, 'uvadeci.pdf')}>Seznam pro uvaděče (PDF)</Button>
+-        <Button variant="outline" onClick={() => void download(`/api/admin/events/${params.id}/usher-list?format=csv`, 'uvadeci.csv')}>Uvaděči CSV</Button>
++        <Button variant="outline" onClick={() => void download(`/api/admin/theatre-reports?${query}&format=csv`, 'report.csv').then(setErr)}>CSV</Button>
++        <Button variant="outline" onClick={() => void download(`/api/admin/theatre-reports?${query}&format=xlsx`, 'report.xlsx').then(setErr)}>XLSX</Button>
++        <Button onClick={() => void download(`/api/admin/events/${params.id}/usher-list?format=pdf`, 'uvadeci.pdf').then(setErr)}>Seznam pro uvaděče (PDF)</Button>
++        <Button variant="outline" onClick={() => void download(`/api/admin/events/${params.id}/usher-list?format=csv`, 'uvadeci.csv').then(setErr)}>Uvaděči CSV</Button>
+       </div>
+       {err && <p role="alert" className="rounded bg-rose-50 p-2 text-sm text-rose-800">{err}</p>}
+ 
+diff --git a/nextjs-boilerplate/src/app/admin/events/[id]/zruseni/page.tsx b/nextjs-boilerplate/src/app/admin/events/[id]/zruseni/page.tsx
+index 04296f1b..4ab4d1d1 100644
+--- a/nextjs-boilerplate/src/app/admin/events/[id]/zruseni/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/events/[id]/zruseni/page.tsx
+@@ -71,7 +71,7 @@ export default function CancelPostponePage({ params }: { params: { id: string }
+           <label className="block text-sm">Nové datum a čas <Input type="datetime-local" value={newStart} onChange={(e) => setNewStart(e.target.value)} /></label>
+           <Input placeholder="Důvod přesunu" value={pReason} onChange={(e) => setPReason(e.target.value)} />
+           <label className="block text-sm">Lhůta pro vrácení (dní) <Input className="w-24" value={days} onChange={(e) => setDays(e.target.value)} /></label>
+-          <Button onClick={() => void postpone()} disabled={!newStart || pReason.trim().length < 2}>Přesunout a informovat kupce</Button>
++          <Button onClick={() => { if (window.confirm('Přesunout termín? Všem kupcům odejde e-mail s novým datem.')) void postpone(); }} disabled={!newStart || pReason.trim().length < 2}>Přesunout a informovat kupce</Button>
+         </section>
+       )}
+ 
+@@ -81,7 +81,7 @@ export default function CancelPostponePage({ params }: { params: { id: string }
+           <p className="text-sm text-slate-600">Zastaví prodej i rezervace, vrátí online platby přes bránu, vystaví dobropisy, zneplatní vstupenky a pošle kupcům e-mail. Nelze vrátit zpět.</p>
+           <Input placeholder="Důvod zrušení (pošle se kupcům)" value={cReason} onChange={(e) => setCReason(e.target.value)} />
+           <Input placeholder='Pro potvrzení napište „ZRUŠIT"' value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+-          <Button variant="destructive" onClick={() => void cancel()} disabled={confirm !== 'ZRUŠIT' || cReason.trim().length < 2}>Zrušit termín</Button>
++          <Button variant="destructive" onClick={() => { if (window.confirm('Zrušit termín? Vstupenky přestanou platit a kupcům se vrátí peníze.')) void cancel(); }} disabled={confirm !== 'ZRUŠIT' || cReason.trim().length < 2}>Zrušit termín</Button>
+         </section>
+       )}
+ 
+diff --git a/nextjs-boilerplate/src/app/admin/events/page.tsx b/nextjs-boilerplate/src/app/admin/events/page.tsx
+index 22060700..3d69677f 100644
+--- a/nextjs-boilerplate/src/app/admin/events/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/events/page.tsx
+@@ -31,6 +31,8 @@ function moderationBadge(status: string | undefined): { label: string; tone: str
+       return { label: 'Archivováno', tone: 'bg-slate-100 text-slate-600' };
+     case 'draft':
+       return { label: 'Koncept', tone: 'bg-slate-100 text-slate-600' };
++    case 'cancelled':
++      return { label: 'Zrušeno', tone: 'bg-rose-100 text-rose-800' };
+     case 'published':
+       return null; // Publikované ukazujeme jen prodejní status (computeStatus)
+     default:
+diff --git a/nextjs-boilerplate/src/app/admin/pos/page.tsx b/nextjs-boilerplate/src/app/admin/pos/page.tsx
+index 7e8c4e79..123cd53f 100644
+--- a/nextjs-boilerplate/src/app/admin/pos/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/pos/page.tsx
+@@ -12,6 +12,7 @@ interface EventOption {
+   id: string;
+   title: string;
+   dateStart: string;
++  venueCity?: string | null;
+   ticketTypes: { id: string; name: string; basePrice: number; remainingQty: number; isSeated: boolean }[];
+ }
+ 
+@@ -115,8 +116,9 @@ export default function PosPage() {
+   }
+ 
+   // Po vystavení lístků otevřeme print preview
++  // Kolo 12/13: PDF vstupenek s QR kódem (dřív window.print() souhrnu s TOTP tajemstvím, bez QR)
+   function handlePrint() {
+-    if (typeof window !== 'undefined') window.print();
++    if (typeof window !== 'undefined' && sale) window.open(`/api/admin/orders/${sale.orderId}/print-labels`, '_blank', 'noopener');
+   }
+ 
+   return (
+@@ -152,7 +154,7 @@ export default function PosPage() {
+                   <option value="">— vyber představení —</option>
+                   {events.map((ev) => (
+                     <option key={ev.id} value={ev.id}>
+-                      {ev.title} ({new Date(ev.dateStart).toLocaleDateString('cs-CZ')})
++                      {ev.title}{ev.venueCity ? ` — ${ev.venueCity}` : ''} ({new Date(ev.dateStart).toLocaleDateString('cs-CZ')})
+                     </option>
+                   ))}
+                 </select>
+@@ -368,7 +370,6 @@ export default function PosPage() {
+             <div key={t.ticketId} className="mb-4 break-inside-avoid">
+               <p className="font-medium">Lístek #{i + 1}</p>
+               <p className="text-xs">ID: {t.ticketId}</p>
+-              <p className="text-xs">TOTP secret: {t.totpSecretBase32}</p>
+             </div>
+           ))}
+         </div>
+diff --git a/nextjs-boilerplate/src/app/admin/scanner/page.tsx b/nextjs-boilerplate/src/app/admin/scanner/page.tsx
+index 196e4633..4d51db59 100644
+--- a/nextjs-boilerplate/src/app/admin/scanner/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/scanner/page.tsx
+@@ -345,46 +345,48 @@ export default function ScannerPage() {
+ 
+     // Offline: zapiš do queue (kvůli serverové rekonciliaci) a pokud máme stažený
+     // whitelist pro akci, ověř proti němu — padělaný/cizí lístek odmítni, dvojí
+-    // vstup zachyť lokálně. Bez whitelistu padáme na optimistic accept (provoz nestojí).
++    // vstup zachyť lokálně. Bez whitelistu lístek nejde ověřit — obsluha ho zkontroluje ručně
++    // (kolo 12/13: dřív „Přijato offline BEZ ověření" = zelený vstup bez kontroly).
++    const offlineCheck = async () => {
++      await enqueueScan(payload, gateLabel);
++      await refreshPending();
++
++      const offlineTicketId = isPrintToken
++        ? decodePrintTokenUuid(raw) ?? undefined
++        : raw;
++      let check: OfflineCheck = 'no_manifest';
++      if (gate.eventId && offlineTicketId) {
++        check = await validateOffline(gate.eventId, offlineTicketId);
++      }
++
++      if (check === 'not_found') {
++        setResult({
++          result: 'not_found',
++          message: 'OFFLINE: lístek NENÍ ve staženém seznamu platných — NEVPOUŠTĚT.',
++        });
++      } else if (check === 'already_used') {
++        setResult({
++          result: 'already_used',
++          message: 'OFFLINE: tento lístek už byl tímto zařízením odbaven.',
++        });
++      } else if (check === 'admitted') {
++        setResult({
++          result: 'admitted',
++          message: 'Přijato offline (ověřeno proti staženému seznamu). Sync po obnovení.',
++        });
++        setTicketId('');
++        setTotpCode('');
++      } else {
++        setResult({
++          result: 'error',
++          message: 'OFFLINE: lístek nelze ověřit (není stažený seznam) — zkontroluj ho ručně.',
++        });
++      }
++    };
++
+     if (!online) {
+       try {
+-        await enqueueScan(payload, gateLabel);
+-        await refreshPending();
+-
+-        const offlineTicketId = isPrintToken
+-          ? decodePrintTokenUuid(raw) ?? undefined
+-          : raw;
+-        let check: OfflineCheck = 'no_manifest';
+-        if (gate.eventId && offlineTicketId) {
+-          check = await validateOffline(gate.eventId, offlineTicketId);
+-        }
+-
+-        if (check === 'not_found') {
+-          setResult({
+-            result: 'not_found',
+-            message: 'OFFLINE: lístek NENÍ ve staženém seznamu platných — NEVPOUŠTĚT.',
+-          });
+-        } else if (check === 'already_used') {
+-          setResult({
+-            result: 'already_used',
+-            message: 'OFFLINE: tento lístek už byl tímto zařízením odbaven.',
+-          });
+-        } else if (check === 'admitted') {
+-          setResult({
+-            result: 'admitted',
+-            message: 'Přijato offline (ověřeno proti staženému seznamu). Sync po obnovení.',
+-          });
+-          setTicketId('');
+-          setTotpCode('');
+-        } else {
+-          // no_manifest → optimistic accept, ale jasně upozorni, že NEbylo ověřeno
+-          setResult({
+-            result: 'admitted',
+-            message: '⚠ Přijato offline BEZ ověření (není stažený seznam). Sync po obnovení.',
+-          });
+-          setTicketId('');
+-          setTotpCode('');
+-        }
++        await offlineCheck();
+       } catch {
+         setResult({ result: 'error', message: 'Offline queue selhala (IndexedDB nedostupný).' });
+       } finally {
+@@ -425,16 +427,10 @@ export default function ScannerPage() {
+         setTotpCode('');
+       }
+     } catch {
+-      // Síť spadla mezi click a fetch — fallback do queue
++      // Síť spadla mezi click a fetch — ověř proti staženému seznamu jako offline
++      // (kolo 12/13: dřív „Síť spadla — uloženo" jako zelený vstup bez kontroly)
+       try {
+-        await enqueueScan(payload, gateLabel);
+-        await refreshPending();
+-        setResult({
+-          result: 'admitted',
+-          message: 'Síť spadla — uloženo do offline queue. Sync po obnovení.',
+-        });
+-        setTicketId('');
+-        setTotpCode('');
++        await offlineCheck();
+         setOnline(false);
+       } catch {
+         setResult({ result: 'error', message: 'Síťová chyba i offline queue selhala.' });
+diff --git a/nextjs-boilerplate/src/app/admin/venues/[venueId]/seating-chart/editor/page.tsx b/nextjs-boilerplate/src/app/admin/venues/[venueId]/seating-chart/editor/page.tsx
+index 8e89e6ef..49ecd9db 100644
+--- a/nextjs-boilerplate/src/app/admin/venues/[venueId]/seating-chart/editor/page.tsx
++++ b/nextjs-boilerplate/src/app/admin/venues/[venueId]/seating-chart/editor/page.tsx
+@@ -110,7 +110,7 @@ export default function AdminVenueEditorPage({
+     <div className="space-y-4">
+       <div className="flex items-start justify-between gap-3">
+         <div>
+-          <Link href={`/admin/venues/${venueId}`} className="text-sm text-primary hover:underline">
++          <Link href="/admin/venues" className="text-sm text-primary hover:underline">
+             ← Zpět na detail sálu
+           </Link>
+           <h1 className="mt-1 text-2xl font-bold">Seating editor</h1>
+diff --git a/nextjs-boilerplate/src/app/api/admin/pos/events/route.ts b/nextjs-boilerplate/src/app/api/admin/pos/events/route.ts
+index e3b3dee3..82e85a77 100644
+--- a/nextjs-boilerplate/src/app/api/admin/pos/events/route.ts
++++ b/nextjs-boilerplate/src/app/api/admin/pos/events/route.ts
+@@ -17,6 +17,7 @@ interface EventRow {
+   id: string;
+   title: string;
+   date_start: string;
++  venue_city: string | null;
+ }
+ 
+ interface TicketTypeRow {
+@@ -32,7 +33,9 @@ export async function GET(req: NextRequest): Promise<Response> {
+   return runAsActivePromoter(req, async (promoter) => {
+   // Načti akce + ticket types per akce v 1 query (less round-trips)
+   const events = await db().query<EventRow>(
+-    `SELECT id, title, date_start
++    `SELECT id, title, date_start,
++            -- kolo 12: město — termíny jedné inscenace se v pokladně nedaly rozlišit
++            (SELECT v.city FROM catalog.venues v WHERE v.id = catalog.events.venue_id) AS venue_city
+      FROM catalog.events
+      WHERE promoter_id = $1
+        AND status = 'published'
+@@ -68,6 +71,7 @@ export async function GET(req: NextRequest): Promise<Response> {
+       id: ev.id,
+       title: ev.title,
+       dateStart: ev.date_start,
++      venueCity: ev.venue_city,
+       ticketTypes: (ttByEvent.get(ev.id) ?? []).map((t) => ({
+         id: t.id,
+         name: t.name,
+diff --git a/nextjs-boilerplate/src/app/api/admin/productions/[id]/terms/route.ts b/nextjs-boilerplate/src/app/api/admin/productions/[id]/terms/route.ts
+index d04e4480..eea73314 100644
+--- a/nextjs-boilerplate/src/app/api/admin/productions/[id]/terms/route.ts
++++ b/nextjs-boilerplate/src/app/api/admin/productions/[id]/terms/route.ts
+@@ -36,7 +36,7 @@ const schema = z.object({
+ });
+ 
+ const STATUS: Record<TermError['code'], number> = {
+-  PRODUCTION_NOT_FOUND: 404, VENUE_NOT_FOUND: 404, SOURCE_NOT_FOUND: 404, NO_TICKET_TYPES: 422, VAT_NOT_CONFIGURED: 422,
++  PRODUCTION_NOT_FOUND: 404, VENUE_NOT_FOUND: 404, SOURCE_NOT_FOUND: 404, NO_TICKET_TYPES: 422, VAT_NOT_CONFIGURED: 422, NO_SELLABLE_SEATS: 422,
+ };
+ 
+ export async function POST(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+diff --git a/nextjs-boilerplate/src/lib/admin-auth.ts b/nextjs-boilerplate/src/lib/admin-auth.ts
+index 9c48a6b6..23175f0d 100644
+--- a/nextjs-boilerplate/src/lib/admin-auth.ts
++++ b/nextjs-boilerplate/src/lib/admin-auth.ts
+@@ -91,14 +91,20 @@ export async function runAsPromoterOwner<T>(
+   return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
+ }
+ 
+-/** requirePromoter + role !== 'staff' (vzor `!promoter || role === 'staff'`). */
++/**
++ * Kolo 12: role jen pro provoz — staff (vstup, produkce) a box_office (pokladna). Dřív se omezovala jen staff a pokladna
++ * měla na serveru přístup jako admin (finance, nastavení, tým), i když jí menu tyto sekce neukazuje.
++ */
++const OPERATIONS_ONLY = new Set(['staff', 'box_office']);
++
++/** requirePromoter + role není provozní (staff / box_office). */
+ export async function runAsPromoterNonStaff<T>(
+   req: NextRequest,
+   callback: (ctx: PromoterContext) => Promise<T>,
+ ): Promise<T | Response> {
+   const ctx = await requirePromoter(req);
+   if (!ctx) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+-  if (ctx.role === 'staff') return rejectPromoter();
++  if (OPERATIONS_ONLY.has(ctx.role)) return rejectPromoter();
+   return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
+ }
+ 
+@@ -120,7 +126,7 @@ export async function runAsActivePromoterNonStaff<T>(
+ ): Promise<T | Response> {
+   const ctx = await requirePromoter(req);
+   if (!ctx || ctx.status !== 'active') return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+-  if (ctx.role === 'staff') return rejectPromoter();
++  if (OPERATIONS_ONLY.has(ctx.role)) return rejectPromoter();
+   return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
+ }
+ 
+diff --git a/nextjs-boilerplate/src/lib/theatre/blocks.ts b/nextjs-boilerplate/src/lib/theatre/blocks.ts
+index 35eb74ae..3ebe7b1d 100644
+--- a/nextjs-boilerplate/src/lib/theatre/blocks.ts
++++ b/nextjs-boilerplate/src/lib/theatre/blocks.ts
+@@ -68,7 +68,9 @@ export async function createBlock(
+   if (seats.length === 0) throw new BlockError('NO_SEATS', 'Vyberte místa nebo sekci.');
+   const free = seats.filter((s) => s.status === 'available');
+   const skipped = seats.filter((s) => s.status !== 'available').map((s) => `${s.sector} ${s.row}/${s.seat_number}`);
+-  if (free.length > 0) {
++  // Kolo 12/13: bez volných míst by vznikla prázdná blokace (0 míst) — chyba vrátí celou transakci.
++  if (free.length === 0) throw new BlockError('NO_SEATS', 'Ve výběru nejsou volná místa.');
++  {
+     const ids = free.map((s) => s.id);
+     await q.query(
+       `UPDATE catalog.event_seats SET status = 'blocked', hold_kind = 'block', hold_label = $2, hold_user_id = NULL,
+diff --git a/nextjs-boilerplate/src/lib/theatre/terms.ts b/nextjs-boilerplate/src/lib/theatre/terms.ts
+index 4ac2a8ef..768e1c79 100644
+--- a/nextjs-boilerplate/src/lib/theatre/terms.ts
++++ b/nextjs-boilerplate/src/lib/theatre/terms.ts
+@@ -15,7 +15,7 @@ import { copyLayoutToEventSeats } from '@/lib/seats/copy-layout-to-event-seats';
+ import { vatReadinessProblems } from '@/lib/tax/vat-readiness';
+ 
+ export class TermError extends Error {
+-  constructor(public code: 'PRODUCTION_NOT_FOUND' | 'VENUE_NOT_FOUND' | 'SOURCE_NOT_FOUND' | 'NO_TICKET_TYPES' | 'VAT_NOT_CONFIGURED', message: string, public details?: unknown) {
++  constructor(public code: 'PRODUCTION_NOT_FOUND' | 'VENUE_NOT_FOUND' | 'SOURCE_NOT_FOUND' | 'NO_TICKET_TYPES' | 'VAT_NOT_CONFIGURED' | 'NO_SELLABLE_SEATS', message: string, public details?: unknown) {
+     super(message);
+   }
+ }
+@@ -151,6 +151,14 @@ export async function createTerm(client: PoolClient, promoterId: string, userId:
+     [ev.id],
+   );
+ 
++  // Kolo 12/13: sál bez míst v cenových zónách dřív dal termín „v prodeji (0 míst)" — chyba vrátí celou transakci.
++  if (ticketTypes.some((t) => t.isSeated)) {
++    const sellable = (await client.query<{ n: number }>(
++      `SELECT count(*)::int AS n FROM catalog.event_seats WHERE event_id = $1 AND status = 'available' AND ticket_type_id IS NOT NULL`, [ev.id],
++    )).rows[0]?.n ?? 0;
++    if (sellable === 0) throw new TermError('NO_SELLABLE_SEATS', 'Sál nemá místa přiřazená do cenových zón.');
++  }
++
+   let status: CreateTermResult['status'] = 'pending_review';
+   if (prod.published_terms > 0) {
+     const problems = await vatReadinessProblems(client, ev.id);
+diff --git a/nextjs-boilerplate/src/types/admin.ts b/nextjs-boilerplate/src/types/admin.ts
+index 61152b54..38d851b9 100644
+--- a/nextjs-boilerplate/src/types/admin.ts
++++ b/nextjs-boilerplate/src/types/admin.ts
+@@ -11,7 +11,8 @@ export type ModerationStatus =
+   | 'flagged'
+   | 'published'
+   | 'rejected'
+-  | 'archived';
++  | 'archived'
++  | 'cancelled';
+ 
+ export interface AdminEvent {
+   id: string;

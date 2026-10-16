@@ -29,10 +29,8 @@ interface EventOptionRow {
   remaining_qty: number;
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
     const token = params.token;
     if (!token || token.length < 10) {
@@ -46,7 +44,7 @@ export async function GET(
               gc.claimed_at::text, gc.expires_at::text,
               e.title AS event_title,
               e.date_start::text AS event_date_start,
-              COALESCE(u.name, u.email) AS buyer_name,
+              u.name AS buyer_name, -- kolo 4: bez fallbacku na e-mail dárce
               o.status AS order_status
          FROM orders.gift_claims gc
          JOIN catalog.events e ON e.id = gc.event_id
@@ -117,10 +115,8 @@ const postSchema = z.object({
   selectedSeatId: z.string().uuid().optional(),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
     const token = params.token;
     const body: unknown = await req.json().catch(() => null);

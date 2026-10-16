@@ -27,6 +27,7 @@ interface EventSettings {
   requiresOtpValidation?: boolean;
   // Festival / open-air — opakovaný vstup (re-entry)
   reentryAllowed?: boolean;
+  reentryCooldownSeconds?: number;
   reentryMaxCount?: number;
   // mig 433 — purchase limit per event
   maxTicketsPerBuyer?: number | null;
@@ -37,6 +38,8 @@ interface EventSettings {
   // mig 447 — CO₂ štítek: průměrná jednosměrná vzdálenost dojezdu
   avgTripKm?: number | null;
 }
+
+const INSTALLMENTS_ENABLED = process.env.NEXT_PUBLIC_FEATURE_INSTALLMENTS === '1';
 
 const QR_POLICY_LABELS: Record<EventSettings['qrPolicy'], { title: string; desc: string }> = {
   static_allowed: {
@@ -542,6 +545,29 @@ export default function EventSettingsPage() {
               Kolikrát smí lístek projít vstupem (1 = jednorázový, 3 = vstup + 2 návraty). Limit 1–100.
             </p>
           </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+              Prodleva mezi průchody (sekundy)
+            </label>
+            <Input
+              type="number"
+              min={0}
+              max={3600}
+              value={data.reentryCooldownSeconds ?? 10}
+              onChange={(e) =>
+                setData({ ...data, reentryCooldownSeconds: Number(e.target.value) })
+              }
+              onBlur={() =>
+                saveSettings({ reentryCooldownSeconds: data.reentryCooldownSeconds ?? 10 })
+              }
+              disabled={saving || !(data.reentryAllowed ?? false)}
+              className="max-w-24"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Když se stejná vstupenka načte znovu do téhle doby, systém to bere jako dvojí
+              načtení kódu — nic se nezmění a obsluze se zopakuje předchozí výsledek. 0 = vypnuto.
+            </p>
+          </div>
         </CardContent>
       </Card>
 
@@ -661,6 +687,8 @@ export default function EventSettingsPage() {
         </CardContent>
       </Card>
 
+      {/* Kolo 10 / krok 3: splátky vypnuté přepínačem (výchozí stav) — sekce skrytá, API vrací 404. */}
+      {INSTALLMENTS_ENABLED ? (
       <Card>
         <CardHeader>
           <CardTitle>Platební plány</CardTitle>
@@ -741,6 +769,7 @@ export default function EventSettingsPage() {
           </div>
         </CardContent>
       </Card>
+      ) : null}
     </div>
   );
 }

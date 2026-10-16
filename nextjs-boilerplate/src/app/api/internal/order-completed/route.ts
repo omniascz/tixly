@@ -11,15 +11,17 @@
  */
 
 import { timingSafeEqual } from 'crypto';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
 import type { Pool } from 'pg';
-
-import { escapeHtml } from '@/lib/html-escape/escape';
-import { sendSms } from '@/lib/sms/bulkgate-mock';
-import { resolveVatRate, splitGrossToNetVat } from '@/lib/tax/vat-rates';
-import { awardPointsForOrder } from '@/lib/loyalty/engine';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { issueFanBonus } from '@/lib/fan-bonus/engine';
+import { escapeHtml } from '@/lib/html-escape/escape';
+import { internalAuthHeaders } from '@/lib/internal-auth';
+
+import { awardPointsForOrder } from '@/lib/loyalty/engine';
+import { sendSms } from '@/lib/sms/bulkgate-mock';
+import { splitGrossMinor } from '@/lib/tax/vat';
+import { orderTicketVatPct } from '@/lib/tax/vat-rates';
 import { issueTicketsForOrder } from '@/lib/tickets/demo-issuer';
 import { renderTicketsPdf } from '@/lib/tickets/pdf-renderer';
 import { buildPkpass, type PassData } from '@/lib/wallet/apple-pass';
@@ -64,6 +66,9 @@ interface ItemRow {
   quantity: number;
   unit_price: number;
   total_price: number;
+  /** Kolo 8: místo a slevová kategorie položky (nákup míst) */
+  seat_label?: string | null;
+  price_category_name?: string | null;
 }
 
 function formatMoney(halire: number, currency: string, locale: string): string {
@@ -161,7 +166,7 @@ interface TravelBookingEmailRow {
   confirmation_code: string | null;
 }
 
-function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: string[] = [], travelBookings: TravelBookingEmailRow[] = []): string {
+function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: string[] = [], travelBookings: TravelBookingEmailRow[] = [], vatPct: number | null | undefined = undefined): string {
   const locale = pickEmailLocale(order);
   const s = EMAIL_STRINGS[locale];
   const currency = order.currency || 'CZK';
@@ -171,7 +176,7 @@ function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: 
     .map(
       (it) => `
         <tr>
-          <td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(it.ticket_type_name)}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(it.ticket_type_name)}${it.price_category_name ? ` — ${escapeHtml(it.price_category_name)}` : ''}${it.seat_label ? `<br><span style="color:#666;font-size:12px">${escapeHtml(it.seat_label)}</span>` : ''}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;text-align:center">${it.quantity}×</td>
           <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${fmt(it.unit_price)}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${fmt(it.total_price)}</td>
@@ -195,15 +200,26 @@ function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: 
     ? `${escapeHtml(promoterName)} · ${escapeHtml(order.promoter_email)}`
     : `${escapeHtml(promoterName)} přes Tixly`;
 
-  // DPH rozpis (gross → net + dph). Per-event vat_category > promoter flat rate.
-  // B2B reverse charge → 0 % (EU cross-border, mig 390).
-  const effectiveVatRateEmail = order.is_reverse_charge
-    ? 0
-    : order.event_vat_category
-      ? resolveVatRate({ country: order.promoter_country, vatCategory: order.event_vat_category })
-      : (order.promoter_vat_rate_pct ?? 10);
-  const vatRatePct = effectiveVatRateEmail;
-  const { netHalire, vatHalire } = splitGrossToNetVat(order.total_amount, vatRatePct);
+  // Kolo 7 (C-54): DPH ze sazby typů vstupenek v DB (vatPct, spočítané volajícím);
+  // null = prodávající není plátce DPH, undefined = sazba neznámá → rozpis se nezobrazí.
+  const vatRows =
+    typeof vatPct === 'number'
+      ? (() => {
+          const { baseMinor, vatMinor } = splitGrossMinor(order.total_amount, vatPct);
+          return `
+      <tr>
+        <td style="padding:4px 8px;text-align:right;color:#666;font-size:13px">${s.netLabel}</td>
+        <td style="padding:4px 8px;text-align:right;width:120px">${fmt(baseMinor)}</td>
+      </tr>
+      <tr>
+        <td style="padding:4px 8px;text-align:right;color:#666;font-size:13px">${s.vatLabel(vatPct)}</td>
+        <td style="padding:4px 8px;text-align:right">${fmt(vatMinor)}</td>
+      </tr>`;
+        })()
+      : vatPct === null
+        ? `
+      <tr><td colspan="2" style="padding:4px 8px;text-align:right;color:#666;font-size:13px">Prodávající není plátcem DPH.</td></tr>`
+        : '';
 
   return `<!DOCTYPE html>
 <html><body style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:0;color:#111">
@@ -237,15 +253,7 @@ function buildEmailHtml(order: OrderRow, items: ItemRow[], accessibleGateLines: 
       <tbody>${itemsRows}</tbody>
     </table>
 
-    <table style="width:100%;border-collapse:collapse;margin-top:8px">
-      <tr>
-        <td style="padding:4px 8px;text-align:right;color:#666;font-size:13px">${s.netLabel}</td>
-        <td style="padding:4px 8px;text-align:right;width:120px">${fmt(netHalire)}</td>
-      </tr>
-      <tr>
-        <td style="padding:4px 8px;text-align:right;color:#666;font-size:13px">${s.vatLabel(vatRatePct)}</td>
-        <td style="padding:4px 8px;text-align:right">${fmt(vatHalire)}</td>
-      </tr>
+    <table style="width:100%;border-collapse:collapse;margin-top:8px">${vatRows}
       <tr style="border-top:2px solid #111">
         <td style="padding:8px;text-align:right;font-weight:600">${s.totalLabel}</td>
         <td style="padding:8px;text-align:right;font-weight:700;font-size:18px">${fmt(order.total_amount)}</td>
@@ -344,13 +352,22 @@ export async function POST(request: NextRequest): Promise<Response> {
       { status: 200 },
     );
   }
+  // Kolo 8 / krok 7: zrušený termín — žádné vstupenky ani potvrzení (zrušení vrací peníze a posílá vlastní e-mail)
+  const evStatus = (await db().query<{ status: string }>(
+    `SELECT e.status FROM orders.orders o JOIN catalog.events e ON e.id = o.event_id WHERE o.id = $1`, [orderId],
+  )).rows[0]?.status;
+  if (evStatus === 'cancelled') {
+    return NextResponse.json({ skipped: true, reason: 'EVENT_CANCELLED' }, { status: 200 });
+  }
 
   const itemsRes = await db().query<ItemRow>(
     `SELECT
        tt.name AS ticket_type_name,
-       oi.quantity, oi.unit_price, oi.total_price
+       oi.quantity, oi.unit_price, oi.total_price, oi.price_category_name,
+       CASE WHEN es.id IS NOT NULL THEN es.sector || ', řada ' || es.row || ', místo ' || es.seat_number END AS seat_label
      FROM orders.order_items oi
      JOIN catalog.ticket_types tt ON tt.id = oi.ticket_type_id
+     LEFT JOIN catalog.event_seats es ON es.id = oi.seat_id
      WHERE oi.order_id = $1
      ORDER BY oi.created_at`,
     [orderId],
@@ -406,15 +423,9 @@ export async function POST(request: NextRequest): Promise<Response> {
   );
   const travelBookings = travelRes.rows;
 
-  const html = buildEmailHtml(order, itemsRes.rows, accessibleGateLines, travelBookings);
-
-  // Spočítej efektivní DPH sazbu (per-event vat_category > promoter flat rate).
-  // B2B reverse charge → 0 % (EU cross-border, mig 390).
-  const effectiveVatRatePct = order.is_reverse_charge
-    ? 0
-    : order.event_vat_category
-      ? resolveVatRate({ country: order.promoter_country, vatCategory: order.event_vat_category })
-      : (order.promoter_vat_rate_pct ?? 10);
+  // Kolo 7 (C-54): sazba z DB (typy vstupenek objednávky, k datu zaplacení). B2B reverse charge → 0 %.
+  const effectiveVatRatePct = order.is_reverse_charge ? 0 : await orderTicketVatPct(db(), orderId);
+  const html = buildEmailHtml(order, itemsRes.rows, accessibleGateLines, travelBookings, effectiveVatRatePct);
 
   // Issue tickets + render PDF + Apple Wallet passes.
   // Failures here must NOT block the email (best-effort) — order is already paid.
@@ -422,8 +433,22 @@ export async function POST(request: NextRequest): Promise<Response> {
   let pdfAttachment: { filename: string; content: Buffer } | undefined;
   let walletAttachments: { filename: string; content: Buffer; contentType: string }[] = [];
   let issued: Awaited<ReturnType<typeof issueTicketsForOrder>> = [];
+  let ticketIssueFailed = true; // false až po úspěšném COMMITu vydání (selže i connect → nic se nepotvrdí)
   try {
-    issued = await issueTicketsForOrder(orderId, db() as unknown as Pool);
+    // Kolo 10: vydání v transakci — advisory lock v issueTicketsForOrder pak souběžná dokončení
+    // skutečně serializuje (v autocommitu je no-op) a čerstvé lístky vydá právě jedno volání.
+    const issueClient = await db().connect();
+    try {
+      await issueClient.query('BEGIN');
+      issued = await issueTicketsForOrder(orderId, issueClient as unknown as Pool);
+      await issueClient.query('COMMIT');
+      ticketIssueFailed = false;
+    } catch (err) {
+      await issueClient.query('ROLLBACK').catch(() => undefined);
+      throw err;
+    } finally {
+      issueClient.release();
+    }
     ticketsIssued = issued.length;
 
     // Loyalty award (CZ priority #6) — fire-and-forget, idempotent na order_id.
@@ -432,7 +457,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       const loyaltyClient = await db().connect();
       try {
         await loyaltyClient.query('BEGIN');
-        await loyaltyClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+        // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
         await awardPointsForOrder(loyaltyClient, {
           userId: order.user_id,
           orderId,
@@ -452,7 +477,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       const fbClient = await db().connect();
       try {
         await fbClient.query('BEGIN');
-        await fbClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+        // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
         await issueFanBonus(fbClient, {
           orderId,
           eventId: order.event_id as string,
@@ -478,7 +503,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       const modClient = await db().connect();
       try {
         await modClient.query('BEGIN');
-        await modClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+        // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
         const pending = await modClient.query<{ selections: Array<{ dayId: string; zoneId: string }> }>(
           `SELECT selections FROM marketing.modular_pass_pending_selections
             WHERE order_id = $1`,
@@ -519,7 +544,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       const groupClient = await db().connect();
       try {
         await groupClient.query('BEGIN');
-        await groupClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+        // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
         await groupClient.query(
           `UPDATE orders.group_invitations gi
               SET status = 'completed'
@@ -547,7 +572,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       const partyClient = await db().connect();
       try {
         await partyClient.query('BEGIN');
-        await partyClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+        // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
 
         const slotUpd = await partyClient.query<{ session_id: string }>(
           `UPDATE orders.party_split_slots
@@ -595,7 +620,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-internal-token': process.env.INTERNAL_API_TOKEN ?? process.env.INTERNAL_SERVICE_TOKEN ?? '',
+            ...internalAuthHeaders(),
           },
           body: JSON.stringify({ orderId }),
         },
@@ -608,7 +633,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-internal-token': process.env.INTERNAL_API_TOKEN ?? process.env.INTERNAL_SERVICE_TOKEN ?? '',
+            ...internalAuthHeaders(),
           },
           body: JSON.stringify({ orderId }),
         },
@@ -628,14 +653,18 @@ export async function POST(request: NextRequest): Promise<Response> {
         row: string | null;
         seat_number: string | null;
         accessibility: boolean | null;
+        price_category_name: string | null;
+        proof_required_label: string | null;
       }>(
-        // tickets.tickets nemá order_item_id sloupec — join přes
-        // (order_id, ticket_type_id), což je v order_items unikátní.
+        // tickets.tickets nemá order_item_id sloupec — join přes (order_id, ticket_type_id)
+        // a místo vstupenky (kolo 8: víc položek téhož typu u nákupu míst se kategoriemi).
         `SELECT t.id AS ticket_id, oi.unit_price,
-                es.sector, es.row, es.seat_number, es.accessibility
+                es.sector, es.row, es.seat_number, es.accessibility,
+                t.price_category_name, t.proof_required_label
          FROM tickets.tickets t
-         JOIN orders.order_items oi
-           ON oi.order_id = t.order_id AND oi.ticket_type_id = t.ticket_type_id
+         -- Kolo 8: u nákupu míst je víc položek téhož typu (kategorie) → položka podle místa vstupenky
+           JOIN LATERAL (SELECT * FROM orders.order_items x WHERE x.order_id = t.order_id AND x.ticket_type_id = t.ticket_type_id
+             ORDER BY (x.seat_id IS NOT DISTINCT FROM t.event_seat_id) DESC, x.id LIMIT 1) oi ON true
          LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
          WHERE t.order_id = $1`,
         [orderId],
@@ -650,6 +679,8 @@ export async function POST(request: NextRequest): Promise<Response> {
               ? `${r.sector} · řada ${r.row ?? '?'} · sedadlo ${r.seat_number ?? '?'}`
               : null,
             accessibleGateInfo: r.accessibility ? accessibleGateStr : null,
+            categoryName: r.price_category_name,
+            proofLabel: r.proof_required_label,
           },
         ]),
       );
@@ -678,6 +709,8 @@ export async function POST(request: NextRequest): Promise<Response> {
             unitPriceHalire: meta?.price,
             seatLabel: meta?.seat ?? null,
             accessibleGateInfo: meta?.accessibleGateInfo ?? null,
+            categoryName: meta?.categoryName ?? null,
+            proofLabel: meta?.proofLabel ?? null,
           };
         }),
       );
@@ -724,6 +757,12 @@ export async function POST(request: NextRequest): Promise<Response> {
     critical('ticket_issue', err); console.error('[order-completed] ticket issue / PDF failed:', err);
   }
 
+  // Kolo 10 (audit 05 C2c): potvrzení (e-mail + SMS) posílá jen volání, které lístky skutečně vydalo.
+  // Opakované dokončení (retry webhooku, přímé volání) dostane existující lístky bez secretu → nic nepošle.
+  // Selhalo-li vydání, potvrzení se neposílá — pošle ho retry, který lístky vydá (i s PDF).
+  const confirmNow = !ticketIssueFailed
+    && (issued.length === 0 || issued.every((t) => t.totpSecretBase32.length > 0));
+
   // Loyalty: award points pro user_id (idempotent per order_id)
   try {
     const client = await db().connect();
@@ -748,7 +787,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   // Odešli e-mail přes centrální mailer (Mailhog v dev, Resend/Postmark/SES v prod)
   let emailSent = false;
-  try {
+  if (confirmNow) try {
     const { sendMail } = await import('@/lib/email/mailer');
     // Sender: pokud má promotér vlastní doménu, použijeme ji jako display name
     // (technický from header zůstává EMAIL_FROM kvůli SPF/DKIM dokud nemá ověřenou doménu).
@@ -769,6 +808,14 @@ export async function POST(request: NextRequest): Promise<Response> {
     emailSent = true;
   } catch (err) {
     optional('email', err); console.error('[order-completed] email failed:', err);
+    // Kolo 14 / krok 3: kupec vstupenky e-mailem nedostal → upozornění provozu (1 / 30 min) + denní souhrn
+    const { alertOps } = await import('@/lib/ops/alerts');
+    await alertOps({
+      kind: 'ticket_email_failed', key: 'ticket_email_failed',
+      subject: 'Selhal e-mail se vstupenkami',
+      text: `Objednávka ${orderId} (${order.event_title}) — e-mail se vstupenkami se nepodařilo odeslat: `
+        + `${err instanceof Error ? err.message : String(err)}\n\nVstupenky jsou vystavené; pošlete je znovu z detailu objednávky (Poslat znovu).`,
+    });
   }
 
   // SMS vstupenky (SMSticket-style) — link na magic show page per ticket.
@@ -776,7 +823,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   //   - 1 ticket: SMS s URL na fullscreen QR
   //   - 2+ tickets: SMS s URL na první ticket + zmínka že email má všechny
   let smsSent = false;
-  if (order.buyer_phone && issued.length > 0) {
+  if (confirmNow && order.buyer_phone && issued.length > 0) {
     const firstIssued = issued[0];
     if (!firstIssued) {
       throw new Error('Unreachable: issued.length > 0 but issued[0] undefined');

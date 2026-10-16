@@ -1,0 +1,34 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r2-v6-free-ticket.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 22704[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r2-v6-free-ticket.live.test.ts[2m > [22mKrok 5 — V6: vstupenka zdarma se dokončí bez brány; placený typ ne[2m > [22mtyp za 0 Kč: objednávka paid bez brány, vstupenka vystavena, e-mail odeslán[39m
+[31m     → žádná platba u brány: expected 314 to be 313 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-v6-free-ticket.live.test.ts[2m > [22mKrok 5 — V6: vstupenka zdarma se dokončí bez brány; placený typ ne[2m > [22mtyp za 0 Kč: objednávka paid bez brány, vstupenka vystavena, e-mail odeslán
+[31m[1mAssertionError[22m: žádná platba u brány: expected 314 to be 313 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 313[39m
+[31m+ 314[39m
+
+[36m [2m❯[22m tests/fix-r2-v6-free-ticket.live.test.ts:[2m41:59[22m[39m
+    [90m 39| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(r[33m.[39mjson))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m 40| [39m    [34mexpect[39m(r[33m.[39mjson[33m.[39mtotalAmount)[33m.[39m[34mtoBe[39m([34m0[39m)[33m;[39m
+    [90m 41| [39m    [34mexpect[39m([35mawait[39m [34mgopayPayments[39m()[33m,[39m [32m'žádná platba u brány'[39m)[33m.[39m[34mtoBe[39m(before)[33m;[39m
+    [90m   | [39m                                                          [31m^[39m
+    [90m 42| [39m    [35mconst[39m orderId [33m=[39m r[33m.[39mjson[33m.[39morderId [35mas[39m string[33m;[39m
+    [90m 43| [39m    [35mconst[39m o [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39mquery[33m<[39m{ status[33m:[39m string[33m;[39m payment_provid…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m   Start at [22m 11:15:32
+[2m   Duration [22m 25.58s[2m (transform 805ms, setup 1ms, collect 638ms, tests 22.70s, environment 1ms, prepare 332ms)[22m
+

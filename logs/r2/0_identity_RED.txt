@@ -1,0 +1,98 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r2-identity-headers.live.test.ts [2m ([22m[2m10 tests[22m [2m|[22m [31m9 failed[39m[2m)[22m[33m 587[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mmiddleware zahodí všechny identitní hlavičky: auth (/api/auth/login)[39m
+[31m     → x-vercel-cron nesmí do handleru dorazit z klienta: expected '1' to be null[39m
+[31m   [33m❯[31m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mmiddleware zahodí všechny identitní hlavičky: public prefix (/api/internal/order-completed)[39m
+[31m     → x-vercel-cron nesmí do handleru dorazit z klienta: expected '1' to be null[39m
+[31m   [33m❯[31m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mmiddleware zahodí všechny identitní hlavičky: public GET (/api/events/abc/ticket-types)[39m
+[31m     → x-vercel-cron nesmí do handleru dorazit z klienta: expected '1' to be null[39m
+[31m   [33m❯[31m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mmiddleware zahodí všechny identitní hlavičky: mimo seznamy (pass-through) (/api/cron/resale-payouts)[39m
+[31m     → x-vercel-cron nesmí do handleru dorazit z klienta: expected '1' to be null[39m
+[31m   [33m❯[31m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mmiddleware zahodí všechny identitní hlavičky: optional-auth bez tokenu (/api/checkout)[39m
+[31m     → x-vercel-cron nesmí do handleru dorazit z klienta: expected '1' to be null[39m
+[31m   [33m❯[31m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mmiddleware zahodí všechny identitní hlavičky: optional-auth s neplatným tokenem (/api/buyer/orders)[39m
+[31m     → x-vercel-cron nesmí do handleru dorazit z klienta: expected '1' to be null[39m
+[31m   [33m❯[31m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mpřihlášený uživatel s podvrženým x-user-id cizího uživatele → handler dostane JEN identitu z JWT[39m
+[31m     → expected '1' to be null[39m
+[31m   [33m❯[31m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22madmin/gift-cards: platform admin z JWT projde, promotér a podvržená hlavička ne[39m
+[31m     → expected 403 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mcron routy: podvržené x-vercel-cron bez tajemství → 401 a výplata zůstane nezaplacená[39m
+[31m     → /api/cron/resale-payouts: podvržené x-vercel-cron: expected 200 to be 401 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 9 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mmiddleware zahodí všechny identitní hlavičky: auth (/api/auth/login)
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mmiddleware zahodí všechny identitní hlavičky: public prefix (/api/internal/order-completed)
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mmiddleware zahodí všechny identitní hlavičky: public GET (/api/events/abc/ticket-types)
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mmiddleware zahodí všechny identitní hlavičky: mimo seznamy (pass-through) (/api/cron/resale-payouts)
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mmiddleware zahodí všechny identitní hlavičky: optional-auth bez tokenu (/api/checkout)
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mmiddleware zahodí všechny identitní hlavičky: optional-auth s neplatným tokenem (/api/buyer/orders)
+[31m[1mAssertionError[22m: x-vercel-cron nesmí do handleru dorazit z klienta: expected '1' to be null[39m
+[36m [2m❯[22m tests/fix-r2-identity-headers.live.test.ts:[2m85:86[22m[39m
+    [90m 83| [39m      [34mexpect[39m(blocked[33m,[39m [32m'tahle cesta se má propustit (testujeme právě pr[39m…
+    [90m 84| [39m      [35mfor[39m ([35mconst[39m h [35mof[39m [33mObject[39m[33m.[39m[34mkeys[39m([33mFORGED[39m(victim))) {
+    [90m 85| [39m        [34mexpect[39m(forwardedHeaders[33m![39m[33m.[39m[35mget[39m(h)[33m,[39m [32m`[39m[36m${[39mh[36m}[39m[32m nesmí do handleru doraz[39m…
+    [90m   | [39m                                                                                     [31m^[39m
+    [90m 86| [39m      }
+    [90m 87| [39m    })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mpřihlášený uživatel s podvrženým x-user-id cizího uživatele → handler dostane JEN identitu z JWT
+[31m[1mAssertionError[22m: expected '1' to be null[39m
+[36m [2m❯[22m tests/fix-r2-identity-headers.live.test.ts:[2m105:54[22m[39m
+    [90m103| [39m      [34mexpect[39m(forwardedHeaders[33m![39m[33m.[39m[35mget[39m([32m'x-user-id'[39m))[33m.[39m[34mtoBe[39m(me[33m.[39mid)[33m;[39m
+    [90m104| [39m      [34mexpect[39m(forwardedHeaders[33m![39m[33m.[39m[35mget[39m([32m'x-is-platform-admin'[39m))[33m.[39m[34mtoBeNull[39m()[33m;[39m
+    [90m105| [39m      [34mexpect[39m(forwardedHeaders[33m![39m[33m.[39m[35mget[39m([32m'x-vercel-cron'[39m))[33m.[39m[34mtoBeNull[39m()[33m;[39m
+    [90m   | [39m                                                     [31m^[39m
+    [90m106| [39m    }
+    [90m107| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22madmin/gift-cards: platform admin z JWT projde, promotér a podvržená hlavička ne
+[31m[1mAssertionError[22m: expected 403 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 403[39m
+
+[36m [2m❯[22m tests/fix-r2-identity-headers.live.test.ts:[2m118:125[22m[39m
+    [90m116| [39m    [35mconst[39m proTok [33m=[39m [35mawait[39m [34msignAccessToken[39m({ id[33m:[39m c[33m.[39madminUserId[33m,[39m email[33m:[39m [32m'[39m…
+    [90m117| [39m      { isPlatformAdmin[33m:[39m [35mfalse[39m[33m,[39m promoterMemberships[33m:[39m [{ promoterId[33m:[39m c[33m.[39m…
+    [90m118| [39m    [34mexpect[39m(([35mawait[39m [34mthroughMiddleware[39m([34mreq[39m([32m'GET'[39m[33m,[39m [32m'/api/admin/gift-cards'[39m…
+    [90m   | [39m                                                                                                                            [31m^[39m
+    [90m119| [39m    [34mexpect[39m(([35mawait[39m [34mthroughMiddleware[39m([34mreq[39m([32m'GET'[39m[33m,[39m [32m'/api/admin/gift-cards'[39m…
+    [90m120| [39m    [34mexpect[39m(([35mawait[39m [34mthroughMiddleware[39m([34mreq[39m([32m'GET'[39m[33m,[39m [32m'/api/admin/gift-cards'[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-identity-headers.live.test.ts[2m > [22mKrok 0 — podvržené identitní hlavičky (přes skutečný middleware)[2m > [22mcron routy: podvržené x-vercel-cron bez tajemství → 401 a výplata zůstane nezaplacená
+[31m[1mAssertionError[22m: /api/cron/resale-payouts: podvržené x-vercel-cron: expected 200 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r2-identity-headers.live.test.ts:[2m142:62[22m[39m
+    [90m140| [39m      [35mconst[39m { [33mGET[39m } [33m=[39m [35mawait[39m [35mimport[39m([90m/* @vite-ignore */[39m mod)[33m;[39m
+    [90m141| [39m      [35mconst[39m res [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([34mreq[39m([32m'GET'[39m[33m,[39m path[33m,[39m { [32m'x-vercel[39m…
+    [90m142| [39m      [34mexpect[39m(res[33m.[39mstatus[33m,[39m [32m`[39m[36m${[39mpath[36m}[39m[32m: podvržené x-vercel-cron`[39m)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+    [90m   | [39m                                                             [31m^[39m
+    [90m143| [39m    }
+    [90m144| [39m    [35mconst[39m st [33m=[39m ([35mawait[39m pool[33m.[39mquery[33m<[39m{ status[33m:[39m string }[33m>[39m([32m`SELECT status FR[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m9 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m 09:03:58
+[2m   Duration [22m 1.38s[2m (transform 160ms, setup 0ms, collect 147ms, tests 587ms, environment 0ms, prepare 129ms)[22m
+

@@ -1,0 +1,18 @@
+   ▲ Next.js 15.5.27
+   - Local:        http://localhost:3200
+   - Network:      http://192.168.0.240:3200
+
+ ✓ Starting...
+ ✓ Ready in 1323ms
+Error: Sentry kontrola: kupec jana.novakova@example.cz, tel. +420 777 123 456
+    at A (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\ops\sentry-check\route.js:1:4669)
+    at <unknown> (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\11990.js:22:73663)
+    at b.handleCallbackErrors (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\11990.js:8:133032)
+    at <unknown> (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\11990.js:22:73636)
+    at <unknown> (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\74705.js:4:69538)
+    at C.with (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\74705.js:4:66270)
+    at ac.with (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\74705.js:21:48536)
+    at Object.withScope (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\74705.js:4:69531)
+    at b.withScope (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\11990.js:11:189443) {
+  buyer: [Object]
+}

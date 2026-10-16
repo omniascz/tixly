@@ -6,7 +6,8 @@ export const metadata: Metadata = {
   description: 'Kontaktní informace pro diváky i pořadatele Tixly.',
 };
 
-export default function ContactPage({ params }: { params: { locale: string } }) {
+export default async function ContactPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   return (
     <div className="mx-auto max-w-2xl space-y-8 py-10">
       <h1 className="text-3xl font-bold">Kontakt</h1>

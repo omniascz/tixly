@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { VisualEditor, type Layout } from './VisualEditor';
 
 function authFetch(url: string, init?: RequestInit): Promise<Response> {
@@ -16,11 +17,11 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function PlatformVisualEditorPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function PlatformVisualEditorPage(_props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = useParams<{ id: string }>();
   const venueId = params.id;
   const [initialLayout, setInitialLayout] = useState<Layout | null>(null);
   const [chartName, setChartName] = useState('Default');

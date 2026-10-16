@@ -1,0 +1,7 @@
+DROP DATABASE
+CREATE DATABASE
+849
+'rotating_24h'::text
+3
+invoices_promoter_invoice_number_key
+

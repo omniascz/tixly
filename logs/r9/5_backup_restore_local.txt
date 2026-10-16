@@ -1,0 +1,10 @@
+tables in dump: 1360
+NOTICE:  database "tixly_restore_test" does not exist, skipping
+ OK: tixly_app NOBYPASSRLS, NOSUPERUSER
+     617 |   589 |      28
+     871
+orders.orders prod=0 restore=0
+tickets.tickets prod=0 restore=0
+catalog.events prod=4 restore=4
+catalog.event_seats prod=400 restore=400
+identity.users prod=1 restore=1

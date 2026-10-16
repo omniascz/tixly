@@ -1,0 +1,6 @@
+klon /c/Users/omnia/AppData/Local/Temp/r22-clean @ 5696a8f54136c5b1b1206db97755715a3e0993eb
+npm ci exit 0
+[build-no-network] OK — build prošel bez jediného síťového spojení z kódu aplikace
+exit=0
+NONET_DONE
+exit=0

@@ -5,6 +5,10 @@
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
+// Kolo 10: předplatné je za přepínačem (výchozí vypnuto → 404, viz tests/fix-r10-launch-flags.test.ts);
+// tady se testuje chování ZAPNUTÉ funkce.
+process.env.NEXT_PUBLIC_FEATURE_SUBSCRIPTIONS = '1';
+
 // dataQuery = jen DATA dotazy (SELECT/INSERT/...). Control statements (SET app.role
 // injektovaný rls-pool kontextem, BEGIN/COMMIT/ROLLBACK) jsou transparentní —
 // nekonzumují sekvenci mockResolvedValueOnce. Tím je mock nezávislý na tom, kolik
@@ -13,8 +17,21 @@ const dataQuery = vi.fn();
 const mockClient = {
   query: vi.fn((sql: string, params?: unknown[]) => {
     const s = String(sql).trim().toUpperCase();
+    // rls-pool (kolo 2, R-56): kontext se nastavuje transakčně lokálně v JEDNOM round-tripu
+    // `BEGIN; SELECT set_config(..., true)...; SELECT current_setting(...)` a zpětně ověřuje.
+    // Je to řídicí příkaz jako BEGIN — mock ho „provede" ozvěnou nastavených hodnot.
+    if (s.startsWith('BEGIN') && s.includes('SET_CONFIG(')) {
+      const vals = [...String(sql).matchAll(/set_config\('[^']*', '((?:[^']|'')*)', true\)/g)].map((m) => m[1].replace(/''/g, "'"));
+      return Promise.resolve([{ rows: [] }, { rows: [{}] }, { rows: [Object.fromEntries(vals.map((v, i) => [`r${i}`, v]))] }]);
+    }
     if (s.startsWith('SET') || s.startsWith('RESET') || s === 'BEGIN' || s === 'COMMIT' || s === 'ROLLBACK') {
       return Promise.resolve({ rows: [] });
+    }
+    // rls-pool `applyGucs`: nastavi GUC a hned je cte zpet (r0..r3) — mock vraci,
+    // co se nastavilo, jinak connect() spojeni 3x zahodi a vyhodi chybu.
+    if (s.includes('SET_CONFIG(')) {
+      const p = params ?? [];
+      return Promise.resolve({ rows: [{ r0: p[4], r1: p[5], r2: p[6], r3: p[7], pid: 1 }] });
     }
     return dataQuery(sql, params);
   }),

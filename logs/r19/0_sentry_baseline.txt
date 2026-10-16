@@ -1,0 +1,27 @@
+# Kolo 19 — baseline Sentry (HEAD ed9afdc2, @sentry/nextjs 8.55.2), logs/r19/run_sentry.sh 0
+Server SENTRY_DSN i NEXT_PUBLIC_SENTRY_DSN = http://r19publickey@127.0.0.1:3995/1 (build 0_build.txt). Simulátor rozšířen o záznam všech položek (raw).
+
+[r19] (f) GET /api/admin/events → 401
+[r19] (f) GET /api/orders/00000000-0000-4000-a000-000000000001 → 401
+[r19] (f) GET /api/platform/promoters → 401
+[r19] (a) POST /api/ops/sentry-check → 500
+[r19] (a) událost: Sentry kontrola: kupec [email], tel. [telefon]; release=cRCs8EhRdb6dwHWtYeUjs
+[r19] (b) GET /api/cron/dispatch?job=charge-installments → 502
+[r19] (b) událost: Cron charge-installments selhal: HTTP 404 tags={"cron":"charge-installments","runbook":"https://github.com/omnia/tixly/blob/main/docs/RUNBOOK-DISASTER-RECOVERY.md"}
+[r19] (c) událost: NEDORAZILA
+[r19] (c) požadavky na tunel: []; přímo na simulátor: []; zablokováno mimo localhost: []
+[r19] obálek: 6; položek event/transaction/span: 6 ({"transaction":4,"event":2})
+[r19] (d)+(e) nálezy: e-mail: 1 obálek; telefon: 1 obálek; jméno: 1 obálek; IP adresa: 4 obálek; access token: 2 obálek; request.cookies ["accessToken","r19_buyer"]; request.data (tělo) v event; hlavička cookie v event; request.cookies ["r19_buyer"]
+
+## Rozbor nálezů (d) po obálkách
+- obálka 0 transaction: GET /api/health | request klíče= | headers= | cookies=- | data=ne | user=undefined
+- obálka 1 transaction: GET /api/orders/00000000-0000-4000-a000-000000000001 | request klíče=headers,method,url,cookies | headers=user-agent,accept,accept-encoding,x-real-ip,host,connection | cookies=- | data=ne | user=undefined
+- obálka 2 transaction: middleware GET /api/platform/promoters | request klíče= | headers= | cookies=- | data=ne | user=undefined
+- obálka 3 event: Sentry kontrola: kupec [email], tel. [telefon] | request klíče=headers,method,url,cookies,query_string,data | headers=user-agent,accept,accept-encoding,origin,x-real-ip,x-forwarded-for,content-type,content-length,host,connection | cookies=accessToken,r19_buyer | data=ANO | user=undefined
+- obálka 4 event: Cron charge-installments selhal: HTTP 404 | request klíče=headers,method,url,cookies,query_string | headers=user-agent,accept,accept-encoding,origin,x-real-ip,x-forwarded-for,host,connection | cookies=accessToken,r19_buyer | data=ne | user=undefined
+- obálka 5 transaction: GET /offline | request klíče=headers,method,url,cookies | headers=host,connection,pragma,cache-control,user-agent,x-forwarded-for,x-real-ip,accept,sec-fetch-site,sec-fetch-mode,sec-fetch-dest,referer,accept-encoding,cookie | cookies=r19_buyer | data=ne | user=undefined
+
+## Prohlížeč
+- Chyba z prohlížeče NEDORAZILA: DSN 127.0.0.1 není Sentry SaaS → SDK tunel nepoužije (client/tunnelRoute.js) a přímé odeslání na 127.0.0.1:3995 zablokuje CSP (connect-src 'self' …) — konzole: "Refused to connect because it violates the document's Content Security Policy".
+- Tunel /api/monitoring na baseline lokálně ověřit nelze: SDK 8 přepisuje tunel natvrdo na https://o<org>.ingest.sentry.io (routes-manifest afterFiles), bez možnosti přesměrování na simulátor → spojení na skutečné sentry.io je zakázané, proto neprovedeno.
+- Middleware: /api/monitoring není v neveřejných prefixech (admin/orders/kiosk/platform) → passThrough; tunel middleware na baseline neblokuje (z kódu, src/middleware.ts).

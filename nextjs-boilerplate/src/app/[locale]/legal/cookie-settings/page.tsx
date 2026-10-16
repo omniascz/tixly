@@ -6,11 +6,12 @@
  */
 import { CookieSettingsClient } from './CookieSettingsClient';
 
-export default function CookieSettingsPage({
-  params,
-}: {
-  params: { locale: string };
-}) {
+export default async function CookieSettingsPage(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+) {
+  const params = await props.params;
   const locale = params.locale as 'cs' | 'sk' | 'en';
   const t = STRINGS[locale] ?? STRINGS.cs;
 

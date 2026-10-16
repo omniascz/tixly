@@ -1,0 +1,191 @@
+# Kolo 20 / krok 1.2 — RED na nezměněném kódu (HEAD cfada2f5 = kód da9a8aeb), build logs/r20/2_red_build.txt
+# spec e2e/tests/golden-path-r20-order-confirmation.spec.ts, čerstvá r20demo (1_red_run_reset.txt), next start :3200, simulátor GoPay
+
+## Výsledek: (a) RED (HTTP 500, chybová stránka), (b) RED (2× TypeError v logu serveru), (c) RED (odkaz se nevykreslil), (d) zelený, (null) zelený
+
+## Chyba ze serveru (logs/r20/1_red_run_server.txt)
+8: ⨯ TypeError: d.event_date_start.replace is not a function
+9-    at y (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\[locale]\order-confirmation\[orderId]\page.js:31:7614) {
+10-  digest: '4106299660'
+11-}
+12: ⨯ TypeError: d.event_date_start.replace is not a function
+13-    at y (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\[locale]\order-confirmation\[orderId]\page.js:31:7614) {
+14-  digest: '4106299660'
+15-}
+
+## Playwright (logs/r20/1_red_run.txt, bez ANSI)
+
+Running 3 tests using 1 worker
+
+[r20] (a) GET /cs/order-confirmation/ec2876b6-a3f0-4637-be3e-61ae9d90ab98 → 500
+[r20] (c) odkazů calendar.google.com: 0; dates=— očekáváno 20261119T190000Z/20261119T190000Z
+[r20] (b) řádků TypeError v logu serveru: 2 — ⨯ TypeError: d.event_date_start.replace is not a function
+  x  1 [golden-path] › tests\golden-path-r20-order-confirmation.spec.ts:104:5 › (a)(b)(c) zaplacená objednávka s termínem: stránka 200, číslo objednávky, odkaz do kalendáře v UTC (35.9s)
+[r20] (d) objednávka ve stavu pending: GET → 200
+  ok 2 [golden-path] › tests\golden-path-r20-order-confirmation.spec.ts:144:5 › (d) nezaplacená objednávka: stránka 200, odkaz do kalendáře se nevykreslí (1.7s)
+[r20] (null) GET /cs/order-confirmation/f2dfd996-e701-49f0-971a-c0b8d7562c0a → 200
+  ok 3 [golden-path] › tests\golden-path-r20-order-confirmation.spec.ts:160:5 › (null) zaplacená objednávka bez termínu (event_date_start NULL): stránka 200, odkaz se nevykreslí (537ms)
+
+
+  1) [golden-path] › tests\golden-path-r20-order-confirmation.spec.ts:104:5 › (a)(b)(c) zaplacená objednávka s termínem: stránka 200, číslo objednávky, odkaz do kalendáře v UTC 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 500
+
+      117 |   console.log(`[r20] (a) GET /cs/order-confirmation/${S.paidOrder} → ${status}`);
+      118 |   // expect.soft: (a), (b) i (c) se vyhodnotí všechny, i když jeden bod selže
+    > 119 |   expect.soft(status).toBe(200);
+          |                       ^
+      120 |   expect.soft(html).toContain(S.paidOrder);
+      121 |   await expect.soft(page.locator('code', { hasText: S.paidOrder })).toBeVisible();
+      122 |   await expect.soft(page.getByRole('heading', { name: /Hamlet/ })).toBeVisible();
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r20-order-confirmation.spec.ts:119:23
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('code').filter({ hasText: 'ec2876b6-a3f0-4637-be3e-61ae9d90ab98' })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "soft toBeVisible" with timeout 10000ms
+      - waiting for locator('code').filter({ hasText: 'ec2876b6-a3f0-4637-be3e-61ae9d90ab98' })
+
+
+      119 |   expect.soft(status).toBe(200);
+      120 |   expect.soft(html).toContain(S.paidOrder);
+    > 121 |   await expect.soft(page.locator('code', { hasText: S.paidOrder })).toBeVisible();
+          |                                                                     ^
+      122 |   await expect.soft(page.getByRole('heading', { name: /Hamlet/ })).toBeVisible();
+      123 |   await expect.soft(page.getByText(/Application error|Something went wrong|Internal Server Error/i)).toHaveCount(0);
+      124 |
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r20-order-confirmation.spec.ts:121:69
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('heading', { name: /Hamlet/ })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "soft toBeVisible" with timeout 10000ms
+      - waiting for getByRole('heading', { name: /Hamlet/ })
+
+
+      120 |   expect.soft(html).toContain(S.paidOrder);
+      121 |   await expect.soft(page.locator('code', { hasText: S.paidOrder })).toBeVisible();
+    > 122 |   await expect.soft(page.getByRole('heading', { name: /Hamlet/ })).toBeVisible();
+          |                                                                    ^
+      123 |   await expect.soft(page.getByText(/Application error|Something went wrong|Internal Server Error/i)).toHaveCount(0);
+      124 |
+      125 |   // (c) odkaz do Google Kalendáře: dates = začátek/začátek (jako dosud), UTC, YYYYMMDDTHHMMSSZ, podle date_start z DB
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r20-order-confirmation.spec.ts:122:68
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  getByText(/Application error|Something went wrong|Internal Server Error/i)
+    Expected: 0
+    Received: 1
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "soft toHaveCount" with timeout 10000ms
+      - waiting for getByText(/Application error|Something went wrong|Internal Server Error/i)
+        14 × locator resolved to 1 element
+           - unexpected value "1"
+
+
+      121 |   await expect.soft(page.locator('code', { hasText: S.paidOrder })).toBeVisible();
+      122 |   await expect.soft(page.getByRole('heading', { name: /Hamlet/ })).toBeVisible();
+    > 123 |   await expect.soft(page.getByText(/Application error|Something went wrong|Internal Server Error/i)).toHaveCount(0);
+          |                                                                                                      ^
+      124 |
+      125 |   // (c) odkaz do Google Kalendáře: dates = začátek/začátek (jako dosud), UTC, YYYYMMDDTHHMMSSZ, podle date_start z DB
+      126 |   const link = page.locator('a[href^="https://calendar.google.com/"]');
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r20-order-confirmation.spec.ts:123:102
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 1
+    Received: 0
+
+      129 |   const dates = links === 1 ? new URL((await link.getAttribute('href'))!).searchParams.get('dates') ?? '' : '';
+      130 |   console.log(`[r20] (c) odkazů calendar.google.com: ${links}; dates=${dates || '—'} očekáváno ${want}/${want}`);
+    > 131 |   expect.soft(links).toBe(1);
+          |                      ^
+      132 |   expect.soft(dates).toMatch(/^\d{8}T\d{6}Z\/\d{8}T\d{6}Z$/);
+      133 |   expect.soft(dates).toBe(`${want}/${want}`);
+      134 |   await ctx.close();
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r20-order-confirmation.spec.ts:131:22
+
+    Error: expect(received).toMatch(expected)
+
+    Expected pattern: /^\d{8}T\d{6}Z\/\d{8}T\d{6}Z$/
+    Received string:  ""
+
+      130 |   console.log(`[r20] (c) odkazů calendar.google.com: ${links}; dates=${dates || '—'} očekáváno ${want}/${want}`);
+      131 |   expect.soft(links).toBe(1);
+    > 132 |   expect.soft(dates).toMatch(/^\d{8}T\d{6}Z\/\d{8}T\d{6}Z$/);
+          |                      ^
+      133 |   expect.soft(dates).toBe(`${want}/${want}`);
+      134 |   await ctx.close();
+      135 |
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r20-order-confirmation.spec.ts:132:22
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "20261119T190000Z/20261119T190000Z"
+    Received: ""
+
+      131 |   expect.soft(links).toBe(1);
+      132 |   expect.soft(dates).toMatch(/^\d{8}T\d{6}Z\/\d{8}T\d{6}Z$/);
+    > 133 |   expect.soft(dates).toBe(`${want}/${want}`);
+          |                      ^
+      134 |   await ctx.close();
+      135 |
+      136 |   // (b) log serveru bez TypeError (po vykreslení dát serveru chvíli na zápis)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r20-order-confirmation.spec.ts:133:22
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 4
+
+    - Array []
+    + Array [
+    +   " ⨯ TypeError: d.event_date_start.replace is not a function",
+    +   " ⨯ TypeError: d.event_date_start.replace is not a function",
+    + ]
+
+      139 |   const typeErrors = log.split(/\r?\n/).filter((l) => l.includes('TypeError'));
+      140 |   console.log(`[r20] (b) řádků TypeError v logu serveru: ${typeErrors.length}${typeErrors.length ? ` — ${typeErrors[0].trim()}` : ''}`);
+    > 141 |   expect.soft(typeErrors).toEqual([]);
+          |                           ^
+      142 | });
+      143 |
+      144 | test('(d) nezaplacená objednávka: stránka 200, odkaz do kalendáře se nevykreslí', async ({ browser }) => {
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r20-order-confirmation.spec.ts:141:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r20-order-conf-df8e8-ky-odkaz-do-kalendáře-v-UTC-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r20-order-conf-df8e8-ky-odkaz-do-kalendáře-v-UTC-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r20-order-conf-df8e8-ky-odkaz-do-kalendáře-v-UTC-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r20-order-conf-df8e8-ky-odkaz-do-kalendáře-v-UTC-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r20-order-conf-df8e8-ky-odkaz-do-kalendáře-v-UTC-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r20-order-confirmation.spec.ts:104:5 › (a)(b)(c) zaplacená objednávka s termínem: stránka 200, číslo objednávky, odkaz do kalendáře v UTC 
+  2 passed (54.8s)

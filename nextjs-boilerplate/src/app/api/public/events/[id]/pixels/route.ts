@@ -8,10 +8,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const event = await db().query<{ promoter_id: string }>(
     `SELECT promoter_id FROM catalog.events WHERE id = $1 AND status = 'published'`,
     [params.id],

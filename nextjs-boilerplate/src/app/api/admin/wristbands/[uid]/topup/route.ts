@@ -15,10 +15,8 @@ const schema = z.object({
   description: z.string().max(200).optional(),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { uid: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ uid: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);

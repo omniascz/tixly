@@ -1,0 +1,51 @@
+{
+  "run": "musuezta",
+  "pw": "Audit2026!x",
+  "buyerEmail": "buyer-musuezta@audit.test",
+  "buyerId": "799c578d-1a83-402c-8264-a363dbe08357",
+  "adminEmail": "padmin-musuezta@audit.test",
+  "promoterA": {
+    "email": "promoter-a-musuezta@audit.test",
+    "id": "40f5174c-bf0d-4419-9d98-5f41b2736f04"
+  },
+  "promoterB": {
+    "email": "promoter-b-musuezta@audit.test",
+    "id": "18054cc0-8fb1-40b8-a98a-a720f7fbb1f2"
+  },
+  "venueId": "1073bf4c-f1a5-4b50-b88e-e14a29dedcf1",
+  "eventA": "49dd09f1-7db9-421f-9363-ddac3272a400",
+  "tt": {
+    "Stani": "f1ff9c79-a26e-4f3a-a907-e120e8a67955",
+    "Posledni mista": "5c96831f-7c87-45fd-ac37-b9e2eaf226e0",
+    "Limit 2 na osobu": "744d483c-2cc7-410f-86a9-0514efe1e300",
+    "Zdarma": "adf08560-8373-4b54-af04-90ed531a69ff"
+  },
+  "eventB": "7bf6760f-4016-4adf-a31d-b219485d94f0",
+  "ttB": "b5c9711e-43cc-43dc-a5e8-24a9439e59fd",
+  "eventStatusA": "pending_review",
+  "eventStatusB": "pending_review",
+  "promo": "AUDIT20MUSUEZTA",
+  "otherEmail": "other-musuezta@audit.test",
+  "guestEmail": "guest-musuezta@audit.test",
+  "guestOrder": "b39a184f-ec3e-4c8e-a6a1-c176ec8fe144",
+  "lastSeatsOrders": [
+    "20d0dc28-3359-4218-878e-f7ec9461a652",
+    "98a392c5-5464-496c-8fd1-d54edfa3e229"
+  ],
+  "orders": {
+    "o1": "74e28d52-8857-4341-8d0b-11cee0f7583b",
+    "o2": "c74500ae-745e-4078-be10-2facf3695c7f",
+    "o3": "c2273c18-7bc1-4e7c-b127-9e30c3fa9663",
+    "o4": "b39a184f-ec3e-4c8e-a6a1-c176ec8fe144",
+    "o5": "ad31ab81-d6bb-47b7-b3d7-2d4feef11e08",
+    "o6": "841ca588-1afc-4a03-9bae-554b605bc7b8"
+  },
+  "pids": {
+    "pid1": "3027450608",
+    "pid2": "3027450609",
+    "pid3": "3027450610",
+    "pid4": "3027450611",
+    "pid6": "3027450617"
+  },
+  "eventA2": "ca4aaf92-f397-4f29-86e1-a0ca24d894d7"
+}

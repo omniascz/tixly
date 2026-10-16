@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,7 +13,7 @@ import {
 
 interface TransferState {
   invitationId: string;
-  from: { email: string; name: string | null };
+  from: { name: string | null };
   toEmail: string;
   message: string | null;
   expiresAt: string;
@@ -125,7 +125,7 @@ export default function TransferAcceptPage(): JSX.Element {
           <CardHeader>
             <CardTitle>🎉 Vstupenka je tvoje!</CardTitle>
             <CardDescription>
-              {state.from.name ?? state.from.email} ti poslal vstupenku na {state.event.title}.
+              {state.from.name ?? 'Někdo'} ti poslal vstupenku na {state.event.title}.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -167,7 +167,7 @@ export default function TransferAcceptPage(): JSX.Element {
         <CardHeader>
           <CardTitle>🎁 Máš tu vstupenku</CardTitle>
           <CardDescription>
-            {state.from.name ?? state.from.email} ti posílá vstupenku.
+            {state.from.name ?? 'Někdo'} ti posílá vstupenku.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">

@@ -5,7 +5,7 @@
  *
  * Body: { saleStartAt: ISO datetime, saleEndAt?: ISO datetime }
  *
- * Synchronně nastaví sale_start_at/sale_end_at na všech events v groupě.
+ * Synchronně nastaví sale_start_at/sales_end_at na všech events v groupě (kolo 7: sales_end_at).
  * Audit do event_groups.bulk_edits.
  */
 import { NextRequest, NextResponse } from 'next/server';
@@ -55,10 +55,26 @@ export async function POST(
       return NextResponse.json({ error: 'NO_EVENTS_IN_GROUP' }, { status: 404 });
     }
 
+    // Kolo 7 (C-29): uzávěrka po konci některé akce skupiny → srozumitelná 422 (jinak CHECK 23514 → 500).
+    if (parsed.data.saleEndAt) {
+      const late = await client.query<{ n: number }>(
+        `SELECT count(*)::int n FROM catalog.events
+          WHERE id = ANY($1::uuid[]) AND $2::timestamptz > COALESCE(date_end, date_start + INTERVAL '12 hours')`,
+        [affectedIds, parsed.data.saleEndAt],
+      );
+      if ((late.rows[0]?.n ?? 0) > 0) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { error: 'INVALID_SALES_END', message: 'Konec online prodeje nesmí být po konci žádné akce ve skupině.' },
+          { status: 422 },
+        );
+      }
+    }
+
     await client.query(
       `UPDATE catalog.events
           SET sale_start_at = $1::timestamptz,
-              sale_end_at = COALESCE($2::timestamptz, sale_end_at),
+              sales_end_at = COALESCE($2::timestamptz, sales_end_at), -- kolo 7: sale_end_at je zastaralý
               updated_at = NOW()
         WHERE id = ANY($3::uuid[])
           AND promoter_id = $4`,

@@ -1,0 +1,62 @@
+# Kolo 20 / krok 1.5 — GREEN
+
+Build s opravou page.tsx (logs/r20/2_step1_build.txt; next.config beze změny), čerstvá r20demo (1_green_run_reset.txt).
+
+## Spec golden-path-r20-order-confirmation: 3 passed
+[r20] (a) GET /cs/order-confirmation/6eb6e15a-7bb5-493c-9c2f-d42f6a0dd0a3 → 200
+[r20] (c) odkazů calendar.google.com: 1; dates=20261119T190000Z/20261119T190000Z očekáváno 20261119T190000Z/20261119T190000Z
+[r20] (b) řádků TypeError v logu serveru: 0
+  ok 1 [golden-path] › tests\golden-path-r20-order-confirmation.spec.ts:104:5 › (a)(b)(c) zaplacená objednávka s termínem: stránka 200, číslo objednávky, odkaz do kalendáře v UTC (6.4s)
+[r20] (d) objednávka ve stavu pending: GET → 200
+  ok 2 [golden-path] › tests\golden-path-r20-order-confirmation.spec.ts:144:5 › (d) nezaplacená objednávka: stránka 200, odkaz do kalendáře se nevykreslí (1.5s)
+[r20] (null) GET /cs/order-confirmation/fb6b5292-e41b-4d2e-b2b5-7a58907022b7 → 200
+  ok 3 [golden-path] › tests\golden-path-r20-order-confirmation.spec.ts:160:5 › (null) zaplacená objednávka bez termínu (event_date_start NULL): stránka 200, odkaz se nevykreslí (492ms)
+  3 passed (11.9s)
+
+TypeError v logu serveru (1_green_run_server.txt): 0; event_date_start.replace: 0
+
+## Změna page.tsx (1_page_diff.txt)
+diff --git a/nextjs-boilerplate/src/app/[locale]/order-confirmation/[orderId]/page.tsx b/nextjs-boilerplate/src/app/[locale]/order-confirmation/[orderId]/page.tsx
+index 95767f60..c6697882 100644
+--- a/nextjs-boilerplate/src/app/[locale]/order-confirmation/[orderId]/page.tsx
++++ b/nextjs-boilerplate/src/app/[locale]/order-confirmation/[orderId]/page.tsx
+@@ -36 +36,2 @@ interface OrderRow {
+-  event_date_start: string | null;
++  // Kolo 20: pg vrací timestamptz (e.date_start) jako Date, ne řetězec
++  event_date_start: Date | string | null;
+@@ -143,0 +145,3 @@ export default async function OrderConfirmationPage(
++  // Kolo 20: začátek akce jako ISO v UTC (Date i řetězec); Google Kalendář chce YYYYMMDDTHHMMSSZ v UTC
++  const eventStartIso = order.event_date_start ? new Date(order.event_date_start).toISOString() : null;
++  const gcalStart = eventStartIso ? eventStartIso.replace(/\.\d{3}Z$/, 'Z').replace(/[-:]/g, '') : null;
+@@ -187 +191 @@ export default async function OrderConfirmationPage(
+-              {order.event_date_start && (
++              {eventStartIso && (
+@@ -189 +193 @@ export default async function OrderConfirmationPage(
+-                  {formatDate(order.event_date_start, locale)}
++                  {formatDate(eventStartIso, locale)}
+@@ -359 +363 @@ export default async function OrderConfirmationPage(
+-          {isPaid && order.event_date_start && order.event_title ? (
++          {isPaid && gcalStart && order.event_title ? (
+@@ -369 +373 @@ export default async function OrderConfirmationPage(
+-                href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(order.event_title)}&dates=${order.event_date_start.replace(/[-:]/g, '').replace('T', 'T').slice(0, 15) + 'Z'}/${order.event_date_start.replace(/[-:]/g, '').replace('T', 'T').slice(0, 15) + 'Z'}&location=${encodeURIComponent(order.venue_name ?? '')}`}
++                href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(order.event_title)}&dates=${gcalStart}/${gcalStart}&location=${encodeURIComponent(order.venue_name ?? '')}`}
+
+## golden-path-buyer a golden-path-benefit (1_golden_buyer_benefit.txt) — NEPROŠLY, nezávisle na změně
+
+Obě specy potřebují staré „rich demo" (Romeo a Julie / Hamlet 0000…0401/0402, admin@tixly.cz, theatre@hranice.cz,
+anna.nova@example.cz). Repo nemá seed, který by šel na schéma z migrací (scripts/seed-rich-demo-phase2.sql čte
+/tmp/layouts/*.json přes pg_read_file). Proto DB r20rich: migrace od nuly + data demo tabulek přečtená z lokální vývojové DB
+tixly-postgres/tixly (logs/r20/rich_from_dev.sh, 1_rich_db.txt; do vývojové DB se nic nezapisovalo; termíny posunuty o 152 dní
+do budoucna — v DB byly z června 2026). V tixly-postgres má tixly_app BYPASSRLS, proto se aplikace nespouštěla proti ní.
+
+Výsledek (build s opravou, r20rich, tixly_app NOBYPASSRLS): 4 failed, 3 did not run. Všechna selhání nastanou PŘED
+stránkou potvrzení objednávky a v kódu, který kolo 20 nemění:
+- buyer 1 (Romeo): krok „Seat picker — SVG mapa" čeká na text /Cenové kategorie/ — `git grep "Cenové kategorie" nextjs-boilerplate/src`
+  = 0 výskytů (text v UI už není); zbylé 3 testy serial bloku se nespustily.
+- benefit 1 a 2: `POST /api/auth/login` druhého účtu → 403 CSRF_ORIGIN_MISMATCH (src/middleware.ts:142, request bez Origin
+  s cookie relace z prvního přihlášení); benefit 2 navíc „No usable event found".
+- benefit 3: callback s neplatným externalId vrací 404 `NOT_FOUND`, spec čeká `PAYMENT_NOT_FOUND`.
+Specy byly naposledy upraveny v c7e7a3f3 (2026-10-06) a v kolech 10–19 se nespouštěly (logs/r1x bez výskytu).
+Asserty se podle zadání neměnily, proto zůstávají červené; běh na buildu BEZ opravy jsem nespouštěl — selhání jsou v krocích
+před navigací na /order-confirmation, které page.tsx neovlivňuje.
+Pokrytí stejné cesty (nákup → order-confirmation zaplacené objednávky) dává golden-path-r20-order-confirmation (a) a turné krok 5.

@@ -1,9 +1,11 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { useRouteParams } from '@/lib/next/route-params';
 
 interface AccreditationRequest {
   id: string;
@@ -48,12 +50,12 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function AccreditationAdminPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id: eventId } = use(params);
+export default function AccreditationAdminPage(_props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = useParams<{ id: string }>();
+  const { id: eventId } = useRouteParams(params);
   const [requests, setRequests] = useState<AccreditationRequest[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [statusFilter, setStatusFilter] = useState<string>('pending');

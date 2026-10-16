@@ -1,10 +1,12 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useRouteParams } from '@/lib/next/route-params';
 
 interface PressAccreditation {
   id: string;
@@ -62,12 +64,12 @@ function toDatetimeLocal(iso: string | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export default function PressPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id: eventId } = use(params);
+export default function PressPage(_props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = useParams<{ id: string }>();
+  const { id: eventId } = useRouteParams(params);
 
   const [accreditations, setAccreditations] = useState<PressAccreditation[]>([]);
   const [settings, setSettings] = useState<PressSettings>({ press_seats_max: 0, press_deadline: null });

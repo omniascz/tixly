@@ -7,9 +7,11 @@ import { GtmHeadScript, GtmNoScript } from '@/components/tracking/GtmScript';
 import { MetaPixel } from '@/components/tracking/MetaPixel';
 import { PixelManager } from '@/components/tracking/PixelManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { formatDate } from '@/lib/format';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 import { getDict } from '@/lib/i18n-dictionaries';
+import { isSalesOpen } from '@/lib/sales/cutoff';
 import { GroupInviteButton } from './GroupInviteButton';
 import { LotteryCard } from './LotteryCard';
 import { Recommendations } from './Recommendations';
@@ -47,6 +49,8 @@ interface EventDetail {
   title: string;
   description: string | null;
   date_start: string;
+  /** Kolo 7 (C-29): konec online prodeje; null = začátek akce. */
+  sales_end_at?: string | null;
   timezone: string | null;
   venue_name: string;
   venue_address: string;
@@ -68,6 +72,18 @@ interface EventDetail {
   streaming_provider: string | null;
   stream_replay_days: number;
   date_end: string | null;
+  // Kolo 8: termín inscenace — údaje karty z catalog.productions, doplňky termínu
+  production_id: string | null;
+  production_subtitle: string | null;
+  production_author: string | null;
+  production_director: string | null;
+  production_cast: Array<{ role: string; name: string }> | null;
+  production_duration_min: number | null;
+  production_intermission_min: number | null;
+  production_age_rating: string | null;
+  term_note: string | null;
+  cast_alternation: string | null;
+  venue_city: string | null;
 }
 
 interface TicketTypeRow {
@@ -92,16 +108,21 @@ interface EventZone {
 }
 
 async function fetchDetail(id: string) {
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const eventResult = await db.query<EventDetail>(
       `
-      SELECT e.id, e.title, e.description, e.date_start, e.date_end, e.timezone, e.min_age, e.currency, e.queue_enabled,
+      SELECT e.id, e.title, e.description, e.date_start, e.date_end, e.sales_end_at, e.timezone, e.min_age, e.currency, e.queue_enabled,
              e.timed_entry_enabled,
              e.event_type,
              e.streaming_url, e.streaming_provider, e.stream_replay_days,
              COALESCE(v.name, 'Online') AS venue_name,
              COALESCE(v.address, '') AS venue_address,
+             v.city AS venue_city,
+             e.production_id, pr.subtitle AS production_subtitle, pr.author AS production_author,
+             pr.director AS production_director, pr.cast_list AS production_cast,
+             pr.duration_min AS production_duration_min, pr.intermission_min AS production_intermission_min,
+             pr.age_rating AS production_age_rating, e.term_note, e.cast_alternation,
              e.promoter_id,
              p.name AS promoter_name,
              COALESCE(p.contact_email, p.email) AS promoter_contact_email,
@@ -113,6 +134,7 @@ async function fetchDetail(id: string) {
       FROM catalog.events e
       LEFT JOIN catalog.venues v ON v.id = e.venue_id
       LEFT JOIN platform.promoters p ON p.id = e.promoter_id
+      LEFT JOIN catalog.productions pr ON pr.id = e.production_id
       WHERE (e.id::text = $1 OR e.slug = $1)
     `,
       [id],
@@ -187,11 +209,12 @@ async function fetchDetail(id: string) {
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { locale: string; id: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ locale: string; id: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const data = await fetchDetail(params.id);
   if (!data) return { title: 'Tixly — akce' };
   const { event } = data;
@@ -222,11 +245,12 @@ export async function generateMetadata({
   };
 }
 
-export default async function EventDetailPage({
-  params,
-}: {
-  params: { locale: string; id: string };
-}) {
+export default async function EventDetailPage(
+  props: {
+    params: Promise<{ locale: string; id: string }>;
+  }
+) {
+  const params = await props.params;
   const data = await fetchDetail(params.id);
   if (!data) notFound();
   const { event, ticketTypes, days, zones } = data;
@@ -354,7 +378,7 @@ export default async function EventDetailPage({
           <div className="mt-2 text-muted-foreground">
             {event.event_type === 'online'
               ? 'Online přenos'
-              : event.venue_name}
+              : [event.venue_city, event.venue_name].filter(Boolean).join(' · ')}
             {event.venue_address && event.event_type !== 'online' ? ` · ${event.venue_address}` : ''}
           </div>
           <div className="mt-1 text-sm text-muted-foreground">
@@ -388,6 +412,26 @@ export default async function EventDetailPage({
             {event.streaming_provider === 'zoom' && (
               <p className="mt-1 text-xs text-blue-600">Platforma: Zoom</p>
             )}
+          </div>
+        ) : null}
+
+        {event.production_id ? (
+          <div className="space-y-2 rounded-md border p-4 text-sm" data-testid="term-production-card">
+            {event.production_subtitle ? <p className="text-base text-muted-foreground">{event.production_subtitle}</p> : null}
+            <p className="text-muted-foreground">
+              {[event.production_author ? `Autor: ${event.production_author}` : null,
+                event.production_director ? `Režie: ${event.production_director}` : null,
+                event.production_duration_min
+                  ? `Délka ${event.production_duration_min} min${event.production_intermission_min ? ` (přestávka ${event.production_intermission_min} min)` : ''}`
+                  : null,
+                event.production_age_rating ? `Přístupnost ${event.production_age_rating}` : null].filter(Boolean).join(' · ')}
+            </p>
+            {event.term_note ? <p className="font-medium" data-testid="term-note">{event.term_note}</p> : null}
+            {event.production_cast && event.production_cast.length > 0 ? (
+              <p><span className="text-muted-foreground">Hrají: </span>{event.production_cast.map((c) => (c.role ? `${c.name} (${c.role})` : c.name)).join(', ')}</p>
+            ) : null}
+            {event.cast_alternation ? <p><span className="text-muted-foreground">Alternace v tomto termínu: </span>{event.cast_alternation}</p> : null}
+            <a className="text-primary underline" href={`/${locale}/inscenace/${event.production_id}`}>Všechny termíny inscenace</a>
           </div>
         ) : null}
 
@@ -473,7 +517,12 @@ export default async function EventDetailPage({
             <CardTitle>{t.eventDetail.tickets}</CardTitle>
           </CardHeader>
           <CardContent>
-            {ticketTypes.length === 0 ? (
+            {!isSalesOpen(event, 'online') ? (
+              // Kolo 7 (C-29): po uzávěrce online prodeje se nákup nenabízí (server ho stejně odmítne).
+              <p className="text-sm font-medium text-muted-foreground" data-testid="sales-closed">
+                Prodej ukončen
+              </p>
+            ) : ticketTypes.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 {t.eventDetail.noTicketsOnSale}
               </p>

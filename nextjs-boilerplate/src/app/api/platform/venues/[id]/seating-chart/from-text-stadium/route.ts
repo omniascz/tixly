@@ -44,7 +44,8 @@ Pravidla:
 Vrať POUZE JSON, nic jiného, např.:
 {"pitchLabel":"HŘIŠTĚ","stands":[{"side":"N","name":"Sever","rows":42,"seatsPerRow":220,"tiers":2},{"side":"S","name":"Jih","rows":42,"seatsPerRow":220,"tiers":2},{"side":"E","name":"Východ","rows":30,"seatsPerRow":150,"tiers":1},{"side":"W","name":"Západ","rows":30,"seatsPerRow":150,"tiers":1}],"corners":true,"cornerRows":18,"cornerSeatsPerRow":20}`;
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async () => {
     void params;
     const apiKey = process.env.ANTHROPIC_API_KEY;

@@ -1,0 +1,96 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r4-identity-all-api.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 2672[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-identity-all-api.live.test.ts[2m > [22mKrok 2 (kolo 4) — identita pro všechny /api cesty[2m > [22m25 rout z kola 3: platný Bearer → x-user-id předán (GET i POST)[39m
+[31m     → expected [ …(40) ] to deeply equal [][39m
+[31m   [33m❯[31m tests/fix-r4-identity-all-api.live.test.ts[2m > [22mKrok 2 (kolo 4) — identita pro všechny /api cesty[2m > [22mcookie accessToken stačí stejně jako Bearer[39m
+[31m     → expected null to be '11111111-2222-4333-8444-555555555555' // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-identity-all-api.live.test.ts[2m > [22mKrok 2 (kolo 4) — identita pro všechny /api cesty[2m > [22m25 rout z kola 3: platný Bearer → x-user-id předán (GET i POST)
+[31m[1mAssertionError[22m: expected [ …(40) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [][39m
+[31m+ Array [[39m
+[31m+   "GET /api/ads/click/[campaignId] (bez x-user-id)",[39m
+[31m+   "POST /api/ads/click/[campaignId] (bez x-user-id)",[39m
+[31m+   "GET /api/consent (bez x-user-id)",[39m
+[31m+   "POST /api/consent (bez x-user-id)",[39m
+[31m+   "GET /api/dsa/report (bez x-user-id)",[39m
+[31m+   "POST /api/dsa/report (bez x-user-id)",[39m
+[31m+   "GET /api/events/[id]/alert (bez x-user-id)",[39m
+[31m+   "POST /api/events/[id]/alert (bez x-user-id)",[39m
+[31m+   "GET /api/events/[id]/lotteries/[lotteryId]/enter (bez x-user-id)",[39m
+[31m+   "POST /api/events/[id]/lotteries/[lotteryId]/enter (bez x-user-id)",[39m
+[31m+   "GET /api/events/[id]/seats/hold (bez x-user-id)",[39m
+[31m+   "POST /api/events/[id]/seats/hold (bez x-user-id)",[39m
+[31m+   "GET /api/events/[id]/social-context (bez x-user-id)",[39m
+[31m+   "POST /api/events/[id]/social-context (bez x-user-id)",[39m
+[31m+   "GET /api/events/[id]/verified-fan (bez x-user-id)",[39m
+[31m+   "POST /api/events/[id]/verified-fan (bez x-user-id)",[39m
+[31m+   "GET /api/foyer-orders (bez x-user-id)",[39m
+[31m+   "POST /api/foyer-orders (bez x-user-id)",[39m
+[31m+   "GET /api/orders (bez x-user-id)",[39m
+[31m+   "POST /api/orders (bez x-user-id)",[39m
+[31m+   "GET /api/public/events/[id]/buyer-cap-check (bez x-user-id)",[39m
+[31m+   "POST /api/public/events/[id]/buyer-cap-check (bez x-user-id)",[39m
+[31m+   "GET /api/public/reports (bez x-user-id)",[39m
+[31m+   "POST /api/public/reports (bez x-user-id)",[39m
+[31m+   "GET /api/public/tickets/[token]/totp (bez x-user-id)",[39m
+[31m+   "POST /api/public/tickets/[token]/totp (bez x-user-id)",[39m
+[31m+   "GET /api/resale/purchase/[listingId] (bez x-user-id)",[39m
+[31m+   "POST /api/resale/purchase/[listingId] (bez x-user-id)",[39m
+[31m+   "GET /api/season-passes (bez x-user-id)",[39m
+[31m+   "POST /api/season-passes (bez x-user-id)",[39m
+[31m+   "GET /api/social/friend-requests (bez x-user-id)",[39m
+[31m+   "POST /api/social/friend-requests (bez x-user-id)",[39m
+[31m+   "GET /api/social/friend-requests/[id] (bez x-user-id)",[39m
+[31m+   "POST /api/social/friend-requests/[id] (bez x-user-id)",[39m
+[31m+   "GET /api/social/friends (bez x-user-id)",[39m
+[31m+   "POST /api/social/friends (bez x-user-id)",[39m
+[31m+   "GET /api/tickets/[id]/memory (bez x-user-id)",[39m
+[31m+   "POST /api/tickets/[id]/memory (bez x-user-id)",[39m
+[31m+   "GET /api/tickets/transfer/[token] (bez x-user-id)",[39m
+[31m+   "POST /api/tickets/transfer/[token] (bez x-user-id)",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/fix-r4-identity-all-api.live.test.ts:[2m47:21[22m[39m
+    [90m 45| [39m      }
+    [90m 46| [39m    }
+    [90m 47| [39m    [34mexpect[39m(missing)[33m.[39m[34mtoEqual[39m([])[33m;[39m
+    [90m   | [39m                    [31m^[39m
+    [90m 48| [39m  })[33m;[39m
+    [90m 49| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-identity-all-api.live.test.ts[2m > [22mKrok 2 (kolo 4) — identita pro všechny /api cesty[2m > [22mcookie accessToken stačí stejně jako Bearer
+[31m[1mAssertionError[22m: expected null to be '11111111-2222-4333-8444-555555555555' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"11111111-2222-4333-8444-555555555555"
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m tests/fix-r4-identity-all-api.live.test.ts:[2m54:48[22m[39m
+    [90m 52| [39m      headers[33m:[39m { cookie[33m:[39m [32m`accessToken=[39m[36m${[39mtok[36m}[39m[32m`[39m }[33m,[39m
+    [90m 53| [39m    }))[33m;[39m
+    [90m 54| [39m    [34mexpect[39m(forwardedHeaders[33m?.[39m[35mget[39m([32m'x-user-id'[39m))[33m.[39m[34mtoBe[39m([33mUSER[39m)[33m;[39m
+    [90m   | [39m                                               [31m^[39m
+    [90m 55| [39m  })[33m;[39m
+    [90m 56| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (4)[39m
+[2m   Start at [22m 20:12:20
+[2m   Duration [22m 20.77s[2m (transform 287ms, setup 0ms, collect 1.08s, tests 2.67s, environment 0ms, prepare 2.66s)[22m
+

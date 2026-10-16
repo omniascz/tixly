@@ -1,12 +1,14 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Plus, Pencil, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/admin/PageHeader';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { useRouteParams } from '@/lib/next/route-params';
 
 function Label({ className, children }: { className?: string; children: React.ReactNode }) {
   return <label className={`block text-xs font-medium text-muted-foreground mb-1 ${className ?? ''}`}>{children}</label>;
@@ -32,6 +34,7 @@ interface TicketType {
   presaleCode: string | null;
   // mig 433 — per-ticket-type purchase limit
   maxPerBuyer: number | null;
+  vatRateCode?: string | null;
 }
 
 function priceLabel(halire: number, currency = 'CZK'): string {
@@ -57,12 +60,12 @@ function authFetch(url: string, opts?: RequestInit): Promise<Response> {
   });
 }
 
-export default function TicketTypesPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id: eventId } = use(params);
+export default function TicketTypesPage(_props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = useParams<{ id: string }>();
+  const { id: eventId } = useRouteParams(params);
   const [types, setTypes] = useState<TicketType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +81,11 @@ export default function TicketTypesPage({
   const [addMax, setAddMax] = useState('');
   const [addZone, setAddZone] = useState('');
   const [addDesc, setAddDesc] = useState('');
+  // Kolo 7 (C-54): sazba DPH typu vstupenky (povinná u placeného typu plátce).
+  const [addVat, setAddVat] = useState('');
+  const [editVat, setEditVat] = useState('');
+  const [vatPayer, setVatPayer] = useState(true);
+  const [vatOptions, setVatOptions] = useState<{ code: string; label: string; ratePct: number | null }[]>([]);
 
   // Edit state (patch only changed fields)
   const [editName, setEditName] = useState('');
@@ -99,8 +107,14 @@ export default function TicketTypesPage({
     void authFetch(`/api/admin/events/${eventId}/ticket-types`)
       .then(async (r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const d = (await r.json()) as { ticketTypes: TicketType[] };
+        const d = (await r.json()) as {
+          ticketTypes: TicketType[];
+          vatPayer?: boolean;
+          vatRateCodes?: { code: string; label: string; ratePct: number | null }[];
+        };
         setTypes(d.ticketTypes);
+        setVatPayer(d.vatPayer ?? true);
+        setVatOptions(d.vatRateCodes ?? []);
       })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
@@ -117,6 +131,7 @@ export default function TicketTypesPage({
     setEditPresaleStartsAt(tt.presaleStartsAt ? tt.presaleStartsAt.slice(0, 16) : '');
     setEditPresaleEndsAt(tt.presaleEndsAt ? tt.presaleEndsAt.slice(0, 16) : '');
     setEditMaxPerBuyer(tt.maxPerBuyer ? String(tt.maxPerBuyer) : '');
+    setEditVat(tt.vatRateCode ?? '');
     setEditCapacity(String(tt.totalQty));
     setEditMax(tt.maxPerUser ? String(tt.maxPerUser) : '');
     setEditZone(tt.zone ?? '');
@@ -146,6 +161,7 @@ export default function TicketTypesPage({
     // mig 433 — max per buyer
     const newMaxPerBuyer = editMaxPerBuyer ? parseInt(editMaxPerBuyer, 10) : null;
     if (newMaxPerBuyer !== tt.maxPerBuyer) body.maxPerBuyer = newMaxPerBuyer;
+    if (vatPayer && editVat !== (tt.vatRateCode ?? '')) body.vatRateCode = editVat || null;
 
     if (Object.keys(body).length === 0) {
       setEditingId(null);
@@ -196,13 +212,14 @@ export default function TicketTypesPage({
         totalQty: parseInt(addCapacity, 10),
         maxPerUser: addMax ? parseInt(addMax, 10) : null,
         zone: addZone || null,
+        vatRateCode: vatPayer ? addVat || null : null,
       }),
     });
     setSaving(false);
     if (r.ok) {
       setShowAdd(false);
       setAddName(''); setAddPrice(''); setAddCapacity('');
-      setAddMax(''); setAddZone(''); setAddDesc('');
+      setAddMax(''); setAddZone(''); setAddDesc(''); setAddVat('');
       setStatusMsg('Typ vstupenky přidán');
       load();
     } else {
@@ -275,6 +292,19 @@ export default function TicketTypesPage({
                 <Input value={addZone} onChange={(e) => setAddZone(e.target.value)} placeholder="Hlavní sál, Balkon…" />
               </div>
               <div>
+                <Label className="text-xs">Sazba DPH{vatPayer ? ' *' : ''}</Label>
+                {vatPayer ? (
+                  <select className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm" value={addVat} onChange={(e) => setAddVat(e.target.value)} data-testid="add-vat-rate">
+                    <option value="">— vyberte —</option>
+                    {vatOptions.map((o) => (
+                      <option key={o.code} value={o.code}>{o.label}{o.ratePct !== null ? ` (${o.ratePct} %)` : ''}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Neplátce DPH — sazba se neuvádí.</p>
+                )}
+              </div>
+              <div>
                 <Label className="text-xs">Popis</Label>
                 <Input value={addDesc} onChange={(e) => setAddDesc(e.target.value)} placeholder="Volitelný popis" />
               </div>
@@ -339,6 +369,19 @@ export default function TicketTypesPage({
                         <div>
                           <Label className="text-xs">Zóna</Label>
                           <Input value={editZone} onChange={(e) => setEditZone(e.target.value)} />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Sazba DPH{vatPayer ? ' *' : ''}</Label>
+                          {vatPayer ? (
+                            <select className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm" value={editVat} onChange={(e) => setEditVat(e.target.value)}>
+                              <option value="">— vyberte —</option>
+                              {vatOptions.map((o) => (
+                                <option key={o.code} value={o.code}>{o.label}{o.ratePct !== null ? ` (${o.ratePct} %)` : ''}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">Neplátce DPH</p>
+                          )}
                         </div>
                         <div>
                           <Label className="text-xs">Popis</Label>

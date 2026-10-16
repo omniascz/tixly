@@ -283,7 +283,7 @@ export async function attackE(): Promise<AttackResult> {
           payerEmail: `ps-${i}-${Date.now()}@trackb.test`, payerName: `Payer ${i}`,
           paymentMethod: 'gopay', locale: 'cs',
         }),
-      }) as never, { params: { token } } as never)
+      }) as never, { params: Promise.resolve({ token }) } as never)
         .then(async (r) => ({ status: r.status, body: await r.json() as { slotIndex?: number } }))
         .catch(() => ({ status: 599, body: {} as { slotIndex?: number } }))),
   );
@@ -319,7 +319,7 @@ async function callSeatHold(eventId: string, seatIds: string[], userId: string):
     headers: new Headers({ 'content-type': 'application/json', 'x-user-id': userId }),
     body: JSON.stringify({ seatIds }),
   });
-  const res = await seatHoldPOST(req, { params: { id: eventId } });
+  const res = await seatHoldPOST(req, { params: Promise.resolve({ id: eventId }) });
   if (res.status !== 200) { console.error('[seedC] seat hold status', res.status, await res.text()); return null; }
   return (await res.json() as { holdToken: string }).holdToken;
 }

@@ -1,0 +1,2 @@
+[fake-resend] HTTP :3996
+[fake-resend] SMTP :2526

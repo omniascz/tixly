@@ -1,0 +1,30 @@
+01-admin-menu-1440.png: SHODA
+01-admin-menu-390.png: SHODA
+02-akce-seznam-1440.png: SHODA
+03-inscenace-terminy-1440.png: SHODA
+04-termin-1440.png: SHODA
+05-editor-planku-1440.png: SHODA
+06-blokace-1440.png: SHODA
+07-firemni-1440.png: rozdíl 28 px (0.0022 %), max. rozdíl kanálu 6/255, oblast (1360, 23, 1399, 762) z 1440×900
+08-promo-kody-1440.png: rozdíl 19 px (0.0015 %), max. rozdíl kanálu 6/255, oblast (1360, 23, 1391, 31) z 1440×900
+09-reporty-1440.png: SHODA
+10-zruseni-presun-1440.png: SHODA
+11-pokladna-1440.png: SHODA
+11-pokladna-390.png: SHODA
+12-skener-1440.png: SHODA
+12-skener-390.png: SHODA
+13-saly-1440.png: rozdíl 23 px (0.0018 %), max. rozdíl kanálu 6/255, oblast (1360, 23, 1415, 219) z 1440×900
+20-web-uvod-1440.png: SHODA
+20-web-uvod-390.png: SHODA
+21-web-akce-1440.png: SHODA
+21-web-akce-390.png: SHODA
+22-web-mista-1440.png: SHODA
+22-web-mista-390.png: SHODA
+23-web-program-1440.png: SHODA
+23-web-program-390.png: SHODA
+24-web-inscenace-1440.png: SHODA
+24-web-inscenace-390.png: SHODA
+25-web-checkout-1440.png: SHODA
+25-web-checkout-390.png: SHODA
+
+shodných 25/28

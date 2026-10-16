@@ -22,6 +22,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { calculateAgeYears } from '@/lib/age/calculate';
+import { authorizeB2BCreditUser } from '@/lib/b2b/credit-authorization';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { createOrGetGuestUser } from '@/lib/identity/guest-user';
 import {
@@ -29,6 +30,7 @@ import {
   PriceMismatchError,
   PriceResolutionError,
 } from '@/lib/pricing/resolve-price';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 import { validateVatNumber, isReverseChargeApplicable } from '@/lib/tax/vies';
 
 
@@ -244,6 +246,44 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
   const input = parsed.data;
 
+  // Kolo 10 / krok 3: nedokončené cesty (splátky vč. BNPL, uplatnění předplatného, benefitní karty) jsou za přepínači,
+  // výchozí stav vypnuto — odmítnout PŘED čímkoli dalším, objednávka se nezaloží.
+  {
+    const { launchFeatureRejected, BNPL_METHODS, BENEFIT_METHODS } = await import('@/lib/features/launch-flags');
+    const method = input.paymentMethod ?? '';
+    const off =
+      ((input.paymentPlanId || BNPL_METHODS.has(method)) && launchFeatureRejected('installments'))
+      || (input.useSubscription && launchFeatureRejected('subscriptions'))
+      || (BENEFIT_METHODS.has(method) && launchFeatureRejected('benefitCards'));
+    if (off) return off;
+  }
+
+  // Kolo 7 (C-29): po uzávěrce online prodeje (sales_end_at, jinak začátek akce) nový nákup nejde.
+  // Doplacení dříve založené objednávky jde přes webhook, ne sem.
+  const salesClosed = await saleBlockedResponse(db(), input.eventId, 'online');
+  if (salesClosed) return salesClosed;
+
+  // ── FIX K3: rate limit vytváření objednávek ────────────────────────────────
+  // Bez limitu šlo z jedné IP / na jeden e-mail založit neomezeně nezaplacených
+  // objednávek a zamknout jimi kapacitu. Sdílený mechanismus (kolo 3) — tentýž
+  // limit i klíč používá mobile/payment-intent:
+  //  - per IP: 10 objednávek / 10 min
+  //  - per e-mail: max 5 SOUČASNĚ živých (nevypršelých) nezaplacených objednávek
+  {
+    const { enforceOrderCreationLimits } = await import('@/lib/orders/order-creation-limits');
+    const limited = await enforceOrderCreationLimits(req, { email: input.buyerEmail });
+    if (limited) return limited;
+  }
+
+  // Kolo 7: brány bez refundu přes API (Stripe, Mollie, PayPal, P24, Triple-A) jen pro akce
+  // existující před mig. 499 — jinak odmítnout PŘED založením objednávky.
+  {
+    const { effectiveGateway, gatewayNotAllowedResponse } = await import('@/lib/payment/gateway-policy');
+    const cur = await db().query<{ currency: string }>(`SELECT currency FROM catalog.events WHERE id = $1`, [input.eventId]);
+    const blocked = await gatewayNotAllowedResponse(db(), input.eventId, effectiveGateway(input.paymentMethod, cur.rows[0]?.currency ?? 'CZK'));
+    if (blocked) return blocked;
+  }
+
   // Early-guard: krypto bez nakonfigurovaného Triple-A nesmí v produkci založit
   // objednávku (mock-crypto je tam vypnutý → slepá 403 ulička). Fail-closed JEŠTĚ
   // PŘED vytvořením objednávky, aby nevznikaly mrtvé pending objednávky.
@@ -256,6 +296,23 @@ export async function POST(req: NextRequest): Promise<Response> {
           error: 'PAYMENT_METHOD_UNAVAILABLE',
           message: 'Krypto platba není momentálně dostupná. Zvolte prosím jinou metodu.',
           provider: 'crypto',
+        },
+        { status: 503 },
+      );
+    }
+  }
+
+  // Early-guard: Wero má jen mock bránu (provider.ts → assertMockPaymentsAllowed), v produkci bez
+  // ALLOW_MOCK_PAYMENTS=1 by createPayment hodil až po COMMITu objednávky (500 + objednávka drží místa).
+  // Fail-closed PŘED založením objednávky, stejně jako krypto výše.
+  if (input.paymentMethod === 'wero') {
+    const { mockPaymentsAllowed } = await import('@/lib/payment/mock-guard');
+    if (!mockPaymentsAllowed()) {
+      return NextResponse.json(
+        {
+          error: 'PAYMENT_METHOD_UNAVAILABLE',
+          message: 'Platba Wero není momentálně dostupná. Zvolte prosím jinou metodu.',
+          provider: 'wero',
         },
         { status: 503 },
       );
@@ -1293,6 +1350,17 @@ export async function POST(req: NextRequest): Promise<Response> {
           { status: 422 },
         );
       }
+      // Kolo 4: z kreditu firmy smí platit jen přihlášený člen účtu — dřív stačil kód účtu.
+      const b2bUserId = req.headers.get('x-user-id');
+      if (!b2bUserId) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'B2B_LOGIN_REQUIRED' }, { status: 401 });
+      }
+      const allowed = await authorizeB2BCreditUser(client, input.b2bAccountCode, b2bUserId);
+      if (!allowed) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'B2B_NOT_AUTHORIZED' }, { status: 403 });
+      }
     }
 
     // 4) Insert order + order_items
@@ -2098,21 +2166,15 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     // B2B credit debit (uvnitř transakce, těsně před COMMIT)
     if (input.paymentMethod === 'b2b_credit' && input.b2bAccountCode) {
-      const b2bRes = await client.query<{
-        id: string;
-        credit_balance_halire: string;
-      }>(
-        `SELECT id, credit_balance_halire
-         FROM platform.b2b_accounts
-         WHERE account_code = upper($1) AND status = 'active'
-         FOR UPDATE`,
-        [input.b2bAccountCode],
+      // Znovu s oprávněním a zámkem účtu (FOR UPDATE) — debit jen pro člena účtu.
+      const b2bAcc = await authorizeB2BCreditUser(
+        client, input.b2bAccountCode, req.headers.get('x-user-id'), { forUpdate: true },
       );
-      if (b2bRes.rows.length === 0) {
+      if (!b2bAcc) {
         await client.query('ROLLBACK');
-        return NextResponse.json({ error: 'B2B_ACCOUNT_INVALID' }, { status: 402 });
+        return NextResponse.json({ error: 'B2B_NOT_AUTHORIZED' }, { status: 403 });
       }
-      const b2bBalance = parseInt(b2bRes.rows[0].credit_balance_halire, 10);
+      const b2bBalance = b2bAcc.balanceHalire;
       if (b2bBalance < totalAmount) {
         await client.query('ROLLBACK');
         return NextResponse.json(
@@ -2120,7 +2182,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           { status: 402 },
         );
       }
-      b2bAccountId = b2bRes.rows[0].id;
+      b2bAccountId = b2bAcc.accountId;
       await client.query(
         `UPDATE platform.b2b_accounts
          SET credit_balance_halire = credit_balance_halire - $2
@@ -2173,6 +2235,27 @@ export async function POST(req: NextRequest): Promise<Response> {
         ],
       );
       giftClaimToken = gcRes.rows[0].claim_token;
+    }
+
+    // ── Kolo 2 / V6: objednávka s NULOVOU SERVEROVĚ SPOČTENOU cenou ───────────
+    // totalAmount je výsledek serverového výpočtu (cena typu z DB × množství − ověřené slevy
+    // − uvnitř této transakce už ODEČTENÉ vouchery/karty/kredity + poplatky). Hodnoty od klienta
+    // se do něj nedostanou, takže placený typ sem nikdy nespadne. Dřív se pro 0 Kč zakládala
+    // platba u brány a objednávka zůstala navždy pending bez vstupenky.
+    const isFreeOrder = totalAmount === 0 && input.paymentMethod !== 'b2b_credit';
+    if (isFreeOrder) {
+      await client.query(
+        `UPDATE orders.orders
+            SET status = 'paid', paid_at = NOW(), payment_provider = 'free', updated_at = NOW()
+          WHERE id = $1 AND status = 'pending'`,
+        [orderId],
+      );
+      await client.query(
+        `INSERT INTO orders.payment_events (order_id, event_type, gopay_status, amount, raw_payload, payment_provider)
+         VALUES ($1, 'payment_paid', 'FREE', 0, $2::jsonb, 'free')
+         ON CONFLICT DO NOTHING`,
+        [orderId, JSON.stringify({ reason: 'zero_total_server_computed', subtotalAmount, discountAmount, voucherRedeemedHalire, giftCardRedeemedHalire, restwertAppliedHalire, loyaltyDiscountHalire })],
+      );
     }
 
     await client.query('COMMIT');
@@ -2240,6 +2323,52 @@ export async function POST(req: NextRequest): Promise<Response> {
     // program_price_halire/is_published, ktere na catalog.event_programs
     // NIKDY NEEXISTOVALY — ta tabulka je rozvrhova (starts_at, artist_name).
     const programAccessToken: string | undefined = undefined;
+
+    // Kolo 2 / V6: zdarma → bez brány; vystavení vstupenek + e-mail stejnou cestou jako po
+    // zaplacení (handler internal/order-completed, in-process — nezávisí na dostupnosti APP_URL).
+    if (isFreeOrder) {
+      let ticketsIssued = false;
+      try {
+        const { POST: completeOrder } = await import('@/app/api/internal/order-completed/route');
+        const done = await completeOrder(new NextRequest(
+          `${process.env.APP_URL ?? 'http://localhost:3000'}/api/internal/order-completed`,
+          {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', 'x-internal-token': process.env.INTERNAL_SERVICE_TOKEN ?? '' },
+            body: JSON.stringify({ orderId }),
+          },
+        ));
+        ticketsIssued = done.ok;
+        if (!done.ok) console.error('[checkout] free order completion failed', orderId, done.status);
+      } catch (e) {
+        console.error('[checkout] free order completion threw', orderId, e);
+      }
+      return NextResponse.json({
+        orderId,
+        paymentId: null,
+        gatewayUrl: `${process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/cs/order/${orderId}/confirmation`,
+        provider: 'free',
+        ticketsIssued,
+        variableSymbol: null,
+        subtotalAmount,
+        discountAmount,
+        volumeDiscountAmount,
+        volumeDiscountPct,
+        addonsSubtotal,
+        bundleDiscountAmount,
+        bundleId,
+        voucherRedeemedHalire,
+        giftCardApplied: giftCardRedeemedHalire,
+        restwertAppliedHalire,
+        restwertHolders,
+        loyaltyDiscountHalire,
+        loyaltyRedeemed,
+        loyaltyMaxPointsAvailable,
+        totalAmount,
+        promoCodeApplied: promoCodeId !== null,
+        ...(giftClaimToken ? { giftClaimToken } : {}),
+      });
+    }
 
     // B2B credit — žádná platební brána. Objednávka je ihned 'paid', přesměruj na potvrzení.
     if (input.paymentMethod === 'b2b_credit') {
@@ -2398,6 +2527,16 @@ export async function POST(req: NextRequest): Promise<Response> {
       await db().query(
         `UPDATE orders.orders SET gopay_payment_id = $2, updated_at = NOW() WHERE id = $1`,
         [orderId, paymentSession.paymentId],
+      );
+    }
+    // Kolo 7: INSERT zapsal do payment_provider zvolenou METODU kupce (výchozí 'gopay'), ne bránu,
+    // kterou provider skutečně použil (PAYMENT_PROVIDER=comgate, EUR → Stripe). Refund se řídí
+    // payment_provider → ComGate platba by se vracela přes GoPay s cizím ID. Mock brány beze změny.
+    const REAL_GATEWAYS = ['comgate', 'stripe', 'mollie', 'paypal', 'przelewy24'];
+    if (REAL_GATEWAYS.includes(paymentSession.provider) && paymentSession.provider !== input.paymentMethod) {
+      await db().query(
+        `UPDATE orders.orders SET payment_provider = $2, updated_at = NOW() WHERE id = $1`,
+        [orderId, paymentSession.provider],
       );
     }
 

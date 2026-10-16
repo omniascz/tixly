@@ -1,0 +1,2004 @@
+{
+ "note": "Existující chyby ESLint (soubor × pravidlo). CI blokuje jen nárůst. Snižovat průběžně, neopravovat hromadně.",
+ "total": 1008,
+ "files": {
+  "src/app/[locale]/actors/[id]/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/[locale]/admin/events/[id]/travel/page.tsx": {
+   "import/order": 3
+  },
+  "src/app/[locale]/artists/[slug]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/backstage/[eventId]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/cinema/[filmId]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/city/[city]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/editorial/page.tsx": {
+   "@typescript-eslint/restrict-template-expressions": 1
+  },
+  "src/app/[locale]/events/[id]/GroupInviteButton.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/events/[id]/RestwertBalanceBadge.tsx": {
+   "@typescript-eslint/no-floating-promises": 1
+  },
+  "src/app/[locale]/events/[id]/SuperfanSection.tsx": {
+   "import/order": 2
+  },
+  "src/app/[locale]/events/[id]/resale/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/events/[id]/seats/SeatPicker.tsx": {
+   "@typescript-eslint/no-unnecessary-type-assertion": 7
+  },
+  "src/app/[locale]/events/[id]/verified-fan/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/events/map/LeafletMap.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/events/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/foyer/pickup/[token]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/gift/[token]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/group/[token]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/layout.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/lottery/[campaignId]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/lottery/result/[token]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/my-account/passkeys/page.tsx": {
+   "@typescript-eslint/require-await": 1
+  },
+  "src/app/[locale]/my-tickets/MyTicketsClient.tsx": {
+   "react/jsx-no-target-blank": 1
+  },
+  "src/app/[locale]/my-tickets/[ticketId]/attendee/AttendeeEditClient.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/my-tickets/[ticketId]/cancel-order/CancelOrderClient.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/my-tickets/[ticketId]/change/ChangeTicketClient.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/order-confirmation/[orderId]/page.tsx": {
+   "import/order": 3
+  },
+  "src/app/[locale]/p/[slug]/subscriptions/[packageSlug]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/press/[eventId]/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/[locale]/reschedule/[token]/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/[locale]/season-pass/[passToken]/page.tsx": {
+   "import/order": 2,
+   "react-hooks/rules-of-hooks": 1
+  },
+  "src/app/[locale]/sellers/page.tsx": {
+   "@typescript-eslint/restrict-template-expressions": 1
+  },
+  "src/app/[locale]/sports/teams/[teamId]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/tickets/transfer/[token]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/[locale]/waitlist/[eventId]/page.tsx": {
+   "import/order": 3
+  },
+  "src/app/[locale]/watch/[ticketId]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/anti-scalping/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/admin/b2b/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/broadcasts/new/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/admin/broadcasts/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/call-center/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/admin/collections/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/crm/rfm/page.tsx": {
+   "@typescript-eslint/restrict-template-expressions": 1
+  },
+  "src/app/admin/customers/page.tsx": {
+   "import/order": 3,
+   "@typescript-eslint/restrict-template-expressions": 1
+  },
+  "src/app/admin/domains/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/event-groups/[id]/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/admin/event-groups/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/ab-price-tests/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/access-matrix/page.tsx": {
+   "@typescript-eslint/no-redundant-type-constituents": 2
+  },
+  "src/app/admin/events/[id]/accessible-entrances/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/admin/events/[id]/advance-payout/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/backstage/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/cast/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/channel-prices/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/commemorative/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/custom-fields/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/demand-forecast/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/admin/events/[id]/demographics/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/donation/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/dynamic-pricing/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/admin/events/[id]/entry-slots/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/fan-bonus/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/fan-ticket/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/foyer-orders/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/gifts/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/group-discounts/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/hot-mode/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/kiosk-display/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/admin/events/[id]/lastminute/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/admin/events/[id]/lottery/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/postpone/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/price-scenarios/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/pricing-windows/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/queue/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/resale-policy/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/reschedule/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/admin/events/[id]/reviews/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/admin/events/[id]/sponsors/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/stream/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/superfan/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/tickets/[ticketId]/history/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/admin/events/[id]/travel-links/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/verified-fan/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/admin/events/[id]/waitlist/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/wallet-modules/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/wallet-push/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/events/[id]/will-call/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/films/[id]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/gift-cards/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/import/page.tsx": {
+   "import/order": 1,
+   "@typescript-eslint/no-floating-promises": 3
+  },
+  "src/app/admin/layout.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/live/page.tsx": {
+   "import/order": 3
+  },
+  "src/app/admin/onboarding/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/partner-applications/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/pricemaster/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/reports/inhouse/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/admin/resellers/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/scanner/devices/page.tsx": {
+   "import/order": 1,
+   "react/jsx-no-comment-textnodes": 3
+  },
+  "src/app/admin/scanner/guide/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/scanner/page.tsx": {
+   "import/order": 3
+  },
+  "src/app/admin/season-passes/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/social-shop/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/sport-teams/[id]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/admin/venues/[venueId]/gates/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/api/admin/2fa/disable/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/2fa/setup/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/2fa/verify/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/ab-price-tests/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/access-codes/[id]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/accounting/export/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/ad-auction-stats/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/ads/campaigns/[id]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/ads/campaigns/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/affiliates/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/ai/auto-tag/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/alerts/[id]/ack/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/alerts/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/anti-scalping/overview/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/artist-payouts/[payoutId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/artist-payouts/calculate/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/artist-payouts/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/artists/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/audit-log/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/b2b/[accountId]/deposit/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/b2b/[accountId]/users/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/b2b/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/backstage/notify/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/bank-credentials/psd2/authorize/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/bank-credentials/psd2/callback/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/bank-transfers/reconcile/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/brand-connect/proposals/[id]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/brand-connect/proposals/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/branding/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/broadcasts/[id]/preview/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/broadcasts/[id]/send/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/broadcasts/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/call-center/order/route.ts": {
+   "import/order": 3
+  },
+  "src/app/api/admin/call-center/orders/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/campaigns/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/chargebacks/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/charity/allocations/[id]/slots/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/charity/allocations/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/collections/[id]/events/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/collections/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/crm/rfm/compute/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/crm/rfm/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/cross-passes/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/customers/[email]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/customers/export/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/customers/import/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/customers/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/dashboards/[key]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/domains/[id]/verify/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/domains/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/email-templates/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/event-groups/[id]/bulk-edit/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/event-groups/[id]/coordinate-onsale/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/event-groups/[id]/members/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/event-groups/[id]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/event-groups/[id]/shares/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/event-groups/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/event-templates/[id]/apply/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/event-templates/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/access-matrix/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/accessible-entrances/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/accommodation-bundle/[offerId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/accommodation-bundle/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/accreditation/[reqId]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/accreditation/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/addons/[addonId]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/addons/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/advance-payout/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/ai-description/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/analytics/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/artists/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/audience-map/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/backstage/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/box-office/route.ts": {
+   "import/order": 1,
+   "@typescript-eslint/no-unsafe-assignment": 2
+  },
+  "src/app/api/admin/events/[id]/box-office/sell/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/box-office/sessions/[sessionId]/route.ts": {
+   "import/order": 1,
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/admin/events/[id]/broadcast/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/bundles/[bundleId]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/bundles/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/cast/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/channel-prices/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/clone/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/commemorative/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/custom-fields/[fieldId]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/custom-fields/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/days/[dayId]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/days/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/demand-forecast/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/demographics/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/distribution/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/donation-campaign/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/dynamic-pricing/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/dynamic-pricing/suggest/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/emergency/route.ts": {
+   "import/order": 2,
+   "@typescript-eslint/explicit-module-boundary-types": 2,
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/admin/events/[id]/entry-slots/[slotId]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/entry-slots/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/fan-bonus/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/fan-ticket/artwork/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/fan-ticket/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/foyer-menu/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/foyer-orders/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/gifts/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/group-discounts/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/hospitality/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/hot-mode/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/lastminute/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/live-ops/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/live/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/lotteries/[lotteryId]/draw/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/lotteries/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/lottery/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/marketing-qr/[campaignId]/png/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/marketing-qr/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/parking-bundle/[offerId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/parking-bundle/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/payment-plans/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/postpone/route.ts": {
+   "import/order": 2,
+   "@typescript-eslint/no-unsafe-assignment": 2
+  },
+  "src/app/api/admin/events/[id]/press/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/press/settings/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/price-scenarios/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/pricing-windows/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/publish-facebook/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/queue/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/resale-marketplace/[listingId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/resale-marketplace/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/resale-policy/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/reschedule/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/reschedule/stats/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/reviews/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/rfid/devices/[deviceId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/rfid/devices/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/rfid/stats/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/rfid/zones/[zoneId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/rfid/zones/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/sales-report/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/save-as-template/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/seats/live/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/social-distancing/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/sponsors/[sponsorId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/sponsors/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/stream/route.ts": {
+   "import/order": 1,
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/admin/events/[id]/superfan-experiences/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/table-seating/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/ticket-types/[ttId]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/ticket-types/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/transit-combo/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/travel-links/[linkId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/travel-links/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/travel/[packageId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/travel/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/verified-fan/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/view-photos/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/waitlist/[entryId]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/waitlist/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/events/[id]/wallet-modules/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/wallet-push/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/will-call/pickup/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/events/[id]/will-call/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/facebook/oauth/callback/route.ts": {
+   "import/order": 3
+  },
+  "src/app/api/admin/facebook/pages/[pageId]/disconnect/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/facebook/pages/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/films/[id]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/films/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/fraud-queue/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/gdpr/dpa/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/gift-cards/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/hospitality-inquiries/[id]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/import/preview/route.ts": {
+   "@typescript-eslint/no-unnecessary-type-assertion": 1
+  },
+  "src/app/api/admin/import/route.ts": {
+   "import/order": 1,
+   "@typescript-eslint/no-unnecessary-type-assertion": 2,
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/admin/invoices/[id]/isdoc/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/invoices/[id]/pdf/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/invoices/export/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/invoices/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/kyc/aml-check/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/kyc/documents/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/kyc/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/lastminute/check/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/lottery/[campaignId]/advance/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/lottery/[campaignId]/draw/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/marketing/overview/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/member-groups/[groupId]/users/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/member-groups/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/member-pricing-rules/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/notifications/[id]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/notifications/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/oauth-apps/[id]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/oauth-apps/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/onboarding/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/onboarding/step/[step]/route.ts": {
+   "import/order": 3
+  },
+  "src/app/api/admin/orders/[orderId]/print-labels/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/orders/[orderId]/refund/route.ts": {
+   "import/order": 3
+  },
+  "src/app/api/admin/orders/[orderId]/support-action/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/orders/bulk-refund/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/partner-applications/[id]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/payouts/export/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/payouts/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/payouts/settle/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/pos/events/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/pos/print/route.ts": {
+   "import/order": 2,
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/admin/pos/sale/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/pos/terminals/[id]/route.ts": {
+   "import/order": 2,
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/admin/pos/terminals/route.ts": {
+   "import/order": 2,
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/admin/pricing-elasticity/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/productions/[id]/events/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/productions/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/promo-codes/[id]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/promo-codes/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/qes/sign-request/route.ts": {
+   "import/order": 2,
+   "@typescript-eslint/no-unsafe-call": 3,
+   "@typescript-eslint/no-var-requires": 1,
+   "@typescript-eslint/no-unsafe-member-access": 3
+  },
+  "src/app/api/admin/refund-requests/[id]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/refund-requests/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/reports/nipos/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/reports/pohoda/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/reports/run/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/resale-guarantee/route.ts": {
+   "import/order": 1,
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/admin/resellers/[id]/settle/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/resellers/route.ts": {
+   "import/order": 2,
+   "@typescript-eslint/no-unsafe-assignment": 2
+  },
+  "src/app/api/admin/reservations/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/reviews/send-requests/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/sales-stream/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/scanner/cross-pass/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/scanner/devices/[deviceId]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/scanner/devices/route.ts": {
+   "import/order": 3
+  },
+  "src/app/api/admin/scanner/export/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/scanner/gates/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/scanner/manifest/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/scanner/reentry/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/scanner/validate-group/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/scanner/validate-nfc/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/school-bookings/[id]/qr/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/school-bookings/[id]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/season-pass-products/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/season-passes/sold/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/season/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/settings/route.ts": {
+   "import/order": 3
+  },
+  "src/app/api/admin/sms-campaigns/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/sport-teams/[id]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/sport-teams/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/staff/[userId]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/staff/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/subscription-plans/[id]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/subscription-plans/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/subscriptions/packages/[id]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/subscriptions/packages/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/support-faq/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/team/[memberId]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/team/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/ticket-changes/[changeId]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/ticket-types/[id]/dynamic-pricing/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/ticket-types/[id]/flex-settings/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/ticket-types/[id]/volume-discount/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/tracking-pixels/[id]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/tracking-pixels/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/venues/[venueId]/gates/[gateId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/venues/[venueId]/gates/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/venues/[venueId]/screens/[screenId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/venues/[venueId]/screens/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/venues/[venueId]/seating-chart/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/venues/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/vouchers/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/webhooks/[id]/deliveries/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/webhooks/[id]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/webhooks/[id]/test/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/webhooks/route.ts": {
+   "import/order": 3
+  },
+  "src/app/api/admin/widgets/catalog/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/wristbands/[uid]/charge/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/wristbands/[uid]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/admin/wristbands/[uid]/topup/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/admin/wristbands/bind/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/ads/click/[campaignId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/auth/forgot-password/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/auth/login-history/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/auth/magic-link/verify/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/auth/oauth/apple/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/auth/oauth/callback/apple/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/auth/oauth/callback/google/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/auth/oauth/facebook/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/auth/oauth/google/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/auth/refresh/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/auth/register-promoter/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/auth/reset-password/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/auth/send-verification-email/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/auth/sessions/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/b2b/account/login/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/b2b/account/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/announcements/[token]/respond/route.ts": {
+   "import/order": 1,
+   "@typescript-eslint/explicit-module-boundary-types": 1,
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/buyer/connected-apps/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/cross-passes/[membershipId]/code/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/cross-passes/[membershipId]/wallet/apple/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/cross-passes/[membershipId]/wallet/pdf/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/cross-passes/my-memberships/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/cross-passes/purchase/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/discover/events/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/fan-bonus/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/follows/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/gdpr/delete/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/gdpr/export/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/group-invitations/[token]/claim/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/group-invitations/reserve/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/group-invitations/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/loyalty/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/loyalty/transactions/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/me/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/modular-pass/checkout/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/my-tickets/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/notification-preferences/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/orders/[orderId]/cancel/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/orders/[orderId]/group-qr/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/orders/[orderId]/insurance-claim/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/orders/[orderId]/invoice/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/orders/[orderId]/payment-plan/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/orders/[orderId]/refund/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/orders/[orderId]/tan/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/orders/[orderId]/tan/verify/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/orders/[orderId]/ticket-pdf/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/orders/[orderId]/transit-pass/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/otp/request/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/otp/verify/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/passkeys/authenticate/route.ts": {
+   "import/order": 2,
+   "@typescript-eslint/no-unsafe-assignment": 1,
+   "@typescript-eslint/no-unnecessary-type-assertion": 1
+  },
+  "src/app/api/buyer/passkeys/register/route.ts": {
+   "import/order": 2,
+   "@typescript-eslint/no-unsafe-assignment": 1,
+   "@typescript-eslint/no-unnecessary-type-assertion": 1
+  },
+  "src/app/api/buyer/passkeys/route.ts": {
+   "import/order": 2,
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/buyer/phone-verification/route.ts": {
+   "import/order": 3
+  },
+  "src/app/api/buyer/push/subscribe/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/refund-requests/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/resale-guarantee/claim/route.ts": {
+   "import/order": 2,
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/buyer/resale/buy/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/resale/list/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/resale/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/restwert-balance/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/reviews/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/rsvp/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/saved-payment-methods/[id]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/saved-payment-methods/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/spotify/connect/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/subscriptions/[id]/pick/[eventId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/subscriptions/[id]/pick/route.ts": {
+   "import/order": 3
+  },
+  "src/app/api/buyer/subscriptions/[id]/refund-prorata/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/subscriptions/[id]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/subscriptions/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/tickets/[ticketId]/attendee/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/tickets/[ticketId]/bind-device/route.ts": {
+   "import/order": 3
+  },
+  "src/app/api/buyer/tickets/[ticketId]/calendar/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/tickets/[ticketId]/change-request/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/tickets/[ticketId]/exchange/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/tickets/[ticketId]/list-for-resale/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/tickets/[ticketId]/nfc-payload/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/tickets/[ticketId]/picks/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/tickets/[ticketId]/stream-access/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/tickets/[ticketId]/totp/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/tickets/[ticketId]/transfer-invite/route.ts": {
+   "import/order": 3,
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/buyer/tickets/[ticketId]/transfer/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/tickets/[ticketId]/upgrade/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/tickets/[ticketId]/wallet/apple/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/tickets/[ticketId]/wallet/google/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/buyer/verifications/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/buyer/vouchers/lookup/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/charity/claim/[token]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/checkout/bundle/route.ts": {
+   "import/order": 1,
+   "@typescript-eslint/no-unsafe-assignment": 4
+  },
+  "src/app/api/checkout/party-split/[token]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/checkout/pay-by-link/[orderId]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/consent/route.ts": {
+   "import/order": 3
+  },
+  "src/app/api/cron/pricing-engine/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/discover/route.ts": {
+   "@typescript-eslint/no-unsafe-argument": 2,
+   "@typescript-eslint/no-unsafe-member-access": 2
+  },
+  "src/app/api/dsa/report/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/events/[id]/alert/route.ts": {
+   "@typescript-eslint/no-unsafe-assignment": 1,
+   "@typescript-eslint/no-unsafe-member-access": 1
+  },
+  "src/app/api/events/[id]/seatmap/route.ts": {
+   "@typescript-eslint/explicit-module-boundary-types": 1
+  },
+  "src/app/api/events/[id]/seats/preview.svg/route.ts": {
+   "@typescript-eslint/explicit-module-boundary-types": 1
+  },
+  "src/app/api/events/[id]/unlock-access-code/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/events/[id]/verified-fan/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/foyer-orders/[id]/status/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/foyer-orders/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/gift/[token]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/gift/redeem/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/graphql/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/hardware/scan/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/broadcast-send/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/abandoned-cart/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/anomaly-detect/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/audience-geo-snapshot/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/bank-sync-fio/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/charge-installments/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/consent-log-purge/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/daily-stats/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/demand-forecast/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/event-payout-release/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/expire-pending-orders/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/music-distribute/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/newsletter-digest/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/onboarding-reminder/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/payouts-auto-settle/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/payouts-execute/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/process-gdpr-deletions/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/promoter-tier-evaluate/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/publish-notify/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/push-reminders/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/recompute-dynamic-pricing/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/refresh-spotify/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/release-expired-seat-holds/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/release-group-invite-holds/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/release-rolling-reserves/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/renew-subscriptions/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/seat-upgrade-notify/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/send-commemorative/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/send-reminders/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/verify-event-completion/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/cron/waitlist-notify/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/internal/order-completed/route.ts": {
+   "prefer-const": 1,
+   "@typescript-eslint/no-unnecessary-type-assertion": 1
+  },
+  "src/app/api/internal/resale/complete-transfer/route.ts": {
+   "@typescript-eslint/restrict-template-expressions": 1
+  },
+  "src/app/api/internal/royalties/accrue/route.ts": {
+   "@typescript-eslint/no-unsafe-assignment": 2
+  },
+  "src/app/api/internal/web-vitals/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/lottery/[campaignId]/enter/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/lottery/redeem/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/mobile/payment-intent/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/mock-bnpl/[provider]/[paymentId]/confirm/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/my/identity-verification/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/my/superfan-bookings/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/my/tickets/[ticketId]/transfer/route.ts": {
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/newsletter/subscribe/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/oauth/authorize/route.ts": {
+   "import/order": 3,
+   "@typescript-eslint/await-thenable": 1
+  },
+  "src/app/api/oauth/token/route.ts": {
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/p/[slug]/vouchers/checkout/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/partner/sales/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/payments/benefit/callback/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/payments/benefit/pluxee/callback/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/payments/comgate/webhook/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/payments/gopay/webhook/route.ts": {
+   "import/order": 3
+  },
+  "src/app/api/platform/admin/events/[id]/feature/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/platform/brand-connect/campaigns/[id]/route.ts": {
+   "@typescript-eslint/no-unnecessary-type-assertion": 1
+  },
+  "src/app/api/platform/distribution-partners/[id]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/platform/distribution-partners/route.ts": {
+   "import/order": 3
+  },
+  "src/app/api/platform/identity-verifications/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/platform/incidents/[id]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/platform/incidents/[id]/updates/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/platform/incidents/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/platform/kyc/[promoterId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/platform/moderation/[eventId]/reject/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/platform/promoters/[id]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/platform/reports/[id]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/platform/travel/hotels/[hotelId]/rooms/route.ts": {
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/platform/travel/hotels/[hotelId]/route.ts": {
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/platform/travel/hotels/route.ts": {
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/platform/venues/[id]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/platform/venues/[id]/seating-chart/from-image/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/platform/venues/[id]/seating-chart/import/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/platform/venues/[id]/seating-chart/transform/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/platform/venues/[id]/seating-chart/versions/[chartId]/restore/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/platform/venues/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/platform/verifications/[id]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/public/collections/[slug]/route.ts": {
+   "@typescript-eslint/no-unsafe-return": 1
+  },
+  "src/app/api/public/events/[id]/buyer-cap-check/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/public/reports/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/public/tickets/[token]/totp/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/qr/[slug]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/queue/[eventId]/join/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/resale/purchase/[listingId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/reschedule/[token]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/reseller/auth/route.ts": {
+   "import/order": 1,
+   "@typescript-eslint/no-unsafe-assignment": 1
+  },
+  "src/app/api/reseller/dashboard/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/reseller/events/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/reseller/orders/[orderId]/tickets/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/reseller/sale/route.ts": {
+   "import/order": 2,
+   "@typescript-eslint/no-unsafe-assignment": 1,
+   "prefer-const": 1
+  },
+  "src/app/api/school-bookings/route.ts": {
+   "import/order": 3
+  },
+  "src/app/api/season-passes/[passToken]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/season-passes/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/social/friend-requests/[id]/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/social/friend-requests/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/social/friends/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/subscriptions/checkout/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/subscriptions/holders/[paymentId]/confirm/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/subscriptions/subscribe/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/team/accept/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/tickets/[id]/share-card/route.tsx": {
+   "import/order": 1
+  },
+  "src/app/api/v1/events/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/v1/feed/meta-catalog.json/route.ts": {
+   "@typescript-eslint/explicit-module-boundary-types": 1
+  },
+  "src/app/api/v1/feed/tiktok-catalog.json/route.ts": {
+   "@typescript-eslint/explicit-module-boundary-types": 1
+  },
+  "src/app/api/v1/publish/events/[externalId]/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/v1/publish/events/route.ts": {
+   "import/order": 1
+  },
+  "src/app/api/v1/wl/orders/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/v2/distribution/token/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/v3/presence/sign-in/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/v3/secure-entry/barcode/route.ts": {
+   "import/order": 2
+  },
+  "src/app/api/v3/webhooks/route.ts": {
+   "import/order": 3
+  },
+  "src/app/api/vouchers/holders/[paymentId]/confirm/route.ts": {
+   "import/order": 1
+  },
+  "src/app/b2b/dashboard/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/developer/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/kiosk/[slug]/page.tsx": {
+   "import/order": 3
+  },
+  "src/app/m/ticket/[ticketId]/MobileTicketView.tsx": {
+   "@typescript-eslint/require-await": 1,
+   "react/no-unknown-property": 1
+  },
+  "src/app/m/ticket/[ticketId]/page.tsx": {
+   "@typescript-eslint/await-thenable": 1
+  },
+  "src/app/oauth/authorize/ConsentForm.tsx": {
+   "import/order": 1
+  },
+  "src/app/oauth/authorize/page.tsx": {
+   "import/order": 1,
+   "@typescript-eslint/await-thenable": 1
+  },
+  "src/app/partner/apply/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/platform/distribution-partners/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/platform/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/platform/travel/[hotelId]/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/platform/travel/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/platform/venues/[id]/seating-chart/view-photos/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/reseller/dashboard/page.tsx": {
+   "import/order": 2
+  },
+  "src/app/reseller/login/page.tsx": {
+   "import/order": 1
+  },
+  "src/app/reseller/sell/page.tsx": {
+   "import/order": 2
+  },
+  "src/components/ForYouFeed.tsx": {
+   "import/order": 1
+  },
+  "src/components/admin/GroupScanPanel.tsx": {
+   "import/order": 1
+  },
+  "src/components/admin/QrScannerCamera.tsx": {
+   "import/order": 1
+  },
+  "src/components/passkey-button.tsx": {
+   "import/order": 1
+  },
+  "src/components/tracking/GtmScript.tsx": {
+   "@typescript-eslint/no-unsafe-call": 1
+  },
+  "src/components/tracking/PixelManager.tsx": {
+   "import/order": 1
+  },
+  "src/lib/admin-auth.ts": {
+   "import/order": 1
+  },
+  "src/lib/auth.ts": {
+   "import/order": 1
+  },
+  "src/lib/b2b-auth.ts": {
+   "import/order": 1,
+   "@typescript-eslint/no-unnecessary-type-assertion": 1
+  },
+  "src/lib/compliance/dsa.ts": {
+   "@typescript-eslint/no-var-requires": 1
+  },
+  "src/lib/db/rls-pool.ts": {
+   "@typescript-eslint/no-unnecessary-type-assertion": 1,
+   "@typescript-eslint/unbound-method": 1
+  },
+  "src/lib/db/rls-tenant-isolation.test.ts": {
+   "import/order": 1
+  },
+  "src/lib/fan-bonus/engine.ts": {
+   "import/order": 1
+  },
+  "src/lib/forgemsg/forgemsg.test.ts": {
+   "import/order": 1
+  },
+  "src/lib/oauth/guard.ts": {
+   "import/order": 1
+  },
+  "src/lib/oauth/provider.ts": {
+   "import/order": 2
+  },
+  "src/lib/partner/auth.ts": {
+   "import/order": 1
+  },
+  "src/lib/payment/benefit-providers/benefit-plus.test.ts": {
+   "import/order": 1
+  },
+  "src/lib/payment/benefit-providers/edenred.test.ts": {
+   "import/order": 1
+  },
+  "src/lib/payment/benefit-providers/gallery-beta.test.ts": {
+   "import/order": 1
+  },
+  "src/lib/payment/benefit-providers/pluxee.test.ts": {
+   "import/order": 1
+  },
+  "src/lib/payment/gateway-refund.ts": {
+   "import/order": 1
+  },
+  "src/lib/payment/provider.ts": {
+   "import/order": 4
+  },
+  "src/lib/payment/refund-order.ts": {
+   "import/order": 1
+  },
+  "src/lib/pricing/rules-engine.ts": {
+   "import/order": 1
+  },
+  "src/lib/push/notify-followers.ts": {
+   "import/order": 1
+  },
+  "src/lib/qes/index.ts": {
+   "import/order": 1,
+   "@typescript-eslint/no-unnecessary-type-assertion": 2
+  },
+  "src/lib/qes/mock-provider.ts": {
+   "@typescript-eslint/require-await": 3
+  },
+  "src/lib/reports/helpers.ts": {
+   "@typescript-eslint/explicit-module-boundary-types": 2
+  },
+  "src/lib/reports/registry.ts": {
+   "import/order": 9
+  },
+  "src/lib/reports/reports-extra-1.ts": {
+   "import/order": 1
+  },
+  "src/lib/reports/reports-extra-2.ts": {
+   "import/order": 1
+  },
+  "src/lib/reports/reports-extra-3.ts": {
+   "import/order": 1
+  },
+  "src/lib/reports/reports-finance.ts": {
+   "import/order": 1
+  },
+  "src/lib/reports/reports-marketing.ts": {
+   "import/order": 1
+  },
+  "src/lib/reports/reports-operace.ts": {
+   "import/order": 1
+  },
+  "src/lib/reports/reports-platform.ts": {
+   "import/order": 1
+  },
+  "src/lib/reports/reports-prodeje.ts": {
+   "import/order": 1
+  },
+  "src/lib/reports/reports-srovnani.ts": {
+   "import/order": 1
+  },
+  "src/lib/reports/reports-udalosti.ts": {
+   "import/order": 1
+  },
+  "src/lib/reports/reports-zakaznici.ts": {
+   "import/order": 1
+  },
+  "src/lib/resale/reissue.ts": {
+   "import/order": 1
+  },
+  "src/lib/reseller-auth.ts": {
+   "import/order": 1
+  },
+  "src/lib/sdk/tixly-sdk.ts": {
+   "@typescript-eslint/no-unnecessary-type-assertion": 2
+  },
+  "src/lib/server-session.ts": {
+   "import/order": 1,
+   "@typescript-eslint/no-unnecessary-type-assertion": 2
+  },
+  "src/lib/tracking/tiktok-capi.ts": {
+   "import/order": 1,
+   "@typescript-eslint/no-unsafe-assignment": 2,
+   "@typescript-eslint/no-unsafe-member-access": 1
+  },
+  "src/lib/typed-fetch.ts": {
+   "@typescript-eslint/no-unsafe-return": 2
+  },
+  "src/middleware.ts": {
+   "import/order": 2
+  }
+ }
+}

@@ -1,0 +1,117 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r4-seat-upgrade-notify.live.test.ts[2m > [22m[2mKrok 3 (kolo 4) — seat-upgrade-notify[2m > [22m[2mpošle e-mail kupci s lepším volným místem, ne kupci nejlepšího místa[22m[39m
+[seat-upgrade-notify cron] error: column s.zone_name does not exist
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\internal\cron\seat-upgrade-notify\route.ts:28:29
+    at cron [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r4-seat-upgrade-notify.live.test.ts:49:15[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r4-seat-upgrade-notify.live.test.ts:56:15
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3) {
+  length: [33m110[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42703'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [32m'222'[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'parse_relation.c'[39m,
+  line: [32m'3716'[39m,
+  routine: [32m'errorMissingColumn'[39m
+}
+
+[90mstderr[2m | tests/fix-r4-seat-upgrade-notify.live.test.ts[2m > [22m[2mKrok 3 (kolo 4) — seat-upgrade-notify[2m > [22m[2mopakovaný běh do 7 dní stejnému kupci neposílá[22m[39m
+[seat-upgrade-notify cron] error: column s.zone_name does not exist
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\internal\cron\seat-upgrade-notify\route.ts:28:29
+    at cron [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r4-seat-upgrade-notify.live.test.ts:49:15[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39mtests\fix-r4-seat-upgrade-notify.live.test.ts:68:15
+    at runTest (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:781:11)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runSuite (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15)
+    at runFiles (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:958:5)
+    at startTests (file:///C:/Users/omnia/Documents/tixly-audit/nextjs-boilerplate/node_modules/[4m@vitest/runner[24m/dist/index.js:967:3) {
+  length: [33m110[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42703'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [32m'222'[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'parse_relation.c'[39m,
+  line: [32m'3716'[39m,
+  routine: [32m'errorMissingColumn'[39m
+}
+
+ [33m❯[39m tests/fix-r4-seat-upgrade-notify.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 402[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-seat-upgrade-notify.live.test.ts[2m > [22mKrok 3 (kolo 4) — seat-upgrade-notify[2m > [22mpošle e-mail kupci s lepším volným místem, ne kupci nejlepšího místa[39m
+[31m     → {"error":"INTERNAL"}: expected 500 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r4-seat-upgrade-notify.live.test.ts[2m > [22mKrok 3 (kolo 4) — seat-upgrade-notify[2m > [22mopakovaný běh do 7 dní stejnému kupci neposílá[39m
+[31m     → expected undefined to be true // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-seat-upgrade-notify.live.test.ts[2m > [22mKrok 3 (kolo 4) — seat-upgrade-notify[2m > [22mpošle e-mail kupci s lepším volným místem, ne kupci nejlepšího místa
+[31m[1mAssertionError[22m: {"error":"INTERNAL"}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r4-seat-upgrade-notify.live.test.ts:[2m57:46[22m[39m
+    [90m 55| [39m  [34mit[39m([32m'pošle e-mail kupci s lepším volným místem, ne kupci nejlepšího m[39m…
+    [90m 56| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mcron[39m()[33m;[39m
+    [90m 57| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(r[33m.[39mbody))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                             [31m^[39m
+    [90m 58| [39m    [34mexpect[39m(r[33m.[39mbody[33m?.[39mok[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(r[33m.[39mbody))[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m 59| [39m    [35mconst[39m mail [33m=[39m [35mawait[39m [34mmailpitLatest[39m(buyerEmail)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-seat-upgrade-notify.live.test.ts[2m > [22mKrok 3 (kolo 4) — seat-upgrade-notify[2m > [22mopakovaný běh do 7 dní stejnému kupci neposílá
+[31m[1mAssertionError[22m: expected undefined to be true // Object.is equality[39m
+
+[32m- Expected:[39m 
+true
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/fix-r4-seat-upgrade-notify.live.test.ts:[2m69:24[22m[39m
+    [90m 67| [39m  [34mit[39m([32m'opakovaný běh do 7 dní stejnému kupci neposílá'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 68| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mcron[39m()[33m;[39m
+    [90m 69| [39m    [34mexpect[39m(r[33m.[39mbody[33m?.[39mok)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m 70| [39m    [35mconst[39m n [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT notified_at FROM orders.[39m…
+    [90m 71| [39m    [34mexpect[39m(n)[33m.[39m[34mtoBe[39m([34m1[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 20:52:56
+[2m   Duration [22m 1.08s[2m (transform 133ms, setup 0ms, collect 128ms, tests 402ms, environment 0ms, prepare 123ms)[22m
+

@@ -7,10 +7,8 @@ import { db } from '@/lib/db/rls-pool';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { slug: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ slug: string }> }): Promise<Response> {
+  const params = await props.params;
   const client = await db().connect();
   try {
     const r = await client.query<{

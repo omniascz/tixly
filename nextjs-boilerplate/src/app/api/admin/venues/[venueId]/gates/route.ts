@@ -26,10 +26,8 @@ interface GateRow {
   created_at: string;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { venueId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ venueId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const venueCheck = await db().query(
       `SELECT id FROM catalog.venues WHERE id = $1 AND promoter_id = $2`,
@@ -51,10 +49,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { venueId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ venueId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const venueCheck = await db().query(
       `SELECT id FROM catalog.venues WHERE id = $1 AND promoter_id = $2`,

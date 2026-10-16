@@ -1,0 +1,11 @@
+Dependency audit (e2e)	completed	success	2026-10-05T18:35:57Z
+Dependency audit (mobile)	completed	success	2026-10-05T18:36:37Z
+Dependency audit (mobile-promoter)	completed	success	2026-10-05T18:36:28Z
+Dependency audit (nextjs-boilerplate)	completed	success	2026-10-05T18:37:24Z
+Install · typecheck · lint · unit	completed	success	2026-10-05T18:39:57Z
+Live sada (Postgres z migrací, tixly_app)	completed	success	2026-10-05T18:40:03Z
+RLS verify (DB z migrací vs snapshot)	completed	success	2026-10-05T18:37:11Z
+RLS verify (produkce vs snapshot)	completed	skipped	2026-10-05T18:35:46Z
+Schema drift (SQL vs schéma z migrací)	completed	success	2026-10-05T18:37:00Z
+Secret scan (Gitleaks)	completed	success	2026-10-05T18:35:59Z
+Vercel Preview Comments	completed	success	2026-10-05T18:42:54Z

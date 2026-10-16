@@ -3,7 +3,10 @@
  *
  * Vrátí seznam výplat promotéra. Pokud žádný záznam v `platform.payouts`
  * neexistuje, dopočítá ad-hoc týdenní bucket z paid orders v posledních
- * 12 týdnech (mock pro demo). Platform fee 5 % default.
+ * 12 týdnech. Platform fee 5 % default.
+ *
+ * Kolo 7 (C-57): dopočtená období jsou jen ODHAD (status 'estimate', id 'estimate-…') — nejsou to
+ * výplaty a nikdy nemají stav vyplaceno. Skutečné výplaty nesou referenci a datum potvrzeného převodu.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -23,6 +26,9 @@ interface PayoutRow {
   net_payout: number;
   status: string;
   paid_at: string | null;
+  currency: string;
+  bank_reference: string | null;
+  transfer_date: string | null;
 }
 
 interface BucketRow {
@@ -35,10 +41,17 @@ interface BucketRow {
 
 export async function GET(req: NextRequest): Promise<Response> {
   return runAsPromoterNonStaff(req, async (promoter) => {
+  // Účet pro výplaty = skutečný IBAN pořadatele (dřív stránka ukazovala natvrdo vymyšlený účet).
+  const payoutIban =
+    (await db().query<{ iban: string | null }>(`SELECT iban FROM platform.promoters WHERE id = $1`, [promoter.promoterId]))
+      .rows[0]?.iban ?? null;
+
   // 1) Skutečné výplaty
   const real = await db().query<PayoutRow>(
     `SELECT id, period_from, period_to, gross_revenue, platform_fees,
-            refunds, net_payout, status, paid_at
+            refunds, net_payout, status, paid_at, currency,
+            CASE WHEN status = 'paid' THEN bank_reference END AS bank_reference,
+            transfer_date::text AS transfer_date
      FROM platform.payouts
      WHERE promoter_id = $1
      ORDER BY period_to DESC
@@ -49,6 +62,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   if (real.rows.length > 0) {
     return NextResponse.json({
       source: 'real',
+      payoutIban,
       payouts: real.rows.map((r) => ({
         id: r.id,
         periodStart: r.period_from,
@@ -59,6 +73,9 @@ export async function GET(req: NextRequest): Promise<Response> {
         netHalire: r.net_payout,
         status: r.status,
         paidAt: r.paid_at,
+        currency: r.currency,
+        bankReference: r.bank_reference,
+        transferDate: r.transfer_date,
       })),
     });
   }
@@ -153,6 +170,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const now = new Date();
   return NextResponse.json({
     source: 'computed',
+    payoutIban,
     feePercent: (feeBpsByCurrency.get('CZK') ?? PLATFORM_FEE_BPS) / 100,
     holdback: {
       pctBps: holdbackPolicy.pctBps,
@@ -172,7 +190,7 @@ export async function GET(req: NextRequest): Promise<Response> {
         const net = Math.max(0, gross - refunds - chargebacks - fees - holdbackHalire);
         const periodEnd = new Date(b.period_end);
         return {
-          id: `mock-${b.currency}-${b.period_start}`,
+          id: `estimate-${b.currency}-${new Date(b.period_start).toISOString().slice(0, 10)}`,
           periodStart: b.period_start,
           periodEnd: b.period_end,
           currency: b.currency,
@@ -184,7 +202,8 @@ export async function GET(req: NextRequest): Promise<Response> {
           chargebacksHalire: chargebacks,
           holdbackHalire,
           netHalire: net,
-          status: periodEnd < now ? 'pending' : 'in_progress',
+          status: 'estimate',
+          periodClosed: periodEnd < now,
           paidAt: null,
         };
       }),

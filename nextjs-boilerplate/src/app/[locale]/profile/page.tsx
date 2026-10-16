@@ -216,12 +216,14 @@ export default function ProfilePage() {
             >
               ⭐ Moje body
             </a>
+            {process.env.NEXT_PUBLIC_FEATURE_SUBSCRIPTIONS === '1' ? (
             <a
               href="/cs/subscriptions"
               className="rounded-md border bg-card p-3 text-center text-sm hover:bg-muted"
             >
               🔁 Permanentky
             </a>
+            ) : null}
             <a
               href="/cs/profile/follows"
               className="rounded-md border bg-card p-3 text-center text-sm hover:bg-muted"

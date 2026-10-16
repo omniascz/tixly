@@ -85,6 +85,8 @@ interface FormState {
   dateEnd: string;
   saleStartAt: string;
   saleEndAt: string;
+  /** Kolo 7 (C-54): sazba DPH pro typy vstupenek nové akce (kód z /api/admin/vat-rates). */
+  vatRateCode: string;
   venueId: string;
   // Krok 4 (festival): Days + Zones
   days: DayInput[];
@@ -205,14 +207,33 @@ function buildFromTemplate(tpl: EventTemplate, baseDate: Date): {
 
 const DEFAULT_TEMPLATE: TemplateId = 'single_event';
 
+/** Klíč rozpracované akce v localStorage. */
+const DRAFT_KEY = 'tixly:new-event-draft';
+
 export default function NewEventWizardPage() {
   const router = useRouter();
   const [stepIdx, setStepIdx] = useState(0);
   const [venues, setVenues] = useState<Venue[]>([]);
+  // Kolo 7 (C-54): nabídka sazeb DPH z DB a zda je pořadatel plátce.
+  const [vatInfo, setVatInfo] = useState<{ vatPayer: boolean; codes: { code: string; label: string; ratePct: number | null }[] }>({
+    vatPayer: false,
+    codes: [],
+  });
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    fetch('/api/admin/vat-rates', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { vatPayer: boolean; codes: { code: string; label: string; ratePct: number | null }[] } | null) => {
+        if (d) setVatInfo({ vatPayer: d.vatPayer, codes: d.codes });
+      })
+      .catch(() => {});
+  }, []);
   const [venueSectors, setVenueSectors] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [seatWarning, setSeatWarning] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [restored, setRestored] = useState(false);
+  const [savedAt, setSavedAt] = useState<string | null>(null);
 
   const initialBase = useMemo(() => {
     const d = new Date();
@@ -240,6 +261,7 @@ export default function NewEventWizardPage() {
       initialFromTemplate.days[initialFromTemplate.days.length - 1].endsAt,
     saleStartAt: '',
     saleEndAt: '',
+    vatRateCode: '',
     venueId: '',
     days: initialFromTemplate.days,
     zones: initialFromTemplate.zones,
@@ -256,6 +278,42 @@ export default function NewEventWizardPage() {
     (s) => !s.templates || s.templates.includes(form.template),
   );
   const currentStep = visibleSteps[stepIdx];
+
+  /*
+   * Rozpracovaná akce přežije zavření okna.
+   *
+   * Průvodce má osm kroků a jeho stav žil jen v paměti — zavřená záložka
+   * nebo omylem zavřené okno znamenaly začínat od nuly. Ukládáme do
+   * localStorage (žádná data neopouštějí prohlížeč) a mažeme, jakmile se
+   * akce úspěšně vytvoří.
+   */
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as { form: FormState; stepIdx: number; savedAt: string };
+      if (!draft?.form) return;
+      setForm(draft.form);
+      setStepIdx(Math.max(0, draft.stepIdx ?? 0));
+      setSavedAt(draft.savedAt ?? null);
+      setRestored(true);
+    } catch {
+      // Poškozený draft radši ignorujeme, než abychom shodili celou stránku.
+    }
+  }, []);
+
+  useEffect(() => {
+    // Prázdný formulář neukládáme — jinak by se „obnoveno" hlásilo i tomu,
+    // kdo stránku jen otevřel a zavřel.
+    if (!form.title && !form.description && !form.venueId) return;
+    const savedAtIso = new Date().toISOString();
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ form, stepIdx, savedAt: savedAtIso }));
+      setSavedAt(savedAtIso);
+    } catch {
+      // Plné úložiště nesmí zablokovat práci.
+    }
+  }, [form, stepIdx]);
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -619,6 +677,7 @@ export default function NewEventWizardPage() {
             })),
             zone: t.zone?.trim() ? t.zone.trim() : null,
             isSeated: Boolean(t.isSeated),
+            vatRateCode: vatInfo.vatPayer ? form.vatRateCode || null : null,
           })),
           maxTicketsPerOrder: form.maxTicketsPerOrder
             ? parseInt(form.maxTicketsPerOrder, 10)
@@ -640,7 +699,13 @@ export default function NewEventWizardPage() {
         setError(d.message ?? d.error ?? `HTTP ${r.status}`);
         return;
       }
-      // Akce vytvořena. Pokud se část sedadel nevygenerovala (názvy sektorů ≠ zóny),
+      // Akce je vytvořená, rozpracovaná verze už nemá co obnovovat.
+      try {
+        localStorage.removeItem(DRAFT_KEY);
+      } catch {
+        // Nedostupné úložiště tu nevadí.
+      }
+      // Pokud se část sedadel nevygenerovala (názvy sektorů ≠ zóny),
       // NEsmíme tiše přesměrovat — ukaž varování a nech obsluhu zareagovat.
       if (Array.isArray(d.sectorsSkipped) && d.sectorsSkipped.length > 0) {
         setSeatWarning(
@@ -662,12 +727,35 @@ export default function NewEventWizardPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Nová akce</h1>
-        <p className="text-sm text-muted-foreground">
-          Krok {stepIdx + 1} z {visibleSteps.length}
-        </p>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-bold">Nová akce</h1>
+          <p className="text-sm text-muted-foreground">
+            Krok {stepIdx + 1} z {visibleSteps.length}
+          </p>
+        </div>
+        {savedAt ? (
+          <p className="text-xs text-muted-foreground">
+            Rozpracováno uloženo v {new Date(savedAt).toLocaleTimeString('cs-CZ')}
+          </p>
+        ) : null}
       </div>
+
+      {restored ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-secondary px-4 py-3 text-sm">
+          <span>Navázali jsme tam, kde jsi minule skončil.</span>
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.removeItem(DRAFT_KEY);
+              window.location.reload();
+            }}
+            className="text-xs underline hover:text-foreground"
+          >
+            Začít znovu s prázdným formulářem
+          </button>
+        </div>
+      ) : null}
 
       {seatWarning ? (
         <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
@@ -689,19 +777,22 @@ export default function NewEventWizardPage() {
           const Icon = s.icon;
           const isCurrent = i === stepIdx;
           const isDone = i < stepIdx;
+          // Kroky jsou průchozí oběma směry. Dřív šlo jít jen zpět
+          // (disabled={i > stepIdx}), takže kdo si chtěl jen zkontrolovat
+          // něco o dva kroky dál, musel se tam proklikat přes validace.
           return (
             <li key={s.id} className="flex items-center">
               <button
                 type="button"
-                onClick={() => i < stepIdx && setStepIdx(i)}
-                disabled={i > stepIdx}
+                onClick={() => setStepIdx(i)}
+                aria-current={isCurrent ? 'step' : undefined}
                 className={[
                   'flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium',
                   isCurrent
                     ? 'bg-primary text-primary-foreground'
                     : isDone
-                      ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 cursor-pointer'
-                      : 'bg-muted text-muted-foreground cursor-default',
+                      ? 'cursor-pointer bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                      : 'cursor-pointer bg-muted text-muted-foreground hover:bg-secondary',
                 ].join(' ')}
               >
                 {isDone ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
@@ -879,7 +970,7 @@ export default function NewEventWizardPage() {
                   </div>
                   <div>
                     <label className="mb-1 block text-xs text-muted-foreground">
-                      Konec prodeje
+                      Konec online prodeje (prázdné = začátek akce)
                     </label>
                     <Input
                       type="datetime-local"
@@ -887,6 +978,24 @@ export default function NewEventWizardPage() {
                       onChange={(e) => update('saleEndAt', e.target.value)}
                     />
                   </div>
+                  {vatInfo.vatPayer ? (
+                    <div>
+                      <label className="mb-1 block text-xs font-medium">Sazba DPH vstupenek *</label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                        value={form.vatRateCode}
+                        onChange={(e) => update('vatRateCode', e.target.value)}
+                        data-testid="new-event-vat-rate"
+                      >
+                        <option value="">— vyberte —</option>
+                        {vatInfo.codes.map((c) => (
+                          <option key={c.code} value={c.code}>
+                            {c.label}{c.ratePct !== null ? ` (${c.ratePct} %)` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
                 </div>
               </div>
               <div>

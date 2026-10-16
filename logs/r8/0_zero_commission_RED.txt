@@ -1,0 +1,34 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r8-zero-commission.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 27777[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r8-zero-commission.live.test.ts[2m > [22mKolo 8 — provize platformy 0[2m > [22mprovize 0 %: výplata z vyrovnání má platform_fees 0; faktura provize nevznikne a nevrací 503[39m
+[31m     → {"error":"NO_FEES","message":"Výplata nemá žádnou provizi platformy."}: expected 422 to be 200 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-zero-commission.live.test.ts[2m > [22mKolo 8 — provize platformy 0[2m > [22mprovize 0 %: výplata z vyrovnání má platform_fees 0; faktura provize nevznikne a nevrací 503
+[31m[1mAssertionError[22m: {"error":"NO_FEES","message":"Výplata nemá žádnou provizi platformy."}: expected 422 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 422[39m
+
+[36m [2m❯[22m tests/fix-r8-zero-commission.live.test.ts:[2m71:46[22m[39m
+    [90m 69| [39m      { payoutId[33m:[39m payout[[34m0[39m][33m.[39mid }[33m,[39m { authorization[33m:[39m [32m`Bearer [39m[36m${[39madminTok[36m}[39m…
+    [90m 70| [39m    [35mconst[39m body [33m=[39m [35mawait[39m inv[33m.[39m[34mjson[39m()[33m;[39m
+    [90m 71| [39m    [34mexpect[39m(inv[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(body))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                             [31m^[39m
+    [90m 72| [39m    [34mexpect[39m(body)[33m.[39m[34mtoMatchObject[39m({ created[33m:[39m [35mfalse[39m[33m,[39m invoiceId[33m:[39m [35mnull[39m[33m,[39m reas…
+    [90m 73| [39m    [34mexpect[39m(([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT count(*)::int n FROM platfo[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m   Start at [22m 09:41:15
+[2m   Duration [22m 48.62s[2m (transform 787ms, setup 0ms, collect 1.23s, tests 27.78s, environment 2ms, prepare 2.65s)[22m
+

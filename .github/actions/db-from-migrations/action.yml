@@ -1,0 +1,33 @@
+name: DB z migrací
+description: >-
+  Nainstaluje psql 17 (baseline je pg_dump 17, ubuntu-latest má jen 16) a postaví databázi
+  od nuly z migrations/ (000_baseline + globals + 4xx) na service kontejneru postgres.
+  Žádné spojení na produkci.
+inputs:
+  admin-url:
+    description: owner/superuživatel na serveru (bez cílové DB)
+    required: false
+    default: postgresql://neondb_owner:fixowner@localhost:55632/neondb
+  db:
+    description: jméno DB, která se (znovu) založí
+    required: false
+    default: e2e
+  app-password:
+    description: testovací heslo role tixly_app
+    required: false
+    default: fixapp
+runs:
+  using: composite
+  steps:
+    - name: Install postgresql-client 17
+      shell: bash
+      run: |
+        sudo install -d /usr/share/postgresql-common/pgdg
+        sudo curl -fsSo /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+        sudo apt-get update -y
+        sudo apt-get install -y postgresql-client-17
+        psql --version
+    - name: DB od nuly z migrací
+      shell: bash
+      run: bash "$GITHUB_WORKSPACE/.github/scripts/build-db-from-migrations.sh" "${{ inputs.admin-url }}" "${{ inputs.db }}" "${{ inputs.app-password }}"

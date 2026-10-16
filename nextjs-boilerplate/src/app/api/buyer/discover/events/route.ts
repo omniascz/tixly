@@ -13,7 +13,7 @@
  * DACH parity #P2-3 (DICE 40 %+ prodejů přes discovery).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 
 
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: spojení kupce se čte pod jeho kontextem; skóre přes lineups.event_artists (kupci nečitelné) je systémový dotaz — user_top_artists zůstávají scopované na kupce (RLS dle app.current_user_id).
 
     // Connection check
     const conn = await client.query<{ is_mock: boolean }>(
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     }
 
     // Score query: artist name match + genre intersection
-    const rows = await client.query<{
+    const rows = await asSystemInTx(client, () => client.query<{
       event_id: string;
       title: string;
       date_start: string;
@@ -105,7 +105,7 @@ export async function GET(req: NextRequest): Promise<Response> {
         ORDER BY agg.total_score DESC, e.date_start ASC
         LIMIT $2`,
       [userId, limit],
-    );
+    ));
 
     await client.query('COMMIT');
 

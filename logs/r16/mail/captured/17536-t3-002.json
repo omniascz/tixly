@@ -1,0 +1,9 @@
+{
+ "capturedAt": "2026-10-08T08:05:39.194Z",
+ "data": {
+  "from": "\"Tixly provoz\" <vstupenky@tixly.fix>",
+  "to": "ops-muz94tli@tixly.fix",
+  "subject": "[Tixly provoz] Cron send-reminders neproběhl",
+  "text": "Cron „send-reminders\" neproběhl úspěšně déle než dvojnásobek svého intervalu (15 min).\nPoslední úspěšný běh: 8. 10. 2026 9:05:38\nPoslední stav: 500\nPoslední chyba: {\"ok\":false}\n\nZkontrolujte Vercel → Cron Jobs a logy funkce /api/cron/dispatch?job=send-reminders.\n\n—\nStejné upozornění se znovu pošle nejdřív za 30 minut (klíč cron_overdue:send-reminders)."
+ }
+}

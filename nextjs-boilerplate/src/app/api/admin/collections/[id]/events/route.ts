@@ -29,10 +29,8 @@ async function ensureCollectionOwner(collectionId: string, promoterId: string): 
   return r.rows.length > 0;
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterNonStaff(req, async (promoter) => {
   if (!(await ensureCollectionOwner(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'NOT_OWNER' }, { status: 403 });
@@ -69,10 +67,8 @@ export async function POST(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterNonStaff(req, async (promoter) => {
   if (!(await ensureCollectionOwner(params.id, promoter.promoterId))) {
     return NextResponse.json({ error: 'NOT_OWNER' }, { status: 403 });

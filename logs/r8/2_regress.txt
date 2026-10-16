@@ -1,0 +1,66 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/fix-r3-escalations.live.test.ts[2m > [22m[2mKrok 3 (kolo 3) — routy po odstranění eskalací[2m > [22m[2m3 — anonym a servisní routy bez admin eskalace[2m > [22m[2mOTP: request + verify (anonymní, servisní kontext)[22m[39m
+[OTP MOCK] SMS → +420102518241: Tixly kód: 982846 (platí 10 min)
+
+ [32m✓[39m tests/fix-r3-escalations.live.test.ts [2m ([22m[2m17 tests[22m[2m)[22m[33m 2565[2mms[22m[39m
+ [33m❯[39m tests/fix-r2-3b-tables-rls.live.test.ts [2m ([22m[2m15 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 1711[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mstrukturálně: bez RLS zůstaly jen systémové tabulky (20) s minimálními právy; TRUNCATE nikde[39m
+[31m     → tixly_app nesmí mít TRUNCATE (obchází RLS): expected 1 to be +0 // Object.is equality[39m
+ [32m✓[39m tests/fix-r8-productions-terms.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 750[2mms[22m[39m
+ [32m✓[39m tests/fix-r8-halls-seating.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 2080[2mms[22m[39m
+[90mstderr[2m | tests/fix-r7-sales-cutoff.live.test.ts[2m > [22m[2mKolo 7 — uzávěrka prodeje za běhu[2m > [22m[2mobjednávku založenou před uzávěrkou lze po uzávěrce doplatit (webhook PAID → paid)[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r7-sales-cutoff.live.test.ts[2m > [22m[2mKolo 7 — uzávěrka prodeje za běhu[2m > [22m[2mobjednávku založenou před uzávěrkou lze po uzávěrce doplatit (webhook PAID → paid)[22m[39m
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r7-sales-cutoff.live.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[33m 8420[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-v8-rls-write.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 474[2mms[22m[39m
+ [32m✓[39m tests/fix-k3-capacity.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 2396[2mms[22m[39m
+ [32m✓[39m tests/fix-r2-qr-default.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 1077[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-seat-upgrade-notify.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 908[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-upgrade-options.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 399[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-3b-tables-rls.live.test.ts[2m > [22mKrok 3B — tabulky bez RLS: data tenantu a uživatelů izolována[2m > [22mstrukturálně: bez RLS zůstaly jen systémové tabulky (20) s minimálními právy; TRUNCATE nikde
+[31m[1mAssertionError[22m: tixly_app nesmí mít TRUNCATE (obchází RLS): expected 1 to be +0 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 0[39m
+[31m+ 1[39m
+
+[36m [2m❯[22m tests/fix-r2-3b-tables-rls.live.test.ts:[2m80:65[22m[39m
+    [90m 78| [39m    [35mconst[39m trunc [33m=[39m ([35mawait[39m owner[33m.[39mquery[33m<[39m{ n[33m:[39m number }[33m>[39m(
+    [90m 79| [39m      [32m`SELECT count(*)::int n FROM pg_class c WHERE c.relkind IN ('r',[39m…
+    [90m 80| [39m    [34mexpect[39m(trunc[33m,[39m [32m'tixly_app nesmí mít TRUNCATE (obchází RLS)'[39m)[33m.[39m[34mtoBe[39m([34m0[39m…
+    [90m   | [39m                                                                [31m^[39m
+    [90m 81| [39m  })[33m;[39m
+    [90m 82| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m9 passed[39m[22m[90m (10)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m65 passed[39m[22m[90m (66)[39m
+[2m   Start at [22m 10:28:35
+[2m   Duration [22m 25.27s[2m (transform 1.18s, setup 0ms, collect 1.11s, tests 20.78s, environment 2ms, prepare 1.66s)[22m
+

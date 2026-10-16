@@ -9,15 +9,16 @@
  */
 'use client';
 
+import { useEffect, useState, type JSX } from 'react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 
 type Seat = { id: string; label: string; claimed: boolean };
 type Preview = {
   invitationId: string;
   status: string;
   expired: boolean;
-  organizer: { userId: string; email: string; name: string | null };
+  organizer: { name: string | null };
   event: { id: string; title: string; dateStart: string };
   ticketTypeId: string | null;
   targetSeats: number;
@@ -30,11 +31,11 @@ type Preview = {
   expiresAt: string;
 };
 
-export default function GroupClaimPage({
-  params,
-}: {
-  params: { token: string; locale: string };
-}): JSX.Element {
+export default function GroupClaimPage(_props: {
+    params: Promise<{ token: string; locale: string }>;
+  }
+): JSX.Element {
+  const params = useParams<{ token: string; locale: string }>();
   const [data, setData] = useState<Preview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [claiming, setClaiming] = useState<string | null>(null);
@@ -105,7 +106,7 @@ export default function GroupClaimPage({
     );
   }
 
-  const organizerLabel = data.organizer.name ?? data.organizer.email;
+  const organizerLabel = data.organizer.name ?? 'Organizátor skupiny';
   const dateLabel = new Date(data.event.dateStart).toLocaleString('cs-CZ', {
     dateStyle: 'long',
     timeStyle: 'short',

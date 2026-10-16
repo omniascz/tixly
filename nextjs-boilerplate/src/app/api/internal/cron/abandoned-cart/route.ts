@@ -53,6 +53,9 @@ export async function POST(req: NextRequest): Promise<Response> {
      WHERE o.status = 'pending'
        AND o.created_at < NOW() - INTERVAL '30 minutes'
        AND o.abandoned_email_sent_at IS NULL
+       -- kolo 8 / krok 5: rezervace s platbou na pokladně není opuštěný košík (má vlastní připomínku)
+       AND NOT EXISTS (SELECT 1 FROM orders.seat_reservations r WHERE r.order_id = o.id)
+       AND NOT EXISTS (SELECT 1 FROM b2b_orders.invoice_orders io WHERE io.order_id = o.id)
        AND u.anonymized_at IS NULL
        AND e.date_start > NOW()
        AND COALESCE(

@@ -19,10 +19,8 @@ import { NextRequest, NextResponse } from 'next/server';
 const COOKIE_NAME = 'aff_code';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 dnů
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { code: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ code: string }> }): Promise<Response> {
+  const params = await props.params;
   // Validate code format — letters/digits/underscore/dash, 2-40 chars
   if (!/^[A-Za-z0-9_-]{2,40}$/.test(params.code)) {
     return NextResponse.redirect(new URL('/cs/events', req.url));

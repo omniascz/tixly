@@ -1,0 +1,34 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r4-auth-before-config.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 1320[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-auth-before-config.live.test.ts[2m > [22mKrok 2 (kolo 4) — přihlášení se kontroluje před konfigurací[2m > [22manonym 401, přihlášený 503 (nenakonfigurováno)[39m
+[31m     → /api/buyer/cross-passes/00000000-0000-4000-8000-000000000001/wallet/apple anonym: {"error":"WALLET_NOT_CONFIGURED"}: expected 503 to be 401 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-auth-before-config.live.test.ts[2m > [22mKrok 2 (kolo 4) — přihlášení se kontroluje před konfigurací[2m > [22manonym 401, přihlášený 503 (nenakonfigurováno)
+[31m[1mAssertionError[22m: /api/buyer/cross-passes/00000000-0000-4000-8000-000000000001/wallet/apple anonym: {"error":"WALLET_NOT_CONFIGURED"}: expected 503 to be 401 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 401[39m
+[31m+ 503[39m
+
+[36m [2m❯[22m tests/fix-r4-auth-before-config.live.test.ts:[2m44:74[22m[39m
+    [90m 42| [39m      })[33m;[39m
+    [90m 43| [39m      [35mconst[39m anon [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([34mmk[39m({})[33m,[39m m[method][33m,[39m ctx)[33m;[39m
+    [90m 44| [39m      [34mexpect[39m(anon[33m.[39mstatus[33m,[39m [32m`[39m[36m${[39murl[36m}[39m[32m anonym: [39m[36m${[39m[35mawait[39m anon[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m()[36m}[39m…
+    [90m   | [39m                                                                         [31m^[39m
+    [90m 45| [39m      [35mconst[39m authed [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([34mmk[39m({ authorization[33m:[39m [32m`Bear[39m…
+    [90m 46| [39m      [34mexpect[39m(authed[33m.[39mstatus[33m,[39m [32m`[39m[36m${[39murl[36m}[39m[32m přihlášený`[39m)[33m.[39m[34mtoBe[39m([34m503[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 20:37:10
+[2m   Duration [22m 1.99s[2m (transform 176ms, setup 0ms, collect 162ms, tests 1.32s, environment 0ms, prepare 99ms)[22m
+

@@ -6,9 +6,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 interface Room {
   id: string;
@@ -50,7 +51,8 @@ function fmtPrice(halire: number) {
   return `${(halire / 100).toLocaleString('cs-CZ', { minimumFractionDigits: 0 })} Kč`;
 }
 
-export default function HotelDetailPage({ params }: { params: { hotelId: string } }) {
+export default function HotelDetailPage(_props: { params: Promise<{ hotelId: string }> }) {
+  const params = useParams<{ hotelId: string }>();
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);

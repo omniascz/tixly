@@ -1,0 +1,29 @@
+# Krok 0.5/0.6 — sloučení PR #19 a stav po sloučení
+gh pr merge 19 --merge → merge commit 514b1215eeaab0a227065539627febe5466bfcae (mergedAt 2026-10-16T07:00:16Z)
+integrate/2026-10-04: před 6799fb5b → po 514b1215 (lokálně git checkout + git pull --ff-only; lokál = origin)
+
+Běhy na 514b1215 (spuštěné událostí pull_request PR #2 integrate→master; push na integrate/* workflow nespouští — ci.yml/schema-drift-guard.yml mají push jen pro main, master, fix/**):
+38864481449	CI	pull_request	completed	success
+38864481419	RLS Gate	pull_request	completed	success
+38864481417	Security	pull_request	completed	success
+38864481412	Schema Drift Guard	pull_request	completed	success
+
+$ gh pr checks 2
+Vercel – nextjs-boilerplate	fail	0	https://vercel.com/omniascz-8054s-projects/nextjs-boilerplate/3Ro95Vc2rTvD4S5LvQeXJKTJqZh4	Deployment was blocked
+Vercel – tixly	fail	0	https://vercel.com/omniascz-8054s-projects/tixly/DCSzLBCbipYgnLfgpdU8Wb4DeXso	Deployment was blocked
+Build bez sítě (pojistka prerenderu)	pass	2m44s	https://github.com/omniascz/tixly/actions/runs/38864481449/job/116854059907	
+Dependency audit (e2e)	pass	12s	https://github.com/omniascz/tixly/actions/runs/38864481417/job/116854059816	
+Dependency audit (mobile)	pass	39s	https://github.com/omniascz/tixly/actions/runs/38864481417/job/116854059445	
+Dependency audit (mobile-promoter)	pass	44s	https://github.com/omniascz/tixly/actions/runs/38864481417/job/116854059872	
+Dependency audit (nextjs-boilerplate)	pass	1m29s	https://github.com/omniascz/tixly/actions/runs/38864481417/job/116854059649	
+Install · typecheck · lint · unit	pass	2m42s	https://github.com/omniascz/tixly/actions/runs/38864481449/job/116854059809	
+RLS verify (DB z migrací vs snapshot)	pass	1m10s	https://github.com/omniascz/tixly/actions/runs/38864481419/job/116854058869	
+Secret scan (Gitleaks)	pass	9s	https://github.com/omniascz/tixly/actions/runs/38864481417/job/116854059164	
+RLS verify (produkce vs snapshot)	skipping	0	https://github.com/omniascz/tixly/actions/runs/38864481419/job/116854060567	
+Live sada (Postgres z migrací, tixly_app)	pass	3m27s	https://github.com/omniascz/tixly/actions/runs/38864481449/job/116854059449	
+Schema drift (SQL vs schéma z migrací)	pass	1m6s	https://github.com/omniascz/tixly/actions/runs/38864481412/job/116854059170	
+Vercel Preview Comments	pass	0	https://vercel.com/github	
+
+{"baseRefName":"master","headRefOid":"514b1215eeaab0a227065539627febe5466bfcae","mergeStateStatus":"UNSTABLE","state":"OPEN"}
+
+Kritérium: všechny joby GitHubu pass, RLS verify (produkce) skipping, Vercel jen 'Deployment was blocked' → SPLNĚNO

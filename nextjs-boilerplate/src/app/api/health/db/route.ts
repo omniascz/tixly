@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { checkDatabaseHealth } from '@/lib/health-check/health.service';
+// Kolo 10: bez toho Next při buildu handler prerenderuje a čte DB (build padá / zapeče se stav z buildu).
+export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/health/db — DB readiness probe.

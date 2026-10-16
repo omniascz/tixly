@@ -1,0 +1,415 @@
+<title>Tixly proti trhu</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #EBEDE6;
+    --surface: #F9FAF6;
+    --surface-2: #E1E5D9;
+    --ink: #121A15;
+    --ink-soft: #34403A;
+    --muted: #5F6C63;
+    --line: #C9D0C1;
+    --line-soft: #DCE0D4;
+    --accent: #C4441A;
+    --accent-ink: #90300F;
+    --accent-wash: #F6E2D9;
+    --pine: #145446;
+    --pine-wash: #DBE7E1;
+    --gold: #856410;
+    --gold-wash: #EEE6CC;
+    --shadow: 0 1px 0 rgba(18,26,21,.05), 0 10px 24px -18px rgba(18,26,21,.45);
+    --display: "Arial Narrow", "Helvetica Neue Condensed", "Liberation Sans Narrow", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --body: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0E1310; --surface: #161D19; --surface-2: #1E2722;
+      --ink: #E8EBE3; --ink-soft: #C2CABE; --muted: #909C93;
+      --line: #2C372F; --line-soft: #232D27;
+      --accent: #F0663A; --accent-ink: #F79068; --accent-wash: #2E1A12;
+      --pine: #4FA791; --pine-wash: #12241F;
+      --gold: #C9A143; --gold-wash: #26200F;
+      --shadow: 0 1px 0 rgba(0,0,0,.3), 0 12px 28px -20px rgba(0,0,0,.9);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1310; --surface: #161D19; --surface-2: #1E2722;
+    --ink: #E8EBE3; --ink-soft: #C2CABE; --muted: #909C93;
+    --line: #2C372F; --line-soft: #232D27;
+    --accent: #F0663A; --accent-ink: #F79068; --accent-wash: #2E1A12;
+    --pine: #4FA791; --pine-wash: #12241F;
+    --gold: #C9A143; --gold-wash: #26200F;
+    --shadow: 0 1px 0 rgba(0,0,0,.3), 0 12px 28px -20px rgba(0,0,0,.9);
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.62; margin: 0; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px,4vw,48px) 96px; display: grid; grid-template-columns: 210px minmax(0,1fr); gap: clamp(24px,5vw,64px); align-items: start; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: minmax(0,1fr); } }
+
+  header.mast { border-bottom: 1px solid var(--line); background: var(--surface); }
+  .mast-in { max-width: 1180px; margin: 0 auto; padding: clamp(36px,7vw,76px) clamp(16px,4vw,48px) clamp(28px,5vw,48px); }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent-ink); margin: 0 0 18px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(42px,8.5vw,88px); line-height: .94; letter-spacing: -.015em; text-transform: uppercase; text-wrap: balance; margin: 0 0 22px; max-width: 18ch; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .standfirst { font-size: clamp(17px,2.1vw,21px); color: var(--ink-soft); max-width: 64ch; margin: 0 0 28px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 10px 28px; font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 18px; }
+
+  nav.toc { position: sticky; top: 24px; padding-top: 56px; font-family: var(--mono); font-size: 12px; line-height: 1.45; }
+  @media (max-width: 900px) { nav.toc { position: static; padding-top: 32px; border-bottom: 1px dashed var(--line); padding-bottom: 24px; } }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+  nav.toc a { color: var(--muted); text-decoration: none; display: grid; grid-template-columns: 26px 1fr; gap: 4px; }
+  nav.toc a span { color: var(--line); }
+  nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); }
+  nav.toc a:hover span, nav.toc a:focus-visible span { color: var(--accent); }
+
+  article { padding-top: 56px; min-width: 0; }
+  section + section { margin-top: 56px; border-top: 1px dashed var(--line); padding-top: 44px; }
+  h2 { font-family: var(--display); text-transform: uppercase; font-weight: 700; font-size: clamp(26px,4.2vw,38px); line-height: 1.04; letter-spacing: -.01em; margin: 0 0 8px; text-wrap: balance; }
+  .sec-no { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em; color: var(--accent); display: block; margin-bottom: 10px; }
+  h3 { font-family: var(--display); text-transform: uppercase; font-size: 19px; letter-spacing: .01em; font-weight: 700; margin: 34px 0 10px; }
+  h4 { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 24px 0 8px; font-weight: 400; }
+  p { margin: 0 0 16px; max-width: 68ch; }
+  .lede { font-size: 18.5px; color: var(--ink-soft); }
+  ul, ol.body { max-width: 68ch; padding-left: 20px; margin: 0 0 18px; }
+  li { margin-bottom: 8px; }
+  a { color: var(--accent-ink); }
+  code, .num, .path { font-family: var(--mono); font-size: .84em; color: var(--muted); }
+
+  .grid { display: grid; gap: 16px; }
+  @media (min-width: 720px) { .g2 { grid-template-columns: 1fr 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 2px; padding: 20px 22px; box-shadow: var(--shadow); }
+  .card h3 { margin-top: 0; }
+  .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+  .card ul { padding-left: 18px; }
+
+  .stub { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 2px; padding: 18px 22px; margin: 22px 0; }
+  .stub p:last-child { margin-bottom: 0; }
+  .stub .k { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-ink); display: block; margin-bottom: 8px; }
+
+  .tag { display: inline-block; font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; margin-right: 6px; white-space: nowrap; }
+  .t-ahead { background: var(--pine-wash); color: var(--pine); }
+  .t-par { background: var(--surface-2); color: var(--ink-soft); }
+  .t-gap { background: var(--accent-wash); color: var(--accent-ink); }
+  .t-part { background: var(--gold-wash); color: var(--gold); }
+
+  .scroll { overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-family: var(--mono); font-size: 13px; min-width: 680px; }
+  caption { text-align: left; font-family: var(--mono); font-size: 11px; letter-spacing: .13em; text-transform: uppercase; color: var(--muted); padding: 14px 16px 10px; border-bottom: 1px solid var(--line-soft); }
+  th, td { padding: 10px 16px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line-soft); }
+  thead th { font-weight: 400; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); background: var(--surface-2); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .hi { color: var(--accent-ink); font-weight: 700; }
+  .ok { color: var(--pine); font-weight: 700; }
+
+  .kpis { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); margin: 24px 0; }
+  @media (min-width: 640px) { .kpis { grid-template-columns: repeat(4,1fr); } }
+  .kpi { background: var(--surface); padding: 16px 18px; }
+  .kpi .v { font-family: var(--display); font-size: 34px; line-height: 1; letter-spacing: -.01em; display: block; margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+  .kpi .l { font-family: var(--mono); font-size: 11px; letter-spacing: .07em; color: var(--muted); text-transform: uppercase; line-height: 1.35; display: block; }
+
+  ol.steps { list-style: none; padding: 0; margin: 24px 0; display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  ol.steps > li { background: var(--surface); margin: 0; padding: 18px 20px; display: grid; grid-template-columns: 74px minmax(0,1fr); gap: 18px; }
+  @media (max-width: 620px) { ol.steps > li { grid-template-columns: minmax(0,1fr); gap: 6px; } }
+  ol.steps .when { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); padding-top: 4px; }
+  ol.steps h3 { margin: 0 0 6px; font-size: 17px; }
+  ol.steps p:last-child, ol.steps ul:last-child { margin-bottom: 0; }
+
+  footer.end { border-top: 1px dashed var(--line); margin-top: 56px; padding-top: 28px; font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 1.7; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+</style>
+
+<header class="mast">
+  <div class="mast-in">
+    <p class="eyebrow">Srovnání · 13. srpna 2026 · ověřeno proti kódu</p>
+    <h1>Tixly proti <em>trhu</em></h1>
+    <p class="standfirst">Prošel jsem repozitář, ne jen dokumentaci. Výsledek je nečekaný: produktově jsme na většině bodů před tím, co dnes střední segment na světě používá — a v několika věcech máme hotové to, k čemu se konkurence teprve chystá kvůli regulaci. Zaostáváme jinde: v tom, že to zatím nikdo nepoužívá, a v pár konkrétních dírách, které rozhodují o tom, jestli lze prodávat mimo Česko.</p>
+    <div class="meta-row">
+      <span>Zdroj: C:\Documents\tixly</span>
+      <span>697 API rout · 385 migrací · 9 jazyků</span>
+      <span>Doplňuje analýzu vstupu na trh</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Obsah">
+    <ol>
+      <li><a href="#s1"><span>01</span> Verdikt</a></li>
+      <li><a href="#s2"><span>02</span> Co je v kódu</a></li>
+      <li><a href="#s3"><span>03</span> Kde jsme napřed</a></li>
+      <li><a href="#s4"><span>04</span> Kde jsme na úrovni</a></li>
+      <li><a href="#s5"><span>05</span> Kde zaostáváme</a></li>
+      <li><a href="#s6"><span>06</span> Bod po bodu</a></li>
+      <li><a href="#s7"><span>07</span> Co změnit v plánu</a></li>
+      <li><a href="#s8"><span>08</span> Jak to říkat klientům</a></li>
+    </ol>
+  </nav>
+
+  <article>
+
+    <section id="s1">
+      <span class="sec-no">01</span>
+      <h2>Verdikt</h2>
+      <p class="lede">Máme opačný problém, než má typický startup. Ne „málo produktu, hodně zákazníků“, ale <strong>hodně produktu a nula zákazníků</strong>. Funkční rozsah odpovídá firmě po několika letech provozu; obchodní realita odpovídá dni nula.</p>
+      <div class="kpis">
+        <div class="kpi"><span class="v ok">6</span><span class="l">věcí, kde jsme prokazatelně před trhem</span></div>
+        <div class="kpi"><span class="v" style="color:var(--gold)">5</span><span class="l">věcí hotových napůl — chybí poslední krok</span></div>
+        <div class="kpi"><span class="v hi">9</span><span class="l">reálných mezer, z toho 4 blokují prodej mimo ČR</span></div>
+        <div class="kpi"><span class="v hi">0</span><span class="l">ostrých plateb — jediné číslo, které dnes rozhoduje</span></div>
+      </div>
+      <p>Tři věty, které to shrnují:</p>
+      <ol class="body">
+        <li><strong>Produkt není problém.</strong> Rotující QR kódy, resale s cenovým stropem, server-side atribuce, pojištění storna, zálohové výplaty, royalty engine, DSA moderace s vizuální kontrolou plakátů — to jsou přesně věci, které jsem v analýze trhu označil jako „čím se vyhrává“, a většina z nich už v kódu je.</li>
+        <li><strong>Problém je poslední metr.</strong> GoPay KYC, e-mailová doména, jeden DNS záznam, právník. Bez toho je i sebelepší systém nula, protože nemá jak vzít peníze.</li>
+        <li><strong>A pak je tu díra, kterou nezavře čas, ale rozhodnutí:</strong> systém je postavený pro Česko a Slovensko. Kurzy měn jsou natvrdo v kódu, platební brány jsou středoevropské, poplatková tabulka připouští jen CZK a EUR a strop poplatku se nepočítá. Globální ambice z první analýzy vyžaduje tři konkrétní zásahy, ne přepis.</li>
+      </ol>
+    </section>
+
+    <section id="s2">
+      <span class="sec-no">02</span>
+      <h2>Co je v kódu</h2>
+      <p>Základní míry, ověřené přímo v repozitáři (ne z dokumentace, která je místy z května a od té doby se hodně změnilo):</p>
+      <div class="scroll">
+        <table>
+          <caption>Rozsah systému — ověřeno 13. 8. 2026</caption>
+          <thead><tr><th>Míra</th><th class="n">Hodnota</th><th>Poznámka</th></tr></thead>
+          <tbody>
+            <tr><td>API endpointy</td><td class="n">697</td><td>souborů <span class="path">route.ts</span> pod <span class="path">src/app/api</span></td></tr>
+            <tr><td>Migrace databáze</td><td class="n">385</td><td>číslování do 471, baseline squash <span class="path">000_baseline_20260730</span></td></tr>
+            <tr><td>Testovací soubory</td><td class="n">71</td><td>+ E2E skripty <span class="path">scripts/e2e-*.mjs</span></td></tr>
+            <tr><td>Jazyky rozhraní</td><td class="n">9</td><td>cs, sk, en, de, fr, es, it, pl, hu</td></tr>
+            <tr><td>Platební brány</td><td class="n">7</td><td>GoPay, ComGate, Stripe, Mollie, PayPal, Przelewy24, TripleA</td></tr>
+            <tr><td>Výplatní kanály</td><td class="n">3</td><td>Wise (SEPA/SWIFT), PayPal, FIO (CZK)</td></tr>
+            <tr><td>Nativní aplikace</td><td class="n">2</td><td>kupec + promotér (Expo/React Native), fáze 2 hotová, nejsou ve storu</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>To samo o sobě není hodnota — velikost není kvalita. Ale vyvrací to obavu, že jdeme na trh s polotovarem. Jdeme tam s něčím, co má víc funkcí než většina hráčů, kterým se v první analýze říká konkurence.</p>
+    </section>
+
+    <section id="s3">
+      <span class="sec-no">03</span>
+      <h2>Kde jsme napřed</h2>
+      <p class="lede">Sedm věcí, u kterých mám v kódu důkaz a u kterých vím z rešerše trhu, že je konkurence buď nemá, nebo je má jen na papíře.</p>
+
+      <ol class="steps">
+        <li>
+          <span class="when">Náskok</span>
+          <div>
+            <h3><span class="tag t-ahead">hotovo</span> Resale s cenovým stropem — dřív než zákon</h3>
+            <p>Akce má pole <span class="path">resale_enabled</span>, <span class="path">resale_max_price_pct</span>, <span class="path">resale_platform_fee_pct</span> a <span class="path">resale_cooling_hours</span>; přeprodej vydá novou vstupenku a původní zneplatní (<span class="path">lib/resale/reissue.ts</span>). To je přesně mechanismus, který bude vyžadovat britský <em>Ticket Tout Ban Bill</em> — strop na nominál, strop poplatku platformy, kontrola platformy nad převodem. Konkurence to bude do 18 měsíců stavět; my to máme.</p>
+          </div>
+        </li>
+        <li>
+          <span class="when">Náskok</span>
+          <div>
+            <h3><span class="tag t-ahead">hotovo</span> Server-side atribuce pro promotéra</h3>
+            <p><span class="path">lib/tracking/</span> obsahuje Meta CAPI, TikTok CAPI, GA4 a registr pixelů <strong>s přihlašovacími údaji per promotér</strong>. To znamená, že pořadatel měří vlastní kampaně na vlastním účtu a vidí, odkud prodeje jdou — v době, kdy prohlížečové pixely přestávají fungovat. V analýze trhu jsem tohle označil za jeden ze tří důvodů k přechodu; Eventbrite ani DICE to promotérovi takhle nedávají.</p>
+          </div>
+        </li>
+        <li>
+          <span class="when">Náskok</span>
+          <div>
+            <h3><span class="tag t-ahead">hotovo</span> Vstupenka, která se nedá vyfotit</h3>
+            <p>Rotující TOTP kód, otisk zařízení a NFC (<span class="path">lib/safetix/</span>), anti-passback ve skeneru, detekce botů a ML fraud scoring v checkoutu. Tohle je úroveň, kterou má z velkých hráčů Ticketmaster (SafeTix) — a téměř nikdo pod ním.</p>
+          </div>
+        </li>
+        <li>
+          <span class="when">Náskok</span>
+          <div>
+            <h3><span class="tag t-part">zamítnuto</span> Výplaty — mechanika ano, zálohy ne</h3>
+            <p>Zádržné na chargebacky podle stupně důvěry (5 % / 90 dní pro nové, 0 % pro prémiové) a výplaty přes Wise i PayPal jsou hotové. Modul zálohových výplat před akcí <span class="path">advance_payout_schedules</span> v kódu je, ale <strong>rozhodnutím se nepoužije</strong> — vyplácet z neuskutečněné akce je úvěr bez zajištění a při zrušení se obrátí proti nám. Argument o rychlosti peněz stavíme na době <em>po</em> akci: cíl 48 hodin proti 10 dnům u Eventbrite a 7 u Ticketmasteru. Dnes je náš výchozí režim 14–21 dní, takže je to zatím mezera, ne náskok.</p>
+          </div>
+        </li>
+        <li>
+          <span class="when">Náskok</span>
+          <div>
+            <h3><span class="tag t-ahead">hotovo</span> Vyúčtování s umělcem podle smlouvy</h3>
+            <p><span class="path">lib/royalties/compute.ts</span> umí procento, pevnou částku, částku na vstupenku, kombinaci, <strong>minimální garanci i strop</strong>. To je jazyk, kterým se v živé hudbě reálně uzavírají smlouvy. Chybí k tomu workflow (viz mezery), ale výpočetní jádro settlementu existuje.</p>
+          </div>
+        </li>
+        <li>
+          <span class="when">Náskok</span>
+          <div>
+            <h3><span class="tag t-ahead">hotovo</span> Vlastní výnosové položky, ne jen poplatek</h3>
+            <p>Pojištění storna (<span class="path">lib/insurance/compute.ts</span>), dárcovské příspěvky, věrnostní engine, vouchery, dárkové poukazy, upsell, affiliate, resellerská síť s provizemi, reklamní aukce. V analýze trhu jsem tyhle položky počítal jako to, co zvedne take rate z 2 % na 3–4 % — a jsou postavené.</p>
+          </div>
+        </li>
+        <li>
+          <span class="when">Náskok</span>
+          <div>
+            <h3><span class="tag t-ahead">hotovo</span> Evropská regulace jako výbava</h3>
+            <p>Třívrstvá moderace obsahu včetně vizuální kontroly plakátů s auditní stopou pro DSA, EUDI peněženka a kvalifikovaný podpis, ISDOC faktury, ARES a VIES, DPH podle země a prahů, DPA a GDPR exporty, statusová stránka s reálným měřením. Americký ani britský konkurent tohle nemá a v EU to bude potřebovat.</p>
+          </div>
+        </li>
+      </ol>
+
+      <div class="stub">
+        <span class="k">Nečekaný závěr</span>
+        <p>Z deseti diferenciátorů, které jsem v analýze trhu označil jako „čím se vyhrává“, máme <strong>šest hotových nebo skoro hotových</strong>. To je pozice, ze které se dá jít na velké klienty — jakmile bude první ostrá platba.</p>
+      </div>
+    </section>
+
+    <section id="s4">
+      <span class="sec-no">04</span>
+      <h2>Kde jsme na úrovni</h2>
+      <p>Parita se solidním trhem. Nic z toho není důvod k přechodu, ale chybějící položka by byla důvodem k vyřazení z výběrka.</p>
+      <div class="grid g2">
+        <div class="card">
+          <h3>Prodej a inventář</h3>
+          <p>Seat picker i editor sálů, import map, více typů vstupenek a cenových zón, early bird, promo kódy, skupinové slevy, abonmá a sezónky, cross-passy pro festivaly, časové vstupy, čekací listina, loterie na žádané akce, virtuální fronta ověřená E2E.</p>
+        </div>
+        <div class="card">
+          <h3>Odbavení</h3>
+          <p>Skener s branami a re-entry režimem, POS a walk-in prodej, kiosek, RFID, akreditace, will-call, live-ops dashboard v mobilu, offline režim. Apple i Google Wallet passy se generují — ale nejsou podepsané, chybí certifikáty.</p>
+        </div>
+        <div class="card">
+          <h3>Peníze a účetnictví</h3>
+          <p>Refundy, přesuny termínu, splátkové plány, bankovní převod, benefitní karty, BNPL, kryptoplatby, ISDOC faktury, exporty, variabilní symboly, DPH per země, payouty přes Wise a PayPal.</p>
+        </div>
+        <div class="card">
+          <h3>Platforma</h3>
+          <p>Multi-tenancy s RLS izolací ověřenou testy, bílý label s vlastní doménou, embed widget, GraphQL, veřejné SDK, OAuth, partnerský a distribuční kanál, B2B, kontrola oprávnění, auditní log.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="s5">
+      <span class="sec-no">05</span>
+      <h2>Kde zaostáváme</h2>
+      <p class="lede">Devět mezer. Čtyři z nich blokují prodej mimo Česko, dvě jsou provozní důvěra, tři jsou funkční díry, na které narazí každá hala.</p>
+
+      <div class="scroll">
+        <table>
+          <caption>Mezery seřazené podle toho, co blokují</caption>
+          <thead><tr><th>Mezera</th><th>Co blokuje</th><th>Rozsah práce</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong class="hi">1 · Nula ostrých plateb</strong><br><span class="path">GoPay KYC, Resend, DNS, ToS</span></td>
+              <td>Úplně všechno. Bez první reálné transakce nemáme produkt, jen demo.</td>
+              <td>Externí, 2–3 týdny čekání. Začít okamžitě.</td>
+            </tr>
+            <tr>
+              <td><strong class="hi">2 · Kurzy měn natvrdo v kódu</strong><br><span class="path">lib/currency-rates.ts</span></td>
+              <td>Jakýkoli prodej mimo CZK/EUR. Komentář v souboru sám říká „v demu jsou hardcoded mid-rates k 2026-04“.</td>
+              <td>Malý — napojit denní kurzový feed, uložit kurz k objednávce.</td>
+            </tr>
+            <tr>
+              <td><strong class="hi">3 · Ceník umí procento, ale ne strop ani kombinaci</strong><br><span class="path">fee_schedules, payouts-auto-settle</span></td>
+              <td>Navržený ceník. Provize v procentech funguje (default 5 %, override per promotér), ale <span class="path">max_fee</span> a <span class="path">min_fee</span> kód ignoruje, <span class="path">fixed_fee</span> se vkládá natvrdo jako 0 a měny jsou omezené na CZK a EUR. Plán „0,9 % + 0,19 € se stropem 0,99 €“ dnes nelze nastavit.</td>
+              <td>Střední — jeden sdílený výpočet poplatku + rozšíření měn a plánů.</td>
+            </tr>
+            <tr>
+              <td><strong class="hi">4 · Chybí all-in ceny podle jurisdikce</strong></td>
+              <td>Vstup do USA. Náhled ceny před checkoutem existuje, ale pravidlo FTC vyžaduje celkovou cenu <em>všude, kde se cena zobrazuje</em>, včetně výpisů a reklamy.</td>
+              <td>Střední — jeden přepínač zobrazení + auditní stopa.</td>
+            </tr>
+            <tr>
+              <td><strong>5 · Není booking vrstva</strong><br><span class="path">žádné offers / holds / deal terms</span></td>
+              <td>Klín z analýzy trhu. Royalty engine počítá, ale chybí kalendář hal, holdy termínů, nabídka umělci a její schválení.</td>
+              <td>Velký — 4–6 týdnů. Zároveň nejcennější věc, kterou lze postavit.</td>
+            </tr>
+            <tr>
+              <td><strong>6 · Zálohy bez rizikového modelu</strong></td>
+              <td>Škálování záloh. Dnes se kontroluje jen bankovní účet a tier; chybí scoring, limity podle historie a rezervní fond.</td>
+              <td>Střední — pravidla lze napsat dřív, než přijde první ztráta.</td>
+            </tr>
+            <tr>
+              <td><strong class="ok">7 · Držení míst a nejlepší sedadla</strong></td>
+              <td><strong>Vyřešeno 14. 8. 2026.</strong> Obojí v kódu bylo — moje tvrzení, že chybí, bylo špatné. Skutečné mezery: držení šlo zadat jen vypsáním identifikátorů, vyřazená místa se ukládala jako dočasná rezervace, úklid po vypršení nechával místo ve dvou stavech a výběr nejlepších sedadel neuměl widget ani pokladna.</td>
+              <td class="ok">Hotovo. Zbývá smazat mrtvou druhou implementaci zámků sedadel.</td>
+            </tr>
+            <tr>
+              <td><strong>8 · Provozní důvěra</strong></td>
+              <td>Velké klienty a USA. Chybí SOC 2, doložené PCI, SLA se sankcí, ověřené zálohy a retence, on-call.</td>
+              <td>Dlouhý běh — začít sbírat důkazy hned, hotovo do 18 měsíců.</td>
+            </tr>
+            <tr>
+              <td><strong>9 · Zátěž ověřená jen lokálně</strong></td>
+              <td>Festivalový on-sale. Naměřeno ~51 požadavků/s na jednu instanci; fronta funguje, ale test proti nasazené produkci neproběhl.</td>
+              <td>Malý — spustit <span class="path">scripts/load-test.mjs</span> proti ostrému prostředí.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="stub">
+        <span class="k">Co není mezera, i když to tak vypadá</span>
+        <p>Procentní provizi <em>umíme</em> — <span class="path">fee_schedules.percentage_fee</span> v basis points se strhává při vyúčtování, default 5 %, nastavitelné per promotér v administraci. Nativní aplikace <em>existují</em> (kupec i promotér, Expo, druhá fáze hotová) — jen nejsou v obchodech. Stripe <em>je</em> zapojený jako plnohodnotný provider, jen se aktivuje klíčem. Statusová stránka <em>měří</em> reálné služby. Ve starších dokumentech v repu jsou tyhle položky vedené jako chybějící; kód říká něco jiného. Při prodeji se dá mluvit o hotovém.</p>
+      </div>
+    </section>
+
+    <section id="s6">
+      <span class="sec-no">06</span>
+      <h2>Bod po bodu</h2>
+      <p>Deset diferenciátorů z analýzy trhu proti realitě kódu. Tohle je ta tabulka, kvůli které se celé srovnání dělalo.</p>
+      <div class="scroll">
+        <table>
+          <caption>Co jsem doporučil × co reálně máme</caption>
+          <thead><tr><th>Diferenciátor</th><th>Stav</th><th>Důkaz / co chybí</th></tr></thead>
+          <tbody>
+            <tr><td>Peníze rychle <span class="path">(zálohy zamítnuty)</span></td><td><span class="tag t-gap">z 40 %</span></td><td>Zádržné a výplatní kanály hotové; výchozí lhůta 14–21 dní po akci je pomalejší než konkurence — zkrátit na 48 hodin</td></tr>
+            <tr><td>Nabídka → holdy → settlement → výplata</td><td><span class="tag t-gap">z 30 %</span></td><td>Royalty engine ano, payouty ano; kalendář, holdy a nabídky ne</td></tr>
+            <tr><td>Fanoušek patří pořadateli + atribuce</td><td><span class="tag t-ahead">hotovo</span></td><td>Meta CAPI, TikTok CAPI, GA4 s údaji per promotér; segmentace zatím jednoduchá</td></tr>
+            <tr><td>Compliance zabudovaná</td><td><span class="tag t-part">EU ano, US ne</span></td><td>DSA, GDPR, EUDI, DPH hotové; all-in ceny podle jurisdikce chybí</td></tr>
+            <tr><td>Přeprodej za nominál + čekací listina</td><td><span class="tag t-ahead">hotovo</span></td><td>Cenový strop, poplatek, cooling, reissue, waitlist</td></tr>
+            <tr><td>AI, která vydělá</td><td><span class="tag t-part">z 60 %</span></td><td>Návrh ceny, fraud ML, čas odeslání, popisy, moderace; chybí predikce doprodeje proti podobným akcím</td></tr>
+            <tr><td>Jeden systém pro celý provoz místa</td><td><span class="tag t-part">rozdělené</span></td><td>Vertikály existují, ale v odděleném projektu — je potřeba rozhodnout, jestli je spojit</td></tr>
+            <tr><td>Otevřená platforma a bílý label</td><td><span class="tag t-ahead">hotovo</span></td><td>GraphQL, SDK, OAuth, vlastní doména, distribuční a partnerský kanál</td></tr>
+            <tr><td>Prodej tam, kde fanoušek je</td><td><span class="tag t-part">z 50 %</span></td><td>Embed widget, sociální posty, appky; chybí checkout v Instagramu a doručení přes WhatsApp</td></tr>
+            <tr><td>Nula lock-inu jako závazek</td><td><span class="tag t-par">technicky ano</span></td><td>Exporty zákazníků, účetnictví i faktur existují; chybí to napsat do smlouvy a na web</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s7">
+      <span class="sec-no">07</span>
+      <h2>Co změnit v plánu</h2>
+      <p>Pořadí je odvozené od jediného kritéria: co nejdřív vede k první ostré platbě a pak k prvnímu zahraničnímu klientovi.</p>
+      <ol class="steps">
+        <li><span class="when">Teď</span><div><h3>Dotáhnout spuštění</h3><p>GoPay KYC, Resend a doména, CNAME, právní texty, klíč pro moderaci, ověřit stabilitu šifrovacího klíče. Nic z toho není vývoj — je to administrativa, která blokuje všechno ostatní. Dokud tohle neběží, každá další funkce jen zvětšuje rozdíl mezi tím, co umíme, a tím, co prodáváme.</p></div></li>
+        <li><span class="when">Týden 1–2</span><div><h3>Ceníkový engine</h3><p>Procento + fixní částka + strop + měsíční plán, volba kdo poplatek nese, veřejná kalkulačka. Malá práce, která odemyká celý akviziční playbook z první analýzy — bez ní nelze nabídnout ani plán Pro, ani garanci ceny.</p></div></li>
+        <li><span class="when">Týden 2–3</span><div><h3>Živé kurzy a druhá platební noha</h3><p>Kurzový feed s uložením kurzu k objednávce, Stripe jako plnohodnotná alternativa pro zahraničí. Tím se otevírá první trh mimo ČR a SK.</p></div></li>
+        <li><span class="when">Hotovo</span><div><h3>Držení míst a nejlepší sedadla</h3><p>Vyřešeno 14. 8. 2026. Držení se zadává výběrem sektoru, řady a rozsahu míst, vyřazená místa jsou oddělená od dočasně držených a výběr nejlepších sedadel je nově sdílený s widgetem i pokladnou.</p></div></li>
+        <li><span class="when">Měsíc 2</span><div><h3>Zátěž naostro a provozní důvěra</h3><p>Zátěžový test proti nasazené produkci, veřejná statusová stránka, ověřená retence záloh, jednoduché SLA s kreditem. Tohle jsou otázky, které padnou na první schůzce s větším klientem.</p></div></li>
+        <li><span class="when">Měsíc 2–4</span><div><h3>Booking a settlement</h3><p>Kalendář hal, holdy termínů, nabídky umělcům, deal terms nad stávajícím royalty enginem, automatický settlement po akci. Nejdražší položka na seznamu a zároveň jediná, která z nás dělá kategorii pro sebe místo dalšího prodejce vstupenek.</p></div></li>
+        <li><span class="when">Měsíc 3+</span><div><h3>All-in ceny podle jurisdikce a rizikový model záloh</h3><p>Otevírá USA a umožňuje škálovat zálohy bez toho, aby jedna zrušená akce sebrala roční marži.</p></div></li>
+      </ol>
+      <div class="stub">
+        <span class="k">Jedno rozhodnutí, které je potřeba udělat vědomě</span>
+        <p>Vertikály (fitness, kurzy, parkování, kina) jsou v odděleném projektu <span class="path">Documents\ticketarium</span>, ticketing v <span class="path">Documents\tixly</span>. V analýze trhu je „jeden systém pro celý provoz místa“ jedním z důvodů, proč by hala měla přejít k nám. Buď se to spojí a stane se to prodejním argumentem, nebo se to nechá odděleně a přestane se tím argumentovat. Obojí je legitimní; mít to rozdělené a zároveň to slibovat není.</p>
+      </div>
+    </section>
+
+    <section id="s8">
+      <span class="sec-no">08</span>
+      <h2>Jak to říkat klientům</h2>
+      <p>Co z tohohle srovnání jde použít doslova na schůzce — a co ne, dokud to nebude doložené.</p>
+      <h4>Můžeš tvrdit</h4>
+      <ul>
+        <li>Vstupenka s rotujícím kódem, kterou nelze přeposlat screenshotem — a oficiální přeprodej za nominál, kde máš kontrolu nad cenou i poplatkem.</li>
+        <li>Peníze máš do dvou dnů po akci — až to bude zkrácené. Dokud ne, o rychlosti výplat nemluv.</li>
+        <li>Tvoje kampaně měříš na svém účtu, přes serverové rozhraní Meta i TikTok. Zákazníci jsou tvoji, exportuješ je kdykoli.</li>
+        <li>Vyúčtování s umělcem podle skutečné smlouvy — garance, procento, strop.</li>
+        <li>Devět jazyků, sedm platebních bran, výplaty přes Wise do zahraničí.</li>
+        <li>Moderace obsahu s auditní stopou podle DSA, faktury ISDOC, DPH podle země.</li>
+      </ul>
+      <h4>Zatím netvrdit</h4>
+      <ul>
+        <li>„Zvládneme festivalový on-sale“ — dokud neproběhne zátěžový test proti produkci. Do té doby mluv o divadelním a klubovém prodeji, kde je ověřeno, že to sedí.</li>
+        <li>„Jsme certifikovaní“ — SOC 2 není a chvíli nebude.</li>
+        <li>„Fungujeme globálně“ — dokud jsou kurzy natvrdo a brány středoevropské. Správná formulace je „ČR a SK ostře, další trhy na vyžádání“.</li>
+        <li>„Máme appku“ v obchodě — je hotová, ale nepublikovaná; říkej to přesně tak.</li>
+      </ul>
+    </section>
+
+    <footer class="end">
+      <p><strong>Metodika.</strong> Všechna tvrzení o Tixly v tomhle dokumentu pocházejí z přímého čtení kódu a struktury repozitáře 13. 8. 2026, ne z dokumentace v projektu — ta je místy z května a na několika místech je proti kódu zastaralá (např. vede nativní aplikace a Stripe jako chybějící, přestože v kódu jsou). Tvrzení o konkurenci a regulaci pocházejí z veřejných zdrojů uvedených v předchozí analýze vstupu na trh. Odhady rozsahu práce u jednotlivých mezer jsou odhady, ne měření.</p>
+    </footer>
+
+  </article>
+</div>

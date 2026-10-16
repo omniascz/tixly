@@ -11,8 +11,10 @@
  * order status + trigger order-completed).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { handleBenefitCallback } from '@/lib/payment/benefits';
+import { runWithServiceContext } from '@/lib/db/rls-pool';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
 import { verifyPluxeeCallback } from '@/lib/payment/benefit-providers';
+import { handleBenefitCallback } from '@/lib/payment/benefits';
 
 interface PluxeeCallbackBody {
   transactionId?: string;
@@ -24,13 +26,18 @@ interface PluxeeCallbackBody {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('benefitCards');
+  if (featureOff) return featureOff;
   // 1) Read raw body PŘED .json() parsování (pro HMAC verify nad raw bytes)
   const rawBody = await req.text();
 
   // 2) Signature verify — pokud chybí secret nebo signature, 401
   const sig = req.headers.get('x-pluxee-signature');
   const verifyOk = verifyPluxeeCallback(rawBody, sig);
-  if (!verifyOk && process.env.BENEFIT_DEV_SKIP_CALLBACK_VERIFY !== '1') {
+  // Kolo 2: dev obejití ověření NIKDY v produkci (dřív stačilo nastavit env i tam).
+  const devSkip = process.env.BENEFIT_DEV_SKIP_CALLBACK_VERIFY === '1' && process.env.NODE_ENV !== 'production';
+  if (!verifyOk && !devSkip) {
     console.warn('[pluxee callback] signature verify failed');
     return NextResponse.json(
       { error: 'INVALID_SIGNATURE' },
@@ -59,12 +66,20 @@ export async function POST(req: NextRequest): Promise<Response> {
   const success = body.status === 'paid';
 
   // 6) Delegate to shared handler (idempotent, order status update)
-  const result = await handleBenefitCallback({
+  // Kolo 2: servisní kontext — pod tixly_app (RLS) by jinak benefit_payments/orders
+  // nebyly vidět a každý (i legitimní) callback skončil 404.
+  // Pluxee vendor API (dotaz na stav) zatím nemáme zdokumentované → rozhoduje podepsaná
+  // notifikace + kontrola, že zaplacená částka pokrývá cenu.
+  const result = await runWithServiceContext(() => handleBenefitCallback({
     provider: 'pluxee',
     externalId,
     success,
     payload: body as Record<string, unknown>,
-  });
+    paidAmountMinor: success ? (body.currency === 'CZK' ? body.paidAmountMinor ?? null : null) : undefined,
+  }));
+  if (result.status === 'amount_mismatch') {
+    return NextResponse.json({ error: 'AMOUNT_MISMATCH' }, { status: 409 });
+  }
 
   if (result.status === 'not_found') {
     return NextResponse.json({ error: 'PAYMENT_NOT_FOUND' }, { status: 404 });

@@ -1,0 +1,14 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/auth-reset-password.live.test.ts[2m > [22m[2mauth/reset-password proti reálnému schématu (live)[22m[39m
+[live-local-clone] live_reset_pw_mv96jl0d: handlery běží jako tixly_app (RLS platí)
+
+ [32m✓[39m tests/auth-reset-password.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 1900[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m   Start at [22m 08:50:48
+[2m   Duration [22m 2.45s[2m (transform 141ms, setup 0ms, collect 97ms, tests 1.90s, environment 0ms, prepare 76ms)[22m
+

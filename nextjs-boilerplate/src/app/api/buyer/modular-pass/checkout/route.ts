@@ -19,6 +19,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 
 const schema = z.object({
@@ -47,11 +48,14 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
   const input = parsed.data;
+  // Kolo 7 (C-29): po uzávěrce online prodeje nový nákup nejde.
+  const salesClosed = await saleBlockedResponse(db(), input.eventId, 'online');
+  if (salesClosed) return salesClosed;
 
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
 
     // 1) Validate ticket_type + modular config + event published
     const tt = await client.query<{
@@ -223,7 +227,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const cacheClient = await db().connect();
     try {
       await cacheClient.query('BEGIN');
-      await cacheClient.query(`SET LOCAL app.is_platform_admin = 'true'`);
+      // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
       await cacheClient.query(
         `CREATE TABLE IF NOT EXISTS marketing.modular_pass_pending_selections (
           order_id uuid PRIMARY KEY REFERENCES orders.orders(id) ON DELETE CASCADE,

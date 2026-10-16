@@ -1,0 +1,17 @@
+NOTICE:  database "r20demo" does not exist, skipping
+[staging] migrace od nuly do databáze r20demo
+NOTICE:  database "r20demo" does not exist, skipping
+OK   507_offline_scan_sync.sql
+OK   508_ops_monitoring.sql
+FAILED_FILES=0
+[staging] nahrávám demo data agentury
+ mista | inscenace | terminy | sedadla | kategorie | blokovana_mista 
+-------+-----------+---------+---------+-----------+-----------------
+     2 |         2 |       4 |     400 |        20 |              24
+(1 row)
+
+[staging] ověřuji role a RLS
+tixly_app NOBYPASSRLS
+policies=874
+tixly_app vidí publikovaných termínů: 4
+[staging] hotovo — proměnné zapsané do logs/r20/staging.env (práva 600); demo pořadatel demo@tixly-staging.test

@@ -8,10 +8,8 @@ import { runAsPromoterNonStaff } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterNonStaff(req, async (ctx) => {
     const own = await db().query(
       `SELECT id FROM marketing.tracking_pixels WHERE id=$1 AND promoter_id=$2`,
@@ -36,10 +34,8 @@ export async function PATCH(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterNonStaff(req, async (ctx) => {
     const own = await db().query(
       `SELECT id FROM marketing.tracking_pixels WHERE id=$1 AND promoter_id=$2`,

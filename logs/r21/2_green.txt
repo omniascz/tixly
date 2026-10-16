@@ -1,0 +1,19 @@
+# Kolo 21 / krok 2.4 — GREEN: golden-path-r21-sentry-url-tokens po opravě (kód b7af4622, build logs/r21/2_green_build.txt, net log buildu prázdný = 0 spojení mimo localhost)
+Spec beze změny od RED (git diff ccee24f5 -- spec: prázdný). Prostředí jako RED (golden.sh 2_green_run, čerstvá r21demo, tixly_app).
+
+[r21] (a) token 74e5… (64 znaků); POST /api/auth/reset-password → 200; Referer http://localhost:3200/cs/reset-password?token=74e5…
+[r21] (b) token f44b… (36 znaků); GET seat-prices → 200; Referer http://localhost:3200/cs/events/00000000-0000-4000-a000-000000000503/seats/kategorie?token=f44b…&seats=c542b4b8-9880-4b70-ad14-3f1b56cd0e0a
+[r21] (c) token r21c…; POST /api/ops/sentry-check?token=… → 500
+[r21] obálek: 140; spanů: 504; událostí (event): 1
+[r21] spany s cestou /cs/reset-password: 30; se /seats/kategorie: 38; událost (c): ano
+[r21] (a) token 74e5…: surových obálek s tokenem 0; výskyty podle pole {}
+[r21] (b) token f44b…: surových obálek s tokenem 0; výskyty podle pole {}
+[r21] (c) token r21c…: surových obálek s tokenem 0; výskyty podle pole {}
+  1 passed (17.5s)
+
+## Surové obálky (2_green_run_envelopes.jsonl.raw.jsonl)
+token= podle hodnoty:
+     23 token=[skryto]
+referer s cestou reset-password / kategorie (bez dotazu):
+     26 http.request.header.referer\":{\"value\":[\"http://localhost:3200/cs/events/00000000-0000-4000-a000-000000000503/seats/kategorie
+     26 http.request.header.referer\":{\"value\":[\"http://localhost:3200/cs/reset-password

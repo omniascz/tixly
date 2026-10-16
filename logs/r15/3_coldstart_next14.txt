@@ -1,0 +1,7 @@
+next14 port otevřen po 3023 ms
+next14 login#1 401 0.233492s
+next14 login#2 401 0.014014s
+next14 login#3 401 0.011860s
+next14 /api/health 200 0.006844s
+next14 /cs 200 0.145338s
+next14 /admin 307 0.003493s

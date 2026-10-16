@@ -21,8 +21,9 @@ const patchSchema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; addonId: string } },
+  props: { params: Promise<{ id: string; addonId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
   if (!/^[0-9a-f-]{36}$/i.test(params.addonId)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
@@ -74,8 +75,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; addonId: string } },
+  props: { params: Promise<{ id: string; addonId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
   if (!/^[0-9a-f-]{36}$/i.test(params.addonId)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });

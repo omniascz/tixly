@@ -1,0 +1,151 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r8-corporate-orders.live.test.ts [2m ([22m[2m6 tests[22m [2m|[22m [31m6 failed[39m[2m)[22m[33m 515[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r8-corporate-orders.live.test.ts[2m > [22mKolo 8 — firemní objednávky na fakturu[2m > [22mARES: údaje firmy podle IČO; neznámé IČO 404; výpadek 503 (vyplnit ručně)[39m
+[31m     → Cannot find module '@/app/api/admin/ares/[ico]/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-corporate-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-corporate-orders.live.test.ts[2m > [22mKolo 8 — firemní objednávky na fakturu[2m > [22mz blokace 15 míst: upravená cena bez důvodu neprojde; doklad po sazbách, ISDOC, e-mail; místa držená, vstupenky zatím ne[39m
+[31m     → Cannot find module '@/app/api/admin/corporate-orders/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-corporate-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-corporate-orders.live.test.ts[2m > [22mKolo 8 — firemní objednávky na fakturu[2m > [22mzaplaceno (datum + reference) → vstupenky kontaktu: společné PDF i každá zvlášť; doklad zaplacen[39m
+[31m     → Cannot find module '@/app/api/admin/corporate-orders/[id]/paid/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-corporate-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-corporate-orders.live.test.ts[2m > [22mKolo 8 — firemní objednávky na fakturu[2m > [22mpo splatnosti: upozornění pořadateli jednou, místa zůstávají držená; ruční uvolnění = dobropis + místa do prodeje[39m
+[31m     → Cannot find module '@/app/api/admin/corporate-orders/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-corporate-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-corporate-orders.live.test.ts[2m > [22mKolo 8 — firemní objednávky na fakturu[2m > [22mzrušení zaplacené objednávky z blokace: dobropis, vstupenky zneplatněné, místa zpět do blokace[39m
+[31m     → Cannot find module '@/app/api/admin/corporate-orders/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-corporate-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-corporate-orders.live.test.ts[2m > [22mKolo 8 — firemní objednávky na fakturu[2m > [22mcizí pořadatel firemní objednávku nevidí ani neoznačí[39m
+[31m     → Cannot find module '@/app/api/admin/corporate-orders/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-corporate-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 6 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-corporate-orders.live.test.ts[2m > [22mKolo 8 — firemní objednávky na fakturu[2m > [22mARES: údaje firmy podle IČO; neznámé IČO 404; výpadek 503 (vyplnit ručně)
+[31m[1mError[22m: Cannot find module '@/app/api/admin/ares/[ico]/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-corporate-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-corporate-orders.live.test.ts:[2m39:15[22m[39m
+    [90m 37| [39m
+    [90m 38| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 39| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 40| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 41| [39m      method[33m,[39m headers[33m:[39m { [32m'content-type'[39m[33m:[39m [32m'application/json'[39m[33m,[39m origin[33m:[39m [32m'[39m…
+[90m [2m❯[22m tests/fix-r8-corporate-orders.live.test.ts:[2m128:16[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-corporate-orders.live.test.ts[2m > [22mKolo 8 — firemní objednávky na fakturu[2m > [22mz blokace 15 míst: upravená cena bez důvodu neprojde; doklad po sazbách, ISDOC, e-mail; místa držená, vstupenky zatím ne
+[31m[1mError[22m: Cannot find module '@/app/api/admin/corporate-orders/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-corporate-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-corporate-orders.live.test.ts:[2m39:15[22m[39m
+    [90m 37| [39m
+    [90m 38| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 39| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 40| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 41| [39m      method[33m,[39m headers[33m:[39m { [32m'content-type'[39m[33m:[39m [32m'application/json'[39m[33m,[39m origin[33m:[39m [32m'[39m…
+[90m [2m❯[22m tests/fix-r8-corporate-orders.live.test.ts:[2m143:22[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-corporate-orders.live.test.ts[2m > [22mKolo 8 — firemní objednávky na fakturu[2m > [22mzaplaceno (datum + reference) → vstupenky kontaktu: společné PDF i každá zvlášť; doklad zaplacen
+[31m[1mError[22m: Cannot find module '@/app/api/admin/corporate-orders/[id]/paid/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-corporate-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-corporate-orders.live.test.ts:[2m39:15[22m[39m
+    [90m 37| [39m
+    [90m 38| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 39| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 40| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 41| [39m      method[33m,[39m headers[33m:[39m { [32m'content-type'[39m[33m:[39m [32m'application/json'[39m[33m,[39m origin[33m:[39m [32m'[39m…
+[90m [2m❯[22m tests/fix-r8-corporate-orders.live.test.ts:[2m184:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-corporate-orders.live.test.ts[2m > [22mKolo 8 — firemní objednávky na fakturu[2m > [22mpo splatnosti: upozornění pořadateli jednou, místa zůstávají držená; ruční uvolnění = dobropis + místa do prodeje
+[31m[1mError[22m: Cannot find module '@/app/api/admin/corporate-orders/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-corporate-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-corporate-orders.live.test.ts:[2m39:15[22m[39m
+    [90m 37| [39m
+    [90m 38| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 39| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 40| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 41| [39m      method[33m,[39m headers[33m:[39m { [32m'content-type'[39m[33m:[39m [32m'application/json'[39m[33m,[39m origin[33m:[39m [32m'[39m…
+[90m [2m❯[22m tests/fix-r8-corporate-orders.live.test.ts:[2m203:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-corporate-orders.live.test.ts[2m > [22mKolo 8 — firemní objednávky na fakturu[2m > [22mzrušení zaplacené objednávky z blokace: dobropis, vstupenky zneplatněné, místa zpět do blokace
+[31m[1mError[22m: Cannot find module '@/app/api/admin/corporate-orders/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-corporate-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-corporate-orders.live.test.ts:[2m39:15[22m[39m
+    [90m 37| [39m
+    [90m 38| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 39| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 40| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 41| [39m      method[33m,[39m headers[33m:[39m { [32m'content-type'[39m[33m:[39m [32m'application/json'[39m[33m,[39m origin[33m:[39m [32m'[39m…
+[90m [2m❯[22m tests/fix-r8-corporate-orders.live.test.ts:[2m229:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-corporate-orders.live.test.ts[2m > [22mKolo 8 — firemní objednávky na fakturu[2m > [22mcizí pořadatel firemní objednávku nevidí ani neoznačí
+[31m[1mError[22m: Cannot find module '@/app/api/admin/corporate-orders/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-corporate-orders.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-corporate-orders.live.test.ts:[2m39:15[22m[39m
+    [90m 37| [39m
+    [90m 38| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 39| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 40| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 41| [39m      method[33m,[39m headers[33m:[39m { [32m'content-type'[39m[33m:[39m [32m'application/json'[39m[33m,[39m origin[33m:[39m [32m'[39m…
+[90m [2m❯[22m tests/fix-r8-corporate-orders.live.test.ts:[2m253:18[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m6 failed[39m[22m[90m (6)[39m
+[2m   Start at [22m 11:41:18
+[2m   Duration [22m 994ms[2m (transform 128ms, setup 0ms, collect 114ms, tests 515ms, environment 0ms, prepare 67ms)[22m
+

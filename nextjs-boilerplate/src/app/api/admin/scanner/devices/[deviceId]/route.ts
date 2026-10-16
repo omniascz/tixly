@@ -21,10 +21,8 @@ const patchSchema = z.object({
   name: z.string().min(1).max(120).optional(),
 });
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { deviceId: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ deviceId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!(await ensureOwnership(params.deviceId, promoter.promoterId))) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -50,10 +48,8 @@ export async function PATCH(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { deviceId: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ deviceId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     if (!(await ensureOwnership(params.deviceId, promoter.promoterId))) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });

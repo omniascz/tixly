@@ -10,13 +10,14 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 type Status = 'loading' | 'verified' | 'invalid_or_expired' | 'invalid' | 'user_not_found' | 'network_error';
 
-export default function VerifyEmailPage({ params }: { params: { locale: string } }) {
+export default function VerifyEmailPage(_props: { params: Promise<{ locale: string }> }) {
+  const params = useParams<{ locale: string }>();
   const sp = useSearchParams();
   const token = sp.get('token');
   const [status, setStatus] = useState<Status>('loading');

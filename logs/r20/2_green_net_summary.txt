@@ -1,0 +1,5 @@
+# Kolo 20 — souhrn odchozích spojení buildu (green), exit buildu 0
+řádků v net logu: 0
+pokusů mimo localhost celkem (BLOCKED + connect): 0
+z toho zablokovaných *.sentry.io: 0
+cílové hostitele:

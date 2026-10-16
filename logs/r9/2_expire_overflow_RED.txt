@@ -1,0 +1,65 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r9-expire-capacity-overflow.live.test.ts[2m > [22m[2mKolo 9 — expirace nezastaví objednávka bez odečtené kapacity[2m > [22m[2mcron projde, obě propadlé objednávky expired, kapacita ≤ total[22m[39m
+[expire-pending-orders] error: new row for relation "ticket_types" violates check constraint "chk_catalog_ticket_types_remaining"
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at Module.releaseOrderCapacity [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\orders\release-capacity.ts:32:14[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\cron\expire-pending-orders\route.ts:70:19
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r9-expire-capacity-overflow.live.test.ts:41:15
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m
+    at startTests [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:967:3[90m)[39m {
+  length: [33m220[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'23514'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [32m'catalog'[39m,
+  table: [32m'ticket_types'[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [32m'chk_catalog_ticket_types_remaining'[39m,
+  file: [32m'execMain.c'[39m,
+  line: [32m'2034'[39m,
+  routine: [32m'ExecConstraints'[39m
+}
+
+ [33m❯[39m tests/fix-r9-expire-capacity-overflow.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [31m1 failed[39m[2m)[22m[90m 252[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r9-expire-capacity-overflow.live.test.ts[2m > [22mKolo 9 — expirace nezastaví objednávka bez odečtené kapacity[2m > [22mcron projde, obě propadlé objednávky expired, kapacita ≤ total[39m
+[31m     → {"error":"INTERNAL_ERROR","message":"new row for relation \"ticket_types\" violates check constraint \"chk_catalog_ticket_types_remaining\""}: expected 500 to be 200 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r9-expire-capacity-overflow.live.test.ts[2m > [22mKolo 9 — expirace nezastaví objednávka bez odečtené kapacity[2m > [22mcron projde, obě propadlé objednávky expired, kapacita ≤ total
+[31m[1mAssertionError[22m: {"error":"INTERNAL_ERROR","message":"new row for relation \"ticket_types\" violates check constraint \"chk_catalog_ticket_types_remaining\""}: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r9-expire-capacity-overflow.live.test.ts:[2m44:46[22m[39m
+    [90m 42| [39m      method[33m:[39m [32m'POST'[39m[33m,[39m headers[33m:[39m { [32m'x-internal-token'[39m[33m:[39m process[33m.[39menv[33m.[39m[33mINTER[39m…
+    [90m 43| [39m    }) [35mas[39m unknown [35mas[39m [33mNextRequest[39m)[33m;[39m
+    [90m 44| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m [35mawait[39m r[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                             [31m^[39m
+    [90m 45| [39m    [35mconst[39m st [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT id, status FROM orders.[39m…
+    [90m 46| [39m    [34mexpect[39m(st[33m.[39m[34mmap[39m((x) [33m=>[39m x[33m.[39mstatus))[33m.[39m[34mtoEqual[39m([[32m'expired'[39m[33m,[39m [32m'expired'[39m])[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 18:21:34
+[2m   Duration [22m 865ms[2m (transform 71ms, setup 0ms, collect 70ms, tests 252ms, environment 0ms, prepare 114ms)[22m
+

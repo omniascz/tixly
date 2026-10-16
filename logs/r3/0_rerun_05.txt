@@ -1,0 +1,4 @@
+=== e2e/05-concurrency.mjs 
+exit=0
+# SUMMARY {"PASS":7,"FAIL":1,"INFO":0}
+  FAIL C2c potvrzovaci e-maily: 1 na objednavku (ocekavano 10), ne duplicitni

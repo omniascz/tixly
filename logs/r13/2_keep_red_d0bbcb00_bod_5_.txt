@@ -1,0 +1,41 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [golden-path] › tests\golden-path-r13-keep.spec.ts:96:7 › vlastník › bod 5: blokace bez volných míst se nezaloží prázdná
+[1A[2K  1) [golden-path] › tests\golden-path-r13-keep.spec.ts:96:7 › vlastník › bod 5: blokace bez volných míst se nezaloží prázdná 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m422[39m
+    Received: [31m201[39m
+
+       99 |     expect(free[0].n).toBe(0);
+      100 |     const r = await api(page, 'POST', `/api/admin/events/${T.rBrno}/blocks`, { name: `Prázdná ${RUN}`, sector: 'Balkon' });
+    > 101 |     expect(r.status).toBe(422);
+          |                      ^
+      102 |     expect(String(r.json.message)).toBe('Ve výběru nejsou volná místa.');
+      103 |     expect(await q(`SELECT 1 FROM catalog.seat_blocks WHERE event_id = $1 AND name = $2`, [T.rBrno, `Prázdná ${RUN}`])).toHaveLength(0);
+      104 |     // chyba se ukáže na původní stránce blokací
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r13-keep.spec.ts:101:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-d4d2c-ch-míst-se-nezaloží-prázdná-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r13-keep-vlast-d4d2c-ch-míst-se-nezaloží-prázdná-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-d4d2c-ch-míst-se-nezaloží-prázdná-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-d4d2c-ch-míst-se-nezaloží-prázdná-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-d4d2c-ch-míst-se-nezaloží-prázdná-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r13-keep-vlast-d4d2c-ch-míst-se-nezaloží-prázdná-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  1 failed
+    [golden-path] › tests\golden-path-r13-keep.spec.ts:96:7 › vlastník › bod 5: blokace bez volných míst se nezaloží prázdná 

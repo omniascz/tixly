@@ -14,16 +14,19 @@
  *   2. Render consent screen (app info + requested scopes)
  *   3. Po approve → POST internal endpoint → issue code → redirect na redirect_uri
  */
-import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { Pool } from 'pg';
 import { verifyToken } from '@/lib/auth';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { lookupClient } from '@/lib/oauth/flow';
 import { ConsentForm } from './ConsentForm';
 
+import type { JSX } from 'react';
+
 let pool: Pool | null = null;
 function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  if (!pool) pool = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   return pool;
 }
 

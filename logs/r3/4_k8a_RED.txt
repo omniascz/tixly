@@ -1,0 +1,52 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r3-k8a-invalid-id.live.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 302[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-k8a-invalid-id.live.test.ts[2m > [22mKrok 4 (kolo 3) — K8a: neplatné ID akce → 4xx[2m > [22mSQLi řetězec "1' OR '1'='1" → 400 INVALID_EVENT_ID[39m
+[31m     → expected 200 to be 400 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-k8a-invalid-id.live.test.ts[2m > [22mKrok 4 (kolo 3) — K8a: neplatné ID akce → 4xx[2m > [22m36 pomlček / ne-UUID tvar → 400 (ne 500 z uuid castu)[39m
+[31m     → invalid input syntax for type uuid: "------------------------------------"[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-k8a-invalid-id.live.test.ts[2m > [22mKrok 4 (kolo 3) — K8a: neplatné ID akce → 4xx[2m > [22mSQLi řetězec "1' OR '1'='1" → 400 INVALID_EVENT_ID
+[31m[1mAssertionError[22m: expected 200 to be 400 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 400[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r3-k8a-invalid-id.live.test.ts:[2m31:22[22m[39m
+    [90m 29| [39m  [34mit[39m([32m"SQLi řetězec \"1' OR '1'='1\" → 400 INVALID_EVENT_ID"[39m[33m,[39m [35masync[39m () …
+    [90m 30| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [35mget[39m([32m"1' OR '1'='1"[39m)[33m;[39m
+    [90m 31| [39m    [34mexpect[39m(r[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m 32| [39m    [34mexpect[39m([35mawait[39m r[33m.[39m[34mjson[39m())[33m.[39m[34mtoEqual[39m({ error[33m:[39m [32m'INVALID_EVENT_ID'[39m[33m,[39m ticket…
+    [90m 33| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-k8a-invalid-id.live.test.ts[2m > [22mKrok 4 (kolo 3) — K8a: neplatné ID akce → 4xx[2m > [22m36 pomlček / ne-UUID tvar → 400 (ne 500 z uuid castu)
+[31m[1merror[22m: invalid input syntax for type uuid: "------------------------------------"[39m
+[90m [2m❯[22m ../../tixly-audit/nextjs-boilerplate/node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m GET src/app/api/events/[id]/ticket-types/route.ts:[2m38:13[22m[39m
+    [90m 36| [39m  [90m// draft/pending akce. Pod ENFORCED RLS to už hlídá public-read poli[39m…
+    [90m 37| [39m  [90m// explicitní guard drží konzistenci i v dormantním BYPASSRLS režimu.[39m
+    [90m 38| [39m  [35mconst[39m r [33m=[39m [35mawait[39m [34mdb[39m()[33m.[39mquery[33m<[39m[33mTtRow[39m[33m>[39m(
+    [90m   | [39m            [31m^[39m
+    [90m 39| [39m    [32m`SELECT tt.id, tt.name, tt.base_price, tt.remaining_qty,
+    [90m 40| [39m            COALESCE(tt.is_seated, false) AS is_seated,
+[90m [2m❯[22m tests/fix-r3-k8a-invalid-id.live.test.ts:[2m35:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 168, severity: 'ERROR', code: '22P02', detail: undefined, hint: undefined, position: undefined, internalPosition: undefined, internalQuery: undefined, where: 'unnamed portal parameter $1 = \'...\'', schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'uuid.c', line: '138', routine: 'string_to_uuid' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (3)[39m
+[2m   Start at [22m 13:56:46
+[2m   Duration [22m 1.13s[2m (transform 119ms, setup 0ms, collect 148ms, tests 302ms, environment 0ms, prepare 370ms)[22m
+

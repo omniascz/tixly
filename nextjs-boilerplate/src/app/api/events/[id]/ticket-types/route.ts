@@ -5,6 +5,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
+import { mockPaymentsAllowed } from '@/lib/payment/mock-guard';
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 
 interface TtRow {
@@ -25,12 +28,13 @@ export function OPTIONS(): Response {
   return new Response(null, { status: 204 });
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
-  if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
-    return NextResponse.json({ ticketTypes: [] });
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
+  // FIX K8a (kolo 3): neplatné ID je chyba vstupu → 400 (dřív 200 []); přesný tvar UUID —
+  // volné [0-9a-f-]{36} pustilo např. 36 pomlček až do SQL (uuid cast → 500). Tělo dál nese
+  // `ticketTypes: []`, které čtou volající (checkout, embed, mobil).
+  if (!UUID_RE.test(params.id)) {
+    return NextResponse.json({ error: 'INVALID_EVENT_ID', ticketTypes: [] }, { status: 400 });
   }
   // Jen typy PUBLIKOVANÉ akce — public endpoint nesmí prozradit/nabízet typy
   // draft/pending akce. Pod ENFORCED RLS to už hlídá public-read policy, ale
@@ -57,10 +61,11 @@ export async function GET(
     verified_fan_enabled: boolean;
     meta_pixel_id: string | null;
     currency: string | null;
+    legacy_payment_gateways: boolean;
   }>(
     `SELECT COALESCE(e.requires_otp_validation, FALSE) AS requires_otp_validation,
             COALESCE(e.verified_fan_enabled, FALSE) AS verified_fan_enabled,
-            p.meta_pixel_id, e.currency
+            p.meta_pixel_id, e.currency, e.legacy_payment_gateways
        FROM catalog.events e
        LEFT JOIN platform.promoters p ON p.id = e.promoter_id
       WHERE e.id = $1`,
@@ -71,6 +76,7 @@ export async function GET(
     verified_fan_enabled: false,
     meta_pixel_id: null,
     currency: null,
+    legacy_payment_gateways: false,
   };
 
   return NextResponse.json({
@@ -94,5 +100,9 @@ export async function GET(
     },
     metaPixelId: flags.meta_pixel_id,
     currency: flags.currency ?? 'CZK',
+    // Kolo 7: brány bez refundu (Triple-A, P24, Mollie, PayPal, Stripe) jen u akcí z doby před mig. 499.
+    legacyPaymentGateways: flags.legacy_payment_gateways === true,
+    // Kolo 23: Wero má jen mock bránu — nabízí se jen tam, kde je mock povolený (mock-guard).
+    weroAvailable: mockPaymentsAllowed(),
   });
 }

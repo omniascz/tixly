@@ -1,0 +1,137 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [32m✓[39m src/__tests__/promo-code-handler.test.ts [2m ([22m[2m26 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m src/lib/seating/transforms.test.ts [2m ([22m[2m31 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/lib/health-check/health.service.test.ts [2m ([22m[2m33 tests[22m[2m)[22m[33m 1273[2mms[22m[39m
+ [32m✓[39m src/lib/royalties/deal.test.ts [2m ([22m[2m23 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [2m[90m↓[39m[22m src/lib/db/rls-tenant-isolation.test.ts [2m ([22m[2m9 tests[22m [2m|[22m [33m9 skipped[39m[2m)[22m
+ [32m✓[39m src/lib/pricing/resolve-price.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+ [32m✓[39m src/app/api/subscriptions/checkout/route.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 28[2mms[22m[39m
+ [32m✓[39m src/lib/seating/smsticket-parser.test.ts [2m ([22m[2m15 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+ [32m✓[39m src/lib/scanner/passage.test.ts [2m ([22m[2m23 tests[22m[2m)[22m[90m 26[2mms[22m[39m
+ [32m✓[39m src/lib/budget/break-even.test.ts [2m ([22m[2m16 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m tests/guest-user-policy.test.ts [2m ([22m[2m11 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+[90mstderr[2m | src/app/api/internal/royalties/accrue/route.test.ts[2m > [22m[2mPOST /api/internal/royalties/accrue[2m > [22m[2mbez hesla v prostředí odmítne i správnou hlavičku[22m[39m
+[royalties/accrue] odmítnuto: not_configured
+
+[90mstderr[2m | src/app/api/internal/royalties/accrue/route.test.ts[2m > [22m[2mPOST /api/internal/royalties/accrue[2m > [22m[2modmítne špatné heslo a řekne důvod[22m[39m
+[royalties/accrue] odmítnuto: mismatch
+
+[90mstderr[2m | src/app/api/internal/royalties/accrue/route.test.ts[2m > [22m[2mPOST /api/internal/royalties/accrue[2m > [22m[2modmítne chybějící hlavičku[22m[39m
+[royalties/accrue] odmítnuto: missing
+
+ [32m✓[39m src/app/api/internal/royalties/accrue/route.test.ts [2m ([22m[2m9 tests[22m[2m)[22m[90m 24[2mms[22m[39m
+ [32m✓[39m src/lib/moderation/ai-gate.test.ts [2m ([22m[2m14 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m src/lib/seating/generator.test.ts [2m ([22m[2m9 tests[22m[2m)[22m[90m 17[2mms[22m[39m
+ [32m✓[39m src/__tests__/regression-bugs.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/lib/seating/best-available.test.ts [2m ([22m[2m11 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/lib/payment/benefit-providers/pluxee.test.ts [2m ([22m[2m9 tests[22m[2m)[22m[90m 18[2mms[22m[39m
+ [32m✓[39m src/lib/budget/outlook.test.ts [2m ([22m[2m8 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+ [32m✓[39m src/lib/payment/__tests__/provider.test.ts [2m ([22m[2m8 tests[22m[2m)[22m[90m 19[2mms[22m[39m
+[90mstderr[2m | src/lib/payment/__tests__/provider.test.ts[2m > [22m[2mcreatePayment provider routing[2m > [22m[2mPAYMENT_PROVIDER=gopay bez credentials → mock fallback[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+ [32m✓[39m src/lib/accounting/isdoc.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 600[2mms[22m[39m
+ [32m✓[39m src/lib/seating/import-parsers.test.ts [2m ([22m[2m17 tests[22m[2m)[22m[90m 40[2mms[22m[39m
+ [32m✓[39m src/lib/typed-fetch.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[90m 18[2mms[22m[39m
+ [32m✓[39m src/lib/db/rls-pool.test.ts [2m ([22m[2m8 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+ [32m✓[39m src/lib/moderation/ai-gate-integration.test.ts [2m ([22m[2m12 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+ [32m✓[39m src/lib/forgemsg/forgemsg.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 13[2mms[22m[39m
+ [32m✓[39m tests/audit-fixable-gate.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/lib/compliance/ares.test.ts [2m ([22m[2m11 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+ [32m✓[39m src/lib/payment/benefit-providers/benefit-plus.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 13[2mms[22m[39m
+ [32m✓[39m src/lib/booking/offer-token.test.ts [2m ([22m[2m16 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/lib/i18n.test.ts [2m ([22m[2m28 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+ [32m✓[39m src/lib/__tests__/admin-api.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m src/lib/sms/bulkgate-mock.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m src/lib/seating/diff.test.ts [2m ([22m[2m9 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/lib/tickets/print-token.test.ts [2m ([22m[2m9 tests[22m[2m)[22m[90m 13[2mms[22m[39m
+ [32m✓[39m src/lib/internal-auth.test.ts [2m ([22m[2m12 tests[22m[2m)[22m[90m 11[2mms[22m[39m
+ [32m✓[39m src/lib/tax/vat.test.ts [2m ([22m[2m8 tests[22m[2m)[22m[90m 13[2mms[22m[39m
+ [32m✓[39m src/__tests__/api/health.test.ts [2m ([22m[2m5 tests[22m [2m|[22m [33m4 skipped[39m[2m)[22m[90m 5[2mms[22m[39m
+ [32m✓[39m src/lib/booking/date-holds.test.ts [2m ([22m[2m15 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/lib/transit/partners/dpp.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+ [32m✓[39m src/lib/rate-limit/per-tenant.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[33m 420[2mms[22m[39m
+ [32m✓[39m src/lib/seating/perf.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[33m 612[2mms[22m[39m
+ [32m✓[39m src/lib/db/with-context.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 13[2mms[22m[39m
+ [32m✓[39m src/lib/royalties/settlement-doc.test.ts [2m ([22m[2m8 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/lib/payment/__tests__/vs-generator.test.ts [2m ([22m[2m9 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m tests/route-guard-inventory.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[90m 62[2mms[22m[39m
+ [32m✓[39m src/lib/payment/benefit-providers/edenred.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+ [32m✓[39m src/lib/seats/seat-lock.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/lib/payment/__tests__/gopay-real.test.ts [2m ([22m[2m8 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+[90mstderr[2m | src/lib/payment/__tests__/gopay-real.test.ts[2m > [22m[2mgetGopayConfig[2m > [22m[2misConfigured=false bez env (mock režim)[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | src/lib/payment/__tests__/gopay-real.test.ts[2m > [22m[2mgetGopayConfig[2m > [22m[2misConfigured=false pokud chybí client_id[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | src/lib/payment/__tests__/gopay-real.test.ts[2m > [22m[2mgetGopayConfig[2m > [22m[2msandbox URL pokud GOPAY_SANDBOX=true a žádný explicit URL[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | src/lib/payment/__tests__/gopay-real.test.ts[2m > [22m[2mgetGopayConfig[2m > [22m[2mproduction URL default[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | src/lib/payment/__tests__/gopay-real.test.ts[2m > [22m[2mgetGopayConfig[2m > [22m[2mexplicit GOPAY_API_BASE_URL vyhrává[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | src/lib/payment/__tests__/gopay-real.test.ts[2m > [22m[2mgetGopayConfig[2m > [22m[2modmítne neplatný GOID[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+ [32m✓[39m src/lib/totp/verify.test.ts [2m ([22m[2m11 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/lib/forgemsg/provision.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m src/lib/payouts/__tests__/holdback.test.ts [2m ([22m[2m12 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/lib/push/notify-followers.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+[90mstdout[2m | src/lib/tracing/span.test.ts[2m > [22m[2mtraceSpan[2m > [22m[2mreturns function result[22m[39m
+[trace] ✓ test.foo 0ms trace=5d405fd473fabad3922e958849b71377 span=7d93d163b16655b9 
+
+[90mstdout[2m | src/lib/tracing/span.test.ts[2m > [22m[2mtraceSpan[2m > [22m[2mpropagates async result[22m[39m
+[trace] ✓ test.async 6ms trace=43b6fd1ddc340056060a32ec44d45e83 span=5cf47ea3e364cafb 
+
+[90mstdout[2m | src/lib/tracing/span.test.ts[2m > [22m[2mtraceSpan[2m > [22m[2mpropagates errors[22m[39m
+[trace] ✗ test.err 0ms trace=02b8d138980f705f5650cef68ed8d5f1 span=b8fc83886c78b6de  err=boom
+
+[90mstdout[2m | src/lib/tracing/span.test.ts[2m > [22m[2mtraceSpan[2m > [22m[2mnested spans share traceId, child has different spanId[22m[39m
+[trace] ✓ child 0ms trace=0b0dbf47ff33dae32f460db6368b4ebb span=7d5128fd6338addd parent=7954f8970249d383 
+[trace] ✓ parent 0ms trace=0b0dbf47ff33dae32f460db6368b4ebb span=7954f8970249d383 
+
+[90mstdout[2m | src/lib/tracing/span.test.ts[2m > [22m[2mtraceSpan[2m > [22m[2mcurrentSpan returns span inside trace[22m[39m
+[trace] ✓ outer 0ms trace=f2da2ed683e7a45b6270faddf3e22772 span=88d9a94f973be1f9 
+
+ [32m✓[39m src/lib/tracing/span.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+ [32m✓[39m src/lib/age/calculate.test.ts [2m ([22m[2m11 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m src/lib/payment/benefit-providers/gallery-beta.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+ [32m✓[39m src/lib/sales/cutoff.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m src/lib/transit/partners/idos-brno.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+ [32m✓[39m src/lib/fees/service-fee.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m src/app/api/admin/orders/bulk-refund/contract.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+[90mstderr[2m | src/lib/payment/__tests__/comgate.test.ts[2m > [22m[2mgetComGateConfig[2m > [22m[2misConfigured=false bez env[22m[39m
+[payment] ComGate není nakonfigurovaný — checkout poběží v mock režimu. Nastavte COMGATE_MERCHANT, COMGATE_SECRET.
+
+[90mstderr[2m | src/lib/payment/__tests__/comgate.test.ts[2m > [22m[2mgetComGateConfig[2m > [22m[2misConfigured=false pokud chybí secret[22m[39m
+[payment] ComGate není nakonfigurovaný — checkout poběží v mock režimu. Nastavte COMGATE_MERCHANT, COMGATE_SECRET.
+
+[90mstderr[2m | src/lib/payment/__tests__/comgate.test.ts[2m > [22m[2mgetComGateConfig[2m > [22m[2mdefault API URL[22m[39m
+[payment] ComGate není nakonfigurovaný — checkout poběží v mock režimu. Nastavte COMGATE_MERCHANT, COMGATE_SECRET.
+
+ [32m✓[39m src/lib/payment/__tests__/comgate.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m src/lib/seating/seat-range.test.ts [2m ([22m[2m8 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m src/lib/ai/__tests__/semantic-search.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/lib/scanner/qr-policy.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/components/admin/__tests__/Pagination.test.tsx [2m ([22m[2m6 tests[22m[2m)[22m[33m 489[2mms[22m[39m
+ [32m✓[39m src/lib/reports/xlsx.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/lib/theatre/reservations.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/components/admin/__tests__/DataTable.test.tsx [2m ([22m[2m3 tests[22m[2m)[22m[90m 98[2mms[22m[39m
+ [32m✓[39m src/components/admin/__tests__/SalesSparkline.test.tsx [2m ([22m[2m4 tests[22m[2m)[22m[90m 151[2mms[22m[39m
+ [32m✓[39m src/lib/html-escape/escape.test.ts [2m ([22m[2m8 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m src/components/admin/__tests__/StatCard.test.tsx [2m ([22m[2m4 tests[22m[2m)[22m[90m 99[2mms[22m[39m
+ [32m✓[39m src/components/admin/__tests__/EmptyState.test.tsx [2m ([22m[2m2 tests[22m[2m)[22m[90m 163[2mms[22m[39m
+ [32m✓[39m src/components/admin/__tests__/StatusBadge.test.tsx [2m ([22m[2m5 tests[22m[2m)[22m[90m 56[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m71 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (72)[39m
+[2m      Tests [22m [1m[32m655 passed[39m[22m[2m | [22m[33m13 skipped[39m[90m (668)[39m
+[2m   Start at [22m 12:07:01
+[2m   Duration [22m 63.93s[2m (transform 1.34s, setup 31.50s, collect 3.19s, tests 4.74s, environment 60.88s, prepare 12.00s)[22m
+

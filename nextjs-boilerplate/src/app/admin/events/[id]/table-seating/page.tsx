@@ -1,10 +1,12 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useRouteParams } from '@/lib/next/route-params';
 
 interface TicketType {
   id: string;
@@ -29,12 +31,12 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function TableSeatingPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id: eventId } = use(params);
+export default function TableSeatingPage(_props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = useParams<{ id: string }>();
+  const { id: eventId } = useRouteParams(params);
 
   const [summary, setSummary] = useState<TableSummary | null>(null);
   const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);

@@ -8,10 +8,8 @@ const patchSchema = z.object({
   optedOut: z.boolean().optional(),
 });
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { email: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ email: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const email = decodeURIComponent(params.email);
 
@@ -87,10 +85,8 @@ export async function GET(
   });
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { email: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ email: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const email = decodeURIComponent(params.email);
     const body: unknown = await req.json().catch(() => ({}));

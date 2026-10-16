@@ -7,10 +7,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { slug: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ slug: string }> }): Promise<Response> {
+  const params = await props.params;
   const c = await db().query<{
     id: string;
     title: string;

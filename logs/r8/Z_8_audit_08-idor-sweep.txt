@@ -1,0 +1,7 @@
+# E2E 08_idor_sweep  base=http://localhost:3200  2026-10-04T11:41:56.678Z
+PASS I1  IDOR sweep: 166 GET rout s ID v URL x 3 cizi aktori — zadna odpoved 2xx s privatnimi daty obeti
+       {"tested":166,"skippedUnresolvedParam":63,"stat":{"promoterB:4xx":116,"otherBuyer:4xx":131,"anon:4xx":131,"promoterB:2xx":49,"otherBuyer:2xx":34,"anon:2xx":34,"promoterB:0xx":1,"otherBuyer:0xx":1,"anon:0xx":1},"leaks":[]}
+PASS I2  IDOR sweep: routy vracejici 5xx cizimu aktorovi (chyba misto 401/403/404)
+       {"count":0,"routes":[]}
+
+# SUMMARY {"PASS":2,"FAIL":0,"INFO":0}

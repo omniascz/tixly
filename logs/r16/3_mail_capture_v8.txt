@@ -1,0 +1,94 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [32m✓[39m tests/fix-r8-seat-reservations.live.test.ts [2m ([22m[2m9 tests[22m[2m)[22m[33m 3946[2mms[22m[39m
+ [32m✓[39m tests/fix-r8-corporate-orders.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 4433[2mms[22m[39m
+[90mstderr[2m | tests/fix-r14-ops-monitoring.live.test.ts[2m > [22m[2mKolo 14 / krok 3 — hlídání provozu[2m > [22m[2mselhání webhooku brány → e-mail[22m[39m
+[gopay webhook] getPaymentStatus failed: Error: GoPay getPayment HTTP 404
+    at Module.getGopayPaymentStatus [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\payment\gopay-real.ts:214:22[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at handleWebhook [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:99:14[90m)[39m
+    at Module.withDbOverload [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\db\overload.ts:36:12[90m)[39m
+    at Module.withWebhookAlert [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\ops\webhook-alert.ts:26:11[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r14-ops-monitoring.live.test.ts:158:17
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m
+
+[90mstderr[2m | tests/fix-r14-ops-monitoring.live.test.ts[2m > [22m[2mKolo 14 / krok 3 — hlídání provozu[2m > [22m[2mselhání e-mailu se vstupenkami → e-mail provozu[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r14-ops-monitoring.live.test.ts[2m > [22m[2mKolo 14 / krok 3 — hlídání provozu[2m > [22m[2mselhání e-mailu se vstupenkami → e-mail provozu[22m[39m
+[order-completed] email failed: Error: SMTP 421 simulace výpadku
+    at sendMail [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r14-ops-monitoring.live.test.ts:7:104[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\order-completed\route.ts:801:11
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r14-ops-monitoring.live.test.ts:170:15
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m
+    at startTests [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:967:3[90m)[39m
+    at [90mfile:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4mvitest[24m/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:116:7
+
+ [32m✓[39m tests/fix-r14-ops-monitoring.live.test.ts [2m ([22m[2m18 tests[22m[2m)[22m[33m 18344[2mms[22m[39m
+[90mstderr[2m | tests/fix-r10-order-completed-email-once.live.test.ts[2m > [22m[2mKolo 10 — order-completed pošle potvrzení právě jednou[2m > [22m[2mdvě po sobě jdoucí volání → 1 e-mail, vstupenky jednou[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r10-order-completed-email-once.live.test.ts[2m > [22m[2mKolo 10 — order-completed pošle potvrzení právě jednou[2m > [22m[2mtři souběžná volání → 1 e-mail[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r10-order-completed-email-once.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 2528[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[32m35 passed[39m[22m[90m (35)[39m
+[2m   Start at [22m 10:05:28
+[2m   Duration [22m 31.10s[2m (transform 818ms, setup 0ms, collect 480ms, tests 29.25s, environment 1ms, prepare 517ms)[22m
+

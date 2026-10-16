@@ -1,0 +1,432 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [32m✓[39m tests/fix-r8-seat-reservations.live.test.ts [2m ([22m[2m9 tests[22m[2m)[22m[33m 5257[2mms[22m[39m
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mzrušení: online vráceno přes bránu + dobropis, rozpracované nákupy a rezervace zrušené, vstupenky neplatné, e-maily, ruční seznam[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2msouběh: zrušení ve stejné chvíli, kdy dorazí platba → vráceno, žádná platná vstupenka[22m[39m
+[order-completed] ticket issue / PDF failed: Error: EVENT_CANCELLED: termín objednávky 4b09c446-911f-4163-a4d0-f1d3eac8dc4b je zrušený — vstupenky se nevydávají
+    at Module.issueTicketsForOrder [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\tickets\demo-issuer.ts:113:11[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\order-completed\route.ts:443:16
+    at completeOrderInProcess [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:71:16[90m)[39m
+    at handleWebhook [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:314:9[90m)[39m
+    at Module.withDbOverload [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\db\overload.ts:36:12[90m)[39m
+    at Module.withWebhookAlert [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\ops\webhook-alert.ts:26:11[90m)[39m
+    at async Promise.all (index 3)
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r8-term-cancel-postpone.live.test.ts:202:22
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2msouběh: zrušení ve stejné chvíli, kdy dorazí platba → vráceno, žádná platná vstupenka[22m[39m
+[order-completed] ticket issue / PDF failed: Error: EVENT_CANCELLED: termín objednávky d81ccd38-af0d-4850-a359-bf8abd2dede9 je zrušený — vstupenky se nevydávají
+    at Module.issueTicketsForOrder [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\tickets\demo-issuer.ts:113:11[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\internal\order-completed\route.ts:443:16
+    at completeOrderInProcess [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:71:16[90m)[39m
+    at handleWebhook [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:314:9[90m)[39m
+    at Module.withDbOverload [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\db\overload.ts:36:12[90m)[39m
+    at Module.withWebhookAlert [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\ops\webhook-alert.ts:26:11[90m)[39m
+    at async Promise.all (index 1)
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r8-term-cancel-postpone.live.test.ts:202:22
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-term-cancel-postpone.live.test.ts[2m > [22m[2mKolo 8 — zrušení a přesun termínu[2m > [22m[2mpřesun: vstupenky platí, e-mail s novým datem a odkazem (14 dní); online vrácení přes bránu, pokladna ručně, po lhůtě 410[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r8-term-cancel-postpone.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 8272[2mms[22m[39m
+[90mstderr[2m | tests/fix-r8-theatre-reports.live.test.ts[2m > [22m[2mKolo 8 — divadelní reporty[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-theatre-reports.live.test.ts[2m > [22m[2mKolo 8 — divadelní reporty[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r8-theatre-reports.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 8065[2mms[22m[39m
+[90mstderr[2m | tests/fix-r8-price-categories.live.test.ts[2m > [22m[2mKolo 8 — slevové kategorie[2m > [22m[2mobjednávka za 0 Kč (kategorie zdarma) se dokončí bez brány a vystaví vstupenku[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r8-price-categories.live.test.ts[2m > [22m[2mKolo 8 — slevové kategorie[2m > [22m[2mnákup míst s kategoriemi: cena na serveru, promo −10 % jen na plné, vstupenky, e-mail, PDF a skener[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r8-price-categories.live.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 4104[2mms[22m[39m
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[22m[39m
+[live-local-clone] live_party_split_mvaox1wd: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[2m > [22m[2mPOST /api/checkout/party-split založí session a vrátí share_token[22m[39m
+[party-split create] [33m201[39m {"sessionId":"740b313f-b536-49fe-a267-8b816a6b2863","shareToken":"xrGyqpgY1c-xrUXz9MjaMSSm","shareUrl":"http://localhost:3100/party/xrGyqpgY1c-xrUXz9MjaMSSm","perPersonAmount":50000,"currency":"CZK","
+
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[2m > [22m[2mkapacitni kontrola cte remaining_qty (ne neexistujici sloupec)[22m[39m
+[party-split capacity] [33m409[39m {"error":"INSUFFICIENT_CAPACITY","available":5}
+
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[2m > [22m[2m[token] POST prijme slot a dekrementuje remaining_qty PRESNE o 1[22m[39m
+[party-split pay] [33m200[39m {"ok":true,"orderId":"a2bce421-e665-47a9-9b3b-26838e96ee40","redirectUrl":"http://localhost:3998/gw/3138344758","slotIndex":0,"amount":50000,"currency":"CZK"}
+
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[2m > [22m[2m[token] POST prijme slot a dekrementuje remaining_qty PRESNE o 1[22m[39m
+[remaining_qty] [33m100[39m -> [33m99[39m
+
+[90mstdout[2m | tests/party-split.live.test.ts[2m > [22m[2mparty-split přes skutečné handlery[2m > [22m[2mopakovane prijeti: druhy platce dostane JINY slot, dekrement presne 1x[22m[39m
+[opakovane] [33m200[39m slot [33m0[39m | [33m200[39m slot [33m1[39m | remaining [33m99[39m -> [33m98[39m -> [33m97[39m
+
+ [32m✓[39m tests/party-split.live.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[33m 1531[2mms[22m[39m
+[90mstderr[2m | tests/fix-r7-tax-documents.live.test.ts[2m > [22m[2mKolo 7 — daňové doklady, řady, dobropisy[2m > [22m[2mrefund zaplacené objednávky s dokladem → dobropis se zápornými částkami po sazbách a odkazem[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r7-tax-documents.live.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[33m 9641[2mms[22m[39m
+ [32m✓[39m tests/fix-r8-halls-seating.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 1550[2mms[22m[39m
+[90mstderr[2m | tests/fix-r7-sales-cutoff.live.test.ts[2m > [22m[2mKolo 7 — uzávěrka prodeje za běhu[2m > [22m[2mobjednávku založenou před uzávěrkou lze po uzávěrce doplatit (webhook PAID → paid)[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r7-sales-cutoff.live.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[33m 3600[2mms[22m[39m
+[90mstderr[2m | tests/fix-r7-comgate-api.live.test.ts[2m > [22m[2mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22m[2mplatba → zaplacení → webhook (JSON, v2.0) → vstupenka; refund → refunded u brány i v DB[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r7-comgate-api.live.test.ts[2m > [22m[2mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22m[2mwebhook ve formátu formuláře (v1.0) se přijme taky; špatné tajemství 401[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r7-comgate-api.live.test.ts[2m > [22m[2mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22m[2mrefund při chybě brány → refund_failed, vstupenka platná; timeout brány → refund_failed do pár sekund[22m[39m
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r7-comgate-api.live.test.ts[2m > [22m[2mKolo 7 — ComGate podle oficiálního API (simulátor)[2m > [22m[2mrefund při chybě brány → refund_failed, vstupenka platná; timeout brány → refund_failed do pár sekund[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r7-comgate-api.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 4599[2mms[22m[39m
+[90mstderr[2m | tests/fix-r7-vat-readiness.live.test.ts[2m > [22m[2mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22m[2mneplátce bez sazby prodává; vstupenka zdarma plátce sazbu nepotřebuje[22m[39m
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r7-vat-readiness.live.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[33m 6419[2mms[22m[39m
+[90mstderr[2m | tests/fix-r7-gateway-policy.live.test.ts[2m > [22m[2mKolo 7 — brány bez refundu jen pro existující akce[2m > [22m[2mexistující akce (příznak z migrace) → brána se nezablokuje politikou[22m[39m
+[payment] Triple-A není nakonfigurovaný — krypto platba poběží v mock režimu. Nastavte TRIPLEA_CLIENT_ID, TRIPLEA_CLIENT_SECRET, TRIPLEA_API_ID, TRIPLEA_NOTIFY_SECRET.
+
+ [32m✓[39m tests/fix-r7-gateway-policy.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 1856[2mms[22m[39m
+ [32m✓[39m tests/fix-r8-zero-commission.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 1303[2mms[22m[39m
+[90mstderr[2m | tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22m[2mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22m[2m2 objednávky: brána zavolána 1× u každé, obě refunded, lístky zneplatněny[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22m[2mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22m[2m2 objednávky: brána zavolána 1× u každé, obě refunded, lístky zneplatněny[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22m[2mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22m[2mchyba brány u jedné: ta zůstane refund_failed s platnými lístky a výsledek hlásí chybu[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r6-bulk-refund-gateway.live.test.ts[2m > [22m[2mKolo 6 — hromadný refund vrací peníze přes bránu[2m > [22m[2mchyba brány u jedné: ta zůstane refund_failed s platnými lístky a výsledek hlásí chybu[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r6-bulk-refund-gateway.live.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 3437[2mms[22m[39m
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[expire-date-holds] odmítnuto: missing
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[royalties/accrue] odmítnuto: missing
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[paypal webhook] PAYPAL_WEBHOOK_ID / API credentials missing — rejecting
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:paypal
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:przelewy24
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:stripe
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[payment] Triple-A není nakonfigurovaný — krypto platba poběží v mock režimu. Nastavte TRIPLEA_CLIENT_ID, TRIPLEA_CLIENT_SECRET, TRIPLEA_API_ID, TRIPLEA_NOTIFY_SECRET.
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:triplea
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[wise webhook] WISE_WEBHOOK_PUBLIC_KEY / API credentials missing — rejecting
+
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[ops-alert] PLATFORM_ADMIN_EMAIL není nastavený — upozornění jen v monitoring.ops_events: gateway_webhook_failed:wise
+
+ [32m✓[39m tests/fix-r4-routes-anon.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 21907[2mms[22m[39m
+[90mstderr[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+<empty line>
+[90mstdout[2m | tests/fix-r4-routes-anon.live.test.ts[2m > [22m[2mKrok 2 (kolo 4) — generovaný test: neveřejné routy bez přihlášení → 401/403[2m > [22m[2mkaždá neveřejná routa odmítne anonyma[22m[39m
+[routes-anon] tested=814 ok=813 harness=1 bad=0 -> C:\Users\omnia\Documents\tixly\logs\r4\2_routes_anon_result.json
+
+ [32m✓[39m tests/fix-r4-b2b-credit-auth.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 1196[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-identity-all-api.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 415[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m16 passed[39m[22m[90m (16)[39m
+[2m      Tests [22m [1m[32m77 passed[39m[22m[90m (77)[39m
+[2m   Start at [22m 10:12:28
+[2m   Duration [22m 92.77s[2m (transform 8.17s, setup 2ms, collect 3.05s, tests 83.15s, environment 4ms, prepare 3.22s)[22m
+

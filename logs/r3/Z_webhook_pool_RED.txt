@@ -1,0 +1,85 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r3-webhook-pool.live.test.ts[2m > [22m[2mZávěr (kolo 3) — webhook neblokuje pool během práce po commitu[2m > [22m[2m6 objednávek × 3 souběžné REFUNDED webhooky (pool 2) → 6× refunded, žádné 5xx[22m[39m
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg-pool[24m\index.js:45:11
+[90m    at runNextTicks (node:internal/process/task_queues:65:5)[39m
+[90m    at listOnTimeout (node:internal/timers:567:9)[39m
+[90m    at processTimers (node:internal/timers:541:7)[39m
+    at RlsAwarePool.connect [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:319:20[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\internal\order-completed\route.ts:432:29
+    at completeOrderInProcess [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:69:16[90m)[39m
+    at handleWebhook [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:304:9[90m)[39m
+    at async Promise.all (index 0)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg-pool[24m\index.js:45:11
+    at RlsAwarePool.connect [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:319:20[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\internal\order-completed\route.ts:432:29
+    at completeOrderInProcess [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:69:16[90m)[39m
+    at handleWebhook [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:304:9[90m)[39m
+    at async Promise.all (index 6)
+
+[90mstderr[2m | tests/fix-r3-webhook-pool.live.test.ts[2m > [22m[2mZávěr (kolo 3) — webhook neblokuje pool během práce po commitu[22m[39m
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg-pool[24m\index.js:45:11
+[90m    at runNextTicks (node:internal/process/task_queues:65:5)[39m
+[90m    at listOnTimeout (node:internal/timers:567:9)[39m
+[90m    at processTimers (node:internal/timers:541:7)[39m
+    at RlsAwarePool.connect [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:319:20[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\internal\order-completed\route.ts:729:20
+    at completeOrderInProcess [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:69:16[90m)[39m
+    at handleWebhook [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:304:9[90m)[39m
+    at async Promise.all (index 0)
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at C:\Users\omnia\Documents\tixly-audit\nextjs-boilerplate\node_modules\[4mpg-pool[24m\index.js:45:11
+    at RlsAwarePool.connect [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\lib\db\rls-pool.ts:319:20[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\internal\order-completed\route.ts:729:20
+    at completeOrderInProcess [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:69:16[90m)[39m
+    at handleWebhook [90m(C:\Users\omnia\Documents\tixly-fix\nextjs-boilerplate\[39msrc\app\api\payments\gopay\webhook\route.ts:304:9[90m)[39m
+    at async Promise.all (index 6)
+
+ [33m❯[39m tests/fix-r3-webhook-pool.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 18259[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-webhook-pool.live.test.ts[2m > [22mZávěr (kolo 3) — webhook neblokuje pool během práce po commitu[2m > [22m6 objednávek × 3 souběžné PAID webhooky (pool 2) → 6× paid, 1 vstupenka na objednávku, žádné 5xx[39m
+[31m     → timeout exceeded when trying to connect[39m
+[31m   [33m❯[31m tests/fix-r3-webhook-pool.live.test.ts[2m > [22mZávěr (kolo 3) — webhook neblokuje pool během práce po commitu[2m > [22m6 objednávek × 3 souběžné REFUNDED webhooky (pool 2) → 6× refunded, žádné 5xx[39m
+[31m     → timeout exceeded when trying to connect[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-webhook-pool.live.test.ts[2m > [22mZávěr (kolo 3) — webhook neblokuje pool během práce po commitu[2m > [22m6 objednávek × 3 souběžné PAID webhooky (pool 2) → 6× paid, 1 vstupenka na objednávku, žádné 5xx
+[31m[1mError[22m: timeout exceeded when trying to connect[39m
+[90m [2m❯[22m ../../tixly-audit/nextjs-boilerplate/node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m RlsAwarePool.connect src/lib/db/rls-pool.ts:[2m319:20[22m[39m
+    [90m317| [39m  [35masync[39m [34mconnect[39m()[33m:[39m [33mPromise[39m[33m<[39m[33mPoolClient[39m[33m>[39m {
+    [90m318| [39m    [35mconst[39m ctx [33m=[39m tenantStore[33m.[39m[34mgetStore[39m()[33m;[39m
+    [90m319| [39m    [35mconst[39m client [33m=[39m [35mawait[39m [34mgetConnectPool[39m()[33m.[39m[34mconnect[39m()[33m;[39m
+    [90m   | [39m                   [31m^[39m
+    [90m320| [39m    type [33mQ[39m [33m=[39m [33mPoolClient[39m[[32m'query'[39m][33m;[39m
+    [90m321| [39m    [35mconst[39m holder [33m=[39m client [35mas[39m [33mPoolClient[39m [33m&[39m { [[33mORIG_QUERY[39m][33m?[39m[33m:[39m [33mQ[39m }[33m;[39m
+[90m [2m❯[22m handleWebhook src/app/api/payments/gopay/webhook/route.ts:[2m103:18[22m[39m
+[90m [2m❯[22m tests/fix-r3-webhook-pool.live.test.ts:[2m57:17[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-webhook-pool.live.test.ts[2m > [22mZávěr (kolo 3) — webhook neblokuje pool během práce po commitu[2m > [22m6 objednávek × 3 souběžné REFUNDED webhooky (pool 2) → 6× refunded, žádné 5xx
+[31m[1mError[22m: timeout exceeded when trying to connect[39m
+[90m [2m❯[22m ../../tixly-audit/nextjs-boilerplate/node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m RlsAwarePool.connect src/lib/db/rls-pool.ts:[2m319:20[22m[39m
+    [90m317| [39m  [35masync[39m [34mconnect[39m()[33m:[39m [33mPromise[39m[33m<[39m[33mPoolClient[39m[33m>[39m {
+    [90m318| [39m    [35mconst[39m ctx [33m=[39m tenantStore[33m.[39m[34mgetStore[39m()[33m;[39m
+    [90m319| [39m    [35mconst[39m client [33m=[39m [35mawait[39m [34mgetConnectPool[39m()[33m.[39m[34mconnect[39m()[33m;[39m
+    [90m   | [39m                   [31m^[39m
+    [90m320| [39m    type [33mQ[39m [33m=[39m [33mPoolClient[39m[[32m'query'[39m][33m;[39m
+    [90m321| [39m    [35mconst[39m holder [33m=[39m client [35mas[39m [33mPoolClient[39m [33m&[39m { [[33mORIG_QUERY[39m][33m?[39m[33m:[39m [33mQ[39m }[33m;[39m
+[90m [2m❯[22m handleWebhook src/app/api/payments/gopay/webhook/route.ts:[2m103:18[22m[39m
+[90m [2m❯[22m tests/fix-r3-webhook-pool.live.test.ts:[2m70:17[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 14:19:02
+[2m   Duration [22m 19.61s[2m (transform 492ms, setup 0ms, collect 235ms, tests 18.26s, environment 1ms, prepare 249ms)[22m
+

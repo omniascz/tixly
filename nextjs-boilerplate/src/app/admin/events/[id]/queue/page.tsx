@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, type JSX } from 'react';
 import { useParams } from 'next/navigation';
 import { Users, Timer, ToggleLeft, ToggleRight, ArrowRight, RefreshCw } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';

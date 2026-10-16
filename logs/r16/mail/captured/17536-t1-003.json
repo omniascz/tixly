@@ -1,0 +1,9 @@
+{
+ "capturedAt": "2026-10-08T08:05:30.058Z",
+ "data": {
+  "from": "vstupenky@tixly.fix",
+  "to": "pok-45c8a4@tixly.test",
+  "subject": "Rezervace XKJQ47MN — vyzvedněte a zaplaťte do 13. října 2026 v 10:05",
+  "html": "<!DOCTYPE html><html><body style=\"font-family:system-ui;max-width:600px;padding:24px\"><p>Dobrý den Karel Pokladní,</p><p>rezervovali jsme pro vás tato místa:</p><p><strong>Test Akce</strong><br>7. 11. 2026 9:05:29, Test Sál</p><ul><li>Přízemí, řada 1, místo 5 — Plné — 400 CZK</li><li>Přízemí, řada 1, místo 6 — Plné — 400 CZK</li></ul>\n      <p>Kód rezervace: <strong style=\"font-size:20px;letter-spacing:2px\">XKJQ47MN</strong><br>Cena celkem: <strong>800 CZK</strong><br>\n      Vyzvedněte a zaplaťte na pokladně (hotově nebo kartou) nejpozději <strong>13. října 2026 v 10:05</strong>. Potom se místa automaticky uvolní.</p><p>Rezervaci můžete zrušit zde: <a href=\"http://localhost:3100/cs/rezervace/zrusit?code=XKJQ47MN&token=zea8AY_ROLnL9NayuZuiWqYmPAOXLTGm\">zrušit rezervaci</a></p></body></html>"
+ }
+}

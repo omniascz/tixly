@@ -1,0 +1,9 @@
+{
+ "capturedAt": "2026-10-08T08:05:30.837Z",
+ "data": {
+  "from": "vstupenky@tixly.fix",
+  "to": "exp-c2605f@tixly.test",
+  "subject": "Rezervace TE9E7C78 vypršela",
+  "html": "<!DOCTYPE html><html><body style=\"font-family:system-ui;max-width:600px;padding:24px\"><p>Dobrý den Jana Rezervující,</p><p>rezervace <strong>TE9E7C78</strong> nebyla vyzvednuta do 8. října 2026 v 10:04 a místa jsme uvolnili do prodeje.</p><p><strong>Test Akce</strong><br>7. 11. 2026 9:05:29, Test Sál</p><ul><li>Přízemí, řada 1, místo 7 — Plné — 400 CZK</li><li>Přízemí, řada 1, místo 8 — Plné — 400 CZK</li></ul></body></html>"
+ }
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 import { useParams } from 'next/navigation';
 import { CalendarClock, Plus, ArrowUp, ArrowDown } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';

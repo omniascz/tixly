@@ -11,10 +11,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
 
   const r = await db().query<{
@@ -57,7 +55,8 @@ export async function GET(
 
   return NextResponse.json({
     invitationId: inv.id,
-    from: { email: inv.from_email, name: inv.from_name },
+    // Kolo 4: e-mail odesílatele se v náhledu podle tokenu nevrací — jen jméno.
+    from: { name: inv.from_name },
     toEmail: inv.to_email,
     message: inv.message,
     expiresAt: inv.expires_at,
@@ -71,10 +70,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
 
   const recipientUserId = req.headers.get('x-user-id');

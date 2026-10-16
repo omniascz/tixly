@@ -6,14 +6,17 @@
  * Bez autentizace vracíme 401. OrderId je UUID → dostatečně náhodné jako capability.
  */
 
+import { createHash } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface EventRow {
   event_title: string | null;
   event_description: string | null;
-  date_start: string | null;
-  date_end: string | null;
+  date_start: string | Date | null;
+  date_end: string | Date | null;
   venue_name: string | null;
   venue_address: string | null;
   venue_city: string | null;
@@ -22,9 +25,11 @@ interface EventRow {
   buyer_user_id: string;
 }
 
-function formatIcsDate(iso: string): string {
-  // "2026-09-15T19:00:00" → "20260915T190000Z" (treat as UTC)
-  return iso.replace(/[-:]/g, '').replace(/\.\d+/, '').replace('T', 'T') + (iso.endsWith('Z') ? '' : 'Z');
+function formatIcsDate(value: string | Date): string {
+  // `pg` vrací timestamptz jako Date — dřív `iso.replace` na Date shodilo každé volání (500).
+  // Vždy přes Date → UTC: "2026-09-15T19:00:00.000Z" → "20260915T190000Z".
+  const d = value instanceof Date ? value : new Date(value);
+  return d.toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
 }
 
 function escapeIcs(s: string): string {
@@ -47,10 +52,12 @@ function foldLine(line: string): string {
   return chunks.join('\r\n');
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { orderId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ orderId: string }> }): Promise<Response> {
+  const params = await props.params;
+  // Neplatné UUID dřív šlo rovnou do SQL (22P02 → 500).
+  if (!UUID_RE.test(params.orderId)) {
+    return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+  }
   return runWithServiceContext(async () => {
     const userId = req.headers.get('x-user-id');
 
@@ -82,7 +89,9 @@ export async function GET(
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.tixly.cz';
-    const uid = `order-${params.orderId}@tixly.cz`;
+    // UID musí být stabilní pro objednávku (aktualizace v kalendáři), ale ID objednávky
+    // do těla nevracíme — odvozený otisk místo něj.
+    const uid = `order-${createHash('sha256').update(params.orderId).digest('hex').slice(0, 32)}@tixly.cz`;
     const dtStamp = formatIcsDate(new Date().toISOString());
     const dtStart = formatIcsDate(row.date_start);
     const dtEnd = row.date_end ? formatIcsDate(row.date_end) : dtStart;

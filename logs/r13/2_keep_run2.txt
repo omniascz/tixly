@@ -1,0 +1,107 @@
+
+Running 10 tests using 1 worker
+
+[1A[2K[1/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:82:7 › vlastník › bod 4: termín v sále bez míst v cenových zónách se nezaloží (ani nezveřejní)
+[1A[2K[2/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:96:7 › vlastník › bod 5: blokace bez volných míst se nezaloží prázdná
+[1A[2K[3/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:113:7 › vlastník › bod 6: „Zpět" z editoru plánku vede na existující stránku
+[1A[2K  1) [golden-path] › tests\golden-path-r13-keep.spec.ts:113:7 › vlastník › bod 6: „Zpět" z editoru plánku vede na existující stránku 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('heading', { name: 'Sály' })
+    Expected: visible
+    Error: strict mode violation: getByRole('heading', { name: 'Sály' }) resolved to 2 elements:
+        1) <h2 class="text-2xl font-semibold tracking-tight">Sály</h2> aka getByRole('heading', { name: 'Sály', exact: true })
+        2) <h2 class="mb-3 text-lg font-semibold">Všechny sály</h2> aka getByRole('heading', { name: 'Všechny sály' })
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByRole('heading', { name: 'Sály' })[22m
+
+
+      118 |     await page.waitForURL(/\/admin\/venues$/);
+      119 |     await expect(page.getByText('404')).toHaveCount(0);
+    > 120 |     await expect(page.getByRole('heading', { name: 'Sály' })).toBeVisible(); // knihovna míst (odtud vede „Editor plánku" sálu)
+          |                                                               ^
+      121 |   });
+      122 |
+      123 |   test('bod 7: zrušený termín v seznamu akcí „Zrušeno", ne „Prodej"', async () => {
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r13-keep.spec.ts:120:63
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r13-keep-vlast-a6296--vede-na-existující-stránku-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[4/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:123:7 › vlastník › bod 7: zrušený termín v seznamu akcí „Zrušeno", ne „Prodej"
+[1A[2K[5/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:136:7 › vlastník › bod 8: nepovedené stažení reportu ohlásí chybu
+[1A[2K[6/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:148:7 › vlastník › bod 10: přesun a zrušení termínu jen po potvrzení v okně
+[1A[2K[7/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:170:7 › vlastník › bod 10: storno firemní objednávky jen po potvrzení v okně (beze změny od d0bbcb00)
+[1A[2K[8/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:191:7 › pokladní a vstup › bod 3: role Pokladna má na serveru omezený přístup (ne správce); vlastník beze změny
+[1A[2K[9/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:208:7 › pokladní a vstup › body 2 a 9: pokladna — termíny odlišené městem, tisk = PDF vstupenek s QR, bez TOTP
+[1A[2K  2) [golden-path] › tests\golden-path-r13-keep.spec.ts:208:7 › pokladní a vstup › body 2 a 9: pokladna — termíny odlišené městem, tisk = PDF vstupenek s QR, bez TOTP 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('button[title^="Přízemí"]').filter({ hasText: /^9$/ }).nth(2)[22m
+    [2m    - locator resolved to <button disabled type="button" title="Přízemí 39" class="h-7 w-7 rounded text-[10px] font-semibold transition-colors cursor-not-allowed bg-gray-100 text-gray-300">9</button>[22m
+    [2m  - attempting click action[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not enabled[22m
+    [2m    - retrying click action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not enabled[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 100ms[22m
+    [2m    19 × waiting for element to be visible, enabled and stable[22m
+    [2m       - element is not enabled[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+
+
+      220 |     const ttSel = page.locator('#pos-tt');
+      221 |     await ttSel.selectOption((await ttSel.locator('option').filter({ hasText: /Zóna A/ }).first().getAttribute('value'))!);
+    > 222 |     await page.locator('button[title^="Přízemí"]').filter({ hasText: /^9$/ }).nth(2).click();
+          |                                                                                      ^
+      223 |     await page.getByRole('button', { name: 'Vystavit lístek' }).click();
+      224 |     const printBtn = page.getByRole('button', { name: 'Vytisknout / uložit jako PDF' });
+      225 |     await printBtn.waitFor();
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r13-keep.spec.ts:222:86
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-pokla-f0d50-PDF-vstupenek-s-QR-bez-TOTP-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r13-keep-pokla-f0d50-PDF-vstupenek-s-QR-bez-TOTP-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-pokla-f0d50-PDF-vstupenek-s-QR-bez-TOTP-golden-path\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-pokla-f0d50-PDF-vstupenek-s-QR-bez-TOTP-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r13-keep-pokla-f0d50-PDF-vstupenek-s-QR-bez-TOTP-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[10/10] [golden-path] › tests\golden-path-r13-keep.spec.ts:238:7 › pokladní a vstup › bod 1: skener při výpadku sítě nehlásí „Vstup povolen" bez ověření
+[1A[2K  2 failed
+    [golden-path] › tests\golden-path-r13-keep.spec.ts:113:7 › vlastník › bod 6: „Zpět" z editoru plánku vede na existující stránku 
+    [golden-path] › tests\golden-path-r13-keep.spec.ts:208:7 › pokladní a vstup › body 2 a 9: pokladna — termíny odlišené městem, tisk = PDF vstupenek s QR, bez TOTP 
+  8 passed (35.6s)

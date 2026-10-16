@@ -1,0 +1,17 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/fix-r4-true-policies.live.test.ts[2m > [22m[2mKrok 3b (kolo 4) — politiky s podmínkou true[2m > [22m[2mzápis s true: kupec nezapíše/nezmění cizí řádek[22m[39m
+[3b zápis] {"alertInsertForeignUser":"42501","alertUpdateForeign":0,"postalInsertForeign":"42501","seatUpgradeInsertForeign":"42501","seatUpgradeUpdateForeign":0,"transferUpdateForeign":0,"travelInsertForeign":"42501"}
+
+[90mstdout[2m | tests/fix-r4-true-policies.live.test.ts[2m > [22m[2mKrok 3b (kolo 4) — politiky s podmínkou true[2m > [22m[2mčtení: nabídky nepublikované akce a neaktivní pořadatel nejsou veřejně vidět; publikované/aktivní ano[22m[39m
+[3b čtení] {"superfanDraft":0,"superfanPub":1,"promoterPending":0,"promoterActive":1,"superfanDraftOwner":1,"promoterPendingSelf":1,"promoterPendingMember":1}
+
+ [32m✓[39m tests/fix-r4-true-policies.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 920[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+[2m   Start at [22m 21:00:52
+[2m   Duration [22m 1.43s[2m (transform 194ms, setup 0ms, collect 119ms, tests 920ms, environment 0ms, prepare 91ms)[22m
+

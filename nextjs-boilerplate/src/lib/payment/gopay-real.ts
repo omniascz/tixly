@@ -13,6 +13,7 @@
  *
  * Reference: https://doc.gopay.com/#payment-creation
  */
+import { assertStagingIsolated } from '@/lib/env/staging-guard';
 
 export interface GopayConfig {
   goid: number;
@@ -27,6 +28,7 @@ let cachedConfig: GopayConfig | null = null;
 
 export function getGopayConfig(): GopayConfig {
   if (cachedConfig) return cachedConfig;
+  assertStagingIsolated(); // kolo 9: staging nikdy nepoužije ostrou bránu
 
   const goidRaw = process.env.GOPAY_GOID ?? '';
   const clientId = process.env.GOPAY_CLIENT_ID ?? '';
@@ -74,9 +76,11 @@ async function getAccessToken(config: GopayConfig): Promise<string> {
   const basicAuth = Buffer.from(`${config.clientId}:${config.clientSecret}`, 'utf8').toString(
     'base64',
   );
+  // Kolo 7: `payment-all` — podle doc.gopay.com token se scope `payment-create` smí JEN zakládat
+  // platby; tentýž token se ale používá i na dotaz na stav (webhook) a refund → u skutečné brány 403.
   const body = new URLSearchParams({
     grant_type: 'client_credentials',
-    scope: 'payment-create',
+    scope: 'payment-all',
   }).toString();
 
   const res = await fetch(`${config.apiBaseUrl}/oauth2/token`, {
@@ -233,18 +237,29 @@ export async function refundGopayPayment(
   }
 
   const token = await getAccessToken(config);
-  const res = await fetch(
-    `${config.apiBaseUrl}/payments/payment/${encodeURIComponent(paymentId)}/refund`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Accept: 'application/json',
+  // FIX K2: refund fetch měl nekonečné čekání — když brána neodpoví (výpadek),
+  // refund by visel navždy a objednávka by zůstala v refund_pending bez rozhodnutí.
+  // Timeout (konfigurovatelný) → AbortError → volající nastaví refund_failed a lze retry.
+  const timeoutMs = Number(process.env.GOPAY_REFUND_TIMEOUT_MS ?? 20000);
+  let res: Response;
+  try {
+    res = await fetch(
+      `${config.apiBaseUrl}/payments/payment/${encodeURIComponent(paymentId)}/refund`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'application/json',
+        },
+        body: new URLSearchParams({ amount: String(amountHalire) }).toString(),
+        signal: AbortSignal.timeout(timeoutMs),
       },
-      body: new URLSearchParams({ amount: String(amountHalire) }).toString(),
-    },
-  );
+    );
+  } catch (err) {
+    // AbortError (timeout) nebo síťová chyba → refund NENÍ potvrzen.
+    return { ok: false, raw: { error: err instanceof Error ? err.name + ': ' + err.message : String(err) } };
+  }
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');

@@ -4,6 +4,7 @@ import type {
   AdminOrderFilters,
   AdminCustomer,
   AdminPayout,
+  AdminPayoutsOverview,
 } from '@/types/admin';
 import api from './api';
 
@@ -61,9 +62,10 @@ export const adminApi = {
     }));
   },
 
-  payouts: async (): Promise<AdminPayout[]> => {
+  payouts: async (): Promise<AdminPayoutsOverview> => {
     const res = await api.get<{
-      source: string;
+      source: 'real' | 'computed';
+      payoutIban: string | null;
       feePercent?: number;
       payouts: Array<{
         id: string;
@@ -75,9 +77,11 @@ export const adminApi = {
         netHalire: number;
         status: string;
         paidAt: string | null;
+        bankReference?: string | null;
+        transferDate?: string | null;
       }>;
     }>('/api/admin/payouts');
-    return res.data.payouts.map((p) => ({
+    const payouts = res.data.payouts.map((p) => ({
       id: p.id,
       periodStart: p.periodStart,
       periodEnd: p.periodEnd,
@@ -86,7 +90,10 @@ export const adminApi = {
       netHalire: p.netHalire,
       status: p.status as AdminPayout['status'],
       paidAt: p.paidAt,
+      bankReference: p.bankReference ?? null,
+      transferDate: p.transferDate ?? null,
     }));
+    return { source: res.data.source, payoutIban: res.data.payoutIban ?? null, payouts };
   },
 
   refundOrder: async (

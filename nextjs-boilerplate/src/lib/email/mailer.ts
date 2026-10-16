@@ -24,6 +24,7 @@
  */
 
 import type { Transporter, SendMailOptions, SentMessageInfo } from 'nodemailer';
+import { filterRecipients, maskAddress, parseAllowlist, stagingEmailFilterActive } from '@/lib/email/staging-allowlist';
 
 let cachedTransporter: Transporter | null = null;
 let cachedProviderLabel: string | null = null;
@@ -92,6 +93,22 @@ async function getTransporter(): Promise<{ transporter: Transporter; from: strin
  * pattern (void async + try/catch) ve většině call sitů.
  */
 export async function sendMail(opts: SendMailOptions): Promise<SentMessageInfo> {
+  // Kolo 10 / krok 4: staging posílá přes Resend skutečným lidem → jen adresy ze STAGING_EMAIL_ALLOWLIST.
+  if (stagingEmailFilterActive()) {
+    const list = parseAllowlist(process.env.STAGING_EMAIL_ALLOWLIST);
+    const f = filterRecipients({ to: opts.to, cc: opts.cc, bcc: opts.bcc }, list);
+    if (f.blocked.length) {
+      console.warn(
+        `[mailer] staging: příjemci mimo STAGING_EMAIL_ALLOWLIST — e-mail jim NEODEŠEL: ${f.blocked.map(maskAddress).join(', ')}`
+        + ` (předmět: ${String(opts.subject ?? '').slice(0, 80)})`,
+      );
+    }
+    if (f.allowedCount === 0) {
+      const skipped = { messageId: '', accepted: [] as string[], rejected: f.blocked, pending: [] as string[], response: 'skipped: staging allowlist', envelope: { from: false as const, to: [] as string[] }, skippedByStagingAllowlist: true };
+      return skipped;
+    }
+    opts = { ...opts, to: f.to, cc: f.cc, bcc: f.bcc };
+  }
   const { transporter, from } = await getTransporter();
   return transporter.sendMail({ from: opts.from ?? from, ...opts });
 }

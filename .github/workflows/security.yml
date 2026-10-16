@@ -1,40 +1,53 @@
 name: Security
 
+# Kolo 6: matice auditovala neexistující adresáře (jwt-auth, totp-qr, resale-api, rls-multitenancy)
+# → 19/19 běhů selhalo už na `working-directory`. Teď jen balíčky, které v repu jsou a mají lockfile.
+# Kolo 7: audit padá jen na OPRAVITELNÉ high/critical — tj. ty, které zmizí po `npm audit fix` bez --force
+# (.github/scripts/audit-fixable.mjs, pracuje nad lockfilem v dočasné kopii, nic neinstaluje). Zbytek
+# (oprava jen novou hlavní verzí nebo bez opravy) se vypíše tabulkou a je v ROUND7_REPORT.md.
+# Gitleaks bere .gitleaksignore (triáž kola 5).
+
 on:
   schedule:
     - cron: '0 6 * * 1'   # každé pondělí v 6:00 UTC
   push:
-    branches: [main]
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Audit závislostí (npm audit)
+  # Audit závislostí — high + critical opravitelné bez --force shodí job
   # ---------------------------------------------------------------------------
   audit:
-    name: Dependency audit
+    name: Dependency audit (${{ matrix.module }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         module:
           - nextjs-boilerplate
-          - jwt-auth
-          - totp-qr
-          - resale-api
-          - rls-multitenancy
+          - mobile
+          - mobile-promoter
+          - e2e
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
-      - name: Install dependencies
-        run: npm ci
-        working-directory: ${{ matrix.module }}
+      - name: npm audit — gate na opravitelné high/critical (z lockfilu)
+        run: node .github/scripts/audit-fixable.mjs ${{ matrix.module }}
 
-      - name: npm audit (high + critical)
-        run: npm audit --audit-level=high
+      - name: npm audit — úplný přehled (informativní)
+        if: always()
+        run: npm audit --package-lock-only || true
         working-directory: ${{ matrix.module }}
 
   # ---------------------------------------------------------------------------
@@ -43,6 +56,11 @@ jobs:
   secret-scan:
     name: Secret scan (Gitleaks)
     runs-on: ubuntu-latest
+    # gitleaks-action na pull_request čte seznam commitů PR (GET /pulls/{n}/commits) —
+    # bez pull-requests: read „Resource not accessible by integration" (kolo 6, 1. běh na GitHubu).
+    permissions:
+      contents: read
+      pull-requests: read
 
     steps:
       - uses: actions/checkout@v4

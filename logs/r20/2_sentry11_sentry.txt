@@ -1,0 +1,18 @@
+
+Running 1 test using 1 worker
+
+[r19] (f) GET /api/admin/events → 401
+[r19] (f) GET /api/orders/00000000-0000-4000-a000-000000000001 → 401
+[r19] (f) GET /api/platform/promoters → 401
+[r19] (a) POST /api/ops/sentry-check → 500
+[r19] (a) událost: Sentry kontrola: kupec [email], tel. [telefon]; release=02d0d70dcef43b09a176481e7203f5b3d996591d
+[r19] (b) GET /api/cron/dispatch?job=charge-installments → 502
+[r19] (b) událost: Cron charge-installments selhal: HTTP 404 tags={"cron":"charge-installments","runbook":"https://github.com/omnia/tixly/blob/main/docs/RUNBOOK-DISASTER-RECOVERY.md"}
+[r19] (c) událost: R19 chyba v prohlížeči: kupec [email], tel. [telefon]
+[r19] (c) požadavky na tunel: ["POST /api/monitoring?o=1&p=1 → 200"]; přímo na simulátor: []; zablokováno mimo localhost: []
+[r19] obálek: 59; položek event/transaction/span: 47 ({"span":44,"event":3})
+[r19] spanů / transakcí v obálkách: 195 (z toho přes tunel z prohlížeče: 0)
+[r19] (d)+(e) nálezy: žádné
+  ok 1 [golden-path] › tests\golden-path-r19-sentry11.spec.ts:86:5 › Sentry 11: (a)–(f) proti simulátoru (13.0s)
+
+  1 passed (17.7s)

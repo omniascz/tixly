@@ -1,0 +1,17 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/checkout-stress.live.test.ts[2m > [22m[2mcheckout — série nákupů (reprodukovač předexistující vady audit/pool)[22m[39m
+[live-local-clone] live_checkout_stress_muy2lpo1: handlery běží jako tixly_app (RLS platí)
+
+[90mstdout[2m | tests/checkout-stress.live.test.ts[2m > [22m[2mcheckout — série nákupů (reprodukovač předexistující vady audit/pool)[2m > [22m[2m6 nákupů po sobě, každý jiný e-mail — všechny musí projít[22m[39m
+statusy po sobě: 200, 200, 200, 200, 200, 200
+
+ [32m✓[39m tests/checkout-stress.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 3624[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m   Start at [22m 14:15:01
+[2m   Duration [22m 4.17s[2m (transform 320ms, setup 0ms, collect 92ms, tests 3.62s, environment 0ms, prepare 103ms)[22m
+

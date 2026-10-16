@@ -1,0 +1,28 @@
+# Kolo 21 / krok 2.2 — RED: golden-path-r21-sentry-url-tokens na NEZMĚNĚNÉM kódu (HEAD e27df45f, build logs/r21/0_build.txt z 9b2e17e7)
+Prostředí: logs/r21/golden.sh 2_red_run — čerstvá r21demo z migrací (create.sh --local), next start :3200 pod tixly_app (RLS), simulátor Sentry :3995, GoPay :3998, Mailpit :58225.
+Obálky: 2_red_run_envelopes.jsonl(.raw.jsonl) — hodnoty tokenů v commitu maskované (redact.mjs, 4 znaky).
+
+[r21] (a) token 9342… (64 znaků); POST /api/auth/reset-password → 200; Referer http://localhost:3200/cs/reset-password?token=9342…
+[r21] (b) token 7d04… (36 znaků); GET seat-prices → 200; Referer http://localhost:3200/cs/events/00000000-0000-4000-a000-000000000503/seats/kategorie?token=7d04…&seats=77ae28bd-1038-4368-a1bb-d0cdc758cc67
+[r21] (c) token r21c…; POST /api/ops/sentry-check?token=… → 500
+[r21] obálek: 140; spanů: 512; událostí (event): 1
+[r21] spany s cestou /cs/reset-password: 32; se /seats/kategorie: 38; událost (c): ano
+[r21] (a) token 9342…: surových obálek s tokenem 11; výskyty podle pole {"span.attributes.next.span_name":1,"span.attributes.http.target":2,"span.attributes.http.request.header.referer":26}
+[r21] (b) token 7d04…: surových obálek s tokenem 14; výskyty podle pole {"span.attributes.next.span_name":1,"span.attributes.http.target":2,"span.attributes.http.request.header.referer":26}
+[r21] (c) token r21c…: surových obálek s tokenem 3; výskyty podle pole {"span.attributes.next.span_name":1,"span.attributes.http.target":2,"span.attributes.http.request.header.referer":2,"event.request.headers.referer":1}
+    Error: (a) token v surových obálkách
+    Error: (b) token v surových obálkách
+    Error: (c) token v surových obálkách
+    test-results\golden-path-r21-sentry-url-8b148-ýběr-míst-c-serverová-chyba-golden-path\test-failed-1.png
+    test-results\golden-path-r21-sentry-url-8b148-ýběr-míst-c-serverová-chyba-golden-path\test-failed-2.png
+  1 failed
+
+## Souhrn
+| bod | surových obálek s tokenem | výskyty podle atributu/pole |
+|---|---|---|
+| (a) 9342… | 11 | {"span.attributes.next.span_name":1,"span.attributes.http.target":2,"span.attributes.http.request.header.referer":26} |
+| (b) 7d04… | 14 | {"span.attributes.next.span_name":1,"span.attributes.http.target":2,"span.attributes.http.request.header.referer":26} |
+| (c) r21c… | 3 | {"span.attributes.next.span_name":1,"span.attributes.http.target":2,"span.attributes.http.request.header.referer":2,"event.request.headers.referer":1} |
+
+Pozn.: url.full / url.query / request.url / request.query_string nesou už na starém kódu token=[Filtered] (výchozí snippet SDK „token", viz 2_sdk_deny.md) — únik je v hlavičce referer, http.target a next.span_name.
+Ověřeno grepem surových obálek: token=[Filtered] už na starém kódu v url.full ×6, url.query ×6, request.url ×1, request.query_string ×1.

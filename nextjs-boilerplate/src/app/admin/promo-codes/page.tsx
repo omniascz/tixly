@@ -17,6 +17,23 @@ interface PromoCode {
   validUntil: string | null;
   active: boolean;
   createdAt: string;
+  applicableCategoryCodes?: string[];
+  applicableTicketTypeIds?: string[];
+  applicableEventIds?: string[];
+  zoneNames?: string[];
+  eventNames?: string[];
+}
+
+interface Term { id: string; name: string; date: string }
+interface TermCatalog { categories: Array<{ code: string; name: string }>; zones: Array<{ id: string; name: string }> }
+
+/** Kolo 9: čitelný popis omezení kódu (termín, kategorie, zóny). */
+function fmtRestriction(c: PromoCode): string {
+  const parts: string[] = [];
+  if (c.eventNames?.length) parts.push(`termín: ${c.eventNames.join(', ')}`);
+  if (c.applicableCategoryCodes?.length) parts.push(`kategorie: ${c.applicableCategoryCodes.join(', ')}`);
+  if (c.zoneNames?.length) parts.push(`zóny: ${c.zoneNames.join(', ')}`);
+  return parts.length ? parts.join(' · ') : 'bez omezení';
 }
 
 function fmtDiscount(c: PromoCode): string {
@@ -34,6 +51,36 @@ export default function PromoCodesPage() {
   const [validUntil, setValidUntil] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Kolo 9: omezení na termín, slevové kategorie a cenové zóny (dřív jen přes API)
+  const [terms, setTerms] = useState<Term[]>([]);
+  const [termId, setTermId] = useState('');
+  const [onlyThisTerm, setOnlyThisTerm] = useState(true);
+  const [catalog, setCatalog] = useState<TermCatalog>({ categories: [], zones: [] });
+  const [cats, setCats] = useState<Set<string>>(new Set());
+  const [zones, setZones] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    void fetch('/api/admin/events', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      .then(async (r) => (r.ok ? ((await r.json()) as Term[]) : []))
+      .then((list) => setTerms(list.filter((t) => new Date(t.date).getTime() > Date.now())));
+  }, []);
+
+  useEffect(() => {
+    setCats(new Set());
+    setZones(new Set());
+    if (!termId) { setCatalog({ categories: [], zones: [] }); return; }
+    const token = localStorage.getItem('accessToken');
+    void fetch(`/api/admin/events/${termId}/categories`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      .then(async (r) => (r.ok ? ((await r.json()) as TermCatalog) : { categories: [], zones: [] }))
+      .then((c) => setCatalog({ categories: c.categories.map((x) => ({ code: x.code, name: x.name })), zones: c.zones.map((z) => ({ id: z.id, name: z.name })) }));
+  }, [termId]);
+
+  const toggle = (set: Set<string>, setter: (s: Set<string>) => void, v: string) => {
+    const n = new Set(set);
+    if (n.has(v)) n.delete(v); else n.add(v);
+    setter(n);
+  };
 
   async function reload() {
     const token = localStorage.getItem('accessToken');
@@ -71,6 +118,9 @@ export default function PromoCodesPage() {
               : parseInt(discount, 10),
           maxUses: maxUses ? parseInt(maxUses, 10) : null,
           validUntil: validUntil ? new Date(validUntil).toISOString() : null,
+          ...(termId && onlyThisTerm ? { applicableEventIds: [termId] } : {}),
+          ...(cats.size ? { applicableCategoryCodes: [...cats] } : {}),
+          ...(zones.size ? { applicableTicketTypeIds: [...zones] } : {}),
         }),
       });
       const data = await r.json();
@@ -81,6 +131,7 @@ export default function PromoCodesPage() {
       setCode('');
       setMaxUses('');
       setValidUntil('');
+      setTermId('');
       await reload();
     } catch {
       setError('Síťová chyba');
@@ -154,6 +205,48 @@ export default function PromoCodesPage() {
                 onChange={(e) => setValidUntil(e.target.value)}
               />
             </div>
+            <fieldset className="md:col-span-5 space-y-2 rounded-md border p-3" data-testid="promo-restrictions">
+              <legend className="px-1 text-xs font-medium">Omezení (volitelné) — slevové kategorie a cenové zóny termínu</legend>
+              <div className="flex flex-wrap items-center gap-3">
+                <select
+                  aria-label="Termín pro omezení"
+                  className="flex h-10 min-w-[260px] rounded-md border border-input bg-background px-3 text-sm"
+                  value={termId}
+                  onChange={(e) => setTermId(e.target.value)}
+                >
+                  <option value="">— bez omezení —</option>
+                  {terms.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name} · {new Date(t.date).toLocaleString('cs-CZ', { dateStyle: 'medium', timeStyle: 'short' })}</option>
+                  ))}
+                </select>
+                {termId ? (
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={onlyThisTerm} onChange={(e) => setOnlyThisTerm(e.target.checked)} /> platí jen pro tento termín
+                  </label>
+                ) : null}
+              </div>
+              {termId ? (
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <p className="mb-1 text-xs font-medium">Slevové kategorie (nic = všechny)</p>
+                    {catalog.categories.length === 0 ? <p className="text-xs text-muted-foreground">Termín nemá kategorie.</p> : null}
+                    {catalog.categories.map((c) => (
+                      <label key={c.code} className="mr-3 inline-flex items-center gap-1 text-sm">
+                        <input type="checkbox" checked={cats.has(c.code)} onChange={() => toggle(cats, setCats, c.code)} /> {c.name}
+                      </label>
+                    ))}
+                  </div>
+                  <div>
+                    <p className="mb-1 text-xs font-medium">Cenové zóny (nic = všechny)</p>
+                    {catalog.zones.map((z) => (
+                      <label key={z.id} className="mr-3 inline-flex items-center gap-1 text-sm">
+                        <input type="checkbox" checked={zones.has(z.id)} onChange={() => toggle(zones, setZones, z.id)} /> {z.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </fieldset>
             <div className="md:col-span-2 flex items-end">
               <Button type="submit" disabled={loading} className="w-full">
                 {loading ? 'Ukládám…' : 'Vytvořit kód'}
@@ -179,6 +272,7 @@ export default function PromoCodesPage() {
                 <tr className="border-b text-left text-xs uppercase text-muted-foreground">
                   <th className="py-2">Kód</th>
                   <th>Sleva</th>
+                  <th>Omezení</th>
                   <th>Použití</th>
                   <th>Platí do</th>
                   <th>Stav</th>
@@ -190,6 +284,7 @@ export default function PromoCodesPage() {
                   <tr key={c.id} className="border-b">
                     <td className="py-2 font-mono font-medium">{c.code}</td>
                     <td>{fmtDiscount(c)}</td>
+                    <td className="text-xs text-muted-foreground" data-testid="promo-restriction">{fmtRestriction(c)}</td>
                     <td>
                       {c.usesCount}
                       {c.maxUses ? ` / ${c.maxUses}` : ''}

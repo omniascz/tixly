@@ -1,0 +1,13 @@
+RED_VALID=false
+old.isdoc:5: Schemas validity error : Element '{http://isdoc.cz/namespace/2013}UUID': [facet 'pattern'] The value 'tixly-2026-0042' is not accepted by the pattern '[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}'.
+old.isdoc:24: Schemas validity error : Element '{http://isdoc.cz/namespace/2013}CityName': This element is not expected. Expected is ( {http://isdoc.cz/namespace/2013}BuildingNumber ).
+old.isdoc:51: Schemas validity error : Element '{http://isdoc.cz/namespace/2013}CityName': This element is not expected. Expected is ( {http://isdoc.cz/namespace/2013}BuildingNumber ).
+old.isdoc:149: Schemas validity error : Element '{http://isdoc.cz/namespace/2013}VariableSymbol': This element is not expected. Expected is ( {http://isdoc.cz/namespace/2013}BankCode ).
+old.isdoc:153: Schemas validity error : Element '{http://isdoc.cz/namespace/2013}SupplementsList': Missing child element(s). Expected is ( {http://isdoc.cz/namespace/2013}Supplement ).
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  02:35:35
+   Duration  573ms (transform 48ms, setup 0ms, collect 61ms, tests 93ms, environment 0ms, prepare 220ms)
+

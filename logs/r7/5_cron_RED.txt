@@ -1,0 +1,188 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r7-cron-expire-date-holds.live.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[33m 759[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r7-cron-expire-date-holds.live.test.ts[2m > [22mKolo 7 — cron expire-date-holds je naplánovaný[2m > [22mvercel.json volá expire-date-holds přes dispatcher hodinově[39m
+[31m     → expected [ { …(2) }, { …(2) }, { …(2) }, …(24) ] to deep equally contain { job: 'expire-date-holds', …(1) }[39m
+[31m   [33m❯[31m tests/fix-r7-cron-expire-date-holds.live.test.ts[2m > [22mKolo 7 — cron expire-date-holds je naplánovaný[2m > [22mkontrakt: každý job z vercel.json je v allowlistu dispatcheru a má routu[39m
+[31m     → expected false to be true // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r7-cron-expire-date-holds.live.test.ts[2m > [22mKolo 7 — cron expire-date-holds naživo přes dispatcher[2m > [22mbez CRON_SECRET 403; s ním prošlá opce → expired a druhá v pořadí se posune na první[39m
+[31m     → {"error":"Unknown job","allowed":["abandoned-cart","anomaly-detect","bank-sync-fio","charge-installments","consent-log-purge","daily-stats","newsletter-digest","verify-event-completion","expire-pending-orders","onboarding-reminder","payouts-auto-settle","process-gdpr-deletions","promoter-tier-evaluate","release-expired-seat-holds","release-rolling-reserves","renew-subscriptions","send-reminders","waitlist-notify","recompute-dynamic-pricing","refresh-spotify","music-distribute","send-commemorative","forgemsg-dispatch","forgemsg-sync-events","forgemsg-provision","event-payout-release","release-group-invite-holds"]}: expected undefined to be 200 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-cron-expire-date-holds.live.test.ts[2m > [22mKolo 7 — cron expire-date-holds je naplánovaný[2m > [22mvercel.json volá expire-date-holds přes dispatcher hodinově
+[31m[1mAssertionError[22m: expected [ { …(2) }, { …(2) }, { …(2) }, …(24) ] to deep equally contain { job: 'expire-date-holds', …(1) }[39m
+
+[32m- Expected:[39m 
+Object {
+  "job": "expire-date-holds",
+  "schedule": "0 * * * *",
+}
+
+[31m+ Received:[39m 
+Array [
+  Object {
+    "job": "expire-pending-orders",
+    "schedule": "*/5 * * * *",
+  },
+  Object {
+    "job": "release-expired-seat-holds",
+    "schedule": "*/5 * * * *",
+  },
+  Object {
+    "job": "send-reminders",
+    "schedule": "*/15 * * * *",
+  },
+  Object {
+    "job": "abandoned-cart",
+    "schedule": "0 */6 * * *",
+  },
+  Object {
+    "job": "waitlist-notify",
+    "schedule": "*/30 * * * *",
+  },
+  Object {
+    "job": "bank-sync-fio",
+    "schedule": "0 */2 * * *",
+  },
+  Object {
+    "job": "charge-installments",
+    "schedule": "0 3 * * *",
+  },
+  Object {
+    "job": "renew-subscriptions",
+    "schedule": "0 4 * * *",
+  },
+  Object {
+    "job": "daily-stats",
+    "schedule": "0 6 * * *",
+  },
+  Object {
+    "job": "onboarding-reminder",
+    "schedule": "0 9 * * *",
+  },
+  Object {
+    "job": "process-gdpr-deletions",
+    "schedule": "0 2 * * *",
+  },
+  Object {
+    "job": "anomaly-detect",
+    "schedule": "0 * * * *",
+  },
+  Object {
+    "job": "release-rolling-reserves",
+    "schedule": "0 5 * * *",
+  },
+  Object {
+    "job": "promoter-tier-evaluate",
+    "schedule": "0 1 1 * *",
+  },
+  Object {
+    "job": "payouts-auto-settle",
+    "schedule": "0 7 * * 1",
+  },
+  Object {
+    "job": "consent-log-purge",
+    "schedule": "0 4 * * 1",
+  },
+  Object {
+    "job": "newsletter-digest",
+    "schedule": "0 9 * * 1",
+  },
+  Object {
+    "job": "verify-event-completion",
+    "schedule": "0 8 * * *",
+  },
+  Object {
+    "job": "recompute-dynamic-pricing",
+    "schedule": "*/5 * * * *",
+  },
+  Object {
+    "job": "refresh-spotify",
+    "schedule": "*/50 * * * *",
+  },
+  Object {
+    "job": "music-distribute",
+    "schedule": "*/20 * * * *",
+  },
+  Object {
+    "job": "send-commemorative",
+    "schedule": "0 10 * * *",
+  },
+  Object {
+    "job": "forgemsg-dispatch",
+    "schedule": "*/5 * * * *",
+  },
+  Object {
+    "job": "forgemsg-sync-events",
+    "schedule": "0 */6 * * *",
+  },
+  Object {
+    "job": "forgemsg-provision",
+    "schedule": "0 * * * *",
+  },
+  Object {
+    "job": "event-payout-release",
+    "schedule": "0 8 * * *",
+  },
+  Object {
+    "job": "release-group-invite-holds",
+    "schedule": "*/10 * * * *",
+  },
+]
+
+[36m [2m❯[22m tests/fix-r7-cron-expire-date-holds.live.test.ts:[2m38:26[22m[39m
+    [90m 36| [39m[34mdescribe[39m([32m'Kolo 7 — cron expire-date-holds je naplánovaný'[39m[33m,[39m () [33m=>[39m {
+    [90m 37| [39m  [34mit[39m([32m'vercel.json volá expire-date-holds přes dispatcher hodinově'[39m[33m,[39m ()…
+    [90m 38| [39m    [34mexpect[39m([34mvercelJobs[39m())[33m.[39m[34mtoContainEqual[39m({ job[33m:[39m [32m'expire-date-holds'[39m[33m,[39m sc…
+    [90m   | [39m                         [31m^[39m
+    [90m 39| [39m  })[33m;[39m
+    [90m 40| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-cron-expire-date-holds.live.test.ts[2m > [22mKolo 7 — cron expire-date-holds je naplánovaný[2m > [22mkontrakt: každý job z vercel.json je v allowlistu dispatcheru a má routu
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/fix-r7-cron-expire-date-holds.live.test.ts:[2m47:46[22m[39m
+    [90m 45| [39m      [33m.[39m[34mmap[39m(({ job }) [33m=>[39m job)[33m;[39m
+    [90m 46| [39m    [34mexpect[39m(bad)[33m.[39m[34mtoEqual[39m([])[33m;[39m
+    [90m 47| [39m    [34mexpect[39m(allowed[33m.[39m[34mhas[39m([32m'expire-date-holds'[39m))[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                                             [31m^[39m
+    [90m 48| [39m  })[33m;[39m
+    [90m 49| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-cron-expire-date-holds.live.test.ts[2m > [22mKolo 7 — cron expire-date-holds naživo přes dispatcher[2m > [22mbez CRON_SECRET 403; s ním prošlá opce → expired a druhá v pořadí se posune na první
+[31m[1mAssertionError[22m: {"error":"Unknown job","allowed":["abandoned-cart","anomaly-detect","bank-sync-fio","charge-installments","consent-log-purge","daily-stats","newsletter-digest","verify-event-completion","expire-pending-orders","onboarding-reminder","payouts-auto-settle","process-gdpr-deletions","promoter-tier-evaluate","release-expired-seat-holds","release-rolling-reserves","renew-subscriptions","send-reminders","waitlist-notify","recompute-dynamic-pricing","refresh-spotify","music-distribute","send-commemorative","forgemsg-dispatch","forgemsg-sync-events","forgemsg-provision","event-payout-release","release-group-invite-holds"]}: expected undefined to be 200 // Object.is equality[39m
+
+[32m- Expected:[39m 
+200
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/fix-r7-cron-expire-date-holds.live.test.ts:[2m91:49[22m[39m
+    [90m 89| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([34mreq[39m([32m'/api/cron/dispatch?job=ex[39m…
+    [90m 90| [39m      [35mconst[39m body [33m=[39m ([35mawait[39m r[33m.[39m[34mjson[39m()) [35mas[39m { status[33m:[39m number[33m;[39m result[33m:[39m { exp…
+    [90m 91| [39m      [34mexpect[39m(body[33m.[39mstatus[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(body))[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                                [31m^[39m
+    [90m 92| [39m      [34mexpect[39m(forwarded[33m.[39minternal)[33m.[39m[34mtoBe[39m(process[33m.[39menv[33m.[39m[33mINTERNAL_SERVICE_TOK[39m…
+    [90m 93| [39m      [34mexpect[39m(body[33m.[39mresult[33m.[39mexpiredCount)[33m.[39m[34mtoBeGreaterThanOrEqual[39m([34m1[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[90m (3)[39m
+[2m   Start at [22m 03:44:00
+[2m   Duration [22m 6.07s[2m (transform 323ms, setup 0ms, collect 327ms, tests 759ms, environment 0ms, prepare 3.00s)[22m
+

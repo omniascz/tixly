@@ -5,10 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithPlatformAdminContext } from '@/lib/db/rls-pool';
 import { requirePlatformAdmin } from '@/lib/platform-auth';
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const admin = await requirePlatformAdmin(req);
   if (!admin) return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
 
@@ -28,7 +26,7 @@ export async function PATCH(
     const client = await db().connect();
     try {
       await client.query('BEGIN');
-      await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+      // Kolo 3: admin kontext nastavuje runWithPlatformAdminContext (admin ověřen requirePlatformAdmin) — inline SET byl duplicitní.
       await client.query(
         `UPDATE orders.postal_deliveries
             SET status = COALESCE($1, status),

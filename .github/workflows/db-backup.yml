@@ -1,15 +1,26 @@
 name: Database backup to S3
 
 # Týdenní zálohy Postgres → AWS S3 (defense-in-depth k Neon PITR).
-# Spouští se ne 4 ráno UTC (5 SELČ / 6 SELČL). Plus manuální trigger.
+# Spouští se v neděli 4:00 UTC. Plus manuální trigger.
 #
-# Setup secrets (Settings → Secrets → Actions):
-#   DATABASE_URL              — postgres://... (s sslmode=require)
+# Kolo 4 — proč 19/19 běhů selhalo:
+#   1) `apt-get install awscli` — na ubuntu-24.04 (ubuntu-latest) balík awscli NENÍ
+#      (`E: Package 'awscli' has no installation candidate`, exit 100). AWS CLI v2 je na
+#      runneru předinstalované → apt se pro něj nevolá.
+#   2) apt `postgresql-client` je verze 16, produkční server je 17 → pg_dump by skončil
+#      "server version mismatch". Instaluje se postgresql-client-17 z PGDG.
+#   3) repo nemá ŽÁDNÉ z níže uvedených secrets → explicitní kontrola na začátku jmenovitě
+#      vypíše, co chybí, místo matoucí chyby v psql/aws.
+#   4) Slack krok padal "Specify secrets.SLACK_WEBHOOK_URL" — teď jen když webhook existuje.
+#
+# Setup secrets (Settings → Secrets and variables → Actions → Repository secrets):
+#   DATABASE_URL              — postgres://... (s sslmode=require; role s právem číst vše, ne tixly_app)
 #   AWS_ACCESS_KEY_ID
 #   AWS_SECRET_ACCESS_KEY
 #   AWS_S3_BUCKET            — např. tixly-backups
 #   AWS_REGION               — např. eu-central-1
 #   BACKUP_ENCRYPTION_KEY    — openssl rand -base64 32  (pro symetrickou enkrypci dumpu)
+#   SLACK_WEBHOOK_URL        — volitelné, notifikace o selhání
 #
 # Retention: bucket lifecycle policy s 90-day Glacier transition + 365-day expiry.
 
@@ -18,45 +29,93 @@ on:
     - cron: "0 4 * * 0"   # každou neděli 4:00 UTC
   workflow_dispatch:       # manuální spuštění z GH UI
 
+permissions:
+  contents: read
+
 jobs:
   backup:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      HAS_SLACK: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+      # Kolo 14 / krok 3: výsledek zálohy do aplikace (heartbeat db-backup + e-mail provozu při selhání)
+      HAS_OPS: ${{ secrets.TIXLY_APP_URL != '' && secrets.CRON_SECRET != '' }}
 
     steps:
-      - name: Install PostgreSQL client + AWS CLI
+      - name: Kontrola secretů
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
         run: |
+          missing=()
+          for n in DATABASE_URL AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_S3_BUCKET AWS_REGION BACKUP_ENCRYPTION_KEY; do
+            [ -n "${!n:-}" ] || missing+=("$n")
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error title=Záloha NEPROBĚHLA::chybí secrets: ${missing[*]} (Settings → Secrets and variables → Actions)"
+            echo "### 🔴 Záloha neproběhla — chybí secrets: \`${missing[*]}\`" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      # AWS CLI v2 je na ubuntu-latest předinstalované; apt balík awscli na 24.04 neexistuje.
+      - name: Install PostgreSQL client 17
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSo /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
           sudo apt-get update -y
-          sudo apt-get install -y postgresql-client awscli openssl
+          sudo apt-get install -y postgresql-client-17
+          pg_dump --version
+          aws --version
 
       - name: Verify connection
         env:
           PGURL: ${{ secrets.DATABASE_URL }}
-        run: |
-          psql "$PGURL" -c "SELECT version();" >/dev/null
+        run: psql "$PGURL" -v ON_ERROR_STOP=1 -c "SELECT version();" >/dev/null
 
       - name: Dump database
+        id: dump
         env:
           PGURL: ${{ secrets.DATABASE_URL }}
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H-%M-%SZ)
+          echo "timestamp=$TIMESTAMP" >> "$GITHUB_OUTPUT"
           mkdir -p backups
           pg_dump --format=custom --compress=9 --no-owner --no-privileges \
-            --file=backups/tixly-$TIMESTAMP.dump \
+            --file="backups/tixly-$TIMESTAMP.dump" \
             "$PGURL"
           ls -lh backups/
 
+      # Klíč přes env:KEY, ne `pass:$KEY` na příkazové řádce (viditelné v seznamu procesů).
       - name: Encrypt dump (AES-256)
         env:
           KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
         run: |
           cd backups
           for f in *.dump; do
-            openssl enc -aes-256-cbc -salt -pbkdf2 \
-              -in "$f" -out "$f.enc" -pass "pass:$KEY"
+            openssl enc -aes-256-cbc -salt -pbkdf2 -in "$f" -out "$f.enc" -pass env:KEY
             rm "$f"
           done
           ls -lh
+
+      # Ověření PŘED uploadem: do S3 nesmí odejít záloha, která nejde dešifrovat/přečíst.
+      - name: Smoke test (decrypt + verify)
+        env:
+          KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+        run: |
+          set -o pipefail
+          cd backups
+          for f in *.dump.enc; do
+            openssl enc -d -aes-256-cbc -pbkdf2 -in "$f" -out "/tmp/${f%.enc}" -pass env:KEY
+            n=$(pg_restore --list "/tmp/${f%.enc}" | grep -c ' TABLE ')
+            rm "/tmp/${f%.enc}"
+            [ "$n" -gt 0 ] || { echo "::error::záloha $f neobsahuje žádnou tabulku"; exit 1; }
+            echo "✓ Backup $f: $n tabulek"
+          done
 
       - name: Upload to S3
         env:
@@ -64,30 +123,28 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          TIMESTAMP: ${{ steps.dump.outputs.timestamp }}
         run: |
-          TIMESTAMP=$(date -u +%Y-%m-%dT%H-%M-%SZ)
-          aws s3 cp backups/ s3://$AWS_S3_BUCKET/postgres/$TIMESTAMP/ \
+          aws s3 cp backups/ "s3://$AWS_S3_BUCKET/postgres/$TIMESTAMP/" \
             --recursive \
             --storage-class STANDARD_IA
 
-      - name: Smoke test (decrypt + verify)
-        env:
-          KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
-        run: |
-          cd backups
-          for f in *.dump.enc; do
-            openssl enc -d -aes-256-cbc -pbkdf2 \
-              -in "$f" -out "${f%.enc}" -pass "pass:$KEY"
-            pg_restore --list "${f%.enc}" | head -20
-            echo "✓ Backup $f looks valid"
-          done
-
       - name: Notify Slack (on failure)
-        if: failure()
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          text: '⚠️ Tixly DB backup failed. Check Actions log.'
+        if: failure() && env.HAS_SLACK == 'true'
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        continue-on-error: true
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -fsS -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"⚠️ Tixly DB backup failed: $RUN_URL\"}" "$SLACK_WEBHOOK_URL"
+
+      - name: Hlášení výsledku do aplikace (heartbeat / upozornění provozu)
+        if: always() && env.HAS_OPS == 'true'
+        env:
+          TIXLY_APP_URL: ${{ secrets.TIXLY_APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          STATUS=$([ "$JOB_STATUS" = "success" ] && echo success || echo failure)
+          curl -fsS -X POST "$TIXLY_APP_URL/api/ops/backup-status"             -H "Authorization: Bearer $CRON_SECRET" -H 'Content-Type: application/json'             --data "{\"status\":\"$STATUS\",\"runUrl\":\"$RUN_URL\"}"

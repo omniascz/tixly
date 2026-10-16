@@ -11,6 +11,8 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Pool } from 'pg';
 import { Card, CardContent } from '@/components/ui/card';
+import { pgPoolOptions } from '@/lib/db/pg-options';
+import { launchFeatureEnabled } from '@/lib/features/launch-flags';
 import { formatDate } from '@/lib/format';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
 import { FollowButton } from './FollowButton';
@@ -67,7 +69,7 @@ async function fetchPromoter(slug: string): Promise<{
   events: EventRow[];
   stats: PromoterStats;
 } | null> {
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const pRes = await db.query<PromoterRow>(
       `SELECT id, name, slug, contact_email, brand_color_hex, brand_logo_url, brand_tagline
@@ -138,11 +140,12 @@ async function fetchPromoter(slug: string): Promise<{
   }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { locale: string; slug: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ locale: string; slug: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const data = await fetchPromoter(params.slug);
   if (!data) return { title: 'Tixly' };
   const title = `${data.promoter.name} — vstupenky online`;
@@ -200,16 +203,17 @@ const STRINGS = {
   },
 } as const;
 
-export default async function PromoterPage({
-  params,
-}: {
-  params: { locale: string; slug: string };
-}) {
+export default async function PromoterPage(
+  props: {
+    params: Promise<{ locale: string; slug: string }>;
+  }
+) {
+  const params = await props.params;
   const data = await fetchPromoter(params.slug);
   if (!data) {
     // /p/ je route pořadatele. Pokud slug odpovídá AKCI (starý/špatný odkaz,
     // záložka), přesměruj na detail akce místo tvrdého 404.
-    const db = new Pool({ connectionString: process.env.DATABASE_URL });
+    const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
     let eventSlug: string | null = null;
     try {
       const r = await db.query<{ slug: string }>(
@@ -351,12 +355,15 @@ export default async function PromoterPage({
       </section>
 
       <div className="rounded-md border bg-muted/30 p-3 text-sm">
+        {/* Kolo 10 / krok 3: předplatné vypnuté přepínačem → odkaz skrytý */}
+        {launchFeatureEnabled('subscriptions') ? (
         <Link
           href={`/${locale}/subscriptions?p=${promoter.slug}`}
           className="text-primary hover:underline"
         >
           {s.subscriptions}
         </Link>
+        ) : null}
         {promoter.contact_email ? (
           <span className="ml-3 text-xs text-muted-foreground">
             {s.contact}:{' '}

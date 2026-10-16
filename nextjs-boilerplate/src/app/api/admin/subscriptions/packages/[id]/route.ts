@@ -33,7 +33,7 @@ async function assertOwnership(
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: kontext pořadatele (runAsPromoter) — RLS scopuje na jeho akce; admin eskalace odstraněna.
     const r = await client.query<{ promoter_id: string }>(
       `SELECT promoter_id FROM subscriptions.packages WHERE id = $1`,
       [packageId],
@@ -48,10 +48,8 @@ async function assertOwnership(
   }
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (promoter) => {
   const own = await assertOwnership(params.id, promoter.promoterId);
   if (!own.ok) return NextResponse.json({ error: own.error }, { status: own.status });
@@ -80,10 +78,8 @@ export async function GET(
   });
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterNonStaff(req, async (promoter) => {
   const own = await assertOwnership(params.id, promoter.promoterId);
   if (!own.ok) return NextResponse.json({ error: own.error }, { status: own.status });
@@ -125,8 +121,7 @@ export async function PATCH(
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    // RLS bypass — ownership ověřena v assertOwnership výš.
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: kontext pořadatele (runAsPromoter) — RLS scopuje na jeho akce; admin eskalace odstraněna.
 
     if (sets.length > 0) {
       sets.push(`updated_at = NOW()`);

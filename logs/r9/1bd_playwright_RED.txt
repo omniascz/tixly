@@ -1,0 +1,138 @@
+
+Running 2 tests using 1 worker
+
+  x  1 [golden-path] › tests\golden-path-r9-golive.spec.ts:77:5 › A — promo kód: omezení na termín, kategorie a zóny v administraci (1.0m)
+  -  2 [golden-path] › tests\golden-path-r9-golive.spec.ts:103:5 › B — obrázky po vypnutí optimalizace: veřejný web (next/image) i administrace
+
+
+  1) [golden-path] › tests\golden-path-r9-golive.spec.ts:77:5 › A — promo kód: omezení na termín, kategorie a zóny v administraci 
+
+    [31mTest timeout of 60000ms exceeded.[39m
+
+    Error: locator.selectOption: Test timeout of 60000ms exceeded.
+    Call log:
+    [2m  - waiting for getByLabel('Termín pro omezení')[22m
+
+
+      80 |   const code = `PLNEA${RUN.toUpperCase()}`.slice(0, 20);
+      81 |   await page.getByPlaceholder('LETO2026').fill(code);
+    > 82 |   await page.getByLabel('Termín pro omezení').selectOption(S.eventId);
+         |                                               ^
+      83 |   const box = page.getByTestId('promo-restrictions');
+      84 |   await box.getByLabel('Plné').check();
+      85 |   await box.getByLabel('Zóna A').check();
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r9-golive.spec.ts:82:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r9-golive-A-—--bcd9d-gorie-a-zóny-v-administraci-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\golden-path-r9-golive-A-—--bcd9d-gorie-a-zóny-v-administraci-golden-path\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r9-golive-A-—--bcd9d-gorie-a-zóny-v-administraci-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r9-golive-A-—--bcd9d-gorie-a-zóny-v-administraci-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r9-golive-A-—--bcd9d-gorie-a-zóny-v-administraci-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r9-golive-A-—--bcd9d-gorie-a-zóny-v-administraci-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r9-golive.spec.ts:77:5 › A — promo kód: omezení na termín, kategorie a zóny v administraci 
+  1 did not run
+
+Running 1 test using 1 worker
+
+  x  1 [golden-path] › tests\golden-path-r9-golive.spec.ts:77:5 › A — promo kód: omezení na termín, kategorie a zóny v administraci (1.0m)
+
+
+  1) [golden-path] › tests\golden-path-r9-golive.spec.ts:77:5 › A — promo kód: omezení na termín, kategorie a zóny v administraci 
+
+    [31mTest timeout of 60000ms exceeded.[39m
+
+    Error: locator.selectOption: Test timeout of 60000ms exceeded.
+    Call log:
+    [2m  - waiting for getByLabel('Termín pro omezení')[22m
+
+
+      80 |   const code = `PLNEA${RUN.toUpperCase()}`.slice(0, 20);
+      81 |   await page.getByPlaceholder('LETO2026').fill(code);
+    > 82 |   await page.getByLabel('Termín pro omezení').selectOption(S.eventId);
+         |                                               ^
+      83 |   const box = page.getByTestId('promo-restrictions');
+      84 |   await box.getByLabel('Plné').check();
+      85 |   await box.getByLabel('Zóna A').check();
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r9-golive.spec.ts:82:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r9-golive-A-—--bcd9d-gorie-a-zóny-v-administraci-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\golden-path-r9-golive-A-—--bcd9d-gorie-a-zóny-v-administraci-golden-path\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r9-golive-A-—--bcd9d-gorie-a-zóny-v-administraci-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r9-golive-A-—--bcd9d-gorie-a-zóny-v-administraci-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r9-golive-A-—--bcd9d-gorie-a-zóny-v-administraci-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r9-golive-A-—--bcd9d-gorie-a-zóny-v-administraci-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r9-golive.spec.ts:77:5 › A — promo kód: omezení na termín, kategorie a zóny v administraci 
+
+Running 1 test using 1 worker
+
+  x  1 [golden-path] › tests\golden-path-r9-golive.spec.ts:103:5 › B — obrázky po vypnutí optimalizace: veřejný web (next/image) i administrace (671ms)
+
+
+  1) [golden-path] › tests\golden-path-r9-golive.spec.ts:103:5 › B — obrázky po vypnutí optimalizace: veřejný web (next/image) i administrace 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m200[39m
+    Received: [31m500[39m
+
+      104 |   // veřejný kiosk pořadatele: logo + obálka termínu přes next/image
+      105 |   const res = await page.goto(`/kiosk/${S.slug}`);
+    > 106 |   expect(res?.status()).toBe(200);
+          |                         ^
+      107 |   const imgs = page.locator('img');
+      108 |   await expect(imgs.first()).toBeVisible();
+      109 |   const info = await imgs.evaluateAll((els) => els.map((e) => ({ src: e.getAttribute('src') ?? '', w: (e as HTMLImageElement).naturalWidth })));
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r9-golive.spec.ts:106:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r9-golive-B-—--bb4ee-b-next-image-i-administrace-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\golden-path-r9-golive-B-—--bb4ee-b-next-image-i-administrace-golden-path\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r9-golive-B-—--bb4ee-b-next-image-i-administrace-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r9-golive-B-—--bb4ee-b-next-image-i-administrace-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r9-golive-B-—--bb4ee-b-next-image-i-administrace-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r9-golive-B-—--bb4ee-b-next-image-i-administrace-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r9-golive.spec.ts:103:5 › B — obrázky po vypnutí optimalizace: veřejný web (next/image) i administrace 

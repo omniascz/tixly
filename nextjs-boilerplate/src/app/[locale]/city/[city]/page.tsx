@@ -4,10 +4,13 @@
  * Národní portál UX: kupec klikne "Praha" → vidí všechny published akce
  * v Praze napříč všemi promotéry, řazené podle data.
  */
+import type { JSX } from 'react';
+import { Calendar, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { Pool } from 'pg';
-import { Calendar, MapPin } from 'lucide-react';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { formatCzechDate } from '@/lib/format';
+
 
 interface PageProps {
   params: Promise<{ locale: string; city: string }>;
@@ -27,7 +30,7 @@ interface EventRow {
 
 let pool: Pool | null = null;
 function db(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  if (!pool) pool = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   return pool;
 }
 

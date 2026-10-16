@@ -5861,3 +5861,62 @@ V historii repa neni (overeno pred pushem: `git log -S` na `npg_`,
 `DATABASE_URL=postgres` a dalsi vzory = 0 commitu), ale heslo se má rotovat.
 Doplneno do `GO-LIVE-CHECKLIST.md` vedle `ALTER ROLE tixly_app` — obojí je
 jedna navsteva Neon konzole.
+
+---
+
+## §210 — Vrstva „od nabidky k vyplate" (472–478) poprve proti skutecne DB
+
+Datum 2026-10-03. Kod z 14.–15. 8. byl overeny jen unit testy cistych funkci,
+`tsc` a buildem. Novy `tests/booking-settlement.live.test.ts` vola skutecne route
+handlery pod `tixly_app` na klonu produkce (fixture aplikuje 472–479).
+> Pozn. 2026-10-04 (integrace): migrace `479_royalty_policies_guc_drift.sql` přečíslována na **488** (479 = refund z kola 1); test `red-green-488.live.test.ts`.
+
+**Vsech 7 migraci 472–478 se na prod schema aplikuje bez chyby** (472–478 na
+produkci NEJSOU — overeno `information_schema`, 0 radku).
+
+### Nalezy
+
+| # | Co | Projev pod `tixly_app` | Stav |
+|---|---|---|---|
+| 1 | `lineups.royalty_agreements/ledger/artist_payouts` maji jen `*_svc` = `app.bypass_rls` (R-58) | zalozeni smlouvy **42501**; prijeti nabidky agentem **500** | ✅ **479**, RED 42501 → GREEN 201, cizi poradatel 403 / 0 radku (`red-green-479.live.test.ts`) |
+| 2 | Vyuctovani i prubezny vypocet vyplat zakladaly `artist_payouts` **nezavisle** | tataz smlouva: vyplata 20 Kc (prubezna) **+** 15 Kc (z vyuctovani) | ✅ kod: vyuctovani odecte schvalene/odeslane jako „Jiz vyplaceno", nevyrizene zrusi; vypocet preskoci smlouvy s uzavrenym vyuctovanim; zmena mezi konceptem a uzavrenim → 409 `STALE_DRAFT` |
+| 3 | Bod zlomu bral provizi 5 % ze zakladu **bez DPH**, vyplaty ji strhavaji z **hrube** ceny (`floor`) | u 100 Kc vstupenky 4,46 Kc misto 5,00 → bod zlomu 134 misto 135 | ✅ `netPerTicketMinor`, testy prepocitane rucne |
+| 4 | Opce na **sdileny sal** (`promoter_id IS NULL`): route ho pripousti, `p_venues_tenant` ho poradateli skryje | **404 VENUE_NOT_FOUND** | ⛔ NEOPRAVENO — viz nize |
+
+### Proc #4 neni oprava „na kolene"
+
+Odblokovat lookup salu nestaci. Poradi opci (`option_rank`) se pocita z opci
+viditelnych pod RLS poradatele — na sdilenem salu by druhy poradatel cizi opce
+nevidel, dostal by taky poradi 1 a narazil na unikatni index → 500.
+Je to otazka z planu §08 („kalendar pro poradatele, nebo pro sal"), ne bug.
+Dnes bez dopadu: produkce ma 0 salu a bezi jako `neondb_owner` (§209).
+
+### Nalezy z vizualni kontroly (dev server pod `tixly_app` na klonu, CDP screenshoty)
+
+| # | Co | Projev | Stav |
+|---|---|---|---|
+| 5 | 15 klientskych stranek vola `use(params)` — vzor z Next 15; projekt bezi na **Next 14.2**, kde `params` neni Promise | stranka spadne do error boundary „An unsupported type was passed to use()". **Od cervna 2026 rozbite i `ticket-types` a `guestlist`** (+ 8 dalsich starych), z nove vrstvy Rozpocet, Vyuctovani, Nabidky, stranka agenta | ✅ `lib/next/route-params.ts` (`useRouteParams`), 15 souboru; build ani `tsc` to nechytaly |
+| 6 | `route.ts` exportoval ne-handlery (`COST_CATEGORIES`, `toDealTerms`, `loadEventFinancials`, `loadOfferByToken`) | `tsc` s `.next/types` → TS2344 | ✅ presunuto do `lib/budget/cost-categories.ts`, `lib/royalties/deal.ts`, zbytek bez exportu |
+| 7 | Bod zlomu **ignoroval honorare** ze smluv | akce s kapelou na 70 % hlasila „Naklady jsou pokryte, +8 849 Kc"; realita −66 526 Kc | ✅ `lib/budget/outlook.ts` (8 unit testu rucne spoctenych), zivy test 185 vst. misto 135 |
+| 8 | Garance z prijate nabidky je v rozpoctu jako polozka **a** podil nad bodem zlomu ji odecita znovu | umelec s backendem by dostal mene o vysi garance | ✅ vyuctovani + nahled vynechaji polozku navazanou na TUTO smlouvu; zive overeno `fixed_costs_minor` |
+| 9 | Karta nabidky nezobrazovala pevny honorar ani castku za vstupenku | „Predkapela" (15 000 Kc pevne) ukazovala jen zalohu | ✅ |
+
+Vedlejsi zjisteni (mimo kod aplikace): lokalni `.env.local` ukazuje na Upstash Redis,
+jehoz host uz neexistuje (ENOTFOUND) — registrace pak trva ~300 s. S `REDIS_URL=NONE`
+1,8 s. Produkcni Redis to neovlivnuje, ale lokalni dev je bez toho nepouzitelny.
+
+### Co je overene a co NE
+
+* ✅ Vizualne (screenshot + kontrola cisel): dashboard, prehled akce, Rozpocet,
+  Vyuctovani, Nabidky, Kalendar (listopad, 3 opce), stranka agenta `/nabidka/[token]`,
+  a vsech 10 drive padajicich starych stranek bez padu (`ticket-types`, `guestlist`
+  prohlednuty s daty).
+* ✅ Zive: smlouva → accrue (2000 h = 20 % z 10000) → vyplatni davka; nahled
+  „co dostane pri…"; rozpocet + bod zlomu (7429 h / 135 vst., rucne prepocteno);
+  vyuctovani vytvorit/uzavrit/druhe uzavreni 409; opce 1+2, potvrzeni zalozi
+  akci ve stavu `draft`, druha opce zrusena; cron propadnuti; nabidka → odkaz →
+  nahled agenta → prijeti → smlouva + nakladova polozka 20 000 Kc; druhe
+  prijeti 409; re-entry vstup/odchod/undo + obsazenost; dashboard overview.
+* ❌ NEOVERENO: klikani formularu v UI (pridani nakladu, potvrzeni opce, prijeti
+  nabidky tlacitkem) — overeno jen API cestou, kterou formulare volaji.
+* ❌ NEOVERENO: srazkova dan — sazby nepotvrdil danar (plan D2).

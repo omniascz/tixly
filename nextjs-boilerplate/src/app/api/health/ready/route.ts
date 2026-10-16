@@ -1,4 +1,13 @@
 import { NextResponse } from 'next/server';
+import { pgClientOptions } from '@/lib/db/pg-options';
+import { withTimeout } from '@/lib/net/with-timeout';
+import { redisClientOptions, withRedisTimeout } from '@/lib/redis/options';
+
+// Kolo 11: GET bez request — Next 14 by ho při buildu předgeneroval a připojoval se k DB i Redisu.
+export const dynamic = 'force-dynamic';
+
+/** Každá kontrola má vlastní limit; běží souběžně → odpověď (i 503) vždy do 5 s. */
+const CHECK_BUDGET_MS = 4000;
 
 // Readiness probe — ověří připojení k DB a Redis.
 // Vrací 200 OK pouze pokud jsou obě služby dostupné.
@@ -6,34 +15,43 @@ import { NextResponse } from 'next/server';
 export async function GET(): Promise<Response> {
   const checks: Record<string, string> = {};
 
-  // DB check
-  try {
+  const dbCheck = (async () => {
     const { Client } = await import('pg');
-    const client = new Client({ connectionString: process.env.DATABASE_URL });
-    await client.connect();
-    await client.query('SELECT 1');
-    await client.end();
-    checks.database = 'ok';
-  } catch {
-    checks.database = 'error';
-  }
+    const client = new Client(pgClientOptions(process.env.DATABASE_URL));
+    client.on('error', () => {});
+    try {
+      await withTimeout(
+        (async () => { await client.connect(); await client.query('SELECT 1'); })(),
+        CHECK_BUDGET_MS,
+        'DB health',
+      );
+      checks.database = 'ok';
+    } catch {
+      checks.database = 'error';
+    } finally {
+      void client.end().catch(() => {});
+    }
+  })();
 
-  // Redis check
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const redisCheck = (async () => {
     const { createClient } = await import('redis');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const redis = createClient({ url: process.env.REDIS_URL });
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    await redis.connect();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    await redis.ping();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    await redis.disconnect();
-    checks.redis = 'ok';
-  } catch {
-    checks.redis = 'error';
-  }
+    const redis = createClient(redisClientOptions(process.env.REDIS_URL));
+    redis.on('error', () => {});
+    try {
+      await withRedisTimeout(
+        (async () => { await redis.connect(); await redis.ping(); })(),
+        CHECK_BUDGET_MS,
+        'Redis health',
+      );
+      checks.redis = 'ok';
+    } catch {
+      checks.redis = 'error';
+    } finally {
+      await redis.disconnect().catch(() => {});
+    }
+  })();
+
+  await Promise.all([dbCheck, redisCheck]);
 
   const allOk = Object.values(checks).every((v) => v === 'ok');
 

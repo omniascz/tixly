@@ -14,7 +14,6 @@ vi.mock('pg', () => ({
 
 import {
   withPromoterDb,
-  withPlatformAdminDb,
   withAnonDb,
 } from './with-context';
 
@@ -64,19 +63,6 @@ describe('withPromoterDb', () => {
     ).rejects.toThrow(/query failed/);
     expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
     expect(mockClient.release).toHaveBeenCalled();
-  });
-});
-
-describe('withPlatformAdminDb', () => {
-  it('SET LOCAL is_platform_admin = true', async () => {
-    mockClient.query.mockResolvedValue({ rows: [] });
-    await withPlatformAdminDb(async () => 'ok');
-    expect(mockClient.query).toHaveBeenNthCalledWith(1, 'BEGIN');
-    expect(mockClient.query).toHaveBeenNthCalledWith(
-      2,
-      "SET LOCAL app.is_platform_admin = 'true'",
-    );
-    expect(mockClient.query).toHaveBeenNthCalledWith(3, 'COMMIT');
   });
 });
 

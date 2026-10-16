@@ -1,0 +1,40 @@
+# Kolo 19 / krok 2 — RED: stav po kroku 1 (6a563c80, @sentry/nextjs 11.7.0), sentry.*.config.ts a middleware BEZ úprav
+Build logs/r19/2_red_build.txt (klient DSN ve tvaru SaaS → tunel; _SENTRY_TUNNEL_DESTINATION_OVERRIDE → 127.0.0.1:3995; VERCEL_GIT_COMMIT_SHA=6a563c80…; silent:false jen pro tento build).
+Spec e2e/tests/golden-path-r19-sentry11.spec.ts, výstup 2_red_sentry.txt, obálky 2_red_envelopes.jsonl(.raw.jsonl).
+
+[r19] (f) GET /api/admin/events → 401
+[r19] (f) GET /api/orders/00000000-0000-4000-a000-000000000001 → 401
+[r19] (f) GET /api/platform/promoters → 401
+[r19] (a) POST /api/ops/sentry-check → 500
+[r19] (a) událost: Sentry kontrola: kupec [email], tel. [telefon]; release=6a563c80244e6d0a3b55943dc61a8a1319d5a261
+[r19] (b) GET /api/cron/dispatch?job=charge-installments → 502
+[r19] (b) událost: Cron charge-installments selhal: HTTP 404 tags={"cron":"charge-installments","runbook":"https://github.com/omnia/tixly/blob/main/docs/RUNBOOK-DISASTER-RECOVERY.md"}
+[r19] (c) událost: R19 chyba v prohlížeči: kupec [email], tel. [telefon], Jana Nováková
+[r19] (c) požadavky na tunel: ["POST /api/monitoring?o=1&p=1 → 200"]; přímo na simulátor: []; zablokováno mimo localhost: []
+[r19] obálek: 30; položek event/transaction/span: 9 ({"span":6,"event":3})
+[r19] (d)+(e) nálezy: e-mail: 1 obálek; telefon: 1 obálek; jméno: 2 obálek; IP adresa: 2 obálek; user.ip_address: 1 obálek; request.cookies ["accessToken","r19_buyer"]; request.data (tělo) v event; atribut spanu http.request.header.cookie; (e) atribut spanu user.ip_address
+    test-results\golden-path-r19-sentry11-Sentry-11-a-–-f-proti-simulátoru-golden-path\test-failed-1.png
+  1 failed
+
+## Body
+- (a) route handler: DORAZÍ (není RED) — release = 6a563c80… z release.name (VERCEL_GIT_COMMIT_SHA)
+- (b) cron 502: DORAZÍ (není RED)
+- (c) prohlížeč přes tunel: DORAZÍ — POST /api/monitoring?o=1&p=1 → 200, přímo na DSN nic, sentry.io nic (není RED → middleware se NEUPRAVUJE; /api/monitoring je pro middleware passThrough)
+- (f) 401/401/401 = baseline (není RED)
+- (d) RED: viz rozbor; (e) RED: atribut spanu user.ip_address
+
+## Rozbor (d)/(e) po obálkách
+- obálka #6 (event): telefon, jméno, IP
+    telefon: …thod":"POST","url":"http://localhost:3200/api/ops/sentry-check?email=[email]&tel=%2B420%20777%20123%20456","cookies":{"accessToken":"[Filtered]",…
+    jméno: …"query_string":"email=[email]&tel=%2B420%20777%20123%20456","data":"{\"buyerName\":\"Jana Nováková\",\"buyerEmail\":\"[email]\",\"buyerPh…
+    IP: …":"*/*","accept-encoding":"gzip,deflate,br","origin":"http://localhost:3200","x-real-ip":"10.255.255.1","x-forwarded-for":"10.255.255.1","cont…
+- obálka #11 (event): IP
+    IP: …":"*/*","accept-encoding":"gzip,deflate,br","origin":"http://localhost:3200","x-real-ip":"10.255.255.1","x-forwarded-for":"10.255.255.1","host…
+- obálka #26 (span): e-mail, ip_address
+    e-mail: …ind":{"value":"server","type":"string"},"http.request.header.cookie":{"value":["r19_buyer=jana%40x.cz"],"type":"array"},"http.request.header.…
+    ip_address: …"user.ip_address"…
+- obálka #29 (event): jméno
+    jméno: …es":[{"type":"Error","value":"R19 chyba v prohlížeči: kupec [email], tel. [telefon], Jana Nováková","stacktrace":{"frames":[{"filename":"…
+
+## Poznámka k testu
+Jméno v obálce #29 je jen ve VOLNÉM TEXTU zprávy chyby z prohlížeče, kterou vyvolal test ("…, Jana Nováková"). Maskování (scrub-pii, kolo 14) jména pozná jen pod klíči (buyerName, holder_name…), ve volném textu obecně nelze — totéž platí na SDK 8. Kód aplikace jméno do textu chyby nedává (sentry-check: jméno v err.buyer.buyerName). Test proto po RED upraven: zpráva z prohlížeče nese e-mail a telefon (jako sentry-check), jméno kupce zůstává v těle požadavku (a) — tam ho test hlídá dál.

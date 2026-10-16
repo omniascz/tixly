@@ -10,10 +10,8 @@ interface SettleRow {
   total_amount: string
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const partnerId = params.id
 
   return runAsPlatformAdmin(req, async () => {

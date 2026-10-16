@@ -1,0 +1,8 @@
+Vercel – nextjs-boilerplate	pending
+Vercel – nextjs-boilerplate	success
+Vercel – tixly	pending
+Vercel – tixly	success
+Vercel Preview Comments	completed	success
+Install · typecheck · lint · unit	completed	success
+Build bez sítě (pojistka prerenderu)	completed	success
+Live sada (Postgres z migrací, tixly_app)	completed	success

@@ -1,0 +1,34 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r3-mobile-auth.live.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 325[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-mobile-auth.live.test.ts[2m > [22mKrok 2 (kolo 3) — /api/mobile/* ověřuje Bearer JWT[2m > [22mplatný Bearer → 200, objednávka patří přihlášenému uživateli[39m
+[31m     → {"error":"UNAUTHORIZED"}: expected 401 to be 200 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-mobile-auth.live.test.ts[2m > [22mKrok 2 (kolo 3) — /api/mobile/* ověřuje Bearer JWT[2m > [22mplatný Bearer → 200, objednávka patří přihlášenému uživateli
+[31m[1mAssertionError[22m: {"error":"UNAUTHORIZED"}: expected 401 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 401[39m
+
+[36m [2m❯[22m tests/fix-r3-mobile-auth.live.test.ts:[2m40:46[22m[39m
+    [90m 38| [39m    [35mconst[39m t [33m=[39m [35mawait[39m [34msignAccessToken[39m({ id[33m:[39m u[33m.[39mid[33m,[39m email[33m:[39m u[33m.[39memail[33m,[39m name[33m:[39m …
+    [90m 39| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mcall[39m({ authorization[33m:[39m [32m`Bearer [39m[36m${[39mt[36m}[39m[32m`[39m })[33m;[39m
+    [90m 40| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m [35mawait[39m r[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                             [31m^[39m
+    [90m 41| [39m    [35mconst[39m { orderId } [33m=[39m ([35mawait[39m r[33m.[39m[34mjson[39m()) [35mas[39m { orderId[33m:[39m string }[33m;[39m
+    [90m 42| [39m    [34mexpect[39m(([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT user_id FROM orders.orders [39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (3)[39m
+[2m   Start at [22m 13:05:57
+[2m   Duration [22m 971ms[2m (transform 153ms, setup 0ms, collect 146ms, tests 325ms, environment 0ms, prepare 318ms)[22m
+

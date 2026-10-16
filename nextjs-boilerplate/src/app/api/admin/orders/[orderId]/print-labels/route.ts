@@ -15,6 +15,7 @@ import { renderTicketLabelPdf, type LabelTicket } from '@/lib/tickets/label-pdf'
 
 interface OrderRow {
   id: string;
+  event_id: string | null;
   buyer_name: string | null;
   buyer_email: string;
   event_title: string;
@@ -41,7 +42,7 @@ export async function GET(
     const { orderId } = await params;
 
     const orderRes = await db().query<OrderRow>(
-      `SELECT o.id,
+      `SELECT o.id, o.event_id,
               u.name AS buyer_name, u.email AS buyer_email,
               e.title AS event_title, e.date_start AS event_date_start,
               v.name AS venue_name,
@@ -65,8 +66,9 @@ export async function GET(
               es.sector, es.row, es.seat_number
          FROM tickets.tickets t
          JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
-         JOIN orders.order_items oi
-           ON oi.order_id = t.order_id AND oi.ticket_type_id = t.ticket_type_id
+         -- Kolo 8: u nákupu míst je víc položek téhož typu (kategorie) → položka podle místa vstupenky
+           JOIN LATERAL (SELECT * FROM orders.order_items x WHERE x.order_id = t.order_id AND x.ticket_type_id = t.ticket_type_id
+             ORDER BY (x.seat_id IS NOT DISTINCT FROM t.event_seat_id) DESC, x.id LIMIT 1) oi ON true
          LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
         WHERE t.order_id = $1 AND t.status IN ('valid', 'used')
         ORDER BY tt.name, es.row, es.seat_number`,
@@ -96,6 +98,7 @@ export async function GET(
         buyerName: order.buyer_name ?? order.buyer_email,
         promoterName: order.promoter_name,
         brandColorHex: order.brand_color_hex,
+        eventId: order.event_id,
       },
       tickets,
     );

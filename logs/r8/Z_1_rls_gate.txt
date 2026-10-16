@@ -1,0 +1,5 @@
+═══ RLS GATE ═══
+očekáváno 871 policies │ nalezeno 871
+tabulek s RLS: očekáváno 589 │ nalezeno 589
+
+✅ GATE PROŠEL — žádný drift

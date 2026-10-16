@@ -10,7 +10,7 @@
  * DACH P0-2 polish (Reservix Restwert UI flow).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 
 
@@ -21,14 +21,20 @@ export async function GET(req: NextRequest): Promise<Response> {
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: vlastní abonentky se zjistí pod kontextem kupce; souhrn přes balíčky (kupci nečitelné) je systémový dotaz omezený na ně.
+
+    const own = await client.query<{ id: string }>(
+      `SELECT id FROM subscriptions.holders WHERE user_id = $1`,
+      [userId],
+    );
+    const holderIds = own.rows.map((r) => r.id);
 
     if (promoterId) {
       if (!/^[0-9a-f-]{36}$/i.test(promoterId)) {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'BAD_PROMOTER_ID' }, { status: 422 });
       }
-      const r = await client.query<{
+      const r = await asSystemInTx(client, () => client.query<{
         total: string;
         holders_count: string;
       }>(
@@ -38,9 +44,10 @@ export async function GET(req: NextRequest): Promise<Response> {
            JOIN subscriptions.packages p ON p.id = h.package_id
           WHERE h.user_id = $1
             AND p.promoter_id = $2
-            AND h.status = 'active'`,
-        [userId, promoterId],
-      );
+            AND h.status = 'active'
+            AND h.id = ANY($3::uuid[])`,
+        [userId, promoterId, holderIds],
+      ));
       await client.query('COMMIT');
       return NextResponse.json({
         promoterId,
@@ -50,7 +57,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     }
 
     // Bez filtru: per-promoter breakdown
-    const r = await client.query<{
+    const r = await asSystemInTx(client, () => client.query<{
       promoter_id: string;
       promoter_name: string;
       total: string;
@@ -63,12 +70,13 @@ export async function GET(req: NextRequest): Promise<Response> {
          JOIN subscriptions.packages p ON p.id = h.package_id
          JOIN platform.promoters pr ON pr.id = p.promoter_id
         WHERE h.user_id = $1
+          AND h.id = ANY($2::uuid[])
           AND h.status = 'active'
           AND h.restwert_credit_halire > 0
         GROUP BY p.promoter_id, pr.name
         ORDER BY total DESC NULLS LAST`,
-      [userId],
-    );
+      [userId, holderIds],
+    ));
 
     await client.query('COMMIT');
 

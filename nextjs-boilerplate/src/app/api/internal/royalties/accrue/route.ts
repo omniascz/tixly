@@ -9,15 +9,18 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { verifyInternalToken } from '@/lib/internal-auth';
 import { computeOrderRoyalty } from '@/lib/royalties/compute';
 import type { RoyaltyAgreement } from '@/lib/royalties/compute';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const token = req.headers.get('x-internal-token');
-  if (token !== process.env.INTERNAL_API_TOKEN) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const auth = verifyInternalToken(req.headers.get('x-internal-token'));
+  if (!auth.ok) {
+    // Hlasitě — tichá 401 tady znamenala, že se podíly umělců nikdy nenačetly.
+    console.error('[royalties/accrue] odmítnuto:', auth.reason);
+    return NextResponse.json({ error: 'Unauthorized', reason: auth.reason }, { status: 401 });
   }
 
   const { orderId } = await req.json() as { orderId?: string };

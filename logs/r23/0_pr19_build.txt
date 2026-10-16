@@ -1,0 +1,11 @@
+# Krok 0.3 — kód PR #19 = kód sestavený Kolem 22
+$ git diff 5696a8f5 03ddf755 -- nextjs-boilerplate e2e
+(prázdný výstup — 0 řádků)
+
+Mezi 5696a8f5 a 03ddf755 se mimo logs/ mění jen: .gitleaksignore, NEXT_STEPS.md, PROGRESS_R22.md, ROUND22_REPORT.md,
+audit/e2e/state.r22.json, audit/logs/r22_e2e_*.jsonl/json (výstupy auditů). Kód aplikace ani e2e beze změny.
+
+Build Kola 22 nad tímto kódem (na větvi PR, commit 03ddf755):
+- logs/r22/1_green_build.txt — `next build` OK (konec: route tabulka, „ƒ Middleware 87.3 kB“)
+- logs/r22/9_build_no_network.console.txt — čistý klon 5696a8f5, konec: „[build-no-network] OK — build prošel bez jediného síťového spojení z kódu aplikace“, exit=0
+=> nový lokální build v kroku 0 není potřeba (diff prázdný).

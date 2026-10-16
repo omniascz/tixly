@@ -15,10 +15,8 @@ const patchSchema = z.object({
   role: z.enum(['admin', 'staff']),
 });
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { userId: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ userId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterOwner(req, async (promoter) => {
   if (!/^[0-9a-f-]{36}$/i.test(params.userId)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });
@@ -51,10 +49,8 @@ export async function PATCH(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { userId: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ userId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterOwner(req, async (promoter) => {
   if (!/^[0-9a-f-]{36}$/i.test(params.userId)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 422 });

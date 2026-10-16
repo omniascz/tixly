@@ -1,0 +1,18 @@
+═══ RLS GATE ═══
+očekáváno 850 policies │ nalezeno 854
+tabulek s RLS: očekáváno 573 │ nalezeno 577
+
+🔴 GATE SELHAL — 10 rozdílů:
+
+  CHYBĚJÍCÍ POLICY (3):
+    • lineups.artist_payouts|artist_payouts_svc
+    • lineups.royalty_agreements|royalty_agreements_svc
+    • lineups.royalty_ledger|royalty_ledger_svc
+  PŘEBÝVAJÍCÍ POLICY (7):
+    • catalog.event_costs|p_event_costs_scope
+    • catalog.venue_date_holds|p_venue_date_holds_scope
+    • lineups.artist_offers|p_artist_offers_scope
+    • lineups.artist_payouts|p_artist_payouts_scope
+    • lineups.artist_settlements|p_artist_settlements_scope
+    • lineups.royalty_agreements|p_royalty_agreements_scope
+    • lineups.royalty_ledger|p_royalty_ledger_scope

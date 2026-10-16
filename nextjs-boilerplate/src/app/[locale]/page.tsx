@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { Pool } from 'pg';
+import { ForYouFeed } from '@/components/ForYouFeed';
 import { Card, CardContent } from '@/components/ui/card';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { formatDate } from '@/lib/format';
 import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
-import { ForYouFeed } from '@/components/ForYouFeed';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,7 +54,7 @@ async function fetchLanding(): Promise<{
   promoters: PromoterRow[];
   categories: CategoryRow[];
 }> {
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const upcomingPromise = db.query<EventRow>(
       `SELECT ${SELECT_EVENT_FIELDS}
@@ -155,7 +156,8 @@ function shadeColor(hex: string | null, fallbackHue: number): string {
   return `linear-gradient(135deg, hsl(${fallbackHue}, 60%, 50%), hsl(${(fallbackHue + 60) % 360}, 70%, 40%))`;
 }
 
-export default async function LandingPage({ params }: { params: { locale: string } }) {
+export default async function LandingPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const { events, thisWeek, featured, promoters, categories } = await fetchLanding();
   const locale = isValidLocale(params.locale) ? params.locale : DEFAULT_LOCALE;
 

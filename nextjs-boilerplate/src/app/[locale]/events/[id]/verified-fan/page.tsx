@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { notFound } from 'next/navigation';
 import { VerifiedFanForm } from './VerifiedFanForm';
 
@@ -15,7 +16,7 @@ interface EventRow {
 
 async function fetchEvent(id: string): Promise<EventRow | null> {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const r = await db.query<EventRow>(
       `SELECT e.id, e.title, e.date_start::text,
@@ -36,11 +37,12 @@ async function fetchEvent(id: string): Promise<EventRow | null> {
 
 export const dynamic = 'force-dynamic';
 
-export default async function VerifiedFanRegisterPage({
-  params,
-}: {
-  params: { locale: string; id: string };
-}) {
+export default async function VerifiedFanRegisterPage(
+  props: {
+    params: Promise<{ locale: string; id: string }>;
+  }
+) {
+  const params = await props.params;
   const event = await fetchEvent(params.id);
   if (!event) notFound();
   if (!event.verified_fan_enabled) {

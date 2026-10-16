@@ -26,9 +26,11 @@ const PRICE_CAP_BPS = 10000; // 100.00 % — face value cap
 const schema = z.object({
   ticketId: z.string().regex(/^[0-9a-f-]{36}$/i),
   askPriceHalire: z.number().int().min(1),
-  // Demo: pro guest kupce, kteří lístek vlastní pod e-mailem (žádný JWT).
-  // V produkci tohle musí být JWT-only.
-  ownerEmail: z.string().email().optional(),
+  // Kolo 4: `ownerEmail` (vlastnictví podle e-mailu z těla) odstraněno — kdokoli se znalostí
+  // e-mailu oběti a ID vstupenky ji dal do přeprodeje. Host bez účtu (stránka potvrzení
+  // objednávky) prokazuje vlastnictví UUID objednávky — stejnou capability, na které stojí
+  // celá stránka potvrzení; vstupenka musí patřit do té objednávky a jejímu kupci.
+  orderId: z.string().uuid().optional(),
 });
 
 interface TicketRow {
@@ -85,6 +87,11 @@ export async function POST(req: NextRequest): Promise<Response> {
   const headerUserId = req.headers.get('x-user-id');
 
   const body: unknown = await req.json().catch(() => ({}));
+  const orderCapability =
+    body && typeof body === 'object' && typeof (body as { orderId?: unknown }).orderId === 'string';
+  if (!headerUserId && !orderCapability) {
+    return NextResponse.json({ error: 'Auth required' }, { status: 401 });
+  }
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
@@ -92,23 +99,22 @@ export async function POST(req: NextRequest): Promise<Response> {
       { status: 422 },
     );
   }
-  const { ticketId, askPriceHalire, ownerEmail } = parsed.data;
+  const { ticketId, askPriceHalire, orderId } = parsed.data;
 
-  // Resolve userId: header (JWT) → ownerEmail (guest demo)
   let userId: string;
   if (headerUserId) {
     userId = headerUserId;
-  } else if (ownerEmail) {
-    const u = await db().query<{ id: string }>(
-      `SELECT id FROM identity.users WHERE email = $1 AND anonymized_at IS NULL LIMIT 1`,
-      [ownerEmail.toLowerCase()],
-    );
-    if (u.rows.length === 0) {
-      return NextResponse.json({ error: 'Owner email not found' }, { status: 404 });
-    }
-    userId = u.rows[0].id;
   } else {
-    return NextResponse.json({ error: 'Auth required (JWT or ownerEmail)' }, { status: 401 });
+    const o = await db().query<{ user_id: string }>(
+      `SELECT o.user_id FROM orders.orders o
+         JOIN tickets.tickets t ON t.order_id = o.id AND t.owner_id = o.user_id
+        WHERE o.id = $1 AND t.id = $2 AND o.status = 'paid'`,
+      [orderId, ticketId],
+    );
+    if (o.rows.length === 0) {
+      return NextResponse.json({ error: 'Auth required' }, { status: 401 });
+    }
+    userId = o.rows[0].user_id;
   }
 
   const client = await db().connect();

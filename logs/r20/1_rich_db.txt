@@ -1,0 +1,17 @@
+OK   508_ops_monitoring.sql
+FAILED_FILES=0
+identity.users: 737 řádků; sloupce jen ve vývojové DB (vynechány): žádné
+identity.user_secrets: 727 řádků; sloupce jen ve vývojové DB (vynechány): žádné
+platform.promoters: 236 řádků; sloupce jen ve vývojové DB (vynechány): žádné
+platform.promoter_members: 238 řádků; sloupce jen ve vývojové DB (vynechány): žádné
+catalog.venue_places: ve vývojové DB neexistuje — přeskočeno
+catalog.venues: 271 řádků; sloupce jen ve vývojové DB (vynechány): žádné
+catalog.venue_seating_charts: 11 řádků; sloupce jen ve vývojové DB (vynechány): žádné
+catalog.productions: 0 řádků; sloupce jen ve vývojové DB (vynechány): žádné
+catalog.events: 285 řádků; sloupce jen ve vývojové DB (vynechány): žádné
+catalog.ticket_types: 330 řádků; sloupce jen ve vývojové DB (vynechány): žádné
+catalog.event_seats: 66105 řádků; sloupce jen ve vývojové DB (vynechány): žádné
+NOTICE:  posun termínů: 152 days
+DO
+Hamlet|2026-11-21 17:00:00+00
+Romeo a Julie|2026-11-14 17:00:00+00

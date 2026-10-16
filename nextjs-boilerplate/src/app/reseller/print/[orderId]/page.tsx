@@ -1,5 +1,17 @@
-import { db } from '@/lib/db/rls-pool'
-import { notFound } from 'next/navigation'
+'use client'
+
+/**
+ * Tisk vstupenek u prodejce.
+ *
+ * Kolo 3: data čte z GET /api/reseller/orders/[orderId]/tickets s tokenem prodejce
+ * (localStorage 'resellerToken', stejně jako /reseller/sell). API vydá vstupenky jen
+ * objednávky TOHOTO prodejce. Dřív serverová stránka dotazovala DB bez kontextu a ověřovala
+ * jen, že objednávku prodal NĚJAKÝ prodejce.
+ */
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation'
+import QRCode from 'qrcode'
 
 interface TicketRow {
   id: string
@@ -11,61 +23,61 @@ interface TicketRow {
   buyer_name: string | null
   buyer_email: string
   serial: string
+  /** Podepsaný statický token TXP2 (vstupenka + akce) — obsah QR kódu. */
+  printToken: string
 }
 
-async function getOrderTickets(orderId: string): Promise<TicketRow[]> {
-  const r = await db().query<TicketRow>(
-    `SELECT t.id,
-            e.title AS event_title,
-            e.date_start,
-            v.name AS venue_name,
-            tt.name AS ticket_type_name,
-            CASE WHEN es.id IS NOT NULL
-              THEN es.sector || ' ' || es.row || es.seat_number::text
-              ELSE NULL
-            END AS seat_label,
-            u.name AS buyer_name,
-            u.email AS buyer_email,
-            UPPER(SUBSTRING(t.id::text, 1, 8)) AS serial
-     FROM tickets.tickets t
-     JOIN orders.orders o ON o.id = t.order_id
-     JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
-     JOIN catalog.events e ON e.id = tt.event_id
-     JOIN catalog.venues v ON v.id = e.venue_id
-     JOIN identity.users u ON u.id = o.user_id
-     LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
-     WHERE t.order_id = $1
-     ORDER BY t.id`,
-    [orderId],
-  )
-  return r.rows
-}
+type LoadState =
+  | { kind: 'loading' }
+  | { kind: 'not_found' }
+  | { kind: 'error' }
+  | { kind: 'ok'; tickets: TicketRow[] }
 
-async function verifyResellerOrder(orderId: string): Promise<boolean> {
-  const r = await db().query<{ id: string }>(
-    `SELECT rs.id FROM orders.reseller_sales rs WHERE rs.order_id = $1 LIMIT 1`,
-    [orderId],
-  )
-  return r.rows.length > 0
-}
-
-export default async function ResellerPrintPage({ params }: { params: { orderId: string } }) {
+export default function ResellerPrintPage(_props: { params: Promise<{ orderId: string }> }) {
+  const params = useParams<{ orderId: string }>();
   const { orderId } = params
-  const [isReseller, tickets] = await Promise.all([
-    verifyResellerOrder(orderId),
-    getOrderTickets(orderId),
-  ])
+  const router = useRouter()
+  const [state, setState] = useState<LoadState>({ kind: 'loading' })
 
-  if (!isReseller || tickets.length === 0) notFound()
+  useEffect(() => {
+    const token = localStorage.getItem('resellerToken')
+    if (!token) {
+      router.replace('/reseller/login')
+      return
+    }
+    let cancelled = false
+    fetch(`/api/reseller/orders/${orderId}/tickets`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (res) => {
+        if (cancelled) return
+        if (res.status === 401) {
+          localStorage.removeItem('resellerToken')
+          router.replace('/reseller/login')
+          return
+        }
+        if (res.status === 404) return setState({ kind: 'not_found' })
+        if (!res.ok) return setState({ kind: 'error' })
+        const j = (await res.json()) as { tickets: TicketRow[] }
+        setState(j.tickets.length === 0 ? { kind: 'not_found' } : { kind: 'ok', tickets: j.tickets })
+      })
+      .catch(() => { if (!cancelled) setState({ kind: 'error' }) })
+    return () => { cancelled = true }
+  }, [orderId, router])
 
-  const first = tickets[0]
+  useEffect(() => {
+    if (state.kind !== 'ok') return
+    document.title = `Vstupenky — ${state.tickets[0].event_title}`
+    const t = setTimeout(() => window.print(), 300)
+    return () => clearTimeout(t)
+  }, [state])
+
+  if (state.kind === 'loading') return <p style={{ padding: '1rem', fontFamily: 'sans-serif' }}>Načítám vstupenky…</p>
+  if (state.kind === 'not_found') return <p style={{ padding: '1rem', fontFamily: 'sans-serif' }}>Objednávka nenalezena (nebo ji neprodala tato prodejna).</p>
+  if (state.kind === 'error') return <p style={{ padding: '1rem', fontFamily: 'sans-serif' }}>Vstupenky se nepodařilo načíst. Zkuste to znovu.</p>
+
+  const tickets = state.tickets
 
   return (
-    <html lang="cs">
-      <head>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Vstupenky — {first.event_title}</title>
+    <>
         <style>{`
           * { box-sizing: border-box; margin: 0; padding: 0; }
           body { font-family: sans-serif; background: #fff; }
@@ -114,8 +126,6 @@ export default async function ResellerPrintPage({ params }: { params: { orderId:
             .ticket:last-child { page-break-after: avoid; }
           }
         `}</style>
-      </head>
-      <body>
         <div className="no-print">
           <button onClick={() => window.print()}>Vytisknout vstupenky</button>
         </div>
@@ -142,80 +152,31 @@ export default async function ResellerPrintPage({ params }: { params: { orderId:
                 <div className="ticket-serial">#{t.serial}</div>
               </div>
               <div className="ticket-qr">
-                <QrCode value={`TXP:${t.id}`} size={90} />
+                <QrCode value={t.printToken} size={90} />
                 <div className="qr-id">{t.id.slice(0, 8)}</div>
               </div>
             </div>
           ))}
         </div>
 
-        <script dangerouslySetInnerHTML={{ __html: 'window.onload = function(){ window.print(); }' }} />
-      </body>
-    </html>
+    </>
   )
 }
 
+/**
+ * Skutečný QR kód (knihovna `qrcode`, jako SMS vstupenka). Kolo 4: dřív se kreslila
+ * pseudo-matice z textu `TXP:<id>`, kterou žádná čtečka nepřečetla.
+ */
 function QrCode({ value, size }: { value: string; size: number }) {
-  const cells = buildQrMatrix(value)
-  const n = cells.length
-  const cellSize = size / n
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} xmlns="http://www.w3.org/2000/svg">
-      <rect width={size} height={size} fill="white" />
-      {cells.flatMap((row, r) =>
-        row.map((dark, c) =>
-          dark ? (
-            <rect
-              key={`${r}-${c}`}
-              x={c * cellSize}
-              y={r * cellSize}
-              width={cellSize}
-              height={cellSize}
-              fill="black"
-            />
-          ) : null,
-        ),
-      )}
-    </svg>
-  )
-}
-
-function buildQrMatrix(text: string): boolean[][] {
-  const size = 21
-  const grid: boolean[][] = Array.from({ length: size }, () => Array(size).fill(false) as boolean[])
-
-  function drawFinder(row: number, col: number) {
-    for (let r = -1; r <= 7; r++) {
-      for (let c = -1; c <= 7; c++) {
-        const tr = row + r
-        const tc = col + c
-        if (tr < 0 || tr >= size || tc < 0 || tc >= size) continue
-        const onBorder = r === -1 || r === 7 || c === -1 || c === 7
-        const onInner = r >= 1 && r <= 5 && c >= 1 && c <= 5
-        const onCore = r >= 2 && r <= 4 && c >= 2 && c <= 4
-        grid[tr][tc] = onBorder || onCore || (!onInner)
-      }
-    }
-  }
-
-  drawFinder(0, 0)
-  drawFinder(0, size - 7)
-  drawFinder(size - 7, 0)
-
-  const bytes = Array.from(text).map((ch) => ch.charCodeAt(0))
-  let bi = 0
-  for (let r = size - 1; r >= 0; r -= 2) {
-    for (let c = size - 1; c >= 0; c--) {
-      if (r < 8 && c < 8) continue
-      if (r < 8 && c >= size - 8) continue
-      if (r >= size - 8 && c < 8) continue
-      const byte = bytes[bi % bytes.length] ?? 0
-      const bit = (byte >> (7 - (bi % 8))) & 1
-      grid[r][c] = bit === 1
-      bi++
-    }
-  }
-
-  return grid
+  const [src, setSrc] = useState<string | null>(null)
+  useEffect(() => {
+    let alive = true
+    QRCode.toDataURL(value, { errorCorrectionLevel: 'M', margin: 0, width: size * 4 })
+      .then((url) => { if (alive) setSrc(url) })
+      .catch(() => { if (alive) setSrc(null) })
+    return () => { alive = false }
+  }, [value, size])
+  if (!src) return <div style={{ width: size, height: size }} />
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} width={size} height={size} alt="QR kód vstupenky" />
 }

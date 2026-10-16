@@ -1,0 +1,11 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [32m✓[39m src/app/api/subscriptions/checkout/route.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 151[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m7 passed[39m[22m[90m (7)[39m
+[2m   Start at [22m 11:26:44
+[2m   Duration [22m 9.66s[2m (transform 484ms, setup 2.06s, collect 457ms, tests 151ms, environment 4.09s, prepare 680ms)[22m
+

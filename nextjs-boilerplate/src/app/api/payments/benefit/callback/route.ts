@@ -12,6 +12,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { runWithServiceContext } from '@/lib/db/rls-pool';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
 import { handleBenefitCallback } from '@/lib/payment/benefits';
 
 const schema = z.object({
@@ -22,12 +24,16 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('benefitCards');
+  if (featureOff) return featureOff;
   // BEZPEČNOST (fail-closed): tato generická route NEověřuje podpis providera, takže
   // by jinak kdokoli se znalostí externalId mohl POSTnout success:true → lístky zdarma.
   // V produkci proto odmítáme. Reálná benefit integrace MUSÍ jít přes per-provider
   // route s HMAC verifikací (viz verify{Pluxee,Edenred,BenefitPlus,GalleryBeta}Callback
   // v src/lib/payment/benefit-providers/*). Dev mock povolen jen s BENEFIT_MOCK=1.
-  if (process.env.BENEFIT_MOCK !== '1') {
+  // Kolo 2: mock jen mimo produkci — dřív stačilo BENEFIT_MOCK=1 i v produkci.
+  if (process.env.BENEFIT_MOCK !== '1' || process.env.NODE_ENV === 'production') {
     return NextResponse.json(
       { error: 'BENEFIT_CALLBACK_VERIFICATION_REQUIRED', message: 'Generic benefit callback je v produkci zakázán — použij per-provider route s ověřením podpisu.' },
       { status: 403 },
@@ -43,12 +49,12 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
-  const result = await handleBenefitCallback({
+  const result = await runWithServiceContext(() => handleBenefitCallback({
     provider: parsed.data.provider,
     externalId: parsed.data.externalId,
     success: parsed.data.success,
     payload: parsed.data.payload ?? {},
-  });
+  }));
 
   if (result.status === 'not_found') {
     return NextResponse.json({ error: 'PAYMENT_NOT_FOUND' }, { status: 404 });

@@ -1,0 +1,20 @@
+{
+ "files": 719,
+ "routeMethods": 1012,
+ "byCaller": {
+  "pořadatel": 504,
+  "admin": 91,
+  "veřejná": 40,
+  "partner": 31,
+  "veřejná (auth)": 29,
+  "kupec": 122,
+  "veřejná (zápis hosta)": 35,
+  "veřejná (capability)": 32,
+  "servis": 63,
+  "vypnuto (demo)": 5,
+  "veřejná (OAuth)": 1,
+  "veřejná (GET)": 50,
+  "brána (webhook)": 5,
+  "prodejce": 4
+ }
+}

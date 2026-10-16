@@ -4,7 +4,8 @@
  * Body: { orderIds: string[], reason: 'event_cancelled'|... }
  *
  * Power-user endpoint pro hromadný refund (typicky při zrušení akce).
- * Volá refund logiku per-order v sériové transakci. Vrací summary
+ * Každou objednávku vrací přes platební bránu sdíleným automatem executeOrderRefund (kolo 6;
+ * dřív jen přepnul stav v DB a peníze se nevracely). Vrací summary
  * { processed, refunded, alreadyRefunded, errors[] }.
  *
  * Auth: requirePromoter, ownership check per-order.
@@ -13,6 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
+import { refundOrderFully } from '@/lib/orders/refund-full-order';
 import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit/per-tenant';
@@ -59,100 +61,39 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   const outcomes: RefundOutcome[] = [];
 
+  // Kolo 6: každá objednávka jde sdíleným stavovým automatem refundu (FIX K2) — brána 1×,
+  // `refunded` až po jejím potvrzení, chyba brány → `refund_failed` a lístky zůstávají.
+  // Dřív se tu jen přepnul stav v DB a peníze se nevracely.
   for (const orderId of orderIds) {
-    const client = await db().connect();
     try {
-      await client.query('BEGIN');
-      const orderRes = await client.query<{
-        id: string;
-        status: string;
-        total_amount: number;
-        event_promoter_id: string;
-      }>(
-        `SELECT o.id, o.status, o.total_amount, e.promoter_id AS event_promoter_id
-         FROM orders.orders o
-         JOIN catalog.events e ON e.id = o.event_id
-         WHERE o.id = $1 FOR UPDATE`,
+      const own = await db().query<{ status: string; total_amount: number; event_promoter_id: string }>(
+        `SELECT o.status, o.total_amount, e.promoter_id AS event_promoter_id
+           FROM orders.orders o JOIN catalog.events e ON e.id = o.event_id
+          WHERE o.id = $1`,
         [orderId],
       );
-      if (orderRes.rows.length === 0) {
-        await client.query('ROLLBACK');
+      const order = own.rows[0];
+      if (!order) {
         outcomes.push({ orderId, status: 'not_found' });
         continue;
       }
-      const order = orderRes.rows[0];
       if (order.event_promoter_id !== promoter.promoterId) {
-        await client.query('ROLLBACK');
         outcomes.push({ orderId, status: 'wrong_promoter' });
         continue;
       }
-      if (order.status === 'refunded') {
-        await client.query('ROLLBACK');
-        outcomes.push({
-          orderId,
-          status: 'already_refunded',
-          amountHalire: order.total_amount,
-        });
-        continue;
-      }
-      if (order.status !== 'paid') {
-        await client.query('ROLLBACK');
-        outcomes.push({ orderId, status: 'error', reason: `status=${order.status}` });
-        continue;
-      }
-
-      await client.query(
-        `UPDATE orders.orders SET status = 'refunded', updated_at = NOW() WHERE id = $1`,
-        [orderId],
-      );
-      await client.query(
-        `UPDATE tickets.tickets
-         SET status = 'revoked', revoked_at = NOW(), updated_at = NOW()
-         WHERE order_id = $1 AND status <> 'revoked'`,
-        [orderId],
-      );
-      await client.query(
-        `UPDATE catalog.ticket_types tt
-         SET remaining_qty = remaining_qty + sub.qty
-         FROM (
-           SELECT ticket_type_id, SUM(quantity) AS qty
-           FROM orders.order_items WHERE order_id = $1
-           GROUP BY ticket_type_id
-         ) sub
-         WHERE tt.id = sub.ticket_type_id`,
-        [orderId],
-      );
-      await client.query(
-        `INSERT INTO audit.audit_log
-           (schema_name, table_name, record_id, action, actor_id, actor_type, old_values, new_values)
-         VALUES ('orders', 'orders', $1, 'UPDATE', $2, 'user', $3::jsonb, $4::jsonb)`,
-        [
-          orderId,
-          promoter.userId,
-          JSON.stringify({ status: order.status }),
-          JSON.stringify({
-            kind: 'bulk_refund',
-            status: 'refunded',
-            reason,
-            amount_halire: order.total_amount,
-          }),
-        ],
-      );
-      await client.query('COMMIT');
-      outcomes.push({
-        orderId,
-        status: 'refunded',
-        amountHalire: order.total_amount,
+      // Kolo 8 / krok 7: sdílená cesta s rušením termínu a vrácením z odkazu (lib/orders/refund-full-order)
+      const result = await refundOrderFully(orderId, {
+        actorUserId: promoter.userId, kind: 'bulk_refund', reason, previousStatus: order.status,
       });
+      if (result.outcome === 'refunded') {
+        outcomes.push({ orderId, status: 'refunded', amountHalire: order.total_amount });
+      } else if (result.outcome === 'already') {
+        outcomes.push({ orderId, status: 'already_refunded', amountHalire: order.total_amount });
+      } else {
+        outcomes.push({ orderId, status: 'error', reason: String(result.body.error ?? result.outcome) });
+      }
     } catch (err) {
-      await client.query('ROLLBACK');
-      outcomes.push({
-        orderId,
-        status: 'error',
-        reason: err instanceof Error ? err.message : 'unknown',
-      });
-    } finally {
-      client.release();
+      outcomes.push({ orderId, status: 'error', reason: err instanceof Error ? err.message : 'unknown' });
     }
   }
 

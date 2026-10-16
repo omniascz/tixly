@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
  *
  * Aby přímý link z mail/SMS šablon nebo wallet karet fungoval i bez „/show".
  */
-export default function TicketRoot({ params }: { params: { locale: string; ticketId: string } }) {
-  redirect(`/${params.locale}/tickets/${params.ticketId}/show`);
+export default async function TicketRoot(props: { params: Promise<{ locale: string; ticketId: string }> }) {
+ const params = await props.params;
+ redirect(`/${params.locale}/tickets/${params.ticketId}/show`);
 }

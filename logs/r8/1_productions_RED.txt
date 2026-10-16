@@ -1,0 +1,145 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r8-productions-terms.live.test.ts [2m ([22m[2m6 tests[22m [2m|[22m [31m6 failed[39m[2m)[22m[33m 404[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r8-productions-terms.live.test.ts[2m > [22mKolo 8 — inscenace a termíny[2m > [22minscenace s kartou se uloží a vrátí[39m
+[31m     → Cannot find module '@/app/api/admin/productions/[id]/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-productions-terms.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-productions-terms.live.test.ts[2m > [22mKolo 8 — inscenace a termíny[2m > [22mprvní termín: ceník zadaný ručně, sedadla z plánku sálu, údaje z inscenace, moderace[39m
+[31m     → Cannot find module '@/app/api/admin/productions/[id]/terms/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-productions-terms.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-productions-terms.live.test.ts[2m > [22mKolo 8 — inscenace a termíny[2m > [22mdalší termín na pár kliknutí: ceník převzatý z předchozího termínu, publikuje se rovnou; termín smí jen doplnit[39m
+[31m     → Cannot find module '@/app/api/admin/productions/[id]/terms/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-productions-terms.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-productions-terms.live.test.ts[2m > [22mKolo 8 — inscenace a termíny[2m > [22mveřejná stránka inscenace: karta + budoucí publikované termíny s městem, sálem a obsazeností; změna karty se promítne[39m
+[31m     → invalid input syntax for type uuid: ""[39m
+[31m   [33m❯[31m tests/fix-r8-productions-terms.live.test.ts[2m > [22mKolo 8 — inscenace a termíny[2m > [22mprogram podle měst: filtr město + měsíc[39m
+[31m     → Cannot find module '@/app/api/public/program/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-productions-terms.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-productions-terms.live.test.ts[2m > [22mKolo 8 — inscenace a termíny[2m > [22mcizí pořadatel inscenaci nevidí a termín k ní nezaloží (ani do cizího sálu)[39m
+[31m     → Cannot find module '@/app/api/admin/productions/[id]/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-productions-terms.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 6 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-productions-terms.live.test.ts[2m > [22mKolo 8 — inscenace a termíny[2m > [22minscenace s kartou se uloží a vrátí
+[31m[1mError[22m: Cannot find module '@/app/api/admin/productions/[id]/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-productions-terms.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-productions-terms.live.test.ts:[2m44:15[22m[39m
+    [90m 42| [39m  }[33m;[39m
+    [90m 43| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 44| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 45| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 46| [39m      method[33m,[39m
+[90m [2m❯[22m tests/fix-r8-productions-terms.live.test.ts:[2m92:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-productions-terms.live.test.ts[2m > [22mKolo 8 — inscenace a termíny[2m > [22mprvní termín: ceník zadaný ručně, sedadla z plánku sálu, údaje z inscenace, moderace
+[31m[1mError[22m: Cannot find module '@/app/api/admin/productions/[id]/terms/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-productions-terms.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-productions-terms.live.test.ts:[2m44:15[22m[39m
+    [90m 42| [39m  }[33m;[39m
+    [90m 43| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 44| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 45| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 46| [39m      method[33m,[39m
+[90m [2m❯[22m tests/fix-r8-productions-terms.live.test.ts:[2m101:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-productions-terms.live.test.ts[2m > [22mKolo 8 — inscenace a termíny[2m > [22mdalší termín na pár kliknutí: ceník převzatý z předchozího termínu, publikuje se rovnou; termín smí jen doplnit
+[31m[1mError[22m: Cannot find module '@/app/api/admin/productions/[id]/terms/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-productions-terms.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-productions-terms.live.test.ts:[2m44:15[22m[39m
+    [90m 42| [39m  }[33m;[39m
+    [90m 43| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 44| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 45| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 46| [39m      method[33m,[39m
+[90m [2m❯[22m tests/fix-r8-productions-terms.live.test.ts:[2m122:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-productions-terms.live.test.ts[2m > [22mKolo 8 — inscenace a termíny[2m > [22mveřejná stránka inscenace: karta + budoucí publikované termíny s městem, sálem a obsazeností; změna karty se promítne
+[31m[1merror[22m: invalid input syntax for type uuid: ""[39m
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m tests/fix-r8-productions-terms.live.test.ts:[2m140:5[22m[39m
+    [90m138| [39m  [34mit[39m([32m'veřejná stránka inscenace: karta + budoucí publikované termíny s[39m…
+    [90m139| [39m    [90m// prodané místo v prvním termínu → obsazenost[39m
+    [90m140| [39m    [35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`UPDATE catalog.event_seats SET status='sol[39m…
+    [90m   | [39m    [31m^[39m
+    [90m141| [39m    [90m// termín v minulosti a neschválený termín se nezobrazí[39m
+    [90m142| [39m    [35mconst[39m past [33m=[39m [35mawait[39m [34mcall[39m([32m'POST'[39m[33m,[39m [32m`/api/admin/productions/[39m[36m${[39mproducti…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 129, severity: 'ERROR', code: '22P02', detail: undefined, hint: undefined, position: undefined, internalPosition: undefined, internalQuery: undefined, where: 'unnamed portal parameter $1 = \'\'', schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'uuid.c', line: '138', routine: 'string_to_uuid' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-productions-terms.live.test.ts[2m > [22mKolo 8 — inscenace a termíny[2m > [22mprogram podle měst: filtr město + měsíc
+[31m[1mError[22m: Cannot find module '@/app/api/public/program/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-productions-terms.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-productions-terms.live.test.ts:[2m44:15[22m[39m
+    [90m 42| [39m  }[33m;[39m
+    [90m 43| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 44| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 45| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 46| [39m      method[33m,[39m
+[90m [2m❯[22m tests/fix-r8-productions-terms.live.test.ts:[2m159:17[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-productions-terms.live.test.ts[2m > [22mKolo 8 — inscenace a termíny[2m > [22mcizí pořadatel inscenaci nevidí a termín k ní nezaloží (ani do cizího sálu)
+[31m[1mError[22m: Cannot find module '@/app/api/admin/productions/[id]/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-productions-terms.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-productions-terms.live.test.ts:[2m44:15[22m[39m
+    [90m 42| [39m  }[33m;[39m
+    [90m 43| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 44| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 45| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 46| [39m      method[33m,[39m
+[90m [2m❯[22m tests/fix-r8-productions-terms.live.test.ts:[2m173:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m6 failed[39m[22m[90m (6)[39m
+[2m   Start at [22m 09:51:08
+[2m   Duration [22m 1.17s[2m (transform 126ms, setup 0ms, collect 154ms, tests 404ms, environment 0ms, prepare 107ms)[22m
+

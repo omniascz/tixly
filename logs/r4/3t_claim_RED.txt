@@ -1,0 +1,48 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r4-transfer-claim.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 561[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-transfer-claim.live.test.ts[2m > [22mKrok 3 (kolo 4) — převzetí převodu vstupenky změní vlastníka[2m > [22modeslání odesílatelem, převzetí příjemcem → vlastníkem je příjemce[39m
+[31m     → expected '3702c44f-81d3-44c0-b1e5-f0dcf48e5056' to be '87286dfd-bb80-4ac6-8162-5ed81cbba59b' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r4-transfer-claim.live.test.ts[2m > [22mKrok 3 (kolo 4) — převzetí převodu vstupenky změní vlastníka[2m > [22mvstupenka mezitím změnila majitele → převod zůstane pending, routa chybu (ne tiché claimed)[39m
+[31m     → {"claimed":true,"ticketId":"7fdf218a-4014-470c-99df-e45441508c92"}: expected 200 to be greater than or equal to 400[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-transfer-claim.live.test.ts[2m > [22mKrok 3 (kolo 4) — převzetí převodu vstupenky změní vlastníka[2m > [22modeslání odesílatelem, převzetí příjemcem → vlastníkem je příjemce
+[31m[1mAssertionError[22m: expected '3702c44f-81d3-44c0-b1e5-f0dcf48e5056' to be '87286dfd-bb80-4ac6-8162-5ed81cbba59b' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 87286dfd-bb80-4ac6-8162-5ed81cbba59b[39m
+[31m+ 3702c44f-81d3-44c0-b1e5-f0dcf48e5056[39m
+
+[36m [2m❯[22m tests/fix-r4-transfer-claim.live.test.ts:[2m48:114[22m[39m
+    [90m 46| [39m    })[33m,[39m claim[33m.[39m[33mPOST[39m[33m,[39m { params[33m:[39m { token[33m:[39m tr[33m.[39mtransfer_token } })[33m;[39m
+    [90m 47| [39m    [34mexpect[39m(c[33m.[39mstatus[33m,[39m [35mawait[39m c[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m 48| [39m    [34mexpect[39m(([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT owner_id FROM tickets.ticke[39m…
+    [90m   | [39m                                                                                                                 [31m^[39m
+    [90m 49| [39m  })[33m;[39m
+    [90m 50| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-transfer-claim.live.test.ts[2m > [22mKrok 3 (kolo 4) — převzetí převodu vstupenky změní vlastníka[2m > [22mvstupenka mezitím změnila majitele → převod zůstane pending, routa chybu (ne tiché claimed)
+[31m[1mAssertionError[22m: {"claimed":true,"ticketId":"7fdf218a-4014-470c-99df-e45441508c92"}: expected 200 to be greater than or equal to 400[39m
+[36m [2m❯[22m tests/fix-r4-transfer-claim.live.test.ts:[2m65:46[22m[39m
+    [90m 63| [39m      method[33m:[39m [32m'POST'[39m[33m,[39m headers[33m:[39m { [32m'content-type'[39m[33m:[39m [32m'application/json'[39m[33m,[39m a…
+    [90m 64| [39m    })[33m,[39m claim[33m.[39m[33mPOST[39m[33m,[39m { params[33m:[39m { token } })[33m;[39m
+    [90m 65| [39m    [34mexpect[39m(c[33m.[39mstatus[33m,[39m [35mawait[39m c[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoBeGreaterThanOrEqual[39m([34m40[39m…
+    [90m   | [39m                                             [31m^[39m
+    [90m 66| [39m    [34mexpect[39m(([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT status FROM orders.ticket_t[39m…
+    [90m 67| [39m    [34mexpect[39m(([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT owner_id FROM tickets.ticke[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 21:07:49
+[2m   Duration [22m 1.06s[2m (transform 126ms, setup 0ms, collect 114ms, tests 561ms, environment 0ms, prepare 89ms)[22m
+

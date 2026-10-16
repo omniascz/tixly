@@ -1,0 +1,6 @@
+# Shell skripty musi mit LF i na Windows (core.autocrlf) — jinak bash: "set: pipefail: invalid option".
+*.sh text eol=lf
+# Kolo 9: skripty se shebangem a soubory s otiskem musí mít LF i na Windows (core.autocrlf=true):
+# .mjs se shebangem + CRLF → vitest „SyntaxError: Invalid or unexpected token"; XSD otisk (sha) se liší podle konců řádků.
+*.mjs text eol=lf
+*.xsd text eol=lf

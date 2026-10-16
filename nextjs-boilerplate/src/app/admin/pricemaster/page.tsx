@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, BarChart3, FlaskConical, AlertCircle } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';

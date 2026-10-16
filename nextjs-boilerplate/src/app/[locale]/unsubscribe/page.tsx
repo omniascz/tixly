@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const SCOPE_LABELS: Record<string, string> = {
@@ -12,7 +12,8 @@ const SCOPE_LABELS: Record<string, string> = {
   all: 'všechny propagační e-maily',
 };
 
-export default function UnsubscribePage({ params }: { params: { locale: string } }) {
+export default function UnsubscribePage(_props: { params: Promise<{ locale: string }> }) {
+  const params = useParams<{ locale: string }>();
   const sp = useSearchParams();
   const token = sp.get('token');
   const [status, setStatus] = useState<'loading' | 'unsubscribed' | 'invalid' | 'network_error'>(

@@ -1,0 +1,15 @@
+# E2E 12_cron_expire_probe  base=http://localhost:3200  2026-10-03T12:37:14.919Z
+PASS E0  priprava: 8 GA objednavek (16 ks) + 1 sedadlova (2 sedadla) pending
+       {"orders":9,"gaRemaining":4,"seatHold":{"status":200,"body":"{\"holdToken\":\"b2265ca7-f169-4d7d-9f5d-291a9c1aadcc\",\"seatIds\":[\"b5248d09-bf1f-4c73-90d7-08d81abf7046\",\"c8b98ec1-06af-43d2-b77c-961b6ced998f\"],\"expiresAt\":\"2026-10-03T12:52:24.600Z\"}"},"seatCheckout":{"status":200,"body":"{\"orderId\":\"ebe97b93-7e2c-4f75-8811-d308b33e99ff\",\"paymentId\":\"3027450173\",\"gatewayUrl\":\"http…
+PASS E1  cron expire-pending-orders -> HTTP 200 (ne 500 / 42703)
+       {"status":200,"body":"{\"ok\":true,\"expiredCount\":9,\"seatsReleased\":2}"}
+PASS E2  vsech 9 proslych objednavek -> expired
+       [{"status":"expired","n":9}]
+PASS E3  GA kapacita vracena: remaining 4 -> 20
+       {"gaBefore":4,"gaAfter":20}
+PASS E4  sedadla uvolnena (available, bez order_id)
+       {"seatsBefore":[{"status":"sold"},{"status":"sold"}],"seatsAfter":[{"status":"available","order_id":null},{"status":"available","order_id":null}]}
+INFO E5  dispatcher: GET /api/cron/dispatch?job=expire-pending-orders (INFO — propisuje vnitrni status?)
+       {"status":200,"body":"{\"job\":\"expire-pending-orders\",\"status\":200,\"result\":{\"ok\":true,\"expiredCount\":0,\"seatsReleased\":0}}"}
+
+# SUMMARY {"PASS":5,"FAIL":0,"INFO":1}

@@ -1,0 +1,16 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [32m✓[39m tests/fix-r2-identity-headers.live.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[33m 974[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-k5-csrf.live.test.ts [2m ([22m[2m9 tests[22m[2m)[22m[33m 734[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-k4d-token-type.live.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[33m 799[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-identity-all-api.live.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 471[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-mobile-auth.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 19879[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-my-auth.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 350[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[32m34 passed[39m[22m[90m (34)[39m
+[2m   Start at [22m 20:13:12
+[2m   Duration [22m 28.20s[2m (transform 598ms, setup 2ms, collect 1.20s, tests 23.21s, environment 3ms, prepare 1.70s)[22m
+

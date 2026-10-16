@@ -16,11 +16,17 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
-import { getMolliePayment } from '@/lib/payment/mollie';
+import { withWebhookAlert } from '@/lib/ops/webhook-alert';
+import { getMollieConfig, getMolliePayment } from '@/lib/payment/mollie';
 
 export const dynamic = 'force-dynamic';
 
+// Kolo 14 / krok 3: selhání webhooku → upozornění provozu (lib/ops/webhook-alert)
 export async function POST(req: NextRequest): Promise<Response> {
+  return withWebhookAlert('mollie', req, () => handlePost(req));
+}
+
+async function handlePost(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
     // Mollie sends application/x-www-form-urlencoded: id=tr_xxx
     const contentType = req.headers.get('content-type') ?? '';
@@ -42,6 +48,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     if (!molliePaymentId) {
       return NextResponse.json({ error: 'MISSING_ID' }, { status: 400 });
     }
+    // Kolo 2: bez API klíče nelze notifikaci ověřit (Mollie nepodepisuje — autenticita = dotaz na API).
+    if (!getMollieConfig().isConfigured) {
+      return NextResponse.json({ error: 'WEBHOOK_NOT_CONFIGURED' }, { status: 401 });
+    }
 
     // Fetch authoritative status from Mollie
     let payment;
@@ -49,6 +59,11 @@ export async function POST(req: NextRequest): Promise<Response> {
       payment = await getMolliePayment(molliePaymentId);
     } catch (err) {
       console.error('[mollie webhook] getMolliePayment failed:', err);
+      const httpStatus = (err as { httpStatus?: number }).httpStatus;
+      if (httpStatus && httpStatus >= 400 && httpStatus < 500) {
+        // platba u Mollie neexistuje / nepatří nám → podvržená notifikace
+        return NextResponse.json({ error: 'UNKNOWN_PAYMENT' }, { status: 400 });
+      }
       return NextResponse.json({ error: 'MOLLIE_LOOKUP_FAILED' }, { status: 502 });
     }
 
@@ -85,7 +100,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query(
         `INSERT INTO orders.payment_events
            (order_id, event_type, gopay_status, amount, raw_payload, payment_provider)
-         VALUES ($1, $2, $3, $4, $5::jsonb, 'mollie')`,
+         VALUES ($1, $2, $3, $4, $5::jsonb, 'mollie')
+           ON CONFLICT DO NOTHING`,
         [
           order.id,
           payment.status === 'paid' ? 'payment_paid' : 'webhook_received',
@@ -99,7 +115,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
       if (payment.status === 'paid' && order.status === 'pending') {
         const paidMinor = Math.round(parseFloat(payment.amount.value) * 100);
-        const amountOk = paidMinor >= order.total_amount && payment.amount.currency === order.currency;
+        const amountOk = paidMinor > 0 && paidMinor >= order.total_amount && payment.amount.currency === order.currency;
 
         if (!amountOk) {
           await client.query('ROLLBACK');

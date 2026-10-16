@@ -6,9 +6,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
-import { runAsUser } from '@/lib/auth';
 import { z } from 'zod';
+import { runAsUser } from '@/lib/auth';
+import { db } from '@/lib/db/rls-pool';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
+import { demoPathDisabledResponse } from '@/lib/payment/demo-path-guard';
 
 
 interface SubRow {
@@ -41,6 +43,9 @@ interface PlanRow {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('subscriptions');
+  if (featureOff) return featureOff;
   return runAsUser(req, async (userId) => {
   const promoterSlug = req.nextUrl.searchParams.get('promoterSlug');
 
@@ -111,6 +116,13 @@ const createSchema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('subscriptions');
+  if (featureOff) return featureOff;
+  // Kolo 6: hodnota bez platby (třída K1) — vypnuto, dokud není napojený skutečný platební tok
+  // (create payment → webhook → paid → aktivace). Viz lib/payment/demo-path-guard.ts.
+  const demoOff = demoPathDisabledResponse();
+  if (demoOff) return demoOff;
   return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);

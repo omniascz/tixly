@@ -12,6 +12,7 @@
 
 import { timingSafeEqual } from 'crypto';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { releaseOrderCapacity } from '@/lib/orders/release-capacity';
 import { NextRequest, NextResponse } from 'next/server';
 
 
@@ -39,8 +40,12 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     // Najdi expired pending orders
     const expired = await client.query<{ id: string }>(
-      `SELECT id FROM orders.orders
+      `SELECT id FROM orders.orders o
        WHERE status = 'pending' AND expires_at < now()
+         -- kolo 8 / krok 5: rezervace na pokladně uzavírá cron seat-reservations (e-mail kupci + stav rezervace)
+         AND NOT EXISTS (SELECT 1 FROM orders.seat_reservations r WHERE r.order_id = o.id AND r.status = 'active')
+         -- kolo 8 / krok 6: firemní objednávka na fakturu drží místa do zaplacení / ručního uvolnění
+         AND NOT EXISTS (SELECT 1 FROM b2b_orders.invoice_orders io WHERE io.order_id = o.id)
        FOR UPDATE
        LIMIT 500`,
     );
@@ -57,31 +62,13 @@ export async function POST(req: NextRequest): Promise<Response> {
         [orderIds],
       );
 
-      // 2) Restore remaining_qty
-      await client.query(
-        `UPDATE catalog.ticket_types tt
-           SET remaining_qty = remaining_qty + sub.qty
-         FROM (
-           SELECT ticket_type_id, SUM(quantity) AS qty
-           FROM orders.order_items
-           WHERE order_id = ANY($1::uuid[])
-           GROUP BY ticket_type_id
-         ) sub
-         WHERE tt.id = sub.ticket_type_id`,
-        [orderIds],
-      );
-
-      // 3) Uvolnit event_seats (přes order_id nebo přes order_items.event_seat_id)
-      const seatsRes = await client.query(
-        `UPDATE catalog.event_seats
-           SET status = 'available', order_id = NULL, ticket_id = NULL,
-               hold_user_id = NULL, hold_until = NULL, updated_at = now()
-         WHERE order_id = ANY($1::uuid[])
-            OR id IN (SELECT event_seat_id FROM orders.order_items
-                      WHERE order_id = ANY($1::uuid[]) AND event_seat_id IS NOT NULL)`,
-        [orderIds],
-      );
-      seatsReleased = seatsRes.rowCount ?? 0;
+      // 2+3) GA množství, sedadla linknutá na objednávku i promo max_uses — přes
+      //       sdílený helper (tentýž, který volá webhook při zrušené platbě).
+      //       FIX K3: dřívější krok 3 sahal na `order_items.event_seat_id`, který
+      //       ve schématu NEEXISTUJE (sloupec je `seat_id`) → 42703 → cron vracel
+      //       500 a nic neuvolnil. Kapacita tak zůstávala zamčená navždy.
+      const rel = await releaseOrderCapacity(client, orderIds);
+      seatsReleased = rel.seatsReleased;
 
       // 4) Audit log per order
       for (const id of orderIds) {
@@ -93,6 +80,18 @@ export async function POST(req: NextRequest): Promise<Response> {
         );
       }
     }
+
+    // 5) SEATED hold: pending seated objednávky drží sedadla přes hold_until (ne přes
+    //    order_id). FIX K3 („expirace uvolní i sedadla"): ve stejné transakci vrátíme
+    //    do prodeje všechna sedadla s prošlým holdem — totožná logika jako
+    //    `release-expired-seat-holds`, idempotentní.
+    const heldRes = await client.query(
+      `UPDATE catalog.event_seats
+          SET status = 'available', hold_user_id = NULL, hold_until = NULL,
+              notes = NULL, updated_at = now()
+        WHERE status = 'held' AND hold_until IS NOT NULL AND hold_until < now()`,
+    );
+    seatsReleased += heldRes.rowCount ?? 0;
 
     await client.query('COMMIT');
     return NextResponse.json({

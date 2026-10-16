@@ -10,6 +10,7 @@ import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { encryptSecret } from '@/lib/crypto';
+import { demoPathDisabledResponse } from '@/lib/payment/demo-path-guard';
 
 
 const schema = z.object({
@@ -19,6 +20,10 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // Kolo 6: hodnota bez platby (třída K1) — vypnuto, dokud není napojený skutečný platební tok
+  // (create payment → webhook → paid → aktivace). Viz lib/payment/demo-path-guard.ts.
+  const demoOff = demoPathDisabledResponse();
+  if (demoOff) return demoOff;
   return runWithServiceContext(async () => {
 
   const body: unknown = await req.json().catch(() => ({}));

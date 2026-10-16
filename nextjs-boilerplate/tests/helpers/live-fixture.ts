@@ -29,6 +29,7 @@ import { randomUUID } from 'crypto';
 import { readFile } from 'fs/promises';
 import { readdirSync } from 'fs';
 import { join } from 'path';
+import { createLocalLiveClone, hasLocalLiveDb } from './live-local-clone';
 
 const NEON_API = 'https://console.neon.tech/api/v2';
 const PROJECT = 'fragrant-wildflower-75132205';
@@ -58,6 +59,11 @@ function discoverPendingMigrations(): string[] {
 export const PENDING_MIGRATIONS: string[] = discoverPendingMigrations();
 
 export const hasNeonKey = Boolean(process.env.NEON_API_KEY);
+/**
+ * Kolo 14 / krok 4: live testy dřív běžely JEN proti Neon klonu (v CI i lokálně přeskočené). Bez NEON_API_KEY a s
+ * FIX_E2E=1 jdou proti lokální DB z migrací (tests/helpers/live-local-clone) — v CI live sadě i lokálně.
+ */
+export const hasLiveDb = hasNeonKey || hasLocalLiveDb;
 
 async function neon(path: string, init: RequestInit = {}) {
   const res = await fetch(NEON_API + path, {
@@ -87,6 +93,7 @@ export async function createLiveClone(
   label: string,
   opts: { migrations?: string[]; exclude?: string[] } = {},
 ): Promise<LiveClone> {
+  if (!hasNeonKey) return createLocalLiveClone(label, opts);
   const created = await neon(`/projects/${PROJECT}/branches`, {
     method: 'POST',
     body: JSON.stringify({
@@ -215,6 +222,11 @@ export function makeSeed(pool: Pool, runId: string = String(Date.now())) {
       kind?: string;
       status?: string;
       currency?: string;
+      /** Kolo 7 (C-54): sazba DPH typu vstupenky; null = bez sazby (plátce pak nemůže prodávat). */
+      vatRateCode?: string | null;
+      /** Kolo 7: plátce DPH (výchozí true jako v DB) s platným DIČ. */
+      vatPayer?: boolean;
+      dic?: string | null;
     } = {},
   ): Promise<SeededChain> {
     const {
@@ -224,6 +236,9 @@ export function makeSeed(pool: Pool, runId: string = String(Date.now())) {
       kind = 'standing',
       status = 'published',
       currency = 'CZK',
+      vatRateCode = 'CZ_REDUCED',
+      vatPayer = true,
+      dic = 'CZ12345678',
     } = opts;
 
     const admin = await user('admin', 'Admin');
@@ -234,9 +249,9 @@ export function makeSeed(pool: Pool, runId: string = String(Date.now())) {
 
     const promoterEmail = mail('promoter');
     await pool.query(
-      `INSERT INTO platform.promoters (id, name, email, contact_email, slug)
-       VALUES ($1, 'Test Promoter', $2, $2, $3)`,
-      [promoterId, promoterEmail, uniq('promoter')],
+      `INSERT INTO platform.promoters (id, name, email, contact_email, slug, vat_payer, company_dic)
+       VALUES ($1, 'Test Promoter', $2, $2, $3, $4, $5)`,
+      [promoterId, promoterEmail, uniq('promoter'), vatPayer, dic],
     );
     await pool.query(
       `INSERT INTO platform.promoter_members (promoter_id, user_id, role)
@@ -258,9 +273,9 @@ export function makeSeed(pool: Pool, runId: string = String(Date.now())) {
     );
     await pool.query(
       `INSERT INTO catalog.ticket_types
-         (id, event_id, name, kind, base_price, total_qty, remaining_qty, visibility)
-       VALUES ($1, $2, 'Standard', $3, $4, $5, $6, 'public')`,
-      [ticketTypeId, eventId, kind, basePrice, totalQty, remainingQty],
+         (id, event_id, name, kind, base_price, total_qty, remaining_qty, visibility, vat_rate_code)
+       VALUES ($1, $2, 'Standard', $3, $4, $5, $6, 'public', $7)`,
+      [ticketTypeId, eventId, kind, basePrice, totalQty, remainingQty, vatRateCode],
     );
 
     return { promoterId, adminUserId: admin.id, venueId, eventId, ticketTypeId };

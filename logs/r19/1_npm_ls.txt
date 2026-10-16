@@ -1,0 +1,7 @@
+ticketing-platform@1.0.0 C:\Users\omnia\Documents\tixly\nextjs-boilerplate
++-- @sentry/nextjs@11.7.0
+| `-- next@15.5.27 deduped
++-- next-themes@0.2.1
+| `-- next@15.5.27 deduped
+`-- next@15.5.27
+

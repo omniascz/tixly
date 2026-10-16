@@ -1,0 +1,55 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r4-printed-qr.live.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[33m 532[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-printed-qr.live.test.ts[2m > [22mKrok 3h (kolo 4) — tištěná vstupenka prodejce se dá naskenovat (TXP2)[2m > [22mAPI tisku vrací podepsaný token TXP2 a skener ho pod rotating_24h 1 h před akcí vpustí[39m
+[31m     → .toMatch() expects to receive a string, but got undefined[39m
+[31m   [33m❯[31m tests/fix-r4-printed-qr.live.test.ts[2m > [22mKrok 3h (kolo 4) — tištěná vstupenka prodejce se dá naskenovat (TXP2)[2m > [22mpadělaný token → odmítnut[39m
+[31m     → Cannot read properties of undefined (reading 'slice')[39m
+[31m   [33m❯[31m tests/fix-r4-printed-qr.live.test.ts[2m > [22mKrok 3h (kolo 4) — tištěná vstupenka prodejce se dá naskenovat (TXP2)[2m > [22mtoken vstupenky po převodu na jiný termín neplatí (vazba na akci)[39m
+[31m     → signEventPrintToken is not a function[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-printed-qr.live.test.ts[2m > [22mKrok 3h (kolo 4) — tištěná vstupenka prodejce se dá naskenovat (TXP2)[2m > [22mAPI tisku vrací podepsaný token TXP2 a skener ho pod rotating_24h 1 h před akcí vpustí
+[31m[1mTypeError[22m: .toMatch() expects to receive a string, but got undefined[39m
+[36m [2m❯[22m tests/fix-r4-printed-qr.live.test.ts:[2m64:58[22m[39m
+    [90m 62| [39m  [34mit[39m([32m'API tisku vrací podepsaný token TXP2 a skener ho pod rotating_24[39m…
+    [90m 63| [39m    [35mconst[39m [t] [33m=[39m [35mawait[39m [34mprintTokens[39m()[33m;[39m
+    [90m 64| [39m    [34mexpect[39m(t[33m.[39mprintToken[33m,[39m [32m'tisk musí nést tiskový token'[39m)[33m.[39m[34mtoMatch[39m([36m/^TXP[39m…
+    [90m   | [39m                                                         [31m^[39m
+    [90m 65| [39m    [35mconst[39m s [33m=[39m [35mawait[39m [34mscan[39m(t[33m.[39mprintToken[33m![39m)[33m;[39m
+    [90m 66| [39m    [34mexpect[39m(s[33m.[39mstatus[33m,[39m s[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-printed-qr.live.test.ts[2m > [22mKrok 3h (kolo 4) — tištěná vstupenka prodejce se dá naskenovat (TXP2)[2m > [22mpadělaný token → odmítnut
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'slice')[39m
+[36m [2m❯[22m tests/fix-r4-printed-qr.live.test.ts:[2m73:34[22m[39m
+    [90m 71| [39m  [34mit[39m([32m'padělaný token → odmítnut'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 72| [39m    [35mconst[39m [t] [33m=[39m [35mawait[39m [34mprintTokens[39m()[33m;[39m
+    [90m 73| [39m    [35mconst[39m forged [33m=[39m t[33m.[39mprintToken[33m![39m[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [33m-[39m[34m4[39m) [33m+[39m (t[33m.[39mprintToken[33m![39m[33m.[39m[34mendsWit[39m…
+    [90m   | [39m                                 [31m^[39m
+    [90m 74| [39m    [35mconst[39m s [33m=[39m [35mawait[39m [34mscan[39m(forged)[33m;[39m
+    [90m 75| [39m    [34mexpect[39m(s[33m.[39mstatus[33m,[39m s[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m401[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-printed-qr.live.test.ts[2m > [22mKrok 3h (kolo 4) — tištěná vstupenka prodejce se dá naskenovat (TXP2)[2m > [22mtoken vstupenky po převodu na jiný termín neplatí (vazba na akci)
+[31m[1mTypeError[22m: signEventPrintToken is not a function[39m
+[36m [2m❯[22m tests/fix-r4-printed-qr.live.test.ts:[2m83:19[22m[39m
+    [90m 81| [39m    [35mconst[39m tId [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT id FROM tickets.ticket[39m…
+    [90m 82| [39m    [35mconst[39m { signEventPrintToken } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/lib/tickets/print-[39m…
+    [90m 83| [39m    [35mconst[39m token [33m=[39m [34msignEventPrintToken[39m(tId[33m,[39m fc2[33m.[39meventId)[33m;[39m
+    [90m   | [39m                  [31m^[39m
+    [90m 84| [39m    [90m// vstupenka přesunuta na akci fc (jiný termín) — token z původní [39m…
+    [90m 85| [39m    [35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`UPDATE orders.orders SET event_id=$2 WHERE[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[90m (3)[39m
+[2m   Start at [22m 21:23:40
+[2m   Duration [22m 1.04s[2m (transform 157ms, setup 0ms, collect 133ms, tests 532ms, environment 0ms, prepare 81ms)[22m
+

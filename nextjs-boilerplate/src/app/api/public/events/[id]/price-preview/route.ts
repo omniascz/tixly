@@ -19,10 +19,8 @@ import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 const ALLOWED_CHANNELS = new Set(['online', 'box_office', 'partner', 'kiosk', 'embed', 'phone']);
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const url = new URL(req.url);
   const channel = (url.searchParams.get('channel') ?? 'online').toLowerCase();
   const ticketTypeId = url.searchParams.get('ticketTypeId');

@@ -75,10 +75,8 @@ function summarize(result: ParseResult): {
   return { sectors: result.layout.sectors.length, rows: totalRows, seats: totalSeats, bySector };
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (admin) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = bodySchema.safeParse(body);

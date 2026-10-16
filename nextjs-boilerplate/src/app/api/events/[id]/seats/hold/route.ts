@@ -14,7 +14,9 @@
 import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { busyResponse, isDbOverloaded, withDbOverload } from '@/lib/db/overload';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 const HOLD_TTL_MIN = 15;
 const MAX_SEATS = 10;
@@ -53,7 +55,13 @@ export function OPTIONS(): Response {
   return new Response(null, { status: 204 });
 }
 
-export async function POST(
+// Kolo 14: vyčerpaný pool DB při náporu → řízené 503 Retry-After (lib/db/overload)
+export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await ctx.params; // Next 15: params je Promise
+  return withDbOverload(() => postHold(req, { params }));
+}
+
+async function postHold(
   req: NextRequest,
   { params }: { params: { id: string } },
 ): Promise<Response> {
@@ -66,6 +74,9 @@ export async function POST(
     );
   }
 
+  // Kolo 7 (C-29): držení sedadla je začátek nákupu kupce — po uzávěrce online prodeje ne.
+  const salesClosed = await saleBlockedResponse(db(), params.id, 'online');
+  if (salesClosed) return salesClosed;
   // Identita pro "uvolni MŮJ předchozí hold":
   //  - authed buyer → x-user-id (uložené v hold_user_id),
   //  - guest        → stabilní x-fingerprint z prohlížeče (uložené v hold_label).
@@ -172,7 +183,8 @@ export async function POST(
         expiresAt: expiresAt.toISOString(),
       });
     } catch (err) {
-      await client.query('ROLLBACK');
+      await client.query('ROLLBACK').catch(() => undefined);
+      if (isDbOverloaded(err)) return busyResponse();
       console.error('[seat hold]', err);
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     } finally {
@@ -181,10 +193,8 @@ export async function POST(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const body = (await req.json().catch(() => ({}))) as { holdToken?: string };
   const holdToken = body.holdToken;
   if (!holdToken || !/^[0-9a-f-]{36}$/i.test(holdToken)) {

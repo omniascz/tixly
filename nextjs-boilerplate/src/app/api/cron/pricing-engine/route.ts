@@ -4,11 +4,12 @@
  * Vercel cron handler. Periodicky (každých 15 min) evaluuje pricing rules
  * pro každý aktivní ticket_type a aplikuje nové ceny pokud se změnily.
  *
- * Authorization: x-vercel-cron header (Vercel auto-injects). Pro lokální
- * testování přidat header `x-cron-secret: $CRON_SECRET`.
+ * Authorization: `Authorization: Bearer $CRON_SECRET` (Vercel cron) nebo
+ * `x-cron-secret: $CRON_SECRET`. Hlavička x-vercel-cron se NEUZNÁVÁ (podvrhnutelná).
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { isCronAuthorized } from '@/lib/security/cron-auth';
 import { evaluatePricing, applyPricing } from '@/lib/pricing/rules-engine';
 
 
@@ -18,10 +19,8 @@ export const maxDuration = 300;
 export async function GET(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
 
-  // Vercel cron sends x-vercel-cron header
-  const isVercelCron = req.headers.get('x-vercel-cron') !== null;
-  const secret = req.headers.get('x-cron-secret');
-  if (!isVercelCron && secret !== process.env.CRON_SECRET) {
+  // Kolo 2: `x-vercel-cron` pošle kdokoli → dřív stačilo k běhu cronu bez tajemství.
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
   }
 

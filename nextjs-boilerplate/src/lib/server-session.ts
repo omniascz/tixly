@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { isAccessTokenPayload } from '@/lib/security/token-type';
 import { jwtVerify } from 'jose';
 import {
   db,
@@ -18,7 +19,7 @@ export async function getServerRoles(): Promise<{
   /** Role aktivního členství (owner/manager/staff…) — pro role-scoped navigaci. */
   promoterRole: string | null;
 } | null> {
-  const token = cookies().get('accessToken')?.value;
+  const token = (await cookies()).get('accessToken')?.value;
   if (!token) return null;
   const secret = process.env.JWT_SECRET;
   if (!secret || secret.length < 32) return null;
@@ -26,6 +27,7 @@ export async function getServerRoles(): Promise<{
     const { payload } = await jwtVerify(token, new TextEncoder().encode(secret), {
       algorithms: ['HS256'],
     });
+    if (!isAccessTokenPayload(payload)) return null; // FIX K4d
     const roles = (payload as {
       roles?: {
         isPlatformAdmin?: boolean;
@@ -52,7 +54,7 @@ export async function getServerRoles(): Promise<{
  * jako middleware (payload.sub + roles.isPlatformAdmin). Null = nepřihlášen/neplatný.
  */
 async function getServerAuth(): Promise<{ userId: string; isPlatformAdmin: boolean } | null> {
-  const token = cookies().get('accessToken')?.value;
+  const token = (await cookies()).get('accessToken')?.value;
   if (!token) return null;
   const secret = process.env.JWT_SECRET;
   if (!secret || secret.length < 32) return null;
@@ -60,6 +62,7 @@ async function getServerAuth(): Promise<{ userId: string; isPlatformAdmin: boole
     const { payload } = await jwtVerify(token, new TextEncoder().encode(secret), {
       algorithms: ['HS256'],
     });
+    if (!isAccessTokenPayload(payload)) return null; // FIX K4d
     const userId = typeof payload.sub === 'string' ? payload.sub : null;
     if (!userId) return null;
     const roles = (payload as { roles?: { isPlatformAdmin?: boolean } }).roles;

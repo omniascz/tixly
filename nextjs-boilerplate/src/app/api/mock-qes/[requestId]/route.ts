@@ -8,15 +8,29 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { mockPaymentsAllowed } from '@/lib/payment/mock-guard';
+
+/**
+ * Kolo 4: v produkci zakázáno stejně jako mock platební brány (ALLOW_MOCK_PAYMENTS=1 jen
+ * pro řízené demo). Dřív tahle routa zapisovala podpis přímo a obcházela pojistku z kola 2
+ * (MockQESProvider.verifyWebhookSignature v produkci false) — výchozí poskytovatel je mock.
+ */
+function mockQesBlocked(): Response | null {
+  if (mockPaymentsAllowed()) return null;
+  return NextResponse.json(
+    { error: 'MOCK_DISABLED', message: 'Mock QES is disabled in production.' },
+    { status: 403 },
+  );
+}
 
 export const dynamic = 'force-dynamic';
 
 const APP_URL = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { requestId: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ requestId: string }> }): Promise<Response> {
+  const params = await props.params;
+  const blocked = mockQesBlocked();
+  if (blocked) return blocked;
   const row = await runWithServiceContext(() =>
     db().query(
       `SELECT id, document_type, document_hash, document_content_b64,
@@ -54,10 +68,10 @@ export async function GET(
   });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { requestId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ requestId: string }> }): Promise<Response> {
+  const params = await props.params;
+  const blocked = mockQesBlocked();
+  if (blocked) return blocked;
   const body = await req.json() as { action: 'sign' | 'reject'; otp?: string };
   if (body.action !== 'sign' && body.action !== 'reject') {
     return NextResponse.json({ error: 'action must be sign or reject' }, { status: 400 });

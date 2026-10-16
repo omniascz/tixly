@@ -1,0 +1,237 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r8-seat-reservations.live.test.ts[2m > [22m[2mKolo 8 — rezervace s platbou na pokladně[2m > [22m[2mexistující prodej na pokladně (box-office/sell) funguje v kontextu pořadatele pod tixly_app[22m[39m
+[POST /box-office/sell] error: null value in column "expires_at" of relation "orders" violates not-null constraint
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\admin\events\[id]\box-office\sell\route.ts:101:24
+    at admin [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r8-seat-reservations.live.test.ts:35:15[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r8-seat-reservations.live.test.ts:300:15
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m
+    at startTests [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:967:3[90m)[39m {
+  length: [33m174[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'23502'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [32m'orders'[39m,
+  table: [32m'orders'[39m,
+  column: [32m'expires_at'[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'execMain.c'[39m,
+  line: [32m'1982'[39m,
+  routine: [32m'ExecConstraints'[39m
+}
+
+ [33m❯[39m tests/fix-r8-seat-reservations.live.test.ts [2m ([22m[2m9 tests[22m [2m|[22m [31m9 failed[39m[2m)[22m[33m 11990[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mbez povolení nelze rezervovat; povolení + lhůta 5 dní / 2 h před začátkem; e-mail s kódem, místy, cenou a odkazem[39m
+[31m     → expected 'VALIDATION_FAILED' to be 'RESERVATIONS_DISABLED' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mpokladna: hledání podle kódu / jména / e-mailu / telefonu, platba kartou → vstupenky, doklad, způsob platby; podruhé nejde[39m
+[31m     → {"error":"VALIDATION_FAILED","issues":[{"received":"box_office_reservation","code":"invalid_enum_value","options":["gopay"],"path":["paymentMethod"],"message":"Invalid enum value. Expected 'gopay', received 'box_office_reservation'"}]}: expected 422 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mlhůta se vynucuje na serveru i bez cronu; cron (dispatcher) uvolní propadlé + e-mail; expire-pending-orders rezervaci nebere[39m
+[31m     → {"error":"VALIDATION_FAILED","issues":[{"received":"box_office_reservation","code":"invalid_enum_value","options":["gopay"],"path":["paymentMethod"],"message":"Invalid enum value. Expected 'gopay', received 'box_office_reservation'"}]}: expected 422 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mpřipomínka 24 h před koncem lhůty, jen jednou[39m
+[31m     → Cannot find module '@/app/api/internal/cron/seat-reservations/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-seat-reservations.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mzrušení odkazem z e-mailu; špatný token neprojde; místa zpět[39m
+[31m     → mail „undefined" pro zrus-067399@tixly.test nedorazil[39m
+[31m   [33m❯[31m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mlimity: max 2 aktivní rezervace a 10 míst na e-mail a termín — i při souběhu[39m
+[31m     → expected 422 to be 200 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mobsazenost: rezervace se počítají do obsazenosti, ale zvlášť od prodaných[39m
+[31m     → Cannot find module '@/app/api/admin/events/[id]/reservations/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-seat-reservations.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mexistující prodej na pokladně (box-office/sell) funguje v kontextu pořadatele pod tixly_app[39m
+[31m     → {"error":"INTERNAL"}: expected 500 to be 201 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mPOS prodej zapíše způsob platby do evidence pokladny[39m
+[31m     → expected [] to deeply equal [ { payment_type: 'card', …(2) } ][39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 9 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mbez povolení nelze rezervovat; povolení + lhůta 5 dní / 2 h před začátkem; e-mail s kódem, místy, cenou a odkazem
+[31m[1mAssertionError[22m: expected 'VALIDATION_FAILED' to be 'RESERVATIONS_DISABLED' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- RESERVATIONS_DISABLED[39m
+[31m+ VALIDATION_FAILED[39m
+
+[36m [2m❯[22m tests/fix-r8-seat-reservations.live.test.ts:[2m126:28[22m[39m
+    [90m124| [39m    [35mconst[39m off [33m=[39m [35mawait[39m [34mreserve[39m([[34m0[39m][33m,[39m [32m'off@tixly.test'[39m)[33m;[39m
+    [90m125| [39m    [34mexpect[39m(off[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m422[39m)[33m;[39m
+    [90m126| [39m    [34mexpect[39m(off[33m.[39mjson[33m.[39merror)[33m.[39m[34mtoBe[39m([32m'RESERVATIONS_DISABLED'[39m)[33m;[39m
+    [90m   | [39m                           [31m^[39m
+    [90m127| [39m    [35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`UPDATE catalog.event_seats SET status='ava[39m…
+    [90m128| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mpokladna: hledání podle kódu / jména / e-mailu / telefonu, platba kartou → vstupenky, doklad, způsob platby; podruhé nejde
+[31m[1mAssertionError[22m: {"error":"VALIDATION_FAILED","issues":[{"received":"box_office_reservation","code":"invalid_enum_value","options":["gopay"],"path":["paymentMethod"],"message":"Invalid enum value. Expected 'gopay', received 'box_office_reservation'"}]}: expected 422 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 422[39m
+
+[36m [2m❯[22m tests/fix-r8-seat-reservations.live.test.ts:[2m168:30[22m[39m
+    [90m166| [39m    [35mconst[39m email [33m=[39m [32m`pok-[39m[36m${[39m[34mrandomUUID[39m()[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m6[39m)[36m}[39m[32m@tixly.test`[39m[33m;[39m
+    [90m167| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mreserve[39m([[34m4[39m[33m,[39m [34m5[39m][33m,[39m email[33m,[39m { buyerName[33m:[39m [32m'Karel Pokladn[39m…
+    [90m168| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mtext)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m169| [39m    [35mconst[39m code [33m=[39m [33mString[39m(r[33m.[39mjson[33m.[39mreservationCode)[33m;[39m
+    [90m170| [39m    [35mconst[39m search [33m=[39m (q[33m:[39m string) [33m=>[39m [34madmin[39m([32m'GET'[39m[33m,[39m [32m`/api/admin/seat-reserv[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mlhůta se vynucuje na serveru i bez cronu; cron (dispatcher) uvolní propadlé + e-mail; expire-pending-orders rezervaci nebere
+[31m[1mAssertionError[22m: {"error":"VALIDATION_FAILED","issues":[{"received":"box_office_reservation","code":"invalid_enum_value","options":["gopay"],"path":["paymentMethod"],"message":"Invalid enum value. Expected 'gopay', received 'box_office_reservation'"}]}: expected 422 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 422[39m
+
+[36m [2m❯[22m tests/fix-r8-seat-reservations.live.test.ts:[2m205:30[22m[39m
+    [90m203| [39m    [35mconst[39m email [33m=[39m [32m`exp-[39m[36m${[39m[34mrandomUUID[39m()[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m6[39m)[36m}[39m[32m@tixly.test`[39m[33m;[39m
+    [90m204| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mreserve[39m([[34m6[39m[33m,[39m [34m7[39m][33m,[39m email)[33m;[39m
+    [90m205| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mtext)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m206| [39m    [35mconst[39m code [33m=[39m [33mString[39m(r[33m.[39mjson[33m.[39mreservationCode)[33m;[39m
+    [90m207| [39m    [35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`UPDATE orders.seat_reservations SET expire[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mpřipomínka 24 h před koncem lhůty, jen jednou
+[31m[1mError[22m: Cannot find module '@/app/api/internal/cron/seat-reservations/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-seat-reservations.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m cron tests/fix-r8-seat-reservations.live.test.ts:[2m86:27[22m[39m
+    [90m 84| [39m  [35masync[39m [35mfunction[39m [34mcron[39m() {
+    [90m 85| [39m    [35mconst[39m { [33mGET[39m[33m:[39m dispatch } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/app/api/cron/dispatch/ro[39m…
+    [90m 86| [39m    [35mconst[39m { [33mPOST[39m[33m:[39m job } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/app/api/internal/cron/seat-r[39m…
+    [90m   | [39m                          [31m^[39m
+    [90m 87| [39m    globalThis[33m.[39mfetch [33m=[39m ([35masync[39m (input[33m:[39m [33mRequestInfo[39m [33m|[39m [33mURL[39m[33m,[39m init[33m?[39m[33m:[39m [33mReques[39m…
+    [90m 88| [39m      [35mconst[39m u [33m=[39m [35mnew[39m [33mURL[39m([35mtypeof[39m input [33m===[39m [32m'string'[39m [33m?[39m input [33m:[39m input [35minst[39m…
+[90m [2m❯[22m tests/fix-r8-seat-reservations.live.test.ts:[2m242:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mzrušení odkazem z e-mailu; špatný token neprojde; místa zpět
+[31m[1mError[22m: mail „undefined" pro zrus-067399@tixly.test nedorazil[39m
+[36m [2m❯[22m mailFor tests/fix-r8-seat-reservations.live.test.ts:[2m81:11[22m[39m
+    [90m 79| [39m      [35mawait[39m [35mnew[39m [33mPromise[39m((res) [33m=>[39m [34msetTimeout[39m(res[33m,[39m [34m250[39m))[33m;[39m
+    [90m 80| [39m    }
+    [90m 81| [39m    [35mthrow[39m [35mnew[39m [33mError[39m([32m`mail „[39m[36m${[39msubjectPart[36m}[39m[32m" pro [39m[36m${[39mto[36m}[39m[32m nedorazil`[39m)[33m;[39m
+    [90m   | [39m          [31m^[39m
+    [90m 82| [39m  }[33m;[39m
+    [90m 83| [39m  [35mconst[39m seatStatus [33m=[39m [35masync[39m (i[33m:[39m number) [33m=>[39m ([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SEL[39m…
+[90m [2m❯[22m tests/fix-r8-seat-reservations.live.test.ts:[2m254:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mlimity: max 2 aktivní rezervace a 10 míst na e-mail a termín — i při souběhu
+[31m[1mAssertionError[22m: expected 422 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 422[39m
+
+[36m [2m❯[22m tests/fix-r8-seat-reservations.live.test.ts:[2m271:45[22m[39m
+    [90m269| [39m  [34mit[39m([32m'limity: max 2 aktivní rezervace a 10 míst na e-mail a termín — i[39m…
+    [90m270| [39m    [35mconst[39m a [33m=[39m [32m`lim-[39m[36m${[39m[34mrandomUUID[39m()[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m6[39m)[36m}[39m[32m@tixly.test`[39m[33m;[39m
+    [90m271| [39m    [34mexpect[39m(([35mawait[39m [34mreserve[39m([[34m10[39m][33m,[39m a))[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                                            [31m^[39m
+    [90m272| [39m    [90m// souběžně dvě další: projde právě jedna[39m
+    [90m273| [39m    [35mconst[39m both [33m=[39m [35mawait[39m [33mPromise[39m[33m.[39m[34mall[39m([[34mreserve[39m([[34m11[39m][33m,[39m a)[33m,[39m [34mreserve[39m([[34m12[39m][33m,[39m a)…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mobsazenost: rezervace se počítají do obsazenosti, ale zvlášť od prodaných
+[31m[1mError[22m: Cannot find module '@/app/api/admin/events/[id]/reservations/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-seat-reservations.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m admin tests/fix-r8-seat-reservations.live.test.ts:[2m34:15[22m[39m
+    [90m 32| [39m
+    [90m 33| [39m  [35mconst[39m admin [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m…
+    [90m 34| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 35| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 36| [39m      method[33m,[39m headers[33m:[39m { [32m'content-type'[39m[33m:[39m [32m'application/json'[39m[33m,[39m origin[33m:[39m [32m'[39m…
+[90m [2m❯[22m tests/fix-r8-seat-reservations.live.test.ts:[2m285:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mexistující prodej na pokladně (box-office/sell) funguje v kontextu pořadatele pod tixly_app
+[31m[1mAssertionError[22m: {"error":"INTERNAL"}: expected 500 to be 201 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 201[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r8-seat-reservations.live.test.ts:[2m302:30[22m[39m
+    [90m300| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34madmin[39m([32m'POST'[39m[33m,[39m [32m`/api/admin/events/[39m[36m${[39mc[33m.[39meventId[36m}[39m[32m/box-[39m…
+    [90m301| [39m      { sessionId[33m:[39m sid[33m,[39m ticketTypeId[33m:[39m tt[33m,[39m quantity[33m:[39m [34m1[39m[33m,[39m paymentType[33m:[39m [32m'c[39m…
+    [90m302| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mtext)[33m.[39m[34mtoBe[39m([34m201[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m303| [39m    [34mexpect[39m(r[33m.[39mjson[33m.[39mchangeHalire)[33m.[39m[34mtoBe[39m([34m30000[39m)[33m;[39m
+    [90m304| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-reservations.live.test.ts[2m > [22mKolo 8 — rezervace s platbou na pokladně[2m > [22mPOS prodej zapíše způsob platby do evidence pokladny
+[31m[1mAssertionError[22m: expected [] to deeply equal [ { payment_type: 'card', …(2) } ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [[39m
+[32m-   Object {[39m
+[32m-     "is_box_office": true,[39m
+[32m-     "payment_provider": "box_office",[39m
+[32m-     "payment_type": "card",[39m
+[32m-   },[39m
+[32m- ][39m
+[31m+ Array [][39m
+
+[36m [2m❯[22m tests/fix-r8-seat-reservations.live.test.ts:[2m313:15[22m[39m
+    [90m311| [39m      [32m`SELECT s.payment_type, o.payment_provider, o.is_box_office FROM[39m…
+    [90m312| [39m      [r[33m.[39mjson[33m.[39morderId]))[33m.[39mrows[33m;[39m
+    [90m313| [39m    [34mexpect[39m(s)[33m.[39m[34mtoEqual[39m([{ payment_type[33m:[39m [32m'card'[39m[33m,[39m payment_provider[33m:[39m [32m'box_[39m…
+    [90m   | [39m              [31m^[39m
+    [90m314| [39m  })[33m;[39m
+    [90m315| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m9 failed[39m[22m[90m (9)[39m
+[2m   Start at [22m 11:27:43
+[2m   Duration [22m 12.51s[2m (transform 291ms, setup 0ms, collect 113ms, tests 11.99s, environment 0ms, prepare 103ms)[22m
+

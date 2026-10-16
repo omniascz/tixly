@@ -55,7 +55,7 @@ export interface CreatePaymentResult {
 
 type ProviderName = 'gopay' | 'comgate' | 'stripe' | 'mock';
 
-function selectProviderName(currency: string): ProviderName {
+export function selectProviderName(currency: string): ProviderName {
   // Explicit EUR override wins
   if (currency === 'EUR' && process.env.PAYMENT_PROVIDER_EUR) {
     return process.env.PAYMENT_PROVIDER_EUR as ProviderName;

@@ -1,0 +1,43 @@
+# Kolo 19 / krok 2 — GREEN (sentry.*.config.ts: dataCollection + beforeSendSpan, scrub-pii: URL-kódované telefony + scrubSentrySpan)
+Build 2_green_build.txt (stejné prostředí jako RED), spec s vynuceným navzorkováním (sentry-trace sampled=1), výstup 2_green_sentry.txt.
+
+[r19] (f) GET /api/admin/events → 401
+[r19] (f) GET /api/orders/00000000-0000-4000-a000-000000000001 → 401
+[r19] (f) GET /api/platform/promoters → 401
+[r19] (a) POST /api/ops/sentry-check → 500
+[r19] (a) událost: Sentry kontrola: kupec [email], tel. [telefon]; release=6a563c80244e6d0a3b55943dc61a8a1319d5a261
+[r19] (b) GET /api/cron/dispatch?job=charge-installments → 502
+[r19] (b) událost: Cron charge-installments selhal: HTTP 404 tags={"cron":"charge-installments","runbook":"https://github.com/omnia/tixly/blob/main/docs/RUNBOOK-DISASTER-RECOVERY.md"}
+[r19] (c) událost: R19 chyba v prohlížeči: kupec [email], tel. [telefon]
+[r19] (c) požadavky na tunel: ["POST /api/monitoring?o=1&p=1 → 200","POST /api/monitoring?o=1&p=1 → 200"]; přímo na simulátor: []; zablokováno mimo localhost: []
+[r19] obálek: 64; položek event/transaction/span: 52 ({"span":49,"event":3})
+[r19] spanů / transakcí v obálkách: 205 (z toho přes tunel z prohlížeče: 38)
+[r19] (d)+(e) nálezy: žádné
+  1 passed (19.0s)
+
+== 0
+{"transaction":4,"event: Sentry kontrola":1,"event: Cron charge-installments selhal":1}
+grep jana@x.cz: 2
+grep 777 123 456: 2
+grep Nováková: 1
+grep 10.255.255.1: 7
+grep ip_address: 0
+grep {{auto}}: 0
+== 2_red
+{"span":7,"event: Sentry kontrola":1,"event: Cron charge-installments selhal":1,"event: R19 chyba v prohlížeči":1}
+grep jana@x.cz: 1
+grep 777 123 456: 2
+grep Nováková: 2
+grep 10.255.255.1: 4
+grep ip_address: 1
+grep {{auto}}: 0
+== 2_green
+{"span":205,"event: Sentry kontrola":1,"event: Cron charge-installments selhal":1,"event: R19 chyba v prohlížeči":1}
+grep jana@x.cz: 0
+grep 777 123 456: 0
+grep Nováková: 0
+grep 10.255.255.1: 0
+grep ip_address: 0
+grep {{auto}}: 0
+== r14 (logs/r14/3_sentry_envelopes.jsonl)
+{"event: Sentry kontrola":1,"transaction":1,"event: Cron charge-installments selhal":2,"event: relation \"public.forgemsg_credentials\" d":2,"event: Cron forgemsg-provision selhal":2}

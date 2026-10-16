@@ -20,12 +20,52 @@
 import { join } from 'node:path';
 import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
+import { splitGrossMinor } from '@/lib/tax/vat';
 
 // NotoSans-Regular/Bold (Open Font License, latin-ext = plné české znaky).
 // Bez vlastního TTF by default pdfkit Helvetica zlomil diakritiku na boxy.
 const FONT_DIR = join(process.cwd(), 'src', 'lib', 'tickets', 'fonts');
 const FONT_REGULAR = join(FONT_DIR, 'NotoSans-Regular.ttf');
 const FONT_BOLD = join(FONT_DIR, 'NotoSans-Bold.ttf');
+
+/**
+ * Kolo 14 / krok 2 (C-60): při náporu prodeje stálo parsování TTF ~23 % CPU serveru — pdfkit každé PDF znovu
+ * parsoval NotoSans (fontkit/restructure). Rozparsované písmo (objekt fontkitu) se teď drží za běh procesu a každý
+ * dokument nad ním dostane vlastní EmbeddedFont (vlastní subset, vlastní ID). Opírá se o vnitřní pole pdfkit 0.18
+ * (_fontFamilies, _fontCount, _font) — když chybí, padá zpět na běžnou registraci (stejný výstup, jen pomaleji).
+ */
+type PdfDoc = InstanceType<typeof PDFDocument>;
+interface PdfkitInternals { _fontFamilies?: Record<string, unknown>; _fontCount?: number; _font?: { font?: unknown; constructor: unknown } }
+type EmbeddedFontCtor = new (doc: PdfDoc, font: unknown, id: string) => unknown;
+const parsedFonts = new Map<string, unknown>();
+let embeddedFontCtor: EmbeddedFontCtor | null = null;
+let fontParses = 0;
+
+/** Pro testy a diagnostiku: kolikrát se písmo skutečně parsovalo (nejvýš jednou na řez za běh procesu). */
+export function pdfFontCacheStats(): { parses: number; cached: number } {
+  return { parses: fontParses, cached: parsedFonts.size };
+}
+
+function attachFont(doc: PdfDoc, name: string, path: string): void {
+  doc.registerFont(name, path);
+  const d = doc as unknown as PdfkitInternals;
+  const cached = parsedFonts.get(path);
+  if (cached && embeddedFontCtor && d._fontFamilies && typeof d._fontCount === 'number') {
+    d._fontCount += 1;
+    d._fontFamilies[name] = new embeddedFontCtor(doc, cached, `F${d._fontCount}`);
+    return;
+  }
+  // první použití: pdfkit písmo rozparsuje sám, objekt fontkitu a třídu EmbeddedFont si ponecháme
+  const prev = d._font;
+  doc.font(name);
+  fontParses += 1;
+  const ef = d._font;
+  if (ef?.font) {
+    parsedFonts.set(path, ef.font);
+    embeddedFontCtor = ef.constructor as EmbeddedFontCtor;
+  }
+  if (prev) d._font = prev;
+}
 
 export interface TicketPdfData {
   ticketId: string;
@@ -41,6 +81,9 @@ export interface TicketPdfData {
   seatLabel?: string | null;
   /** Bezbariérový vstup — zobrazí se jen u sedadel s accessibility=true */
   accessibleGateInfo?: string | null;
+  /** Kolo 8: slevová kategorie (Senior, ZTP/P…) a nárok, který se u vstupu prokazuje */
+  categoryName?: string | null;
+  proofLabel?: string | null;
 }
 
 export interface PdfHeader {
@@ -55,11 +98,11 @@ export interface PdfHeader {
   brandColorHex?: string | null;
   brandLogoUrl?: string | null;
   /** Sazba DPH v procentech (10 = kulturní akce, 21 = standardní) */
-  vatRatePct?: number;
+  /** Kolo 7: sazba DPH z DB (typ vstupenky); null = prodávající není plátce DPH; undefined = bez rozpisu. */
+  vatRatePct?: number | null;
 }
 
 const DEFAULT_BRAND_COLOR = '#10b981';
-const DEFAULT_VAT_RATE_PCT = 10; // Kulturní akce v ČR
 
 function isValidHex(c: string | null | undefined): c is string {
   return typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c);
@@ -70,8 +113,8 @@ export async function renderTicketsPdf(
   tickets: TicketPdfData[],
 ): Promise<Buffer> {
   const doc = new PDFDocument({ size: 'A4', margin: 48 });
-  doc.registerFont('main', FONT_REGULAR);
-  doc.registerFont('bold', FONT_BOLD);
+  attachFont(doc, 'main', FONT_REGULAR);
+  attachFont(doc, 'bold', FONT_BOLD);
   doc.font('main');
   const chunks: Buffer[] = [];
   doc.on('data', (c: Buffer) => chunks.push(c));
@@ -79,7 +122,7 @@ export async function renderTicketsPdf(
   const brandColor = isValidHex(header.brandColorHex)
     ? header.brandColorHex
     : DEFAULT_BRAND_COLOR;
-  const vatRatePct = header.vatRatePct ?? DEFAULT_VAT_RATE_PCT;
+  const vatRatePct = header.vatRatePct;
   const productionMode = process.env.TICKET_PDF_PRODUCTION_MODE === '1';
 
   for (let i = 0; i < tickets.length; i++) {
@@ -124,6 +167,12 @@ export async function renderTicketsPdf(
     // Ticket type + seat
     doc.fontSize(10).fillColor('#666').text('Typ vstupenky');
     doc.fontSize(14).fillColor('#111').text(t.ticketTypeName);
+    if (t.categoryName) {
+      doc.fontSize(12).fillColor('#111').text(`Kategorie: ${t.categoryName}`);
+    }
+    if (t.proofLabel) {
+      doc.fontSize(11).fillColor('#b45309').text(`Při vstupu předložte průkaz: ${t.proofLabel}`);
+    }
     if (t.seatLabel) {
       doc.fontSize(11).fillColor('#444').text(`Sedadlo: ${t.seatLabel}`);
     }
@@ -213,9 +262,7 @@ export async function renderTicketsPdf(
     doc.moveTo(320, doc.y).lineTo(550, doc.y).stroke('#ddd');
     doc.moveDown(0.4);
 
-    // Rozpis daně: gross = net * (1 + vat/100)  →  net = gross / (1 + vat/100)
-    const netHalire = Math.round(totalGross / (1 + vatRatePct / 100));
-    const vatHalire = totalGross - netHalire;
+    // Kolo 7 (C-54): rozpis daně ze sazby typu vstupenky (DB), zaokrouhlení viz lib/tax/vat.ts.
 
     const rowY = (label: string, value: string, bold = false) => {
       const y = doc.y;
@@ -227,19 +274,17 @@ export async function renderTicketsPdf(
       doc.font('main');
       doc.moveDown(0.4);
     };
-    rowY('Základ daně:', formatCzk(netHalire));
-    rowY(`DPH ${vatRatePct} %:`, formatCzk(vatHalire));
+    if (typeof vatRatePct === 'number') {
+      const { baseMinor, vatMinor } = splitGrossMinor(totalGross, vatRatePct);
+      rowY('Základ daně:', formatCzk(baseMinor));
+      rowY(`DPH ${vatRatePct} %:`, formatCzk(vatMinor));
+    }
     rowY('Celkem k úhradě:', formatCzk(totalGross), true);
 
-    doc.moveDown(1);
-    doc.fontSize(8).fillColor('#666').text(
-      vatRatePct === 10
-        ? 'Snížená sazba DPH 10 % se vztahuje na vstupné na divadelní, hudební a obdobné kulturní akce (§ 47 zákona o DPH).'
-        : `Sazba DPH ${vatRatePct} %.`,
-      48,
-      undefined,
-      { width: 500 },
-    );
+    if (vatRatePct === null) {
+      doc.moveDown(1);
+      doc.fontSize(8).fillColor('#666').text('Prodávající není plátcem DPH.', 48, undefined, { width: 500 });
+    }
   }
 
   doc.end();

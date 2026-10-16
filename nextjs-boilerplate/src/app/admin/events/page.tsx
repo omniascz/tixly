@@ -1,5 +1,6 @@
 'use client';
 
+import type { JSX } from 'react';
 import { CalendarDays, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { DataTable, Column } from '@/components/admin/DataTable';
@@ -31,6 +32,8 @@ function moderationBadge(status: string | undefined): { label: string; tone: str
       return { label: 'Archivováno', tone: 'bg-slate-100 text-slate-600' };
     case 'draft':
       return { label: 'Koncept', tone: 'bg-slate-100 text-slate-600' };
+    case 'cancelled':
+      return { label: 'Zrušeno', tone: 'bg-rose-100 text-rose-800' };
     case 'published':
       return null; // Publikované ukazujeme jen prodejní status (computeStatus)
     default:

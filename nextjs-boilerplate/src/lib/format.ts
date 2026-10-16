@@ -89,3 +89,16 @@ export function formatDate(isoDate: string, locale: string = 'cs'): string {
     minute: '2-digit',
   }).format(date);
 }
+
+/**
+ * Číslo objednávky zobrazované v adminu.
+ *
+ * Dřív ho seznam objednávek generoval jako `ORD-2026-<pořadí na stránce>`,
+ * takže se měnilo podle filtru i stránkování, nikde se neukládalo a nedalo
+ * se podle něj nic dohledat — a detail objednávky navíc ukazoval úplně jiný
+ * řetězec. Do doby, než objednávky dostanou vlastní sekvenční sloupec,
+ * odvozujeme stabilní kód z UUID. Je neměnný a dá se podle něj vyhledávat.
+ */
+export function formatOrderNumber(orderId: string): string {
+  return orderId.replace(/-/g, '').slice(0, 8).toUpperCase();
+}

@@ -18,10 +18,9 @@ async function markStepDone(promoterId: string, step: number, data: Record<strin
   await db().query(
     `UPDATE platform.promoter_onboarding
      SET current_step     = GREATEST(current_step, $2 + 1),
-         completed_steps  = array_append(
-           array_remove(completed_steps, $2::integer),
-           $2::integer
-         ),
+         -- kolo 2: completed_steps je JSONB (dřív array_append/array_remove → 42883 u KAŽDÉHO kroku)
+         completed_steps  = (SELECT COALESCE(jsonb_agg(DISTINCT s ORDER BY s), '[]'::jsonb)
+                               FROM jsonb_array_elements(COALESCE(completed_steps, '[]'::jsonb) || to_jsonb($2::integer)) AS s),
          step_data        = step_data || $3,
          updated_at       = NOW()
      WHERE promoter_id = $1`,
@@ -29,10 +28,8 @@ async function markStepDone(promoterId: string, step: number, data: Record<strin
   );
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { step: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ step: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
     const step = parseInt(params.step, 10);
     if (isNaN(step) || step < 1 || step > 8) {
@@ -162,22 +159,25 @@ export async function POST(
       const baseSlug = slugify(title);
       const slug = `${baseSlug}-${randomBytes(3).toString('hex')}`;
 
+      // Kolo 2: INSERT srovnán se skutečným schématem — dřív padal vždy:
+      //   duration_minutes / intermission_minutes na catalog.events NEEXISTUJÍ (42703),
+      //   vat_category 'entertainment' a qr_policy 'static' porušovaly CHECK.
+      // Délka (+ přestávka) se promítne do date_end; qr_policy = výchozí hodnota DB
+      // (rotující TOTP — statický QR jen jako explicitní volba pořadatele); DPH kulturní.
       const ins = await db().query<{ id: string }>(
         `INSERT INTO catalog.events
            (promoter_id, organizer_id, venue_id, production_id, title,
             date_start, date_end,
-            duration_minutes, intermission_minutes,
             status, currency, slug,
-            event_type, category, qr_policy, vat_category,
+            event_type, category, vat_category,
             resale_allowed, max_tickets_per_order,
             refund_deadline_days, refund_fee_pct,
             created_at, updated_at)
          VALUES
            ($1, $1, $2, $3, $4,
-            $5, $5::timestamptz + ($6 || ' minutes')::interval,
-            $6, $7,
+            $5, $5::timestamptz + (($6::int + COALESCE($7::int, 0)) || ' minutes')::interval,
             'draft', 'CZK', $8,
-            'concert', 'divadlo', 'static', 'entertainment',
+            'concert', 'divadlo', 'cultural',
             true, 10,
             14, 0,
             NOW(), NOW())

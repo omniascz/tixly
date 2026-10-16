@@ -1,0 +1,17 @@
+{
+ "tested": 166,
+ "skippedUnresolvedParam": 63,
+ "stat": {
+  "promoterB:4xx": 117,
+  "otherBuyer:4xx": 132,
+  "anon:4xx": 132,
+  "promoterB:2xx": 48,
+  "otherBuyer:2xx": 33,
+  "anon:2xx": 33,
+  "promoterB:0xx": 1,
+  "otherBuyer:0xx": 1,
+  "anon:0xx": 1
+ },
+ "leaks": [],
+ "errs": []
+}

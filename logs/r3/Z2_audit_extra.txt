@@ -1,0 +1,10 @@
+=== e2e/07-rls-direct.mjs 
+exit=0
+# SUMMARY {"PASS":6,"FAIL":0,"INFO":3}
+=== e2e/07b-rls-published-write.mjs 
+exit=0
+=== e2e/08-idor-sweep.mjs 
+exit=0
+# SUMMARY {"PASS":0,"FAIL":2,"INFO":0}
+  FAIL I1 IDOR sweep: 154 GET rout s ID v URL x 3 cizi aktori — zadna odpoved 2xx s privatnimi daty obeti
+  FAIL I2 IDOR sweep: routy vracejici 5xx cizimu aktorovi (chyba misto 401/403/404)

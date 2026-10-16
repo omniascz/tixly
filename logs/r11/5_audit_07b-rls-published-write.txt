@@ -1,0 +1,16 @@
+{
+ "current_user": "tixly_app",
+ "guc": {
+  "p": null,
+  "r": null
+ },
+ "updateEventTitle": 0,
+ "updateTicketPricesTo1Halir": 0,
+ "unlimitedCapacity": 0,
+ "deletePromoCodes": 0,
+ "deleteEvent": 0,
+ "readBack": {
+  "title": "Audit Koncert A muwev187",
+  "min_price": 0
+ }
+}

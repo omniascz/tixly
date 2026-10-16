@@ -26,10 +26,8 @@ const schema = z.object({
   note: z.string().max(2000).optional(),
 });
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsActivePromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
@@ -121,7 +119,7 @@ export async function PATCH(
         );
         await client.query(
           `UPDATE catalog.ticket_types tt
-           SET remaining_qty = remaining_qty + sub.qty
+           SET remaining_qty = LEAST(tt.total_qty, remaining_qty + sub.qty)
            FROM (
              SELECT ticket_type_id, COUNT(*)::int AS qty
              FROM tickets.tickets
@@ -159,7 +157,7 @@ export async function PATCH(
       );
       await client.query(
         `UPDATE catalog.ticket_types tt
-         SET remaining_qty = remaining_qty + sub.qty
+         SET remaining_qty = LEAST(tt.total_qty, remaining_qty + sub.qty)
          FROM (
            SELECT ticket_type_id, SUM(quantity) AS qty
            FROM orders.order_items WHERE order_id = $1

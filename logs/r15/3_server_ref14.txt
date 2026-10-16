@@ -1,0 +1,16 @@
+ ⨯ Failed to start server
+Error: listen EADDRINUSE: address already in use :::3200
+    at Server.setupListenHandle [as _listen2] (node:net:1948:16)
+    at listenInCluster (node:net:2005:12)
+    at Server.listen (node:net:2110:7)
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\server\lib\start-server.js:280:16
+    at new Promise (<anonymous>)
+    at startServer (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\server\lib\start-server.js:191:11)
+    at Module.nextStart (C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\cli\next-start.js:25:40)
+    at C:\Users\omnia\AppData\Local\Temp\claude\C--Users-omnia-Documents-tixly\136194da-2835-42de-9495-b696e7896135\scratchpad\tixly-clean\nextjs-boilerplate\node_modules\next\dist\bin\next:105:856 {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 3200
+}

@@ -1,0 +1,16 @@
+# Krok 0.9 — nezávislé ověření Kola 22 na novém HEAD integrate (514b1215; kód nextjs-boilerplate/e2e na větvi 33f548b2 = 514b1215)
+Build: logs/r23/0_build.txt (514b1215, rc=0). Blok: logs/r23/golden.sh (čerstvá r23demo z migrací + seed, tixly_app, simulátor GoPay :3998, Sentry simulátor :3995, next start :3200).
+
+$ npx playwright test golden-path-r22-qr-local.spec.ts --project=golden-path --workers=1
+[r22] (a1) zahozených požadavků mimo localhost: 0; podle hostitele: {}; s tajemstvím: 0; na api.qrserver.com: 0
+[r22] (a2) src data:image/png 180×180; očekáváno toDataURL(text, { width: 180, margin: 4 }) 180×180; pixely RGBA shodné: true; řetězec shodný: false
+[r22] (b1) zahozených požadavků mimo localhost: 0; podle hostitele: {}; s tajemstvím: 0; na api.qrserver.com: 0
+[r22] (b2) src data:image/png 220×220; očekáváno toDataURL(text, { width: 220, margin: 4 }) 220×220; pixely RGBA shodné: true; řetězec shodný: false
+  2 passed (31.3s)
+
+Pozn.: spec obsahuje 2 testy ((a) 2FA, (b) dárek) → výsledek „2 passed“ (zadání uvádí „1 passed“; spec má od K22 dva testy, 0 failed).
+
+$ grep -rn "api.qrserver.com" nextjs-boilerplate/src
+nextjs-boilerplate/src/app/admin/events/[id]/kiosk-display/page.tsx:21:  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(kioskUrl)}`;
+
+Soubory: nextjs-boilerplate/src/app/admin/events/[id]/kiosk-display/page.tsx 

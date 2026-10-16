@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -10,11 +10,11 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 
-export default function MockSubscriptionPaymentPage({
-  params,
-}: {
-  params: { paymentId: string };
-}) {
+export default function MockSubscriptionPaymentPage(_props: {
+    params: Promise<{ paymentId: string }>;
+  }
+) {
+  const params = useParams<{ paymentId: string }>();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

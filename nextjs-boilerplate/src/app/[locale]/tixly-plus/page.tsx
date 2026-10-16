@@ -1,5 +1,6 @@
 import { Pool } from 'pg';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { formatMoney } from '@/lib/format';
 import { TixlyPlusSubscribe } from './TixlyPlusSubscribe';
 
@@ -16,7 +17,7 @@ interface PlanRow {
 }
 
 async function fetchPlans(): Promise<PlanRow[]> {
-  const db = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const r = await db.query<PlanRow>(
       `SELECT p.id, p.name, p.description, p.price_halire, p.billing_cycle,
@@ -33,11 +34,12 @@ async function fetchPlans(): Promise<PlanRow[]> {
   }
 }
 
-export default async function TixlyPlusPage({
-  params,
-}: {
-  params: { locale: string };
-}) {
+export default async function TixlyPlusPage(
+  props: {
+    params: Promise<{ locale: string }>;
+  }
+) {
+  const params = await props.params;
   const plans = await fetchPlans();
 
   return (

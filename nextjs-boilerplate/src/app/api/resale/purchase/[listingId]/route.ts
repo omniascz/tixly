@@ -7,13 +7,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { listingId: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ listingId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
     const b = await req.json() as {
       payment_method?: string;
@@ -58,6 +57,10 @@ export async function POST(
       if (listing.seller_id === userId) {
         return NextResponse.json({ error: 'You cannot buy your own listing' }, { status: 409 });
       }
+
+      // Kolo 7 (C-29): nákup z přeprodeje je nákup kupce — po uzávěrce online prodeje ne.
+      const salesClosed = await saleBlockedResponse(db(), listing.event_id, 'online');
+      if (salesClosed) return salesClosed;
 
       const reservedUntil = new Date(Date.now() + 15 * 60 * 1000);
 

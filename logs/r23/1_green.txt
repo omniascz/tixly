@@ -1,0 +1,53 @@
+# Kolo 23 / krok 1.4 — GREEN (oprava: logs/r23/1_fix_diff.txt; spec a live test beze změny vůči 86f1287b — git diff prázdný)
+Build: logs/r23/1_green_build.txt (rc=0). Blok stejný jako RED (logs/r23/golden.sh, čerstvá r23demo, tixly_app).
+
+## Konfigurace P (server: [serve_r23] ALLOW_MOCK_PAYMENTS=<nenastaveno>) — log 1_green_P.txt
+[r23] (a): místo Hlediště ř. 1 č. 5 podrženo
+[r23] (a1) Karta viditelná: true, Převodem viditelná: true
+[r23] (a2) input[value="wero"]: 0, prvků s textem „Wero": 0
+[r23] snímek sekce „Platební metoda" green_P_default.png
+[r23] pojistka: POST /api/checkout (gopay, stránka) → 200, gatewayUrl http://localhost:3998/gw/3137103980
+[r23] pojistka: objednávek kontrolního kupce v DB: 1
+[r23] tělo stránky (klíče): buyerEmail, buyerName, eventId, paymentMethod, quantity, seatHoldToken, seatIds, ticketTypeId
+[r23] (b): místo Hlediště ř. 3 č. 14 podrženo
+[r23] (b1) POST /api/checkout (wero) → 503, error=PAYMENT_METHOD_UNAVAILABLE, message=Platba Wero není momentálně dostupná. Zvolte prosím jinou metodu., provider=wero, orderId=ne
+[r23] (b2) objednávek kupce (wero) před: 0, po: 0
+[r23] (b3) dostupnost před: {"remainingQty":59,"seatStatus":"held"}, po: {"remainingQty":59,"seatStatus":"held"}
+[r23] zahozených požadavků mimo localhost: 0 []
+Výsledek: 1 passed (9.5s)
+
+| bod | RED (1_red.txt) | GREEN |
+|---|---|---|
+| a1 | Karta true, Převodem true | Karta true, Převodem true |
+| a2 | wero input 1, text „Wero“ 1 | wero input 0, text „Wero“ 0 |
+| b1 | 500 „Internal server error“ | 503 PAYMENT_METHOD_UNAVAILABLE, provider wero, hláška „Platba Wero není momentálně dostupná. Zvolte prosím jinou metodu.“ |
+| b2 | objednávek 0 → 1 | 0 → 0 |
+| b3 | {59, held} → {58, sold} | {59, held} → {59, held} |
+| pojistka gopay | 200, gatewayUrl :3998/gw/…, 1 objednávka | 200, gatewayUrl :3998/gw/…, 1 objednávka |
+
+## Konfigurace D (server: [serve_r23] ALLOW_MOCK_PAYMENTS=1) — log 1_green_D.txt
+[r23] (c): místo Hlediště ř. 4 č. 14 podrženo
+[r23] (c) input[value="wero"] viditelný; prvků s textem „Wero": 1
+[r23] snímek sekce „Platební metoda" green_D_default.png
+[r23] (c) po výběru Wero nápověda „Wero — okamžitá platba z účtu" viditelná
+[r23] snímek sekce „Platební metoda" green_D_wero_selected.png
+[r23] (c) POST /api/checkout (wero, stránka; paymentMethod v těle: wero) → 200, provider=mock-wero, gatewayUrl=/mock-wero/mock-pay-…
+[r23] (c) stránka přešla na /mock-wero/mock-pay-…
+[r23] (c) objednávek kupce (wero) v DB: 1
+[r23] zahozených požadavků mimo localhost: 0 []
+Výsledek: 1 passed (5.0s) (RED také 1 passed)
+
+## Live test ticket-types — 1_unit_green.txt
+[live-local-clone] live_r23_wero_ticket_types_mvanrcvl: handlery běží jako tixly_app (RLS platí)
+ ✓ tests/r23-wero-ticket-types.live.test.ts  (6 tests) 2693ms
+      Tests  6 passed (6)
+(RED: 6 failed — pole weroAvailable chybělo)
+
+## Snímky — 1_shots_compare.txt
+- P_default: node shotdiff.cjs shots/1_red_P_default.png shots/1_green_P_default.png → rozměry se liší: 398×136 vs 398×132
+- D_default: node shotdiff.cjs shots/1_red_D_default.png shots/1_green_D_default.png → 398×136; odlišných pixelů: 0
+- D_wero_selected: node shotdiff.cjs shots/1_red_D_wero_selected.png shots/1_green_D_wero_selected.png → 398×238; odlišných pixelů: 0
+
+## Statická kontrola
+tsc --noEmit (nextjs-boilerplate): tsc rc=0, chyb 0 (1_tsc.txt)
+eslint tří změněných souborů: po změně 29 nálezů = před změnou 29 (1_lint_files.txt vs 1_lint_orig.txt; po seskupení pravidlo+soubor shodné)

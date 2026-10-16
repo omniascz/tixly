@@ -1,0 +1,4 @@
+nextjs-boilerplate/src/app/admin/scanner/page.tsx
+nextjs-boilerplate/src/app/api/internal/order-completed/route.ts
+nextjs-boilerplate/src/app/api/subscriptions/checkout/route.test.ts
+nextjs-boilerplate/src/middleware.ts

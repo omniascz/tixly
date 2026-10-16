@@ -7,10 +7,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { requirePlatformAdmin } from '@/lib/platform-auth';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { hotelId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ hotelId: string }> }): Promise<Response> {
+  const params = await props.params;
   const admin = await requirePlatformAdmin(req);
   if (!admin) return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
 
@@ -41,10 +39,8 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { hotelId: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ hotelId: string }> }): Promise<Response> {
+  const params = await props.params;
   const admin = await requirePlatformAdmin(req);
   if (!admin) return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
 
@@ -99,10 +95,8 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { hotelId: string } },
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ hotelId: string }> }): Promise<Response> {
+  const params = await props.params;
   const admin = await requirePlatformAdmin(req);
   if (!admin) return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
 

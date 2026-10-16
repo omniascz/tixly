@@ -1,0 +1,9 @@
+   ▲ Next.js 15.5.27
+   - Local:        http://localhost:3200
+   - Network:      http://192.168.0.240:3200
+
+ ✓ Starting...
+[DIAG] register start
+[DIAG] staging-guard loaded 47
+[DIAG] sentry config loaded 684
+ ✓ Ready in 28.9s

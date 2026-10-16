@@ -22,6 +22,10 @@ import { fbqTrack } from '@/lib/tracking/fbq';
 // nevidí ani nevybere) a backend input.foyerItems ignoruje. Re-enable až po feature ticketu
 // "foyer pre-order → přepsat na jsonb model E2E" (REMEDIATION.md).
 const FOYER_PREORDER_ENABLED = false;
+// Kolo 10 / krok 3: nedokončené platební cesty za přepínači (výchozí vypnuto; server je odmítá vždy —
+// tady jen skrytí v UI). Stejné proměnné jako src/lib/features/launch-flags.ts, vkládají se při buildu.
+const INSTALLMENTS_ENABLED = process.env.NEXT_PUBLIC_FEATURE_INSTALLMENTS === '1';
+const BENEFIT_CARDS_ENABLED = process.env.NEXT_PUBLIC_FEATURE_BENEFIT_CARDS === '1';
 
 // Digitální program-booklet DOČASNĚ VYPNUT — schema drift (třída 3): catalog.event_programs je
 // F1 (FINDINGS §136): program-booklet SMAZAN. catalog.event_programs je
@@ -76,6 +80,10 @@ function CheckoutForm() {
     | 'crypto'
     | 'b2b_credit'
   >('gopay');
+  // Kolo 7: krypto (Triple-A) neumí refund přes API → nabízí se jen u akcí z doby před mig. 499.
+  const [legacyGateways, setLegacyGateways] = useState(false);
+  // Kolo 23: Wero má jen mock bránu → nabízí se jen tam, kde je mock povolený (weroAvailable z ticket-types).
+  const [weroAvailable, setWeroAvailable] = useState(false);
   const [b2bAccountCode, setB2bAccountCode] = useState('');
   const [b2bVerify, setB2bVerify] = useState<{ companyName: string; balanceHalire: number } | null>(null);
   const [b2bVerifyError, setB2bVerifyError] = useState<string | null>(null);
@@ -302,6 +310,8 @@ function CheckoutForm() {
           eventFlags?: { requiresOtp: boolean; verifiedFanEnabled: boolean };
           metaPixelId?: string | null;
           currency?: string;
+          legacyPaymentGateways?: boolean;
+          weroAvailable?: boolean;
         } | null) => {
           const tt = d?.ticketTypes?.find((t) => t.id === ticketTypeId);
           if (tt) {
@@ -311,6 +321,8 @@ function CheckoutForm() {
           if (d?.eventFlags) setEventFlags(d.eventFlags);
           if (d?.metaPixelId) setMetaPixelId(d.metaPixelId);
           if (d?.currency) setCurrency(d.currency);
+          setLegacyGateways(d?.legacyPaymentGateways === true);
+          setWeroAvailable(d?.weroAvailable === true);
         },
       )
       .catch(() => {});
@@ -413,7 +425,13 @@ function CheckoutForm() {
       if (d.valid && d.companyName !== undefined && d.balanceHalire !== undefined) {
         setB2bVerify({ companyName: d.companyName, balanceHalire: d.balanceHalire });
       } else {
-        setB2bVerifyError(d.error === 'EMAIL_NOT_AUTHORIZED' ? 'Váš email není oprávněn k tomuto účtu.' : 'Neplatný kód firemního účtu.');
+        setB2bVerifyError(
+          d.error === 'LOGIN_REQUIRED'
+            ? 'Pro platbu z firemního účtu se nejdřív přihlaste.'
+            : d.error === 'EMAIL_NOT_AUTHORIZED'
+              ? 'Váš účet není oprávněn k tomuto firemnímu účtu.'
+              : 'Neplatný kód firemního účtu.',
+        );
       }
     } catch {
       setB2bVerifyError('Nepodařilo se ověřit kód.');
@@ -1137,6 +1155,7 @@ function CheckoutForm() {
                   />
                   <span className="text-sm font-medium">🏦 Převodem</span>
                 </label>
+                {weroAvailable ? (
                 <label
                   className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'wero' ? 'border-[#6D28D9] bg-violet-50' : ''}`}
                 >
@@ -1152,10 +1171,11 @@ function CheckoutForm() {
                     Wero <span className="text-xs text-muted-foreground">— A2A Instant</span>
                   </span>
                 </label>
+                ) : null}
               </div>
 
-              {/* Wero phone hint — zobrazí se jen při výběru Wero */}
-              {paymentMethod === 'wero' && (
+              {/* Wero phone hint — zobrazí se jen při výběru Wero (a jen když je Wero dostupné) */}
+              {weroAvailable && paymentMethod === 'wero' && (
                 <div className="mt-2 rounded-lg border border-violet-200 bg-violet-50 p-3 text-xs text-violet-800">
                   <p className="font-semibold">⚡ Wero — okamžitá platba z účtu</p>
                   <p className="mt-1 text-violet-600">
@@ -1168,6 +1188,7 @@ function CheckoutForm() {
 
               {/* BNPL — Buy Now Pay Later (CZ: Twisto / Skip Pay) */}
               <div className="mt-2 grid grid-cols-2 gap-2">
+                {INSTALLMENTS_ENABLED ? (<>
                 <label
                   className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'twisto' ? 'border-primary bg-primary/5' : ''}`}
                 >
@@ -1196,6 +1217,8 @@ function CheckoutForm() {
                     Skip Pay <span className="text-xs text-muted-foreground">— 4 splátky (ČSOB)</span>
                   </span>
                 </label>
+                </>) : null}
+                {legacyGateways ? (
                 <label
                   className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'crypto' ? 'border-[#F7931A] bg-orange-50' : ''}`}
                 >
@@ -1210,9 +1233,11 @@ function CheckoutForm() {
                     ₿ Krypto <span className="text-xs text-muted-foreground">— Bitcoin / Ethereum (Triple-A)</span>
                   </span>
                 </label>
+                ) : null}
               </div>
 
               {/* Benefit karty (B2B) — toggle */}
+              {BENEFIT_CARDS_ENABLED ? (
               <button
                 type="button"
                 onClick={() => setShowBenefitCards((v) => !v)}
@@ -1220,6 +1245,7 @@ function CheckoutForm() {
               >
                 {showBenefitCards ? '−' : '+'} Benefit karty (Pluxee, Sodexo, Benefit+, Edenred, Gallery Beta)
               </button>
+              ) : null}
 
               {/* B2B firemní kredit */}
               <div className="mt-2">
@@ -1273,7 +1299,7 @@ function CheckoutForm() {
                 </div>
               ) : null}
 
-              {showBenefitCards ? (
+              {BENEFIT_CARDS_ENABLED && showBenefitCards ? (
                 <div className="mt-2 grid grid-cols-2 gap-2 rounded-md border bg-muted/30 p-2 sm:grid-cols-3">
                   <label
                     className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-xs ${paymentMethod === 'pluxee' ? 'border-primary bg-primary/5' : 'bg-background'}`}

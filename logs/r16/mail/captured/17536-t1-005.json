@@ -1,0 +1,9 @@
+{
+ "capturedAt": "2026-10-08T08:05:30.559Z",
+ "data": {
+  "from": "vstupenky@tixly.fix",
+  "to": "exp-c2605f@tixly.test",
+  "subject": "Rezervace TE9E7C78 — vyzvedněte a zaplaťte do 13. října 2026 v 10:05",
+  "html": "<!DOCTYPE html><html><body style=\"font-family:system-ui;max-width:600px;padding:24px\"><p>Dobrý den Jana Rezervující,</p><p>rezervovali jsme pro vás tato místa:</p><p><strong>Test Akce</strong><br>7. 11. 2026 9:05:29, Test Sál</p><ul><li>Přízemí, řada 1, místo 7 — Plné — 400 CZK</li><li>Přízemí, řada 1, místo 8 — Plné — 400 CZK</li></ul>\n      <p>Kód rezervace: <strong style=\"font-size:20px;letter-spacing:2px\">TE9E7C78</strong><br>Cena celkem: <strong>800 CZK</strong><br>\n      Vyzvedněte a zaplaťte na pokladně (hotově nebo kartou) nejpozději <strong>13. října 2026 v 10:05</strong>. Potom se místa automaticky uvolní.</p><p>Rezervaci můžete zrušit zde: <a href=\"http://localhost:3100/cs/rezervace/zrusit?code=TE9E7C78&token=eIqJOEVtfTePbtF8pRQ4sF5I9Hh9yHSF\">zrušit rezervaci</a></p></body></html>"
+ }
+}

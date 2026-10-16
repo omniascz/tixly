@@ -11,10 +11,8 @@ import { db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 import { checkBuyerCap } from '@/lib/hot-events/enforcement';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
     const qty = Number(new URL(req.url).searchParams.get('qty') ?? '1');
     if (!Number.isFinite(qty) || qty < 1 || qty > 50) {

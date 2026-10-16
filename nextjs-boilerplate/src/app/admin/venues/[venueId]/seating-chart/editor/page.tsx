@@ -11,6 +11,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { VisualEditor, type Layout } from '@/app/platform/venues/[id]/seating-chart/editor/VisualEditor';
 
@@ -26,11 +27,11 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function AdminVenueEditorPage({
-  params,
-}: {
-  params: { venueId: string };
-}) {
+export default function AdminVenueEditorPage(_props: {
+    params: Promise<{ venueId: string }>;
+  }
+) {
+  const params = useParams<{ venueId: string }>();
   const { venueId } = params;
   const [initialLayout, setInitialLayout] = useState<Layout | null>(null);
   const [chartName, setChartName] = useState('Default');
@@ -110,7 +111,7 @@ export default function AdminVenueEditorPage({
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <Link href={`/admin/venues/${venueId}`} className="text-sm text-primary hover:underline">
+          <Link href="/admin/venues" className="text-sm text-primary hover:underline">
             ← Zpět na detail sálu
           </Link>
           <h1 className="mt-1 text-2xl font-bold">Seating editor</h1>

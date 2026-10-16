@@ -15,11 +15,11 @@ import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     deviceLibraryId: string;
     passTypeId: string;
     serialNumber: string;
-  };
+  }>;
 }
 
 function checkAuth(req: NextRequest, _serialNumber: string): boolean {
@@ -29,10 +29,8 @@ function checkAuth(req: NextRequest, _serialNumber: string): boolean {
   return auth.length > 'ApplePass '.length;
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: RouteParams,
-): Promise<Response> {
+export async function POST(req: NextRequest, props: RouteParams): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
 
   if (!checkAuth(req, params.serialNumber)) {
@@ -64,10 +62,8 @@ export async function POST(
   });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: RouteParams,
-): Promise<Response> {
+export async function DELETE(req: NextRequest, props: RouteParams): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
 
   if (!checkAuth(req, params.serialNumber)) {

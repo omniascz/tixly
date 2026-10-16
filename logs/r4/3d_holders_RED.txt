@@ -1,0 +1,43 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/fix-r4-holders-guard.live.test.ts[2m > [22m[2mKrok 3d (kolo 4) — chráněné sloupce abonentky[2m > [22m[2mkupec nenavýší restwert, nezmění stav ani platnost[22m[39m
+[3d] {"restwert":1,"status":1,"price":1}
+
+ [33m❯[39m tests/fix-r4-holders-guard.live.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[90m 250[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-holders-guard.live.test.ts[2m > [22mKrok 3d (kolo 4) — chráněné sloupce abonentky[2m > [22mkupec nenavýší restwert, nezmění stav ani platnost[39m
+[31m     → expected { restwert: 1, status: 1, price: 1 } to deeply equal { restwert: '42501', …(2) }[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-holders-guard.live.test.ts[2m > [22mKrok 3d (kolo 4) — chráněné sloupce abonentky[2m > [22mkupec nenavýší restwert, nezmění stav ani platnost
+[31m[1mAssertionError[22m: expected { restwert: 1, status: 1, price: 1 } to deeply equal { restwert: '42501', …(2) }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[32m-   "price": "42501",[39m
+[32m-   "restwert": "42501",[39m
+[32m-   "status": "42501",[39m
+[31m+   "price": 1,[39m
+[31m+   "restwert": 1,[39m
+[31m+   "status": 1,[39m
+[2m  }[22m
+
+[36m [2m❯[22m tests/fix-r4-holders-guard.live.test.ts:[2m52:17[22m[39m
+    [90m 50| [39m    }[33m;[39m
+    [90m 51| [39m    console[33m.[39m[34mlog[39m([32m'[3d]'[39m[33m,[39m [33mJSON[39m[33m.[39m[34mstringify[39m(res))[33m;[39m
+    [90m 52| [39m    [34mexpect[39m(res)[33m.[39m[34mtoEqual[39m({ restwert[33m:[39m [32m'42501'[39m[33m,[39m status[33m:[39m [32m'42501'[39m[33m,[39m price[33m:[39m [32m'[39m…
+    [90m   | [39m                [31m^[39m
+    [90m 53| [39m    [34mexpect[39m([33mNumber[39m(([35mawait[39m [34mholder[39m())[33m.[39mrestwert_credit_halire))[33m.[39m[34mtoBe[39m([34m5000[39m)[33m;[39m
+    [90m 54| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m   Start at [22m 21:12:14
+[2m   Duration [22m 624ms[2m (transform 55ms, setup 0ms, collect 73ms, tests 250ms, environment 0ms, prepare 182ms)[22m
+

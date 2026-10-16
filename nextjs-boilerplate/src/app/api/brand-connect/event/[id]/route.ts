@@ -10,10 +10,8 @@ import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const r = await runWithServiceContext(() =>
     db().query(
       `SELECT

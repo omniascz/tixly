@@ -22,6 +22,10 @@
     "import"
   ],
   "rules": {
+    // Kolo 15: plugin Next 15 uplatňuje pravidlo nově i na routy z app/ (v 14 jen na pages/, který projekt nemá →
+    // na Next 14 nehlásilo nic). Záměna <a> za <Link> by změnila navigaci (plný reload → klientská), proto vypnuto =
+    // stejná kontrola jako na Next 14.
+    "@next/next/no-html-link-for-pages": "off",
     "@typescript-eslint/explicit-module-boundary-types": "error",
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/no-unused-vars": [

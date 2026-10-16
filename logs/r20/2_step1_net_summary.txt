@@ -1,0 +1,6 @@
+# Kolo 20 — souhrn odchozích spojení buildu (step1), exit buildu 0
+řádků v net logu: 3
+pokusů mimo localhost celkem (BLOCKED + connect): 3
+z toho zablokovaných *.sentry.io: 3
+cílové hostitele:
+      3   o1.ingest.sentry.io

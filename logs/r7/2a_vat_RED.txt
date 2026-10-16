@@ -1,0 +1,90 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r7-vat-readiness.live.test.ts[2m > [22m[2mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22m[2mneplátce bez sazby prodává; vstupenka zdarma plátce sazbu nepotřebuje[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [33m❯[39m tests/fix-r7-vat-readiness.live.test.ts [2m ([22m[2m6 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[33m 6905[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r7-vat-readiness.live.test.ts[2m > [22mKolo 7 — žádné sazby DPH natvrdo v kódu[2m > [22msrc/ neobsahuje tabulku procent DPH ani výchozí 0 % na dokladu[39m
+[31m     → expected [ …(2) ] to deeply equal [][39m
+[31m   [33m❯[31m tests/fix-r7-vat-readiness.live.test.ts[2m > [22mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22mschválení k publikaci: placený typ plátce bez sazby → 422, akce zůstane neveřejná[39m
+[31m     → {"ok":true}: expected 200 to be 422 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r7-vat-readiness.live.test.ts[2m > [22mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22mtyp vstupenky: plátce nemůže uložit placený typ bez sazby (422), se sazbou ano[39m
+[31m     → {"error":"Validation failed","issues":[{"code":"invalid_type","expected":"number","received":"undefined","path":["totalQty"],"message":"Required"}]}: expected [ 200, 201 ] to include 422[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-vat-readiness.live.test.ts[2m > [22mKolo 7 — žádné sazby DPH natvrdo v kódu[2m > [22msrc/ neobsahuje tabulku procent DPH ani výchozí 0 % na dokladu
+[31m[1mAssertionError[22m: expected [ …(2) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [][39m
+[31m+ Array [[39m
+[31m+   "app\\api\\buyer\\orders\\[orderId]\\invoice\\route.ts (výchozí 0 %)",[39m
+[31m+   "lib\\tax\\vat-rates.ts (tabulka sazeb)",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/fix-r7-vat-readiness.live.test.ts:[2m40:23[22m[39m
+    [90m 38| [39m    }[33m;[39m
+    [90m 39| [39m    [34mwalk[39m([33mSRC[39m)[33m;[39m
+    [90m 40| [39m    [34mexpect[39m(offenders)[33m.[39m[34mtoEqual[39m([])[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m 41| [39m  })[33m;[39m
+    [90m 42| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-vat-readiness.live.test.ts[2m > [22mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22mschválení k publikaci: placený typ plátce bez sazby → 422, akce zůstane neveřejná
+[31m[1mAssertionError[22m: {"ok":true}: expected 200 to be 422 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 422[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r7-vat-readiness.live.test.ts:[2m104:30[22m[39m
+    [90m102| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mreq[39m([32m'POST'[39m[33m,[39m [32m`/api/platform/moderation/[39m[36m${[39mc[33m.[39meventId[36m}[39m…
+    [90m103| [39m      {}[33m,[39m adminTok[33m,[39m { params[33m:[39m { eventId[33m:[39m c[33m.[39meventId } })[33m;[39m
+    [90m104| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m r[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m422[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m105| [39m    [34mexpect[39m(([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT status FROM catalog.events [39m…
+    [90m106| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-vat-readiness.live.test.ts[2m > [22mKolo 7 — DPH: publikace a prodej jen s nastavenou sazbou[2m > [22mtyp vstupenky: plátce nemůže uložit placený typ bez sazby (422), se sazbou ano
+[31m[1mAssertionError[22m: {"error":"Validation failed","issues":[{"code":"invalid_type","expected":"number","received":"undefined","path":["totalQty"],"message":"Required"}]}: expected [ 200, 201 ] to include 422[39m
+[36m [2m❯[22m tests/fix-r7-vat-readiness.live.test.ts:[2m117:33[22m[39m
+    [90m115| [39m    [34mexpect[39m(bad[33m.[39mstatus[33m,[39m bad[33m.[39mbody)[33m.[39m[34mtoBe[39m([34m422[39m)[33m;[39m
+    [90m116| [39m    [35mconst[39m ok [33m=[39m [35mawait[39m [34mreq[39m([32m'POST'[39m[33m,[39m [32m`/api/admin/events/[39m[36m${[39mc[33m.[39meventId[36m}[39m[32m/ticke[39m…
+    [90m117| [39m    [34mexpect[39m([[34m200[39m[33m,[39m [34m201[39m][33m,[39m ok[33m.[39mbody)[33m.[39m[34mtoContain[39m(ok[33m.[39mstatus)[33m;[39m
+    [90m   | [39m                                [31m^[39m
+    [90m118| [39m  })[33m;[39m
+    [90m119| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (6)[39m
+[2m   Start at [22m 01:51:57
+[2m   Duration [22m 7.45s[2m (transform 1.05s, setup 0ms, collect 150ms, tests 6.91s, environment 0ms, prepare 95ms)[22m
+

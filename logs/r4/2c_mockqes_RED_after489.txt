@@ -1,0 +1,34 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r4-mock-qes-prod.live.test.ts [2m ([22m[2m1 test[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 688[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r4-mock-qes-prod.live.test.ts[2m > [22mKrok 2 (kolo 4) — mock-qes je v produkci zablokované[2m > [22mprodukce: GET 403 bez dokumentu, POST 403 a žádost zůstane pending[39m
+[31m     → {"id":"b8fe3e64-70db-4eb5-9573-da67a89d7718","documentType":"promoter_contract","documentHash":"abc","hasPdf":true,"pdfBase64":"VERTRAG","signerEmail":"podpis@poradatel.test","signerName":"Jednatel","status":"pending","expiresAt":"2026-10-10T18:25:51.741Z","createdAt":"2026-10-03T18:25:51.741Z"}: expected 200 to be 403 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r4-mock-qes-prod.live.test.ts[2m > [22mKrok 2 (kolo 4) — mock-qes je v produkci zablokované[2m > [22mprodukce: GET 403 bez dokumentu, POST 403 a žádost zůstane pending
+[31m[1mAssertionError[22m: {"id":"b8fe3e64-70db-4eb5-9573-da67a89d7718","documentType":"promoter_contract","documentHash":"abc","hasPdf":true,"pdfBase64":"VERTRAG","signerEmail":"podpis@poradatel.test","signerName":"Jednatel","status":"pending","expiresAt":"2026-10-10T18:25:51.741Z","createdAt":"2026-10-03T18:25:51.741Z"}: expected 200 to be 403 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 403[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r4-mock-qes-prod.live.test.ts:[2m52:26[22m[39m
+    [90m 50| [39m    [35mconst[39m g [33m=[39m [35mawait[39m [34mcall[39m([32m'GET'[39m)[33m;[39m
+    [90m 51| [39m    [35mconst[39m gb [33m=[39m [35mawait[39m g[33m.[39m[34mtext[39m()[33m;[39m
+    [90m 52| [39m    [34mexpect[39m(g[33m.[39mstatus[33m,[39m gb)[33m.[39m[34mtoBe[39m([34m403[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m 53| [39m    [34mexpect[39m(gb)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'podpis@poradatel.test'[39m)[33m;[39m
+    [90m 54| [39m    [35mconst[39m p [33m=[39m [35mawait[39m [34mcall[39m([32m'POST'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 20:25:48
+[2m   Duration [22m 2.50s[2m (transform 377ms, setup 0ms, collect 384ms, tests 688ms, environment 0ms, prepare 500ms)[22m
+

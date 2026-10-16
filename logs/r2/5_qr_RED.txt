@@ -1,0 +1,91 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r2-qr-default.live.test.ts [2m ([22m[2m4 tests[22m [2m|[22m [31m4 failed[39m[2m)[22m[33m 17094[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r2-qr-default.live.test.ts[2m > [22mKrok 5 — výchozí QR politika = rotující TOTP[2m > [22mDB: nová akce bez explicitní volby má rotující politiku[39m
+[31m     → null value in column "venue_id" of relation "events" violates not-null constraint[39m
+[31m   [33m❯[31m tests/fix-r2-qr-default.live.test.ts[2m > [22mKrok 5 — výchozí QR politika = rotující TOTP[2m > [22mAPI: akce založená pořadatelem bez qrPolicy → rotating_24h; explicitní static_allowed zůstane[39m
+[31m     → expected 'static_allowed' to be 'rotating_24h' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r2-qr-default.live.test.ts[2m > [22mKrok 5 — výchozí QR politika = rotující TOTP[2m > [22mbrána u výchozí politiky: jen UUID vstupenky → totp_required; platný TOTP → admitted[39m
+[31m     → expected 'admitted' to be 'totp_required' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r2-qr-default.live.test.ts[2m > [22mKrok 5 — výchozí QR politika = rotující TOTP[2m > [22monboarding: první akce se založí (dřív qr_policy='static' porušovalo CHECK) a dostane výchozí politiku[39m
+[31m     → column "duration_minutes" of relation "events" does not exist[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 4 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-qr-default.live.test.ts[2m > [22mKrok 5 — výchozí QR politika = rotující TOTP[2m > [22mDB: nová akce bez explicitní volby má rotující politiku
+[31m[1merror[22m: null value in column "venue_id" of relation "events" violates not-null constraint[39m
+[90m [2m❯[22m ../../tixly-audit/nextjs-boilerplate/node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m tests/fix-r2-qr-default.live.test.ts:[2m38:5[22m[39m
+    [90m 36| [39m    [35mconst[39m c [33m=[39m [35mawait[39m clone[33m.[39mseed[33m.[39m[34mchain[39m()[33m;[39m
+    [90m 37| [39m    [35mconst[39m id [33m=[39m [34mrandomUUID[39m()[33m;[39m
+    [90m 38| [39m    [35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`INSERT INTO catalog.events (id, organizer_[39m…
+    [90m   | [39m    [31m^[39m
+    [90m 39| [39m                            VALUES ($1,$2,$2,'QR',$3,'draft','CZK','co…
+    [90m 40| [39m    [35mconst[39m p [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39mquery[33m<[39m{ q[33m:[39m string }[33m>[39m([32m`SELECT qr_policy[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 1157, severity: 'ERROR', code: '23502', detail: 'Failing row contains (6e9f8f74-d867-4922-a461-2fbf7640aa59, 59b55fb5-3560-4545-b75e-3faf479269f4, null, QR, null, null, 2026-10-06 09:35:17.403393+00, null, draft, null, null, t, CZK, Europe/Prague, 2026-10-03 09:35:17.403393+00, 2026-10-03 09:35:17.403393+00, null, 59b55fb5-3560-4545-b75e-3faf479269f4, concert, null, null, null, null, null, f, null, null, allow_all, null, null, null, null, single_event, f, 100, f, 8, null, null, null, null, {}, null, null, null, null, static_allowed, cultural, f, f, 3, f, null, null, f, null, null, null, 0, null, qr-6e9f8f74, null, null, pending, null, null, f, null, 0, f, f, f, f, enabled, 24, 5.00, 4, t, t, 24, t, 48, 100, 0, null, null, null, null, null, {mobile,pdf}, null, null, t, pulse, null, normal, f, null, f, 0, t, 20, 0, null, f, f, open, null, null, null, null, null, 0, f, 110.00, 15.00, 24, f, f, null, f, f, 2.50, f, null, null, null, null, f, null, null, null, null, null, null, f, 0, null, null, null, fifo, f, null, null).', hint: undefined, position: undefined, internalPosition: undefined, internalQuery: undefined, where: undefined, schema: 'catalog', table: 'events', column: 'venue_id', dataType: undefined, constraint: undefined, file: 'execMain.c', line: '1982', routine: 'ExecConstraints' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-qr-default.live.test.ts[2m > [22mKrok 5 — výchozí QR politika = rotující TOTP[2m > [22mAPI: akce založená pořadatelem bez qrPolicy → rotating_24h; explicitní static_allowed zůstane
+[31m[1mAssertionError[22m: expected 'static_allowed' to be 'rotating_24h' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- rotating_24h[39m
+[31m+ static_allowed[39m
+
+[36m [2m❯[22m tests/fix-r2-qr-default.live.test.ts:[2m59:26[22m[39m
+    [90m 57| [39m      [35mreturn[39m ([35mawait[39m clone[33m.[39mpool[33m.[39mquery[33m<[39m{ q[33m:[39m string }[33m>[39m([32m`SELECT qr_policy [39m…
+    [90m 58| [39m    }[33m;[39m
+    [90m 59| [39m    [34mexpect[39m([35mawait[39m [34mmk[39m({}))[33m.[39m[34mtoBe[39m([32m'rotating_24h'[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m 60| [39m    [34mexpect[39m([35mawait[39m [34mmk[39m({ qrPolicy[33m:[39m [32m'static_allowed'[39m }))[33m.[39m[34mtoBe[39m([32m'static_allo[39m…
+    [90m 61| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-qr-default.live.test.ts[2m > [22mKrok 5 — výchozí QR politika = rotující TOTP[2m > [22mbrána u výchozí politiky: jen UUID vstupenky → totp_required; platný TOTP → admitted
+[31m[1mAssertionError[22m: expected 'admitted' to be 'totp_required' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- totp_required[39m
+[31m+ admitted[39m
+
+[36m [2m❯[22m tests/fix-r2-qr-default.live.test.ts:[2m73:64[22m[39m
+    [90m 71| [39m    [35mconst[39m { [33mPOST[39m } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/app/api/admin/scanner/validate/ro[39m…
+    [90m 72| [39m    [35mconst[39m noTotp [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([34mreq[39m([32m'/api/admin/scanner/val[39m…
+    [90m 73| [39m    [34mexpect[39m(([35mawait[39m noTotp[33m.[39m[34mjson[39m() [35mas[39m { result[33m:[39m string })[33m.[39mresult)[33m.[39m[34mtoBe[39m([32m't[39m…
+    [90m   | [39m                                                               [31m^[39m
+    [90m 74| [39m    [35mconst[39m st [33m=[39m ([35mawait[39m clone[33m.[39mpool[33m.[39mquery[33m<[39m{ s[33m:[39m string }[33m>[39m([32m`SELECT status s[39m…
+    [90m 75| [39m    [34mexpect[39m(st[33m,[39m [32m'bez TOTP vstupenka zůstává valid'[39m)[33m.[39m[34mtoBe[39m([32m'valid'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r2-qr-default.live.test.ts[2m > [22mKrok 5 — výchozí QR politika = rotující TOTP[2m > [22monboarding: první akce se založí (dřív qr_policy='static' porušovalo CHECK) a dostane výchozí politiku
+[31m[1merror[22m: column "duration_minutes" of relation "events" does not exist[39m
+[90m [2m❯[22m ../../tixly-audit/nextjs-boilerplate/node_modules/pg/lib/client.js:[2m631:17[22m[39m
+[36m [2m❯[22m RlsAwarePool.query src/lib/db/rls-pool.ts:[2m253:22[22m[39m
+    [90m251| [39m        [35mawait[39m client[33m.[39m[34mquery[39m([32m`SET LOCAL app.role = '[39m[36m${[39mctx[33m.[39mrole[36m}[39m[32m'`[39m)[33m;[39m
+    [90m252| [39m      }
+    [90m253| [39m      [35mconst[39m result [33m=[39m [35mawait[39m client[33m.[39mquery[33m<[39m[33mR[39m[33m>[39m(text [35mas[39m string[33m,[39m params)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m254| [39m      [35mawait[39m client[33m.[39m[34mquery[39m([32m'COMMIT'[39m)[33m;[39m
+    [90m255| [39m      [35mreturn[39m result[33m;[39m
+[90m [2m❯[22m src/app/api/admin/onboarding/step/[step]/route.ts:[2m165:19[22m[39m
+[90m [2m❯[22m tests/fix-r2-qr-default.live.test.ts:[2m87:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 136, severity: 'ERROR', code: '42703', detail: undefined, hint: undefined, position: '145', internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'parse_target.c', line: '1065', routine: 'checkInsertTargets' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[90m (4)[39m
+[2m   Start at [22m 11:35:15
+[2m   Duration [22m 18.77s[2m (transform 390ms, setup 0ms, collect 928ms, tests 17.09s, environment 0ms, prepare 144ms)[22m
+

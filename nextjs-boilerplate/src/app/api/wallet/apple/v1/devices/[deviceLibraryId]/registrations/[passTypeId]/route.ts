@@ -11,16 +11,14 @@ import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     deviceLibraryId: string;
     passTypeId: string;
-  };
+  }>;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: RouteParams,
-): Promise<Response> {
+export async function GET(req: NextRequest, props: RouteParams): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
 
   const sinceTag = new URL(req.url).searchParams.get('passesUpdatedSince') ?? '0';

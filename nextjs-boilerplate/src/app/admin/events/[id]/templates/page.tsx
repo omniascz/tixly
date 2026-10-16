@@ -6,14 +6,16 @@
  * Uložit aktuální event jako šablonu + přehled uložených šablon promotéra.
  */
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import React from 'react';
+import { BookmarkPlus, Layers, CheckCircle } from 'lucide-react';
+import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/admin/PageHeader';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import React from 'react';
-import { BookmarkPlus, Layers, CheckCircle } from 'lucide-react';
+import { useRouteParams } from '@/lib/next/route-params';
 
 function Label({ className, children }: { className?: string; children: React.ReactNode }) {
   return <label className={`block text-xs font-medium text-muted-foreground mb-1 ${className ?? ''}`}>{children}</label>;
@@ -49,12 +51,12 @@ const TYPE_LABELS: Record<string, string> = {
   pricing_tiers: 'Cenové hladiny',
 };
 
-export default function TemplatesPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id: eventId } = use(params);
+export default function TemplatesPage(_props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = useParams<{ id: string }>();
+  const { id: eventId } = useRouteParams(params);
   const [templates, setTemplates] = useState<SavedTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

@@ -1,0 +1,851 @@
+   ▲ Next.js 15.5.27
+   - Local:        http://localhost:3200
+   - Network:      http://192.168.0.240:3200
+
+ ✓ Starting...
+ ✓ Ready in 955ms
+[mailer] provider=mailhog-dev host=localhost:51225 authed=false
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:1008)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:661)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:120:392)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:1008)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:129:244)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:129:244)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:120:392)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:120:392)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:1008)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:120:392)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:129:244)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:661)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:1008)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:661)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:129:244)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:661)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:1008)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:661)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:120:392)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:661)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:120:392)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:1008)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:120:392)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:661)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+    at async k (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:10:3638)
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:63)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] loyalty award failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:146:1924)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:661)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:316)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[order-completed] ticket issue / PDF failed: Error: timeout exceeded when trying to connect
+    at async A.connect (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\3299.js:2:3442)
+    at async (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\chunks\18843.js:116:1008)
+    at async o (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:17:295)
+    at async p (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:37:466)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\events\[id]\seats\route.js:1:6592)
+    at async h (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\api\payments\gopay\webhook\route.js:61:241)
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After
+[overload] DB pool vyčerpán → 503 Retry-After

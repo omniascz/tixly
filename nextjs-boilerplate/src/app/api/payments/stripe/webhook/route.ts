@@ -20,6 +20,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { withWebhookAlert } from '@/lib/ops/webhook-alert';
 import { verifyStripeWebhookSignature } from '@/lib/payment/stripe';
 
 
@@ -31,17 +32,26 @@ interface StripeEvent {
   data: { object: Record<string, unknown> };
 }
 
+// Kolo 14 / krok 3: selhání webhooku → upozornění provozu (lib/ops/webhook-alert)
 export async function POST(req: NextRequest): Promise<Response> {
+  return withWebhookAlert('stripe', req, () => handlePost(req));
+}
+
+async function handlePost(req: NextRequest): Promise<Response> {
   return runWithServiceContext(async () => {
 
   const rawBody = await req.text();
+  // Kolo 2: bez API klíče nelze stav ověřit u Stripe → fail-closed (jako chybějící secret).
+  if (!process.env.STRIPE_WEBHOOK_SECRET || !process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json({ error: 'WEBHOOK_NOT_CONFIGURED' }, { status: 401 });
+  }
   const sig = req.headers.get('stripe-signature');
 
   const verify = await verifyStripeWebhookSignature({ rawBody, signatureHeader: sig });
   if (!verify.ok) {
     return NextResponse.json(
       { error: 'INVALID_SIGNATURE', reason: verify.reason },
-      { status: 400 },
+      { status: 401 },
     );
   }
 
@@ -51,6 +61,11 @@ export async function POST(req: NextRequest): Promise<Response> {
   } catch {
     return NextResponse.json({ error: 'INVALID_JSON' }, { status: 400 });
   }
+  if (!event || typeof event.id !== 'string' || typeof event.type !== 'string'
+      || !event.data || typeof event.data.object !== 'object' || event.data.object === null) {
+    return NextResponse.json({ error: 'UNKNOWN_EVENT_FORMAT' }, { status: 400 });
+  }
+  const stripeApi = process.env.STRIPE_API_BASE_URL ?? 'https://api.stripe.com';
 
   const client = await db().connect();
   try {
@@ -78,13 +93,30 @@ export async function POST(req: NextRequest): Promise<Response> {
         metadata?: { orderId?: string };
       };
       const orderId = session.metadata?.orderId;
+      // Kolo 2: autoritativní stav session z Stripe API (ne z těla události) — jako GoPay.
+      let apiConfirmed = false;
       if (orderId && session.payment_status === 'paid') {
+        const ordRow = (await client.query<{ total_amount: number; currency: string }>(
+          `SELECT total_amount, currency FROM orders.orders WHERE id = $1`, [orderId])).rows[0];
+        // Výpadek API → výjimka → ROLLBACK + 5xx, událost se NEzapíše jako zpracovaná a Stripe ji zopakuje.
+        const sRes = await fetch(`${stripeApi}/v1/checkout/sessions/${encodeURIComponent(session.id)}`, {
+          headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` },
+          signal: AbortSignal.timeout(15_000),
+        });
+        if (!sRes.ok) throw new Error(`Stripe session lookup HTTP ${sRes.status}`);
+        const api = (await sRes.json()) as { payment_status?: string; amount_total?: number; currency?: string; metadata?: { orderId?: string } };
+        apiConfirmed = !!ordRow && api.payment_status === 'paid' && api.metadata?.orderId === orderId
+          && typeof api.amount_total === 'number' && api.amount_total > 0 && api.amount_total >= ordRow.total_amount
+          && (api.currency ?? '').toUpperCase() === ordRow.currency.toUpperCase();
+        if (!apiConfirmed) console.warn(`[stripe webhook] session ${session.id} NOT confirmed by API for order ${orderId}`);
+      }
+      if (orderId && session.payment_status === 'paid' && apiConfirmed) {
         // Fetch payment_intent pro získání payment_method_id
         let paymentMethodId: string | null = null;
         if (session.payment_intent) {
           try {
             const piRes = await fetch(
-              `https://api.stripe.com/v1/payment_intents/${session.payment_intent}`,
+              `${stripeApi}/v1/payment_intents/${session.payment_intent}`,
               { headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY ?? ''}` } },
             );
             if (piRes.ok) {

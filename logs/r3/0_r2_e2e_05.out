@@ -1,0 +1,23 @@
+# E2E 05_concurrency  base=http://localhost:3200  2026-10-03T10:42:32.556Z
+FAIL C1a  100 soubeznych nakupu na 10 mist: uspelo prave 10, zadny preprodej
+       {"ms":8460,"responses":{"500:Internal server error":10,"500:":88,"200:OK":2},"remaining_qty":8,"dbOrders":[{"status":"pending","n":2,"qty":2}]}
+FAIL C1b  remaining_qty nikdy zaporne; neuspesne pozadavky dostaly cistou odpoved (409), ne 500
+       {"http5xx":98,"sample5xx":[{"status":500,"body":"{\"error\":\"Internal server error\"}"},{"status":500,"body":"{\"error\":\"Internal server error\"}"}]}
+FAIL C2a  50 soubeznych volani (30 webhooku + 20 order-completed) na 10 objednavek: prave 10 vstupenek, 1 na objednavku
+       {"hookStatuses":{"200":10},"paidOrders":2,"ticketsTotal":2,"maxPerOrder":1}
+PASS C2b  jedna platba = jeden zaznam payment_paid (3 webhooky na platbu)
+       {"payment_paid_per_order":{"1":2}}
+FAIL C2c  potvrzovaci e-maily: 1 na objednavku (ocekavano 10), ne duplicitni
+       {"mailsToRaceBuyers":2,"expected":10}
+PASS C3  zavod: 40 soubeznych pouziti promo kodu s max_uses=5 -> sleva aplikovana max 5x
+       {"create":201,"applied":0,"db":{"uses_count":0,"max_uses":5},"responses":{"500:Internal server error":10,"500:":30}}
+PASS C4  zavod: 15 soubeznych nakupu tehoz uzivatele pri limitu 2 ks/osobu -> max 2 ks
+       {"boughtQty":0,"responses":{"500:Internal server error":10,"500:":5}}
+PASS C5  rate limiting nakupu: 60 checkoutu z JEDNE IP behem vterin -> cast odmitnuta 429
+       {"responses":{"500:Internal server error":10,"429:RATE_LIMIT_EXCEEDED":50},"heldByOneIp":0,"remaining":{"total_qty":500,"remaining_qty":500}}
+
+# SUMMARY {"PASS":4,"FAIL":4,"INFO":0}
+  FAIL C1a 100 soubeznych nakupu na 10 mist: uspelo prave 10, zadny preprodej
+  FAIL C1b remaining_qty nikdy zaporne; neuspesne pozadavky dostaly cistou odpoved (409), ne 500
+  FAIL C2a 50 soubeznych volani (30 webhooku + 20 order-completed) na 10 objednavek: prave 10 vstupenek, 1 na objednavku
+  FAIL C2c potvrzovaci e-maily: 1 na objednavku (ocekavano 10), ne duplicitni

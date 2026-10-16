@@ -11,10 +11,8 @@ import { runAsPromoterOwner } from '@/lib/admin-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoterOwner(req, async (promoter) => {
   const force = req.nextUrl.searchParams.get('force') === 'true';
 

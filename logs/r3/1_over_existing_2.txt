@@ -1,0 +1,5 @@
+psql:/tmp/479.sql:26: NOTICE:  column "refund_initiated_at" of relation "orders" already exists, skipping
+psql:/tmp/479.sql:26: NOTICE:  column "refund_completed_at" of relation "orders" already exists, skipping
+psql:/tmp/479.sql:26: NOTICE:  column "refund_gateway_response" of relation "orders" already exists, skipping
+psql:/tmp/479.sql:26: NOTICE:  column "refund_error" of relation "orders" already exists, skipping
+psql:/tmp/479.sql:26: NOTICE:  column "refunded_amount_halire" of relation "orders" already exists, skipping

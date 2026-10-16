@@ -229,10 +229,12 @@ export default function ProductionsPage() {
         return;
       }
       setNewTitle('');
-      await load();
+      // Kolo 8: po založení rovnou na kartu inscenace (údaje karty + termíny).
       if (j.production) {
-        setManagingId(j.production.id);
+        window.location.href = `/admin/productions/${j.production.id}`;
+        return;
       }
+      await load();
     } finally {
       setCreating(false);
     }
@@ -243,16 +245,16 @@ export default function ProductionsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Produkce"
-        description="Seskupte reprízy stejného titulu do produkce — kupující si pak může vyměnit termín sám bez kontaktu s pořadatelem."
+        title="Inscenace"
+        description="Karta představení zadaná jednou (autor, režie, obsazení, délka…) a její termíny v různých městech a sálech. Kupující si může vyměnit termín sám."
       />
 
       <div className="rounded-lg border bg-card p-4">
-        <h3 className="mb-3 text-sm font-semibold">Nová produkce</h3>
+        <h3 className="mb-3 text-sm font-semibold">Nová inscenace</h3>
         <div className="flex items-center gap-3">
           <Input
             ref={inputRef}
-            placeholder="Název produkce (např. Romeo a Julie sezóna 2026)"
+            placeholder="Název inscenace (např. Racek)"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') void createProduction(); }}
@@ -289,13 +291,22 @@ export default function ProductionsPage() {
                     slug: {prod.slug} · {prod.event_count} {prod.event_count === 1 ? 'repríza' : 'reprízy'}
                   </div>
                 </div>
-                <Button
-                  size="sm"
-                  variant={managingId === prod.id ? 'secondary' : 'outline'}
-                  onClick={() => setManagingId(managingId === prod.id ? null : prod.id)}
-                >
-                  {managingId === prod.id ? 'Zavřít' : 'Spravovat reprízy'}
-                </Button>
+                <div className="flex gap-2">
+                  <a
+                    href={`/admin/productions/${prod.id}`}
+                    data-testid="open-production"
+                    className="inline-flex items-center rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted"
+                  >
+                    Karta a termíny
+                  </a>
+                  <Button
+                    size="sm"
+                    variant={managingId === prod.id ? 'secondary' : 'outline'}
+                    onClick={() => setManagingId(managingId === prod.id ? null : prod.id)}
+                  >
+                    {managingId === prod.id ? 'Zavřít' : 'Připojit existující akce'}
+                  </Button>
+                </div>
               </div>
               {managingId === prod.id && managedProduction ? (
                 <ManageEventsPanel

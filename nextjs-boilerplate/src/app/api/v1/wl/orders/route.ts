@@ -35,12 +35,13 @@
  *   POST { eventType: 'order.paid' | 'order.expired' | 'order.refunded', orderId, ... }
  */
 
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { randomUUID } from 'crypto';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
-import { verifyWlToken, wlResponseHeaders } from '@/lib/whitelabel/tenant-auth';
 import { createPayment } from '@/lib/payment/provider';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
+import { verifyWlToken, wlResponseHeaders } from '@/lib/whitelabel/tenant-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -94,6 +95,9 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
+  // Kolo 7 (C-29): white-label prodej kupcům se řídí online uzávěrkou.
+  const salesClosed = await saleBlockedResponse(db(), body.eventId, 'online');
+  if (salesClosed) return NextResponse.json(await salesClosed.json(), { status: salesClosed.status, headers: wlResponseHeaders(tenant) });
   return runWithServiceContext(async () => {
     const client = await db().connect();
     try {
@@ -222,7 +226,8 @@ export async function POST(req: NextRequest): Promise<Response> {
           // `payment_events` má `raw_payload` (NOT NULL), ne `data`.
           // PŘED: 42703 → ROLLBACK → 500. Ověřeno reálným během.
           `INSERT INTO orders.payment_events (order_id, event_type, raw_payload)
-           VALUES ($1, 'wl_order_created', $2)`,
+           VALUES ($1, 'wl_order_created', $2)
+           ON CONFLICT DO NOTHING`,
           [orderId, JSON.stringify({ tenantId: tenant.tenantId, tenantSlug: tenant.slug, callbackUrl, customerEmail: body.customerEmail })],
         );
       }

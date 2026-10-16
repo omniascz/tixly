@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { runAsPromoter } from '@/lib/admin-auth';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,8 +16,9 @@ async function assertOwner(agreementId: string, promoterId: string) {
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; agreementId: string } },
+  props: { params: Promise<{ id: string; agreementId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     if (!(await assertOwner(params.agreementId, ctx.promoterId))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -28,6 +29,9 @@ export async function PATCH(
       'royalty_type','percent_rate','flat_amount_halire',
       'per_ticket_halire','min_guarantee_halire','cap_halire',
       'included_ticket_type_ids','status','notes',
+      // Podmínky z praxe (migrace 474) — bez nich by je nešlo po založení změnit.
+      'currency','deposit_minor','backend_pct','bonus_tiers','split_pct',
+      'percent_base','withholding_tax_pct','tax_residency',
     ];
     const fields: string[] = [];
     const values: unknown[] = [];
@@ -50,8 +54,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; agreementId: string } },
+  props: { params: Promise<{ id: string; agreementId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     if (!(await assertOwner(params.agreementId, ctx.promoterId))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -73,8 +78,9 @@ export async function DELETE(
 /** GET — ledger záznamy pro tuto smlouvu */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string; agreementId: string } },
+  props: { params: Promise<{ id: string; agreementId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     if (!(await assertOwner(params.agreementId, ctx.promoterId))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });

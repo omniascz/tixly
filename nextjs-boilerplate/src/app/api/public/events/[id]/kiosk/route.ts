@@ -21,11 +21,9 @@ interface TicketTypeRow {
   capacity: number | null;
 }
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
-  if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.id)) {
     return NextResponse.json({ error: 'INVALID_ID' }, { status: 422 });
   }
 
@@ -45,10 +43,12 @@ export async function GET(
   }
 
   const ttRes = await db().query<TicketTypeRow>(
-    `SELECT id, name, remaining_qty, capacity
+    // Dřív četl neexistující sloupce (capacity, is_active, sort_order) → 500 vždy.
+    // Kapacita = total_qty; veřejný kiosk ukazuje jen veřejné typy (ne skryté / na kód).
+    `SELECT id, name, remaining_qty, total_qty AS capacity
        FROM catalog.ticket_types
-      WHERE event_id = $1 AND is_active = true
-      ORDER BY sort_order, name`,
+      WHERE event_id = $1 AND visibility = 'public' AND is_donation = FALSE
+      ORDER BY base_price, name`,
     [params.id],
   );
 

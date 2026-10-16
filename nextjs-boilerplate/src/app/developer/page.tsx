@@ -1,5 +1,7 @@
-import Link from 'next/link';
+import type { JSX } from 'react';
 import { Code, Key, Webhook, Globe, ArrowRight, Terminal, BookOpen, Users } from 'lucide-react';
+import Link from 'next/link';
+
 
 export const metadata = { title: 'Tixly Developer Portal', description: 'Build with Tixly API — events, tickets, webhooks, OAuth 2.0' };
 

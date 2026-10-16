@@ -1,0 +1,24 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r11-network-timeouts.test.ts[2m > [22m[2mklienti s timeouty[2m > [22m[2mRedis (redis-queue.getClient) na nedostupný host → null do 5,5 s, žádné nekonečné opakování[22m[39m
+[redis-queue] ConnectionTimeoutError: Connection timeout
+    at Socket.<anonymous> [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4m@redis\client[24m\dist\lib\client\socket.js:177:124[90m)[39m
+[90m    at Object.onceWrapper (node:events:622:28)[39m
+[90m    at Socket.emit (node:events:508:28)[39m
+[90m    at Socket._onTimeout (node:net:604:8)[39m
+[90m    at listOnTimeout (node:internal/timers:605:17)[39m
+[90m    at processTimers (node:internal/timers:541:7)[39m
+[redis-queue] connect failed: Error: Redis connect: timeout 5000 ms
+    at Timeout.<anonymous> [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\net\with-timeout.ts:5:37[90m)[39m
+[90m    at listOnTimeout (node:internal/timers:605:17)[39m
+[90m    at processTimers (node:internal/timers:541:7)[39m
+
+ [32m✓[39m tests/fix-r11-network-timeouts.test.ts [2m ([22m[2m12 tests[22m[2m)[22m[33m 22142[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+[2m   Start at [22m 11:27:05
+[2m   Duration [22m 23.19s[2m (transform 99ms, setup 156ms, collect 22ms, tests 22.14s, environment 368ms, prepare 76ms)[22m
+

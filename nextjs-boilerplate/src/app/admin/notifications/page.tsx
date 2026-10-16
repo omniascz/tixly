@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 import { Bell, CheckCheck, Filter, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/admin/PageHeader';

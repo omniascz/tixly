@@ -1,0 +1,99 @@
+diff --git a/nextjs-boilerplate/src/app/[locale]/checkout/page.tsx b/nextjs-boilerplate/src/app/[locale]/checkout/page.tsx
+index 1a823367..e29da107 100644
+--- a/nextjs-boilerplate/src/app/[locale]/checkout/page.tsx
++++ b/nextjs-boilerplate/src/app/[locale]/checkout/page.tsx
+@@ -82,6 +82,8 @@ function CheckoutForm() {
+   >('gopay');
+   // Kolo 7: krypto (Triple-A) neumí refund přes API → nabízí se jen u akcí z doby před mig. 499.
+   const [legacyGateways, setLegacyGateways] = useState(false);
++  // Kolo 23: Wero má jen mock bránu → nabízí se jen tam, kde je mock povolený (weroAvailable z ticket-types).
++  const [weroAvailable, setWeroAvailable] = useState(false);
+   const [b2bAccountCode, setB2bAccountCode] = useState('');
+   const [b2bVerify, setB2bVerify] = useState<{ companyName: string; balanceHalire: number } | null>(null);
+   const [b2bVerifyError, setB2bVerifyError] = useState<string | null>(null);
+@@ -309,6 +311,7 @@ function CheckoutForm() {
+           metaPixelId?: string | null;
+           currency?: string;
+           legacyPaymentGateways?: boolean;
++          weroAvailable?: boolean;
+         } | null) => {
+           const tt = d?.ticketTypes?.find((t) => t.id === ticketTypeId);
+           if (tt) {
+@@ -319,6 +322,7 @@ function CheckoutForm() {
+           if (d?.metaPixelId) setMetaPixelId(d.metaPixelId);
+           if (d?.currency) setCurrency(d.currency);
+           setLegacyGateways(d?.legacyPaymentGateways === true);
++          setWeroAvailable(d?.weroAvailable === true);
+         },
+       )
+       .catch(() => {});
+@@ -1151,6 +1155,7 @@ function CheckoutForm() {
+                   />
+                   <span className="text-sm font-medium">🏦 Převodem</span>
+                 </label>
++                {weroAvailable ? (
+                 <label
+                   className={`flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm ${paymentMethod === 'wero' ? 'border-[#6D28D9] bg-violet-50' : ''}`}
+                 >
+@@ -1166,10 +1171,11 @@ function CheckoutForm() {
+                     Wero <span className="text-xs text-muted-foreground">— A2A Instant</span>
+                   </span>
+                 </label>
++                ) : null}
+               </div>
+ 
+-              {/* Wero phone hint — zobrazí se jen při výběru Wero */}
+-              {paymentMethod === 'wero' && (
++              {/* Wero phone hint — zobrazí se jen při výběru Wero (a jen když je Wero dostupné) */}
++              {weroAvailable && paymentMethod === 'wero' && (
+                 <div className="mt-2 rounded-lg border border-violet-200 bg-violet-50 p-3 text-xs text-violet-800">
+                   <p className="font-semibold">⚡ Wero — okamžitá platba z účtu</p>
+                   <p className="mt-1 text-violet-600">
+diff --git a/nextjs-boilerplate/src/app/api/checkout/route.ts b/nextjs-boilerplate/src/app/api/checkout/route.ts
+index 1cd1ee5d..9f13e226 100644
+--- a/nextjs-boilerplate/src/app/api/checkout/route.ts
++++ b/nextjs-boilerplate/src/app/api/checkout/route.ts
+@@ -302,6 +302,23 @@ export async function POST(req: NextRequest): Promise<Response> {
+     }
+   }
+ 
++  // Early-guard: Wero má jen mock bránu (provider.ts → assertMockPaymentsAllowed), v produkci bez
++  // ALLOW_MOCK_PAYMENTS=1 by createPayment hodil až po COMMITu objednávky (500 + objednávka drží místa).
++  // Fail-closed PŘED založením objednávky, stejně jako krypto výše.
++  if (input.paymentMethod === 'wero') {
++    const { mockPaymentsAllowed } = await import('@/lib/payment/mock-guard');
++    if (!mockPaymentsAllowed()) {
++      return NextResponse.json(
++        {
++          error: 'PAYMENT_METHOD_UNAVAILABLE',
++          message: 'Platba Wero není momentálně dostupná. Zvolte prosím jinou metodu.',
++          provider: 'wero',
++        },
++        { status: 503 },
++      );
++    }
++  }
++
+   // Early-guard: digitální program-booklet je SMAZANÝ (F1, FINDINGS §136) — nebyl to
+   // drift k opravě, ale NENAROZENÁ funkce: writer i reader existovaly, schéma pod nimi
+   // nikdy nevzniklo. Guard ZŮSTÁVÁ jako pojistka proti přímému API POST.
+diff --git a/nextjs-boilerplate/src/app/api/events/[id]/ticket-types/route.ts b/nextjs-boilerplate/src/app/api/events/[id]/ticket-types/route.ts
+index 64ef7912..1e76758a 100644
+--- a/nextjs-boilerplate/src/app/api/events/[id]/ticket-types/route.ts
++++ b/nextjs-boilerplate/src/app/api/events/[id]/ticket-types/route.ts
+@@ -5,6 +5,7 @@
+ 
+ import { NextRequest, NextResponse } from 'next/server';
+ import { db } from '@/lib/db/rls-pool';
++import { mockPaymentsAllowed } from '@/lib/payment/mock-guard';
+ 
+ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+ 
+@@ -101,5 +102,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
+     currency: flags.currency ?? 'CZK',
+     // Kolo 7: brány bez refundu (Triple-A, P24, Mollie, PayPal, Stripe) jen u akcí z doby před mig. 499.
+     legacyPaymentGateways: flags.legacy_payment_gateways === true,
++    // Kolo 23: Wero má jen mock bránu — nabízí se jen tam, kde je mock povolený (mock-guard).
++    weroAvailable: mockPaymentsAllowed(),
+   });
+ }

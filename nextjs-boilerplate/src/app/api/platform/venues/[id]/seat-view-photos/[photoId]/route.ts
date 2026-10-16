@@ -9,8 +9,9 @@ import { requirePlatformAdmin } from '@/lib/platform-auth';
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; photoId: string } },
+  props: { params: Promise<{ id: string; photoId: string }> }
 ): Promise<Response> {
+  const params = await props.params;
   const admin = await requirePlatformAdmin(req);
   if (!admin) return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
 

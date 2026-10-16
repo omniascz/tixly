@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 import { runAsPromoter, runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
 
 
 interface PlanRow {
@@ -24,10 +25,11 @@ interface PlanRow {
   active: boolean;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('installments');
+  if (featureOff) return featureOff;
   return runAsPromoter(req, async (promoter) => {
   const owns = await db().query(
     `SELECT 1 FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
@@ -56,10 +58,11 @@ const createSchema = z.object({
   intervalDays: z.number().int().min(1).max(365).default(30),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('installments');
+  if (featureOff) return featureOff;
   return runAsActivePromoter(req, async (promoter) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);

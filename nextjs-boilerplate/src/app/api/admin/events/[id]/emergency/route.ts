@@ -21,10 +21,8 @@ interface ResponseRow {
   count: string;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   return runAsActivePromoter(req, async (ctx) => {
     const ownerCheck = await db().query<{ id: string }>(
       `SELECT id FROM catalog.events WHERE id = $1 AND promoter_id = $2`,
@@ -80,10 +78,8 @@ interface TicketRecipient {
   user_id: string;
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   return runAsActivePromoter(req, async (ctx) => {
     const body = await req.json().catch(() => ({}));
     const parsed = postSchema.safeParse(body);

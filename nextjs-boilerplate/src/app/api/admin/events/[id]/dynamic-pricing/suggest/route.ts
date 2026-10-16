@@ -25,10 +25,8 @@ interface RuleSuggestion {
   rationale: string;
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPromoter(req, async (ctx) => {
     const eventR = await db().query(
       `SELECT e.id, e.title, e.date_start, e.event_type, e.dynamic_pricing_enabled,

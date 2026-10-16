@@ -1,0 +1,6 @@
+== 2_green_build_net.log
+      3   BLOCKED connect o1.ingest.sentry.io:443
+== 2_red_build_net.log
+      3   BLOCKED connect o1.ingest.sentry.io:443
+== 3_build_net.log
+      3   BLOCKED connect o1.ingest.sentry.io:443

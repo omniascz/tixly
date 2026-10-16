@@ -1,0 +1,119 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r7-gateway-policy.live.test.ts[2m > [22m[2mKolo 7 — brány bez refundu jen pro existující akce[2m > [22m[2mmobilní payment-intent (Stripe) pro novou akci → 503 PAYMENT_METHOD_NOT_ALLOWED (aplikace přepne na web)[22m[39m
+[mobile/payment-intent] Error: Invalid API Key provided: sk_test_******************eway
+    at stripePost [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\mobile\payment-intent\route.ts:44:11[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\mobile\payment-intent\route.ts:122:18
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r7-gateway-policy.live.test.ts:92:15
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m
+    at startTests [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:967:3[90m)[39m
+    at [90mfile:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4mvitest[24m/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:116:7
+
+ [33m❯[39m tests/fix-r7-gateway-policy.live.test.ts [2m ([22m[2m5 tests[22m [2m|[22m [31m5 failed[39m[2m)[22m[33m 1056[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r7-gateway-policy.live.test.ts[2m > [22mKolo 7 — brány bez refundu jen pro existující akce[2m > [22mnová akce: mollie / paypal / przelewy24 / crypto → 422 PAYMENT_METHOD_NOT_ALLOWED, žádná objednávka; gopay projde[39m
+[31m     → column "legacy_payment_gateways" does not exist[39m
+[31m   [33m❯[31m tests/fix-r7-gateway-policy.live.test.ts[2m > [22mKolo 7 — brány bez refundu jen pro existující akce[2m > [22mnová akce v EUR: automatické směrování na Stripe → 422; s PAYMENT_PROVIDER_EUR=gopay projde[39m
+[31m     → column "currency" of relation "ticket_types" does not exist[39m
+[31m   [33m❯[31m tests/fix-r7-gateway-policy.live.test.ts[2m > [22mKolo 7 — brány bez refundu jen pro existující akce[2m > [22mexistující akce (příznak z migrace) → brána se nezablokuje politikou[39m
+[31m     → column "legacy_payment_gateways" of relation "events" does not exist[39m
+[31m   [33m❯[31m tests/fix-r7-gateway-policy.live.test.ts[2m > [22mKolo 7 — brány bez refundu jen pro existující akce[2m > [22mmobilní payment-intent (Stripe) pro novou akci → 503 PAYMENT_METHOD_NOT_ALLOWED (aplikace přepne na web)[39m
+[31m     → {"error":"INTERNAL_ERROR"}: expected 500 to be 503 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r7-gateway-policy.live.test.ts[2m > [22mKolo 7 — brány bez refundu jen pro existující akce[2m > [22mveřejný seznam typů vstupenek říká checkoutu, jestli akce smí brány bez refundu[39m
+[31m     → expected undefined to be false // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 5 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-gateway-policy.live.test.ts[2m > [22mKolo 7 — brány bez refundu jen pro existující akce[2m > [22mnová akce: mollie / paypal / przelewy24 / crypto → 422 PAYMENT_METHOD_NOT_ALLOWED, žádná objednávka; gopay projde
+[31m[1merror[22m: column "legacy_payment_gateways" does not exist[39m
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m tests/fix-r7-gateway-policy.live.test.ts:[2m48:13[22m[39m
+    [90m 46| [39m  [34mit[39m([32m'nová akce: mollie / paypal / przelewy24 / crypto → 422 PAYMENT_M[39m…
+    [90m 47| [39m    [35mconst[39m c [33m=[39m [35mawait[39m clone[33m.[39mseed[33m.[39m[34mchain[39m()[33m;[39m
+    [90m 48| [39m    [34mexpect[39m(([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT legacy_payment_gateways FRO[39m…
+    [90m   | [39m            [31m^[39m
+    [90m 49| [39m    [35mfor[39m ([35mconst[39m m [35mof[39m [[32m'mollie'[39m[33m,[39m [32m'paypal'[39m[33m,[39m [32m'przelewy24'[39m[33m,[39m [32m'crypto'[39m]) {
+    [90m 50| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34mcheckout[39m(c[33m,[39m m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 122, severity: 'ERROR', code: '42703', detail: undefined, hint: undefined, position: '8', internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'parse_relation.c', line: '3716', routine: 'errorMissingColumn' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-gateway-policy.live.test.ts[2m > [22mKolo 7 — brány bez refundu jen pro existující akce[2m > [22mnová akce v EUR: automatické směrování na Stripe → 422; s PAYMENT_PROVIDER_EUR=gopay projde
+[31m[1merror[22m: column "currency" of relation "ticket_types" does not exist[39m
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m tests/fix-r7-gateway-policy.live.test.ts:[2m61:5[22m[39m
+    [90m 59| [39m  [34mit[39m([32m'nová akce v EUR: automatické směrování na Stripe → 422; s PAYMEN[39m…
+    [90m 60| [39m    [35mconst[39m c [33m=[39m [35mawait[39m clone[33m.[39mseed[33m.[39m[34mchain[39m()[33m;[39m
+    [90m 61| [39m    [35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`UPDATE catalog.ticket_types SET currency='[39m…
+    [90m   | [39m    [31m^[39m
+    [90m 62| [39m    [35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`UPDATE catalog.events SET currency='EUR' W[39m…
+    [90m 63| [39m    process[33m.[39menv[33m.[39m[33mSTRIPE_SECRET_KEY[39m [33m=[39m [32m'sk_test_placeholder_r7_gateway'[39m[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 135, severity: 'ERROR', code: '42703', detail: undefined, hint: undefined, position: '33', internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'analyze.c', line: '2528', routine: 'transformUpdateTargetList' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-gateway-policy.live.test.ts[2m > [22mKolo 7 — brány bez refundu jen pro existující akce[2m > [22mexistující akce (příznak z migrace) → brána se nezablokuje politikou
+[31m[1merror[22m: column "legacy_payment_gateways" of relation "events" does not exist[39m
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m tests/fix-r7-gateway-policy.live.test.ts:[2m77:5[22m[39m
+    [90m 75| [39m  [34mit[39m([32m'existující akce (příznak z migrace) → brána se nezablokuje polit[39m…
+    [90m 76| [39m    [35mconst[39m c [33m=[39m [35mawait[39m clone[33m.[39mseed[33m.[39m[34mchain[39m()[33m;[39m
+    [90m 77| [39m    [35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`UPDATE catalog.events SET legacy_payment_g[39m…
+    [90m   | [39m    [31m^[39m
+    [90m 78| [39m    [35mfor[39m ([35mconst[39m m [35mof[39m [[32m'mollie'[39m[33m,[39m [32m'paypal'[39m[33m,[39m [32m'przelewy24'[39m[33m,[39m [32m'crypto'[39m]) {
+    [90m 79| [39m      [35mconst[39m r [33m=[39m [35mawait[39m [34mcheckout[39m(c[33m,[39m m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 144, severity: 'ERROR', code: '42703', detail: undefined, hint: undefined, position: '27', internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'analyze.c', line: '2528', routine: 'transformUpdateTargetList' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-gateway-policy.live.test.ts[2m > [22mKolo 7 — brány bez refundu jen pro existující akce[2m > [22mmobilní payment-intent (Stripe) pro novou akci → 503 PAYMENT_METHOD_NOT_ALLOWED (aplikace přepne na web)
+[31m[1mAssertionError[22m: {"error":"INTERNAL_ERROR"}: expected 500 to be 503 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 503[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/fix-r7-gateway-policy.live.test.ts:[2m97:46[22m[39m
+    [90m 95| [39m      body[33m:[39m [33mJSON[39m[33m.[39m[34mstringify[39m({ eventId[33m:[39m c[33m.[39meventId[33m,[39m ticketTypeId[33m:[39m c[33m.[39mticke…
+    [90m 96| [39m    })[33m,[39m [33mPOST[39m [35mas[39m unknown [35mas[39m [33mH[39m)[33m;[39m
+    [90m 97| [39m    [34mexpect[39m(r[33m.[39mstatus[33m,[39m [35mawait[39m r[33m.[39m[34mclone[39m()[33m.[39m[34mtext[39m())[33m.[39m[34mtoBe[39m([34m503[39m)[33m;[39m
+    [90m   | [39m                                             [31m^[39m
+    [90m 98| [39m    [34mexpect[39m([35mawait[39m r[33m.[39m[34mtext[39m())[33m.[39m[34mtoMatch[39m([36m/PAYMENT_METHOD_NOT_ALLOWED/[39m)[33m;[39m
+    [90m 99| [39m    [34mexpect[39m(([35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`SELECT count(*)::int n FROM orders[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-gateway-policy.live.test.ts[2m > [22mKolo 7 — brány bez refundu jen pro existující akce[2m > [22mveřejný seznam typů vstupenek říká checkoutu, jestli akce smí brány bez refundu
+[31m[1mAssertionError[22m: expected undefined to be false // Object.is equality[39m
+
+[32m- Expected:[39m 
+false
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/fix-r7-gateway-policy.live.test.ts:[2m107:93[22m[39m
+    [90m105| [39m    [35mconst[39m r [33m=[39m [35mawait[39m ([33mGET[39m [35mas[39m unknown [35mas[39m [33mH[39m)([35mnew[39m [33mRequest[39m([32m`http://localhos[39m…
+    [90m106| [39m    [34mexpect[39m(r[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m107| [39m    [34mexpect[39m((([35mawait[39m r[33m.[39m[34mjson[39m()) [35mas[39m { legacyPaymentGateways[33m?[39m[33m:[39m boolean })[33m.[39ml…
+    [90m   | [39m                                                                                            [31m^[39m
+    [90m108| [39m  })[33m;[39m
+    [90m109| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m5 failed[39m[22m[90m (5)[39m
+[2m   Start at [22m 04:27:06
+[2m   Duration [22m 1.48s[2m (transform 128ms, setup 0ms, collect 103ms, tests 1.06s, environment 0ms, prepare 75ms)[22m
+

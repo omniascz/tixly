@@ -1,0 +1,38 @@
+celkem auto 43
+1-00-prehled                 en      Admin ⟨Tixly Admin⟩
+1-01-inscenace-seznam        en      Admin ⟨Tixly Admin⟩
+1-02-karta-inscenace         en      Admin ⟨Tixly Admin⟩
+2-01-sály                    en      Admin ⟨Tixly Admin⟩
+2-02-editor-prazdny          en      Admin ⟨Tixly Admin⟩
+2-02-editor-prazdny          en      Seating ⟨Seating editor⟩
+2-02-editor-prazdny          en      Select ⟨↖ Select 1⟩
+2-02-editor-prazdny          en      Undo ⟨↶ Undo⟩
+2-02-editor-prazdny          en      Redo ⟨↷ Redo⟩
+2-02-editor-prazdny          en      Tool ⟨1–6 Tool · Ctrl+Z Undo · Del Smazat · Esc Zrušit · Shift+klik Multi⟩
+2-02-editor-prazdny          en      Reset ⟨Reset⟩
+2-02-editor-prazdny          tech    layout ⟨Drag-and-draw editor pro layout sedadel. Změny se projeví na všech budoucích akcích v tomt⟩
+2-04-editor-ulozeno          en      Layout ⟨Layout uložen.⟩
+2-05-po-zpet                 en      found ⟨This page could not be found.⟩
+3-03-kategorie-pred          en      Admin ⟨Tixly Admin⟩
+4-01-blokace                 en      Admin ⟨Tixly Admin⟩
+5-01-firemni                 en      Admin ⟨Tixly Admin⟩
+6-01-promo                   en      Admin ⟨Tixly Admin⟩
+7-01-zruseni-presun          en      Admin ⟨Tixly Admin⟩
+8-01-reporty                 en      Admin ⟨Tixly Admin⟩
+K-01-uvod                    en      Status ⟨Status⟩
+K-02-akce                    en      Online ⟨Online (streamovaná)⟩
+K-02-akce                    en      Status ⟨Status⟩
+K-03-detail                  en      Status ⟨Status⟩
+K-04-mista                   en      Status ⟨Status⟩
+K-05-kategorie               en      Status ⟨Status⟩
+P-02a-seznam-akci            en      Admin ⟨Tixly Admin⟩
+P-02-rezervace               en      Admin ⟨Tixly Admin⟩
+P-05-pos                     en      Admin ⟨Tixly Admin⟩
+V-02-skener                  en      Admin ⟨Tixly Admin⟩
+V-02-skener                  en      Scanner ⟨Scanner⟩
+V-02-skener                  en      Online ⟨Online — server validuje každý sken⟩
+V-02-skener                  en      Ticket ⟨Ticket ID nebo QR payload tixly:<id>:<code>⟩
+V-02-skener                  tech    ID ⟨Ticket ID nebo QR payload tixly:<id>:<code>⟩
+V-02-skener                  tech    payload ⟨Ticket ID nebo QR payload tixly:<id>:<code>⟩
+V-02-skener                  tech    TOTP ⟨TOTP kód (volitelné, z autentikační appky)⟩
+V-03-bezna                   en      Offline ⟨⚠ Offline seznam není stažený — offline sken nepůjde ověřit. Stáhni před akcí (online).⟩

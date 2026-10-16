@@ -1,7 +1,7 @@
 /**
  * POST /api/admin/scanner/validate
  *
- * Body: { ticketId: string, totpCode?: string }
+ * Body: { ticketId: string, totpCode?: string, eventId?: string }
  *
  * Demo scanner flow:
  *   1. Najde ticket podle ID
@@ -12,12 +12,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/rls-pool';
-import { runAsActivePromoter } from '@/lib/admin-auth';
 import { z } from 'zod';
+import { runAsActivePromoter } from '@/lib/admin-auth';
 import { decryptSecret } from '@/lib/crypto';
+import { db } from '@/lib/db/rls-pool';
+import { qrPolicyDecision } from '@/lib/scanner/qr-policy';
+import { parsePrintToken, verifyPrintTokenForEvent } from '@/lib/tickets/print-token';
 import { verifyTotpCode } from '@/lib/totp/verify';
-import { verifyPrintToken } from '@/lib/tickets/print-token';
 
 
 const schema = z
@@ -30,6 +31,9 @@ const schema = z
     // Day-aware + zone-aware (volitelné pro single events)
     eventDayId: z.string().uuid().nullable().optional(),
     zoneId: z.string().uuid().nullable().optional(),
+    // Kolo 3 (V9b): akce, kterou brána obsluhuje — vstupenka jiné akce → wrong_event.
+    // Volitelné kvůli starším klientům (bez něj se chová jako dřív).
+    eventId: z.string().uuid().optional(),
     // Identifikace skeneru pro scan_log
     deviceId: z.string().max(64).optional(),
     gateId: z.string().uuid().optional(),
@@ -53,6 +57,19 @@ interface TicketRow {
   event_qr_policy: string;
   buyer_email: string;
   buyer_name: string | null;
+  // Kolo 8 / krok 4: místo, slevová kategorie a povinnost prokázat nárok u vstupu
+  holder_name: string | null;
+  price_category_name: string | null;
+  proof_required_label: string | null;
+  seat_sector: string | null;
+  seat_row: string | null;
+  seat_number: string | null;
+  // Kolo 9: termín, na který vstupenka platí (hláška „jiný termín")
+  production_title: string | null;
+  term_date: string | null;
+  term_time: string | null;
+  venue_city: string | null;
+  venue_name: string | null;
 }
 
 interface AccessRow {
@@ -73,17 +90,21 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   // Tištěná vstupenka: ověř podpis tokenu a získej ticketId.
+  // Kolo 4: TXP2 je podepsaný i akcí — podpis jde ověřit až proti akci vstupenky z DB,
+  // proto se tady token jen rozparsuje (formát) a ověří se níže po načtení vstupenky.
   let ticketId = parsed.data.ticketId;
-  if (!ticketId && parsed.data.printToken) {
-    const pv = verifyPrintToken(parsed.data.printToken);
-    if (!pv.ok || !pv.ticketId) {
+  const printToken = !ticketId && parsed.data.printToken ? parsed.data.printToken : null;
+  if (printToken) {
+    const pt = parsePrintToken(printToken);
+    if (!pt) {
       return NextResponse.json(
         { result: 'invalid_token', message: 'Neplatný kód vstupenky (podpis nesedí).' },
         { status: 401 },
       );
     }
-    ticketId = pv.ticketId;
+    ticketId = pt.ticketId;
   }
+  let printVerifiedForEvent = false;
 
   const client = await db().connect();
   try {
@@ -99,12 +120,21 @@ export async function POST(req: NextRequest): Promise<Response> {
               e.promoter_id AS event_promoter_id,
               e.qr_policy AS event_qr_policy,
               u.email AS buyer_email,
-              u.name AS buyer_name
+              u.name AS buyer_name,
+              t.holder_name, t.price_category_name, t.proof_required_label,
+              es.sector AS seat_sector, es.row AS seat_row, es.seat_number,
+              COALESCE(p.title, e.title) AS production_title,
+              to_char(e.date_start AT TIME ZONE 'Europe/Prague', 'FMDD. FMMM. YYYY') AS term_date,
+              to_char(e.date_start AT TIME ZONE 'Europe/Prague', 'HH24:MI') AS term_time,
+              v.city AS venue_city, v.name AS venue_name
        FROM tickets.tickets t
        JOIN catalog.ticket_types tt ON tt.id = t.ticket_type_id
        JOIN orders.orders o ON o.id = t.order_id
        JOIN catalog.events e ON e.id = o.event_id
        JOIN identity.users u ON u.id = t.owner_id
+       LEFT JOIN catalog.event_seats es ON es.id = t.event_seat_id
+       LEFT JOIN catalog.productions p ON p.id = e.production_id
+       LEFT JOIN catalog.venues v ON v.id = e.venue_id
        WHERE t.id = $1
        FOR UPDATE OF t`,
       [ticketId],
@@ -119,6 +149,18 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
     const t = r.rows[0];
 
+    if (printToken) {
+      const pv = verifyPrintTokenForEvent(printToken, t.event_id);
+      if (!pv.ok) {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          { result: 'invalid_token', message: 'Neplatný kód vstupenky (podpis nesedí).' },
+          { status: 401 },
+        );
+      }
+      printVerifiedForEvent = pv.scheme === 'TXP2';
+    }
+
     if (t.event_promoter_id !== promoter.promoterId) {
       await client.query('ROLLBACK');
       return NextResponse.json(
@@ -127,31 +169,37 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
 
-    // QR policy enforcement (migrace 265):
-    //   static_allowed  → TOTP volitelný (offline/static QR funguje vždy)
-    //   rotating_24h    → TOTP volitelný DO 24h před akcí, pak POVINNÝ
-    //   rotating_only   → TOTP POVINNÝ vždy (jen mobile QR)
-    //   photo_required  → TOTP POVINNÝ + foto check ručně u brány
-    const qrPolicy = t.event_qr_policy ?? 'static_allowed';
-    let totpRequired = qrPolicy === 'rotating_only' || qrPolicy === 'photo_required';
-    if (qrPolicy === 'rotating_24h' && t.event_date_start) {
-      const eventTimeMs = new Date(t.event_date_start).getTime();
-      const twentyFourHoursMs = 24 * 60 * 60 * 1000;
-      if (eventTimeMs - Date.now() <= twentyFourHoursMs) {
-        totpRequired = true;
-      }
+    // Kolo 3 (V9b): lístek jiné akce téhož pořadatele u brány této akce → nevpouštět.
+    if (parsed.data.eventId && t.event_id !== parsed.data.eventId) {
+      await client.query('ROLLBACK');
+      await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'wrong_event' });
+      return NextResponse.json(
+        {
+          result: 'wrong_event',
+          ticket: shortTicketInfo(t),
+          // Kolo 9: u turné stejné inscenace nestačí název — datum, čas a město termínu, na který vstupenka platí
+          message: `Lístek platí na jiný termín: ${[
+            `${t.production_title ?? t.event_title}${t.term_date ? ` — ${t.term_date} ${t.term_time ?? ''}`.trimEnd() : ''}`,
+            t.venue_city ? `${t.venue_city}${t.venue_name ? ` (${t.venue_name})` : ''}` : null,
+          ].filter(Boolean).join(', ')}.`,
+          validFor: {
+            title: t.production_title ?? t.event_title, date: t.term_date, time: t.term_time, city: t.venue_city, venue: t.venue_name,
+          },
+        },
+        { status: 409 },
+      );
     }
 
-    if (totpRequired && !parsed.data.totpCode) {
+    // QR policy enforcement (migrace 265) — rozhodnutí sdílí s průchodem (lib/scanner/qr-policy, kolo 5).
+    const qr = qrPolicyDecision({
+      qrPolicy: t.event_qr_policy,
+      eventDateStart: t.event_date_start,
+      printVerifiedForEvent,
+    });
+    if (qr.totpRequired && !parsed.data.totpCode) {
       await client.query('ROLLBACK');
-      const msg =
-        qrPolicy === 'photo_required'
-          ? 'Tento lístek vyžaduje rotující QR + fotokontrolu u brány. Použij mobilní vstupenku.'
-          : qrPolicy === 'rotating_24h'
-            ? 'Tato akce vyžaduje rotující QR od 24h před začátkem. PDF nestačí, použij mobilní vstupenku.'
-            : 'Tato akce vyžaduje rotující QR. Použij mobilní vstupenku, ne PDF.';
       return NextResponse.json(
-        { result: 'totp_required', qrPolicy, message: msg },
+        { result: 'totp_required', qrPolicy: qr.qrPolicy, message: qr.message },
         { status: 401 },
       );
     }
@@ -173,7 +221,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     if (t.status === 'used') {
       await client.query('ROLLBACK');
-      logScan({ ticketId: t.id, eventId: t.event_id, result: 'already_used', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'already_used' });
+      await logScan({ ticketId: t.id, eventId: t.event_id, result: 'already_used', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'already_used' });
       return NextResponse.json({
         result: 'already_used',
         usedAt: t.used_at,
@@ -183,7 +231,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
     if (t.status === 'revoked') {
       await client.query('ROLLBACK');
-      logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'revoked' });
+      await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'revoked' });
       return NextResponse.json(
         {
           result: 'revoked',
@@ -196,7 +244,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
     if (t.status !== 'valid') {
       await client.query('ROLLBACK');
-      logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: `invalid_status:${t.status}` });
+      await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: `invalid_status:${t.status}` });
       return NextResponse.json(
         { result: 'invalid_status', status: t.status, message: `Neočekávaný stav: ${t.status}` },
         { status: 409 },
@@ -232,7 +280,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         );
         if (!hasMatch) {
           await client.query('ROLLBACK');
-          logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'wrong_zone_or_day' });
+          await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'wrong_zone_or_day' });
           return NextResponse.json(
             {
               result: 'wrong_zone_or_day',
@@ -263,7 +311,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           });
           if (!hasMatch) {
             await client.query('ROLLBACK');
-            logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'wrong_zone_or_day' });
+            await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'wrong_zone_or_day' });
             return NextResponse.json(
               {
                 result: 'wrong_zone_or_day',
@@ -290,7 +338,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
       if (existing.rows.length > 0) {
         await client.query('ROLLBACK');
-        logScan({ ticketId: t.id, eventId: t.event_id, result: 'already_used', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'already_redeemed_today' });
+        await logScan({ ticketId: t.id, eventId: t.event_id, result: 'already_used', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'already_redeemed_today' });
         return NextResponse.json({
           result: 'already_redeemed_today',
           ticket: shortTicketInfo(t),
@@ -312,7 +360,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         const usedCount = Number(used.rows[0]?.count ?? 0);
         if (usedCount >= flex.rows[0].picks_required) {
           await client.query('ROLLBACK');
-          logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'flex_limit_exhausted' });
+          await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'flex_limit_exhausted' });
           return NextResponse.json(
             {
               result: 'flex_limit_exhausted',
@@ -334,7 +382,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           const allowed = picks.rows.some((p) => p.event_day_id === parsed.data.eventDayId);
           if (!allowed) {
             await client.query('ROLLBACK');
-            logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'day_not_picked' });
+            await logScan({ ticketId: t.id, eventId: t.event_id, result: 'denied', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId, deniedReason: 'day_not_picked' });
             return NextResponse.json(
               {
                 result: 'day_not_picked',
@@ -371,7 +419,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
 
       await client.query('COMMIT');
-      logScan({ ticketId: t.id, eventId: t.event_id, result: 'admitted', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId });
+      await logScan({ ticketId: t.id, eventId: t.event_id, result: 'admitted', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId });
       void triggerCommemorativeSend(t.event_id);
       return NextResponse.json({
         result: 'admitted',
@@ -387,7 +435,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       [t.id],
     );
     await client.query('COMMIT');
-    logScan({ ticketId: t.id, eventId: t.event_id, result: 'admitted', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId });
+    await logScan({ ticketId: t.id, eventId: t.event_id, result: 'admitted', deviceId: parsed.data.deviceId, gateId: parsed.data.gateId });
     void triggerCommemorativeSend(t.event_id);
     // ForgeMsg — emit event_attended (post-event review / cross-sell). Best-effort.
     try {
@@ -427,33 +475,48 @@ function shortTicketInfo(t: TicketRow) {
     eventTitle: t.event_title,
     ticketTypeName: t.ticket_type_name,
     holderEmail: t.buyer_email,
-    holderName: t.buyer_name,
+    holderName: t.holder_name ?? t.buyer_name,
+    seat: t.seat_sector ? `${t.seat_sector}, řada ${t.seat_row}, místo ${t.seat_number}` : null,
+    category: t.price_category_name,
+    // Kolo 8: kategorie s nárokem (ZTP/P, student…) → skener výrazně „Ověřit průkaz: …"
+    verifyId: t.proof_required_label ? `Ověřit průkaz: ${t.proof_required_label}` : null,
   };
 }
 
-function logScan(opts: {
+// Kolo 2 / V4: zápis je AWAITOVANÝ (dřív fire-and-forget → chyby jen v konzoli, 0 řádků).
+// deviceId: UUID → scanned_by_device_id, jinak (webový skener bez id / textové id) → device_label.
+// gateId: jen platné UUID existující brány, jinak NULL (FK by zápis shodil).
+const SCAN_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+async function logScan(opts: {
   ticketId: string;
   eventId: string;
   result: string;
   deviceId?: string | null;
   gateId?: string | null;
   deniedReason?: string | null;
-}): void {
-  void db()
-    .query(
+}): Promise<void> {
+  const dev = opts.deviceId ?? null;
+  const devIsUuid = !!dev && SCAN_UUID_RE.test(dev);
+  const gate = opts.gateId && SCAN_UUID_RE.test(opts.gateId) ? opts.gateId : null;
+  try {
+    await db().query(
       `INSERT INTO tickets.scan_logs
-         (ticket_id, event_id, scanned_by_device_id, scan_result, gate_id, denied_reason, scanned_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+         (ticket_id, event_id, scanned_by_device_id, device_label, scan_result, gate_id, denied_reason, scanned_at)
+       VALUES ($1, $2, $3, $4, $5, (SELECT g.id FROM catalog.venue_gates g WHERE g.id = $6::uuid), $7, NOW())`,
       [
         opts.ticketId,
         opts.eventId,
-        opts.deviceId ?? null,
+        devIsUuid ? dev : null,
+        dev && !devIsUuid ? dev.slice(0, 64) : null,
         opts.result,
-        opts.gateId ?? null,
+        gate,
         opts.deniedReason ?? null,
       ],
-    )
-    .catch((e: unknown) => console.error('[scanner/validate] logScan failed:', e));
+    );
+  } catch (e) {
+    // sken samotný už proběhl (stav vstupenky je zapsán) — chybu logu nehlásíme bráně jako 500
+    console.error('[scanner/validate] logScan failed:', e);
+  }
 }
 
 function triggerCommemorativeSend(eventId: string): void {

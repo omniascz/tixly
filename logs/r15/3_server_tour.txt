@@ -1,0 +1,15 @@
+   ▲ Next.js 15.5.27
+   - Local:        http://localhost:3200
+   - Network:      http://192.168.0.240:3200
+
+ ✓ Starting...
+ ✓ Ready in 772ms
+[mailer] provider=mailhog-dev host=localhost:51225 authed=false
+ ⨯ TypeError: d.event_date_start.replace is not a function
+    at w (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\[locale]\order-confirmation\[orderId]\page.js:32:7614) {
+  digest: '494386433'
+}
+ ⨯ TypeError: d.event_date_start.replace is not a function
+    at w (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\[locale]\order-confirmation\[orderId]\page.js:32:7614) {
+  digest: '494386433'
+}

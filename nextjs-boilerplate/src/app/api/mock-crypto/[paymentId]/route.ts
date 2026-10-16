@@ -19,10 +19,8 @@ interface OrderRow {
   status: string;
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { paymentId: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ paymentId: string }> }): Promise<Response> {
+  const params = await props.params;
   const blocked = mockPaymentBlockedResponse();
   if (blocked) return blocked;
   return runWithServiceContext(async () => {
@@ -49,10 +47,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { paymentId: string } },
-): Promise<Response> {
+export async function POST(request: NextRequest, props: { params: Promise<{ paymentId: string }> }): Promise<Response> {
+  const params = await props.params;
   const blocked = mockPaymentBlockedResponse();
   if (blocked) return blocked;
   return runWithServiceContext(async () => {
@@ -84,7 +80,8 @@ export async function POST(
         );
         await client.query(
           `INSERT INTO orders.payment_events (order_id, event_type, gopay_status, raw_payload, payment_provider)
-           VALUES ($1, 'CANCELED', 'CANCELED', $2::jsonb, 'crypto')`,
+           VALUES ($1, 'CANCELED', 'CANCELED', $2::jsonb, 'crypto')
+           ON CONFLICT DO NOTHING`,
           [order.id, JSON.stringify({ paymentId: params.paymentId, source: 'mock-crypto', coin })],
         );
         await client.query('COMMIT');
@@ -97,7 +94,8 @@ export async function POST(
       );
       await client.query(
         `INSERT INTO orders.payment_events (order_id, event_type, gopay_status, raw_payload, payment_provider)
-         VALUES ($1, 'PAID', 'PAID', $2::jsonb, 'crypto')`,
+         VALUES ($1, 'PAID', 'PAID', $2::jsonb, 'crypto')
+           ON CONFLICT DO NOTHING`,
         [order.id, JSON.stringify({ paymentId: params.paymentId, source: 'mock-crypto', coin: coin ?? 'BTC' })],
       );
       await client.query('COMMIT');

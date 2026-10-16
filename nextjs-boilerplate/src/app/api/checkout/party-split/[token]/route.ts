@@ -27,6 +27,7 @@ import { randomUUID } from 'crypto';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { createPayment } from '@/lib/payment/provider';
 import { createOrGetGuestUser } from '@/lib/identity/guest-user';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 export const dynamic = 'force-dynamic';
 
@@ -75,10 +76,8 @@ async function getSession(token: string): Promise<{ session: SessionRow; slots: 
   return { session: res.rows[0], slots: slots.rows };
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
     const data = await getSession(params.token);
     if (!data) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
@@ -122,10 +121,8 @@ const PaySchema = z.object({
   locale:        z.enum(['cs', 'sk', 'en', 'de', 'pl']).default('cs'),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { token: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ token: string }> }): Promise<Response> {
+  const params = await props.params;
   let body: z.infer<typeof PaySchema>;
   try {
     body = PaySchema.parse(await req.json());
@@ -162,6 +159,12 @@ export async function POST(
       if (session.status !== 'open' || new Date(session.expires_at) < new Date()) {
         await client.query('ROLLBACK');
         return NextResponse.json({ error: 'SESSION_CLOSED', status: session.status }, { status: 409 });
+      }
+      // Kolo 7 (C-29): platba podílu je nový nákup kupce — po uzávěrce online prodeje ne.
+      const salesClosed = await saleBlockedResponse(client, session.event_id, 'online');
+      if (salesClosed) {
+        await client.query('ROLLBACK');
+        return salesClosed;
       }
 
       // Claim a pending slot (FOR UPDATE)

@@ -13,9 +13,9 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { NextRequest } from 'next/server';
-import { createLiveClone, makeSeed, hasNeonKey, type LiveClone, type Seed } from './helpers/live-fixture';
+import { createLiveClone, makeSeed, hasLiveDb, type LiveClone, type Seed } from './helpers/live-fixture';
 
-const d = hasNeonKey ? describe : describe.skip;
+const d = hasLiveDb ? describe : describe.skip;
 let clone: LiveClone;
 let seed: Seed;
 let chain: Awaited<ReturnType<Seed['fullChain']>>;
@@ -78,7 +78,7 @@ d('obalene routy — pozitivni cesta', () => {
     const { SignJWT } = await import('jose');
     const secret = new TextEncoder().encode(
       process.env.JWT_SECRET ?? 'dev-secret-change-me-min-32-chars-please');
-    return new SignJWT({ roles: { isPlatformAdmin: true } })
+    return new SignJWT({ type: 'access', roles: { isPlatformAdmin: true } }) // kolo 3 K4d: access token nese typ
       .setProtectedHeader({ alg: 'HS256' }).setSubject(userId)
       .setExpirationTime('1h').sign(secret);
   };

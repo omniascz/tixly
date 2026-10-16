@@ -11,8 +11,17 @@ interface EventData {
   title: string;
   description: string | null;
   dateStart: string;
+  dateEnd?: string | null;
+  salesEndAt?: string | null;
   status: string;
   minAge: number | null;
+}
+
+/** ISO (UTC) → hodnota pro <input type="datetime-local"> v místním čase prohlížeče. */
+function toLocalInput(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 }
 
 export default function EditEventPage() {
@@ -25,6 +34,8 @@ export default function EditEventPage() {
   const [description, setDescription] = useState('');
   const [dateStart, setDateStart] = useState('');
   const [minAge, setMinAge] = useState('');
+  // Kolo 7 (C-29): konec online prodeje — prázdné = začátek akce.
+  const [salesEndAt, setSalesEndAt] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -41,6 +52,7 @@ export default function EditEventPage() {
         setDescription(d.description ?? '');
         setDateStart(d.dateStart.slice(0, 16));
         setMinAge(d.minAge ? String(d.minAge) : '');
+        setSalesEndAt(toLocalInput(d.salesEndAt));
       })
       .catch(() => setError('Nelze načíst akci'));
   }, [id]);
@@ -66,11 +78,17 @@ export default function EditEventPage() {
               ? new Date(dateStart).toISOString()
               : undefined,
           minAge: minAge ? parseInt(minAge, 10) : null,
+          salesEndAt:
+            salesEndAt !== toLocalInput(data?.salesEndAt)
+              ? salesEndAt
+                ? new Date(salesEndAt).toISOString()
+                : null
+              : undefined,
         }),
       });
       const d = await r.json();
       if (!r.ok) {
-        setError(d.error ?? `HTTP ${r.status}`);
+        setError(d.message ?? d.error ?? `HTTP ${r.status}`);
         return;
       }
       setFeedback(
@@ -144,6 +162,21 @@ export default function EditEventPage() {
                   onChange={(e) => setMinAge(e.target.value)}
                 />
               </div>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium" htmlFor="sales-end-at">
+                Konec online prodeje (volit.)
+              </label>
+              <Input
+                id="sales-end-at"
+                type="datetime-local"
+                value={salesEndAt}
+                onChange={(e) => setSalesEndAt(e.target.value)}
+                data-testid="sales-end-at"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Prázdné = prodej končí začátkem akce. Nesmí být po konci akce. Pokladna prodává do konce akce.
+              </p>
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}

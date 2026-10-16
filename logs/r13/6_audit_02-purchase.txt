@@ -1,0 +1,79 @@
+# E2E 02_purchase  base=http://localhost:3200  2026-10-06T20:37:21.359Z
+PASS P0A  schvaleni akce A moderaci -> published
+       {"status":200,"body":"{\"ok\":true}","dbStatus":"published"}
+PASS P0B  schvaleni akce B moderaci -> published
+       {"status":200,"body":"{\"ok\":true}","dbStatus":"published"}
+PASS P0c  verejny vypis typu vstupenek publikovane akce
+       {"status":200,"body":"{\"ticketTypes\":[{\"id\":\"bd83dd92-1adb-4e20-b586-353c1b3d8077\",\"name\":\"Zdarma\",\"basePrice\":0,\"remainingQty\":10,\"isSeated\":false,\"passSettings\":null,\"presaleCodeRequired\":false,\"presaleStartsAt\":null,\"presaleEndsAt\":null},{\"id\":\"36de61b0-bbb3-4de9-a584-930291182944\",\"name\":\"Limit 2 na osobu\",\"basePrice\":20000,\"remainingQty\":100,\"isSeated\":fa…
+PASS P1  validace kosiku (/api/cart/validate) — routa odstraněna (kolo 2), nepadá 500
+       {"status":404,"body":"<!DOCTYPE html><html lang=\"cs\" class=\"__variable_65423c\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\"/><link rel=\"stylesheet\" href=\"/_next/static/css/df63886ab255282f.css\" data-precedence=\"next\"/><link rel=\"stylesheet\" href=\"/_next/static/css/4624d24b65bdf489.css\" data-precedence=\"nex…
+PASS P2a  checkout 2x Stani s promo 20 % -> objednavka + platebni relace
+       {"status":200,"body":"{\"orderId\":\"c9a4a484-9ba5-4c74-b316-9e513d429d76\",\"paymentId\":\"3316047599\",\"gatewayUrl\":\"http://localhost:3998/gw/3316047599\",\"provider\":\"gopay\",\"variableSymbol\":null,\"subtotalAmount\":100000,\"discountAmount\":20000,\"volumeDiscountAmount\":0,\"volumeDiscountPct\":0,\"addonsSubtotal\":0,\"bundleDiscountAmount\":0,\"bundleId\":null,\"voucherRedeemedHalire\"…
+PASS P2b  cena spoctena serverem: 2*500 Kc -20 % = 800 Kc (80000 hal)
+       {"total_amount":80000,"status":"pending","response":{"subtotal":100000,"discount":20000,"total":80000}}
+PASS P2c  rezervace: remaining_qty 50 -> 48, objednavka pending s expiraci
+       {"before":{"remaining_qty":50,"total_qty":50},"after":{"remaining_qty":48,"total_qty":50},"expires_at":"2026-10-06T20:52:22.451Z"}
+PASS P2d  brana dostala spravnou castku a notification_url
+       {"id":"3316047599","state":"CREATED","amount":80000,"currency":"CZK","order_number":"c9a4a484-9ba5-4c74-b316-9e513d429d76","notification_url":"http://localhost:3200/api/payments/gopay/webhook","return_url":"http://localhost:3200/cs/order-confirmation/c9a4a484-9ba5-4c74-b316-9e513d429d76","refunds":[],"refundMode":"ok"}
+PASS P2e  pred platbou neexistuje zadna vstupenka
+       {"tickets":0}
+PASS P3  klientem podvrzena cena (1 hal) odmitnuta
+       {"status":409,"body":"{\"error\":\"PRICE_MISMATCH\",\"message\":\"Cena vstupenky se mezitím změnila. Aktualizujte stránku.\",\"serverPriceHalire\":50000}"}
+PASS P3b  zaporne mnozstvi odmitnuto (422)
+       {"status":422,"body":"{\"error\":\"Validation failed\",\"issues\":[{\"code\":\"too_small\",\"minimum\":1,\"type\":\"number\",\"inclusive\":true,\"exact\":false,\"message\":\"Number must be greater than or equal to 1\",\"path\":[\"quantity\"]}]}"}
+PASS P3c  typ vstupenky z JINE akce (B) pod eventId A odmitnut
+       {"status":404,"body":"{\"error\":\"Ticket type not found or event is not published\"}"}
+PASS P4  webhook pri stavu CREATED: objednavka zustava pending, zadne vstupenky
+       {"status":"pending","body":"{\"ok\":true,\"orderId\":\"c9a4a484-9ba5-4c74-b316-9e513d429d76\",\"state\":\"CREATED\",\"newStatus\":\"pending\"}"}
+PASS P5a  po webhooku PAID je objednavka paid
+       {"webhookStatuses":[200,200,200],"order":{"id":"c9a4a484-9ba5-4c74-b316-9e513d429d76","status":"paid","total_amount":80000,"currency":"CZK","gopay_payment_id":"3316047599","user_id":"535d0ff3-93dd-4bec-82c0-8f4becebfd4a","expires_at":"2026-10-06T20:52:22.451Z","paid_at":"2026-10-06T20:37:22.812Z"}}
+PASS P5b  vystaveny presne 2 vstupenky (3x stejny webhook)
+       {"tickets":[{"id":"bd1c8590-3b49-43db-a90e-2c3379fa1d17","status":"valid","ticket_type_id":"51c331b6-d4fd-452c-82b8-c96b9fa2f2cd","owner_id":"535d0ff3-93dd-4bec-82c0-8f4becebfd4a"},{"id":"0bf5047a-11e0-4d21-8223-ffc1b9af6c10","status":"valid","ticket_type_id":"51c331b6-d4fd-452c-82b8-c96b9fa2f2cd","owner_id":"535d0ff3-93dd-4bec-82c0-8f4becebfd4a"}]}
+PASS P5c  idempotence: i po 3 webhookech porad 2 vstupenky
+       {"tickets":2}
+PASS P5d  zaznam platby: kolik udalosti payment_paid vzniklo pro 1 platbu (ocekavano 1)
+       [{"event_type":"payment_paid","n":1},{"event_type":"webhook_received","n":1}]
+PASS P5e  3 SOUBEZNE webhooky na 1 platbu -> presne 3 vstupenky (qty 3), zadne dvojite vystaveni
+       {"webhookStatuses":[200,200,200],"tickets":3}
+PASS P6  e-mail se vstupenkami dorucen (zachycen v Mailpit)
+       [{"subject":"Audit a s.r.o. — vstupenky na Audit Koncert A mux53rdj","attachments":4,"to":["buyer-mux53rdj@audit.test"]},{"subject":"Audit a s.r.o. — vstupenky na Audit Koncert A mux53rdj","attachments":3,"to":["buyer-mux53rdj@audit.test"]}]
+INFO P6b  pocet e-mailu po 2 objednavkach a 6 webhookech (ocekavano 2 potvrzeni)
+       {"count":2,"subjects":["Audit a s.r.o. — vstupenky na Audit Koncert A mux53rdj","Audit a s.r.o. — vstupenky na Audit Koncert A mux53rdj"]}
+PASS P7a  kupec ziska rotujici kod (TOTP) sve vstupenky
+       {"status":200,"body":"{\"ticketId\":\"bd1c8590-3b49-43db-a90e-2c3379fa1d17\",\"revealed\":false,\"revealsAt\":\"2026-11-05T20:37:20.984Z\",\"minutesUntilReveal\":43200,\"message\":\"QR kód se zobrazí 0 minut před akcí.\",\"status\":\"valid\"}"}
+PASS P7b  CIZI kupec kod cizi vstupenky nedostane (IDOR)
+       {"status":404,"body":"{\"error\":\"Not found\"}"}
+PASS P7c  CIZI kupec nestahne PDF cizi objednavky (IDOR)
+       {"status":404,"len":39}
+PASS P7d  vlastnik stahne PDF vstupenek
+       {"status":200,"contentType":"application/pdf","bytes":27332}
+PASS P8  podplaceni (brana hlasi 1 Kc misto 500 Kc) -> objednavka NENI paid, zadna vstupenka
+       {"status":"pending","body":"{\"ok\":false,\"reason\":\"AMOUNT_MISMATCH\",\"orderId\":\"f18facb5-3ff5-4bf6-82fb-18eb44bc7f9a\"}"}
+PASS P9a  interni order-completed bez tokenu odmitnut
+       {"status":403,"body":"{\"error\":\"Forbidden\"}"}
+PASS P9b  order-completed na NEZAPLACENOU objednavku nevystavi vstupenky
+       {"status":200,"body":"{\"skipped\":true,\"reason\":\"order status is pending, not paid\"}","tickets":0}
+PASS P10a  guest checkout (bez prihlaseni)
+       {"status":200,"body":"{\"orderId\":\"c386ddaf-ab35-4b4a-bf9e-857a72d328bf\",\"paymentId\":\"3316047602\",\"gatewayUrl\":\"http://localhost:3998/gw/3316047602\",\"provider\":\"gopay\",\"variableSymbol\":null,\"subtotalAmount\":50000,\"discountAmount\":0,\"volumeDiscountAmount\":0,\"volumeDiscountPct\":0,\"addonsSubtotal\":0,\"bundleDiscountAmount\":0,\"bundleId\":null,\"voucherRedeemedHalire\":0,\"…
+PASS P10b  guest: vstupenka vystavena + e-mail dorucen
+       {"tickets":1,"mails":["Audit a s.r.o. — vstupenky na Audit Koncert A mux53rdj"]}
+PASS P11  vyprodani: 3 OK, dalsi 3 odmitnuty, 2 OK, 1 odmitnut; remaining_qty = 0
+       {"a":200,"b":{"status":409,"body":"{\"error\":\"Insufficient inventory (remaining: 2)\"}"},"c":200,"d":{"status":409,"body":"{\"error\":\"Insufficient inventory (remaining: 0)\"}"},"remaining":{"remaining_qty":0,"total_qty":5}}
+PASS P12  limit 2 ks/osobu: 2 OK, treti kus odmitnut
+       {"first":{"status":200,"body":"{\"orderId\":\"0a3fe7f4-734c-4307-95c8-4447624da610\",\"paymentId\":\"3316047605\",\"gatewayUrl\":\"http://localhost:3998/gw/3316047605\",\"provider\":\"gopay\",\"variableSymbol\":null,\"subtotalAmount\":40000,\"discountAmount\":0,\"volumeDiscountAmount\":0,\"volumeDiscountPct\":0,\"addonsSubtotal\":0,\"bundleDiscountAmount\":0,\"bundleId\":null,\"voucherRedeemedHali…
+PASS P12b  limit 2 ks/osobu: 3 ks naraz odmitnuto
+       {"status":422,"body":"{\"error\":\"PURCHASE_LIMIT_EXCEEDED\",\"message\":\"Limit je 2 ks na osobu. Již máš 2 ks, požaduješ 3 ks.\",\"limit\":2,\"alreadyBought\":2}"}
+PASS P13  vstupenka zdarma (0 Kc): objednavka dokoncena a vstupenka vystavena bez platby
+       {"status":200,"body":"{\"orderId\":\"ef22a850-5713-4de4-a972-cdd8ae2883aa\",\"paymentId\":null,\"gatewayUrl\":\"http://localhost:3200/cs/order/ef22a850-5713-4de4-a972-cdd8ae2883aa/confirmation\",\"provider\":\"free\",\"ticketsIssued\":true,\"variableSymbol\":null,\"subtotalAmount\":0,\"discountAmount\":0,\"volumeDiscountAmount\":0,\"volumeDiscountPct\":0,\"addonsSubtotal\":0,\"bundleDiscountAmount…
+PASS P14  promo kod max 3 pouziti: 1 (P2) + 2 dalsi OK, pak odmitnut/neaplikovan; uses_count <= 3
+       {"attempts":[{"status":200,"applied":true,"total":40000},{"status":200,"applied":true,"total":40000},{"status":422,"err":"PROMO_CODE_USED_UP"}],"db":{"uses_count":3,"max_uses":3}}
+PASS P15a  cron expirace: prosla pending objednavka -> expired a 4 mista vracena do prodeje
+       {"cron":{"status":200,"body":"{\"ok\":true,\"expiredCount\":1,\"seatsReleased\":0}"},"status":"expired","remBefore":{"remaining_qty":37,"total_qty":50},"remAfter":{"remaining_qty":41,"total_qty":50}}
+INFO P15b  POZDNI PLATBA na expirovanou objednavku: penize prijaty branou — co udela system?
+       {"webhook":{"status":200,"body":"{\"ok\":true,\"orderId\":\"8d5fbd5d-7d2c-4ae1-bfd3-51aebe725dee\",\"state\":\"PAID\",\"newStatus\":\"paid\"}"},"orderStatus":"paid","tickets":4,"remaining_qty":37,"note":"zakaznik zaplatil; pokud status=expired a tickets=0 a neni refund/zaznam k reseni, penize visi"}
+PASS P15c  pozdni platba je aspon zaznamenana v payment_events
+       [{"event_type":"payment_paid","gopay_status":"PAID"}]
+PASS P16  invariant: total_qty = remaining_qty + (pending+paid kusy) a issued <= total_qty pro kazdy typ
+       [{"name":"Limit 2 na osobu","total_qty":100,"remaining_qty":98,"held_or_sold":2,"issued":0},{"name":"Posledni mista","total_qty":5,"remaining_qty":0,"held_or_sold":5,"issued":0},{"name":"Stani","total_qty":50,"remaining_qty":37,"held_or_sold":13,"issued":10},{"name":"Zdarma","total_qty":10,"remaining_qty":9,"held_or_sold":1,"issued":1}]
+
+# SUMMARY {"PASS":36,"FAIL":0,"INFO":2}

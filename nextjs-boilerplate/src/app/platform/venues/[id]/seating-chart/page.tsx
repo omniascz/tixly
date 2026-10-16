@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -235,7 +236,8 @@ function generateLayout(stage: StagePos, sectors: BuilderSector[], stageLabel: s
   };
 }
 
-export default function PlatformSeatingChartPage({ params }: { params: { id: string } }) {
+export default function PlatformSeatingChartPage(_props: { params: Promise<{ id: string }> }) {
+  const params = useParams<{ id: string }>();
   const venueId = params.id;
 
   const [error, setError] = useState<string | null>(null);

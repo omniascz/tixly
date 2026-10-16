@@ -17,7 +17,7 @@
  * env az pri vytvoreni, takze staci prepsat env a zavolat end().
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createLiveClone, hasNeonKey, type LiveClone } from './helpers/live-fixture';
+import { createLiveClone, hasLiveDb, hasNeonKey, type LiveClone } from './helpers/live-fixture';
 import { db, runWithUserContext } from '@/lib/db/rls-pool';
 
 const CONCURRENCY = 10;
@@ -89,7 +89,10 @@ async function prepni(databaseUrl: string, direct?: string) {
   else delete process.env.DATABASE_URL_DIRECT;
 }
 
-describe.skipIf(!hasNeonKey)('R-56 — dva pooly: connect() primy, query() poolovany', () => {
+// Kolo 14 / krok 4: lokálně (bez Neonu) je poolovaný endpoint PgBouncer v transaction módu (FIX_PGBOUNCER_URL),
+// tedy stejný typ pooleru jako Neon `-pooler`.
+const PGB = process.env.FIX_PGBOUNCER_URL;
+describe.skipIf(!hasLiveDb || (!hasNeonKey && !PGB))('R-56 — dva pooly: connect() primy, query() poolovany', () => {
   let clone: LiveClone;
   let directUri: string;
   let pooledUri: string;
@@ -98,7 +101,9 @@ describe.skipIf(!hasNeonKey)('R-56 — dva pooly: connect() primy, query() poolo
     // Zadne migrace — meri se chovani spojeni, ne schema.
     clone = await createLiveClone('r56-dva-pooly', { migrations: [] });
     directUri = process.env.DATABASE_URL as string;   // fixture vynucuje pooled=false
-    pooledUri = directUri.replace(/@([^.@/]+)\./, '@$1-pooler.');
+    pooledUri = hasNeonKey
+      ? directUri.replace(/@([^.@/]+)\./, '@$1-pooler.')
+      : PGB!.replace(/\/[^/?]+(\?|$)/, `/${clone.branchId}$1`);
     expect(pooledUri).not.toBe(directUri);
   }, 180_000);
 
@@ -108,12 +113,15 @@ describe.skipIf(!hasNeonKey)('R-56 — dva pooly: connect() primy, query() poolo
     await clone?.cleanup();
   }, 120_000);
 
-  it('SELF-CHECK: kdyz se connect() vrati na POOLOVANY, musi zase selhat', async () => {
-    // DATABASE_URL_DIRECT natvrdo na pooler = odvozeni se obejde
+  // Kolo 2 / krok 4: kontext je TRANSAKČNĚ LOKÁLNÍ a connect() jde na tentýž pool jako query().
+  // Dřívější self-check („connect na pooleru MUSÍ selhat") kódoval starý mechanismus dvou poolů;
+  // nová záruka je přísnější: connect() na pooleru je těsný i BEZ přímého URL.
+  it('connect() přímo na POOLERU (bez přímého URL) je těsný', async () => {
     await prepni(pooledUri, pooledUri);
     const r = await measureConnect();
-    console.log('[R-56] self-check (connect na POOLERU)', JSON.stringify(r));
-    expect(r.bad).toBeGreaterThan(0);
+    console.log('[R-56] connect na POOLERU', JSON.stringify(r));
+    expect(r.n).toBe(CONCURRENCY * ROUNDS);
+    expect(r.bad).toBe(0);
   }, 180_000);
 
   it('OPRAVA: DATABASE_URL = pooler -> connect() 0/60 i query() 0/60', async () => {
@@ -128,11 +136,4 @@ describe.skipIf(!hasNeonKey)('R-56 — dva pooly: connect() primy, query() poolo
     expect(q.bad).toBe(0);
   }, 240_000);
 
-  it('odvozeni direct URI z pooled hostu opravdu odstrani -pooler', () => {
-    // Chovani `directUrl()` bez importu privatni funkce — tentyz vzor.
-    const odvozeny = pooledUri.replace(/@([^.@/]+)-pooler\./, '@$1.');
-    expect(odvozeny).toBe(directUri);
-    // A na uz primem URI je to no-op (idempotence).
-    expect(directUri.replace(/@([^.@/]+)-pooler\./, '@$1.')).toBe(directUri);
-  });
 });

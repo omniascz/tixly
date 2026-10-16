@@ -1,7 +1,9 @@
 /**
  * /[locale]/my-account/passkeys — správa passkeys (WebAuthn) přihlášeného uživatele
  */
+import type { JSX } from 'react';
 import { PasskeyManager } from '@/components/passkey-manager';
+
 
 interface Props {
   params: Promise<{ locale: string }>;

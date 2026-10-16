@@ -1,0 +1,12 @@
+{
+  "cpuModel": "INTEL(R) XEON(R) PLATINUM 8573C",
+  "cpus": 2,
+  "memTotalGb": 7.8,
+  "memFreeGb": 6.6,
+  "os": "Ubuntu 24.04.5 LTS",
+  "kernel": "6.17.0-1022-azure",
+  "node": "v24.21.0",
+  "runnerName": "GitHub Actions 1000007247",
+  "imageOs": "ubuntu24",
+  "imageVersion": "20260927.320.1"
+}

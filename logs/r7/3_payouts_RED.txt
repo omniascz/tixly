@@ -1,0 +1,187 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r7-payouts-manual.live.test.ts [2m ([22m[2m5 tests[22m [2m|[22m [31m5 failed[39m[2m)[22m[33m 326[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r7-payouts-manual.live.test.ts[2m > [22mKolo 7 — výplaty: paid jen po potvrzení převodu[2m > [22mruční CZK převod: executor zapíše awaiting_manual_transfer a nehlásí paid[39m
+[31m     → expected 'paid' not to be 'paid' // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r7-payouts-manual.live.test.ts[2m > [22mKolo 7 — výplaty: paid jen po potvrzení převodu[2m > [22mpotvrzení převodu: ne-admin 403, bez reference 400, s datem a referencí paid + audit[39m
+[31m     → new row for relation "payouts" violates check constraint "payouts_status_check"[39m
+[31m   [33m❯[31m tests/fix-r7-payouts-manual.live.test.ts[2m > [22mKolo 7 — výplaty: paid jen po potvrzení převodu[2m > [22mDB odmítne zápis paid bez potvrzení (i pod tixly_app v servisním kontextu)[39m
+[31m     → promise resolved "Result{ command: 'UPDATE', …(9) }" instead of rejecting[39m
+[31m   [33m❯[31m tests/fix-r7-payouts-manual.live.test.ts[2m > [22mKolo 7 — výplaty: paid jen po potvrzení převodu[2m > [22mmigrace převede neověřené paid na awaiting_manual_transfer a je idempotentní[39m
+[31m     → trigger "trg_payouts_paid_guard" for table "payouts" does not exist[39m
+[31m   [33m❯[31m tests/fix-r7-payouts-manual.live.test.ts[2m > [22mKolo 7 — výplaty: paid jen po potvrzení převodu[2m > [22mpřehled pořadatele: dopočítaná období nejsou „paid", stav ruční převod je vidět[39m
+[31m     → expected 'in_progress' to be 'estimate' // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 5 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-payouts-manual.live.test.ts[2m > [22mKolo 7 — výplaty: paid jen po potvrzení převodu[2m > [22mruční CZK převod: executor zapíše awaiting_manual_transfer a nehlásí paid
+[31m[1mAssertionError[22m: expected 'paid' not to be 'paid' // Object.is equality[39m
+[36m [2m❯[22m tests/fix-r7-payouts-manual.live.test.ts:[2m73:26[22m[39m
+    [90m 71| [39m      promoter_name[33m:[39m [32m'P'[39m[33m,[39m iban[33m:[39m [32m'CZ6508000000192000145399'[39m[33m,[39m swift_bic[33m:[39m…
+    [90m 72| [39m    })[33m;[39m
+    [90m 73| [39m    [34mexpect[39m(r[33m.[39mstatus)[33m.[39mnot[33m.[39m[34mtoBe[39m([32m'paid'[39m)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m 74| [39m    [34mexpect[39m(r[33m.[39mstatus)[33m.[39m[34mtoBe[39m([32m'awaiting_manual_transfer'[39m)[33m;[39m
+    [90m 75| [39m    [34mexpect[39m(([35mawait[39m [34mrow[39m(id))[33m.[39mstatus)[33m.[39m[34mtoBe[39m([32m'awaiting_manual_transfer'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-payouts-manual.live.test.ts[2m > [22mKolo 7 — výplaty: paid jen po potvrzení převodu[2m > [22mpotvrzení převodu: ne-admin 403, bez reference 400, s datem a referencí paid + audit
+[31m[1merror[22m: new row for relation "payouts" violates check constraint "payouts_status_check"[39m
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m payout tests/fix-r7-payouts-manual.live.test.ts:[2m47:13[22m[39m
+    [90m 45| [39m
+    [90m 46| [39m  [35masync[39m [35mfunction[39m [34mpayout[39m(promoterId[33m:[39m string[33m,[39m status [33m=[39m [32m'pending'[39m) {
+    [90m 47| [39m    [35mreturn[39m ([35mawait[39m clone[33m.[39mpool[33m.[39mquery[33m<[39m{ id[33m:[39m string }[33m>[39m(
+    [90m   | [39m            [31m^[39m
+    [90m 48| [39m      [32m`INSERT INTO platform.payouts (promoter_id, period_from, period_[39m…
+    [90m 49| [39m       VALUES ($1, now() - interval '30 days', now() - interval '1 day…
+[90m [2m❯[22m tests/fix-r7-payouts-manual.live.test.ts:[2m80:16[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 497, severity: 'ERROR', code: '23514', detail: 'Failing row contains (bd11e10b-6a08-4eaa-9cf5-866c1b01a447, fe6e64da-d8ba-4279-be75-4d910074b8f9, 2026-09-04 00:49:28.185036+00, 2026-10-03 00:49:28.185036+00, 100000, 2500, 0, 0, 0, 97500, awaiting_manual_transfer, monthly, null, null, null, 0, null, null, 2026-10-04 00:49:28.185036+00, CZK, null, null, null).', hint: undefined, position: undefined, internalPosition: undefined, internalQuery: undefined, where: undefined, schema: 'platform', table: 'payouts', column: undefined, dataType: undefined, constraint: 'payouts_status_check', file: 'execMain.c', line: '2034', routine: 'ExecConstraints' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-payouts-manual.live.test.ts[2m > [22mKolo 7 — výplaty: paid jen po potvrzení převodu[2m > [22mDB odmítne zápis paid bez potvrzení (i pod tixly_app v servisním kontextu)
+[31m[1mAssertionError[22m: promise resolved "Result{ command: 'UPDATE', …(9) }" instead of rejecting[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [Error: rejected promise][39m
+[31m+ Result {[39m
+[31m+   "RowCtor": null,[39m
+[31m+   "_parsers": undefined,[39m
+[31m+   "_prebuiltEmptyResultObject": null,[39m
+[31m+   "_types": TypeOverrides {[39m
+[31m+     "_types": Object {[39m
+[31m+       "arrayParser": Object {[39m
+[31m+         "create": [Function create],[39m
+[31m+       },[39m
+[31m+       "builtins": Object {[39m
+[31m+         "ABSTIME": 702,[39m
+[31m+         "ACLITEM": 1033,[39m
+[31m+         "BIT": 1560,[39m
+[31m+         "BOOL": 16,[39m
+[31m+         "BPCHAR": 1042,[39m
+[31m+         "BYTEA": 17,[39m
+[31m+         "CHAR": 18,[39m
+[31m+         "CID": 29,[39m
+[31m+         "CIDR": 650,[39m
+[31m+         "CIRCLE": 718,[39m
+[31m+         "DATE": 1082,[39m
+[31m+         "FLOAT4": 700,[39m
+[31m+         "FLOAT8": 701,[39m
+[31m+         "GTSVECTOR": 3642,[39m
+[31m+         "INET": 869,[39m
+[31m+         "INT2": 21,[39m
+[31m+         "INT4": 23,[39m
+[31m+         "INT8": 20,[39m
+[31m+         "INTERVAL": 1186,[39m
+[31m+         "JSON": 114,[39m
+[31m+         "JSONB": 3802,[39m
+[31m+         "MACADDR": 829,[39m
+[31m+         "MACADDR8": 774,[39m
+[31m+         "MONEY": 790,[39m
+[31m+         "NUMERIC": 1700,[39m
+[31m+         "OID": 26,[39m
+[31m+         "PATH": 602,[39m
+[31m+         "PG_DEPENDENCIES": 3402,[39m
+[31m+         "PG_LSN": 3220,[39m
+[31m+         "PG_NDISTINCT": 3361,[39m
+[31m+         "PG_NODE_TREE": 194,[39m
+[31m+         "POLYGON": 604,[39m
+[31m+         "REFCURSOR": 1790,[39m
+[31m+         "REGCLASS": 2205,[39m
+[31m+         "REGCONFIG": 3734,[39m
+[31m+         "REGDICTIONARY": 3769,[39m
+[31m+         "REGNAMESPACE": 4089,[39m
+[31m+         "REGOPER": 2203,[39m
+[31m+         "REGOPERATOR": 2204,[39m
+[31m+         "REGPROC": 24,[39m
+[31m+         "REGPROCEDURE": 2202,[39m
+[31m+         "REGROLE": 4096,[39m
+[31m+         "REGTYPE": 2206,[39m
+[31m+         "RELTIME": 703,[39m
+[31m+         "SMGR": 210,[39m
+[31m+         "TEXT": 25,[39m
+[31m+         "TID": 27,[39m
+[31m+         "TIME": 1083,[39m
+[31m+         "TIMESTAMP": 1114,[39m
+[31m+         "TIMESTAMPTZ": 1184,[39m
+[31m+         "TIMETZ": 1266,[39m
+[31m+         "TINTERVAL": 704,[39m
+[31m+         "TSQUERY": 3615,[39m
+[31m+         "TSVECTOR": 3614,[39m
+[31m+         "TXID_SNAPSHOT": 2970,[39m
+[31m+         "UUID": 2950,[39m
+[31m+         "VARBIT": 1562,[39m
+[31m+         "VARCHAR": 1043,[39m
+[31m+         "XID": 28,[39m
+[31m+         "XML": 142,[39m
+[31m+       },[39m
+[31m+       "getTypeParser": [Function getTypeParser],[39m
+[31m+       "setTypeParser": [Function setTypeParser],[39m
+[31m+     },[39m
+[31m+     "binary": Object {},[39m
+[31m+     "text": Object {},[39m
+[31m+   },[39m
+[31m+   "command": "UPDATE",[39m
+[31m+   "fields": Array [],[39m
+[31m+   "oid": null,[39m
+[31m+   "rowAsArray": false,[39m
+[31m+   "rowCount": 1,[39m
+[31m+   "rows": Array [],[39m
+[31m+ }[39m
+
+[36m [2m❯[22m tests/fix-r7-payouts-manual.live.test.ts:[2m107:96[22m[39m
+    [90m105| [39m    [35mconst[39m { db[33m,[39m runWithServiceContext } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/lib/db/rls-p[39m…
+    [90m106| [39m    [35mawait[39m [34mexpect[39m([34mrunWithServiceContext[39m(() [33m=>[39m
+    [90m107| [39m      [34mdb[39m()[33m.[39m[34mquery[39m([32m`UPDATE platform.payouts SET status='paid', paid_at=n[39m…
+    [90m   | [39m                                                                                               [31m^[39m
+    [90m108| [39m    [35mawait[39m [34mexpect[39m(clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`UPDATE platform.payouts SET status=[39m…
+    [90m109| [39m      [33m.[39mrejects[33m.[39m[34mtoThrow[39m([36m/PAYOUT_PAID_REQUIRES_CONFIRMATION/[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-payouts-manual.live.test.ts[2m > [22mKolo 7 — výplaty: paid jen po potvrzení převodu[2m > [22mmigrace převede neověřené paid na awaiting_manual_transfer a je idempotentní
+[31m[1merror[22m: trigger "trg_payouts_paid_guard" for table "payouts" does not exist[39m
+[90m [2m❯[22m node_modules/pg-pool/index.js:[2m45:11[22m[39m
+[36m [2m❯[22m tests/fix-r7-payouts-manual.live.test.ts:[2m120:5[22m[39m
+    [90m118| [39m    [35mconst[39m id [33m=[39m [35mawait[39m [34mpayout[39m(c[33m.[39mpromoterId)[33m;[39m
+    [90m119| [39m    [90m// simulace historického stavu: paid zapsané bez potvrzení (před m[39m…
+    [90m120| [39m    [35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`ALTER TABLE platform.payouts DISABLE TRIGG[39m…
+    [90m   | [39m    [31m^[39m
+    [90m121| [39m    [35mtry[39m {
+    [90m122| [39m      [35mawait[39m clone[33m.[39mpool[33m.[39m[34mquery[39m([32m`UPDATE platform.payouts SET status='paid[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ length: 134, severity: 'ERROR', code: '42704', detail: undefined, hint: undefined, position: undefined, internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'trigger.c', line: '1829', routine: 'EnableDisableTrigger' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-payouts-manual.live.test.ts[2m > [22mKolo 7 — výplaty: paid jen po potvrzení převodu[2m > [22mpřehled pořadatele: dopočítaná období nejsou „paid", stav ruční převod je vidět
+[31m[1mAssertionError[22m: expected 'in_progress' to be 'estimate' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- estimate[39m
+[31m+ in_progress[39m
+
+[36m [2m❯[22m tests/fix-r7-payouts-manual.live.test.ts:[2m147:24[22m[39m
+    [90m145| [39m    [34mexpect[39m(est[33m.[39mpayouts[33m.[39mlength)[33m.[39m[34mtoBeGreaterThan[39m([34m0[39m)[33m;[39m
+    [90m146| [39m    [35mfor[39m ([35mconst[39m p [35mof[39m est[33m.[39mpayouts) {
+    [90m147| [39m      [34mexpect[39m(p[33m.[39mstatus)[33m.[39m[34mtoBe[39m([32m'estimate'[39m)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m148| [39m      [34mexpect[39m(p[33m.[39mid)[33m.[39mnot[33m.[39m[34mtoMatch[39m([36m/^mock-/[39m)[33m;[39m
+    [90m149| [39m    }
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m5 failed[39m[22m[90m (5)[39m
+[2m   Start at [22m 02:49:27
+[2m   Duration [22m 854ms[2m (transform 115ms, setup 0ms, collect 106ms, tests 326ms, environment 0ms, prepare 98ms)[22m
+

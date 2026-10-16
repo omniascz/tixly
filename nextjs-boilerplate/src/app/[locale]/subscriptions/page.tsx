@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Calendar, CheckCircle2, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
@@ -45,7 +45,8 @@ function authFetch(url: string, init?: RequestInit): Promise<Response> {
   });
 }
 
-export default function SubscriptionsPage({ params }: { params: { locale: string } }) {
+export default function SubscriptionsPage(_props: { params: Promise<{ locale: string }> }) {
+  const params = useParams<{ locale: string }>();
   const sp = useSearchParams();
   const promoterSlug = sp.get('p');
   const [mine, setMine] = useState<MySub[]>([]);

@@ -1,0 +1,141 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [32m✓[39m tests/r14-sentry-scrub.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+ [33m❯[39m tests/r19-sentry-scrub.test.ts [2m ([22m[2m7 tests[22m [2m|[22m [31m6 failed[39m[2m)[22m[90m 83[2mms[22m[39m
+[31m   [33m❯[31m tests/r19-sentry-scrub.test.ts[2m > [22mscrubText — URL-kódované telefony[2m > [22mtel=%2B420%20777%20123%20456[39m
+[31m     → expected 'tel=%2B420%20777%20123%20456' to be 'tel=[telefon]' // Object.is equality[39m
+[31m   [33m❯[31m tests/r19-sentry-scrub.test.ts[2m > [22mscrubText — URL-kódované telefony[2m > [22mtel=777%20123%20456&x=1[39m
+[31m     → expected 'tel=777%20123%20456&x=1' to be 'tel=[telefon]&x=1' // Object.is equality[39m
+[31m   [33m❯[31m tests/r19-sentry-scrub.test.ts[2m > [22mscrubText — URL-kódované telefony[2m > [22mtel=%2B420+777+123+456[39m
+[31m     → expected 'tel=%2B420+777+123+456' to be 'tel=[telefon]' // Object.is equality[39m
+[31m   [33m❯[31m tests/r19-sentry-scrub.test.ts[2m > [22mscrubSentrySpan[2m > [22modstraní hlavičky s identitou/tajemstvím, IP a uživatele kromě id; maskuje text[39m
+[31m     → scrubSentrySpan is not a function[39m
+[31m   [33m❯[31m tests/r19-sentry-scrub.test.ts[2m > [22mSENTRY_DATA_COLLECTION — restriktivní sběr (MIGRATION.md 10→11: chování v10)[2m > [22mbez uživatele, cookies, těl, GenAI, dotazů DB, front a GraphQL[39m
+[31m     → expected undefined to match object { userInfo: false, …(6) }[39m
+[31m   [33m❯[31m tests/r19-sentry-scrub.test.ts[2m > [22mSENTRY_DATA_COLLECTION — restriktivní sběr (MIGRATION.md 10→11: chování v10)[2m > [22mhlavičky: odmítnuté IP, identita a tajemství[39m
+[31m     → Cannot read properties of undefined (reading 'httpHeaders')[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 6 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r19-sentry-scrub.test.ts[2m > [22mscrubText — URL-kódované telefony[2m > [22mtel=%2B420%20777%20123%20456
+[31m[1mAssertionError[22m: expected 'tel=%2B420%20777%20123%20456' to be 'tel=[telefon]' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- tel=[telefon][39m
+[31m+ tel=%2B420%20777%20123%20456[39m
+
+[36m [2m❯[22m tests/r19-sentry-scrub.test.ts:[2m15:55[22m[39m
+    [90m 13| [39m    [[32m'tel=777%20123%20456&x=1'[39m[33m,[39m [32m'tel=[telefon]&x=1'[39m][33m,[39m
+    [90m 14| [39m    [[32m'tel=%2B420+777+123+456'[39m[33m,[39m [32m'tel=[telefon]'[39m][33m,[39m
+    [90m 15| [39m  ])([32m'%s'[39m[33m,[39m (input[33m,[39m out) [33m=>[39m { [34mexpect[39m([34mscrubText[39m(input))[33m.[39m[34mtoBe[39m(out)[33m;[39m })[33m;[39m
+    [90m   | [39m                                                      [31m^[39m
+    [90m 16| [39m  [34mit[39m([32m'nechá UUID, částky a čísla objednávek'[39m[33m,[39m () [33m=>[39m {
+    [90m 17| [39m    [35mconst[39m s [33m=[39m [32m'order 2f9084f6-8171-40c2-aecf-17f190d8a4f5 za 1 400 Kč,[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r19-sentry-scrub.test.ts[2m > [22mscrubText — URL-kódované telefony[2m > [22mtel=777%20123%20456&x=1
+[31m[1mAssertionError[22m: expected 'tel=777%20123%20456&x=1' to be 'tel=[telefon]&x=1' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- tel=[telefon]&x=1[39m
+[31m+ tel=777%20123%20456&x=1[39m
+
+[36m [2m❯[22m tests/r19-sentry-scrub.test.ts:[2m15:55[22m[39m
+    [90m 13| [39m    [[32m'tel=777%20123%20456&x=1'[39m[33m,[39m [32m'tel=[telefon]&x=1'[39m][33m,[39m
+    [90m 14| [39m    [[32m'tel=%2B420+777+123+456'[39m[33m,[39m [32m'tel=[telefon]'[39m][33m,[39m
+    [90m 15| [39m  ])([32m'%s'[39m[33m,[39m (input[33m,[39m out) [33m=>[39m { [34mexpect[39m([34mscrubText[39m(input))[33m.[39m[34mtoBe[39m(out)[33m;[39m })[33m;[39m
+    [90m   | [39m                                                      [31m^[39m
+    [90m 16| [39m  [34mit[39m([32m'nechá UUID, částky a čísla objednávek'[39m[33m,[39m () [33m=>[39m {
+    [90m 17| [39m    [35mconst[39m s [33m=[39m [32m'order 2f9084f6-8171-40c2-aecf-17f190d8a4f5 za 1 400 Kč,[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r19-sentry-scrub.test.ts[2m > [22mscrubText — URL-kódované telefony[2m > [22mtel=%2B420+777+123+456
+[31m[1mAssertionError[22m: expected 'tel=%2B420+777+123+456' to be 'tel=[telefon]' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- tel=[telefon][39m
+[31m+ tel=%2B420+777+123+456[39m
+
+[36m [2m❯[22m tests/r19-sentry-scrub.test.ts:[2m15:55[22m[39m
+    [90m 13| [39m    [[32m'tel=777%20123%20456&x=1'[39m[33m,[39m [32m'tel=[telefon]&x=1'[39m][33m,[39m
+    [90m 14| [39m    [[32m'tel=%2B420+777+123+456'[39m[33m,[39m [32m'tel=[telefon]'[39m][33m,[39m
+    [90m 15| [39m  ])([32m'%s'[39m[33m,[39m (input[33m,[39m out) [33m=>[39m { [34mexpect[39m([34mscrubText[39m(input))[33m.[39m[34mtoBe[39m(out)[33m;[39m })[33m;[39m
+    [90m   | [39m                                                      [31m^[39m
+    [90m 16| [39m  [34mit[39m([32m'nechá UUID, částky a čísla objednávek'[39m[33m,[39m () [33m=>[39m {
+    [90m 17| [39m    [35mconst[39m s [33m=[39m [32m'order 2f9084f6-8171-40c2-aecf-17f190d8a4f5 za 1 400 Kč,[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r19-sentry-scrub.test.ts[2m > [22mscrubSentrySpan[2m > [22modstraní hlavičky s identitou/tajemstvím, IP a uživatele kromě id; maskuje text
+[31m[1mTypeError[22m: scrubSentrySpan is not a function[39m
+[36m [2m❯[22m tests/r19-sentry-scrub.test.ts:[2m24:18[22m[39m
+    [90m 22| [39m[34mdescribe[39m([32m'scrubSentrySpan'[39m[33m,[39m () [33m=>[39m {
+    [90m 23| [39m  [34mit[39m([32m'odstraní hlavičky s identitou/tajemstvím, IP a uživatele kromě i[39m…
+    [90m 24| [39m    [35mconst[39m span [33m=[39m [34mscrubSentrySpan[39m({
+    [90m   | [39m                 [31m^[39m
+    [90m 25| [39m      name[33m:[39m [32m'POST /api/checkout?email=jana%40x.cz'[39m[33m,[39m
+    [90m 26| [39m      span_id[33m:[39m [32m'a1'[39m[33m,[39m trace_id[33m:[39m [32m't1'[39m[33m,[39m is_segment[33m:[39m [35mtrue[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r19-sentry-scrub.test.ts[2m > [22mSENTRY_DATA_COLLECTION — restriktivní sběr (MIGRATION.md 10→11: chování v10)[2m > [22mbez uživatele, cookies, těl, GenAI, dotazů DB, front a GraphQL
+[31m[1mAssertionError[22m: expected undefined to match object { userInfo: false, …(6) }[39m
+
+[32m- Expected:[39m 
+Object {
+  "cookies": false,
+  "databaseQueryData": false,
+  "genAI": Object {
+    "inputs": false,
+    "outputs": false,
+  },
+  "graphQL": Object {
+    "document": false,
+    "variables": false,
+  },
+  "httpBodies": Array [],
+  "queues": false,
+  "userInfo": false,
+}
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/r19-sentry-scrub.test.ts:[2m59:36[22m[39m
+    [90m 57| [39m[34mdescribe[39m([32m'SENTRY_DATA_COLLECTION — restriktivní sběr (MIGRATION.md 10→[39m…
+    [90m 58| [39m  [34mit[39m([32m'bez uživatele, cookies, těl, GenAI, dotazů DB, front a GraphQL'[39m[33m,[39m…
+    [90m 59| [39m    [34mexpect[39m([33mSENTRY_DATA_COLLECTION[39m)[33m.[39m[34mtoMatchObject[39m({
+    [90m   | [39m                                   [31m^[39m
+    [90m 60| [39m      userInfo[33m:[39m [35mfalse[39m[33m,[39m cookies[33m:[39m [35mfalse[39m[33m,[39m httpBodies[33m:[39m [][33m,[39m genAI[33m:[39m { inputs…
+    [90m 61| [39m      databaseQueryData[33m:[39m [35mfalse[39m[33m,[39m queues[33m:[39m [35mfalse[39m[33m,[39m graphQL[33m:[39m { document[33m:[39m [35mfa[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r19-sentry-scrub.test.ts[2m > [22mSENTRY_DATA_COLLECTION — restriktivní sběr (MIGRATION.md 10→11: chování v10)[2m > [22mhlavičky: odmítnuté IP, identita a tajemství
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'httpHeaders')[39m
+[36m [2m❯[22m tests/r19-sentry-scrub.test.ts:[2m65:42[22m[39m
+    [90m 63| [39m  })[33m;[39m
+    [90m 64| [39m  [34mit[39m([32m'hlavičky: odmítnuté IP, identita a tajemství'[39m[33m,[39m () [33m=>[39m {
+    [90m 65| [39m    [35mconst[39m deny [33m=[39m ([33mSENTRY_DATA_COLLECTION[39m[33m.[39mhttpHeaders[33m.[39mrequest [35mas[39m { deny…
+    [90m   | [39m                                         [31m^[39m
+    [90m 66| [39m    [35mfor[39m ([35mconst[39m h [35mof[39m [[32m'forwarded'[39m[33m,[39m [32m'-ip'[39m[33m,[39m [32m'remote-'[39m[33m,[39m [32m'via'[39m[33m,[39m [32m'-user'[39m[33m,[39m [32m'a[39m…
+    [90m 67| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m6 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (12)[39m
+[2m   Start at [22m 07:36:39
+[2m   Duration [22m 76.65s[2m (transform 906ms, setup 36.11s, collect 896ms, tests 98ms, environment 60.35s, prepare 7.92s)[22m
+
+exit=1

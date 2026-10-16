@@ -17,15 +17,25 @@
  * Auth: žádný — payment_id je shared secret z mock-gopay flow.
  */
 import { randomBytes, randomUUID } from 'crypto';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { NextRequest, NextResponse } from 'next/server';
 import { encryptSecret } from '@/lib/crypto';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
+import { demoPathDisabledResponse } from '@/lib/payment/demo-path-guard';
 
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ paymentId: string }> },
 ): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('subscriptions');
+  if (featureOff) return featureOff;
+  // FIX K1: „subscription mock confirm" aktivoval předplatné a vystavil vstupenky
+  // BEZ platby a BEZ auth (payment_id = shared secret). Vypnuto do napojení na
+  // platební tok (FIX_REPORT_K.md).
+  const disabled = demoPathDisabledResponse();
+  if (disabled) return disabled;
   return runWithServiceContext(async () => {
 
   const { paymentId } = await params;
@@ -38,9 +48,7 @@ export async function POST(
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    // RLS bypass — payment_id je shared secret z mock-gopay flow.
-    // Holder ownership není v tomto endpointu vyžadováno (buyer prošel checkout).
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
 
     const holderRes = await client.query<{
       id: string;

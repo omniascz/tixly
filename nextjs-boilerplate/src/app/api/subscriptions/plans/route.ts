@@ -5,9 +5,16 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
+import { launchFeatureNotFound } from '@/lib/features/launch-flags';
+
+// Kolo 11: request se při vypnutém přepínači nečte → Next by routu předgeneroval (s DB, resp. 404 zapečenou natrvalo).
+export const dynamic = 'force-dynamic';
 
 
 export async function GET(req: NextRequest): Promise<Response> {
+  // Kolo 10: vypnuto přepínačem (výchozí stav) → 404.
+  const featureOff = launchFeatureNotFound('subscriptions');
+  if (featureOff) return featureOff;
   const slug = req.nextUrl.searchParams.get('promoter');
   const params: unknown[] = [];
   let where = `p.active = true`;

@@ -1,0 +1,27 @@
+
+Running 22 tests using 1 worker
+
+  ok  1 [golden-path] › tests\golden-path-r13-keep.spec.ts:82:7 › vlastník › bod 4: termín v sále bez míst v cenových zónách se nezaloží (ani nezveřejní) (1.6s)
+  ok  2 [golden-path] › tests\golden-path-r13-keep.spec.ts:96:7 › vlastník › bod 5: blokace bez volných míst se nezaloží prázdná (1.6s)
+  ok  3 [golden-path] › tests\golden-path-r13-keep.spec.ts:113:7 › vlastník › bod 6: „Zpět" z editoru plánku vede na existující stránku (829ms)
+  ok  4 [golden-path] › tests\golden-path-r13-keep.spec.ts:123:7 › vlastník › bod 7: zrušený termín v seznamu akcí „Zrušeno", ne „Prodej" (1.1s)
+  ok  5 [golden-path] › tests\golden-path-r13-keep.spec.ts:136:7 › vlastník › bod 8: nepovedené stažení reportu ohlásí chybu (740ms)
+  ok  6 [golden-path] › tests\golden-path-r13-keep.spec.ts:148:7 › vlastník › bod 10: přesun a zrušení termínu jen po potvrzení v okně (1.6s)
+  ok  7 [golden-path] › tests\golden-path-r13-keep.spec.ts:170:7 › vlastník › bod 10: storno firemní objednávky jen po potvrzení v okně (beze změny od d0bbcb00) (6.2s)
+  ok  8 [golden-path] › tests\golden-path-r13-keep.spec.ts:191:7 › pokladní a vstup › bod 3: role Pokladna má na serveru omezený přístup (ne správce); vlastník beze změny (7.7s)
+  ok  9 [golden-path] › tests\golden-path-r13-keep.spec.ts:208:7 › pokladní a vstup › body 2 a 9: pokladna — termíny odlišené městem, tisk = PDF vstupenek s QR, bez TOTP (2.8s)
+  ok 10 [golden-path] › tests\golden-path-r13-keep.spec.ts:238:7 › pokladní a vstup › bod 1: skener při výpadku sítě nehlásí „Vstup povolen" bez ověření (2.5s)
+  ok 11 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:102:5 › přihlášení — administrace (vlastník) (4.6s)
+  ok 12 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:106:5 › přihlášení — pokladna (role Pokladna) (4.9s)
+  ok 13 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:110:5 › přihlášení — skener (role personál) (4.5s)
+  ok 14 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:114:5 › přihlášení — kupec (4.4s)
+  ok 15 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:119:5 › přihlášení — prodejce (3.6s)
+  ok 16 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:138:5 › přihlášení — B2B (pozvánkový kód) (3.3s)
+  ok 17 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:157:5 › registrace kupce (4.4s)
+  ok 18 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:176:5 › registrace pořadatele (3.3s)
+  ok 19 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:191:5 › zapomenuté heslo a nové heslo (odkaz z e-mailu) (7.9s)
+  ok 20 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:237:5 › checkout — jméno napsané před hydratací se odešle (3.5s)
+  ok 21 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:273:7 › pokladna a skener (přihlášený vlastník) › vyhledávání rezervací na pokladně (3.7s)
+  ok 22 [golden-path] › tests\golden-path-r16-prehydration.spec.ts:286:7 › pokladna a skener (přihlášený vlastník) › pole skeneru (3.6s)
+
+  22 passed (1.6m)

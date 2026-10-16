@@ -1,0 +1,11 @@
+[smoke] 1) zdraví stagingu http://localhost:3200
+[smoke] GET /cs → 200
+[smoke] GET /cs/program → 200
+[smoke] GET /cs/login → 200
+[smoke] GET /api/health → 200
+[smoke] 2) e-maily přes Resend (allowlist)
+[smoke] účet + žádost o obnovu hesla: tester+smoke-1791224588@firma.example → 200
+[smoke] účet + žádost o obnovu hesla: smoke-1791224588@blocked.invalid → 200
+[smoke] Resend: e-mail na povolenou adresu odeslán ✓
+[smoke] Resend: e-mail na adresu mimo allowlist neodešel ✓
+[smoke] hotovo

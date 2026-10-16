@@ -16,12 +16,13 @@
  * DACH parity #P0-2 (Reservix Wahl-Abo pattern).
  */
 import { randomBytes, randomUUID } from 'crypto';
-import { db } from '@/lib/db/rls-pool';
+import { asSystemInTx, db } from '@/lib/db/rls-pool';
 import { runAsUser } from '@/lib/auth';
 import type { Pool } from 'pg';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { encryptSecret } from '@/lib/crypto';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 
 const postSchema = z.object({
@@ -61,10 +62,8 @@ async function loadHolder(
   return r.rows[0] ?? null;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   const holder = await loadHolder(db() as unknown as Pool, params.id, false);
   if (!holder) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
@@ -122,10 +121,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
@@ -136,15 +133,25 @@ export async function POST(
     );
   }
   const { eventId } = parsed.data;
+  // Kolo 7 (C-29): výběr akce do abonentky po uzávěrce online prodeje nejde.
+  const salesClosed = await saleBlockedResponse(db(), eventId, 'online');
+  if (salesClosed) return salesClosed;
 
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    // RLS bypass — buyer ownership je vynucen v aplikační vrstvě níž
-    // (holder.user_id === header x-user-id).
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: zbytek (balíček, pool akcí, výdej vstupenky) jsou systémové příkazy nad ověřenou abonentkou (asSystemInTx).
 
-    const holder = await loadHolder(client, params.id, true);
+    // Kolo 3: vlastnictví abonentky pod kontextem kupce (RLS: holders.user_id = kupec).
+    const ownRes = await client.query(
+      `SELECT 1 FROM subscriptions.holders WHERE id = $1 AND user_id = $2 FOR UPDATE`,
+      [params.id, userId],
+    );
+    if (ownRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+    }
+    const holder = await asSystemInTx(client, () => loadHolder(client, params.id, true));
     if (!holder) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
@@ -169,13 +176,13 @@ export async function POST(
     }
 
     // Event musí být v package_events
-    const inPool = await client.query<{ exists: boolean }>(
+    const inPool = await asSystemInTx(client, () => client.query<{ exists: boolean }>(
       `SELECT EXISTS(
          SELECT 1 FROM subscriptions.package_events
           WHERE package_id = $1 AND event_id = $2
        ) AS exists`,
       [holder.package_id, eventId],
-    );
+    ));
     if (!inPool.rows[0].exists) {
       await client.query('ROLLBACK');
       return NextResponse.json(
@@ -185,11 +192,11 @@ export async function POST(
     }
 
     // Picks count (lock holder řádek = bezpečné proti race)
-    const usedRes = await client.query<{ count: string }>(
+    const usedRes = await asSystemInTx(client, () => client.query<{ count: string }>(
       `SELECT COUNT(*)::text AS count FROM subscriptions.redemptions
         WHERE holder_id = $1`,
       [holder.id],
-    );
+    ));
     const used = Number(usedRes.rows[0].count);
     if (used >= (holder.max_picks_for_choice ?? 0)) {
       await client.query('ROLLBACK');
@@ -205,13 +212,13 @@ export async function POST(
     }
 
     // Najdi cheapest ticket_type pro event
-    const ttRes = await client.query<{ id: string }>(
+    const ttRes = await asSystemInTx(client, () => client.query<{ id: string }>(
       `SELECT id FROM catalog.ticket_types
         WHERE event_id = $1
         ORDER BY base_price ASC NULLS LAST
         LIMIT 1`,
       [eventId],
-    );
+    ));
     if (ttRes.rows.length === 0) {
       await client.query('ROLLBACK');
       return NextResponse.json(
@@ -224,32 +231,32 @@ export async function POST(
     // Vystav ticket + log redemption
     const ticketId = randomUUID();
     const orderId = randomUUID();
-    await client.query(
+    await asSystemInTx(client, () => client.query(
       `INSERT INTO orders.orders (id, user_id, event_id, status, total_amount, currency, expires_at, paid_at)
        VALUES ($1, $2, $3, 'paid', 0, 'CZK', NOW() + INTERVAL '30 days', NOW())
        ON CONFLICT DO NOTHING`,
       [orderId, holder.user_id, eventId],
-    );
+    ));
     const totpSecretRaw = randomBytes(20);
     const totpEncryptedBundle = Buffer.from(
       encryptSecret(totpSecretRaw.toString('base64')),
       'base64',
     );
-    await client.query(
+    await asSystemInTx(client, () => client.query(
       `INSERT INTO tickets.tickets
          (id, order_id, ticket_type_id, owner_id, original_owner_id, status,
           totp_secret_encrypted, totp_secret_iv, original_price)
        VALUES ($1, $2, $3, $4, $4, 'valid', $5, $6, 0)`,
       [ticketId, orderId, ticketTypeId, holder.user_id, totpEncryptedBundle, Buffer.alloc(0)],
-    );
+    ));
 
     try {
-      await client.query(
+      await asSystemInTx(client, () => client.query(
         `INSERT INTO subscriptions.redemptions
            (holder_id, event_id, ticket_id)
          VALUES ($1, $2, $3)`,
         [holder.id, eventId, ticketId],
-      );
+      ));
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes('uq_subs_redemptions_holder_event')) {

@@ -1,0 +1,184 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal[2m > [22m[2mchybějící PAYPAL_WEBHOOK_ID → 4xx, nic se nezmění[22m[39m
+[paypal webhook] PAYPAL_WEBHOOK_ID / API credentials missing — rejecting
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal[2m > [22m[2mbez podpisu / se špatným podpisem → 4xx[22m[39m
+[paypal webhook] invalid signature
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal[2m > [22m[2mbez podpisu / se špatným podpisem → 4xx[22m[39m
+[paypal webhook] invalid signature
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal[2m > [22m[2mlegitimní: platný podpis + API COMPLETED s plnou částkou → paid[22m[39m
+[paypal webhook] order-completed trigger failed: [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mWise (výplaty)[2m > [22m[2mchybějící klíč / bez podpisu / špatný podpis / HMAC místo RSA → 4xx, výplata beze změny[22m[39m
+[wise webhook] WISE_WEBHOOK_PUBLIC_KEY / API credentials missing — rejecting
+
+[90mstdout[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mWise (výplaty)[2m > [22m[2mlegitimní: platný RSA podpis + API outgoing_payment_sent → paid[22m[39m
+[wise webhook] paid transferId=80996574 rowsUpdated=1
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mGoPay[2m > [22m[2mnenakonfigurovaná brána (i mimo produkci: DEV_STUB) → 4xx, nic se nezmění[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mGoPay[2m > [22m[2mnenakonfigurovaná brána (i mimo produkci: DEV_STUB) → 4xx, nic se nezmění[22m[39m
+[payment] GoPay není nakonfigurovaný — checkout poběží v mock režimu. Nastavte GOPAY_GOID, GOPAY_CLIENT_ID, GOPAY_CLIENT_SECRET.
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mGoPay[2m > [22m[2mAPI brány hlásí PAID s nulovou částkou → nezaplaceno[22m[39m
+[gopay webhook] amount/currency mismatch order=f9b33914-49d9-447b-b003-101af2e13bc9 expected=50000CZK paid=0CZK
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mGoPay[2m > [22m[2mlegitimní: API PAID s plnou částkou → paid[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mComGate[2m > [22m[2mchybějící tajemství / špatné tajemství → 4xx, nic se nezmění[22m[39m
+[payment] ComGate není nakonfigurovaný — checkout poběží v mock režimu. Nastavte COMGATE_MERCHANT, COMGATE_SECRET.
+[comgate webhook] not configured — rejecting
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mStripe[2m > [22m[2mplatný podpis, ale API session nezaplacená / nižší částka → nezaplaceno[22m[39m
+[stripe webhook] session cs_48a6a917 NOT confirmed by API for order f81b4735-abc4-4a67-8a35-669a72bfe201
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mStripe[2m > [22m[2mplatný podpis, ale API session nezaplacená / nižší částka → nezaplaceno[22m[39m
+[stripe webhook] session cs_48a6a917 NOT confirmed by API for order f81b4735-abc4-4a67-8a35-669a72bfe201
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mStripe[2m > [22m[2mlegitimní → paid[22m[39m
+[stripe webhook] order-completed trigger failed: [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mTriple-A[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[payment] Triple-A není nakonfigurovaný — krypto platba poběží v mock režimu. Nastavte TRIPLEA_CLIENT_ID, TRIPLEA_CLIENT_SECRET, TRIPLEA_API_ID, TRIPLEA_NOTIFY_SECRET.
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mTriple-A[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[triplea webhook] podpis neplatný: NO_SIGNATURE
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mTriple-A[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[triplea webhook] podpis neplatný: SIGNATURE_MISMATCH
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mTriple-A[2m > [22m[2mlegitimní: podpis + API good s plnou částkou → paid[22m[39m
+[triplea webhook] order-completed trigger failed: [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mMollie[2m > [22m[2mchybějící API klíč / platba u brány neexistuje → 4xx[22m[39m
+[mollie webhook] getMolliePayment failed: Error: Mollie GET tr_178003e1 → HTTP 404
+    at Module.getMolliePayment [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\lib\payment\mollie.ts:112:25[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\payments\mollie\webhook\route.ts:53:17
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\fix-r2-webhooks.live.test.ts:345:29
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m
+    at startTests [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:967:3[90m)[39m {
+  httpStatus: [33m404[39m
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPrzelewy24[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[mollie webhook] order-completed trigger failed: [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPrzelewy24[2m > [22m[2mchybějící tajemství / bez podpisu / špatný podpis → 4xx[22m[39m
+[p24 webhook] invalid signature for sessionId c49d4b21-bbf4-44ed-a3b1-fb49ea78e81f
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mBenefit callbacky[2m > [22m[2mPluxee: chybějící tajemství / bez podpisu / špatný podpis / dev-skip v produkci → 4xx[22m[39m
+[pluxee callback] signature verify failed
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPluxee legitimní: platný podpis + plná částka → paid (route musí fungovat pod tixly_app)[22m[39m
+[pluxee callback] order-completed trigger failed: [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r2-webhooks.live.test.ts[2m > [22m[2mKrok 1 — webhooky fail-closed + ověření stavu u brány[2m > [22m[2mPayPal capture: PayPal objednávka jiné Tixly objednávky nezaplatí tuto[22m[39m
+[paypal capture] token does not belong to order 3ac11301-e059-4b1c-8484-ad3a1fbe5d3e
+
+ [32m✓[39m tests/fix-r2-webhooks.live.test.ts [2m ([22m[2m29 tests[22m[2m)[22m[33m 3059[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-guard-trigger.live.test.ts [2m ([22m[2m23 tests[22m[2m)[22m[33m 4469[2mms[22m[39m
+[90mstderr[2m | tests/fix-r7-sales-cutoff.live.test.ts[2m > [22m[2mKolo 7 — uzávěrka prodeje za běhu[2m > [22m[2mobjednávku založenou před uzávěrkou lze po uzávěrce doplatit (webhook PAID → paid)[22m[39m
+[order-completed] royalty accrue failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/fix-r7-sales-cutoff.live.test.ts[2m > [22m[2mKolo 7 — uzávěrka prodeje za běhu[2m > [22m[2mobjednávku založenou před uzávěrkou lze po uzávěrce doplatit (webhook PAID → paid)[22m[39m
+[order-completed] resale transfer failed [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1142:49)[39m
+  [90m    at afterConnectMultiple (node:net:1723:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+ [32m✓[39m tests/fix-r7-sales-cutoff.live.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[33m 4089[2mms[22m[39m
+[90mstderr[2m | tests/fix-r7-gateway-policy.live.test.ts[2m > [22m[2mKolo 7 — brány bez refundu jen pro existující akce[2m > [22m[2mexistující akce (příznak z migrace) → brána se nezablokuje politikou[22m[39m
+[payment] Triple-A není nakonfigurovaný — krypto platba poběží v mock režimu. Nastavte TRIPLEA_CLIENT_ID, TRIPLEA_CLIENT_SECRET, TRIPLEA_API_ID, TRIPLEA_NOTIFY_SECRET.
+
+ [32m✓[39m tests/fix-r7-gateway-policy.live.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 3025[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-mobile-rate-limit.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 2193[2mms[22m[39m
+ [32m✓[39m tests/fix-r3-mobile-auth.live.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 1135[2mms[22m[39m
+ [32m✓[39m tests/fix-r4-auth-before-config.live.test.ts [2m ([22m[2m1 test[22m[2m)[22m[33m 581[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m7 passed[39m[22m[90m (7)[39m
+[2m      Tests [22m [1m[32m71 passed[39m[22m[90m (71)[39m
+[2m   Start at [22m 04:29:55
+[2m   Duration [22m 24.99s[2m (transform 1.35s, setup 1ms, collect 1.74s, tests 18.55s, environment 4ms, prepare 2.27s)[22m
+

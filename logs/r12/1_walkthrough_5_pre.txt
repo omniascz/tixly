@@ -1,0 +1,55 @@
+
+Running 11 tests using 1 worker
+
+[1A[2K[1/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › vlastník › 1 — nová inscenace s fotkou a obsazením
+[1A[2K[2/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › vlastník › 2 — nové místo a sál v novém městě: generátor + obkreslení podkladu
+[1A[2K[3/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › vlastník › 3 — nový termín v novém sále, převzetí ceníku, šablona kategorií, zveřejnění
+[1A[2K[4/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › vlastník › 4 — blokace pro firmu a tisk, uvolnění části do prodeje
+[1A[2K[5/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › vlastník › 5 — firemní objednávka na fakturu a označení zaplacení
+[1A[2K[6/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › vlastník › 6 — promo kód omezený na kategorii
+[1A[2K[7/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › vlastník › 7 — přesun a zrušení termínu
+[1A[2K[8/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › vlastník › 8 — reporty termínu a seznam pro uvaděčky
+[1A[2K[9/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › kupec na mobilu › K — najít představení ve svém městě, místa a kategorie, zaplatit; rezervace
+[1A[2K[10/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › pokladní › P — rezervace: vyhledání a platba na pokladně, prodej na místě, tisk
+[1A[2K  1) [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › pokladní › P — rezervace: vyhledání a platba na pokladně, prodej na místě, tisk 
+
+    TimeoutError: page.waitForURL: Timeout 20000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+
+      574 |     await page.getByPlaceholder('Jméno a příjmení').fill('Petr Ostravák');
+      575 |     await page.getByRole('button', { name: 'Zaplatit' }).click();
+    > 576 |     await page.waitForURL(/localhost:3998\/gw\//, { timeout: 20_000 });
+          |                ^
+      577 |     await page.getByTestId('gw-pay').click();
+      578 |     await page.waitForURL((u) => u.href.startsWith(BASE), { timeout: 20_000 });
+      579 |     await ctx.close();
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r12-ux-walkthrough.spec.ts:576:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-walkthr-e47f8-kladně-prodej-na-místě-tisk-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-walkthr-e47f8-kladně-prodej-na-místě-tisk-golden-path\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r12-ux-walkthr-e47f8-kladně-prodej-na-místě-tisk-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r12-ux-walkthr-e47f8-kladně-prodej-na-místě-tisk-golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r12-ux-walkthr-e47f8-kladně-prodej-na-místě-tisk-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r12-ux-walkthr-e47f8-kladně-prodej-na-místě-tisk-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[11/11] [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › vstup › V — skenování na mobilu: běžná, Ověřit průkaz, Jiný termín, Už použito
+[1A[2K  1 failed
+    [golden-path] › tests\golden-path-r12-ux-walkthrough.spec.ts:48:7 › pokladní › P — rezervace: vyhledání a platba na pokladně, prodej na místě, tisk 
+  1 did not run
+  9 passed (2.4m)

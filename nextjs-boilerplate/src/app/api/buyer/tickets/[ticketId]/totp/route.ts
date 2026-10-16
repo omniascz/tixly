@@ -25,10 +25,8 @@ interface TicketRow {
   totp_secret_encrypted: Buffer;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   if (!/^[0-9a-f-]{36}$/i.test(params.ticketId)) {
     return NextResponse.json({ error: 'Invalid ticket id' }, { status: 422 });

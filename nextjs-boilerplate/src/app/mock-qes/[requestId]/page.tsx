@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'next/navigation';
 
 type Phase =
   | 'loading'
@@ -35,7 +36,8 @@ const DOC_TYPE_LABEL: Record<string, string> = {
   custom: 'Dokument k podpisu',
 };
 
-export default function MockQESPage({ params }: { params: { requestId: string } }) {
+export default function MockQESPage(_props: { params: Promise<{ requestId: string }> }) {
+  const params = useParams<{ requestId: string }>();
   const { requestId } = params;
   const [phase, setPhase] = useState<Phase>('loading');
   const [data, setData] = useState<RequestData | null>(null);

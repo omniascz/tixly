@@ -1,0 +1,46 @@
+# Kolo 22 — 1.2 RED: golden-path-r22-qr-local na nezměněném kódu (HEAD 7598a1b8 = 6799fb5b + logy; build 0_build.txt)
+Prostředí: logs/r22/golden.sh (reset r22demo z migrací + seed, next start :3200 pod tixly_app, simulátor GoPay :3998, Sentry :3995).
+Plný výstup: 1_red_run.txt. Snímky (ruční kód a QR zamaskovány): shots/1_red_a2_2fa.png, shots/1_red_b2_gift.png.
+
+[r22] (a) otpauth otpa… (délka 133), secretBase32 PA3P… (délka 32)
+[r22] (a2) img alt="QR kód 2FA": class="h-44 w-44", complete=true, natural 0×0, box {"x":672,"y":370,"width":176,"height":176}
+[r22] snímek red_a2_2fa.png (ruční kód a QR zamaskovány #ff00ff)
+[r22] (a1) zahozeno: api.qrserver.com/v1/create-qr-code/ — nese: otpauth, secretBase32
+[r22] (a1) zahozených požadavků mimo localhost: 1; podle hostitele: {"api.qrserver.com":1}; s tajemstvím: 1; na api.qrserver.com: 1
+[r22] (a2) src není data:image/png;base64 (začátek: https://api.qrserver.com/v1/create-qr-co…)
+[r22] (a3) POST /api/admin/2fa/verify → 200
+[r22] (a) úklid: POST /api/admin/2fa/disable → 200
+  x  1 [golden-path] › tests\golden-path-r22-qr-local.spec.ts:117:5 › (a) 2FA: QR otpauth lokálně, nic nejde na api.qrserver.com, aktivace 2FA projde (24.6s)
+[r22] (b) místo Hlediště ř. 3 č. 1 podrženo
+[r22] (b) dárková objednávka založena, token dárku 2661…
+[r22] (b) qrPayload otpa… (délka 74), secret vstupenky 4SKN…
+[r22] (b2) img alt="Vstupenka QR": class="rounded-lg border shadow-sm", width=220 height=220, complete=true, natural 0×0, box {"x":530,"y":387,"width":220,"height":220}
+[r22] snímek red_b2_gift.png (ruční kód a QR zamaskovány #ff00ff)
+[r22] (b1) zahozeno: api.qrserver.com/v1/create-qr-code/ — nese: qrPayload, secret vstupenky
+[r22] (b1) zahozených požadavků mimo localhost: 1; podle hostitele: {"api.qrserver.com":1}; s tajemstvím: 1; na api.qrserver.com: 1
+[r22] (b2) src není data:image/png;base64 (začátek: https://api.qrserver.com/v1/create-qr-co…)
+  x  2 [golden-path] › tests\golden-path-r22-qr-local.spec.ts:185:5 › (b) dárek: QR vstupenky lokálně, nic nejde na api.qrserver.com (49.1s)
+  2 failed
+
+## Selhaná kritéria (expect.soft)
+      1     Error: (a1) požadavky mimo localhost s otpauth/secretBase32
+      1     Error: (a1) požadavky na api.qrserver.com
+      1     Error: (a2) obrázek = QRCode.toDataURL(otpauth, { width: 180, margin: 4 })
+      1     Error: (a2) src = data:image/png;base64
+      1     Error: (a2) vykreslený obrázek 180×180
+      1     Error: (b1) požadavky mimo localhost s qrPayload/tokenem dárku
+      1     Error: (b1) požadavky na api.qrserver.com
+      1     Error: (b2) obrázek = QRCode.toDataURL(qrPayload, { width: 220, margin: 4 })
+      1     Error: (b2) src = data:image/png;base64
+      1     Error: (b2) vykreslený obrázek 220×220
+
+## Souhrn RED
+| bod | výsledek | zahozeno na api.qrserver.com | z toho s tajemstvím |
+|---|---|---|---|
+| (a1) | FAIL | 1 | 1 (otpauth + secretBase32) |
+| (a2) | FAIL — src = URL qrserveru (zahozeno), natural 0×0 | | |
+| (a3) | PASS — verify 200, záložní kódy | | |
+| (b1) | FAIL | 1 | 1 (qrPayload + secret vstupenky; token dárku ne) |
+| (b2) | FAIL — src = URL qrserveru (zahozeno), natural 0×0 | | |
+
+Jiní hostitelé mimo localhost: žádní. (b) na starém kódu došel až ke QR (dárek zaplacen, uplatněn, qrPayload z API).

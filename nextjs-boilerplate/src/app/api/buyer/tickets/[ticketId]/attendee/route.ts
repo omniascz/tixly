@@ -30,10 +30,8 @@ async function ensureOwnership(ticketId: string, userId: string): Promise<boolea
   return r.rows.length > 0;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   if (!(await ensureOwnership(params.ticketId, userId))) {
     return NextResponse.json({ error: 'NOT_OWNER' }, { status: 403 });
@@ -77,10 +75,8 @@ export async function GET(
   });
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   if (!(await ensureOwnership(params.ticketId, userId))) {
     return NextResponse.json({ error: 'NOT_OWNER' }, { status: 403 });

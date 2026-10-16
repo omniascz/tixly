@@ -6,15 +6,11 @@
  *
  * Použití místo `db().query(...)`:
  *
- *   import { withPromoterDb, withPlatformAdminDb, withAnonDb } from '@/lib/db/with-context';
+ *   import { withPromoterDb, withAnonDb } from '@/lib/db/with-context';
  *
  *   await withPromoterDb(ctx.promoterId, async (client) => {
  *     const r = await client.query('SELECT * FROM catalog.events');
  *     // RLS automaticky scoped na promoter_id = ctx.promoterId
- *   });
- *
- *   await withPlatformAdminDb(async (client) => {
- *     // RLS bypass (vidí všechno)
  *   });
  *
  *   await withAnonDb(async (client) => {
@@ -23,13 +19,17 @@
  *
  * Pro single query convenience:
  *   queryAsPromoter(promoterId, sql, params)
- *   queryAsPlatformAdmin(sql, params)
  */
 import { Pool, PoolClient } from 'pg';
+import { pgPoolOptions } from '@/lib/db/pg-options';
+import { assertStagingIsolated } from '@/lib/env/staging-guard';
 
 let pool: Pool | null = null;
 function getPool(): Pool {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  if (!pool) {
+    assertStagingIsolated(); // kolo 9
+    pool = new Pool(pgPoolOptions(process.env.DATABASE_URL));
+  }
   return pool;
 }
 
@@ -52,27 +52,6 @@ export async function withPromoterDb<T>(
     // SET LOCAL vyžaduje transakci — bez BEGIN by setting persistoval na connection
     // (= leak do dalšího requestu po release).
     await client.query(`SET LOCAL app.current_promoter_id = '${promoterId}'`);
-    const result = await callback(client);
-    await client.query('COMMIT');
-    return result;
-  } catch (err) {
-    await client.query('ROLLBACK').catch(() => undefined);
-    throw err;
-  } finally {
-    client.release();
-  }
-}
-
-/**
- * Platform admin connection — RLS policy `app_is_platform_admin()` vrátí true.
- */
-export async function withPlatformAdminDb<T>(
-  callback: (client: PoolClient) => Promise<T>,
-): Promise<T> {
-  const client = await getPool().connect();
-  try {
-    await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
     const result = await callback(client);
     await client.query('COMMIT');
     return result;
@@ -108,15 +87,6 @@ export async function queryAsPromoter<R extends Record<string, unknown> = Record
   params?: unknown[],
 ): Promise<{ rows: R[] }> {
   return withPromoterDb(promoterId, async (client) => {
-    return client.query<R>(sql, params);
-  });
-}
-
-export async function queryAsPlatformAdmin<R extends Record<string, unknown> = Record<string, unknown>>(
-  sql: string,
-  params?: unknown[],
-): Promise<{ rows: R[] }> {
-  return withPlatformAdminDb(async (client) => {
     return client.query<R>(sql, params);
   });
 }

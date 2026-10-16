@@ -35,21 +35,47 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const r = await db().query<{ id: string }>(
-    `UPDATE catalog.event_seats
-     SET status = 'available',
-         hold_user_id = NULL,
-         hold_until = NULL,
-         notes = NULL,
-         updated_at = NOW()
-     WHERE status = 'held'
-       AND hold_until IS NOT NULL
-       AND hold_until < NOW()
-     RETURNING id`,
+  // Uvolňuje se i `hold_kind` a `hold_label`. Bez toho zůstávalo u promotérského
+  // holdu s datem uvolnění sedadlo v prodeji, ale v přehledu držených míst se
+  // dál tvářilo jako držené — dva různé stavy pro totéž místo.
+  // Vyřazená místa (status='blocked', technika) se nikdy neuvolňují časem.
+  // Pozn.: `RETURNING` vrací nové hodnoty, takže původní `hold_kind` se musí
+  // odečíst dřív, než ho UPDATE přepíše — proto CTE. `SKIP LOCKED` nechá být
+  // řádky, které si právě drží běžící checkout, a sebere je příští běh.
+  const r = await db().query<{ id: string; hold_kind: string | null }>(
+    `WITH expired AS (
+       SELECT id, hold_kind
+       FROM catalog.event_seats
+       WHERE status = 'held'
+         AND hold_until IS NOT NULL
+         AND hold_until < NOW()
+       FOR UPDATE SKIP LOCKED
+     ), released AS (
+       UPDATE catalog.event_seats es
+       SET status = 'available',
+           hold_user_id = NULL,
+           hold_until = NULL,
+           hold_kind = NULL,
+           hold_label = NULL,
+           notes = NULL,
+           updated_at = NOW()
+       FROM expired e
+       WHERE es.id = e.id
+       RETURNING es.id
+     )
+     SELECT e.id, e.hold_kind FROM expired e`,
   );
+
+  // Rozlišení pro monitoring: zákaznické holdy expirují běžně (nedokončený
+  // nákup), promotérské jen tehdy, když jim promotér nastavil datum uvolnění.
+  let promoterHolds = 0;
+  for (const row of r.rows) {
+    if (row.hold_kind !== null && row.hold_kind !== 'customer') promoterHolds += 1;
+  }
 
   return NextResponse.json({
     releasedCount: r.rows.length,
+    promoterHoldsReleased: promoterHolds,
     ts: new Date().toISOString(),
   });
 

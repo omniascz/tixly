@@ -1,207 +1,173 @@
 name: CI
 
+# Kolo 4: workflow dosud NIKDY neběžel — spouštěč byl jen na větve main/develop, výchozí větev
+# repa je ale `master` (a opravy běží na fix/*). Matice navíc vyjmenovávala 30 adresářů
+# (totp-qr, jwt-auth, …), které v repu neexistují, a seating-lint aplikoval migrace s `|| true`.
+#
+# Kroky: install → typecheck → lint (jen NOVÉ chyby nad baseline) → unit → live sada proti
+# Postgresu postavenému z migrací, aplikace i testy pod rolí tixly_app. Žádné produkční secrets.
+
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master, 'fix/**']
   pull_request:
-    branches: [main, develop]
+    branches: [main, master, 'fix/**']
+  workflow_dispatch:
+  # Kolo 5: deploy.yml volá CI jako tvrdou podmínku nasazení.
+  workflow_call:
 
+# `github.workflow` = jméno volajícího u workflow_call → běh volaný z Deploy a běh z téhož pushe
+# nesdílí skupinu a nezruší se navzájem (jinak by cancel-in-progress shodil nasazení).
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '24'
+
 jobs:
-  # ---------------------------------------------------------------------------
-  # 1. Lint + Type-check
-  # ---------------------------------------------------------------------------
-  lint:
-    name: Lint & Type-check
+  checks:
+    name: Install · typecheck · lint · unit
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: nextjs-boilerplate
-
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
           cache-dependency-path: nextjs-boilerplate/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install
+        run: npm ci --no-audit --no-fund
 
-      - name: Lint
-        run: npm run lint
+      - name: Typecheck
+        run: npx tsc --noEmit -p .
 
-      - name: Format check
-        run: npm run format:check
+      # Existující chyby (1049 k 2026-10-03) se hromadně neopravují — eslint-baseline.json drží
+      # počty soubor × pravidlo a krok selže jen na NÁRŮSTU (nová chyba / nový soubor s chybou).
+      - name: Lint (nové chyby nad baseline)
+        run: node scripts/lint-baseline.mjs
 
-      - name: Type-check
-        run: npm run type-check
+      - name: Unit testy
+        run: npx vitest run --maxWorkers=2 --minWorkers=1   # vitest 1.6: max bez min → RangeError
 
-  # ---------------------------------------------------------------------------
-  # 2. Testy (Vitest) — spouští se paralelně pro každý modul
-  # ---------------------------------------------------------------------------
-  test:
-    name: Tests — ${{ matrix.module }}
+  # Kolo 11: Vercel build padal na „Static page generation for /api/health/redis is still timing out after
+  # 3 attempts" — Next předgeneroval routu, která se při buildu připojovala k Redisu, a spojení tam viselo.
+  # Tady čistý `next build`: síťové proměnné na nesměrovatelnou 10.255.255.1 (spojení visí, jako na Vercelu)
+  # a preload scripts/ci/no-network-preload.cjs ukončí build při JAKÉMKOLI síťovém spojení z kódu aplikace
+  # (vypíše cíl, routu a stacktrace). Výjimka: písma next/font/google.
+  build-no-network:
+    name: Build bez sítě (pojistka prerenderu)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        module:
-          - nextjs-boilerplate
-          - totp-qr
-          - seat-map
-          - pricing-engine
-          - resale-api
-          - season-passes
-          - wallet-passes
-          - organizer-dashboard
-          - recommendation-engine
-          - churn-prediction
-          - optimal-send-time
-          - referral-system
-          - server-side-tracking
-          - jwt-auth
-          - rls-multitenancy
-          - platform-fees
-          - platform-promoters
-          - venue-ownership
-          - price-migration
-          - promoter-onboarding
-          - refund-policy
-          - payout-management
-          - gift-vouchers
-          - event-cloning
-          - inventory-holdback
-          - promo-codes
-          - flash-sales
-          - installments
-          - pdf-ticket
-          - real-time-occupancy
-          - upsell-engine
-
+    timeout-minutes: 30
     defaults:
       run:
-        working-directory: ${{ matrix.module }}
-
+        working-directory: nextjs-boilerplate
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: ${{ matrix.module }}/package-lock.json
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: nextjs-boilerplate/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install
+        run: npm ci --no-audit --no-fund
 
-      - name: Run tests
-        run: npm test -- --reporter=verbose --coverage
+      - name: next build bez sítě (DB/Redis/SMTP → 10.255.255.1, síťová spojení zakázána)
+        run: bash scripts/ci/build-no-network.sh
 
-      - name: Upload coverage
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-${{ matrix.module }}
-          path: ${{ matrix.module }}/coverage/
-          retention-days: 7
+      - name: Zachycená síťová spojení (při chybě)
+        if: failure()
+        run: cat build-no-network.violations.log 2>/dev/null || tail -60 build-no-network.log || true
 
-  # ---------------------------------------------------------------------------
-  # 3. Seating lint — overlap audit na live DB (Postgres service)
-  # ---------------------------------------------------------------------------
-  seating-lint:
-    name: Seating overlap audit
+  live:
+    name: Live sada (Postgres z migrací, tixly_app)
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     services:
       postgres:
-        image: postgres:17-alpine
+        # postgis — baseline zakládá rozšíření postgis (stejný obraz jako lokální fix-pg)
+        image: postgis/postgis:17-3.5
         env:
-          POSTGRES_USER: tixly
-          POSTGRES_PASSWORD: tixly_dev
-          POSTGRES_DB: tixly
-        ports:
-          - 5433:5432
+          POSTGRES_USER: neondb_owner
+          POSTGRES_PASSWORD: fixowner   # heslo izolované testovací DB, ne produkční
+          POSTGRES_DB: neondb
+        ports: ['55632:5432']
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+          --health-cmd "pg_isready -U neondb_owner" --health-interval 5s --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ['56679:6379']
+      mailpit:
+        image: axllent/mailpit:latest
+        ports: ['51225:1025', '58225:8025']
+    env:
+      FIX_E2E: '1'
+      FIX_DB_OWNER_URL: postgresql://neondb_owner:fixowner@localhost:55632/e2e
+      FIX_DB_APP_URL: postgresql://tixly_app:fixapp@localhost:55632/e2e
+      FIX_PGBOUNCER_URL: postgresql://tixly_app:fixapp@localhost:56633/e2e
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-
-      # psql tu chybel — kroky nize ho volaji a maji `|| true`, takze
-      # bez nej TISE NEDELALY NIC misto aby spadly (FINDINGS 61).
-      - name: Install postgresql-client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
-
-      - name: Apply migrations
-        run: |
-          # Aplikuj vše do 274 (nejnovější)
-          for f in $(ls migrations/*.sql | sort -V); do
-            PGPASSWORD=tixly_dev psql -h localhost -p 5433 -U tixly -d tixly -f "$f" -v ON_ERROR_STOP=1 -q || true
-          done
-        env:
-          PGPASSWORD: tixly_dev
-
-      - name: Seed venues + charts (minimal)
-        run: |
-          PGPASSWORD=tixly_dev psql -h localhost -p 5433 -U tixly -d tixly -c \
-            "SELECT COUNT(*) FROM catalog.venue_seating_charts WHERE active = TRUE;" || true
-
-      - name: Install pg for script
-        working-directory: nextjs-boilerplate
-        run: npm ci
-
-      - name: Run seating overlap audit
-        run: node scripts/lint-seating.mjs
-        env:
-          DATABASE_URL: postgresql://tixly:tixly_dev@localhost:5433/tixly
-
-  # ---------------------------------------------------------------------------
-  # 4. Build (Next.js) — jen pokud lint + testy prošly
-  # ---------------------------------------------------------------------------
-  build:
-    name: Build Next.js
-    runs-on: ubuntu-latest
-    needs: [lint, test]
-    defaults:
-      run:
-        working-directory: nextjs-boilerplate
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
           cache-dependency-path: nextjs-boilerplate/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - name: DB od nuly z migrací (psql 17)
+        uses: ./.github/actions/db-from-migrations
 
-      - name: Build
-        run: npm run build
-        env:
-          # Placeholder values pro build — nekontaktují reálné služby
-          DATABASE_URL: postgresql://user:pass@localhost:5432/tixly
-          REDIS_URL: redis://localhost:6379
-          JWT_SECRET: placeholder-secret-for-build-only-32ch
-          NEXT_PUBLIC_APP_URL: https://tixly.cz
+      # PgBouncer v transaction módu (testy poolu / R-56) — stejná konfigurace jako lokální fix-pgb.
+      - name: PgBouncer (transaction mode)
+        run: |
+          mkdir -p "$RUNNER_TEMP/pgb"
+          cat > "$RUNNER_TEMP/pgb/pgbouncer.ini" <<'INI'
+          [databases]
+          * = host=postgres port=5432
+          [pgbouncer]
+          listen_addr = 0.0.0.0
+          listen_port = 6432
+          auth_type = plain
+          auth_file = /etc/pgbouncer/userlist.txt
+          pool_mode = transaction
+          max_client_conn = 1000
+          default_pool_size = 10
+          ignore_startup_parameters = extra_float_digits,options,statement_timeout
+          INI
+          printf '"tixly_app" "fixapp"\n"neondb_owner" "fixowner"\n' > "$RUNNER_TEMP/pgb/userlist.txt"
+          docker run -d --name pgbouncer --network "${{ job.services.postgres.network }}" -p 56633:6432 \
+            -v "$RUNNER_TEMP/pgb/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro" \
+            -v "$RUNNER_TEMP/pgb/userlist.txt:/etc/pgbouncer/userlist.txt:ro" \
+            edoburu/pgbouncer:latest
+          for _ in $(seq 1 30); do pg_isready -h localhost -p 56633 && exit 0; sleep 1; done
+          docker logs pgbouncer; exit 1
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: nextjs-build
-          path: nextjs-boilerplate/.next/
-          retention-days: 1
+      - name: Install
+        working-directory: nextjs-boilerplate
+        run: npm ci --no-audit --no-fund
+
+      - name: Simulátor platební brány (fake-gopay :3998)
+        working-directory: nextjs-boilerplate
+        run: |
+          nohup node tests/helpers/fake-gopay.mjs > "$RUNNER_TEMP/fake-gopay.log" 2>&1 &
+          for _ in $(seq 1 30); do curl -s -o /dev/null http://localhost:3998/ && exit 0; sleep 1; done
+          cat "$RUNNER_TEMP/fake-gopay.log"; exit 1
+
+      - name: Live sada (tixly_app, max 2 workery)
+        working-directory: nextjs-boilerplate
+        run: npx vitest run -c vitest.live.config.ts --maxWorkers=2 --minWorkers=1
+
+      - name: Log simulátoru při chybě
+        if: failure()
+        run: cat "$RUNNER_TEMP/fake-gopay.log" || true

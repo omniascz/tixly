@@ -9,10 +9,8 @@ interface OrderRow {
   status: string;
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { paymentId: string } },
-): Promise<Response> {
+export async function POST(request: NextRequest, props: { params: Promise<{ paymentId: string }> }): Promise<Response> {
+  const params = await props.params;
   const blocked = mockPaymentBlockedResponse();
   if (blocked) return blocked;
   return runWithServiceContext(async () => {
@@ -53,7 +51,8 @@ export async function POST(
       );
       await client.query(
         `INSERT INTO orders.payment_events (order_id, event_type, gopay_status, raw_payload, payment_provider)
-         VALUES ($1, 'CANCELED', 'CANCELED', $2::jsonb, 'gopay')`,
+         VALUES ($1, 'CANCELED', 'CANCELED', $2::jsonb, 'gopay')
+           ON CONFLICT DO NOTHING`,
         [order.id, JSON.stringify({ paymentId: params.paymentId, source: 'mock' })],
       );
       await client.query('COMMIT');
@@ -96,7 +95,8 @@ export async function POST(
     );
     await client.query(
       `INSERT INTO orders.payment_events (order_id, event_type, gopay_status, raw_payload, payment_provider)
-       VALUES ($1, $2, $3, $4::jsonb, 'gopay')`,
+       VALUES ($1, $2, $3, $4::jsonb, 'gopay')
+           ON CONFLICT DO NOTHING`,
       [
         order.id,
         partial ? 'PAID_PARTIAL' : 'PAID',

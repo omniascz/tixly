@@ -13,14 +13,30 @@ const nextConfig = {
   eslint: { ignoreDuringBuilds: true },
   // pdfkit bundles AFM font files via require() — webpack can't statically analyze
   // these, so we externalize it to load directly from node_modules at runtime.
+  // Kolo 15: v Next 15 klíč experimental.serverComponentsExternalPackages → serverExternalPackages.
+  serverExternalPackages: ['pdfkit'],
+  // Kolo 15: Next 14 bral za kořen trasování souborů adresář projektu; Next 15 ho odvozuje z lockfilů (vybral by tixly/).
+  outputFileTracingRoot: __dirname,
   experimental: {
-    serverComponentsExternalPackages: ['pdfkit'],
+    // Kolo 9: instrumentation.ts (Sentry, pojistka stagingu) — Next 15 ho načítá vždy, instrumentationHook zrušen.
+    // Kolo 15: klientský router cache jako v Next 14 (dynamické stránky 30 s; Next 15 má výchozí 0 s).
+    staleTimes: { dynamic: 30, static: 300 },
+    // Kolo 15: Next 15 při `next start` načte a vykoná moduly VŠECH rout (preloadEntriesOnStart, výchozí true) — s 1124
+    // routami ~30 s CPU, první požadavek čekal 21–109 s (CPU profil logs/r15/cpuprof). Next 14 načítal routu až s prvním
+    // požadavkem na ni → původní chování. Na Vercelu (minimal mode) se preload nespouští.
+    preloadEntriesOnStart: false,
   },
   images: {
+    // Kolo 9: zmírnění bez změny hlavní verze Next (14.2.35):
+    //   GHSA-2xp9-vwfh-vxw4 (critical) — RCE v optimalizaci obrázků (sharp/libheif) u AVIF; opraveno až v 15.5.24/16.3.3,
+    //   advisory neuvádí konfigurační obranu → optimalizaci vypínáme úplně.
+    //   GHSA-h64f-5h5j-jqjh — DoS /_next/image: „If you are using images.unoptimized: true, you are NOT impacted."
+    //   GHSA-9g9p-9gw9-jx7f — DoS přes remotePatterns (týká se jen optimalizace vzdálených obrázků).
+    // Obrázky se pak servírují přímo z původní URL (endpoint /_next/image se nepoužívá).
+    unoptimized: true,
     remotePatterns: [
       { protocol: 'https', hostname: 'api.gopay.cz' },
       { protocol: 'https', hostname: 'images.cloudflare.com' },
-      { protocol: 'https', hostname: 'cdn.example.com' },
     ],
   },
   headers: async () => {
@@ -200,17 +216,24 @@ const nextConfig = {
 let exported = nextConfig;
 try {
   // Dynamic require pro vyhnutí TS dep bez instalovaného balíčku
+  // Kolo 19: Sentry 11 — withSentryConfig je jen v '@sentry/nextjs/config' (MIGRATION.md 10→11)
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { withSentryConfig } = await import('@sentry/nextjs').catch(() => ({ withSentryConfig: null }));
+  const { withSentryConfig } = await import('@sentry/nextjs/config').catch(() => ({ withSentryConfig: null }));
   if (withSentryConfig && process.env.SENTRY_DSN) {
     exported = withSentryConfig(nextConfig, {
       silent: true,
       org: process.env.SENTRY_ORG,
       project: process.env.SENTRY_PROJECT,
       authToken: process.env.SENTRY_AUTH_TOKEN,
-      hideSourceMaps: true,
-      disableLogger: true,
+      // Kolo 19: od Sentry 9 se release neodvozuje z Build ID → název z existujících proměnných (jako Sentry.init)
+      release: { name: process.env.APP_VERSION ?? process.env.NEXT_PUBLIC_APP_VERSION ?? process.env.VERCEL_GIT_COMMIT_SHA },
+      // Kolo 14: vygenerované source mapy po nahrání smazat — jinak zůstanou veřejně v /_next/static (varování Sentry SDK)
+      sourcemaps: { deleteSourcemapsAfterUpload: true },
+      // Kolo 19: dřívější disableLogger (v 11 odstraněno)
+      webpack: { treeshake: { removeDebugLogging: true } },
       tunnelRoute: '/api/monitoring',
+      // Kolo 20: build plugin neposílá vlastní telemetrii na sentry.io (výchozí true)
+      telemetry: false,
     });
   }
 } catch {

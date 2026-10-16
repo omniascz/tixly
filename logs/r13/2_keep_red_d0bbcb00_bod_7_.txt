@@ -1,0 +1,42 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [golden-path] › tests\golden-path-r13-keep.spec.ts:123:7 › vlastník › bod 7: zrušený termín v seznamu akcí „Zrušeno", ne „Prodej"
+[1A[2K  1) [golden-path] › tests\golden-path-r13-keep.spec.ts:123:7 › vlastník › bod 7: zrušený termín v seznamu akcí „Zrušeno", ne „Prodej" 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoHaveLength[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected length: [32m1[39m
+    Received length: [31m0[39m
+    Received array:  [31m[][39m
+
+      129 |     const cancelledCount = (await q<{ n: number }>(`SELECT count(*)::int n FROM catalog.events WHERE promoter_id = $1 AND title = 'Hamlet' AND status = 'cancelled'`, [T.promoterId]))[0].n;
+      130 |     const texts = await rows.allTextContents();
+    > 131 |     expect(texts.filter((t) => t.includes('Zrušeno'))).toHaveLength(cancelledCount);
+          |                                                        ^
+      132 |     expect(texts.filter((t) => t.includes('Zrušeno') && t.includes('Prodej'))).toHaveLength(0);
+      133 |     expect(statuses.length).toBeGreaterThan(0);
+      134 |   });
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r13-keep.spec.ts:131:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-dd677-u-akcí-„Zrušeno-ne-„Prodej--golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r13-keep-vlast-dd677-u-akcí-„Zrušeno-ne-„Prodej--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-dd677-u-akcí-„Zrušeno-ne-„Prodej--golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r13-keep-vlast-dd677-u-akcí-„Zrušeno-ne-„Prodej--golden-path\error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r13-keep-vlast-dd677-u-akcí-„Zrušeno-ne-„Prodej--golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r13-keep-vlast-dd677-u-akcí-„Zrušeno-ne-„Prodej--golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  1 failed
+    [golden-path] › tests\golden-path-r13-keep.spec.ts:123:7 › vlastník › bod 7: zrušený termín v seznamu akcí „Zrušeno", ne „Prodej" 

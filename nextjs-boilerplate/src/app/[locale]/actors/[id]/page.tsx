@@ -1,8 +1,11 @@
-import { notFound } from 'next/navigation';
+import type { JSX } from 'react';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { Pool } from 'pg';
-import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
+import { pgPoolOptions } from '@/lib/db/pg-options';
 import { formatDate } from '@/lib/format';
+import { isValidLocale, DEFAULT_LOCALE } from '@/lib/i18n';
+
 
 interface ArtistRow {
   id: string;
@@ -24,7 +27,7 @@ async function fetchActor(artistId: string): Promise<{
   artist: ArtistRow;
   performances: PerformanceRow[];
 } | null> {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const pool = new Pool(pgPoolOptions(process.env.DATABASE_URL));
   try {
     const aRes = await pool.query<ArtistRow>(
       `SELECT id, name, bio, cover_image_url

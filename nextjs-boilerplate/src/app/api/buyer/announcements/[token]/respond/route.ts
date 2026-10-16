@@ -13,10 +13,8 @@ interface ResponseRow {
   user_id: string;
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { token: string } },
-) {
+export async function POST(req: NextRequest, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   const announcementId = params.token;
 
   const body = await req.json().catch(() => ({}));

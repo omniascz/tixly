@@ -1,13 +1,14 @@
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 
-export default function NewsletterConfirmedPage({
-  params,
-  searchParams,
-}: {
-  params: { locale: string };
-  searchParams: { status?: string; error?: string };
-}) {
+export default async function NewsletterConfirmedPage(
+  props: {
+    params: Promise<{ locale: string }>;
+    searchParams: Promise<{ status?: string; error?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const isOk = searchParams.status === 'ok';
   return (
     <div className="mx-auto max-w-md py-12 text-center">

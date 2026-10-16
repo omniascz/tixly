@@ -21,12 +21,12 @@ export interface PromoterContext {
  *
  * Bez session vars: app jako `tixly_app` user vidí jen `status='published'`.
  */
+// Kolo 3: withPlatformAdminDb / queryAsPlatformAdmin odstraněny — eskalovaly na platform
+// admina bez ověření volajícího a nikdo je nevolal. Admin routy: runAsPlatformAdmin (platform-auth).
 export {
   withPromoterDb,
-  withPlatformAdminDb,
   withAnonDb,
   queryAsPromoter,
-  queryAsPlatformAdmin,
   queryAnon,
 } from './db/with-context';
 
@@ -91,14 +91,20 @@ export async function runAsPromoterOwner<T>(
   return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
 }
 
-/** requirePromoter + role !== 'staff' (vzor `!promoter || role === 'staff'`). */
+/**
+ * Kolo 12: role jen pro provoz — staff (vstup, produkce) a box_office (pokladna). Dřív se omezovala jen staff a pokladna
+ * měla na serveru přístup jako admin (finance, nastavení, tým), i když jí menu tyto sekce neukazuje.
+ */
+const OPERATIONS_ONLY = new Set(['staff', 'box_office']);
+
+/** requirePromoter + role není provozní (staff / box_office). */
 export async function runAsPromoterNonStaff<T>(
   req: NextRequest,
   callback: (ctx: PromoterContext) => Promise<T>,
 ): Promise<T | Response> {
   const ctx = await requirePromoter(req);
   if (!ctx) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-  if (ctx.role === 'staff') return rejectPromoter();
+  if (OPERATIONS_ONLY.has(ctx.role)) return rejectPromoter();
   return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
 }
 
@@ -120,7 +126,7 @@ export async function runAsActivePromoterNonStaff<T>(
 ): Promise<T | Response> {
   const ctx = await requirePromoter(req);
   if (!ctx || ctx.status !== 'active') return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-  if (ctx.role === 'staff') return rejectPromoter();
+  if (OPERATIONS_ONLY.has(ctx.role)) return rejectPromoter();
   return runWithPromoterContext(ctx.promoterId, async () => callback(ctx));
 }
 

@@ -1,0 +1,40 @@
+d4b43f4f7482d7a928f19b1971619e3f7574a560 2026-08-14 @ docs: §209 — prod DATABASE_URL prectena, dve otazky uzavreny
+6d661fb389c82b132a69cccf44cadf983ad82b3a 2026-08-13 @ docs: §208 — zaznam k seste vrstve, ktery vypadl z 776358b
+776358b9a88dfaa0bc84a29e134ff82cdd038c06 2026-08-13 @ test(payouts): §208 — sesta vrstva je DEPLOY, ne kod (RED 23514 -> GREEN s 468)
+4779f45304ab0331f2126e9aae4a66ba1e24572b 2026-08-13 @ fix(payouts): vyplatni SELECT rozbehnut — RED 42703 -> GREEN 1 radek
+06d78f68b5d80821e3a45857d156243e80846c8c 2026-08-13 @ docs: §206 — pata vrstva payouts, wise_recipient_id se ZAPISUJE
+1a00e0db36dd03bb492b70db8a70e58d0db617cf 2026-08-13 @ docs: §203-§205 — verdikt k vyplatam, ktery vypadl z 8e02def
+8e02defa5140a1d08899048d37ff8a6ab272e834 2026-08-13 @ fix(payouts,events): payout_currency -> primary_currency; events.name/starts_at
+9b4f72bd88908b928b03b4beee4def76dd95466a 2026-08-13 @ test(scan): T4 medium overeno — 10 z 10 SKUTECNYCH, 0 false positive
+381d5e588e1745b2d7b298b3ed82e2126a72fa74 2026-08-13 @ test(scan): T4 premereno po oprave CTE — 49 (6/15/28), drive 52 (7/16/29)
+0fd9fa6c9afa1566cbeb975f511c37fca15cc50b 2026-08-13 @ fix(scan): R-51 — d.d byl artefakt parseru (CTE stinilo tabulku), heuristika opravena
+15cf0a9a382c19e86c992ea5bea72b2be7f702e3 2026-08-13 @ test(rls): helpery zmereny — 0 ze 4 povoluje; R-19 uzavreno (0 uniku)
+c28d9419914d521fbdc6cd7b2ac609574bf786bf 2026-08-13 @ test(rls): R-58 fail-closed se NEOTACI (0 z 39); oprava me chyby o R-53
+096af6b0faee4b8c250466cc53fae4aed98b5a39 2026-08-13 @ test(rls): R-19 zodpovezeno — 0 uniku; nalezeno 39 policies s driftem jmena GUC
+2f8ff327e66763f792f550781ab3c6f1e4894cbd 2026-08-13 @ test(rls): §196 — pri vycerpanem stropu pooler nespadne, ale ceka 20 s
+798bbea678c076f678036ea37fab50b0ad996005 2026-08-13 @ fix(rls-pool): dva pooly — connect() na primy endpoint, query() na poolovany
+29c2bcdc219dbc374f7ce26a70e96e3b49394084 2026-08-13 @ fix(rls): R-57 spici SET LOCAL odstranen; R-56 rozpocty slotu zmereny
+c194ed80b1ed22101cce1c73efe4cffb6e41db5b 2026-08-13 @ test(rls): R-56 cesty ven zmereny — b) dva pooly nejlevneji, c) nedoporucuji
+31e315ac7f5215850c5b1618c0b33ad69ff91171 2026-08-13 @ test(rls): R-56 — connect() na pooleru bezi pod CIZIM kontextem (§191)
+b15e3c9ccdfae84d197eb6fa3b68c6346d4ff99e 2026-08-09 fix(test): prosakuje POOLER, ne holy SET — oprava §186 a uklid GUC
+feef201dedbec9a966b58b30161de1742afc0efc 2026-08-08 test(rls): 93 buyer-only policies — 19 tvaru, vsech 19 zmereno, 0 uniku
+efb468e746e4b7e6cfc4049ecd9542b9cfcd0083 2026-08-08 test(rls): migrace 455 — chovanim overeno 9 z 20 (bylo 3), nula uniku
+5d6ba9ed82f19a31f259255c305ac34432d6b38e 2026-08-08 fix(t4): triage — 7 HIGH, vsech 7 skutecnych, 0 false positives; heuristiku udrzovat
+dc30029ba80adc16b28a5433cdafca0693072e6d 2026-08-08 docs: R-50 uzavren — vsech 30 dynamickych dotazu provereno, 0 zranitelnych
+b8288fd3aa5d82b8e21188d08e84d5acb43ca285 2026-08-08 feat(tools): sken dynamickych dotazu — 257/30/0; pravidlo "struktura, ne dokument"
+483dd071de0f07a4d24770e98df0d0e61cd3fb92 2026-08-08 fix(r-48): purchase-limit race opraven advisory zamkem; doaudit cronu nasel 7 dalsich
+79b3e086ffbff0d1793901e5de9f7a4b649165f8 2026-08-08 test(concurrency): cely harness A-E — attackB je PRUSTREL; R-46 odhalil 2 aktivni crony
+b543f95f960f0b8cb618ad0bd905f35cb3a5b9ec 2026-08-08 test(concurrency): attackE ZMEREN — party-split slot race DRZI; demand-forecast verdikt
+84165ea3f225bc0e0026d22ee62b05677c1022e5 2026-08-08 feat(tools): sken SLOUPCU v reportech — 36 dalsich rozbitych, aktivnich 198 -> 152
+38ef60837aa82f92091c36c01b81d9cc428d55cc 2026-08-08 fix(r-42,r-43): premisa vypnuti neplatila, ale pod ni je retez peti vrstev
+2e9d781e427613736a4e95ea713d7087e5403d15 2026-08-08 fix(r-41): seat_assignments nahrazena tickets.seat_id — 7 z 8 rout dolozeno
+65521dcfb40359d152e8c77cb7d9d19fbc9ca855 2026-08-08 fix(r-40): migrace 470 + druhy spatny sloupec; 6 z 8 obalenych rout dolozeno
+2b21146fdf9a48e9ad1b7d3ed2303615e1c995e6 2026-08-08 test(wrapped): 5 z 8 obalenych rout dolozeno; oprava tr.token -> tr.transfer_token
+8bb8fe1772d25a185bd3ab713077af3fd5f43fe4 2026-08-07 feat(reports): 15 rozbitych reportu vyrazeno z registru (198 -> 183)
+caf289b1a95391d27f1b9913e48537723cb52d9b 2026-08-07 docs: roztrideni 26 chybejicich tabulek — automat SELHAL self-check
+b26e50f000d30716c3dad2e242b07a1a926ccac5 2026-08-07 fix(scan): skener cte schemata z katalogu; nove cislo 33 -> 26, reporty 24 -> 15
+510310654eb3f550d6b60a21aa143a9973dd4240 2026-08-07 fix(schema-refs): 12x spatny prefix opraveno (34 -> 22); reporty zmereny
+9748adfe0f39a243c75ddc352b1c1055cd03e4b1 2026-08-07 feat(tools): sken neexistujicich tabulek — 34 odkazu, 22 skutecne chybi
+782f10b345defb34442372fd8613370619b923ec 2026-08-07 test(wrapped): sdileny seed pro 9 obalenych rout; PEEL nasel chybejici seat_maps
+672267ead5e71083a538c1460e4f3163be4bb169 2026-08-07 feat(e11): migrace 469 broadcasts target='event'; sken duplicitnich constraintu
+0789386cac52b3aef05f807c4ffb73187e13e687 2026-08-07 fix(d12,d5): anomaly_alerts srovnany se schematem; moderace platform admina do audit_log

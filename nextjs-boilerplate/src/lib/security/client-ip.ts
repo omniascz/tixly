@@ -11,6 +11,9 @@ import type { NextRequest } from 'next/server';
  * podvrhnout hlavičkou → bereme ho přednostně. Bez něj (lokál / jiná infra)
  * padáme na `x-real-ip` a jako poslední možnost na PRAVÝ konec XFF (poslední hop
  * přidaný nejbližším důvěryhodným proxy), ne levý.
+ *
+ * Kolo 15: Next 15 `req.ip` už neplní; na Vercelu se tak bere `x-real-ip`, kterou nastavuje platforma — totéž čte
+ * oficiální náhrada `ipAddress()` z @vercel/functions (IP_HEADER_NAME = 'x-real-ip'), výsledná IP je stejná.
  */
 export function clientIp(req: NextRequest): string {
   const vercelIp = (req as NextRequest & { ip?: string }).ip;

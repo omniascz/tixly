@@ -1,0 +1,19 @@
+# E2E 11_operations  base=http://localhost:3200  2026-10-15T13:26:40.534Z
+PASS OP1  POS: pokladní prodej (cash) vystaví objednávku paid a 2 platné vstupenky
+       {"status":200,"body":"{\"success\":true,\"orderId\":\"bec825c2-40d8-4b2b-8e14-0ae3b6fb7cf6\",\"eventTitle\":\"Audit Koncert A mv9kj6gu\",\"ticketTypeName\":\"Stani\",\"paymentMethod\":\"cash\",\"boxOfficeSessionId\":\"07805e14-82d0-425a-aa66-4","order":{"status":"paid","payment_provider":"box_office"},"tickets":["valid","valid"]}
+PASS OP2  COMPS: promotér vystaví volnou (press) vstupenku, ticket valid
+       {"status":201,"body":"{\"ok\":true,\"orderId\":\"5907112f-289a-40d8-9b32-539dac563311\",\"compType\":\"press\",\"recipientEmail\":\"press-mv9kj6gu@audit.test\",\"ticketTypeName\":\"Stani\",\"quantity\":1,\"ticketIds\":[\"b9900409-32b5-4e1d-a504-","tickets":["valid"]}
+PASS OP3a  GUESTLIST: přidání hosta založí záznam + navázaný lístek
+       {"status":201,"body":"{\"entry\":{\"id\":\"91d2ef8f-7fd8-4844-825d-ac7429b44fd9\",\"guest_name\":\"Host Seznam\",\"guest_email\":\"guest-list-mv9kj6gu@audit.test\",\"notes\":null,\"invited_by\":null,\"status\":\"invited\",\"ticket_id\":\"e04414cd-","entry":{"id":"91d2ef8f-7fd8-4844-825d-ac7429b44fd9","ticket_id":"e04414cd-c976-45f0-9cac-786d2bc284f2","status":"invited"}}
+PASS OP3b  GUESTLIST: check-in hosta (token=email) → status attended
+       {"status":200,"body":"{\"admitted\":true,\"guestName\":\"Host Seznam\",\"notes\":null}","after":{"status":"attended","checked_in_at":"2026-10-15T13:26:41.273Z"}}
+PASS OP4a  2FA: setup + verify správným TOTP → 2FA enabled v DB
+       {"setup":200,"verify":200,"enabledInDb":true}
+PASS OP4b  2FA: login bez kódu odmítnut (TOTP_REQUIRED/401), s platným kódem projde
+       {"noCode":401,"noCodeErr":"TOTP_REQUIRED","withCode":200}
+PASS OP5a  SELF-REFUND: po povolení promotérem buyer self-refund uspěje, objednávka refunded/cancelled a vstupenky zneplatněny
+       {"status":200,"body":"{\"ok\":true,\"orderId\":\"99e7e057-8be4-40e5-83f1-c5fe4b6fcaef\",\"partial\":false,\"grossRefundHalire\":50000,\"refundFeeHalire\":3000,\"netRefundHalire\":47000,\"revokedTickets\":1,\"remainingValid\":0}","orderStatus":"refunded","tickets":["revoked"]}
+PASS OP5b  SELF-REFUND: peníze — self-refund zavolal refund u platební brány (očekáváno >0)
+       {"gatewayRefundCallsDelta":1,"note":"stejná třída jako K2 — refund jen v DB"}
+
+# SUMMARY {"PASS":8,"FAIL":0,"INFO":0}

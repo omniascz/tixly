@@ -1,0 +1,9 @@
+═══ RLS GATE ═══
+očekáváno 854 policies │ nalezeno 856
+tabulek s RLS: očekáváno 577 │ nalezeno 579
+
+🔴 GATE SELHAL — 2 rozdílů:
+
+  PŘEBÝVAJÍCÍ POLICY (2):
+    • platform.vat_rate_codes|p_vat_rate_codes_read
+    • platform.vat_rates|p_vat_rates_read

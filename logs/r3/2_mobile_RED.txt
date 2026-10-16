@@ -1,0 +1,76 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly-fix/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r3-mobile-rate-limit.live.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[33m 1746[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r3-mobile-rate-limit.live.test.ts[2m > [22mKrok 2 (kolo 3) — mobile/payment-intent: limit objednávek jako checkout (K3)[2m > [22mper IP: 10 objednávek projde, 11. → 429; kapacita a objednávky se 11. požadavkem nezmění[39m
+[31m     → expected 200 to be 429 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-mobile-rate-limit.live.test.ts[2m > [22mKrok 2 (kolo 3) — mobile/payment-intent: limit objednávek jako checkout (K3)[2m > [22mper kupující: 5 živých nezaplacených objednávek, 6. → 429 TOO_MANY_PENDING_ORDERS (i z jiných IP)[39m
+[31m     → expected 200 to be 429 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r3-mobile-rate-limit.live.test.ts[2m > [22mKrok 2 (kolo 3) — mobile/payment-intent: limit objednávek jako checkout (K3)[2m > [22mIP limit je SDÍLENÝ s webovým checkoutem: 10× mobile, pak web checkout ze stejné IP → 429[39m
+[31m     → expected 200 to be 429 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-mobile-rate-limit.live.test.ts[2m > [22mKrok 2 (kolo 3) — mobile/payment-intent: limit objednávek jako checkout (K3)[2m > [22mper IP: 10 objednávek projde, 11. → 429; kapacita a objednávky se 11. požadavkem nezmění
+[31m[1mAssertionError[22m: expected 200 to be 429 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 429[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r3-mobile-rate-limit.live.test.ts:[2m59:22[22m[39m
+    [90m 57| [39m    [35mconst[39m u11 [33m=[39m [35mawait[39m clone[33m.[39mseed[33m.[39m[34muser[39m([32m'mrl11'[39m)[33m;[39m
+    [90m 58| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mmobile[39m(u11[33m,[39m ip)[33m;[39m
+    [90m 59| [39m    [34mexpect[39m(r[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m429[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m 60| [39m    [34mexpect[39m(([35mawait[39m pool[33m.[39m[34mquery[39m([32m`SELECT remaining_qty FROM catalog.ticket[39m…
+    [90m 61| [39m    [34mexpect[39m(([35mawait[39m pool[33m.[39m[34mquery[39m([32m`SELECT count(*)::int n FROM orders.order[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-mobile-rate-limit.live.test.ts[2m > [22mKrok 2 (kolo 3) — mobile/payment-intent: limit objednávek jako checkout (K3)[2m > [22mper kupující: 5 živých nezaplacených objednávek, 6. → 429 TOO_MANY_PENDING_ORDERS (i z jiných IP)
+[31m[1mAssertionError[22m: expected 200 to be 429 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 429[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r3-mobile-rate-limit.live.test.ts:[2m70:22[22m[39m
+    [90m 68| [39m    [34mexpect[39m(codes)[33m.[39m[34mtoEqual[39m([33mArray[39m([34m5[39m)[33m.[39m[34mfill[39m([34m200[39m))[33m;[39m
+    [90m 69| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mmobile[39m(u[33m,[39m [34mipOf[39m())[33m;[39m
+    [90m 70| [39m    [34mexpect[39m(r[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m429[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m 71| [39m    [34mexpect[39m((([35mawait[39m r[33m.[39m[34mjson[39m()) [35mas[39m { error[33m:[39m string })[33m.[39merror)[33m.[39m[34mtoBe[39m([32m'TOO_MA[39m…
+    [90m 72| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r3-mobile-rate-limit.live.test.ts[2m > [22mKrok 2 (kolo 3) — mobile/payment-intent: limit objednávek jako checkout (K3)[2m > [22mIP limit je SDÍLENÝ s webovým checkoutem: 10× mobile, pak web checkout ze stejné IP → 429
+[31m[1mAssertionError[22m: expected 200 to be 429 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 429[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r3-mobile-rate-limit.live.test.ts:[2m83:22[22m[39m
+    [90m 81| [39m        buyerEmail[33m:[39m [32m`web-[39m[36m${[39m[34mrandomUUID[39m()[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m8[39m)[36m}[39m[32m@fix.test`[39m[33m,[39m buyerN…
+    [90m 82| [39m    })[33m,[39m checkout [35mas[39m [33mH[39m)[33m;[39m
+    [90m 83| [39m    [34mexpect[39m(r[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m429[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m 84| [39m  })[33m;[39m
+    [90m 85| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[90m (3)[39m
+[2m   Start at [22m 13:06:30
+[2m   Duration [22m 2.66s[2m (transform 293ms, setup 0ms, collect 189ms, tests 1.75s, environment 0ms, prepare 153ms)[22m
+

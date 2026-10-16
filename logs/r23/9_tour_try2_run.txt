@@ -1,0 +1,5 @@
+FAILED_FILES=0
+tour exit 1
+  1 failed
+  2 passed (3.5m)
+TOUR_DONE

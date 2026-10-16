@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { formatMoney } from '@/lib/format';
+import { pickBestAvailable as pickBest } from '@/lib/seating/best-available';
 
 interface Seat {
   id: string;
@@ -64,6 +65,14 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [bestCount, setBestCount] = useState(2);
+  // Kolo 8 / krok 4: termín se slevovými kategoriemi = místa z více zón v jedné objednávce, kategorie u každého místa
+  const [hasCategories, setHasCategories] = useState(false);
+  useEffect(() => {
+    fetch(`/api/public/events/${eventId}/seat-prices`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: { categories?: unknown[] } | null) => setHasCategories((j?.categories?.length ?? 0) > 0))
+      .catch(() => setHasCategories(false));
+  }, [eventId]);
   // Click&View (DACH P2-6): mapa sectorName → photoUrl pro buyer preview.
   const [sectorPhotos, setSectorPhotos] = useState<Record<string, ViewPhoto>>({});
   const [previewSeat, setPreviewSeat] = useState<{
@@ -182,7 +191,7 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
       return;
     }
     // Mix-typ: zakážeme, pokud už je něco vybráno
-    if (!ticketTypeId && selectedTtId && seat.ttId !== selectedTtId) {
+    if (!hasCategories && !ticketTypeId && selectedTtId && seat.ttId !== selectedTtId) {
       setError('Mixovat typy v jedné objednávce nelze. Zruš výběr a začni znovu.');
       return;
     }
@@ -199,9 +208,8 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
 
   function pickBestAvailable(count: number): void {
     if (!data) return;
-    const target = Math.max(1, Math.min(MAX_SELECTION, count));
-    // Filter na vybranou cenovou kategorii (URL ticketTypeId nebo selectedTtId,
-    // jinak fallback na nejlevnější dostupnou).
+    // Algoritmus je sdílený s API /seats/best-available, aby plánek, embed
+    // widget i pokladna vybíraly stejná místa. Viz lib/seating/best-available.
     const ttFilter: string | null =
       ticketTypeId ??
       selectedTtId ??
@@ -209,92 +217,18 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
         ? data.ticketTypes.slice().sort((a, b) => a.price - b.price)[0].id
         : null);
 
-    // Lookup pro O(1) seat by sector+row+num.
-    const lookup = new Map<string, Seat>();
-    for (const s of data.seats) lookup.set(`${s.sector}|${s.row}|${s.num}`, s);
+    const result = pickBest(data.layout, data.seats, {
+      count,
+      ticketTypeId: ttFilter,
+      maxCount: MAX_SELECTION,
+    });
 
-    type Candidate = { seatIds: string[]; score: number };
-    const candidates: Candidate[] = [];
-
-    for (const sector of data.layout.sectors) {
-      for (const row of sector.rows) {
-        let cur: { seatId: string; idx: number }[] = [];
-        const flush = (run: typeof cur): void => {
-          if (run.length < target) return;
-          // Vyber střední podskupinu o velikosti target — bonus za centeredness.
-          const start = Math.floor((run.length - target) / 2);
-          const subset = run.slice(start, start + target).map((r) => r.seatId);
-          const rowCenter = (row.seats.length - 1) / 2;
-          const midIdx = run[start + Math.floor(target / 2)].idx;
-          const centerPenalty = Math.abs(midIdx - rowCenter);
-          // Score: base 1000 + run length (delší run = lepší flexibilita)
-          // − vzdálenost od středu řady (preferuj střed).
-          const score = 1000 + run.length * 5 - centerPenalty;
-          candidates.push({ seatIds: subset, score });
-        };
-
-        for (let i = 0; i < row.seats.length; i++) {
-          const pos = row.seats[i];
-          const seat = lookup.get(`${sector.name}|${row.label}|${pos.num}`);
-          if (
-            !seat ||
-            seat.status !== 'available' ||
-            (ttFilter && seat.ttId !== ttFilter)
-          ) {
-            flush(cur);
-            cur = [];
-            continue;
-          }
-          // Mix-type check uvnitř runu — nepřípustné, flush a začni znova.
-          if (cur.length > 0) {
-            const lastSeat = lookup.get(
-              `${sector.name}|${row.label}|${row.seats[cur[cur.length - 1].idx].num}`,
-            );
-            if (lastSeat && lastSeat.ttId !== seat.ttId) {
-              flush(cur);
-              cur = [];
-            }
-          }
-          cur.push({ seatId: seat.id, idx: i });
-        }
-        flush(cur);
-      }
-    }
-
-    if (candidates.length > 0) {
-      candidates.sort((a, b) => b.score - a.score);
-      setSelected(new Set(candidates[0].seatIds));
-      setError(null);
+    if (result.found === 0) {
+      setError(result.reason);
       return;
     }
-
-    // Fallback: greedy pick napříč řadami (možná různé řady, ale stejný ttId).
-    const picked: string[] = [];
-    for (const sector of data.layout.sectors) {
-      for (const row of sector.rows) {
-        for (const pos of row.seats) {
-          const seat = lookup.get(`${sector.name}|${row.label}|${pos.num}`);
-          if (!seat || seat.status !== 'available') continue;
-          if (ttFilter && seat.ttId !== ttFilter) continue;
-          picked.push(seat.id);
-          if (picked.length >= target) break;
-        }
-        if (picked.length >= target) break;
-      }
-      if (picked.length >= target) break;
-    }
-    if (picked.length === 0) {
-      setError('Žádná volná sedadla nejsou v této kategorii.');
-      return;
-    }
-    if (picked.length < target) {
-      setError(
-        `Našel jsem jen ${picked.length} volných sedadel (chtěl jsi ${target}). Vybral jsem dostupná, případně zruš výběr a vyber ručně.`,
-      );
-    } else {
-      setError(null);
-    }
-    setSelected(new Set(picked));
+    setSelected(new Set(result.seatIds));
+    setError(result.found < count || !result.contiguous ? result.reason : null);
   }
 
   async function holdAndProceed() {
@@ -322,6 +256,11 @@ export function SeatPicker({ eventId, locale, ticketTypeId, eventDayId }: Props)
         // Reload state
         const reload = await fetch(`/api/events/${eventId}/seats`);
         if (reload.ok) setData((await reload.json()) as Data);
+        return;
+      }
+      if (hasCategories) {
+        const q = new URLSearchParams({ token: j.holdToken, seats: seatIds.join(',') });
+        window.location.href = `/${locale}/events/${eventId}/seats/kategorie?${q.toString()}`;
         return;
       }
       const ttId = selectedTtId;
@@ -688,17 +627,18 @@ function SvgChart({
   // Base viewBox: uložený, pokud je platný; jinak DOPOČÍTAT z reálných souřadnic
   // sedadel + padding + prostor na jeviště. Bez tohohle (viewBox=undefined nebo
   // ořezaný) buyer „neviděl celý sál" — spodní sektory se ořezávaly.
+  // Kolo 8 / krok 9: přednost má výřez podle sedadel — uložený viewBox je plátno editoru (např. 0 0 1050 850)
+  // a sál v něm na mobilu zabíral zlomek plochy (sedadla ~10 px). Uložený se použije jen bez sedadel.
   const baseViewBox = useMemo(() => {
     const stored = (data.layout.viewBox ?? '').trim().split(/\s+/).map(Number);
-    if (stored.length === 4 && stored.every(Number.isFinite) && stored[2] > 0 && stored[3] > 0) {
-      return data.layout.viewBox;
-    }
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const b of bboxes) {
       minX = Math.min(minX, b.minX); minY = Math.min(minY, b.minY);
       maxX = Math.max(maxX, b.maxX); maxY = Math.max(maxY, b.maxY);
     }
-    if (!Number.isFinite(minX)) return '0 0 800 600';
+    if (!Number.isFinite(minX)) {
+      return stored.length === 4 && stored.every(Number.isFinite) && stored[2] > 0 && stored[3] > 0 ? data.layout.viewBox : '0 0 800 600';
+    }
     const pad = Math.max(24, pitch * 1.5);
     const headTop = stage.position === 'top' || !stage.position ? 100 : 0;
     const headBottom = stage.position === 'bottom' ? 100 : 0;
@@ -719,6 +659,10 @@ function SvgChart({
   }, [zoomedSector, bboxes, pitch, baseViewBox]);
 
   const showSeats = !isLarge || zoomedSector !== null;
+  // Na úzkém displeji drž rozteč sedadel aspoň 32 px (pohodlné klepnutí) — plánek se pak posouvá ve svém rámu,
+  // stránka do stran ne. Na desktopu je rám širší a nic se nemění.
+  const vbWidth = Number((effectiveViewBox ?? '').split(/\s+/)[2] ?? 0);
+  const minPlanPx = showSeats && pitch > 0 && vbWidth > 0 ? Math.round((vbWidth / pitch) * 32) : undefined;
   const visibleSectorNames = zoomedSector ? new Set([zoomedSector]) : new Set(data.layout.sectors.map((s) => s.name));
 
   return (
@@ -746,7 +690,7 @@ function SvgChart({
           viewBox={effectiveViewBox}
           preserveAspectRatio="xMidYMid meet"
           className="mx-auto block w-full max-w-4xl bg-slate-50"
-          style={{ minHeight: 480, maxHeight: 720 }}
+          style={{ minHeight: 480, maxHeight: 720, minWidth: minPlanPx }}
           role="img"
           aria-label="Plán sálu"
         >

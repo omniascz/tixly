@@ -1,0 +1,13 @@
+Vercel – nextjs-boilerplate | fail
+Dependency audit (e2e) | pass
+Dependency audit (mobile) | pass
+Dependency audit (mobile-promoter) | pass
+Dependency audit (nextjs-boilerplate) | pass
+Install · typecheck · lint · unit | pass
+Live sada (Postgres z migrací, tixly_app) | pass
+RLS verify (DB z migrací vs snapshot) | pass
+Schema drift (SQL vs schéma z migrací) | pass
+Secret scan (Gitleaks) | pass
+RLS verify (produkce vs snapshot) | skipping
+Vercel Preview Comments | pass
+Vercel – tixly | pass

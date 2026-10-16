@@ -1,0 +1,27 @@
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3200
+
+ ✓ Starting...
+ ✓ Ready in 2s
+[mailer] provider=mailhog-dev host=localhost:51225 authed=false
+[gopay webhook] amount/currency mismatch order=3d219c42-a7d2-40df-9cbb-ee7b00bfca5c expected=50000CZK paid=100CZK
+TypeError: r.event_date_start.replace is not a function
+    at j (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\[locale]\order-confirmation\[orderId]\page.js:31:7411)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  digest: '208627224'
+}
+TypeError: r.event_date_start.replace is not a function
+    at j (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\[locale]\order-confirmation\[orderId]\page.js:31:7411)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  digest: '208627224'
+}
+TypeError: r.event_date_start.replace is not a function
+    at j (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\[locale]\order-confirmation\[orderId]\page.js:31:7411)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  digest: '208627224'
+}
+TypeError: r.event_date_start.replace is not a function
+    at j (C:\Users\omnia\Documents\tixly\nextjs-boilerplate\.next\server\app\[locale]\order-confirmation\[orderId]\page.js:31:7411)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  digest: '208627224'
+}

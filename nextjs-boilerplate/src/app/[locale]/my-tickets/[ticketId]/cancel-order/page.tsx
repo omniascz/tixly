@@ -4,7 +4,9 @@
  * Buyer self-service cancel order.
  * Eventbrite parita.
  */
+import type { JSX } from 'react';
 import { CancelOrderClient } from './CancelOrderClient';
+
 
 interface Props {
   params: Promise<{ locale: string; ticketId: string }>;

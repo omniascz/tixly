@@ -1,0 +1,13 @@
+high	GHSA-rfgv-xxqx-mfg5	>= 6.7.0, < 6.28.1 | >= 7.0.0, < 7.29.1 | >= 8.0.0, < 8.10.2	undici vulnerable to Denial of Service via unrequested WebSocket subpr
+high	GHSA-w293-vg96-wgc3	>= 7.24.1, < 7.29.1 | >= 8.0.0, < 8.10.2	undici vulnerable to TLS certificate validation bypass via dropped con
+high	GHSA-vp8m-p9jh-q5pm	>= 8.10.0, < 8.10.2	undici vulnerable to cross-origin cache poisoning via missing origin i
+high	GHSA-4cwx-7wf7-3272	>= 7.0.0, < 7.29.0 | >= 8.0.0, < 8.9.0	undici vulnerable to cross-user information disclosure and parse-time 
+high	GHSA-vxpw-j846-p89q	< 6.27.0 | >= 7.0.0, < 7.28.0 | >= 8.0.0, < 8.5.0	undici WebSocket client vulnerable to denial of service via fragment c
+high	GHSA-hm92-r4w5-c3mj	>= 7.23.0, < 7.28.0 | >= 8.0.0, < 8.2.0	undici vulnerable to cross-origin request routing via SOCKS5 proxy poo
+high	GHSA-vmh5-mc38-953g	>= 7.23.0, < 7.28.0 | >= 8.0.0, < 8.5.0	undici vulnerable to TLS certificate validation bypass via dropped req
+high	GHSA-38rv-x7px-6hhq	>= 8.0.0, < 8.5.0	undici WebSocket client vulnerable to denial of service via cumulative
+high	GHSA-vrm6-8vpv-qv8q	< 6.24.0 | >= 7.0.0, < 7.24.0	Undici has Unbounded Memory Consumption in WebSocket permessage-deflat
+high	GHSA-v9p9-hfj2-hcw8	< 6.24.0 | >= 7.0.0, < 7.24.0	Undici has Unhandled Exception in WebSocket Client Due to Invalid serv
+high	GHSA-f269-vfmq-vjvj	>= 6.0.0, < 6.24.0 | >= 7.0.0, < 7.24.0	Undici: Malicious WebSocket 64-bit length overflows parser and crashes
+high	GHSA-r6ch-mqf9-qc9w	< 5.19.1	Regular Expression Denial of Service in Headers
+high	GHSA-pgw7-wx7w-2w33	>= 4.8.2, <= 5.5.0	ProxyAgent vulnerable to MITM

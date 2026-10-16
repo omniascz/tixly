@@ -1,0 +1,12 @@
+ok   page: medián p95 base 272 ms → cand 259 ms (-4.9 %, -13 ms)
+ok   plan: medián p95 base 186 ms → cand 137 ms (-26.6 %, -50 ms)
+ok   hold: medián p95 base 1.05 s → cand 986 ms (-6.3 %, -67 ms)
+ok   checkout: medián p95 base 1.05 s → cand 1.14 s (+8.0 %, +84 ms)
+ok   pay: medián p95 base 2 ms → cand 1 ms (-20.7 %, 0 ms)
+ok   webhook: medián p95 base 6.49 s → cand 7.38 s (+13.7 %, +888 ms)
+ok   base běh 1: konzistence OK
+ok   base běh 2: konzistence OK
+ok   base běh 3: konzistence OK
+ok   cand běh 1: konzistence OK
+ok   cand běh 2: konzistence OK
+ok   cand běh 3: konzistence OK

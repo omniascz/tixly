@@ -10,10 +10,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/rls-pool';
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) {
     return NextResponse.json({ error: 'INVALID_EVENT_ID' }, { status: 400 });
   }
@@ -21,7 +19,7 @@ export async function GET(
   const client = await db().connect();
   try {
     await client.query('BEGIN');
-    await client.query(`SET LOCAL app.is_platform_admin = 'true'`);
+    // Kolo 3: anonymní čtení veřejných dat (published akce / veřejně čitelné tabulky); admin eskalace odstraněna.
 
     // Event musí být published nebo v minulosti
     const ev = await client.query<{ venue_id: string | null; status: string }>(

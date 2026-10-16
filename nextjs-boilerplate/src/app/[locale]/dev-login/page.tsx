@@ -12,7 +12,7 @@
  * + localStorage a redirectne.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 interface LoginResponse {

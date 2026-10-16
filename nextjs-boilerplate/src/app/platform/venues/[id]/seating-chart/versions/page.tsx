@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -74,11 +75,11 @@ const SOURCE_LABELS: Record<string, string> = {
   restore: 'Restored',
 };
 
-export default function PlatformVenueVersionsPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function PlatformVenueVersionsPage(_props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = useParams<{ id: string }>();
   const venueId = params.id;
   const [versions, setVersions] = useState<Version[]>([]);
   const [error, setError] = useState<string | null>(null);

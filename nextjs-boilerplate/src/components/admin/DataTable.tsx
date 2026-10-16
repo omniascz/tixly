@@ -24,7 +24,9 @@ export function DataTable<T>({
   loading = false,
 }: DataTableProps<T>) {
   return (
-    <div className="overflow-hidden rounded-lg border bg-card">
+    // overflow-x-auto, ne overflow-hidden: na užší obrazovce se dřív poslední
+    // sloupce uřízly a nešlo k nim doscrollovat.
+    <div className="overflow-x-auto rounded-lg border bg-card">
       <table className="w-full text-sm">
         <thead className="bg-muted/50">
           <tr className="border-b text-left">

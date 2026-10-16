@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -41,6 +42,8 @@ interface PromoterDetail {
   kyc_rejection_reason: string | null;
   ares_verified_at: string | null;
   ares_data: Record<string, unknown> | null;
+  ares_check_status: string | null;
+  manual_verification_required: boolean;
   country: 'CZ' | 'SR';
   primary_currency: 'CZK' | 'EUR';
   tier: 1 | 2 | 3 | 4;
@@ -91,11 +94,11 @@ interface PromoterDetailResponse {
   feeSchedules: FeeSchedule[];
 }
 
-export default function PromoterDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function PromoterDetailPage(_props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = useParams<{ id: string }>();
   const [data, setData] = useState<PromoterDetailResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -226,6 +229,17 @@ export default function PromoterDetailPage({
                 <span className="ml-2 rounded bg-emerald-100 px-1.5 py-0.5 text-xs text-emerald-800">
                   ✓ ARES ověřeno
                 </span>
+              )}
+              {p.manual_verification_required && (
+                <span data-testid="manual-verification" className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800">
+                  ARES nebyl dostupný — ověřte firmu ručně
+                </span>
+              )}
+              {p.ares_check_status === 'not_found' && (
+                <span className="ml-2 rounded bg-rose-100 px-1.5 py-0.5 text-xs text-rose-800">IČO v ARES nenalezeno</span>
+              )}
+              {p.ares_check_status === 'inactive' && (
+                <span className="ml-2 rounded bg-rose-100 px-1.5 py-0.5 text-xs text-rose-800">Subjekt v ARES zaniklý</span>
               )}
             </Field>
             <Field label="DIČ">{p.company_dic ?? '—'}</Field>

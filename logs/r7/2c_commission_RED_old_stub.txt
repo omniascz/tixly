@@ -1,0 +1,61 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r7-commission-invoices.live.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[90m 272[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r7-commission-invoices.live.test.ts[2m > [22mKolo 7 — faktury provize platformy[2m > [22mbez údajů platformy → 503 PLATFORM_BILLING_NOT_CONFIGURED; ne-admin 403; plátce bez DIČ 422[39m
+[31m     → handler is not a function[39m
+[31m   [33m❯[31m tests/fix-r7-commission-invoices.live.test.ts[2m > [22mKolo 7 — faktury provize platformy[2m > [22mfaktura provize: dodavatel = platforma, 21 % z provize, idempotentní, čísla bez děr, ISDOC dle XSD[39m
+[31m     → handler is not a function[39m
+[31m   [33m❯[31m tests/fix-r7-commission-invoices.live.test.ts[2m > [22mKolo 7 — faktury provize platformy[2m > [22mneplátce platforma: faktura bez DPH, ISDOC VATApplicable=false dle XSD[39m
+[31m     → handler is not a function[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-commission-invoices.live.test.ts[2m > [22mKolo 7 — faktury provize platformy[2m > [22mbez údajů platformy → 503 PLATFORM_BILLING_NOT_CONFIGURED; ne-admin 403; plátce bez DIČ 422
+[31m[1mTypeError[22m: handler is not a function[39m
+[36m [2m❯[22m Module.throughMiddleware tests/helpers/through-middleware.ts:[2m51:10[22m[39m
+    [90m 49| [39m  [35mconst[39m body [33m=[39m req[33m.[39mmethod [33m===[39m [32m'GET'[39m [33m||[39m req[33m.[39mmethod [33m===[39m [32m'HEAD'[39m [33m?[39m undefin…
+    [90m 50| [39m  [35mconst[39m next [33m=[39m [35mnew[39m [33mNextRequest[39m(req[33m.[39murl[33m,[39m { method[33m:[39m req[33m.[39mmethod[33m,[39m headers[33m:[39m…
+    [90m 51| [39m  [35mreturn[39m [34mhandler[39m(next[33m,[39m ctx [35mas[39m [33mC[39m)[33m;[39m
+    [90m   | [39m         [31m^[39m
+    [90m 52| [39m}
+    [90m 53| [39m
+[90m [2m❯[22m req tests/fix-r7-commission-invoices.live.test.ts:[2m38:15[22m[39m
+[90m [2m❯[22m tests/fix-r7-commission-invoices.live.test.ts:[2m77:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-commission-invoices.live.test.ts[2m > [22mKolo 7 — faktury provize platformy[2m > [22mfaktura provize: dodavatel = platforma, 21 % z provize, idempotentní, čísla bez děr, ISDOC dle XSD
+[31m[1mTypeError[22m: handler is not a function[39m
+[36m [2m❯[22m Module.throughMiddleware tests/helpers/through-middleware.ts:[2m51:10[22m[39m
+    [90m 49| [39m  [35mconst[39m body [33m=[39m req[33m.[39mmethod [33m===[39m [32m'GET'[39m [33m||[39m req[33m.[39mmethod [33m===[39m [32m'HEAD'[39m [33m?[39m undefin…
+    [90m 50| [39m  [35mconst[39m next [33m=[39m [35mnew[39m [33mNextRequest[39m(req[33m.[39murl[33m,[39m { method[33m:[39m req[33m.[39mmethod[33m,[39m headers[33m:[39m…
+    [90m 51| [39m  [35mreturn[39m [34mhandler[39m(next[33m,[39m ctx [35mas[39m [33mC[39m)[33m;[39m
+    [90m   | [39m         [31m^[39m
+    [90m 52| [39m}
+    [90m 53| [39m
+[90m [2m❯[22m req tests/fix-r7-commission-invoices.live.test.ts:[2m38:15[22m[39m
+[90m [2m❯[22m tests/fix-r7-commission-invoices.live.test.ts:[2m92:16[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r7-commission-invoices.live.test.ts[2m > [22mKolo 7 — faktury provize platformy[2m > [22mneplátce platforma: faktura bez DPH, ISDOC VATApplicable=false dle XSD
+[31m[1mTypeError[22m: handler is not a function[39m
+[36m [2m❯[22m Module.throughMiddleware tests/helpers/through-middleware.ts:[2m51:10[22m[39m
+    [90m 49| [39m  [35mconst[39m body [33m=[39m req[33m.[39mmethod [33m===[39m [32m'GET'[39m [33m||[39m req[33m.[39mmethod [33m===[39m [32m'HEAD'[39m [33m?[39m undefin…
+    [90m 50| [39m  [35mconst[39m next [33m=[39m [35mnew[39m [33mNextRequest[39m(req[33m.[39murl[33m,[39m { method[33m:[39m req[33m.[39mmethod[33m,[39m headers[33m:[39m…
+    [90m 51| [39m  [35mreturn[39m [34mhandler[39m(next[33m,[39m ctx [35mas[39m [33mC[39m)[33m;[39m
+    [90m   | [39m         [31m^[39m
+    [90m 52| [39m}
+    [90m 53| [39m
+[90m [2m❯[22m req tests/fix-r7-commission-invoices.live.test.ts:[2m38:15[22m[39m
+[90m [2m❯[22m tests/fix-r7-commission-invoices.live.test.ts:[2m144:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[90m (3)[39m
+[2m   Start at [22m 02:42:03
+[2m   Duration [22m 537ms[2m (transform 85ms, setup 0ms, collect 89ms, tests 272ms, environment 0ms, prepare 70ms)[22m
+

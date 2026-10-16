@@ -1,158 +1,70 @@
 /**
- * DPH sazby per země + per kategorie.
+ * Sazby DPH pro odhady a PDF vstupenky — kolo 7 (C-54): ŽÁDNÁ procenta v kódu.
  *
- * CZ + SK jsou primary trhy; EU rozšíření pokrývá DE, AT, PL, NL, BE, FR, UK, HU, HR, RO.
- * Hodnoty jsou v procentech (10 = 10 %).
+ * Dřív tu byla natvrdo zapsaná tabulka sazeb 14 zemí (a v PDF výchozí 10 %, zrušená k 1. 1. 2024).
+ * Zdroj pravdy je teď DB: kód sazby na typu vstupenky (catalog.ticket_types.vat_rate_code) a
+ * procenta s platností v platform.vat_rates (migrace 494, zdroj hodnot uveden tamtéž).
  *
- * Poznámky ke kategorii 'cultural' (ticketing relevantní):
- *   CZ: 10 %  SK: 5 %  DE: 7 %  AT: 13 %  PL: 8 %
- *   NL: 9 %   BE: 6 %  FR: 5.5 %  UK: 20 % (standard — cultural exempt pouze pro charitativní org)
- *   HU: 27 %  HR: 13 %  RO: 5 %
- *
- * Reference:
- *   - CZ: zákon č. 235/2004 Sb. (DPH)
- *   - SK: zákon č. 222/2004 Z. z. (DPH)
- *   - EU: Directive 2006/112/EC + country amendments 2024
- *   - UK: HMRC VAT Notice 700/1 (post-Brexit)
+ *   number  = sazba v %
+ *   0       = prodávající není plátce DPH (u odhadů: bez DPH)
+ *   null    = plátce, ale sazba není nastavená → volající to musí řešit (ne tichých 0 %)
  */
 
-export type Country =
-  | 'CZ' | 'SK'    // Primary markets (SK replaces legacy 'SR')
-  | 'SR'           // Legacy alias for SK
-  | 'DE' | 'AT' | 'PL' | 'NL' | 'BE' | 'FR' | 'UK'
-  | 'HU' | 'HR' | 'RO' | 'IT' | 'ES' | 'PT';
+interface Queryable {
+  query: (text: string, params?: unknown[]) => Promise<{ rows: unknown[] }>;
+}
 
-export type VatCategory =
-  | 'standard'       // Full VAT rate
-  | 'cultural'       // Reduced: vstupenky, kultura  ← KEY pro ticketing
-  | 'food_beverage'  // F&B addony
-  | 'merchandise'    // Merchandising
-  | 'reduced';       // Alias pro cultural
-
-const RATES: Record<Country, Record<VatCategory, number>> = {
-  CZ: { standard: 21, cultural: 10, food_beverage: 12, merchandise: 21, reduced: 10 },
-  SK: { standard: 23, cultural: 5,  food_beverage: 19, merchandise: 23, reduced: 5  },
-  SR: { standard: 23, cultural: 5,  food_beverage: 19, merchandise: 23, reduced: 5  }, // legacy alias
-  DE: { standard: 19, cultural: 7,  food_beverage: 7,  merchandise: 19, reduced: 7  },
-  AT: { standard: 20, cultural: 13, food_beverage: 10, merchandise: 20, reduced: 13 },
-  PL: { standard: 23, cultural: 8,  food_beverage: 8,  merchandise: 23, reduced: 8  },
-  NL: { standard: 21, cultural: 9,  food_beverage: 9,  merchandise: 21, reduced: 9  },
-  BE: { standard: 21, cultural: 6,  food_beverage: 6,  merchandise: 21, reduced: 6  },
-  FR: { standard: 20, cultural: 5,  food_beverage: 10, merchandise: 20, reduced: 5  },  // spectacles vivants 5.5 → 5 (approx)
-  UK: { standard: 20, cultural: 20, food_beverage: 20, merchandise: 20, reduced: 5  },  // UK: cultural = standard; reduced = 5 % (limited)
-  HU: { standard: 27, cultural: 27, food_beverage: 27, merchandise: 27, reduced: 5  },  // HU: no cultural reduced for standard events
-  HR: { standard: 25, cultural: 13, food_beverage: 5,  merchandise: 25, reduced: 13 },
-  RO: { standard: 19, cultural: 5,  food_beverage: 9,  merchandise: 19, reduced: 5  },
-  IT: { standard: 22, cultural: 10, food_beverage: 10, merchandise: 22, reduced: 10 },
-  ES: { standard: 21, cultural: 21, food_beverage: 10, merchandise: 21, reduced: 10 },  // ES: spektákly 21 % (žádná reduced pro live events)
-  PT: { standard: 23, cultural: 13, food_beverage: 13, merchandise: 23, reduced: 13 },
-};
+const today = (): string => new Date().toISOString().slice(0, 10);
 
 /**
- * Vrátí DPH sazbu v procentech pro danou kombinaci.
- *
- * @param country CZ nebo SR
- * @param category typ akce / položky
- * @returns sazba v % (např. 10 pro CZ cultural)
+ * Sazba vstupenek akce pro ODHADY (bod zvratu, vyúčtování umělce, náhled honoráře): kód sazby
+ * nejčastější mezi placenými typy (při shodě vyšší sazba), procento k datu `date` (výchozí dnes).
  */
-export function getVatRate(country: Country, category: VatCategory): number {
-  return RATES[country][category];
+export async function eventTicketVatPct(q: Queryable, eventId: string, date: string | Date = today()): Promise<number | null> {
+  const d = typeof date === 'string' ? date.slice(0, 10) : date.toISOString().slice(0, 10);
+  const r = await q.query(
+    `SELECT p.vat_payer,
+            (SELECT platform.vat_rate_at(x.code, $2::date)
+               FROM (SELECT tt.vat_rate_code AS code, count(*) AS n
+                       FROM catalog.ticket_types tt
+                      WHERE tt.event_id = e.id AND tt.base_price > 0 AND tt.vat_rate_code IS NOT NULL
+                      GROUP BY 1) x
+              ORDER BY x.n DESC, platform.vat_rate_at(x.code, $2::date) DESC NULLS LAST
+              LIMIT 1) AS pct
+       FROM catalog.events e JOIN platform.promoters p ON p.id = e.promoter_id
+      WHERE e.id = $1`,
+    [eventId, d],
+  );
+  const row = r.rows[0] as { vat_payer: boolean; pct: string | number | null } | undefined;
+  if (!row) return null;
+  if (!row.vat_payer) return 0;
+  return row.pct === null || row.pct === undefined ? null : Number(row.pct);
 }
 
 /**
- * Rozklad ceny na net + VAT (z gross).
- *
- * Vstup: gross_halire (celková zaplacená částka)
- * Výstup: net + vat tak, že net + vat = gross.
- *
- * Použití v PDF účtence: zobraz „Cena bez DPH X | DPH Y | Celkem Z".
+ * Sazba pro PDF vstupenek objednávky: sazba typů vstupenek objednávky k datu zaplacení
+ * (den přijetí úplaty = vznik povinnosti přiznat daň, § 20a ZDPH). Smíšené sazby → sazba položky
+ * s největší částkou (PDF vstupenek je přehled; daňový doklad rozepisuje po sazbách zvlášť).
+ * null = prodávající není plátce DPH; undefined = plátce bez sazby (rozpis DPH se netiskne).
  */
-export function splitGrossToNetVat(
-  grossHalire: number,
-  vatRatePct: number,
-): { netHalire: number; vatHalire: number } {
-  if (vatRatePct === 0) return { netHalire: grossHalire, vatHalire: 0 };
-  const netHalire = Math.round(grossHalire / (1 + vatRatePct / 100));
-  const vatHalire = grossHalire - netHalire;
-  return { netHalire, vatHalire };
+export async function orderTicketVatPct(q: Queryable, orderId: string): Promise<number | null | undefined> {
+  const r = await q.query(
+    `SELECT p.vat_payer,
+            (SELECT platform.vat_rate_at(tt.vat_rate_code, COALESCE(o.paid_at, o.created_at)::date)
+               FROM orders.order_items oi JOIN catalog.ticket_types tt ON tt.id = oi.ticket_type_id
+              WHERE oi.order_id = o.id AND tt.vat_rate_code IS NOT NULL
+              ORDER BY oi.total_price DESC LIMIT 1) AS pct
+       FROM orders.orders o
+       JOIN catalog.events e ON e.id = o.event_id
+       JOIN platform.promoters p ON p.id = e.promoter_id
+      WHERE o.id = $1`,
+    [orderId],
+  );
+  const row = r.rows[0] as { vat_payer: boolean; pct: string | number | null } | undefined;
+  if (!row) return undefined;
+  if (!row.vat_payer) return null;
+  return row.pct === null || row.pct === undefined ? undefined : Number(row.pct);
 }
 
-/**
- * Resolver: pokud event má vat_category, použij ji. Jinak default cultural.
- * Pokud country je neznámá, fallback na CZ.
- */
-export function resolveVatRate(input: {
-  country: string | null | undefined;
-  vatCategory: string | null | undefined;
-}): number {
-  const rawCountry = (input.country ?? 'CZ').toUpperCase() as Country;
-  const country: Country = RATES[rawCountry] ? rawCountry : 'CZ';
-  const category = (input.vatCategory as VatCategory) || 'cultural';
-  if (!RATES[country]?.[category]) {
-    return RATES[country].cultural;
-  }
-  return getVatRate(country, category);
-}
-
-export interface EffectiveVatResult {
-  vatRatePct: number;
-  isReverseCharge: boolean;
-  reverseChargeNote: string | null;
-}
-
-/**
- * Resolve effective VAT rate considering reverse charge (EU B2B cross-border).
- *
- * If buyer_vat_country ≠ seller_country and both are EU countries → 0%, reverse charge.
- * Otherwise falls back to standard resolveVatRate().
- *
- * @param sellerCountry   promoter's country code
- * @param vatCategory     event VAT category
- * @param buyerVatCountry 2-letter country from buyer's EU VAT number (undefined = not provided)
- */
-// EU member state codes (UK/GB excluded — post-Brexit)
-const EU_MEMBER_STATES = new Set([
-  'AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES',
-  'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT',
-  'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK',
-]);
-
-export function resolveEffectiveVatRate(input: {
-  sellerCountry: string | null | undefined;
-  vatCategory: string | null | undefined;
-  buyerVatCountry?: string | null;
-}): EffectiveVatResult {
-  if (input.buyerVatCountry) {
-    const buyer = input.buyerVatCountry.toUpperCase();
-    const seller = (input.sellerCountry ?? 'CZ').toUpperCase();
-    if (buyer !== seller && EU_MEMBER_STATES.has(buyer) && EU_MEMBER_STATES.has(seller)) {
-      // Cross-border EU B2B → reverse charge (Art. 44 Directive 2006/112/EC)
-      return {
-        vatRatePct: 0,
-        isReverseCharge: true,
-        reverseChargeNote: 'Přenesená daňová povinnost / Reverse charge – Article 44, Council Directive 2006/112/EC',
-      };
-    }
-  }
-  const vatRatePct = resolveVatRate({ country: input.sellerCountry, vatCategory: input.vatCategory });
-  return { vatRatePct, isReverseCharge: false, reverseChargeNote: null };
-}
-
-/** List all supported countries for UI dropdowns. */
-export const SUPPORTED_VAT_COUNTRIES: { code: Country; label: string }[] = [
-  { code: 'CZ', label: 'Česká republika (CZ)' },
-  { code: 'SK', label: 'Slovensko (SK)' },
-  { code: 'DE', label: 'Německo (DE)' },
-  { code: 'AT', label: 'Rakousko (AT)' },
-  { code: 'PL', label: 'Polsko (PL)' },
-  { code: 'NL', label: 'Nizozemsko (NL)' },
-  { code: 'BE', label: 'Belgie (BE)' },
-  { code: 'FR', label: 'Francie (FR)' },
-  { code: 'UK', label: 'Velká Británie (UK)' },
-  { code: 'HU', label: 'Maďarsko (HU)' },
-  { code: 'HR', label: 'Chorvatsko (HR)' },
-  { code: 'RO', label: 'Rumunsko (RO)' },
-  { code: 'IT', label: 'Itálie (IT)' },
-  { code: 'ES', label: 'Španělsko (ES)' },
-  { code: 'PT', label: 'Portugalsko (PT)' },
-];
+export const VAT_RATE_MISSING_MESSAGE =
+  'Plátce DPH nemá u placených typů vstupenek nastavenou sazbu DPH — odhad nelze spočítat.';

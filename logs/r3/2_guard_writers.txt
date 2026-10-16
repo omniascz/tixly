@@ -1,0 +1,59 @@
+src/app/api/admin/bank-transfers/reconcile/route.ts | 
+src/app/api/admin/commemorative/send/route.ts | runWithServiceContext,
+src/app/api/admin/events/[id]/guestlist/checkin/route.ts | 
+src/app/api/admin/events/[id]/guestlist/route.ts | runWithServiceContext,
+src/app/api/admin/events/[id]/will-call/pickup/route.ts | 
+src/app/api/admin/orders/bulk-refund/route.ts | requirePromoter,
+src/app/api/admin/orders/[orderId]/refund/route.ts | 
+src/app/api/admin/orders/[orderId]/support-action/route.ts | 
+src/app/api/admin/refund-requests/[id]/route.ts | 
+src/app/api/admin/scanner/reentry/route.ts | 
+src/app/api/admin/scanner/validate/route.ts | 
+src/app/api/admin/scanner/validate-group/route.ts | 
+src/app/api/admin/scanner/validate-nfc/route.ts | 
+src/app/api/admin/ticket-changes/[changeId]/route.ts | 
+src/app/api/buyer/announcements/[token]/respond/route.ts | runWithServiceContext,
+src/app/api/buyer/group-invitations/[token]/claim/route.ts | is_platform_admin = 'true',runAsUser,
+src/app/api/buyer/orders/[orderId]/cancel/route.ts | asSystemInTx,runAsUser,
+src/app/api/buyer/orders/[orderId]/insurance-claim/route.ts | runAsUser,
+src/app/api/buyer/orders/[orderId]/refund/route.ts | asSystemInTx,runAsUser,
+src/app/api/buyer/orders/[orderId]/tan/verify/route.ts | runAsUser,
+src/app/api/buyer/subscriptions/[id]/pick/[eventId]/route.ts | is_platform_admin = 'true',runAsUser,
+src/app/api/buyer/tickets/[ticketId]/bind-device/route.ts | runAsUser,
+src/app/api/buyer/tickets/[ticketId]/exchange/route.ts | asSystemInTx,runAsUser,
+src/app/api/buyer/tickets/[ticketId]/transfer/route.ts | runWithServiceContext,
+src/app/api/buyer/tickets/[ticketId]/upgrade/route.ts | runWithServiceContext,
+src/app/api/checkout/bundle/route.ts | runWithServiceContext,
+src/app/api/checkout/route.ts | runWithServiceContext,
+src/app/api/gift/redeem/route.ts | runWithServiceContext,
+src/app/api/hardware/scan/route.ts | runWithServiceContext,
+src/app/api/internal/cron/abandoned-cart/route.ts | runWithServiceContext,
+src/app/api/internal/cron/bank-sync-fio/route.ts | runWithServiceContext,
+src/app/api/internal/cron/charge-installments/route.ts | runWithServiceContext,
+src/app/api/internal/cron/expire-pending-orders/route.ts | runWithServiceContext,
+src/app/api/internal/cron/release-group-invite-holds/route.ts | is_platform_admin = 'true',runWithServiceContext,
+src/app/api/internal/resale/complete-transfer/route.ts | runWithServiceContext,
+src/app/api/mobile/order-confirm/route.ts | runAsUser,
+src/app/api/mobile/payment-intent/route.ts | asSystemInTx,runAsUser,
+src/app/api/mock-bnpl/[provider]/[paymentId]/confirm/route.ts | is_platform_admin = 'true',runWithServiceContext,
+src/app/api/mock-crypto/[paymentId]/route.ts | runWithServiceContext,
+src/app/api/mock-gopay/[paymentId]/route.ts | runWithServiceContext,
+src/app/api/mock-przelewy24/[paymentId]/route.ts | runWithServiceContext,
+src/app/api/mock-wero/[paymentId]/route.ts | runWithServiceContext,
+src/app/api/my/orders/[id]/upgrade/route.ts | asSystemInTx,runWithUserContext,
+src/app/api/my/tickets/[ticketId]/transfer/route.ts | runWithUserContext,
+src/app/api/payments/comgate/webhook/route.ts | runWithServiceContext,
+src/app/api/payments/gopay/webhook/route.ts | runWithServiceContext,
+src/app/api/payments/mollie/webhook/route.ts | runWithServiceContext,
+src/app/api/payments/paypal/capture/route.ts | runWithServiceContext,
+src/app/api/payments/paypal/webhook/route.ts | runWithServiceContext,
+src/app/api/payments/przelewy24/webhook/route.ts | runWithServiceContext,
+src/app/api/payments/stripe/webhook/route.ts | runWithServiceContext,
+src/app/api/payments/triplea/webhook/route.ts | runWithServiceContext,
+src/app/api/reschedule/[token]/route.ts | runWithServiceContext,
+src/app/api/season-passes/route.ts | runWithServiceContext,
+src/app/api/tickets/transfer/[token]/route.ts | runWithServiceContext,runWithUserContext,
+src/app/api/transfer/accept/[token]/route.ts | runWithServiceContext,
+src/lib/payment/benefits.ts | 
+src/lib/payment/refund-order.ts | 
+src/lib/resale/reissue.ts | 

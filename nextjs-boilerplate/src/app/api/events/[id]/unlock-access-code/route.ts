@@ -25,10 +25,8 @@ const schema = z.object({
   code: z.string().min(1).max(40),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   // Rate limit per (IP, eventId): 20 pokusů / 5 minut. Brání brute-force kódů.
   const ip =
     req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??

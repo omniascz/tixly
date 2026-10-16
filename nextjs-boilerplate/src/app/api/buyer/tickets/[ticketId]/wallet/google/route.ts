@@ -14,10 +14,8 @@ import { runAsUser } from '@/lib/auth';
 import { buildGoogleWalletJwt } from '@/lib/wallet/google-wallet';
 
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { ticketId: string } },
-): Promise<Response> {
+export async function GET(req: NextRequest, props: { params: Promise<{ ticketId: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsUser(req, async (userId) => {
   const r = await db().query<{
     id: string;

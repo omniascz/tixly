@@ -1,10 +1,12 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useRouteParams } from '@/lib/next/route-params';
 
 interface TicketType {
   id: string;
@@ -35,12 +37,12 @@ function formatCzk(halire: number): string {
   return `${(halire / 100).toLocaleString('cs-CZ', { maximumFractionDigits: 0 })} Kč`;
 }
 
-export default function VolumeDiscountsPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id: eventId } = use(params);
+export default function VolumeDiscountsPage(_props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = useParams<{ id: string }>();
+  const { id: eventId } = useRouteParams(params);
   const [types, setTypes] = useState<TicketType[]>([]);
   const [tiersByType, setTiersByType] = useState<Record<string, Tier[]>>({});
   const [busy, setBusy] = useState<string | null>(null);

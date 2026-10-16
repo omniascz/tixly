@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { z } from 'zod';
 import { encryptSecret } from '@/lib/crypto';
+import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 interface PassRow {
   id: string;
@@ -27,10 +28,8 @@ interface UseRow {
   event_date: string;
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { passToken: string } },
-): Promise<Response> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ passToken: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
     const { passToken } = params;
 
@@ -102,10 +101,8 @@ export async function GET(
 
 const useSchema = z.object({ eventId: z.string().uuid() });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { passToken: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ passToken: string }> }): Promise<Response> {
+  const params = await props.params;
   return runWithServiceContext(async () => {
     const { passToken } = params;
     const body: unknown = await req.json().catch(() => ({}));
@@ -114,6 +111,9 @@ export async function POST(
       return NextResponse.json({ error: 'INVALID_BODY', issues: parsed.error.issues }, { status: 422 });
     }
     const { eventId } = parsed.data;
+    // Kolo 7 (C-29): uplatnění pasu na akci po uzávěrce online prodeje nejde.
+    const salesClosed = await saleBlockedResponse(db(), eventId, 'online');
+    if (salesClosed) return salesClosed;
 
     const client = await db().connect();
     try {

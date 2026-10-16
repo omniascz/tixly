@@ -8,13 +8,15 @@
  * mohou akci prodávat (volitelně s vlastní alokací a komisí).
  */
 
-import { use, useEffect, useState } from 'react';
-import { PageHeader } from '@/components/admin/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { useEffect, useState } from 'react';
 import { Globe, Store, CheckCircle, Info } from 'lucide-react';
+import { useParams } from 'next/navigation';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useRouteParams } from '@/lib/next/route-params';
 
 interface Partner {
   id: string;
@@ -44,12 +46,12 @@ function authFetch(url: string, opts?: RequestInit): Promise<Response> {
   });
 }
 
-export default function DistributionPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id: eventId } = use(params);
+export default function DistributionPage(_props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = useParams<{ id: string }>();
+  const { id: eventId } = useRouteParams(params);
   const [data, setData] = useState<Data | null>(null);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);

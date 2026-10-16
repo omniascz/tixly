@@ -1,0 +1,49 @@
+
+C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\[locale]\login\page.tsx
+  58:5  error  Definition for rule 'react-hooks/exhaustive-deps' was not found  react-hooks/exhaustive-deps
+
+C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\admin\events\[id]\blokace\page.tsx
+  41:34  error  Definition for rule 'react-hooks/exhaustive-deps' was not found  react-hooks/exhaustive-deps
+
+C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\admin\events\[id]\firemni\page.tsx
+  62:5  error  Definition for rule 'react-hooks/exhaustive-deps' was not found  react-hooks/exhaustive-deps
+
+C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\admin\events\[id]\holds\page.tsx
+  109:5  error  Definition for rule 'react-hooks/exhaustive-deps' was not found  react-hooks/exhaustive-deps
+
+C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\admin\events\[id]\kategorie\page.tsx
+  42:5  error  Definition for rule 'react-hooks/exhaustive-deps' was not found  react-hooks/exhaustive-deps
+
+C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\admin\events\[id]\rezervace\page.tsx
+  50:5  error  Definition for rule 'react-hooks/exhaustive-deps' was not found  react-hooks/exhaustive-deps
+
+C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\admin\events\[id]\rozpocet\page.tsx
+  110:5  error  Definition for rule 'react-hooks/exhaustive-deps' was not found  react-hooks/exhaustive-deps
+
+C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\admin\events\[id]\table-seating\page.tsx
+  56:3  error  Definition for rule 'react-hooks/exhaustive-deps' was not found  react-hooks/exhaustive-deps
+
+C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\admin\events\[id]\zruseni\page.tsx
+  39:5  error  Definition for rule 'react-hooks/exhaustive-deps' was not found  react-hooks/exhaustive-deps
+
+C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\admin\productions\[id]\page.tsx
+  72:5  error  Definition for rule 'react-hooks/exhaustive-deps' was not found  react-hooks/exhaustive-deps
+
+C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\admin\venues\[venueId]\seating-chart\editor\page.tsx
+  15:1  error  Definition for rule '@typescript-eslint/no-explicit-any' was not found  @typescript-eslint/no-explicit-any
+
+C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\platform\promoters\[id]\page.tsx
+  303:17  error  Definition for rule '@next/next/no-img-element' was not found  @next/next/no-img-element
+
+C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\platform\venues\[id]\edit\page.tsx
+  487:17  error  Definition for rule '@next/next/no-img-element' was not found  @next/next/no-img-element
+  503:17  error  Definition for rule '@next/next/no-img-element' was not found  @next/next/no-img-element
+
+C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\platform\venues\[id]\seating-chart\view-photos\page.tsx
+  305:13  error  Definition for rule '@next/next/no-img-element' was not found  @next/next/no-img-element
+
+C:\Users\omnia\Documents\tixly\nextjs-boilerplate\src\app\reseller\print\[orderId]\page.tsx
+  180:3  error  Definition for rule '@next/next/no-img-element' was not found  @next/next/no-img-element
+
+✖ 16 problems (16 errors, 0 warnings)
+

@@ -1,0 +1,62 @@
+
+Running 10 tests using 1 worker
+
+  ok  1 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:196:5 › 1 — inscenace a dva sály ve dvou městech v editoru (generátor / obkreslení podkladu) (10.8s)
+  ok  2 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:320:5 › 2 — dva termíny inscenace + třetí termín jiné inscenace (5.1s)
+  ok  3 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:371:5 › 3 — blokace Firma XY (20), Tisk (4), Technika (2) (3.4s)
+  ok  4 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:400:5 › 4 — kategorie plné, senior, student, ZTP/P + doprovod; promo −10 % jen na plné (6.4s)
+  ok  5 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:442:5 › 5 — online nákup s výběrem místa a kategorie přes simulátor GoPay (390 px), e-mail, PDF (6.0s)
+  x   6 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:504:5 › 6 — rezervace → vyzvednutí a platba na pokladně; druhá rezervace → propadnutí → místa zpět (3.2m)
+  -   7 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:555:5 › 7 — Firma XY 15 míst na fakturu → zaplaceno → vstupenky; 5 míst uvolnit; Tisk 4× volná na jméno
+  -   8 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:605:5 › 8 — vstupní kontrola: běžná, ZTP/P (ověřit průkaz), jiný termín (odmítnuto), již použitá
+  -   9 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:634:5 › 9 — zrušení termínu → refundy, dobropisy, e-maily
+  -  10 [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:655:5 › 10 — reporty a seznam pro uvaděče sedí s daty
+
+
+  1) [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:504:5 › 6 — rezervace → vyzvednutí a platba na pokladně; druhá rezervace → propadnutí → místa zpět 
+
+    [31mTest timeout of 180000ms exceeded.[39m
+
+    Error: locator.click: Test ended.
+    Call log:
+    [2m  - waiting for getByTestId('reserve-box-office')[22m
+
+
+      521 |     await m.getByPlaceholder('Jméno a příjmení').fill('Jana Rezervující');
+      522 |     await m.getByPlaceholder('Telefon (nepovinné)').fill('+420 777 111 222');
+    > 523 |     await m.getByTestId('reserve-box-office').click();
+          |                                               ^
+      524 |     const code = (await m.getByTestId('reservation-code').textContent())!.trim();
+      525 |     await shot(m, `06a-mobil-rezervace-${code}`);
+      526 |     await ctx.close();
+        at reserve (C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r8-theatre-tour.spec.ts:523:47)
+        at C:\Users\omnia\Documents\tixly\e2e\tests\golden-path-r8-theatre-tour.spec.ts:530:17
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-f2f5a-e-→-propadnutí-→-místa-zpět-golden-path\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-f2f5a-e-→-propadnutí-→-místa-zpět-golden-path\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-f2f5a-e-→-propadnutí-→-místa-zpět-golden-path\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\golden-path-r8-theatre-tou-f2f5a-e-→-propadnutí-→-místa-zpět-golden-path\error-context.md
+
+    Error Context: test-results\golden-path-r8-theatre-tou-f2f5a-e-→-propadnutí-→-místa-zpět-golden-path\error-context.md
+
+    attachment #6: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\golden-path-r8-theatre-tou-f2f5a-e-→-propadnutí-→-místa-zpět-golden-path\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\golden-path-r8-theatre-tou-f2f5a-e-→-propadnutí-→-místa-zpět-golden-path\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [golden-path] › tests\golden-path-r8-theatre-tour.spec.ts:504:5 › 6 — rezervace → vyzvednutí a platba na pokladně; druhá rezervace → propadnutí → místa zpět 
+  4 did not run
+  5 passed (3.8m)

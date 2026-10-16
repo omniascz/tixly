@@ -1,0 +1,149 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+ [33m❯[39m tests/fix-r8-seat-blocks.live.test.ts [2m ([22m[2m6 tests[22m [2m|[22m [31m6 failed[39m[2m)[22m[33m 515[2mms[22m[39m
+[31m   [33m❯[31m tests/fix-r8-seat-blocks.live.test.ts[2m > [22mKolo 8 — blokace míst[2m > [22mblokace vybraných míst a celé sekce; obsazené místo se nezablokuje; kapacita se sníží[39m
+[31m     → Cannot find module '@/app/api/admin/events/[id]/blocks/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-seat-blocks.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-seat-blocks.live.test.ts[2m > [22mKolo 8 — blokace míst[2m > [22mblokované místo nejde koupit online ani podržet[39m
+[31m     → expected 200 to be 409 // Object.is equality[39m
+[31m   [33m❯[31m tests/fix-r8-seat-blocks.live.test.ts[2m > [22mKolo 8 — blokace míst[2m > [22mpokladna vidí místo blokované s názvem blokace a může z blokace prodat; mimo blokaci ne[39m
+[31m     → Cannot find module '@/app/api/admin/pos/events/[eventId]/seats/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-seat-blocks.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-seat-blocks.live.test.ts[2m > [22mKolo 8 — blokace míst[2m > [22mvolné vstupenky z blokace na jména[39m
+[31m     → Cannot find module '@/app/api/admin/events/[id]/blocks/[blockId]/comps/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-seat-blocks.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-seat-blocks.live.test.ts[2m > [22mKolo 8 — blokace míst[2m > [22muvolnění vybraných míst do prodeje; pak jdou koupit; přehled blokací sedí[39m
+[31m     → Cannot find module '@/app/api/admin/events/[id]/blocks/[blockId]/release/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-seat-blocks.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[31m   [33m❯[31m tests/fix-r8-seat-blocks.live.test.ts[2m > [22mKolo 8 — blokace míst[2m > [22msouběh: uvolnění místa a současné nákupy → místo prodáno jen jednou[39m
+[31m     → Cannot find module '@/app/api/admin/events/[id]/blocks/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-seat-blocks.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 6 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-blocks.live.test.ts[2m > [22mKolo 8 — blokace míst[2m > [22mblokace vybraných míst a celé sekce; obsazené místo se nezablokuje; kapacita se sníží
+[31m[1mError[22m: Cannot find module '@/app/api/admin/events/[id]/blocks/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-seat-blocks.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-seat-blocks.live.test.ts:[2m29:15[22m[39m
+    [90m 27| [39m
+    [90m 28| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 29| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 30| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 31| [39m      method[33m,[39m
+[90m [2m❯[22m tests/fix-r8-seat-blocks.live.test.ts:[2m80:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-blocks.live.test.ts[2m > [22mKolo 8 — blokace míst[2m > [22mblokované místo nejde koupit online ani podržet
+[31m[1mAssertionError[22m: expected 200 to be 409 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 409[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/fix-r8-seat-blocks.live.test.ts:[2m103:22[22m[39m
+    [90m101| [39m  [34mit[39m([32m'blokované místo nejde koupit online ani podržet'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m102| [39m    [35mconst[39m h [33m=[39m [35mawait[39m [34mholdSeat[39m([34mpr[39m([32m'1'[39m))[33m;[39m
+    [90m103| [39m    [34mexpect[39m(h[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m409[39m)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m104| [39m  })[33m;[39m
+    [90m105| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-blocks.live.test.ts[2m > [22mKolo 8 — blokace míst[2m > [22mpokladna vidí místo blokované s názvem blokace a může z blokace prodat; mimo blokaci ne
+[31m[1mError[22m: Cannot find module '@/app/api/admin/pos/events/[eventId]/seats/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-seat-blocks.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-seat-blocks.live.test.ts:[2m29:15[22m[39m
+    [90m 27| [39m
+    [90m 28| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 29| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 30| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 31| [39m      method[33m,[39m
+[90m [2m❯[22m tests/fix-r8-seat-blocks.live.test.ts:[2m107:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-blocks.live.test.ts[2m > [22mKolo 8 — blokace míst[2m > [22mvolné vstupenky z blokace na jména
+[31m[1mError[22m: Cannot find module '@/app/api/admin/events/[id]/blocks/[blockId]/comps/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-seat-blocks.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-seat-blocks.live.test.ts:[2m29:15[22m[39m
+    [90m 27| [39m
+    [90m 28| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 29| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 30| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 31| [39m      method[33m,[39m
+[90m [2m❯[22m tests/fix-r8-seat-blocks.live.test.ts:[2m123:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-blocks.live.test.ts[2m > [22mKolo 8 — blokace míst[2m > [22muvolnění vybraných míst do prodeje; pak jdou koupit; přehled blokací sedí
+[31m[1mError[22m: Cannot find module '@/app/api/admin/events/[id]/blocks/[blockId]/release/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-seat-blocks.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-seat-blocks.live.test.ts:[2m29:15[22m[39m
+    [90m 27| [39m
+    [90m 28| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 29| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 30| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 31| [39m      method[33m,[39m
+[90m [2m❯[22m tests/fix-r8-seat-blocks.live.test.ts:[2m143:15[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/fix-r8-seat-blocks.live.test.ts[2m > [22mKolo 8 — blokace míst[2m > [22msouběh: uvolnění místa a současné nákupy → místo prodáno jen jednou
+[31m[1mError[22m: Cannot find module '@/app/api/admin/events/[id]/blocks/route' imported from 'C:/Users/omnia/Documents/tixly/nextjs-boilerplate/tests/fix-r8-seat-blocks.live.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors[39m
+[36m [2m❯[22m call tests/fix-r8-seat-blocks.live.test.ts:[2m29:15[22m[39m
+    [90m 27| [39m
+    [90m 28| [39m  [35mconst[39m call [33m=[39m [35masync[39m (method[33m:[39m string[33m,[39m url[33m:[39m string[33m,[39m mod[33m:[39m () [33m=>[39m [33mPromise[39m[33m<[39m…
+    [90m 29| [39m    [35mconst[39m m [33m=[39m [35mawait[39m [34mmod[39m()[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m 30| [39m    [35mconst[39m r [33m=[39m [35mawait[39m [34mthroughMiddleware[39m([35mnew[39m [33mRequest[39m([32m`http://localhost[39m[36m${[39mu…
+    [90m 31| [39m      method[33m,[39m
+[90m [2m❯[22m tests/fix-r8-seat-blocks.live.test.ts:[2m168:24[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m6 failed[39m[22m[90m (6)[39m
+[2m   Start at [22m 10:35:03
+[2m   Duration [22m 1.12s[2m (transform 129ms, setup 0ms, collect 174ms, tests 515ms, environment 0ms, prepare 108ms)[22m
+

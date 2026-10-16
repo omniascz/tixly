@@ -3,10 +3,8 @@ import { db } from '@/lib/db/rls-pool';
 import { runAsPlatformAdmin } from '@/lib/platform-auth';
 
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async (_admin) => {
   const result = await db().query<{ id: string; status: string }>(
     `UPDATE platform.promoters

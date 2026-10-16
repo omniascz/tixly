@@ -5,10 +5,8 @@ import { z } from 'zod';
 
 const patchSchema = z.object({ active: z.boolean() });
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   return runAsPlatformAdmin(req, async () => {
     const body: unknown = await req.json().catch(() => ({}));
     const parsed = patchSchema.safeParse(body);
