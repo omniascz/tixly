@@ -17,7 +17,7 @@ Pomocné skripty `logs/r23/*.sh` = kopie kola 22 (cesty logs/r23, DB r23demo / r
   Schema Drift 38864481412 — vše success; `gh pr checks 2`: joby GitHubu pass, RLS produkce skipping, Vercel ×2 blocked.
 - `0_cleanup.txt`: %TEMP%\r22-clean (samostatný klon, ne worktree, 0 procesů, 2757 MB) smazán; staging.keys.env neexistuje (ignorován).
 - Build 514b1215 (`0_build.txt`, 1. pokus `0_build_try1_timeout.txt` přerušen limitem 10 min při generování stránek) rc=0.
-- 0.9 ověření K22 ⏳
+- `0_verify_r22.txt`: golden-path-r22-qr-local 2 passed (spec má 2 testy), 0 požadavků mimo localhost; grep api.qrserver.com v src → jen kiosk-display/page.tsx:21.
 
 ## Krok 1 — Wero (RED → GREEN) ⏳
 ## Krok 2 — soupis rout s Wero ⏳ (`2_wero_routes.md` rozpracován)
