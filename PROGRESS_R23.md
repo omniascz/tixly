@@ -19,6 +19,10 @@ Pomocné skripty `logs/r23/*.sh` = kopie kola 22 (cesty logs/r23, DB r23demo / r
 - Build 514b1215 (`0_build.txt`, 1. pokus `0_build_try1_timeout.txt` přerušen limitem 10 min při generování stránek) rc=0.
 - `0_verify_r22.txt`: golden-path-r22-qr-local 2 passed (spec má 2 testy), 0 požadavků mimo localhost; grep api.qrserver.com v src → jen kiosk-display/page.tsx:21.
 
-## Krok 1 — Wero (RED → GREEN) ⏳
+## Krok 1 — Wero (RED → GREEN) ✅
+- 1.1 spec `e2e/tests/golden-path-r23-wero.spec.ts` ((P) a/b + pojistka gopay, (D) c; výběr přes -g); live test `tests/r23-wero-ticket-types.live.test.ts`.
+- 1.2 RED ✅ (86f1287b, `1_red.txt`): P — wero input 1, 500, objednávek 0→1, {59,held}→{58,sold}; D 1 passed; live 6 failed.
+- 1.3 oprava (`1_fix_diff.txt`): checkout/route.ts early-guard 503 před BEGIN; ticket-types weroAvailable; page.tsx stav weroAvailable. tsc 0, lint 29 = 29.
+- 1.4 GREEN ✅ (`1_green.txt`): P 1 passed (503, 0→0, {59,held}={59,held}), D 1 passed, live 6 passed; snímky D 0 px, P −4 px výšky řady (`1_shots_compare.txt`).
 ## Krok 2 — soupis rout s Wero ⏳ (`2_wero_routes.md` rozpracován)
 ## Závěr ⏳
