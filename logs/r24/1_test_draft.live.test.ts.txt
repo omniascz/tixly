@@ -1,0 +1,370 @@
+// @vitest-environment node
+/**
+ * Kolo 24 / krok 1 — Wero ve zbylých API cestách: v produkci 503 PŘED založením jakéhokoli záznamu.
+ *
+ * Wero má jen mock bránu (provider.ts → assertMockPaymentsAllowed). V produkci (NODE_ENV=production bez
+ * ALLOW_MOCK_PAYMENTS=1) ji provider odmítne výjimkou — v season-passes až PO COMMITu objednávky a permanentky,
+ * v party-split a v1/wl/orders uvnitř transakce (ROLLBACK, 500 s interní hláškou výjimky v `message`).
+ * Hlavní checkout má od kola 23 early-guard 503 PAYMENT_METHOD_UNAVAILABLE před BEGIN; tytéž routy ho mají mít také.
+ *
+ * Skutečné route handlery přes skutečný middleware (helpers/through-middleware) nad DB z migrací (FIX_E2E=1);
+ * handlery běží pod tixly_app (RLS). Nic se nemockuje (mock-guard, provider, DB, auth) — mění se jen proměnné
+ * prostředí, které mock-guard čte. Data zakládá test (owner pool = seed). Počty před/po se čtou pod tixly_app
+ * v kontextu RLS: objednávky akce v kontextu promotéra (runWithPromoterContext); permanentky a objednávky
+ * permanentek mají event_id NULL, promotérova politika p_orders_read je nevidí → čtou se v kontextu kupce
+ * (runWithUserContext, politika user_id = app_current_user_id()); sloty party-split vidí organizátor session.
+ *
+ * Konfigurace: P = NODE_ENV=production, ALLOW_MOCK_PAYMENTS nenastaveno; D = NODE_ENV=production, ALLOW_MOCK_PAYMENTS=1.
+ * Pojistka: v P kontrolní požadavek se stejným tělem a paymentMethod "gopay" proti simulátoru GoPay
+ * (tests/helpers/fake-gopay.mjs, http://localhost:3998) nesmí skončit 4xx — test opravdu došel k volbě platby.
+ * Tokeny (WL, share token party-split, pass token) se nikam nevypisují.
+ */
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { NextRequest } from 'next/server';
+import { createHash, randomBytes, randomUUID } from 'crypto';
+import { createLiveClone, hasLiveDb, makeSeed, type LiveClone, type Seed } from './helpers/live-fixture';
+import { throughMiddleware } from './helpers/through-middleware';
+
+type Env = Record<string, string | undefined>;
+type Json = Record<string, unknown>;
+type Res = { status: number; json: Json; text: string; headers: Headers };
+
+const INTERNAL = 'No real payment provider';
+const WL_HEADER_KEYS = ['access-control-allow-origin', 'access-control-allow-methods', 'access-control-allow-headers', 'x-tixly-tenant'];
+
+describe.skipIf(!hasLiveDb)('Wero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)', () => {
+  let clone: LiveClone | undefined;
+  let seed: Seed;
+  const env = process.env as Env;
+  const saved = { NODE_ENV: env.NODE_ENV, ALLOW_MOCK_PAYMENTS: env.ALLOW_MOCK_PAYMENTS };
+  let rls: typeof import('@/lib/db/rls-pool');
+
+  function setConfig(cfg: 'P' | 'D'): void {
+    env.NODE_ENV = 'production';
+    if (cfg === 'D') env.ALLOW_MOCK_PAYMENTS = '1';
+    else delete env.ALLOW_MOCK_PAYMENTS;
+  }
+
+  async function call(
+    handler: (r: NextRequest, ctx: never) => Promise<Response>,
+    url: string,
+    body: Json,
+    headers: Record<string, string> = {},
+    ctx?: unknown,
+  ): Promise<Res> {
+    const req = new Request(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-real-ip': `10.24.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}`, ...headers },
+      body: JSON.stringify(body),
+    });
+    const res = await throughMiddleware(req, handler as (r: NextRequest, c: unknown) => Promise<Response>, ctx);
+    const text = await res.text();
+    let json: Json = {};
+    try { json = JSON.parse(text) as Json; } catch { /* není JSON */ }
+    return { status: res.status, json, text, headers: res.headers };
+  }
+
+  /** Stručný popis odpovědi do logu — bez tokenů a ID (jen klíče a vybrané hodnoty). */
+  function shape(r: Res): string {
+    const msg = typeof r.json.message === 'string' ? (r.json.message as string).slice(0, 140) : '—';
+    return `${r.status} error=${String(r.json.error ?? '—')} provider=${String(r.json.provider ?? '—')} ` +
+      `message=${msg} klíče=[${Object.keys(r.json).sort().join(',')}] obsahuje „${INTERNAL}"=${r.text.includes(INTERNAL)}`;
+  }
+
+  /** Stabilní tvar odpovědi pro porovnání RED = GREEN v konfiguraci D (stav, error, klíče, typ brány). */
+  function stable(r: Res, urlKey: string): Json {
+    const url = r.json[urlKey];
+    return {
+      status: r.status,
+      error: r.json.error ?? null,
+      keys: Object.keys(r.json).sort(),
+      gateway: typeof url === 'string' ? url.replace(/\/[^/]*$/, '/…') : null,
+      internal: r.text.includes(INTERNAL),
+    };
+  }
+
+  // ── data ──────────────────────────────────────────────────────────────────
+  const sp = { promoterId: '', productId: '', productIdCtl: '' };
+  const ps = { organizerId: '', organizerToken: '', eventId: '', ttId: '', eventIdCtl: '', ttIdCtl: '', promoterId: '', promoterIdCtl: '' };
+  const wl = { token: '', tenantSlug: '', domain: '', eventId: '', ttId: '', eventIdCtl: '', ttIdCtl: '', promoterId: '', promoterIdCtl: '' };
+
+  async function withProduction(chain: { eventId: string; promoterId: string }): Promise<void> {
+    const prodId = randomUUID();
+    await clone!.pool.query(`INSERT INTO catalog.productions (id, promoter_id, title) VALUES ($1, $2, 'R24 Inscenace')`, [prodId, chain.promoterId]);
+    await clone!.pool.query(`UPDATE catalog.events SET production_id = $2 WHERE id = $1`, [chain.eventId, prodId]);
+  }
+
+  beforeAll(async () => {
+    clone = await createLiveClone('r24-wero-routes');
+    seed = makeSeed(clone.pool);
+    rls = await import('@/lib/db/rls-pool');
+
+    // (s) produkt permanentky promotéra (aktivní, platný); kontrola má vlastní produkt
+    const c = await seed.chain();
+    sp.promoterId = c.promoterId;
+    for (const k of ['productId', 'productIdCtl'] as const) {
+      sp[k] = (await clone.pool.query<{ id: string }>(
+        `INSERT INTO catalog.season_pass_products (promoter_id, title, price_halire, total_uses, valid_until)
+         VALUES ($1, 'R24 Permanentka', 120000, 5, NOW() + INTERVAL '180 days') RETURNING id`, [c.promoterId])).rows[0].id;
+    }
+
+    // (p) dvě akce s inscenací (party-split ji čte JOINem), organizátor s ověřeným tokenem
+    const organizer = await seed.user('r24-organizer', 'R24 Organizátor');
+    ps.organizerId = organizer.id;
+    const { signAccessToken } = await import('@/lib/auth');
+    ps.organizerToken = await signAccessToken({ id: organizer.id, email: organizer.email, name: 'R24 Organizátor' } as never,
+      { isPlatformAdmin: false, promoterMemberships: [] });
+    const pa = await seed.chain();
+    const pb = await seed.chain();
+    await withProduction(pa);
+    await withProduction(pb);
+    Object.assign(ps, { eventId: pa.eventId, ttId: pa.ticketTypeId, promoterId: pa.promoterId,
+      eventIdCtl: pb.eventId, ttIdCtl: pb.ticketTypeId, promoterIdCtl: pb.promoterId });
+
+    // (w) WL tenant s náhodným tokenem (v DB jen SHA-256), doména .invalid, bez callbacku; dvě akce
+    const wa = await seed.chain();
+    const wb = await seed.chain();
+    wl.token = `wl_test_${randomBytes(32).toString('hex')}`;
+    wl.tenantSlug = seed.uniq('r24-wl');
+    wl.domain = `${wl.tenantSlug}.invalid`;
+    await clone.pool.query(
+      `INSERT INTO platform.whitelabel_tenants (name, slug, domain, api_key_hash, key_prefix, allowed_promoter_ids)
+       VALUES ('R24 WL', $1, $2, $3, 'wl_test_', $4::uuid[])`,
+      [wl.tenantSlug, wl.domain, createHash('sha256').update(wl.token).digest('hex'), [wa.promoterId, wb.promoterId]],
+    );
+    Object.assign(wl, { eventId: wa.eventId, ttId: wa.ticketTypeId, promoterId: wa.promoterId,
+      eventIdCtl: wb.eventId, ttIdCtl: wb.ticketTypeId, promoterIdCtl: wb.promoterId });
+  }, 180_000);
+
+  afterAll(async () => {
+    env.NODE_ENV = saved.NODE_ENV;
+    if (saved.ALLOW_MOCK_PAYMENTS === undefined) delete env.ALLOW_MOCK_PAYMENTS;
+    else env.ALLOW_MOCK_PAYMENTS = saved.ALLOW_MOCK_PAYMENTS;
+    await clone?.cleanup();
+  }, 60_000);
+
+  // ── čtení pod tixly_app v RLS kontextu ────────────────────────────────────
+  const countAsPromoter = (promoterId: string, sql: string, p: unknown[]): Promise<number> =>
+    rls.runWithPromoterContext(promoterId, async () => Number((await rls.db().query<{ n: string }>(sql, p)).rows[0].n));
+  const countAsUser = (userId: string, sql: string, p: unknown[]): Promise<number> =>
+    rls.runWithUserContext(userId, async () => Number((await rls.db().query<{ n: string }>(sql, p)).rows[0].n));
+
+  const eventOrders = (promoterId: string, eventId: string) =>
+    countAsPromoter(promoterId, `SELECT COUNT(*)::text AS n FROM orders.orders WHERE event_id = $1`, [eventId]);
+
+  // ═══ (s) POST /api/season-passes ═════════════════════════════════════════
+  describe('(s) POST /api/season-passes', () => {
+    let POST: (r: NextRequest, ctx: never) => Promise<Response>;
+    beforeAll(async () => { ({ POST } = await import('@/app/api/season-passes/route') as never); });
+
+    const buy = (productId: string, buyerEmail: string, paymentMethod: string) =>
+      call(POST, 'http://localhost:3000/api/season-passes', { productId, buyerEmail, buyerName: 'R24 Kupec', paymentMethod });
+
+    // kupec předem založen (sdílený helper) → známé userId pro čtení v jeho RLS kontextu
+    async function buyerCounts(userId: string): Promise<{ orders: number; passes: number }> {
+      const orders = await countAsUser(userId, `SELECT COUNT(*)::text AS n FROM orders.orders WHERE user_id = $1 AND event_id IS NULL`, [userId]);
+      const passes = await countAsUser(userId,
+        `SELECT COUNT(*)::text AS n FROM orders.season_passes sp JOIN orders.orders o ON o.id = sp.order_id
+          WHERE o.user_id = $1 AND sp.product_id = ANY($2::uuid[])`, [userId, [sp.productId, sp.productIdCtl]]);
+      return { orders, passes };
+    }
+
+    it('P: wero → 503 PAYMENT_METHOD_UNAVAILABLE (s1), žádná objednávka ani permanentka (s2)', async () => {
+      setConfig('P');
+      const u = await seed.user('r24-sp-wero', 'R24 Kupec');
+      const before = await buyerCounts(u.id);
+      const r = await buy(sp.productId, u.email, 'wero');
+      const after = await buyerCounts(u.id);
+      console.log(`[r24] (s1) P POST /api/season-passes wero → ${shape(r)}`);
+      console.log(`[r24] (s2) P kupec (wero): objednávek před ${before.orders} po ${after.orders}; permanentek před ${before.passes} po ${after.passes}`);
+      expect.soft(r.status, '(s1) stavový kód').toBe(503);
+      expect.soft(r.json.error, '(s1) error').toBe('PAYMENT_METHOD_UNAVAILABLE');
+      expect.soft(r.json.provider, '(s1) provider').toBe('wero');
+      expect.soft(r.json.message, '(s1) message').toBe('Platba Wero není momentálně dostupná. Zvolte prosím jinou metodu.');
+      expect.soft(after.orders, '(s2) objednávek před/po').toBe(before.orders);
+      expect.soft(after.passes, '(s2) permanentek před/po').toBe(before.passes);
+    });
+
+    it('P: pojistka — totéž tělo s gopay (simulátor GoPay) dojde k volbě platby, ne 4xx', async () => {
+      setConfig('P');
+      const u = await seed.user('r24-sp-ctl', 'R24 Kontrola');
+      const before = await buyerCounts(u.id);
+      const r = await buy(sp.productIdCtl, u.email, 'gopay');
+      const after = await buyerCounts(u.id);
+      const gw = typeof r.json.gatewayUrl === 'string' ? (r.json.gatewayUrl as string).replace(/\/gw\/.*$/, '/gw/…') : '—';
+      console.log(`[r24] pojistka (s) P POST /api/season-passes gopay → ${r.status} gatewayUrl=${gw}; objednávek ${before.orders}→${after.orders}, permanentek ${before.passes}→${after.passes}`);
+      expect(r.status).toBeGreaterThanOrEqual(200);
+      expect(r.status).toBeLessThan(400);
+      expect(gw.startsWith('http://localhost:3998/')).toBe(true);
+      // čtení v RLS kontextu kupce záznamy skutečně vidí (jinak by (s2) prošlo naprázdno)
+      expect(after.orders).toBe(before.orders + 1);
+      expect(after.passes).toBe(before.passes + 1);
+    });
+
+    it('D: wero → chování dema beze změny (s3)', async () => {
+      setConfig('D');
+      const u = await seed.user('r24-sp-demo', 'R24 Demo');
+      const before = await buyerCounts(u.id);
+      const r = await buy(sp.productId, u.email, 'wero');
+      const after = await buyerCounts(u.id);
+      console.log(`[r24] (s3) D POST /api/season-passes wero → ${shape(r)}; stabilní tvar ${JSON.stringify(stable(r, 'gatewayUrl'))}; objednávek ${before.orders}→${after.orders}, permanentek ${before.passes}→${after.passes}`);
+      expect(stable(r, 'gatewayUrl')).toEqual({
+        status: 201, error: null, keys: ['gatewayUrl', 'orderId', 'passId', 'passToken'], gateway: '/mock-wero/…', internal: false,
+      });
+      expect([after.orders - before.orders, after.passes - before.passes]).toEqual([1, 1]);
+    });
+  });
+
+  // ═══ (p) POST /api/checkout/party-split/[token] ══════════════════════════
+  describe('(p) POST /api/checkout/party-split/[token]', () => {
+    let CREATE: (r: NextRequest, ctx: never) => Promise<Response>;
+    let PAY: (r: NextRequest, ctx: never) => Promise<Response>;
+    beforeAll(async () => {
+      ({ POST: CREATE } = await import('@/app/api/checkout/party-split/route') as never);
+      ({ POST: PAY } = await import('@/app/api/checkout/party-split/[token]/route') as never);
+    });
+
+    /** Otevřená session založená skutečným handlerem (organizátor přihlášen ověřeným tokenem přes middleware). */
+    async function openSession(eventId: string, ticketTypeId: string): Promise<{ id: string; token: string }> {
+      const r = await call(CREATE, 'http://localhost:3000/api/checkout/party-split',
+        { eventId, ticketTypeId, totalSlots: 3, organizerEmail: seed.mail('r24-org'), organizerName: 'R24 Organizátor' },
+        { authorization: `Bearer ${ps.organizerToken}` });
+      expect(r.status, `založení session: ${shape(r)}`).toBe(201);
+      return { id: String(r.json.sessionId), token: String(r.json.shareToken) };
+    }
+
+    // sloty session v kontextu organizátora (politika party_split_slots_session), objednávky akce v kontextu promotéra
+    async function sessionState(sessionId: string, promoterId: string, eventId: string): Promise<{ claimed: number; withOrder: number; orders: number }> {
+      const claimed = await countAsUser(ps.organizerId,
+        `SELECT COUNT(*)::text AS n FROM orders.party_split_slots WHERE session_id = $1 AND (status <> 'pending' OR payer_email IS NOT NULL)`, [sessionId]);
+      const withOrder = await countAsUser(ps.organizerId,
+        `SELECT COUNT(*)::text AS n FROM orders.party_split_slots WHERE session_id = $1 AND order_id IS NOT NULL`, [sessionId]);
+      const total = await countAsUser(ps.organizerId,
+        `SELECT COUNT(*)::text AS n FROM orders.party_split_slots WHERE session_id = $1`, [sessionId]);
+      expect(total, 'sloty session viditelné v RLS kontextu organizátora').toBe(3);
+      return { claimed, withOrder, orders: await eventOrders(promoterId, eventId) };
+    }
+
+    const pay = (token: string, paymentMethod: string) =>
+      call(PAY, 'http://localhost:3000/api/checkout/party-split/x',
+        { payerEmail: seed.mail('r24-payer'), payerName: 'R24 Plátce', paymentMethod, locale: 'cs' },
+        {}, { params: Promise.resolve({ token }) });
+
+    it('P: wero → 503 PAYMENT_METHOD_UNAVAILABLE (p1), bez interní hlášky (p2), žádný nový záznam (p3)', async () => {
+      setConfig('P');
+      const s = await openSession(ps.eventId, ps.ttId);
+      const before = await sessionState(s.id, ps.promoterId, ps.eventId);
+      const r = await pay(s.token, 'wero');
+      const after = await sessionState(s.id, ps.promoterId, ps.eventId);
+      console.log(`[r24] (p1/p2) P POST /api/checkout/party-split/[token] wero → ${shape(r)}`);
+      console.log(`[r24] (p3) P session (wero): obsazených slotů ${before.claimed}→${after.claimed}, slotů s objednávkou ${before.withOrder}→${after.withOrder}, objednávek akce ${before.orders}→${after.orders}`);
+      expect.soft(r.status, '(p1) stavový kód').toBe(503);
+      expect.soft(r.json.error, '(p1) error').toBe('PAYMENT_METHOD_UNAVAILABLE');
+      expect.soft(r.json.provider, '(p1) provider').toBe('wero');
+      expect.soft(r.json.message, '(p1) message').toBe('Platba Wero není momentálně dostupná. Zvolte prosím jinou metodu.');
+      expect.soft(r.text.includes(INTERNAL), '(p2) interní hláška v odpovědi').toBe(false);
+      expect.soft(after, '(p3) záznamy session před/po').toEqual(before);
+    });
+
+    it('P: pojistka — gopay (simulátor GoPay) na jiné session dojde k volbě platby, ne 4xx', async () => {
+      setConfig('P');
+      const s = await openSession(ps.eventIdCtl, ps.ttIdCtl);
+      const before = await sessionState(s.id, ps.promoterIdCtl, ps.eventIdCtl);
+      const r = await pay(s.token, 'gopay');
+      const after = await sessionState(s.id, ps.promoterIdCtl, ps.eventIdCtl);
+      const gw = typeof r.json.redirectUrl === 'string' ? (r.json.redirectUrl as string).replace(/\/gw\/.*$/, '/gw/…') : '—';
+      console.log(`[r24] pojistka (p) P party-split gopay → ${r.status} redirectUrl=${gw}; obsazených slotů ${before.claimed}→${after.claimed}, s objednávkou ${before.withOrder}→${after.withOrder}, objednávek akce ${before.orders}→${after.orders}`);
+      expect(r.status).toBeGreaterThanOrEqual(200);
+      expect(r.status).toBeLessThan(400);
+      expect(gw.startsWith('http://localhost:3998/')).toBe(true);
+      // čtení v RLS kontextu záznamy skutečně vidí (jinak by (p3) prošlo naprázdno)
+      expect(after).toEqual({ claimed: before.claimed + 1, withOrder: before.withOrder + 1, orders: before.orders + 1 });
+    });
+
+    it('D: wero → chování dema beze změny (p4)', async () => {
+      setConfig('D');
+      const s = await openSession(ps.eventId, ps.ttId);
+      const before = await sessionState(s.id, ps.promoterId, ps.eventId);
+      const r = await pay(s.token, 'wero');
+      const after = await sessionState(s.id, ps.promoterId, ps.eventId);
+      console.log(`[r24] (p4) D party-split wero → ${shape(r)}; stabilní tvar ${JSON.stringify(stable(r, 'redirectUrl'))}; obsazených slotů ${before.claimed}→${after.claimed}, s objednávkou ${before.withOrder}→${after.withOrder}, objednávek akce ${before.orders}→${after.orders}`);
+      expect(stable(r, 'redirectUrl')).toEqual({
+        status: 200, error: null, keys: ['amount', 'currency', 'ok', 'orderId', 'redirectUrl', 'slotIndex'], gateway: '/mock-wero/…', internal: false,
+      });
+      expect(after).toEqual({ claimed: before.claimed + 1, withOrder: before.withOrder + 1, orders: before.orders + 1 });
+    });
+  });
+
+  // ═══ (w) POST /api/v1/wl/orders ══════════════════════════════════════════
+  describe('(w) POST /api/v1/wl/orders', () => {
+    let POST: (r: NextRequest, ctx: never) => Promise<Response>;
+    beforeAll(async () => { ({ POST } = await import('@/app/api/v1/wl/orders/route') as never); });
+
+    const order = (eventId: string, ticketTypeId: string, paymentMethod: string, auth = true) =>
+      call(POST, 'http://localhost:3000/api/v1/wl/orders',
+        { eventId, tickets: [{ ticketTypeId, quantity: 1 }], customerEmail: seed.mail('r24-wl-customer'), customerName: 'R24 Zákazník', paymentMethod, locale: 'cs' },
+        auth ? { authorization: `Bearer ${wl.token}` } : {});
+
+    const wlHeaders = (h: Headers): Record<string, string | null> => Object.fromEntries(WL_HEADER_KEYS.map((k) => [k, h.get(k)]));
+    const expectedWlHeaders = (): Record<string, string | null> => ({
+      'access-control-allow-origin': `https://${wl.domain}`,
+      'access-control-allow-methods': 'GET, POST, OPTIONS',
+      'access-control-allow-headers': 'Authorization, Content-Type',
+      'x-tixly-tenant': wl.tenantSlug,
+    });
+
+    it('P: bez WL tokenu dál 401 (wero)', async () => {
+      setConfig('P');
+      const r = await order(wl.eventId, wl.ttId, 'wero', false);
+      console.log(`[r24] (w) P bez tokenu wero → ${shape(r)}`);
+      expect(r.status).toBe(401);
+      expect(r.json.error).toBe('UNAUTHORIZED');
+    });
+
+    it('P: wero → 503 PAYMENT_METHOD_UNAVAILABLE (w1), bez interní hlášky (w2), žádná objednávka (w3), WL hlavičky (w4)', async () => {
+      setConfig('P');
+      const before = await eventOrders(wl.promoterId, wl.eventId);
+      const r = await order(wl.eventId, wl.ttId, 'wero');
+      const after = await eventOrders(wl.promoterId, wl.eventId);
+      console.log(`[r24] (w1/w2) P POST /api/v1/wl/orders wero → ${shape(r)}`);
+      console.log(`[r24] (w3) P objednávek akce tenanta (wero) před ${before} po ${after}`);
+      console.log(`[r24] (w4) P hlavičky ${JSON.stringify(wlHeaders(r.headers)).replace(wl.tenantSlug, '<slug>').replace(wl.domain, '<domena>.invalid')}`);
+      expect.soft(r.status, '(w1) stavový kód').toBe(503);
+      expect.soft(r.json.error, '(w1) error').toBe('PAYMENT_METHOD_UNAVAILABLE');
+      expect.soft(r.json.provider, '(w1) provider').toBe('wero');
+      expect.soft(r.json.message, '(w1) message').toBe('Platba Wero není momentálně dostupná. Zvolte prosím jinou metodu.');
+      expect.soft(r.text.includes(INTERNAL), '(w2) interní hláška v odpovědi').toBe(false);
+      expect.soft(after, '(w3) objednávek před/po').toBe(before);
+      expect.soft(wlHeaders(r.headers), '(w4) WL hlavičky').toEqual(expectedWlHeaders());
+    });
+
+    it('P: pojistka — gopay (simulátor GoPay) na jiné akci dojde k volbě platby, ne 4xx; stejné WL hlavičky', async () => {
+      setConfig('P');
+      const before = await eventOrders(wl.promoterIdCtl, wl.eventIdCtl);
+      const r = await order(wl.eventIdCtl, wl.ttIdCtl, 'gopay');
+      const after = await eventOrders(wl.promoterIdCtl, wl.eventIdCtl);
+      const gw = typeof r.json.paymentUrl === 'string' ? (r.json.paymentUrl as string).replace(/\/gw\/.*$/, '/gw/…') : '—';
+      console.log(`[r24] pojistka (w) P wl/orders gopay → ${r.status} paymentUrl=${gw}; objednávek akce ${before}→${after}`);
+      expect(r.status).toBeGreaterThanOrEqual(200);
+      expect(r.status).toBeLessThan(400);
+      expect(gw.startsWith('http://localhost:3998/')).toBe(true);
+      expect(after).toBe(before + 1);
+      expect(wlHeaders(r.headers)).toEqual(expectedWlHeaders());
+    });
+
+    it('D: wero → chování dema beze změny (w5)', async () => {
+      setConfig('D');
+      const before = await eventOrders(wl.promoterId, wl.eventId);
+      const r = await order(wl.eventId, wl.ttId, 'wero');
+      const after = await eventOrders(wl.promoterId, wl.eventId);
+      console.log(`[r24] (w5) D wl/orders wero → ${shape(r)}; stabilní tvar ${JSON.stringify(stable(r, 'paymentUrl'))}; objednávek akce ${before}→${after}`);
+      expect(stable(r, 'paymentUrl')).toEqual(W5_EXPECTED);
+      expect(after - before).toBe(W5_ORDERS_DELTA);
+      expect(wlHeaders(r.headers)).toEqual(expectedWlHeaders());
+    });
+  });
+});
+
+// (w5) doplněno z pozorování starého kódu před RED (viz logs/r24/1_red.txt)
+const W5_EXPECTED: Json = {};
+const W5_ORDERS_DELTA = 0;

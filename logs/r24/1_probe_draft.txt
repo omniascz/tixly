@@ -1,0 +1,515 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/omnia/Documents/tixly/nextjs-boilerplate[39m
+
+[90mstdout[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[22m[39m
+[live-local-clone] live_r24_wero_routes_mvawaf0r: handlery běží jako tixly_app (RLS platí)
+
+[90mstderr[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(s) POST /api/season-passes[2m > [22m[2mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (s1), žádná objednávka ani permanentka (s2)[22m[39m
+[POST /api/season-passes] error: column "holder_user_id" does not exist
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\season-passes\route.ts:132:28
+    at call [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\r24-wero-routes.live.test.ts:60:17[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\r24-wero-routes.live.test.ts:176:17
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m {
+  length: [33m114[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42703'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [32m'93'[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'parse_relation.c'[39m,
+  line: [32m'3716'[39m,
+  routine: [32m'errorMissingColumn'[39m
+}
+
+[90mstderr[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(s) POST /api/season-passes[2m > [22m[2mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (s1), žádná objednávka ani permanentka (s2)[22m[39m
+<empty line>
+[90mstdout[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(s) POST /api/season-passes[2m > [22m[2mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (s1), žádná objednávka ani permanentka (s2)[22m[39m
+[r24] (s1) P POST /api/season-passes wero → 500 error=INTERNAL provider=— message=— klíče=[error] obsahuje „No real payment provider"=false
+[r24] (s2) P kupec (wero): objednávek před 0 po 0; permanentek před 0 po 0
+
+[90mstderr[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(s) POST /api/season-passes[2m > [22m[2mP: pojistka — totéž tělo s gopay (simulátor GoPay) dojde k volbě platby, ne 4xx[22m[39m
+[POST /api/season-passes] error: column "holder_user_id" does not exist
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\season-passes\route.ts:132:28
+    at call [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\r24-wero-routes.live.test.ts:60:17[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\r24-wero-routes.live.test.ts:192:17
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m {
+  length: [33m114[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42703'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [32m'93'[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'parse_relation.c'[39m,
+  line: [32m'3716'[39m,
+  routine: [32m'errorMissingColumn'[39m
+}
+
+[90mstderr[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(s) POST /api/season-passes[2m > [22m[2mP: pojistka — totéž tělo s gopay (simulátor GoPay) dojde k volbě platby, ne 4xx[22m[39m
+<empty line>
+[90mstdout[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(s) POST /api/season-passes[2m > [22m[2mP: pojistka — totéž tělo s gopay (simulátor GoPay) dojde k volbě platby, ne 4xx[22m[39m
+[r24] pojistka (s) P POST /api/season-passes gopay → 500 gatewayUrl=—; objednávek 0→0, permanentek 0→0
+
+[90mstderr[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(s) POST /api/season-passes[2m > [22m[2mD: wero → chování dema beze změny (s3)[22m[39m
+[POST /api/season-passes] error: column "holder_user_id" does not exist
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mnode_modules\[4mpg[24m\lib\client.js:631:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39msrc\app\api\season-passes\route.ts:132:28
+    at call [90m(C:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\r24-wero-routes.live.test.ts:60:17[90m)[39m
+    at [90mC:\Users\omnia\Documents\tixly\nextjs-boilerplate\[39mtests\r24-wero-routes.live.test.ts:208:17
+    at runTest [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:781:11[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runFiles [90m(file:///C:/Users/omnia/Documents/tixly/nextjs-boilerplate/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:958:5[90m)[39m {
+  length: [33m114[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42703'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [32m'93'[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'parse_relation.c'[39m,
+  line: [32m'3716'[39m,
+  routine: [32m'errorMissingColumn'[39m
+}
+
+[90mstderr[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(s) POST /api/season-passes[2m > [22m[2mD: wero → chování dema beze změny (s3)[22m[39m
+<empty line>
+[90mstdout[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(s) POST /api/season-passes[2m > [22m[2mD: wero → chování dema beze změny (s3)[22m[39m
+[r24] (s3) D POST /api/season-passes wero → 500 error=INTERNAL provider=— message=— klíče=[error] obsahuje „No real payment provider"=false; stabilní tvar {"status":500,"error":"INTERNAL","keys":["error"],"gateway":null,"internal":false}; objednávek 0→0, permanentek 0→0
+
+[90mstdout[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(p) POST /api/checkout/party-split/[token][2m > [22m[2mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (p1), bez interní hlášky (p2), žádný nový záznam (p3)[22m[39m
+[r24] (p1/p2) P POST /api/checkout/party-split/[token] wero → 500 error=INTERNAL provider=— message=No real payment provider configured in production (refusing mock fallback). Set PAYMENT_PROVIDER + provider credentials. klíče=[error,message] obsahuje „No real payment provider"=true
+[r24] (p3) P session (wero): obsazených slotů 0→0, slotů s objednávkou 0→0, objednávek akce 0→0
+
+[90mstdout[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(p) POST /api/checkout/party-split/[token][2m > [22m[2mP: pojistka — gopay (simulátor GoPay) na jiné session dojde k volbě platby, ne 4xx[22m[39m
+[r24] pojistka (p) P party-split gopay → 200 redirectUrl=http://localhost:3998/gw/…; obsazených slotů 0→1, s objednávkou 0→1, objednávek akce 0→1
+
+[90mstdout[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(p) POST /api/checkout/party-split/[token][2m > [22m[2mD: wero → chování dema beze změny (p4)[22m[39m
+[r24] (p4) D party-split wero → 200 error=— provider=— message=— klíče=[amount,currency,ok,orderId,redirectUrl,slotIndex] obsahuje „No real payment provider"=false; stabilní tvar {"status":200,"error":null,"keys":["amount","currency","ok","orderId","redirectUrl","slotIndex"],"gateway":"/mock-wero/…","internal":false}; obsazených slotů 0→1, s objednávkou 0→1, objednávek akce 0→1
+
+[90mstdout[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(w) POST /api/v1/wl/orders[2m > [22m[2mP: bez WL tokenu dál 401 (wero)[22m[39m
+[r24] (w) P bez tokenu wero → 401 error=UNAUTHORIZED provider=— message=— klíče=[error] obsahuje „No real payment provider"=false
+
+[90mstdout[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(w) POST /api/v1/wl/orders[2m > [22m[2mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (w1), bez interní hlášky (w2), žádná objednávka (w3), WL hlavičky (w4)[22m[39m
+[r24] (w1/w2) P POST /api/v1/wl/orders wero → 401 error=UNAUTHORIZED provider=— message=— klíče=[error] obsahuje „No real payment provider"=false
+[r24] (w3) P objednávek akce tenanta (wero) před 0 po 0
+[r24] (w4) P hlavičky {"access-control-allow-origin":"*","access-control-allow-methods":"GET, POST, OPTIONS","access-control-allow-headers":"Authorization, Content-Type","x-tixly-tenant":"unknown"}
+
+[90mstdout[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(w) POST /api/v1/wl/orders[2m > [22m[2mP: pojistka — gopay (simulátor GoPay) na jiné akci dojde k volbě platby, ne 4xx; stejné WL hlavičky[22m[39m
+[r24] pojistka (w) P wl/orders gopay → 401 paymentUrl=—; objednávek akce 0→0
+
+[90mstdout[2m | tests/r24-wero-routes.live.test.ts[2m > [22m[2mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m[2m(w) POST /api/v1/wl/orders[2m > [22m[2mD: wero → chování dema beze změny (w5)[22m[39m
+[r24] (w5) D wl/orders wero → 401 error=UNAUTHORIZED provider=— message=— klíče=[error] obsahuje „No real payment provider"=false; stabilní tvar {"status":401,"error":"UNAUTHORIZED","keys":["error"],"gateway":null,"internal":false}; objednávek akce 0→0
+
+ [33m❯[39m tests/r24-wero-routes.live.test.ts [2m ([22m[2m10 tests[22m [2m|[22m [31m7 failed[39m[2m)[22m[33m 11012[2mms[22m[39m
+[31m   [33m❯[31m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(s) POST /api/season-passes[2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (s1), žádná objednávka ani permanentka (s2)[39m
+[31m     → (s1) stavový kód: expected 500 to be 503 // Object.is equality[39m
+[31m     → (s1) error: expected 'INTERNAL' to be 'PAYMENT_METHOD_UNAVAILABLE' // Object.is equality[39m
+[31m     → (s1) provider: expected undefined to be 'wero' // Object.is equality[39m
+[31m     → (s1) message: expected undefined to be 'Platba Wero není momentálně dostupná.…' // Object.is equality[39m
+[31m   [33m❯[31m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(s) POST /api/season-passes[2m > [22mP: pojistka — totéž tělo s gopay (simulátor GoPay) dojde k volbě platby, ne 4xx[39m
+[31m     → expected 500 to be less than 400[39m
+[31m   [33m❯[31m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(s) POST /api/season-passes[2m > [22mD: wero → chování dema beze změny (s3)[39m
+[31m     → expected { Object (status, error, ...) } to deeply equal { status: 201, error: null, …(3) }[39m
+[31m   [33m❯[31m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(p) POST /api/checkout/party-split/[token][2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (p1), bez interní hlášky (p2), žádný nový záznam (p3)[39m
+[31m     → (p1) stavový kód: expected 500 to be 503 // Object.is equality[39m
+[31m     → (p1) error: expected 'INTERNAL' to be 'PAYMENT_METHOD_UNAVAILABLE' // Object.is equality[39m
+[31m     → (p1) provider: expected undefined to be 'wero' // Object.is equality[39m
+[31m     → (p1) message: expected 'No real payment provider configured i…' to be 'Platba Wero není momentálně dostupná.…' // Object.is equality[39m
+[31m     → (p2) interní hláška v odpovědi: expected true to be false // Object.is equality[39m
+[31m   [33m❯[31m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(w) POST /api/v1/wl/orders[2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (w1), bez interní hlášky (w2), žádná objednávka (w3), WL hlavičky (w4)[39m
+[31m     → (w1) stavový kód: expected 401 to be 503 // Object.is equality[39m
+[31m     → (w1) error: expected 'UNAUTHORIZED' to be 'PAYMENT_METHOD_UNAVAILABLE' // Object.is equality[39m
+[31m     → (w1) provider: expected undefined to be 'wero' // Object.is equality[39m
+[31m     → (w1) message: expected undefined to be 'Platba Wero není momentálně dostupná.…' // Object.is equality[39m
+[31m     → (w4) WL hlavičky: expected { …(4) } to deeply equal { …(4) }[39m
+[31m   [33m❯[31m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(w) POST /api/v1/wl/orders[2m > [22mP: pojistka — gopay (simulátor GoPay) na jiné akci dojde k volbě platby, ne 4xx; stejné WL hlavičky[39m
+[31m     → expected 401 to be less than 400[39m
+[31m   [33m❯[31m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(w) POST /api/v1/wl/orders[2m > [22mD: wero → chování dema beze změny (w5)[39m
+[31m     → expected { status: 401, …(4) } to deeply equal {}[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 7 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(s) POST /api/season-passes[2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (s1), žádná objednávka ani permanentka (s2)
+[31m[1mAssertionError[22m: (s1) stavový kód: expected 500 to be 503 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 503[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m180:49[22m[39m
+    [90m178| [39m      console[33m.[39m[34mlog[39m([32m`[r24] (s1) P POST /api/season-passes wero → [39m[36m${[39m[34mshape[39m…
+    [90m179| [39m      console[33m.[39m[34mlog[39m([32m`[r24] (s2) P kupec (wero): objednávek před [39m[36m${[39mbefore…
+    [90m180| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mstatus[33m,[39m [32m'(s1) stavový kód'[39m)[33m.[39m[34mtoBe[39m([34m503[39m)[33m;[39m
+    [90m   | [39m                                                [31m^[39m
+    [90m181| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39merror[33m,[39m [32m'(s1) error'[39m)[33m.[39m[34mtoBe[39m([32m'PAYMENT_METHOD_UNA[39m…
+    [90m182| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mprovider[33m,[39m [32m'(s1) provider'[39m)[33m.[39m[34mtoBe[39m([32m'wero'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(s) POST /api/season-passes[2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (s1), žádná objednávka ani permanentka (s2)
+[31m[1mAssertionError[22m: (s1) error: expected 'INTERNAL' to be 'PAYMENT_METHOD_UNAVAILABLE' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- PAYMENT_METHOD_UNAVAILABLE[39m
+[31m+ INTERNAL[39m
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m181:47[22m[39m
+    [90m179| [39m      console[33m.[39m[34mlog[39m([32m`[r24] (s2) P kupec (wero): objednávek před [39m[36m${[39mbefore…
+    [90m180| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mstatus[33m,[39m [32m'(s1) stavový kód'[39m)[33m.[39m[34mtoBe[39m([34m503[39m)[33m;[39m
+    [90m181| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39merror[33m,[39m [32m'(s1) error'[39m)[33m.[39m[34mtoBe[39m([32m'PAYMENT_METHOD_UNA[39m…
+    [90m   | [39m                                              [31m^[39m
+    [90m182| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mprovider[33m,[39m [32m'(s1) provider'[39m)[33m.[39m[34mtoBe[39m([32m'wero'[39m)[33m;[39m
+    [90m183| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mmessage[33m,[39m [32m'(s1) message'[39m)[33m.[39m[34mtoBe[39m([32m'Platba Wero ne[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(s) POST /api/season-passes[2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (s1), žádná objednávka ani permanentka (s2)
+[31m[1mAssertionError[22m: (s1) provider: expected undefined to be 'wero' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"wero"
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m182:53[22m[39m
+    [90m180| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mstatus[33m,[39m [32m'(s1) stavový kód'[39m)[33m.[39m[34mtoBe[39m([34m503[39m)[33m;[39m
+    [90m181| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39merror[33m,[39m [32m'(s1) error'[39m)[33m.[39m[34mtoBe[39m([32m'PAYMENT_METHOD_UNA[39m…
+    [90m182| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mprovider[33m,[39m [32m'(s1) provider'[39m)[33m.[39m[34mtoBe[39m([32m'wero'[39m)[33m;[39m
+    [90m   | [39m                                                    [31m^[39m
+    [90m183| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mmessage[33m,[39m [32m'(s1) message'[39m)[33m.[39m[34mtoBe[39m([32m'Platba Wero ne[39m…
+    [90m184| [39m      expect[33m.[39m[34msoft[39m(after[33m.[39morders[33m,[39m [32m'(s2) objednávek před/po'[39m)[33m.[39m[34mtoBe[39m(before…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(s) POST /api/season-passes[2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (s1), žádná objednávka ani permanentka (s2)
+[31m[1mAssertionError[22m: (s1) message: expected undefined to be 'Platba Wero není momentálně dostupná.…' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"Platba Wero není momentálně dostupná. Zvolte prosím jinou metodu."
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m183:51[22m[39m
+    [90m181| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39merror[33m,[39m [32m'(s1) error'[39m)[33m.[39m[34mtoBe[39m([32m'PAYMENT_METHOD_UNA[39m…
+    [90m182| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mprovider[33m,[39m [32m'(s1) provider'[39m)[33m.[39m[34mtoBe[39m([32m'wero'[39m)[33m;[39m
+    [90m183| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mmessage[33m,[39m [32m'(s1) message'[39m)[33m.[39m[34mtoBe[39m([32m'Platba Wero ne[39m…
+    [90m   | [39m                                                  [31m^[39m
+    [90m184| [39m      expect[33m.[39m[34msoft[39m(after[33m.[39morders[33m,[39m [32m'(s2) objednávek před/po'[39m)[33m.[39m[34mtoBe[39m(before…
+    [90m185| [39m      expect[33m.[39m[34msoft[39m(after[33m.[39mpasses[33m,[39m [32m'(s2) permanentek před/po'[39m)[33m.[39m[34mtoBe[39m(befor…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(s) POST /api/season-passes[2m > [22mP: pojistka — totéž tělo s gopay (simulátor GoPay) dojde k volbě platby, ne 4xx
+[31m[1mAssertionError[22m: expected 500 to be less than 400[39m
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m197:24[22m[39m
+    [90m195| [39m      console[33m.[39m[34mlog[39m([32m`[r24] pojistka (s) P POST /api/season-passes gopay [39m…
+    [90m196| [39m      [34mexpect[39m(r[33m.[39mstatus)[33m.[39m[34mtoBeGreaterThanOrEqual[39m([34m200[39m)[33m;[39m
+    [90m197| [39m      [34mexpect[39m(r[33m.[39mstatus)[33m.[39m[34mtoBeLessThan[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m198| [39m      [34mexpect[39m(gw[33m.[39m[34mstartsWith[39m([32m'http://localhost:3998/'[39m))[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m199| [39m      [90m// čtení v RLS kontextu kupce záznamy skutečně vidí (jinak by (s[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(s) POST /api/season-passes[2m > [22mD: wero → chování dema beze změny (s3)
+[31m[1mAssertionError[22m: expected { Object (status, error, ...) } to deeply equal { status: 201, error: null, …(3) }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[32m-   "error": null,[39m
+[32m-   "gateway": "/mock-wero/…",[39m
+[31m+   "error": "INTERNAL",[39m
+[31m+   "gateway": null,[39m
+[2m    "internal": false,[22m
+[2m    "keys": Array [[22m
+[32m-     "gatewayUrl",[39m
+[32m-     "orderId",[39m
+[32m-     "passId",[39m
+[32m-     "passToken",[39m
+[31m+     "error",[39m
+[2m    ],[22m
+[32m-   "status": 201,[39m
+[31m+   "status": 500,[39m
+[2m  }[22m
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m211:39[22m[39m
+
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(p) POST /api/checkout/party-split/[token][2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (p1), bez interní hlášky (p2), žádný nový záznam (p3)
+[31m[1mAssertionError[22m: (p1) stavový kód: expected 500 to be 503 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 503[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m261:49[22m[39m
+
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(p) POST /api/checkout/party-split/[token][2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (p1), bez interní hlášky (p2), žádný nový záznam (p3)
+[31m[1mAssertionError[22m: (p1) error: expected 'INTERNAL' to be 'PAYMENT_METHOD_UNAVAILABLE' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- PAYMENT_METHOD_UNAVAILABLE[39m
+[31m+ INTERNAL[39m
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m262:47[22m[39m
+
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(p) POST /api/checkout/party-split/[token][2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (p1), bez interní hlášky (p2), žádný nový záznam (p3)
+[31m[1mAssertionError[22m: (p1) provider: expected undefined to be 'wero' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"wero"
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m263:53[22m[39m
+    [90m261| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mstatus[33m,[39m [32m'(p1) stavový kód'[39m)[33m.[39m[34mtoBe[39m([34m503[39m)[33m;[39m
+    [90m262| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39merror[33m,[39m [32m'(p1) error'[39m)[33m.[39m[34mtoBe[39m([32m'PAYMENT_METHOD_UNA[39m…
+    [90m263| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mprovider[33m,[39m [32m'(p1) provider'[39m)[33m.[39m[34mtoBe[39m([32m'wero'[39m)[33m;[39m
+    [90m   | [39m                                                    [31m^[39m
+    [90m264| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mmessage[33m,[39m [32m'(p1) message'[39m)[33m.[39m[34mtoBe[39m([32m'Platba Wero ne[39m…
+    [90m265| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mtext[33m.[39m[34mincludes[39m([33mINTERNAL[39m)[33m,[39m [32m'(p2) interní hláška v od[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(p) POST /api/checkout/party-split/[token][2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (p1), bez interní hlášky (p2), žádný nový záznam (p3)
+[31m[1mAssertionError[22m: (p1) message: expected 'No real payment provider configured i…' to be 'Platba Wero není momentálně dostupná.…' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Platba Wero není momentálně dostupná. Zvolte prosím jinou metodu.[39m
+[31m+ No real payment provider configured in production (refusing mock fallback). Set PAYMENT_PROVIDER + provider credentials.[39m
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m264:51[22m[39m
+    [90m262| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39merror[33m,[39m [32m'(p1) error'[39m)[33m.[39m[34mtoBe[39m([32m'PAYMENT_METHOD_UNA[39m…
+    [90m263| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mprovider[33m,[39m [32m'(p1) provider'[39m)[33m.[39m[34mtoBe[39m([32m'wero'[39m)[33m;[39m
+    [90m264| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mmessage[33m,[39m [32m'(p1) message'[39m)[33m.[39m[34mtoBe[39m([32m'Platba Wero ne[39m…
+    [90m   | [39m                                                  [31m^[39m
+    [90m265| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mtext[33m.[39m[34mincludes[39m([33mINTERNAL[39m)[33m,[39m [32m'(p2) interní hláška v od[39m…
+    [90m266| [39m      expect[33m.[39m[34msoft[39m(after[33m,[39m [32m'(p3) záznamy session před/po'[39m)[33m.[39m[34mtoEqual[39m(befor…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(p) POST /api/checkout/party-split/[token][2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (p1), bez interní hlášky (p2), žádný nový záznam (p3)
+[31m[1mAssertionError[22m: (p2) interní hláška v odpovědi: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m265:80[22m[39m
+    [90m263| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mprovider[33m,[39m [32m'(p1) provider'[39m)[33m.[39m[34mtoBe[39m([32m'wero'[39m)[33m;[39m
+    [90m264| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mmessage[33m,[39m [32m'(p1) message'[39m)[33m.[39m[34mtoBe[39m([32m'Platba Wero ne[39m…
+    [90m265| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mtext[33m.[39m[34mincludes[39m([33mINTERNAL[39m)[33m,[39m [32m'(p2) interní hláška v od[39m…
+    [90m   | [39m                                                                               [31m^[39m
+    [90m266| [39m      expect[33m.[39m[34msoft[39m(after[33m,[39m [32m'(p3) záznamy session před/po'[39m)[33m.[39m[34mtoEqual[39m(befor…
+    [90m267| [39m    })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(w) POST /api/v1/wl/orders[2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (w1), bez interní hlášky (w2), žádná objednávka (w3), WL hlavičky (w4)
+[31m[1mAssertionError[22m: (w1) stavový kód: expected 401 to be 503 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 503[39m
+[31m+ 401[39m
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m332:49[22m[39m
+    [90m330| [39m      console[33m.[39m[34mlog[39m([32m`[r24] (w3) P objednávek akce tenanta (wero) před [39m[36m${[39m…
+    [90m331| [39m      console[33m.[39m[34mlog[39m([32m`[r24] (w4) P hlavičky [39m[36m${[39m[33mJSON[39m[33m.[39m[34mstringify[39m([34mwlHeaders[39m(r[33m.[39m…
+    [90m332| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mstatus[33m,[39m [32m'(w1) stavový kód'[39m)[33m.[39m[34mtoBe[39m([34m503[39m)[33m;[39m
+    [90m   | [39m                                                [31m^[39m
+    [90m333| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39merror[33m,[39m [32m'(w1) error'[39m)[33m.[39m[34mtoBe[39m([32m'PAYMENT_METHOD_UNA[39m…
+    [90m334| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mprovider[33m,[39m [32m'(w1) provider'[39m)[33m.[39m[34mtoBe[39m([32m'wero'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(w) POST /api/v1/wl/orders[2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (w1), bez interní hlášky (w2), žádná objednávka (w3), WL hlavičky (w4)
+[31m[1mAssertionError[22m: (w1) error: expected 'UNAUTHORIZED' to be 'PAYMENT_METHOD_UNAVAILABLE' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- PAYMENT_METHOD_UNAVAILABLE[39m
+[31m+ UNAUTHORIZED[39m
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m333:47[22m[39m
+    [90m331| [39m      console[33m.[39m[34mlog[39m([32m`[r24] (w4) P hlavičky [39m[36m${[39m[33mJSON[39m[33m.[39m[34mstringify[39m([34mwlHeaders[39m(r[33m.[39m…
+    [90m332| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mstatus[33m,[39m [32m'(w1) stavový kód'[39m)[33m.[39m[34mtoBe[39m([34m503[39m)[33m;[39m
+    [90m333| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39merror[33m,[39m [32m'(w1) error'[39m)[33m.[39m[34mtoBe[39m([32m'PAYMENT_METHOD_UNA[39m…
+    [90m   | [39m                                              [31m^[39m
+    [90m334| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mprovider[33m,[39m [32m'(w1) provider'[39m)[33m.[39m[34mtoBe[39m([32m'wero'[39m)[33m;[39m
+    [90m335| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mmessage[33m,[39m [32m'(w1) message'[39m)[33m.[39m[34mtoBe[39m([32m'Platba Wero ne[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(w) POST /api/v1/wl/orders[2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (w1), bez interní hlášky (w2), žádná objednávka (w3), WL hlavičky (w4)
+[31m[1mAssertionError[22m: (w1) provider: expected undefined to be 'wero' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"wero"
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m334:53[22m[39m
+    [90m332| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mstatus[33m,[39m [32m'(w1) stavový kód'[39m)[33m.[39m[34mtoBe[39m([34m503[39m)[33m;[39m
+    [90m333| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39merror[33m,[39m [32m'(w1) error'[39m)[33m.[39m[34mtoBe[39m([32m'PAYMENT_METHOD_UNA[39m…
+    [90m334| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mprovider[33m,[39m [32m'(w1) provider'[39m)[33m.[39m[34mtoBe[39m([32m'wero'[39m)[33m;[39m
+    [90m   | [39m                                                    [31m^[39m
+    [90m335| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mmessage[33m,[39m [32m'(w1) message'[39m)[33m.[39m[34mtoBe[39m([32m'Platba Wero ne[39m…
+    [90m336| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mtext[33m.[39m[34mincludes[39m([33mINTERNAL[39m)[33m,[39m [32m'(w2) interní hláška v od[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(w) POST /api/v1/wl/orders[2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (w1), bez interní hlášky (w2), žádná objednávka (w3), WL hlavičky (w4)
+[31m[1mAssertionError[22m: (w1) message: expected undefined to be 'Platba Wero není momentálně dostupná.…' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"Platba Wero není momentálně dostupná. Zvolte prosím jinou metodu."
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m335:51[22m[39m
+    [90m333| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39merror[33m,[39m [32m'(w1) error'[39m)[33m.[39m[34mtoBe[39m([32m'PAYMENT_METHOD_UNA[39m…
+    [90m334| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mprovider[33m,[39m [32m'(w1) provider'[39m)[33m.[39m[34mtoBe[39m([32m'wero'[39m)[33m;[39m
+    [90m335| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mjson[33m.[39mmessage[33m,[39m [32m'(w1) message'[39m)[33m.[39m[34mtoBe[39m([32m'Platba Wero ne[39m…
+    [90m   | [39m                                                  [31m^[39m
+    [90m336| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mtext[33m.[39m[34mincludes[39m([33mINTERNAL[39m)[33m,[39m [32m'(w2) interní hláška v od[39m…
+    [90m337| [39m      expect[33m.[39m[34msoft[39m(after[33m,[39m [32m'(w3) objednávek před/po'[39m)[33m.[39m[34mtoBe[39m(before)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(w) POST /api/v1/wl/orders[2m > [22mP: wero → 503 PAYMENT_METHOD_UNAVAILABLE (w1), bez interní hlášky (w2), žádná objednávka (w3), WL hlavičky (w4)
+[31m[1mAssertionError[22m: (w4) WL hlavičky: expected { …(4) } to deeply equal { …(4) }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  Object {[22m
+[2m    "access-control-allow-headers": "Authorization, Content-Type",[22m
+[2m    "access-control-allow-methods": "GET, POST, OPTIONS",[22m
+[32m-   "access-control-allow-origin": "https://r24-wl-1792150759664-9n0pl.invalid",[39m
+[32m-   "x-tixly-tenant": "r24-wl-1792150759664-9n0pl",[39m
+[31m+   "access-control-allow-origin": "*",[39m
+[31m+   "x-tixly-tenant": "unknown",[39m
+[2m  }[22m
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m338:61[22m[39m
+    [90m336| [39m      expect[33m.[39m[34msoft[39m(r[33m.[39mtext[33m.[39m[34mincludes[39m([33mINTERNAL[39m)[33m,[39m [32m'(w2) interní hláška v od[39m…
+    [90m337| [39m      expect[33m.[39m[34msoft[39m(after[33m,[39m [32m'(w3) objednávek před/po'[39m)[33m.[39m[34mtoBe[39m(before)[33m;[39m
+    [90m338| [39m      expect[33m.[39m[34msoft[39m([34mwlHeaders[39m(r[33m.[39mheaders)[33m,[39m [32m'(w4) WL hlavičky'[39m)[33m.[39m[34mtoEqual[39m([34mex[39m…
+    [90m   | [39m                                                            [31m^[39m
+    [90m339| [39m    })[33m;[39m
+    [90m340| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(w) POST /api/v1/wl/orders[2m > [22mP: pojistka — gopay (simulátor GoPay) na jiné akci dojde k volbě platby, ne 4xx; stejné WL hlavičky
+[31m[1mAssertionError[22m: expected 401 to be less than 400[39m
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m349:24[22m[39m
+    [90m347| [39m      console[33m.[39m[34mlog[39m([32m`[r24] pojistka (w) P wl/orders gopay → [39m[36m${[39mr[33m.[39mstatus[36m}[39m[32m [39m…
+    [90m348| [39m      [34mexpect[39m(r[33m.[39mstatus)[33m.[39m[34mtoBeGreaterThanOrEqual[39m([34m200[39m)[33m;[39m
+    [90m349| [39m      [34mexpect[39m(r[33m.[39mstatus)[33m.[39m[34mtoBeLessThan[39m([34m400[39m)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m350| [39m      [34mexpect[39m(gw[33m.[39m[34mstartsWith[39m([32m'http://localhost:3998/'[39m))[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m351| [39m      [34mexpect[39m(after)[33m.[39m[34mtoBe[39m(before [33m+[39m [34m1[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/18]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/r24-wero-routes.live.test.ts[2m > [22mWero early-guard — season-passes, party-split, v1/wl/orders (live, tixly_app)[2m > [22m(w) POST /api/v1/wl/orders[2m > [22mD: wero → chování dema beze změny (w5)
+[31m[1mAssertionError[22m: expected { status: 401, …(4) } to deeply equal {}[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Object {}[39m
+[31m+ Object {[39m
+[31m+   "error": "UNAUTHORIZED",[39m
+[31m+   "gateway": null,[39m
+[31m+   "internal": false,[39m
+[31m+   "keys": Array [[39m
+[31m+     "error",[39m
+[31m+   ],[39m
+[31m+   "status": 401,[39m
+[31m+ }[39m
+
+[36m [2m❯[22m tests/r24-wero-routes.live.test.ts:[2m361:39[22m[39m
+    [90m359| [39m      [35mconst[39m after [33m=[39m [35mawait[39m [34meventOrders[39m(wl[33m.[39mpromoterId[33m,[39m wl[33m.[39meventId)[33m;[39m
+    [90m360| [39m      console[33m.[39m[34mlog[39m([32m`[r24] (w5) D wl/orders wero → [39m[36m${[39m[34mshape[39m(r)[36m}[39m[32m; stabilní[39m…
+    [90m361| [39m      [34mexpect[39m([34mstable[39m(r[33m,[39m [32m'paymentUrl'[39m))[33m.[39m[34mtoEqual[39m([33mW5_EXPECTED[39m)[33m;[39m
+    [90m   | [39m                                      [31m^[39m
+    [90m362| [39m      [34mexpect[39m(after [33m-[39m before)[33m.[39m[34mtoBe[39m([33mW5_ORDERS_DELTA[39m)[33m;[39m
+    [90m363| [39m      [34mexpect[39m([34mwlHeaders[39m(r[33m.[39mheaders))[33m.[39m[34mtoEqual[39m([34mexpectedWlHeaders[39m())[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/18]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m7 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m 13:38:57
+[2m   Duration [22m 31.55s[2m (transform 625ms, setup 0ms, collect 961ms, tests 11.01s, environment 0ms, prepare 3.41s)[22m
+

@@ -11,6 +11,13 @@ jinak ALLOW_MOCK_PAYMENTS odstraněna = P); `stop_mine.ps1` ukončí jen procesy
   Vercel ×2 „Deployment was blocked"; PR #2 OPEN MERGEABLE UNSTABLE.
 - `0_verify_r23.txt`: build 80eea362 rc=0 (`0_build.txt`); golden-path-r23-wero P 1 passed, D 1 passed; live r23-wero-ticket-types 6 passed.
 
-## Krok 1 — Wero early-guard (RED → GREEN) ⏳
-## Krok 2 — modular-pass (jen čtení) ⏳
-## Závěr ⏳
+## Krok 1 — Wero early-guard (RED → GREEN) ⛔ ZASTAVENO (2026-10-16)
+- Viz `logs/r24/1_blocked.md`. Kód nezměněn. Test-draft přesunut do `logs/r24/1_test_draft.live.test.ts.txt`.
+- (w) `/api/v1/wl/orders`: `platform.whitelabel_tenants` má pod RLS jen politiku `wl_tenants_admin` (is_platform_admin) →
+  `verifyWlToken` pod tixly_app vždy null → vždy 401; pro GREEN je nutná migrace → STOP dle zadání.
+- (s) `/api/season-passes`: `max_per_buyer NOT NULL DEFAULT 1` + dotaz na neexistující `orders.season_passes.holder_user_id`
+  (route.ts:131–136) → každý nákup 500 před INSERTem; pojistka (s) nemůže dojít k volbě platby bez změny mimo early-guard.
+- (p) party-split: RED doměřen (500 + interní hláška ven), lze opravit samostatně.
+- Čeká na rozhodnutí vlastníka (body 1–3 v 1_blocked.md).
+## Krok 2 — modular-pass (jen čtení) ⏸ neproveden (zastaveno v kroku 1)
+## Závěr ⏸ neproveden (sada, PR, sloučení — zastaveno v kroku 1)

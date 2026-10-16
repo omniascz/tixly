@@ -1,0 +1,1 @@
+gitleaks dir (kopie změněných souborů kroku 1 v dočasném adresáři, --redact): scanned ~128.6 KB, no leaks found. Nové záznamy .gitleaksignore: 0.
