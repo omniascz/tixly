@@ -34,6 +34,7 @@ jobs:
           - mobile
           - mobile-promoter
           - e2e
+          - audit/e2e
 
     steps:
       - uses: actions/checkout@v4
