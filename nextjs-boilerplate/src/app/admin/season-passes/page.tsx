@@ -422,7 +422,7 @@ export default function SeasonPassesAdminPage() {
                             : 'bg-slate-100 text-slate-600'
                         }`}
                       >
-                        {sp.status === 'active' ? 'Aktivní' : sp.status}
+                        {({ active: 'Aktivní', expired: 'Vypršela', pending_payment: 'Čeká na platbu', cancelled: 'Zrušena' } as Record<string, string>)[sp.status] ?? sp.status}
                       </Badge>
                     </td>
                     <td className="px-4 py-3 tabular-nums">

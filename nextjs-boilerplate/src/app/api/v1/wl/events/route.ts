@@ -73,22 +73,21 @@ export async function GET(req: NextRequest): Promise<Response> {
   const limit    = Math.min(Number(url.searchParams.get('limit') ?? '50'), 200);
   const cursor   = url.searchParams.get('cursor');
 
-  // Build promoter filter
+  // Číslo parametru podle skutečné pozice (dřív napevno $6 → jen s promoterId chyběl $5 → 500)
   const allowedPromoters = tenant.allowedPromoterIds;
+  const params: unknown[] = [dateFrom, dateTo, limit + 1, cursor ?? null];
   const promoterFilter = allowedPromoters.length > 0
-    ? `AND e.promoter_id = ANY($5::uuid[])`
+    ? `AND e.promoter_id = ANY($${params.push(allowedPromoters)}::uuid[])`
     : '';
-  const specificPromoterFilter = promoterId ? `AND e.promoter_id = $6::uuid` : '';
+  const specificPromoterFilter = promoterId ? `AND e.promoter_id = $${params.push(promoterId)}::uuid` : '';
 
   return runWithServiceContext(async () => {
-    const params: unknown[] = [dateFrom, dateTo, limit + 1, cursor ?? null];
-    if (allowedPromoters.length > 0) params.push(allowedPromoters);
-    if (promoterId) params.push(promoterId);
 
     const res = await db().query<EventRow>(
       `SELECT
          e.id, e.slug, e.date_start, e.date_end, e.promoter_id,
-         pr.title, pr.description, pr.poster_url,
+         COALESCE(pr.title, e.title) AS title, COALESCE(pr.description, e.description) AS description,
+         COALESCE(pr.poster_url, e.cover_image_url) AS poster_url,
          v.name AS venue_name, v.city AS venue_city, v.address AS venue_address,
          (
            SELECT json_agg(json_build_object(
@@ -102,12 +101,13 @@ export async function GET(req: NextRequest): Promise<Response> {
            WHERE tt.event_id = e.id AND tt.remaining_qty > 0
          ) AS ticket_types
        FROM catalog.events e
-       JOIN catalog.productions pr ON pr.id = e.production_id
+       LEFT JOIN catalog.productions pr ON pr.id = e.production_id -- dřív JOIN: akce bez inscenace (koncerty) chyběly
        LEFT JOIN catalog.venues v ON v.id = e.venue_id
        WHERE e.status = 'published'
          AND e.date_start >= $1
          AND e.date_start <= $2
-         AND ($4::uuid IS NULL OR e.id > $4)
+         -- kurzor = id poslední akce; pokračuje podle (date_start, id) jako ORDER BY (dřív e.id > $4 přeskakoval akce)
+         AND ($4::uuid IS NULL OR (e.date_start, e.id) > (SELECT c.date_start, c.id FROM catalog.events c WHERE c.id = $4))
          ${promoterFilter}
          ${specificPromoterFilter}
        ORDER BY e.date_start ASC, e.id ASC
@@ -145,7 +145,8 @@ export async function GET(req: NextRequest): Promise<Response> {
             currency:  tt.currency,
             available: tt.capacity_remaining,
           })),
-          checkoutUrl: `${appUrl}/events/${e.slug}/checkout${embedParam}`,
+          // dřív /events/<slug>/checkout — taková stránka neexistuje (404); nákup začíná na detailu akce
+          checkoutUrl: `${appUrl}/cs/events/${e.slug}${embedParam}`,
         })),
         nextCursor,
       },

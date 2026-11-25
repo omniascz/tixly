@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { toLocalInput } from '@/lib/datetime-local';
 
 interface EventData {
   id: string;
@@ -18,12 +19,6 @@ interface EventData {
 }
 
 /** ISO (UTC) → hodnota pro <input type="datetime-local"> v místním čase prohlížeče. */
-function toLocalInput(iso: string | null | undefined): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
-}
-
 export default function EditEventPage() {
   const params = useParams();
   const router = useRouter();
@@ -50,7 +45,7 @@ export default function EditEventPage() {
         setData(d);
         setTitle(d.title);
         setDescription(d.description ?? '');
-        setDateStart(d.dateStart.slice(0, 16));
+        setDateStart(toLocalInput(d.dateStart));
         setMinAge(d.minAge ? String(d.minAge) : '');
         setSalesEndAt(toLocalInput(d.salesEndAt));
       })

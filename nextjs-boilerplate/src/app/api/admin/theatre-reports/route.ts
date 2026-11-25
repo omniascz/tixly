@@ -15,6 +15,8 @@ export const dynamic = 'force-dynamic';
 const UUID = /^[0-9a-f-]{36}$/i;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const kc = (m: number): number => Math.round(m) / 100;
+// date_start::text je v UTC relace; do souboru „YYYY-MM-DD HH:MM“ v Praze (sv-SE = ISO pořadí).
+const praha = (ts: string): string => new Date(ts).toLocaleString('sv-SE', { timeZone: 'Europe/Prague' }).slice(0, 16);
 
 export async function GET(req: NextRequest): Promise<Response> {
   return runAsActivePromoter(req, async (promoter) => {
@@ -29,7 +31,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     const r = await theatreReport(db(), promoter.promoterId, scope);
     const format = sp.get('format') ?? 'json';
     const salesHeader = ['Termín', 'Datum', 'Zóna', 'Kategorie', 'Kanál', 'Prodáno', 'Tržba (Kč)'];
-    const salesRows = r.sales.map((s) => [s.title, s.dateStart.slice(0, 16), s.zone, s.category, CHANNEL_LABEL[s.channel] ?? s.channel, s.sold, kc(s.revenueMinor)]);
+    const salesRows = r.sales.map((s) => [s.title, praha(s.dateStart), s.zone, s.category, CHANNEL_LABEL[s.channel] ?? s.channel, s.sold, kc(s.revenueMinor)]);
     const name = `report-${kind}-${new Date().toISOString().slice(0, 10)}`;
     if (format === 'csv') {
       return new Response(buildCsv(salesHeader, salesRows), {
@@ -41,7 +43,7 @@ export async function GET(req: NextRequest): Promise<Response> {
         { name: 'Prodej', header: salesHeader, rows: salesRows },
         {
           name: 'Obsazenost', header: ['Termín', 'Datum', 'Město', 'Sál', 'Prodejná místa', 'Prodáno', 'Rezervováno', 'Blokováno', 'Obsazenost %'],
-          rows: r.occupancy.map((o) => [o.title, o.dateStart.slice(0, 16), o.city, o.hall, o.sellable, o.sold, o.reserved, o.blocked, o.occupiedPct]),
+          rows: r.occupancy.map((o) => [o.title, praha(o.dateStart), o.city, o.hall, o.sellable, o.sold, o.reserved, o.blocked, o.occupiedPct]),
         },
         {
           name: 'Blokace', header: ['Termín', 'Blokace', 'Míst celkem', 'Uvolněno', 'Vydáno', 'Prodáno', 'Zbývá'],

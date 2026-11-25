@@ -80,11 +80,11 @@ export async function GET(req: NextRequest): Promise<Response> {
       venue_id: string | null;
       venue_name: string | null;
     }>(
-      `SELECT e.id, e.title, e.date_start::text AS date_start, e.venue_id, v.name AS venue_name
+      `SELECT e.id, e.title, (e.date_start AT TIME ZONE 'Europe/Prague')::text AS date_start, e.venue_id, v.name AS venue_name
        FROM catalog.events e
        LEFT JOIN catalog.venues v ON v.id = e.venue_id
        WHERE e.promoter_id = $1
-         AND e.date_start::date BETWEEN $2::date AND $3::date`,
+         AND (e.date_start AT TIME ZONE 'Europe/Prague')::date BETWEEN $2::date AND $3::date`, // den v Praze, ne v UTC relace
       [ctx.promoterId, from, to],
     );
 

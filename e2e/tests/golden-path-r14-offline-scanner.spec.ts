@@ -302,6 +302,8 @@ test('bod 5: zavření a znovuotevření prohlížeče offline — seznam i neod
   // Kolo 15: na Next 15 se stránka otevřená offline z cache občas dokreslí na klientu — serverová kopie formuláře je
   // pak ~650 ms skrytá v DOM (viditelný je vždy jen jeden). Počkat na jediné pole (logs/r15/3_offline_poll*.txt).
   await expect(page.getByTestId('scanner-ticket-input')).toHaveCount(1, { timeout: 10_000 });
+  // 25. 11.: na pomalém stroji zůstane skrytá kopie s týmž placeholderem déle než testid → počkat i na jediný placeholder
+  await expect(page.getByPlaceholder(PLACEHOLDER)).toHaveCount(1, { timeout: 10_000 });
   await expect(page.getByPlaceholder(PLACEHOLDER)).toBeVisible();
   await expect(page.getByText(/Offline — skeny jdou do lokální fronty/)).toBeVisible();
   await expect(page.getByText(/1 čeká na sync/)).toBeVisible();

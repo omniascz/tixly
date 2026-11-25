@@ -69,7 +69,6 @@ interface TicketTypeRow {
   capacity_remaining: number;
   promoter_id: string;
   event_id: string;
-  payment_provider: string | null;
 }
 
 export async function OPTIONS(): Promise<Response> {
@@ -108,15 +107,14 @@ export async function POST(req: NextRequest): Promise<Response> {
       const ticketTypeIds = body.tickets.map((t) => t.ticketTypeId);
       const ttRes = await client.query<TicketTypeRow>(
         `SELECT tt.id, tt.name, tt.base_price AS price_halire, e.currency,
-                tt.remaining_qty AS capacity_remaining, e.promoter_id, e.id AS event_id,
-                p.default_payment_provider AS payment_provider
+                tt.remaining_qty AS capacity_remaining, e.promoter_id, e.id AS event_id
          FROM catalog.ticket_types tt
          JOIN catalog.events e ON e.id = tt.event_id
-         JOIN platform.promoters p ON p.id = e.promoter_id
          WHERE tt.id = ANY($1::uuid[])
            AND e.id = $2
-           AND tt.status = 'on_sale'
+           AND e.status = 'published'
          FOR UPDATE OF tt`,
+        // 25. 11.: dřív p.default_payment_provider a tt.status — ani jeden sloupec neexistuje (42703 → 500).
         [ticketTypeIds, body.eventId],
       );
 
@@ -175,13 +173,25 @@ export async function POST(req: NextRequest): Promise<Response> {
         appUrl,
       });
 
+      // orders.user_id je NOT NULL: zákazník partnera = host podle e-mailu (stejně jako permanentky).
+      const userRes = await client.query<{ id: string }>(
+        `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at, created_at, updated_at)
+         VALUES ($1, $2, '!guest', NOW(), NOW(), NOW())
+         ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE SET updated_at = NOW()
+         RETURNING id`,
+        [body.customerEmail.toLowerCase(), body.customerName ?? body.customerEmail.toLowerCase()],
+      );
+      // Mock brány vrací 'mock-*', které CHECK nepovolí → ukládáme metodu, skutečnou bránu jen když ji provider změnil (jako hlavní checkout).
+      const REAL_GATEWAYS = ['comgate', 'stripe', 'mollie', 'paypal', 'przelewy24'];
+      const storedProvider = REAL_GATEWAYS.includes(payment.provider) ? payment.provider : body.paymentMethod;
+
       // Create order
       await client.query(
         `INSERT INTO orders.orders
            (id, user_id, event_id, status, total_amount, currency, locale,
             gopay_payment_id, payment_provider, idempotency_key,
             expires_at, created_at, updated_at)
-         VALUES ($1, NULL, $2, 'pending', $3, $4, $5,
+         VALUES ($1, $9, $2, 'pending', $3, $4, $5,
                  $6, $7, $8,
                  NOW() + INTERVAL '30 minutes', NOW(), NOW())`,
         [
@@ -191,8 +201,9 @@ export async function POST(req: NextRequest): Promise<Response> {
           currency,
           body.locale,
           payment.paymentId,
-          payment.provider,
+          storedProvider,
           idempotencyKey,
+          userRes.rows[0].id,
         ],
       );
 
@@ -249,7 +260,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query('ROLLBACK');
       console.error('[wl/orders] error:', err);
       return NextResponse.json(
-        { error: 'INTERNAL', message: err instanceof Error ? err.message : String(err) },
+        { error: 'INTERNAL' },
         { status: 500, headers: wlResponseHeaders(tenant) },
       );
     } finally {

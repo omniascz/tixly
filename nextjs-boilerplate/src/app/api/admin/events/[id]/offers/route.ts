@@ -114,7 +114,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     // Datum a sál z akce, ať je nabídka úplná bez dalšího vyplňování.
     const ev = await runWithServiceContext(() =>
       db().query<{ date_start: string; venue_name: string | null; primary_currency: string }>(
-        `SELECT e.date_start::text AS date_start, v.name AS venue_name, p.primary_currency
+        `SELECT (e.date_start AT TIME ZONE 'Europe/Prague')::text AS date_start, v.name AS venue_name, p.primary_currency
          FROM catalog.events e
          LEFT JOIN catalog.venues v ON v.id = e.venue_id
          JOIN platform.promoters p ON p.id = e.promoter_id

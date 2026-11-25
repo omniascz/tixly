@@ -6,7 +6,8 @@
     "test": "playwright test",
     "test:smoke": "playwright test --grep @smoke",
     "test:health": "playwright test smoke-01",
-    "report": "playwright show-report"
+    "report": "playwright show-report",
+    "postinstall": "playwright install chromium"
   },
   "devDependencies": {
     "@playwright/test": "^1.42.0",

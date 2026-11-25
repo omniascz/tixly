@@ -148,7 +148,9 @@ run('Krok 0 — podvržené identitní hlavičky (přes skutečný middleware)',
     const { GET } = await import('@/app/api/cron/resale-payouts/route');
     const ok = await throughMiddleware(req('GET', '/api/cron/resale-payouts', { 'x-cron-secret': process.env.CRON_SECRET! }), GET as (r: NextRequest) => Promise<Response>);
     expect(ok.status).toBe(200);
+    // 25. 11.: bez skutečné výplatní služby se nic nesmí označit jako vyplacené (dřív mock 'paid').
+    expect((await ok.json()).awaitingPayoutProvider).toBeGreaterThanOrEqual(1);
     const st2 = (await pool.query<{ status: string }>(`SELECT status FROM resale.seller_payouts WHERE id=$1`, [payoutId])).rows[0].status;
-    expect(st2).toBe('paid');
+    expect(st2).toBe('eligible');
   });
 });

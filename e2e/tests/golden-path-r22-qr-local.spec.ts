@@ -16,6 +16,7 @@
  *   (a3) kód z secretBase32 (otplib) → POST /api/admin/2fa/verify 200, zobrazí se záložní kódy
  *   (b1) žádný zaznamenaný požadavek mimo localhost nenese qrPayload (ani jeho secret) ani token dárku, žádný na api.qrserver.com
  *   (b2) QR `alt="Vstupenka QR"` 220×220 má src data:image/png;base64 = QRCode.toDataURL(qrPayload, { width: 220, margin: 4 })
+ *   (c)  kiosk-display: žádný požadavek na api.qrserver.com ani s URL kiosku; QR = QRCode.toDataURL(kioskUrl, { width: 200, margin: 4 })
  * Shoda obrázku: prohlížeč kóduje PNG přes canvas, Node přes pngjs — bajty PNG se liší kodérem, proto se porovnávají
  * dekódované pixely (RGBA) a rozměry; shoda řetězců se jen vypíše.
  * Pojistka proti průchodu naprázdno: bez otpauth / qrPayload z odpovědi API nebo bez vykresleného QR test selže.
@@ -256,5 +257,33 @@ test('(b) dárek: QR vstupenky lokálně, nic nejde na api.qrserver.com', async 
   const c = await compareQr('(b2)', st.src, qrPayload!, 220);
   expect.soft(c.pixelsEqual, '(b2) obrázek = QRCode.toDataURL(qrPayload, { width: 220, margin: 4 })').toBe(true);
   expect.soft([st.nw, st.nh], '(b2) vykreslený obrázek 220×220').toEqual([220, 220]);
+  await ctx.close();
+});
+
+// 25. 11. 2026: třetí stránka se stejnou vadou — admin/events/[id]/kiosk-display posílal URL kiosku na api.qrserver.com.
+test('(c) kiosk: QR odkazu na displej lokálně, nic nejde na api.qrserver.com', async ({ browser }) => {
+  test.setTimeout(120_000);
+  const { ctx, page, out } = await guardedContext(browser);
+  await page.goto('/cs/login', { waitUntil: 'networkidle' });
+  await page.locator('input[type="email"]').first().fill(OWNER.email);
+  await page.getByLabel('Heslo').fill(OWNER.pass);
+  const [login] = await Promise.all([
+    page.waitForResponse((r) => r.url().endsWith('/api/auth/login') && r.request().method() === 'POST', { timeout: 60_000 }),
+    page.getByRole('button', { name: /^Přihlásit$/ }).click(),
+  ]);
+  expect(login.status(), 'přihlášení administrátora').toBe(200);
+  await page.waitForURL(/\/admin/, { timeout: 60_000 });
+
+  await page.goto(`/admin/events/${TERM}/kiosk-display`, { waitUntil: 'networkidle' });
+  const kioskUrl = `${new URL(BASE).origin}/cs/kiosk/${TERM}`;
+  await expect(page.locator('code', { hasText: kioskUrl })).toBeVisible();
+  const img = page.locator('img[alt="QR kód pro kiosk display"]');
+  await expect(img, 'QR kiosku vykreslen').toBeVisible({ timeout: 20_000 });
+  const st = await imgState(img);
+  const c1 = summarize('(c1)', out, { kioskUrl });
+  expect.soft(c1.qrserver, '(c1) požadavky na api.qrserver.com').toBe(0);
+  expect.soft(c1.withSecret, '(c1) požadavky mimo localhost s URL kiosku').toBe(0);
+  const c = await compareQr('(c2)', st.src, kioskUrl, 200);
+  expect.soft(c.pixelsEqual, '(c2) obrázek = QRCode.toDataURL(kioskUrl, { width: 200, margin: 4 })').toBe(true);
   await ctx.close();
 });

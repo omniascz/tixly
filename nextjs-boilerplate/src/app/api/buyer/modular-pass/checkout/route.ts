@@ -15,10 +15,11 @@
  * Po payment scanner enforce → tickets.ticket_modular_access fallthrough
  * (viz scanner/validate route).
  */
-import { NextRequest, NextResponse } from 'next/server';
-import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { randomUUID } from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { db, runWithServiceContext } from '@/lib/db/rls-pool';
+import { createPayment } from '@/lib/payment/provider';
 import { saleBlockedResponse } from '@/lib/sales/cutoff';
 
 
@@ -32,7 +33,7 @@ const schema = z.object({
   buyerEmail: z.string().email().max(200),
   buyerName: z.string().min(2).max(120),
   paymentMethod: z
-    .enum(['gopay', 'wero', 'przelewy24', 'bank_transfer', 'twisto', 'skippay'])
+    .enum(['gopay', 'wero', 'przelewy24', 'bank_transfer'])
     .default('gopay'),
 });
 
@@ -154,45 +155,62 @@ export async function POST(req: NextRequest): Promise<Response> {
       zoneIds.length * config.per_zone_surcharge_minor;
 
     // 5) Resolve / create guest user
-    let userId: string;
     const u = await client.query<{ id: string }>(
-      `SELECT id FROM identity.users WHERE email = $1`,
-      [input.buyerEmail.toLowerCase()],
+      `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at, created_at, updated_at)
+       VALUES ($1, $2, '!guest', NOW(), NOW(), NOW())
+       ON CONFLICT (email) WHERE anonymized_at IS NULL DO UPDATE SET updated_at = NOW()
+       RETURNING id`,
+      [input.buyerEmail.toLowerCase(), input.buyerName],
     );
-    if (u.rows.length > 0) {
-      userId = u.rows[0].id;
-    } else {
-      const newU = await client.query<{ id: string }>(
-        `INSERT INTO identity.users (email, name, password_hash, gdpr_consent_at)
-         VALUES ($1, $2, 'modular-guest-no-login', NOW())
-         RETURNING id`,
-        [input.buyerEmail.toLowerCase(), input.buyerName],
-      );
-      userId = newU.rows[0].id;
+    const userId = u.rows[0].id;
+
+    // 6) Kapacita: modular pass = 1 vstupenka; dřív se neodečítala → přeprodej nad kapacitu.
+    const cap = await client.query(
+      `UPDATE catalog.ticket_types SET remaining_qty = remaining_qty - 1
+        WHERE id = $1 AND remaining_qty > 0 RETURNING id`,
+      [input.ticketTypeId],
+    );
+    if (cap.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return NextResponse.json({ error: 'SOLD_OUT' }, { status: 409 });
     }
 
-    // 6) Create order
-    const paymentId = `mock-modular-${randomUUID().slice(0, 8)}`;
-    const order = await client.query<{ id: string }>(
+    // 7) Platba PŘED zápisem objednávky (jako party-split a white-label): výjimka brány → ROLLBACK, nic nezůstane.
+    //    Dřív se createPayment nevolal vůbec a kupec šel vždy na /mock-gopay (v produkci 403).
+    const orderId = randomUUID();
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+    const payment = await createPayment({
+      orderId,
+      amountHalire: totalAmount,
+      currency: config.currency,
+      buyerEmail: input.buyerEmail.toLowerCase(),
+      buyerName: input.buyerName,
+      description: `Modulární pas: ${config.event_title}`,
+      paymentMethod: input.paymentMethod,
+      appUrl,
+    });
+    const REAL_GATEWAYS = ['comgate', 'stripe', 'mollie', 'paypal', 'przelewy24'];
+    const storedProvider = REAL_GATEWAYS.includes(payment.provider) ? payment.provider : input.paymentMethod;
+
+    await client.query(
       `INSERT INTO orders.orders
-         (user_id, event_id, status, total_amount, currency, locale,
+         (id, user_id, event_id, status, total_amount, currency, locale,
           gopay_payment_id, payment_provider, idempotency_key,
           expires_at, created_at, updated_at)
-       VALUES ($1, $2, 'pending', $3, $4, 'cs',
-               $5, $6, $7,
-               NOW() + INTERVAL '15 minutes', NOW(), NOW())
-       RETURNING id`,
+       VALUES ($1, $2, $3, 'pending', $4, $5, 'cs',
+               $6, $7, $8,
+               NOW() + INTERVAL '15 minutes', NOW(), NOW())`,
       [
+        orderId,
         userId,
         input.eventId,
         totalAmount,
         config.currency,
-        paymentId,
-        input.paymentMethod,
+        payment.paymentId,
+        storedProvider,
         randomUUID(),
       ],
     );
-    const orderId = order.rows[0].id;
 
     // 7) order_items
     await client.query(
@@ -202,61 +220,21 @@ export async function POST(req: NextRequest): Promise<Response> {
       [orderId, input.ticketTypeId, totalAmount],
     );
 
+    // Výběr dní×zón ve STEJNÉ transakci: dřív se ukládal zvlášť a chyba se jen zalogovala →
+    // vstupenka bez omezení = skener pustil všude (fallback na výchozí přístup typu).
+    await client.query(
+      `INSERT INTO marketing.modular_pass_pending_selections (order_id, selections)
+       VALUES ($1, $2::jsonb)`,
+      [orderId, JSON.stringify(input.selections)],
+    );
+
     await client.query('COMMIT');
-
-    // Pre-populate modular_access teprve PO payment (až ticket existuje).
-    // Selections uložíme do orders.orders.metadata jako JSON pro pickup
-    // v internal/order-completed handleru. ALE pro MVP — uložíme přímo
-    // do dočasné struktury (sessionToken v cookie) NEBO odložené tabulky.
-    // Pro tento MVP nejjednodušší — uložíme selections jako JSON do
-    // sessionové tabulky a po payment přečteme.
-    // (Alternativa: extend orders schema o jsonb metadata column — out of scope MVP).
-    // → Pro náš case ukládáme JSON do gopay_payment_id-keyed cache tabulky.
-    // Pro this MVP: použijeme orders.metadata co už existuje (jsonb column).
-
-    // Ukázalo se že orders nemá metadata column → uložíme do separate session-cache table.
-    // Vytvoříme jednoduchou key-value cache v marketing.transient_state.
-    // Schema nemá... fallback: uložíme selections do `tickets.ticket_modular_access`
-    // PŘEDEM s placeholder ticket_id, který přesměrujeme po ticket issuance.
-
-    // Pragmatic MVP — uložíme jako JSON do orders.orders.idempotency_key (nope, již použito).
-    // ZJEDNODUŠENÍ: uložíme přímo v jiné cache. Pro MVP použijeme přímo ticket_modular_access
-    // ale s placeholder ticket_id = orderId UUID (nelze, FK).
-    // → použijeme separate transient table.
-
-    const cacheClient = await db().connect();
-    try {
-      await cacheClient.query('BEGIN');
-      // Kolo 3: servisní kontext (runWithServiceContext) stačí — politiky mají větev app_is_service(); admin eskalace odstraněna.
-      await cacheClient.query(
-        `CREATE TABLE IF NOT EXISTS marketing.modular_pass_pending_selections (
-          order_id uuid PRIMARY KEY REFERENCES orders.orders(id) ON DELETE CASCADE,
-          selections jsonb NOT NULL,
-          created_at timestamptz NOT NULL DEFAULT now()
-        )`,
-      );
-      await cacheClient.query(
-        `INSERT INTO marketing.modular_pass_pending_selections (order_id, selections)
-         VALUES ($1, $2::jsonb)
-         ON CONFLICT (order_id) DO UPDATE SET selections = EXCLUDED.selections`,
-        [orderId, JSON.stringify(input.selections)],
-      );
-      await cacheClient.query('COMMIT');
-    } catch (e) {
-      await cacheClient.query('ROLLBACK').catch(() => undefined);
-      console.error('[modular checkout] cache failed', e);
-    } finally {
-      cacheClient.release();
-    }
-
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-    const gatewayUrl = `${appUrl}/mock-gopay/${paymentId}`;
 
     return NextResponse.json({
       orderId,
-      paymentId,
-      gatewayUrl,
-      provider: input.paymentMethod,
+      paymentId: payment.paymentId,
+      gatewayUrl: payment.gatewayUrl,
+      provider: storedProvider,
       totalAmount,
       daysCount: dayIds.length,
       zonesCount: zoneIds.length,

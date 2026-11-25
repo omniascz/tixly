@@ -1,179 +1,101 @@
 /**
- * Golden Path: Buyer kupuje sedadla na seedované akce.
+ * Golden Path: kupec na počítači koupí 2 místa na demo termínu a prodaná / blokovaná místa už vybrat nejdou.
  *
- * Reálný browser flow proti dev serveru — testuje to, co API smoke testy NEpokrývaly:
- *  - SVG mapa sálu se vyrenderuje
- *  - Sedadla jdou kliknout
- *  - Hold → checkout → mock GoPay → confirmation funguje v UI
+ * Přepsáno 25. 11. 2026: dřív čekal dev server :3000 a starý seed („Romeo a Julie“), na současné demo DB padal.
+ * Běží jako ostatní golden-path proti `next start` (BASE_URL, výchozí :3200) nad demo DB z migrací
+ * (scripts/staging/create.sh --local + seed-demo.sql) a simulátoru GoPay :3998. Nic nejde mimo localhost.
+ * Mobilní nákup s kategoriemi pokrývá scénář turné (krok 5), stránku potvrzení r20; tady desktop + nedostupná místa.
  *
- * Pokrývá:
- *  1. Romeo a Julie (Stará střelnice, 308 sedadel) — happy path
- *  2. Hamlet (stejný sál, jiný event) — multi-event integration
- *  3. Edge: sold sedadla v Romeo a Julie jsou disabled (nelze kliknout)
- *
- * Předpoklad: dev server běží na http://localhost:3000 a databáze je seedovaná.
+ *   1. Racek, Městské divadlo Brno: 2 místa v Přízemí → kategorie → simulátor GoPay → potvrzení, objednávka paid, 2 vstupenky
+ *   2. Táž místa jsou po nákupu „sold“ a bez role=button; blokovaná místa (řada 1, 7–10, blok Tisk) taky; klik nic nevybere
  */
-import { test, expect, type Page, type BrowserContext } from '@playwright/test';
+import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
+import pg from 'pg';
 
-const ROMEO_ID = '00000000-0000-4000-a000-000000000401';
-const HAMLET_ID = '00000000-0000-4000-a000-000000000402';
+const BASE = process.env.BASE_URL ?? 'http://localhost:3200';
+const OWNER_URL = process.env.AUDIT_OWNER_URL ?? 'postgresql://neondb_owner:fixowner@localhost:55632/r23demo';
+// demo termín Racek, Městské divadlo Brno (scripts/staging/seed-demo.sql) — blokace jen v řadě 1 a na balkoně
+const TERM = '00000000-0000-4000-a000-000000000501';
+const ROW = '4';
+const SEATS = ['1', '2'];
+const RUN = Date.now().toString(36);
+const RUN_IP = `10.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250) + 1}`;
+const EMAIL = `buyer-${RUN}@tixly.test`;
 
 test.describe.configure({ mode: 'serial' });
+let db: pg.Client;
+const q = async <T = Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T[]> =>
+  (await db.query(sql, params)).rows as T[];
 
-/** Před každou stránkou nastavíme cookie consent, ať banner nepřekrývá tlačítka. */
-async function presetCookieConsent(context: BrowserContext): Promise<void> {
-  await context.addInitScript(() => {
-    try {
-      window.localStorage.setItem(
-        'tixly.cookie-consent',
-        JSON.stringify({
-          essential: true,
-          analytics: false,
-          marketing: false,
-          decidedAt: new Date().toISOString(),
-        }),
-      );
-    } catch {
-      /* noop */
-    }
+async function buyerContext(browser: Browser): Promise<{ ctx: BrowserContext; page: Page }> {
+  const ctx = await browser.newContext({ baseURL: BASE });
+  await ctx.setExtraHTTPHeaders({ 'x-real-ip': RUN_IP });
+  await ctx.addInitScript(() => {
+    try { window.localStorage.setItem('tixly.cookie-consent', JSON.stringify({ essential: true, analytics: false, marketing: false, decidedAt: new Date().toISOString() })); } catch { /* */ }
   });
+  return { ctx, page: await ctx.newPage() };
 }
 
-/**
- * Sdílený flow: vyber 2 dostupná sedadla v sektoru PŘÍZEMÍ a dokonči checkout.
- * Ověří listing → detail → seat picker → 2 hold → checkout → mock GoPay → confirmation.
- */
-async function purchaseTwoSeatsFromPrizemi(
-  page: Page,
-  eventId: string,
-  expectedTitle: RegExp,
-): Promise<void> {
-  const testEmail = `pw-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.cz`;
-
-  await test.step(`Detail eventu (${expectedTitle}) se načte`, async () => {
-    await page.goto(`/cs/events/${eventId}`, { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { name: expectedTitle })).toBeVisible();
-  });
-
-  await test.step('Seat picker — SVG mapa', async () => {
-    await page.goto(`/cs/events/${eventId}/seats`, { waitUntil: 'domcontentloaded' });
-    await page.waitForSelector('svg[aria-label="Plán sálu"]', { timeout: 30_000 });
-    await page.waitForSelector('circle[role="button"]', { timeout: 10_000 });
-    await expect(page.getByText(/Cenové kategorie/i)).toBeVisible();
-  });
-
-  await test.step('Vyberu 2 dostupná sedadla v PŘÍZEMÍ', async () => {
-    const available = page.locator(
-      'circle[role="button"][aria-label*="PŘÍZEMÍ"][aria-label*="available"]',
-    );
-    const count = await available.count();
-    expect(count).toBeGreaterThan(2);
-    await available.nth(0).click();
-    await available.nth(1).click();
-    await expect(page.getByText('2 / 10 sedadel')).toBeVisible();
-  });
-
-  await test.step('Hold + redirect na checkout', async () => {
-    await page.getByRole('button', { name: /Pokračovat na pokladnu/i }).click();
-    await page.waitForURL(/\/cs\/checkout/, { timeout: 15_000 });
-  });
-
-  await test.step('Vyplním checkout form (quantity z URL = 2, žádný workaround)', async () => {
-    // Po P0c fixu (htmlFor/id) labely fungují. Po P0b fixu quantity přijde
-    // z URL ?quantity=2 a netřeba ho ručně přepisovat.
-    await page.getByLabel('Jméno a příjmení').fill('Test Kupec Playwright');
-    await page.getByLabel('E-mail').fill(testEmail);
-    await expect(page.getByLabel('Počet kusů')).toHaveValue('2');
-    await page.getByRole('button', { name: /Pokračovat na platbu/i }).click();
-  });
-
-  await test.step('Mock GoPay → Zaplatit', async () => {
-    await page.waitForURL(/\/mock-gopay\//, { timeout: 15_000 });
-    await page.getByRole('button', { name: /^Zaplatit$/ }).click();
-  });
-
-  await test.step('Order confirmation — paid', async () => {
-    await page.waitForURL(/\/cs\/order-confirmation\//, { timeout: 15_000 });
-    await expect(page.getByRole('heading', { name: expectedTitle })).toBeVisible();
-    expect(page.url()).toMatch(/order-confirmation\/[0-9a-f-]{36}/);
-  });
+/** Sedadlo v plánku; ve velkém sále je nejdřív přehled sektorů → otevřít sektor. */
+async function seat(page: Page, sector: string, row: string, num: string) {
+  await page.locator('svg[aria-label="Plán sálu"]').first().waitFor();
+  await page.locator('svg[aria-label="Plán sálu"] [aria-label^="Sektor "]').first().waitFor({ timeout: 20_000 });
+  const prefix = `Sektor ${sector}, řada ${row}, sedadlo ${num}, `;
+  let c = page.locator(`[aria-label^="${prefix}"]`);
+  if (!(await c.count())) {
+    await page.locator(`[aria-label^="Sektor ${sector}, dostupných"]`).first().click();
+    c = page.locator(`[aria-label^="${prefix}"]`);
+  }
+  return c.first();
 }
 
-test('Romeo a Julie: 2 sedadla z PŘÍZEMÍ → confirmation', async ({ page, context }) => {
-  await presetCookieConsent(context);
+test.beforeAll(async () => {
+  db = new pg.Client({ connectionString: OWNER_URL });
+  await db.connect();
+});
+test.afterAll(async () => { await db?.end(); });
 
-  await test.step('Listing zobrazuje Romeo a Julie', async () => {
-    await page.goto('/cs/events', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByText(/Romeo a Julie/i).first()).toBeVisible();
-  });
+test('1 — Racek Brno: 2 místa v Přízemí → simulátor GoPay → potvrzení, objednávka paid, 2 vstupenky', async ({ browser }) => {
+  test.setTimeout(120_000);
+  const { ctx, page } = await buyerContext(browser);
+  await page.goto(`/cs/events/${TERM}`);
+  await expect(page.getByRole('heading', { name: /Racek/ }).first()).toBeVisible();
+  await page.goto(`/cs/events/${TERM}/seats`);
+  for (const s of SEATS) await (await seat(page, 'Přízemí', ROW, s)).click();
+  await expect(page.getByText(new RegExp(`^${SEATS.length} / \\d+ sedadel$`))).toBeVisible();
+  await page.getByRole('button', { name: /Pokračovat na pokladnu/ }).click();
+  await page.waitForURL(/\/seats\/kategorie/);
+  await page.getByPlaceholder('E-mail').fill(EMAIL);
+  await page.getByPlaceholder('Jméno a příjmení').fill('Kupec Playwright');
+  await page.getByRole('button', { name: 'Zaplatit' }).click();
+  await page.waitForURL(/localhost:3998\/gw\//, { timeout: 20_000 });
+  await page.getByTestId('gw-pay').click();
+  await page.waitForURL(/\/cs\/order-confirmation\/[0-9a-f-]{36}/, { timeout: 20_000 });
+  await expect(page.getByRole('heading', { name: /Racek/ }).first()).toBeVisible();
 
-  await purchaseTwoSeatsFromPrizemi(page, ROMEO_ID, /Romeo a Julie/i);
+  const orderId = page.url().match(/order-confirmation\/([0-9a-f-]{36})/)![1];
+  await expect.poll(async () => (await q<{ status: string }>(`SELECT status FROM orders.orders WHERE id = $1`, [orderId]))[0]?.status,
+    { timeout: 30_000 }).toBe('paid');
+  await expect.poll(async () => (await q<{ seat: string }>(
+    `SELECT es.seat_number AS seat FROM tickets.tickets t JOIN catalog.event_seats es ON es.id = t.event_seat_id
+      WHERE t.order_id = $1 AND es.row = $2 ORDER BY es.seat_number::int`, [orderId, ROW])).map((r) => r.seat),
+    { timeout: 30_000 }).toEqual(SEATS);
+  await ctx.close();
 });
 
-test('Hamlet (stejný sál): 2 sedadla z PŘÍZEMÍ → confirmation', async ({
-  page,
-  context,
-}) => {
-  await presetCookieConsent(context);
-  await purchaseTwoSeatsFromPrizemi(page, HAMLET_ID, /Hamlet/i);
-});
+test('2 — prodaná a blokovaná místa nejsou tlačítka a klik je nevybere', async ({ browser }) => {
+  const { ctx, page } = await buyerContext(browser);
+  await page.goto(`/cs/events/${TERM}/seats`);
+  const sold = await seat(page, 'Přízemí', ROW, SEATS[0]);
+  await expect(sold).toHaveAttribute('aria-label', /, sold/);
+  await expect(sold).not.toHaveAttribute('role', 'button');
+  const blocked = await seat(page, 'Přízemí', '1', '7');
+  await expect(blocked).toHaveAttribute('aria-label', /, blocked/);
+  await expect(blocked).not.toHaveAttribute('role', 'button');
 
-test('Promotér theatre@hranice.cz se přihlásí a vidí svoje akce v /admin', async ({
-  page,
-  context,
-}) => {
-  await presetCookieConsent(context);
-
-  await test.step('Login form přijme credentials', async () => {
-    await page.goto('/cs/login', { waitUntil: 'domcontentloaded' });
-    // Reactu dáme čas na hydrace, jinak fill() proběhne před onChange handlery.
-    await page.waitForLoadState('networkidle');
-    await page.getByLabel('E-mail').fill('theatre@hranice.cz');
-    await page.getByLabel('Heslo').fill('Demo2026!');
-    await Promise.all([
-      page.waitForResponse(
-        (r) => r.url().endsWith('/api/auth/login') && r.request().method() === 'POST',
-        { timeout: 15_000 },
-      ),
-      page.getByRole('button', { name: /^Přihlásit$/ }).click(),
-    ]);
-  });
-
-  await test.step('Redirect na /admin (promotér má membership)', async () => {
-    // Login zapíše localStorage + router.push('/admin'). Middleware pak
-    // ověří JWT cookie a pustí na admin layout.
-    await page.waitForURL(/\/admin(?!\/?login)/, { timeout: 15_000 });
-  });
-
-  await test.step('/admin/events listing má Romeo a Julie + Hamlet', async () => {
-    await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
-    // Hooks fetch z /api/admin/events s JWT — render je client-side, dáme čas.
-    await expect(page.getByRole('link', { name: /Romeo a Julie/i })).toBeVisible({
-      timeout: 15_000,
-    });
-    await expect(page.getByRole('link', { name: /^Hamlet$/i })).toBeVisible();
-  });
-});
-
-test('Sold sedadla v Romeo a Julie jsou disabled (nelze koupit)', async ({
-  page,
-  context,
-}) => {
-  await presetCookieConsent(context);
-  await page.goto(`/cs/events/${ROMEO_ID}/seats`, { waitUntil: 'domcontentloaded' });
-  await page.waitForSelector('svg[aria-label="Plán sálu"]', { timeout: 30_000 });
-
-  // Seedy ve fázi 3 označily 7 sedadel jako sold (a 2 další po předchozím testu).
-  // Sold/held cirkly NEMAJÍ role="button" (interactive=false v SeatPicker.tsx
-  // řádek 260+272), takže nejsou klikatelné. Ověříme, že počet je > 0.
-  const soldOrHeld = page.locator(
-    'circle:not([role="button"])[aria-label*="sold"], circle:not([role="button"])[aria-label*="held"]',
-  );
-  const soldCount = await soldOrHeld.count();
-  expect(soldCount).toBeGreaterThan(0);
-
-  // Pokus o klik na sold sedadlo: protože nemá role=button a tabIndex=-1,
-  // klik nezpůsobí toggle. Sticky bar zůstane na "0 / 10 sedadel".
-  await soldOrHeld.first().click({ force: true }).catch(() => {});
-  await expect(page.getByText('0 / 10 sedadel')).toBeVisible();
+  await sold.click({ force: true });
+  await blocked.click({ force: true });
+  await expect(page.getByText(/^0 \/ \d+ sedadel$/)).toBeVisible();
+  await expect(page.getByRole('button', { name: /Pokračovat na pokladnu/ })).toBeDisabled();
+  await ctx.close();
 });

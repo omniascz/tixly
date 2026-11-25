@@ -146,6 +146,8 @@ d('booking/settlement + re-entry — zivy beh (472–478)', () => {
   }, 120_000);
 
   it('D: vyuctovani — vytvorit, uzavrit, snimek se nemeni', async () => {
+    // D pouziva smlouvu zalozenou v A; bez ni by padl az na 422 agreementId Required (matouci).
+    expect(agreementId, 'D zavisi na A: krok A smlouvu nezalozil, oprav nejdriv A').toBeTruthy();
     const { POST: create } = await import('@/app/api/admin/events/[id]/artist-settlements/route');
     const s = await call(await create(req(`/api/admin/events/${chain.eventId}/artist-settlements`, chain.adminUserId, 'POST',
       { agreementId }), { params: { id: chain.eventId } } as never));

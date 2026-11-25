@@ -48,23 +48,17 @@ export async function GET(req: NextRequest): Promise<Response> {
   return runAsPromoter(req, async (promoter) => {
   const url = req.nextUrl;
   const month = url.searchParams.get('month');
-  let from: string;
-  let to: string;
-  if (month && /^\d{4}-\d{2}$/.test(month)) {
-    from = `${month}-01`;
-    const [y, m] = month.split('-').map(Number);
-    const nextMonth = new Date(y, m, 1);
-    to = nextMonth.toISOString().slice(0, 10);
-  } else {
-    const now = new Date();
-    from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-    const nextM = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    to = nextM.toISOString().slice(0, 10);
-  }
+  // Hranice měsíce v Praze čistou aritmetikou: new Date(y, m, 1).toISOString() posune den podle zóny serveru.
+  const ym = month && /^\d{4}-\d{2}$/.test(month)
+    ? month
+    : new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Prague' }).slice(0, 7);
+  const [y, m] = ym.split('-').map(Number);
+  const from = `${ym}-01`;
+  const to = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`;
 
   const r = await db().query<OrderRow>(
     `SELECT
-       o.id, o.paid_at::text AS paid_at, o.total_amount, o.currency,
+       o.id, (o.paid_at AT TIME ZONE 'Europe/Prague')::text AS paid_at, o.total_amount, o.currency,
        u.email AS buyer_email, u.name AS buyer_name,
        o.variable_symbol,
        e.title AS event_title,
@@ -78,7 +72,7 @@ export async function GET(req: NextRequest): Promise<Response> {
      LEFT JOIN platform.promoters p ON p.id = e.promoter_id
      WHERE p.id = $1
        AND o.status = 'paid'
-       AND o.paid_at >= $2 AND o.paid_at < $3
+       AND (o.paid_at AT TIME ZONE 'Europe/Prague') >= $2::timestamp AND (o.paid_at AT TIME ZONE 'Europe/Prague') < $3::timestamp
      ORDER BY o.paid_at ASC`,
     [promoter.promoterId, from, to],
   );

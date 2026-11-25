@@ -172,7 +172,7 @@ export default function SeasonPassPage() {
                   : 'bg-rose-100 text-rose-800'
               }
             >
-              {pass.status === 'active' ? 'Aktivní' : pass.status === 'expired' ? 'Vypršela' : 'Zrušena'}
+              {pass.status === 'active' ? 'Aktivní' : pass.status === 'expired' ? 'Vypršela' : pass.status === 'pending_payment' ? 'Čeká na platbu' : 'Zrušena'}
             </Badge>
           </CardTitle>
         </CardHeader>

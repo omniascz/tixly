@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { toLocalInput } from '@/lib/datetime-local';
 
 interface Day {
   id: string;
@@ -131,8 +132,8 @@ export default function SeasonBuilderPage() {
   function startEditDay(day: Day) {
     setEditingDayId(day.id);
     setDayLabel(day.label ?? '');
-    setDayStarts(day.startsAt.slice(0, 16));
-    setDayEnds(day.endsAt.slice(0, 16));
+    setDayStarts(toLocalInput(day.startsAt));
+    setDayEnds(toLocalInput(day.endsAt));
     setDayNotes(day.notes ?? '');
     setShowAddDay(true);
   }

@@ -4,8 +4,10 @@
  * Eventim-style 4-day payout processor. Najde resale.seller_payouts
  * s scheduled_for <= now() a status IN (pending, eligible), provede payout.
  *
- * Skeleton: pro mock režim jen označí jako 'paid' s external_payout_id = 'mock-...'.
- * Production by routovala přes Fio / Wise / Stripe Connect.
+ * Bez skutečné výplatní služby (PAYOUT_PROVIDER nenastaven / 'mock') NIC nemění: dřív zapisoval
+ * 'paid' s vymyšleným mock-ID, i když prodejce nedostal ani korunu (25. 11. 2026).
+ * Se skutečnou službou výplaty nejdřív atomicky zabere (status 'processing'), aby souběžný běh
+ * nevyplatil totéž dvakrát (FOR UPDATE mimo transakci nic nezamykal).
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { db, runWithServiceContext } from '@/lib/db/rls-pool';
@@ -23,6 +25,23 @@ export async function GET(req: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
   }
 
+  const provider = process.env.PAYOUT_PROVIDER ?? 'mock';
+  if (provider === 'mock') {
+    const waiting = await db().query<{ cnt: string }>(
+      `SELECT COUNT(*)::text AS cnt FROM resale.seller_payouts
+        WHERE status IN ('pending', 'eligible') AND scheduled_for <= now()`,
+    );
+    return NextResponse.json({
+      ok: true,
+      runAt: new Date().toISOString(),
+      processed: 0,
+      paid: 0,
+      failed: 0,
+      skipped_no_iban: 0,
+      awaitingPayoutProvider: Number(waiting.rows[0].cnt),
+    });
+  }
+
   const eligible = await db().query<{
     id: string;
     seller_id: string;
@@ -30,13 +49,15 @@ export async function GET(req: NextRequest): Promise<Response> {
     currency: string;
     bank_iban: string | null;
   }>(
-    `SELECT id, seller_id, payout_halire, currency, bank_iban
-       FROM resale.seller_payouts
-      WHERE status IN ('pending', 'eligible')
-        AND scheduled_for <= now()
-      ORDER BY scheduled_for
-      LIMIT 100
-      FOR UPDATE SKIP LOCKED`,
+    `UPDATE resale.seller_payouts sp
+        SET status = 'processing', updated_at = now()
+       FROM (SELECT id FROM resale.seller_payouts
+              WHERE status IN ('pending', 'eligible') AND scheduled_for <= now()
+              ORDER BY scheduled_for
+              LIMIT 100
+              FOR UPDATE SKIP LOCKED) claim
+      WHERE sp.id = claim.id
+      RETURNING sp.id, sp.seller_id, sp.payout_halire, sp.currency, sp.bank_iban`,
   );
 
   const results = {
@@ -45,8 +66,6 @@ export async function GET(req: NextRequest): Promise<Response> {
     failed: 0,
     skipped_no_iban: 0,
   };
-
-  const provider = process.env.PAYOUT_PROVIDER ?? 'mock';
 
   for (const payout of eligible.rows) {
     results.processed++;
@@ -65,10 +84,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     }
 
     try {
-      // Provider call — skeleton
-      const externalPayoutId = provider === 'mock'
-        ? `mock-payout-${payout.id.slice(0, 8)}-${Date.now()}`
-        : await callPayoutProvider(provider, payout);
+      const externalPayoutId = await callPayoutProvider(provider, payout);
 
       await db().query(
         `UPDATE resale.seller_payouts
