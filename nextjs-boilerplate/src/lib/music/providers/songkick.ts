@@ -20,7 +20,7 @@ export async function postSongkickEvent(p: MusicEventPayload): Promise<ProviderR
     event: {
       displayName: p.event_title,
       type: 'Concert',
-      start: { date: p.date_start.slice(0, 10), datetime: new Date(p.date_start).toISOString() },
+      start: { date: new Date(p.date_start).toLocaleDateString('sv-SE', { timeZone: 'Europe/Prague' }), datetime: new Date(p.date_start).toISOString() },
       performance: [
         { artist: { identifier: p.external_artist_id, displayName: p.artist_name ?? undefined }, billing: 'headline' },
       ],

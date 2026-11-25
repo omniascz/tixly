@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { toLocalInput } from '@/lib/datetime-local';
 import { useRouteParams } from '@/lib/next/route-params';
 
 function Label({ className, children }: { className?: string; children: React.ReactNode }) {
@@ -128,8 +129,8 @@ export default function TicketTypesPage(_props: {
     setEditPrice(String((tt.basePrice / 100).toFixed(0)));
     setEditPresaleRequired(tt.presaleCodeRequired);
     setEditPresaleCode(tt.presaleCode ?? '');
-    setEditPresaleStartsAt(tt.presaleStartsAt ? tt.presaleStartsAt.slice(0, 16) : '');
-    setEditPresaleEndsAt(tt.presaleEndsAt ? tt.presaleEndsAt.slice(0, 16) : '');
+    setEditPresaleStartsAt(toLocalInput(tt.presaleStartsAt));
+    setEditPresaleEndsAt(toLocalInput(tt.presaleEndsAt));
     setEditMaxPerBuyer(tt.maxPerBuyer ? String(tt.maxPerBuyer) : '');
     setEditVat(tt.vatRateCode ?? '');
     setEditCapacity(String(tt.totalQty));
@@ -154,9 +155,9 @@ export default function TicketTypesPage(_props: {
     // mig 432 — presale
     if (editPresaleRequired !== tt.presaleCodeRequired) body.presaleCodeRequired = editPresaleRequired;
     if (editPresaleCode !== (tt.presaleCode ?? '')) body.presaleCode = editPresaleCode || null;
-    if (editPresaleStartsAt !== (tt.presaleStartsAt ? tt.presaleStartsAt.slice(0, 16) : ''))
+    if (editPresaleStartsAt !== (toLocalInput(tt.presaleStartsAt)))
       body.presaleStartsAt = editPresaleStartsAt ? new Date(editPresaleStartsAt).toISOString() : null;
-    if (editPresaleEndsAt !== (tt.presaleEndsAt ? tt.presaleEndsAt.slice(0, 16) : ''))
+    if (editPresaleEndsAt !== (toLocalInput(tt.presaleEndsAt)))
       body.presaleEndsAt = editPresaleEndsAt ? new Date(editPresaleEndsAt).toISOString() : null;
     // mig 433 — max per buyer
     const newMaxPerBuyer = editMaxPerBuyer ? parseInt(editMaxPerBuyer, 10) : null;

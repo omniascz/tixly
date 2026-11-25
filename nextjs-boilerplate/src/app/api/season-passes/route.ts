@@ -130,8 +130,11 @@ export async function POST(req: NextRequest): Promise<Response> {
 
       if (product.max_per_buyer) {
         const alreadyRes = await client.query<{ cnt: string }>(
-          `SELECT COUNT(*)::text AS cnt FROM orders.season_passes
-           WHERE product_id = $1 AND holder_user_id = $2`,
+          // Držitel = kupec objednávky (sloupec holder_user_id neexistuje); nezaplacené propadlé se nepočítají.
+          `SELECT COUNT(*)::text AS cnt FROM orders.season_passes sp
+           JOIN orders.orders o ON o.id = sp.order_id
+           WHERE sp.product_id = $1 AND o.user_id = $2
+             AND (o.status = 'paid' OR (o.status = 'pending' AND o.expires_at > NOW()))`,
           [product.id, userId],
         );
         if (Number(alreadyRes.rows[0].cnt) >= product.max_per_buyer) {
@@ -185,16 +188,27 @@ export async function POST(req: NextRequest): Promise<Response> {
       await client.query('COMMIT');
 
       const { createPayment } = await import('@/lib/payment/provider');
-      const paymentSession = await createPayment({
-        orderId,
-        amountHalire: product.price_halire,
-        currency: 'CZK',
-        buyerEmail,
-        buyerName,
-        description: `Sezónní pas: ${product.title}`,
-        paymentMethod: input.paymentMethod,
-        appUrl,
-      });
+      let paymentSession: Awaited<ReturnType<typeof createPayment>>;
+      try {
+        paymentSession = await createPayment({
+          orderId,
+          amountHalire: product.price_halire,
+          currency: 'CZK',
+          buyerEmail,
+          buyerName,
+          description: `Sezónní pas: ${product.title}`,
+          paymentMethod: input.paymentMethod,
+          appUrl,
+        });
+      } catch (err) {
+        // Po COMMITu ROLLBACK nic nevrátí: objednávku zrušíme, ať nezůstane viset nezaplacená permanentka.
+        await db().query(
+          `UPDATE orders.orders SET status = 'cancelled', updated_at = NOW() WHERE id = $1 AND status = 'pending'`,
+          [orderId],
+        );
+        console.error('[POST /api/season-passes] createPayment', err);
+        return NextResponse.json({ error: 'PAYMENT_UNAVAILABLE' }, { status: 502 });
+      }
 
       if (paymentSession.paymentId !== paymentId) {
         await db().query(

@@ -1,11 +1,12 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Copy, ExternalLink, Monitor } from 'lucide-react';
+import { useParams } from 'next/navigation';
+import QRCode from 'qrcode';
 import { PageHeader } from '@/components/admin/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function KioskDisplayPage() {
   const params = useParams();
@@ -18,7 +19,11 @@ export default function KioskDisplayPage() {
       : process.env.NEXT_PUBLIC_APP_URL ?? '';
 
   const kioskUrl = `${appUrl}/cs/kiosk/${eventId}`;
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(kioskUrl)}`;
+  // QR lokálně v prohlížeči (dřív api.qrserver.com = odkaz akce odcházel cizí službě).
+  const [qrUrl, setQrUrl] = useState('');
+  useEffect(() => {
+    void QRCode.toDataURL(kioskUrl, { width: 200, margin: 4 }).then(setQrUrl);
+  }, [kioskUrl]);
 
   function copy() {
     void navigator.clipboard.writeText(kioskUrl).then(() => {
@@ -67,13 +72,13 @@ export default function KioskDisplayPage() {
           <CardTitle className="text-base">QR kód pro rychlé otevření</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
-          <img
+          {qrUrl && <img
             src={qrUrl}
             alt="QR kód pro kiosk display"
             width={200}
             height={200}
             className="rounded-lg border"
-          />
+          />}
           <p className="text-sm text-muted-foreground text-center">
             Naskenujte QR kódem na mobilním zařízení a otevřete kiosk displej.<br />
             Vhodné pro přenos URL na monitor bez nutnosti ručního zadávání.

@@ -4,6 +4,7 @@ import { db, runWithServiceContext } from '@/lib/db/rls-pool';
 import { z } from 'zod';
 import { encryptSecret } from '@/lib/crypto';
 import { saleBlockedResponse } from '@/lib/sales/cutoff';
+import { SEASON_PASS_STATUS_SQL } from '@/lib/season-pass/status';
 
 interface PassRow {
   id: string;
@@ -35,12 +36,13 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ passToke
 
     const passRes = await db().query<PassRow>(
       `SELECT sp.id, sp.product_id, sp.holder_email, sp.holder_name,
-              sp.uses_remaining, sp.valid_until::text, sp.status,
+              sp.uses_remaining, sp.valid_until::text, ${SEASON_PASS_STATUS_SQL} AS status,
               spp.title AS product_title, spp.total_uses,
               p.id AS promoter_id, p.name AS promoter_name, p.slug AS promoter_slug
        FROM orders.season_passes sp
        JOIN catalog.season_pass_products spp ON spp.id = sp.product_id
        JOIN platform.promoters p ON p.id = spp.promoter_id
+       LEFT JOIN orders.orders o ON o.id = sp.order_id
        WHERE sp.pass_token = $1`,
       [passToken],
     );
@@ -128,10 +130,13 @@ export async function POST(req: NextRequest, props: { params: Promise<{ passToke
         status: string;
         product_id: string;
       }>(
-        `SELECT id, holder_user_id, holder_email, uses_remaining, valid_until, status, product_id
-         FROM orders.season_passes
-         WHERE pass_token = $1
-         FOR UPDATE`,
+        // Držitel = kupec objednávky; FOR UPDATE OF sp zamkne jen permanentku.
+        `SELECT sp.id, o.user_id AS holder_user_id, sp.holder_email, sp.uses_remaining, sp.valid_until,
+                ${SEASON_PASS_STATUS_SQL} AS status, sp.product_id
+         FROM orders.season_passes sp
+         LEFT JOIN orders.orders o ON o.id = sp.order_id
+         WHERE sp.pass_token = $1
+         FOR UPDATE OF sp`,
         [passToken],
       );
       if (passRes.rows.length === 0) {
